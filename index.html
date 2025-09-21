@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="WiseBook ERP - Système de gestion intégré pour l'Afrique avec standards SYSCOHADA" />
+    <meta name="keywords" content="ERP, Comptabilité, SYSCOHADA, Gestion, Afrique, Finance" />
+    <meta name="author" content="WiseBook Team" />
+    
+    <title>WiseBook ERP - Système ERP Comptable SYSCOHADA</title>
+    
+    <!-- Police Sometype Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sometype+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles de base pour éviter le flash -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Sometype Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #FFFFFF;
+        color: #353A3B;
+      }
+      
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Loading initial - Trinity Colors */
+      .app-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #7A8B8E 0%, #353A3B 100%);
+      }
+      
+      .loading-content {
+        text-align: center;
+        color: white;
+      }
+      
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      
+      .loading-subtext {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Loading initial pendant le chargement de l'app -->
+      <div class="app-loading">
+        <div class="loading-content">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">WiseBook ERP</div>
+          <div class="loading-subtext">Système ERP Comptable SYSCOHADA</div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

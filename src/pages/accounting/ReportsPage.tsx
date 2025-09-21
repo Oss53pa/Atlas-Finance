@@ -1,0 +1,121 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  BookOpen, FileText, Scale, BarChart3, ArrowLeft,
+  FileSpreadsheet, TrendingUp, PieChart
+} from 'lucide-react';
+import GrandLivre from '@/components/accounting/GrandLivre';
+import Balance from '@/components/accounting/Balance';
+
+const ReportsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('grand-livre');
+
+  const tabs = [
+    { id: 'grand-livre', label: 'Grand Livre', icon: BookOpen },
+    { id: 'balance', label: 'Balance', icon: Scale },
+    { id: 'compte-resultat', label: 'Compte de Résultat', icon: TrendingUp },
+    { id: 'bilan', label: 'Bilan', icon: FileSpreadsheet }
+  ];
+
+  return (
+    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+      {/* Header avec navigation */}
+      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/accounting')}
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#444444]" />
+              <span className="text-sm font-semibold text-[#444444]">Comptabilité</span>
+            </button>
+
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#6A8A82] to-[#7A99AC] flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-[#191919]">États Financiers</h1>
+                <p className="text-sm text-[#767676]">Grand Livre, Balance et Rapports</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation par onglets */}
+      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
+        <div className="px-6 border-b border-[#E8E8E8]">
+          <nav className="flex space-x-8">
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-[#6A8A82] text-[#6A8A82]'
+                      : 'border-transparent text-[#767676] hover:text-[#444444]'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Contenu des onglets */}
+        <div>
+          {/* Grand Livre */}
+          {activeTab === 'grand-livre' && <GrandLivre />}
+
+          {/* Balance */}
+          {activeTab === 'balance' && <Balance />}
+
+          {/* Compte de Résultat */}
+          {activeTab === 'compte-resultat' && (
+            <div className="p-6">
+              <div className="text-center py-12">
+                <TrendingUp className="w-16 h-16 text-[#767676] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#191919] mb-2">
+                  Compte de Résultat
+                </h3>
+                <p className="text-[#767676]">
+                  État des charges et produits de l'exercice
+                </p>
+                <button className="mt-4 px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors">
+                  Générer le compte de résultat
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Bilan */}
+          {activeTab === 'bilan' && (
+            <div className="p-6">
+              <div className="text-center py-12">
+                <FileSpreadsheet className="w-16 h-16 text-[#767676] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#191919] mb-2">
+                  Bilan Comptable
+                </h3>
+                <p className="text-[#767676]">
+                  Situation patrimoniale de l'entreprise
+                </p>
+                <button className="mt-4 px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors">
+                  Générer le bilan
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReportsPage;
