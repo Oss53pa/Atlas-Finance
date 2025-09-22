@@ -17,7 +17,7 @@ const CompleteBudgetingModule: React.FC = () => {
   // Détection automatique de l'onglet selon l'URL
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['synthese', 'budgets', 'suivi', 'previsions', 'alertes', 'rapports'].includes(tab)) {
+    if (tab && ['synthese', 'planification', 'creation', 'overview', 'analyse', 'budgets', 'suivi', 'previsions', 'alertes', 'rapports'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -32,6 +32,10 @@ const CompleteBudgetingModule: React.FC = () => {
   // Onglets budget
   const tabs = [
     { id: 'synthese', label: 'Synthèse', icon: BarChart3 },
+    { id: 'planification', label: 'Planification Budget', icon: Calendar },
+    { id: 'creation', label: 'Budget Creation', icon: Plus },
+    { id: 'overview', label: 'Overview', icon: Eye },
+    { id: 'analyse', label: 'Analyse Variation', icon: Activity },
     { id: 'budgets', label: 'Budgets', icon: Target },
     { id: 'suivi', label: 'Suivi Réel/Budget', icon: TrendingUp },
     { id: 'previsions', label: 'Prévisions', icon: DollarSign },
@@ -300,6 +304,589 @@ const CompleteBudgetingModule: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Onglet Planification Budget */}
+          {activeTab === 'planification' && (
+            <div className="space-y-6">
+              {/* Timeline de planification */}
+              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-[#191919]">📅 Timeline de Planification Budgétaire 2025</h3>
+                  <div className="flex items-center space-x-3">
+                    <button className="flex items-center space-x-2 px-3 py-2 border border-[#E8E8E8] rounded-lg hover:bg-gray-50">
+                      <Calendar className="w-4 h-4" />
+                      <span className="text-sm">Calendrier</span>
+                    </button>
+                    <button className="flex items-center space-x-2 px-3 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323]">
+                      <Plus className="w-4 h-4" />
+                      <span className="text-sm">Nouvelle étape</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div className="relative">
+                  <div className="absolute left-8 top-0 h-full w-0.5 bg-gray-200"></div>
+                  {[
+                    { date: '15 Septembre 2024', title: 'Lancement campagne budgétaire', status: 'completed', desc: 'Envoi des directives budgétaires aux départements' },
+                    { date: '30 Septembre 2024', title: 'Collecte propositions', status: 'completed', desc: 'Réception des propositions budgétaires départementales' },
+                    { date: '15 Octobre 2024', title: 'Consolidation', status: 'completed', desc: 'Consolidation et analyse des propositions' },
+                    { date: '30 Octobre 2024', title: 'Arbitrage', status: 'in-progress', desc: 'Réunions d\'arbitrage avec la direction' },
+                    { date: '15 Novembre 2024', title: 'Validation finale', status: 'pending', desc: 'Validation par le conseil d\'administration' },
+                    { date: '1 Janvier 2025', title: 'Mise en application', status: 'pending', desc: 'Début de l\'exercice budgétaire 2025' }
+                  ].map((milestone, index) => (
+                    <div key={index} className="relative flex items-start mb-8">
+                      <div className={`z-10 w-4 h-4 rounded-full border-2 ${
+                        milestone.status === 'completed' ? 'bg-green-500 border-green-500' :
+                        milestone.status === 'in-progress' ? 'bg-yellow-500 border-yellow-500' :
+                        'bg-gray-300 border-gray-300'
+                      }`}></div>
+                      <div className="ml-8 flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-sm font-semibold text-[#191919]">{milestone.title}</h4>
+                            <p className="text-xs text-[#767676] mt-1">{milestone.desc}</p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-[#444444]">{milestone.date}</span>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              milestone.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              milestone.status === 'in-progress' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {milestone.status === 'completed' ? 'Terminé' :
+                               milestone.status === 'in-progress' ? 'En cours' : 'À venir'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Phases et responsables */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                  <h3 className="font-semibold text-[#191919] mb-4">📋 Phases du processus</h3>
+                  <div className="space-y-3">
+                    {[
+                      { phase: 'Préparation', duration: '2 semaines', progress: 100 },
+                      { phase: 'Collecte', duration: '3 semaines', progress: 100 },
+                      { phase: 'Analyse', duration: '2 semaines', progress: 100 },
+                      { phase: 'Arbitrage', duration: '2 semaines', progress: 45 },
+                      { phase: 'Validation', duration: '1 semaine', progress: 0 }
+                    ].map((phase, index) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium text-[#191919]">{phase.phase}</span>
+                          <span className="text-xs text-[#767676]">{phase.duration}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full bg-gradient-to-r from-[#6A8A82] to-[#B87333]"
+                            style={{width: `${phase.progress}%`}}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-[#444444] mt-1">{phase.progress}% complété</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                  <h3 className="font-semibold text-[#191919] mb-4">👥 Responsables par département</h3>
+                  <div className="space-y-2">
+                    {[
+                      { dept: 'Commercial', responsable: 'Marie Dupont', status: 'Soumis', date: '28/09/2024' },
+                      { dept: 'Production', responsable: 'Jean Martin', status: 'Soumis', date: '27/09/2024' },
+                      { dept: 'Administration', responsable: 'Sophie Bernard', status: 'En cours', date: '-' },
+                      { dept: 'R&D', responsable: 'Pierre Leroy', status: 'Soumis', date: '29/09/2024' },
+                      { dept: 'Logistique', responsable: 'Claire Moreau', status: 'En retard', date: '-' }
+                    ].map((dept, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+                        <div className="flex items-center space-x-3">
+                          <Users className="w-4 h-4 text-[#767676]" />
+                          <div>
+                            <p className="text-sm font-medium text-[#191919]">{dept.dept}</p>
+                            <p className="text-xs text-[#767676]">{dept.responsable}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            dept.status === 'Soumis' ? 'bg-green-100 text-green-700' :
+                            dept.status === 'En cours' ? 'bg-blue-100 text-blue-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {dept.status}
+                          </span>
+                          <p className="text-xs text-[#767676] mt-1">{dept.date}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Onglet Budget Creation */}
+          {activeTab === 'creation' && (
+            <div className="space-y-6">
+              {/* Formulaire de création */}
+              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                <h3 className="text-lg font-semibold text-[#191919] mb-6">🎯 Créer un nouveau budget</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Nom du budget</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Budget Commercial 2025"
+                      className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B87333] focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Type</label>
+                    <select className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B87333] focus:border-transparent">
+                      <option>Budget d'exploitation</option>
+                      <option>Budget d'investissement</option>
+                      <option>Budget de trésorerie</option>
+                      <option>Budget projet</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Département</label>
+                    <select className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B87333] focus:border-transparent">
+                      <option>Commercial</option>
+                      <option>Production</option>
+                      <option>Administration</option>
+                      <option>R&D</option>
+                      <option>Logistique</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Période</label>
+                    <select className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B87333] focus:border-transparent">
+                      <option>Annuel 2025</option>
+                      <option>Q1 2025</option>
+                      <option>Q2 2025</option>
+                      <option>Q3 2025</option>
+                      <option>Q4 2025</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Montant total (€)</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B87333] focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Responsable</label>
+                    <input
+                      type="text"
+                      placeholder="Nom du responsable"
+                      className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B87333] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-[#444444] mb-2">Description</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Description du budget..."
+                    className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B87333] focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-gray-50">
+                    Annuler
+                  </button>
+                  <button className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] flex items-center space-x-2">
+                    <Save className="w-4 h-4" />
+                    <span>Créer le budget</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Templates disponibles */}
+              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                <h3 className="font-semibold text-[#191919] mb-4">📁 Templates disponibles</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { name: 'Budget Commercial Standard', type: 'Exploitation', uses: 142 },
+                    { name: 'Budget IT', type: 'Investissement', uses: 89 },
+                    { name: 'Budget Marketing', type: 'Exploitation', uses: 76 },
+                    { name: 'Budget R&D', type: 'Projet', uses: 54 },
+                    { name: 'Budget Production', type: 'Exploitation', uses: 123 },
+                    { name: 'Budget Formation', type: 'Exploitation', uses: 45 }
+                  ].map((template, index) => (
+                    <div key={index} className="p-4 border border-[#E8E8E8] rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <h4 className="text-sm font-semibold text-[#191919]">{template.name}</h4>
+                      <p className="text-xs text-[#767676] mt-1">{template.type}</p>
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="text-xs text-[#444444]">{template.uses} utilisations</span>
+                        <button className="text-xs text-[#B87333] hover:text-[#A86323]">Utiliser</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Onglet Overview */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {/* KPIs globaux */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {[
+                  { title: 'Budget Total', value: '12.5M€', trend: '+5%', color: '#B87333' },
+                  { title: 'Consommé YTD', value: '7.8M€', trend: '62%', color: '#6A8A82' },
+                  { title: 'Restant', value: '4.7M€', trend: '38%', color: '#7A99AC' },
+                  { title: 'Projection fin année', value: '12.2M€', trend: '-2.4%', color: '#A86323' },
+                  { title: 'Performance', value: '97.6%', trend: '+1.2%', color: '#5A7A72' }
+                ].map((kpi, index) => (
+                  <div key={index} className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
+                    <p className="text-xs text-[#767676] mb-2">{kpi.title}</p>
+                    <h3 className="text-xl font-bold mb-1" style={{color: kpi.color}}>{kpi.value}</h3>
+                    <span className={`text-xs ${kpi.trend.includes('+') ? 'text-green-600' : kpi.trend.includes('-') ? 'text-red-600' : 'text-[#444444]'}`}>
+                      {kpi.trend}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Vue d'ensemble par catégorie */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                  <h3 className="font-semibold text-[#191919] mb-4">💰 Répartition par catégorie</h3>
+                  <div className="space-y-3">
+                    {[
+                      { category: 'Charges de personnel', budget: 5200000, consomme: 3224000, pct: 62 },
+                      { category: 'Services externes', budget: 2800000, consomme: 1960000, pct: 70 },
+                      { category: 'Achats marchandises', budget: 2100000, consomme: 1470000, pct: 70 },
+                      { category: 'Investissements', budget: 1500000, consomme: 600000, pct: 40 },
+                      { category: 'Marketing & Com', budget: 900000, consomme: 546000, pct: 61 }
+                    ].map((cat, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium text-[#191919]">{cat.category}</span>
+                          <span className="text-sm text-[#767676]">{cat.pct}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+                          <div
+                            className={`h-2 rounded-full ${
+                              cat.pct > 80 ? 'bg-red-500' : cat.pct > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                            }`}
+                            style={{width: `${cat.pct}%`}}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-[#444444]">
+                          <span>{(cat.consomme / 1000000).toFixed(1)}M€ / {(cat.budget / 1000000).toFixed(1)}M€</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                  <h3 className="font-semibold text-[#191919] mb-4">📈 Évolution mensuelle</h3>
+                  <div className="space-y-2">
+                    {[
+                      { mois: 'Janvier', prevu: 1040000, reel: 980000, ecart: -5.8 },
+                      { mois: 'Février', prevu: 1040000, reel: 1120000, ecart: 7.7 },
+                      { mois: 'Mars', prevu: 1040000, reel: 1050000, ecart: 1.0 },
+                      { mois: 'Avril', prevu: 1040000, reel: 1100000, ecart: 5.8 },
+                      { mois: 'Mai', prevu: 1040000, reel: 1080000, ecart: 3.8 },
+                      { mois: 'Juin', prevu: 1040000, reel: 1090000, ecart: 4.8 },
+                      { mois: 'Juillet', prevu: 1040000, reel: 1060000, ecart: 1.9 },
+                      { mois: 'Août', prevu: 1040000, reel: 1020000, ecart: -1.9 },
+                      { mois: 'Septembre', prevu: 1040000, reel: 1200000, ecart: 15.4 }
+                    ].map((month, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+                        <span className="text-sm font-medium text-[#191919] w-24">{month.mois}</span>
+                        <div className="flex items-center space-x-4 flex-1">
+                          <span className="text-xs text-[#444444]">{(month.prevu / 1000).toFixed(0)}K€</span>
+                          <div className="flex-1 flex items-center space-x-2">
+                            <div className="flex-1 h-2 bg-gray-200 rounded-full">
+                              <div className="h-2 bg-blue-500 rounded-full" style={{width: '50%'}}></div>
+                            </div>
+                            <div className="flex-1 h-2 bg-gray-200 rounded-full">
+                              <div className="h-2 bg-green-500 rounded-full" style={{width: `${50 + month.ecart}%`}}></div>
+                            </div>
+                          </div>
+                          <span className="text-xs text-[#444444]">{(month.reel / 1000).toFixed(0)}K€</span>
+                        </div>
+                        <span className={`text-xs font-medium ml-4 ${
+                          month.ecart > 5 ? 'text-red-600' : month.ecart < -5 ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {month.ecart > 0 ? '+' : ''}{month.ecart.toFixed(1)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Top dépenses */}
+              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                <h3 className="font-semibold text-[#191919] mb-4">🏆 Top 10 des postes de dépenses</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-[#444444]">#</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-[#444444]">Poste</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-[#444444]">Département</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-[#444444]">Budget</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-[#444444]">Consommé</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-[#444444]">%</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E8E8E8]">
+                      {[
+                        { poste: 'Salaires et traitements', dept: 'RH', budget: 3200000, consomme: 1984000 },
+                        { poste: 'Achats matières premières', dept: 'Production', budget: 1800000, consomme: 1260000 },
+                        { poste: 'Loyers et charges', dept: 'Admin', budget: 600000, consomme: 450000 },
+                        { poste: 'Marketing digital', dept: 'Marketing', budget: 450000, consomme: 315000 },
+                        { poste: 'Services informatiques', dept: 'IT', budget: 380000, consomme: 285000 },
+                        { poste: 'Formation personnel', dept: 'RH', budget: 250000, consomme: 125000 },
+                        { poste: 'Frais de déplacement', dept: 'Commercial', budget: 220000, consomme: 176000 },
+                        { poste: 'Assurances', dept: 'Admin', budget: 180000, consomme: 135000 },
+                        { poste: 'Publicité', dept: 'Marketing', budget: 150000, consomme: 97500 },
+                        { poste: 'Fournitures bureau', dept: 'Admin', budget: 120000, consomme: 72000 }
+                      ].map((item, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-sm text-[#444444]">{index + 1}</td>
+                          <td className="px-4 py-2 text-sm text-[#191919]">{item.poste}</td>
+                          <td className="px-4 py-2 text-sm text-[#767676]">{item.dept}</td>
+                          <td className="px-4 py-2 text-sm text-right text-[#444444]">{(item.budget / 1000).toFixed(0)}K€</td>
+                          <td className="px-4 py-2 text-sm text-right text-[#444444]">{(item.consomme / 1000).toFixed(0)}K€</td>
+                          <td className="px-4 py-2 text-sm text-right">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              (item.consomme / item.budget * 100) > 80 ? 'bg-red-100 text-red-700' :
+                              (item.consomme / item.budget * 100) > 60 ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {(item.consomme / item.budget * 100).toFixed(0)}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Onglet Analyse Variation */}
+          {activeTab === 'analyse' && (
+            <div className="space-y-6">
+              {/* Filtres d'analyse */}
+              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Période</label>
+                    <select className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2">
+                      <option>YTD 2024</option>
+                      <option>Q3 2024</option>
+                      <option>Septembre 2024</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Département</label>
+                    <select className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2">
+                      <option>Tous</option>
+                      <option>Commercial</option>
+                      <option>Production</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Type d'écart</label>
+                    <select className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2">
+                      <option>Tous</option>
+                      <option>Favorable</option>
+                      <option>Défavorable</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#444444] mb-2">Seuil (%)</label>
+                    <input type="number" defaultValue="5" className="w-full border border-[#E8E8E8] rounded-lg px-3 py-2" />
+                  </div>
+                  <div className="flex items-end">
+                    <button className="w-full px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] flex items-center justify-center space-x-2">
+                      <Filter className="w-4 h-4" />
+                      <span>Analyser</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Analyse des écarts */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                  <h3 className="font-semibold text-[#191919] mb-4">📊 Écarts significatifs</h3>
+                  <div className="space-y-3">
+                    {[
+                      { compte: 'Achats matières premières', prevu: 200000, reel: 245000, ecart: 45000, pct: 22.5, type: 'defavorable' },
+                      { compte: 'Services externes', prevu: 150000, reel: 125000, ecart: -25000, pct: -16.7, type: 'favorable' },
+                      { compte: 'Charges de personnel', prevu: 580000, reel: 590000, ecart: 10000, pct: 1.7, type: 'defavorable' },
+                      { compte: 'Marketing', prevu: 50000, reel: 38000, ecart: -12000, pct: -24.0, type: 'favorable' },
+                      { compte: 'Frais généraux', prevu: 45000, reel: 52000, ecart: 7000, pct: 15.6, type: 'defavorable' }
+                    ].map((item, index) => (
+                      <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                        item.type === 'favorable' ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-400'
+                      }`}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm font-semibold text-[#191919]">{item.compte}</p>
+                            <div className="flex items-center space-x-3 mt-1">
+                              <span className="text-xs text-[#767676]">Prévu: {(item.prevu / 1000).toFixed(0)}K€</span>
+                              <span className="text-xs text-[#767676]">Réel: {(item.reel / 1000).toFixed(0)}K€</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-sm font-bold ${
+                              item.type === 'favorable' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {item.ecart > 0 ? '+' : ''}{(item.ecart / 1000).toFixed(0)}K€
+                            </p>
+                            <p className={`text-xs ${
+                              item.type === 'favorable' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {item.pct > 0 ? '+' : ''}{item.pct.toFixed(1)}%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+                  <h3 className="font-semibold text-[#191919] mb-4">🎯 Analyse des causes</h3>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        ecart: 'Achats matières premières (+22.5%)',
+                        causes: [
+                          'Hausse des prix des matières premières (+15%)',
+                          'Volume de production supérieur (+8%)',
+                          'Changement de fournisseur'
+                        ],
+                        action: 'Renégociation contrats fournisseurs'
+                      },
+                      {
+                        ecart: 'Services externes (-16.7%)',
+                        causes: [
+                          'Internalisation de certaines prestations',
+                          'Optimisation des contrats',
+                        ],
+                        action: 'Maintenir la stratégie'
+                      },
+                      {
+                        ecart: 'Marketing (-24%)',
+                        causes: [
+                          'Report campagne Q4',
+                          'Économies sur digital'
+                        ],
+                        action: 'Réallouer budget Q4'
+                      }
+                    ].map((analyse, index) => (
+                      <div key={index} className="border border-[#E8E8E8] rounded-lg p-3">
+                        <h4 className="text-sm font-semibold text-[#191919] mb-2">{analyse.ecart}</h4>
+                        <div className="space-y-1 mb-2">
+                          {analyse.causes.map((cause, idx) => (
+                            <p key={idx} className="text-xs text-[#767676] pl-3">• {cause}</p>
+                          ))}
+                        </div>
+                        <div className="flex items-center space-x-2 pt-2 border-t border-[#E8E8E8]">
+                          <AlertTriangle className="w-3 h-3 text-[#B87333]" />
+                          <p className="text-xs font-medium text-[#B87333]">Action: {analyse.action}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Tableau détaillé des variations */}
+              <div className="bg-white rounded-lg border border-[#E8E8E8]">
+                <div className="p-4 bg-gray-50 border-b border-[#E8E8E8] flex items-center justify-between">
+                  <h3 className="font-semibold text-[#191919]">📋 Détail des variations par compte</h3>
+                  <button className="flex items-center space-x-2 px-3 py-2 border border-[#E8E8E8] bg-white rounded-lg hover:bg-gray-50">
+                    <Download className="w-4 h-4" />
+                    <span className="text-sm">Exporter</span>
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#444444]">Compte</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#444444]">Libellé</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-[#444444]">Budget</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-[#444444]">Réel</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-[#444444]">Écart €</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-[#444444]">Écart %</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-[#444444]">Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E8E8E8]">
+                      {[
+                        { compte: '601000', libelle: 'Achats marchandises', budget: 594000, reel: 548000, ecart: -46000 },
+                        { compte: '602000', libelle: 'Services extérieurs', budget: 275000, reel: 267000, ecart: -8000 },
+                        { compte: '606000', libelle: 'Autres charges externes', budget: 70000, reel: 82000, ecart: 12000 },
+                        { compte: '641000', libelle: 'Rémunérations', budget: 2100000, reel: 2150000, ecart: 50000 },
+                        { compte: '645000', libelle: 'Charges sociales', budget: 945000, reel: 968000, ecart: 23000 },
+                        { compte: '681000', libelle: 'Dotations amortissements', budget: 320000, reel: 320000, ecart: 0 }
+                      ].map((ligne, index) => {
+                        const pct = (ligne.ecart / ligne.budget) * 100;
+                        return (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm text-[#444444]">{ligne.compte}</td>
+                            <td className="px-4 py-3 text-sm text-[#191919]">{ligne.libelle}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[#444444]">{formatCurrency(ligne.budget)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[#444444]">{formatCurrency(ligne.reel)}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-medium ${
+                              ligne.ecart < 0 ? 'text-green-600' : ligne.ecart > 0 ? 'text-red-600' : 'text-[#444444]'
+                            }`}>
+                              {ligne.ecart > 0 ? '+' : ''}{formatCurrency(Math.abs(ligne.ecart))}
+                            </td>
+                            <td className={`px-4 py-3 text-sm text-right font-medium ${
+                              ligne.ecart < 0 ? 'text-green-600' : ligne.ecart > 0 ? 'text-red-600' : 'text-[#444444]'
+                            }`}>
+                              {pct > 0 ? '+' : ''}{pct.toFixed(1)}%
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                Math.abs(pct) <= 5 ? 'bg-green-100 text-green-700' :
+                                Math.abs(pct) <= 10 ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {Math.abs(pct) <= 5 ? 'OK' : Math.abs(pct) <= 10 ? 'Attention' : 'Critique'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

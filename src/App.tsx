@@ -10,15 +10,22 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import ModernDoubleSidebarLayout from './components/layout/ModernDoubleSidebarLayout';
 import { NavigationProvider } from './contexts/NavigationContext';
 import { ToastProvider } from './hooks/useToast';
+import { ChatbotProvider } from './components/layout/ChatbotProvider';
 
 // Import global styles
 import './styles/globals.css';
 
+// Import des composants accounting
+const TabbedJournalEntry = React.lazy(() => import('./components/accounting/TabbedJournalEntry'));
+
 // Pages principales
 const WiseBookLandingPage = React.lazy(() => import('./pages/WiseBookLandingPage'));
 const ComptableWorkspace = React.lazy(() => import('./pages/workspace/ComptableWorkspaceFinal'));
+const EnhancedComptableWorkspace = React.lazy(() => import('./pages/workspace/EnhancedComptableWorkspace'));
 const ManagerWorkspace = React.lazy(() => import('./pages/workspace/ManagerWorkspaceComplete'));
+const EnhancedManagerWorkspace = React.lazy(() => import('./pages/workspace/EnhancedManagerWorkspace'));
 const AdminWorkspace = React.lazy(() => import('./pages/workspace/AdminWorkspaceComplete'));
+const EnhancedAdminWorkspace = React.lazy(() => import('./pages/workspace/EnhancedAdminWorkspace'));
 const ExecutiveDashboardV2 = React.lazy(() => import('./pages/dashboard/ExecutiveDashboard'));
 const ModernDashboardPage = React.lazy(() => import('./pages/ModernDashboardPage'));
 const ModernSettingsPage = React.lazy(() => import('./pages/ModernSettingsPage'));
@@ -28,6 +35,8 @@ const BackupSettingsPage = React.lazy(() => import('./pages/settings/BackupPage'
 const APIIntegrationsPage = React.lazy(() => import('./pages/settings/APIIntegrationsPage'));
 const MobileAppPage = React.lazy(() => import('./pages/settings/MobileAppPage'));
 const OfflineModePage = React.lazy(() => import('./pages/settings/OfflineModePage'));
+const SettingsUsersPage = React.lazy(() => import('./pages/settings/UsersPage'));
+const AccountingSettingsPage = React.lazy(() => import('./pages/settings/AccountingSettingsPage'));
 const AccountingDashboardV2 = React.lazy(() => import('./pages/accounting/AccountingDashboardV2'));
 const CompleteAccountingDashboardV2 = React.lazy(() => import('./pages/accounting/CompleteAccountingDashboardV2'));
 const CompteResultatPageV2 = React.lazy(() => import('./pages/financial/CompteResultatPageV2'));
@@ -55,7 +64,7 @@ const CompleteThirdPartyModuleV2 = React.lazy(() => import('./pages/third-party/
 const SecurityModuleV2 = React.lazy(() => import('./pages/security/SecurityModuleV2'));
 const ModernTreasuryDashboard = React.lazy(() => import('./pages/treasury/ModernTreasuryDashboard'));
 const ModernReportsAndAnalytics = React.lazy(() => import('./pages/reports/ModernReportsAndAnalytics'));
-const ParametersPage = React.lazy(() => import('./pages/ParametersPage'));
+// const ParametersPage = React.lazy(() => import('./pages/ParametersPage')); // Remplacé par ModernSettingsPage
 
 // Dashboard avancé
 const ExecutivePage = React.lazy(() => import('./pages/dashboard/ExecutivePage'));
@@ -67,6 +76,10 @@ const KPIsRealTime = React.lazy(() => import('./pages/dashboard/KPIsRealTime'));
 const AlertsSystem = React.lazy(() => import('./pages/dashboard/AlertsSystem'));
 const AIInsights = React.lazy(() => import('./pages/dashboard/AIInsights'));
 const WorkflowsManager = React.lazy(() => import('./pages/dashboard/WorkflowsManager'));
+
+// Tasks Module
+const TasksModule = React.lazy(() => import('./components/tasks/TasksModuleWithSidebar'));
+const CompleteTasksModule = React.lazy(() => import('./components/tasks/CompleteTasksModule'));
 
 // Dashboards développés
 const ExecutiveDashboard = React.lazy(() => import('./components/dashboards/ExecutiveDashboard'));
@@ -265,15 +278,16 @@ const App: React.FC = () => {
       <ThemeProvider>
         <NavigationProvider>
           <ToastProvider position="top-right">
+            <ChatbotProvider enabled={true}>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Landing Page Premium avec sélection de rôles */}
           <Route path="/" element={<WiseBookLandingPage />} />
           
           {/* Workspaces complets par rôles */}
-          <Route path="/dashboard/comptable" element={<ComptableWorkspace />} />
-          <Route path="/dashboard/manager" element={<ManagerWorkspace />} />
-          <Route path="/dashboard/admin" element={<AdminWorkspace />} />
+          <Route path="/dashboard/comptable" element={<EnhancedComptableWorkspace />} />
+          <Route path="/dashboard/manager" element={<EnhancedManagerWorkspace />} />
+          <Route path="/dashboard/admin" element={<EnhancedAdminWorkspace />} />
           
           {/* Routes avec Modern Double Sidebar Layout */}
           <Route element={<ModernDoubleSidebarLayout />}>
@@ -293,6 +307,10 @@ const App: React.FC = () => {
             <Route path="/accounting/journals" element={<JournalsPage />} />
             <Route path="/accounting/ocr" element={<OCRInvoices />} />
             <Route path="/accounting/signature" element={<ElectronicSignature />} />
+
+            {/* Saisie comptable - nouvelles routes */}
+            <Route path="/finance/accounting/entry/new" element={<EntriesPage />} />
+            <Route path="/accounting/entry/new" element={<EntriesPage />} />
             
             {/* Module Tiers (Third Party Management) */}
             <Route path="/tiers" element={<TiersDashboard />} />
@@ -319,6 +337,10 @@ const App: React.FC = () => {
             <Route path="/treasury" element={<ModernTreasuryDashboard />} />
             <Route path="/treasury/dashboard-enterprise" element={<TreasuryDashboardEnterprise />} />
             <Route path="/treasury/positions" element={<TreasuryPositions />} />
+
+            {/* Redirections pour les anciennes routes - vers le workspace approprié */}
+            <Route path="/tasks" element={<Navigate to="/dashboard/comptable" replace />} />
+            <Route path="/collaboration" element={<Navigate to="/dashboard/comptable" replace />} />
             <Route path="/treasury/multi-currency" element={<MultiCurrency />} />
 
             
@@ -354,7 +376,8 @@ const App: React.FC = () => {
             <Route path="/multi-company-advanced" element={<MultiSocietesPage />} />
             
             {/* Settings Route */}
-            <Route path="/settings" element={<ParametersPage />} />
+            <Route path="/settings" element={<AccountingSettingsPage />} />
+            <Route path="/settings/accounting" element={<AccountingSettingsPage />} />
             <Route path="/settings/company" element={<EnhancedCompanyConfiguration />} />
             <Route path="/settings/taxes" element={<TaxConfiguration />} />
             <Route path="/settings/import" element={<MultiExerciseImportManager />} />
@@ -363,6 +386,7 @@ const App: React.FC = () => {
             <Route path="/settings/api" element={<APIIntegrationsPage />} />
             <Route path="/settings/mobile" element={<MobileAppPage />} />
             <Route path="/settings/offline" element={<OfflineModePage />} />
+            <Route path="/settings/users" element={<SettingsUsersPage />} />
 
             {/* Advanced Configuration */}
             <Route path="/config" element={<CompleteConfigModule />} />
@@ -509,6 +533,7 @@ const App: React.FC = () => {
           <Route path="/treasury/fund-calls/:id/validator-preview" element={<ValidatorPreview />} />
         </Routes>
       </Suspense>
+            </ChatbotProvider>
           </ToastProvider>
         </NavigationProvider>
       </ThemeProvider>

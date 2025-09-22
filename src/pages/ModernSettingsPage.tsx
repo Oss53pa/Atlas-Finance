@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { 
+import {
   Settings, Palette, User, Shield, Bell, Globe, Database,
   CreditCard, Mail, Key, Building2, Moon, Sun, Check,
   Save, ChevronRight, Lock, Smartphone, Monitor, HelpCircle,
-  FileText, Download, Upload, AlertTriangle
+  FileText, Download, Upload, AlertTriangle, Calculator,
+  BookOpen, Calendar, DollarSign, FileCheck
 } from 'lucide-react';
 import { ModernCard, CardHeader, CardBody } from '../components/ui/ModernCard';
 import ModernButton from '../components/ui/ModernButton';
@@ -31,6 +32,7 @@ const ModernSettingsPage: React.FC = () => {
   const [language, setLanguage] = useState('fr');
   const [currency, setCurrency] = useState('EUR');
   const [timezone, setTimezone] = useState('Europe/Paris');
+  const [country, setCountry] = useState('FR');
   const [twoFactor, setTwoFactor] = useState(false);
   const [autoBackup, setAutoBackup] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -43,24 +45,6 @@ const ModernSettingsPage: React.FC = () => {
       icon: <Palette className="w-5 h-5" />
     },
     {
-      id: 'account',
-      title: 'Compte',
-      description: 'Informations personnelles',
-      icon: <User className="w-5 h-5" />
-    },
-    {
-      id: 'company',
-      title: 'Entreprise',
-      description: 'Paramètres société',
-      icon: <Building2 className="w-5 h-5" />
-    },
-    {
-      id: 'security',
-      title: 'Sécurité',
-      description: 'Protection du compte',
-      icon: <Shield className="w-5 h-5" />
-    },
-    {
       id: 'notifications',
       title: 'Notifications',
       description: 'Alertes et rappels',
@@ -71,18 +55,6 @@ const ModernSettingsPage: React.FC = () => {
       title: 'Régional',
       description: 'Langue et région',
       icon: <Globe className="w-5 h-5" />
-    },
-    {
-      id: 'recouvrement',
-      title: 'Recouvrement',
-      description: 'Abonnement et paiements',
-      icon: <CreditCard className="w-5 h-5" />
-    },
-    {
-      id: 'data',
-      title: 'Données',
-      description: 'Import/Export et sauvegardes',
-      icon: <Database className="w-5 h-5" />
     }
   ];
 
@@ -191,218 +163,46 @@ const ModernSettingsPage: React.FC = () => {
                     className="w-5 h-5 text-[var(--color-primary)] rounded"
                   />
                 </label>
-                <label className="flex items-center justify-between p-3 hover:bg-[var(--color-surface-hover)] rounded-lg cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Monitor className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                    <div>
-                      <p className="font-medium text-[var(--color-text-primary)]">Sidebar compacte</p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">
-                        Réduire la largeur de la barre latérale
-                      </p>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 text-[var(--color-primary)] rounded"
-                  />
-                </label>
               </div>
             </div>
-          </div>
-        );
 
-      case 'account':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Informations personnelles
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="label">Prénom</label>
-                <input type="text" className="input" defaultValue="Admin" />
-              </div>
-              <div>
-                <label className="label">Nom</label>
-                <input type="text" className="input" defaultValue="User" />
-              </div>
-              <div>
-                <label className="label">Email</label>
-                <input type="email" className="input" defaultValue="admin@wisebook.com" />
-              </div>
-              <div>
-                <label className="label">Téléphone</label>
-                <input type="tel" className="input" defaultValue="+33 6 12 34 56 78" />
-              </div>
-              <div>
-                <label className="label">Fonction</label>
-                <input type="text" className="input" defaultValue="Directeur Financier" />
-              </div>
-              <div>
-                <label className="label">Département</label>
-                <select className="input">
-                  <option>Finance</option>
-                  <option>Comptabilité</option>
-                  <option>Direction</option>
-                  <option>Commercial</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <ModernButton variant="primary" leftIcon={<Save className="w-4 h-4" />}>
-                Enregistrer les modifications
-              </ModernButton>
-            </div>
-          </div>
-        );
-
-      case 'company':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Informations de l'entreprise
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="label">Raison sociale</label>
-                <input type="text" className="input" defaultValue="WiseBook SAS" />
-              </div>
-              <div>
-                <label className="label">SIRET</label>
-                <input type="text" className="input" defaultValue="123 456 789 00012" />
-              </div>
-              <div>
-                <label className="label">TVA Intracommunautaire</label>
-                <input type="text" className="input" defaultValue="FR12345678901" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="label">Adresse</label>
-                <input type="text" className="input" defaultValue="123 Rue de la République" />
-              </div>
-              <div>
-                <label className="label">Code postal</label>
-                <input type="text" className="input" defaultValue="75001" />
-              </div>
-              <div>
-                <label className="label">Ville</label>
-                <input type="text" className="input" defaultValue="Paris" />
-              </div>
-              <div>
-                <label className="label">Pays</label>
-                <select className="input">
-                  <option>France</option>
-                  <option>Belgique</option>
-                  <option>Suisse</option>
-                  <option>Luxembourg</option>
-                </select>
-              </div>
-              <div>
-                <label className="label">Secteur d'activité</label>
-                <select className="input">
-                  <option>Services</option>
-                  <option>Commerce</option>
-                  <option>Industrie</option>
-                  <option>BTP</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <ModernButton variant="primary" leftIcon={<Save className="w-4 h-4" />}>
-                Enregistrer les modifications
-              </ModernButton>
-            </div>
-          </div>
-        );
-
-      case 'security':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Paramètres de sécurité
-            </h3>
-            <div className="space-y-4">
-              <ModernCard>
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Lock className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                    <div>
-                      <p className="font-medium text-[var(--color-text-primary)]">Mot de passe</p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">
-                        Dernière modification il y a 45 jours
-                      </p>
-                    </div>
-                  </div>
-                  <ModernButton variant="outline" size="sm">
-                    Modifier
-                  </ModernButton>
+            {/* Typography Options */}
+            <div>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
+                Typographie
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="label">Police d'affichage</label>
+                  <select className="input">
+                    <option value="inter">Inter (Recommandée)</option>
+                    <option value="system">System UI</option>
+                    <option value="arial">Arial</option>
+                    <option value="helvetica">Helvetica</option>
+                    <option value="roboto">Roboto</option>
+                    <option value="open-sans">Open Sans</option>
+                  </select>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    Police utilisée pour l'interface utilisateur
+                  </p>
                 </div>
-              </ModernCard>
-
-              <ModernCard>
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                    <div>
-                      <p className="font-medium text-[var(--color-text-primary)]">
-                        Authentification à deux facteurs
-                      </p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">
-                        Sécurisez votre compte avec 2FA
-                      </p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={twoFactor}
-                      onChange={(e) => setTwoFactor(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
-                  </label>
+                <div>
+                  <label className="label">Taille de police</label>
+                  <select className="input">
+                    <option value="small">Petite (13px)</option>
+                    <option value="normal" selected>Normale (14px)</option>
+                    <option value="large">Grande (16px)</option>
+                    <option value="extra-large">Très grande (18px)</option>
+                  </select>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    Ajustez la taille de police selon votre préférence
+                  </p>
                 </div>
-              </ModernCard>
-
-              <ModernCard>
-                <div className="p-4">
-                  <h4 className="font-medium text-[var(--color-text-primary)] mb-3">
-                    Sessions actives
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2">
-                      <div className="flex items-center gap-3">
-                        <Monitor className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                        <div>
-                          <p className="text-sm font-medium">Windows • Chrome</p>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">
-                            Paris, France • Actif maintenant
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                        Actuel
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <div className="flex items-center gap-3">
-                        <Smartphone className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                        <div>
-                          <p className="text-sm font-medium">iPhone • Safari</p>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">
-                            Lyon, France • Il y a 2 heures
-                          </p>
-                        </div>
-                      </div>
-                      <button className="text-sm text-[var(--color-error)] hover:underline">
-                        Déconnecter
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </ModernCard>
+              </div>
             </div>
           </div>
         );
+
 
       case 'notifications':
         return (
@@ -453,18 +253,85 @@ const ModernSettingsPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
               Paramètres régionaux
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="label">Langue</label>
+                <label className="label">Pays/Région</label>
                 <select
                   className="input"
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
                 >
-                  <option value="fr">Français</option>
-                  <option value="en">English</option>
-                  <option value="es">Español</option>
-                  <option value="de">Deutsch</option>
+                  <optgroup label="Afrique du Nord">
+                    <option value="DZ">Algérie</option>
+                    <option value="EG">Égypte</option>
+                    <option value="LY">Libye</option>
+                    <option value="MA">Maroc</option>
+                    <option value="SD">Soudan</option>
+                    <option value="TN">Tunisie</option>
+                  </optgroup>
+                  <optgroup label="Afrique de l'Ouest">
+                    <option value="BJ">Bénin</option>
+                    <option value="BF">Burkina Faso</option>
+                    <option value="CV">Cap-Vert</option>
+                    <option value="CI">Côte d'Ivoire</option>
+                    <option value="GM">Gambie</option>
+                    <option value="GH">Ghana</option>
+                    <option value="GN">Guinée</option>
+                    <option value="GW">Guinée-Bissau</option>
+                    <option value="LR">Liberia</option>
+                    <option value="ML">Mali</option>
+                    <option value="MR">Mauritanie</option>
+                    <option value="NE">Niger</option>
+                    <option value="NG">Nigeria</option>
+                    <option value="SN">Sénégal</option>
+                    <option value="SL">Sierra Leone</option>
+                    <option value="TG">Togo</option>
+                  </optgroup>
+                  <optgroup label="Afrique Centrale">
+                    <option value="AO">Angola</option>
+                    <option value="CM">Cameroun</option>
+                    <option value="CF">République centrafricaine</option>
+                    <option value="TD">Tchad</option>
+                    <option value="CG">Congo</option>
+                    <option value="CD">République démocratique du Congo</option>
+                    <option value="GQ">Guinée équatoriale</option>
+                    <option value="GA">Gabon</option>
+                    <option value="ST">São Tomé-et-Principe</option>
+                  </optgroup>
+                  <optgroup label="Afrique de l'Est">
+                    <option value="BI">Burundi</option>
+                    <option value="KM">Comores</option>
+                    <option value="DJ">Djibouti</option>
+                    <option value="ER">Érythrée</option>
+                    <option value="ET">Éthiopie</option>
+                    <option value="KE">Kenya</option>
+                    <option value="MG">Madagascar</option>
+                    <option value="MW">Malawi</option>
+                    <option value="MU">Maurice</option>
+                    <option value="MZ">Mozambique</option>
+                    <option value="RW">Rwanda</option>
+                    <option value="SC">Seychelles</option>
+                    <option value="SO">Somalie</option>
+                    <option value="SS">Soudan du Sud</option>
+                    <option value="TZ">Tanzanie</option>
+                    <option value="UG">Ouganda</option>
+                    <option value="ZM">Zambie</option>
+                    <option value="ZW">Zimbabwe</option>
+                  </optgroup>
+                  <optgroup label="Afrique Australe">
+                    <option value="BW">Botswana</option>
+                    <option value="LS">Lesotho</option>
+                    <option value="NA">Namibie</option>
+                    <option value="ZA">Afrique du Sud</option>
+                    <option value="SZ">Eswatini</option>
+                  </optgroup>
+                  <optgroup label="Europe & Autres">
+                    <option value="FR">France</option>
+                    <option value="BE">Belgique</option>
+                    <option value="CH">Suisse</option>
+                    <option value="LU">Luxembourg</option>
+                    <option value="CA">Canada</option>
+                  </optgroup>
                 </select>
               </div>
               <div>
@@ -474,10 +341,86 @@ const ModernSettingsPage: React.FC = () => {
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
                 >
-                  <option value="EUR">Euro (€)</option>
-                  <option value="USD">Dollar US ($)</option>
-                  <option value="GBP">Livre Sterling (£)</option>
-                  <option value="CHF">Franc Suisse (CHF)</option>
+                  <optgroup label="Devises Africaines">
+                    <option value="XOF">Franc CFA BCEAO (XOF) - Afrique de l'Ouest</option>
+                    <option value="XAF">Franc CFA BEAC (XAF) - Afrique Centrale</option>
+                    <option value="DZD">Dinar algérien (DZD)</option>
+                    <option value="AOA">Kwanza angolais (AOA)</option>
+                    <option value="BWP">Pula botswanais (BWP)</option>
+                    <option value="BIF">Franc burundais (BIF)</option>
+                    <option value="CVE">Escudo cap-verdien (CVE)</option>
+                    <option value="KMF">Franc comorien (KMF)</option>
+                    <option value="CDF">Franc congolais (CDF)</option>
+                    <option value="DJF">Franc djiboutien (DJF)</option>
+                    <option value="EGP">Livre égyptienne (EGP)</option>
+                    <option value="ERN">Nakfa érythréen (ERN)</option>
+                    <option value="SZL">Lilangeni eswatinien (SZL)</option>
+                    <option value="ETB">Birr éthiopien (ETB)</option>
+                    <option value="GMD">Dalasi gambien (GMD)</option>
+                    <option value="GHS">Cedi ghanéen (GHS)</option>
+                    <option value="GNF">Franc guinéen (GNF)</option>
+                    <option value="KES">Shilling kényan (KES)</option>
+                    <option value="LSL">Loti lesothien (LSL)</option>
+                    <option value="LRD">Dollar libérien (LRD)</option>
+                    <option value="LYD">Dinar libyen (LYD)</option>
+                    <option value="MGA">Ariary malgache (MGA)</option>
+                    <option value="MWK">Kwacha malawien (MWK)</option>
+                    <option value="MRU">Ouguiya mauritanien (MRU)</option>
+                    <option value="MUR">Roupie mauricienne (MUR)</option>
+                    <option value="MAD">Dirham marocain (MAD)</option>
+                    <option value="MZN">Metical mozambicain (MZN)</option>
+                    <option value="NAD">Dollar namibien (NAD)</option>
+                    <option value="NGN">Naira nigérian (NGN)</option>
+                    <option value="RWF">Franc rwandais (RWF)</option>
+                    <option value="STN">Dobra santoméen (STN)</option>
+                    <option value="SCR">Roupie seychelloise (SCR)</option>
+                    <option value="SLL">Leone sierra-léonais (SLL)</option>
+                    <option value="SOS">Shilling somalien (SOS)</option>
+                    <option value="ZAR">Rand sud-africain (ZAR)</option>
+                    <option value="SSP">Livre sud-soudanaise (SSP)</option>
+                    <option value="SDG">Livre soudanaise (SDG)</option>
+                    <option value="TZS">Shilling tanzanien (TZS)</option>
+                    <option value="TND">Dinar tunisien (TND)</option>
+                    <option value="UGX">Shilling ougandais (UGX)</option>
+                    <option value="ZMW">Kwacha zambien (ZMW)</option>
+                    <option value="ZWL">Dollar zimbabwéen (ZWL)</option>
+                  </optgroup>
+                  <optgroup label="Devises Internationales">
+                    <option value="EUR">Euro (€)</option>
+                    <option value="USD">Dollar US ($)</option>
+                    <option value="GBP">Livre Sterling (£)</option>
+                    <option value="CHF">Franc Suisse (CHF)</option>
+                    <option value="CAD">Dollar Canadien (CAD)</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div>
+                <label className="label">Langue</label>
+                <select
+                  className="input"
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                >
+                  <optgroup label="Langues officielles africaines">
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                    <option value="ar">العربية (Arabe)</option>
+                    <option value="pt">Português</option>
+                    <option value="es">Español</option>
+                    <option value="sw">Kiswahili</option>
+                    <option value="am">አማርኛ (Amharique)</option>
+                    <option value="zu">isiZulu</option>
+                    <option value="af">Afrikaans</option>
+                    <option value="ha">Hausa</option>
+                    <option value="yo">Yoruba</option>
+                    <option value="ig">Igbo</option>
+                    <option value="wo">Wolof</option>
+                  </optgroup>
+                  <optgroup label="Autres langues">
+                    <option value="de">Deutsch</option>
+                    <option value="it">Italiano</option>
+                    <option value="nl">Nederlands</option>
+                  </optgroup>
                 </select>
               </div>
               <div>
@@ -487,88 +430,63 @@ const ModernSettingsPage: React.FC = () => {
                   value={timezone}
                   onChange={(e) => setTimezone(e.target.value)}
                 >
-                  <option value="Europe/Paris">Paris (UTC+1)</option>
-                  <option value="Europe/London">Londres (UTC+0)</option>
-                  <option value="America/New_York">New York (UTC-5)</option>
-                  <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+                  <optgroup label="Fuseaux horaires africains">
+                    <option value="Africa/Casablanca">Casablanca (UTC+1) - Maroc</option>
+                    <option value="Africa/Tunis">Tunis (UTC+1) - Tunisie</option>
+                    <option value="Africa/Algiers">Alger (UTC+1) - Algérie</option>
+                    <option value="Africa/Cairo">Le Caire (UTC+2) - Égypte</option>
+                    <option value="Africa/Johannesburg">Johannesburg (UTC+2) - Afrique du Sud</option>
+                    <option value="Africa/Lagos">Lagos (UTC+1) - Nigeria</option>
+                    <option value="Africa/Kinshasa">Kinshasa (UTC+1) - RD Congo</option>
+                    <option value="Africa/Nairobi">Nairobi (UTC+3) - Kenya</option>
+                    <option value="Africa/Addis_Ababa">Addis-Abeba (UTC+3) - Éthiopie</option>
+                    <option value="Africa/Dakar">Dakar (UTC+0) - Sénégal</option>
+                    <option value="Africa/Abidjan">Abidjan (UTC+0) - Côte d'Ivoire</option>
+                    <option value="Africa/Accra">Accra (UTC+0) - Ghana</option>
+                    <option value="Africa/Bamako">Bamako (UTC+0) - Mali</option>
+                    <option value="Africa/Ouagadougou">Ouagadougou (UTC+0) - Burkina Faso</option>
+                    <option value="Africa/Douala">Douala (UTC+1) - Cameroun</option>
+                    <option value="Africa/Libreville">Libreville (UTC+1) - Gabon</option>
+                    <option value="Africa/Luanda">Luanda (UTC+1) - Angola</option>
+                    <option value="Africa/Maputo">Maputo (UTC+2) - Mozambique</option>
+                    <option value="Africa/Harare">Harare (UTC+2) - Zimbabwe</option>
+                    <option value="Africa/Lusaka">Lusaka (UTC+2) - Zambie</option>
+                    <option value="Africa/Gaborone">Gaborone (UTC+2) - Botswana</option>
+                    <option value="Africa/Windhoek">Windhoek (UTC+2) - Namibie</option>
+                    <option value="Indian/Mauritius">Port-Louis (UTC+4) - Maurice</option>
+                    <option value="Indian/Antananarivo">Antananarivo (UTC+3) - Madagascar</option>
+                  </optgroup>
+                  <optgroup label="Autres fuseaux">
+                    <option value="Europe/Paris">Paris (UTC+1)</option>
+                    <option value="Europe/London">Londres (UTC+0)</option>
+                    <option value="America/New_York">New York (UTC-5)</option>
+                    <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+                  </optgroup>
                 </select>
               </div>
               <div>
                 <label className="label">Format de date</label>
                 <select className="input">
-                  <option>JJ/MM/AAAA</option>
-                  <option>MM/JJ/AAAA</option>
-                  <option>AAAA-MM-JJ</option>
+                  <option value="DD/MM/YYYY">JJ/MM/AAAA (France, Afrique francophone)</option>
+                  <option value="MM/DD/YYYY">MM/JJ/AAAA (États-Unis)</option>
+                  <option value="YYYY-MM-DD">AAAA-MM-JJ (ISO 8601)</option>
+                  <option value="DD-MM-YYYY">JJ-MM-AAAA</option>
+                  <option value="DD.MM.YYYY">JJ.MM.AAAA (Allemagne)</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Format des nombres</label>
+                <select className="input">
+                  <option value="FR">1 234,56 (France, Afrique francophone)</option>
+                  <option value="US">1,234.56 (États-Unis, Afrique anglophone)</option>
+                  <option value="DE">1.234,56 (Allemagne)</option>
+                  <option value="CH">1'234,56 (Suisse)</option>
                 </select>
               </div>
             </div>
           </div>
         );
 
-      case 'data':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Gestion des données
-            </h3>
-            <div className="space-y-4">
-              <ModernCard>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h4 className="font-medium text-[var(--color-text-primary)]">
-                        Sauvegarde automatique
-                      </h4>
-                      <p className="text-sm text-[var(--color-text-secondary)]">
-                        Sauvegarde quotidienne de vos données
-                      </p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={autoBackup}
-                        onChange={(e) => setAutoBackup(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
-                    </label>
-                  </div>
-                  <p className="text-xs text-[var(--color-text-tertiary)]">
-                    Dernière sauvegarde : Aujourd'hui à 03:00
-                  </p>
-                </div>
-              </ModernCard>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ModernCard className="p-4">
-                  <Download className="w-8 h-8 text-[var(--color-primary)] mb-3" />
-                  <h4 className="font-medium text-[var(--color-text-primary)] mb-2">
-                    Exporter les données
-                  </h4>
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                    Téléchargez une copie de toutes vos données
-                  </p>
-                  <ModernButton variant="outline" size="sm" fullWidth>
-                    Exporter
-                  </ModernButton>
-                </ModernCard>
-
-                <ModernCard className="p-4">
-                  <Upload className="w-8 h-8 text-[var(--color-primary)] mb-3" />
-                  <h4 className="font-medium text-[var(--color-text-primary)] mb-2">
-                    Importer des données
-                  </h4>
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                    Importez des données depuis un fichier
-                  </p>
-                  <ModernButton variant="outline" size="sm" fullWidth>
-                    Importer
-                  </ModernButton>
-                </ModernCard>
-              </div>
-            </div>
-          </div>
-        );
 
       default:
         return (
@@ -583,7 +501,7 @@ const ModernSettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 animate-fadeIn">
+    <div className="w-full space-y-6 animate-fadeIn">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
@@ -594,51 +512,41 @@ const ModernSettingsPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar Navigation */}
-        <div className="lg:col-span-1">
-          <ModernCard>
-            <CardBody className="p-2">
-              {settingSections.map((section) => (
-                <button
-                  key={section.id}
-                  onClick={() => setActiveSection(section.id)}
-                  className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                    'hover:bg-[var(--color-surface-hover)]',
-                    activeSection === section.id && 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'
-                  )}
-                >
-                  <div className={cn(
-                    'transition-colors',
-                    activeSection === section.id ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-tertiary)]'
-                  )}>
-                    {section.icon}
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">
-                      {section.title}
-                    </p>
-                    <p className="text-xs text-[var(--color-text-tertiary)]">
-                      {section.description}
-                    </p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                </button>
-              ))}
-            </CardBody>
-          </ModernCard>
-        </div>
-
-        {/* Content Area */}
-        <div className="lg:col-span-3">
-          <ModernCard>
-            <CardBody>
-              {renderSectionContent()}
-            </CardBody>
-          </ModernCard>
+      {/* Tabs Navigation */}
+      <div className="border-b border-[var(--color-border)]">
+        <div className="flex flex-wrap gap-1">
+          {settingSections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-3 rounded-t-lg border-b-2 transition-all duration-200',
+                'hover:bg-[var(--color-surface-hover)]',
+                activeSection === section.id
+                  ? 'border-[var(--color-primary)] bg-[var(--color-primary-light)] text-[var(--color-primary)]'
+                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+              )}
+            >
+              <div className={cn(
+                'transition-colors',
+                activeSection === section.id ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-tertiary)]'
+              )}>
+                {section.icon}
+              </div>
+              <span className="text-sm font-medium whitespace-nowrap">
+                {section.title}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Content Area */}
+      <ModernCard>
+        <CardBody>
+          {renderSectionContent()}
+        </CardBody>
+      </ModernCard>
     </div>
   );
 };

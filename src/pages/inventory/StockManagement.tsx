@@ -20,7 +20,7 @@ import {
 import { StockLevel, InventoryItem, Location, ReorderRules, InventoryFilters, SortOption } from './types';
 import { mockStockLevels, mockInventoryItems, mockLocations, mockReorderRules } from './utils/mockData';
 import { InventoryCalculations } from './utils/calculations';
-import InventoryFilters as FilterComponent from './components/InventoryFilters';
+import FilterComponent from './components/InventoryFilters';
 import StockStatusBadge from './components/StockStatusBadge';
 import ValuationMethodBadge from './components/ValuationMethodBadge';
 import CurrencyDisplay from './components/CurrencyDisplay';

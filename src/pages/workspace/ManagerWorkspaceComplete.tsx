@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout';
-import { 
-  TrendingUp, 
-  BarChart3, 
-  PieChart, 
+import {
+  TrendingUp,
+  BarChart3,
+  PieChart,
   DollarSign,
   Users,
   Target,
@@ -18,7 +18,8 @@ import {
   Home,
   Briefcase,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  CheckSquare
 } from 'lucide-react';
 
 const ManagerWorkspaceComplete: React.FC = () => {
@@ -34,7 +35,7 @@ const ManagerWorkspaceComplete: React.FC = () => {
     { id: 'reports', label: 'Rapports', icon: PieChart, path: '/reports' },
     { id: 'teams', label: 'Équipes', icon: Users, path: '/security/users' },
     { id: 'objectives', label: 'Objectifs', icon: Briefcase, path: '/budgeting' },
-    { id: 'collaboration', label: 'Chat & Collaboration', icon: MessageSquare, path: '/collaboration' },
+    // Les modules Tâches et Collaboration sont maintenant intégrés directement dans le workspace
   ];
 
   // Sidebar du manager

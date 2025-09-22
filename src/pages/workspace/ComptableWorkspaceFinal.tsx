@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Calculator, 
-  FileText, 
+import {
+  Calculator,
+  FileText,
   BookOpen,
   BarChart3,
   Users,
@@ -27,7 +27,8 @@ import {
   X,
   Target,
   AlertCircle,
-  MessageSquare
+  MessageSquare,
+  CheckSquare
 } from 'lucide-react';
 
 const ComptableWorkspaceFinal: React.FC = () => {
@@ -43,7 +44,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
     { id: 'statements', label: 'États financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
     { id: 'thirds', label: 'Gestion tiers', icon: Users, path: '/third-party' },
     { id: 'banking', label: 'Banque', icon: Banknote, path: '/treasury' },
-    { id: 'collaboration', label: 'Chat & Collaboration', icon: MessageSquare, path: '/collaboration' },
+    // Les modules Tâches et Collaboration sont maintenant intégrés directement dans le workspace
   ];
 
   return (

@@ -307,7 +307,7 @@ const ExecutiveDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Strategic Goals Progress */}
+      {/* Strategic Goals Progress - REMOVED
       <div className="bg-[var(--color-card-bg)] rounded-lg border border-[var(--color-border)] mb-6">
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
@@ -353,6 +353,7 @@ const ExecutiveDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      */}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -409,7 +410,7 @@ const ExecutiveDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Department Performance */}
+      {/* Department Performance - REMOVED
       <div className="bg-[var(--color-card-bg)] rounded-lg border border-[var(--color-border)] mb-6">
         <div className="p-6 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between">
@@ -502,6 +503,7 @@ const ExecutiveDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      */}
 
       {/* Profitability Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

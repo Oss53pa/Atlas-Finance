@@ -158,6 +158,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const secondaryMenuItems: Record<string, MenuItem[]> = {
     dashboard: [
       { id: 'global-view', label: 'Vue Globale', path: '/dashboard', icon: <Eye className="w-4 h-4" /> },
+      { id: 'executive-view', label: 'Vue Executive', path: '/executive', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'kpis', label: 'KPIs Temps Réel', path: '/dashboard/kpis', icon: <Activity className="w-4 h-4" /> },
       { id: 'alerts', label: 'Alertes', path: '/dashboard/alerts', icon: <AlertTriangle className="w-4 h-4" />, badge: '5' },
       { id: 'ai-insights', label: 'IA Insights', path: '/dashboard/ai-insights', icon: <Bot className="w-4 h-4" /> },
@@ -217,6 +218,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'custom-reports', label: 'Rapports Personnalisés', path: '/reporting/custom', icon: <FileCheck className="w-4 h-4" /> }
     ],
     settings: [
+      { id: 'theme', label: 'Thème & Apparence', path: '/parameters', icon: <Palette className="w-4 h-4" /> },
+      { id: 'accounting-params', label: 'Paramètres Comptabilité', path: '/settings', icon: <Calculator className="w-4 h-4" /> },
       { id: 'company', label: 'Configuration Société', path: '/settings/company', icon: <Building2 className="w-4 h-4" /> },
       { id: 'users', label: 'Utilisateurs & Droits', path: '/settings/users', icon: <Users className="w-4 h-4" /> },
       { id: 'import-export', label: 'Import/Export', path: '/settings/import-export', icon: <Download className="w-4 h-4" /> },
