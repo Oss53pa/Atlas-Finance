@@ -1,13 +1,49 @@
 /**
- * Response Generator - IA Simulée
- * Génère des réponses intelligentes et contextuelles
+ * Advanced Response Generator - IA Dynamique et Adaptative
+ * Génère des réponses intelligentes, contextuelles et personnalisées pour Paloma
  */
 
 import { UserIntent, ChatResponse, ChatAction, ChatContext } from '../types';
 import { searchKnowledgeBase, getEntriesByCategory } from '../utils/knowledgeBase';
+import { advancedSearch, advancedSearchKnowledge } from '../knowledge/wiseBookKnowledge';
 
-export class ResponseGenerator {
+// Interfaces pour la génération avancée
+interface ResponsePersonality {
+  tone: 'enthusiastic' | 'professional' | 'friendly' | 'concise' | 'encouraging';
+  complexity: 'simple' | 'detailed' | 'expert';
+  style: 'conversational' | 'instructional' | 'supportive';
+}
+
+interface DynamicResponseContext {
+  userExpertiseLevel: 'beginner' | 'intermediate' | 'expert';
+  emotionalState: 'neutral' | 'frustrated' | 'confused' | 'satisfied' | 'urgent';
+  conversationLength: number;
+  recentSuccesses: string[];
+  recentFailures: string[];
+  preferredResponseStyle: string;
+  sessionGoals: string[];
+}
+
+interface ResponseVariation {
+  opening: string[];
+  connecting: string[];
+  explaining: string[];
+  closing: string[];
+  encouraging: string[];
+}
+
+interface AdaptiveResponse {
+  message: string;
+  confidence: number;
+  personalityUsed: ResponsePersonality;
+  adaptationReasons: string[];
+  suggestedFollowUps: string[];
+  actions?: ChatAction[];
+}
+
+export class AdvancedResponseGenerator {
   private responseTemplates: { [key: string]: ResponseTemplate } = {
+    // Templates de base conservés pour la compatibilité
     greeting: {
       responses: [
         "Salut ! 🤖 C'est Paloma ! Votre assistante WiseBook préférée. Prête à vous dépanner !",
@@ -340,32 +376,73 @@ export class ResponseGenerator {
     }
   };
 
+  // Nouvelles propriétés pour la génération dynamique
+  private responseVariations: ResponseVariation = {
+    opening: [
+      '🚀 Parfait !', '✨ Excellent !', '🎯 Super question !', '💡 Génial !',
+      '👍 Très bonne idée !', '🌟 Formidable !', '🔥 Top !', '⚡ Excellent timing !'
+    ],
+    connecting: [
+      'Laissez-moi vous expliquer', 'Voici comment procéder', 'Je vais vous guider',
+      'Suivez ces étapes', 'Paloma va tout vous détailler', 'Voici la marche à suivre'
+    ],
+    explaining: [
+      'En pratique, voici ce que vous devez faire', 'Concrètement',
+      'Pour bien comprendre', 'En résumé', 'L\'essentiel à retenir'
+    ],
+    closing: [
+      'N\'hésitez pas si vous avez des questions !', 'Je reste à votre disposition !',
+      'Dites-moi si vous voulez plus de détails !', 'Besoin d\'aide supplémentaire ?',
+      'Tout est clair pour vous ?', 'On continue ensemble ?'
+    ],
+    encouraging: [
+      'Vous y arrivez très bien !', 'Continuez comme ça !', 'Parfait, vous maîtrisez !',
+      'Excellent travail !', 'Bravo pour votre progression !', 'Vous êtes sur la bonne voie !'
+    ]
+  };
+
+  private personalityProfiles: Map<string, ResponsePersonality> = new Map([
+    ['beginner_enthusiastic', { tone: 'enthusiastic', complexity: 'simple', style: 'supportive' }],
+    ['expert_concise', { tone: 'professional', complexity: 'expert', style: 'instructional' }],
+    ['frustrated_encouraging', { tone: 'encouraging', complexity: 'simple', style: 'supportive' }],
+    ['urgent_efficient', { tone: 'concise', complexity: 'detailed', style: 'instructional' }],
+    ['confused_patient', { tone: 'friendly', complexity: 'simple', style: 'conversational' }]
+  ]);
+
   generateResponse(intent: UserIntent, context: ChatContext): ChatResponse {
-    const template = this.responseTemplates[intent.intent];
+    // Construire le contexte dynamique étendu
+    const dynamicContext = this.buildDynamicContext(intent, context);
 
-    if (!template) {
-      return this.generateFallbackResponse(intent, context);
-    }
+    // Sélectionner la personnalité optimale
+    const personality = this.selectOptimalPersonality(dynamicContext);
 
-    // Recherche dans la base de connaissances
-    const knowledgeResults = this.searchKnowledge(intent, context);
+    // Générer une réponse adaptative
+    const adaptiveResponse = this.generateAdaptiveResponse(intent, context, dynamicContext, personality);
 
-    // Génération de la réponse principale
-    const message = this.buildResponseMessage(template, intent, context, knowledgeResults);
+    // Recherche enrichie dans la base de connaissances
+    const knowledgeResults = this.performEnhancedKnowledgeSearch(intent, context);
 
-    // Actions contextuelles
-    const actions = this.generateContextualActions(template, intent, context);
+    // Construire la réponse finale
+    const finalMessage = this.buildDynamicMessage(adaptiveResponse, knowledgeResults, personality);
 
-    // Quick replies intelligentes
-    const quickReplies = this.generateSmartQuickReplies(template, intent, context);
+    // Générer des actions intelligentes
+    const smartActions = this.generateIntelligentActions(intent, context, knowledgeResults);
+
+    // Quick replies personnalisées
+    const personalizedQuickReplies = this.generatePersonalizedQuickReplies(intent, context, dynamicContext);
 
     return {
-      message,
-      confidence: intent.confidence,
-      source: knowledgeResults.length > 0 ? 'knowledge-base' : 'ai',
-      actions,
-      quickReplies,
-      suggestedArticles: knowledgeResults.slice(0, 3)
+      message: finalMessage,
+      confidence: this.calculateDynamicConfidence(intent, knowledgeResults, adaptiveResponse),
+      source: this.determineResponseSource(knowledgeResults, adaptiveResponse),
+      actions: smartActions,
+      quickReplies: personalizedQuickReplies,
+      suggestedArticles: knowledgeResults.slice(0, 3),
+      metadata: {
+        personalityUsed: personality,
+        adaptationReasons: adaptiveResponse.adaptationReasons,
+        responseGeneration: 'dynamic'
+      }
     };
   }
 
@@ -531,23 +608,466 @@ export class ResponseGenerator {
     return [...new Set(quickReplies)].slice(0, 4);
   }
 
-  private generateFallbackResponse(intent: UserIntent, context: ChatContext): ChatResponse {
-    const fallbackMessages = [
-      "Je ne suis pas certain de comprendre votre demande. Pouvez-vous être plus précis ?",
-      "Hmm, cette question est complexe ! Pouvez-vous reformuler ou choisir un sujet spécifique ?",
-      "Je n'ai pas de réponse exacte, mais je peux vous orienter vers les bonnes ressources !"
-    ];
+  // Nouvelles méthodes pour la génération dynamique
+
+  private buildDynamicContext(intent: UserIntent, context: ChatContext): DynamicResponseContext {
+    return {
+      userExpertiseLevel: this.inferExpertiseLevel(intent, context),
+      emotionalState: this.detectEmotionalState(intent, context),
+      conversationLength: context.recentActions?.length || 0,
+      recentSuccesses: this.extractRecentSuccesses(context),
+      recentFailures: this.extractRecentFailures(context),
+      preferredResponseStyle: this.inferPreferredStyle(context),
+      sessionGoals: this.identifySessionGoals(context)
+    };
+  }
+
+  private selectOptimalPersonality(dynamicContext: DynamicResponseContext): ResponsePersonality {
+    // Logique de sélection de personnalité basée sur le contexte
+    if (dynamicContext.emotionalState === 'frustrated') {
+      return this.personalityProfiles.get('frustrated_encouraging')!;
+    }
+    if (dynamicContext.emotionalState === 'urgent') {
+      return this.personalityProfiles.get('urgent_efficient')!;
+    }
+    if (dynamicContext.emotionalState === 'confused') {
+      return this.personalityProfiles.get('confused_patient')!;
+    }
+    if (dynamicContext.userExpertiseLevel === 'expert') {
+      return this.personalityProfiles.get('expert_concise')!;
+    }
+    return this.personalityProfiles.get('beginner_enthusiastic')!;
+  }
+
+  private generateAdaptiveResponse(
+    intent: UserIntent,
+    context: ChatContext,
+    dynamicContext: DynamicResponseContext,
+    personality: ResponsePersonality
+  ): AdaptiveResponse {
+    const template = this.responseTemplates[intent.intent];
+    const adaptationReasons: string[] = [];
+
+    let baseMessage = '';
+    if (template) {
+      baseMessage = this.selectVariedResponse(template.responses, dynamicContext);
+    } else {
+      baseMessage = this.generateSmartFallback(intent, dynamicContext);
+      adaptationReasons.push('Fallback intelligent généré');
+    }
+
+    // Adapter selon la personnalité
+    let adaptedMessage = this.adaptMessageToPersonality(baseMessage, personality);
+    adaptationReasons.push(`Adaptation ${personality.tone}`);
+
+    // Ajouter des éléments contextuels
+    if (dynamicContext.recentSuccesses.length > 0 && personality.style === 'supportive') {
+      const encouragement = this.selectRandomFromArray(this.responseVariations.encouraging);
+      adaptedMessage = `${encouragement} ${adaptedMessage}`;
+      adaptationReasons.push('Encouragement ajouté');
+    }
+
+    // Personnaliser selon l'état émotionnel
+    if (dynamicContext.emotionalState === 'frustrated') {
+      adaptedMessage = this.addEmpathyToMessage(adaptedMessage);
+      adaptationReasons.push('Empathie ajoutée pour frustration');
+    }
+
+    const suggestedFollowUps = this.generateContextualFollowUps(intent, dynamicContext);
 
     return {
-      message: this.selectRandomResponse(fallbackMessages),
-      confidence: 0.3,
-      source: 'fallback',
-      quickReplies: [
-        "Aide sur la navigation",
-        "Problèmes techniques",
-        "Formation utilisateur",
-        "Contacter le support"
-      ]
+      message: adaptedMessage,
+      confidence: this.calculateAdaptationConfidence(template, personality),
+      personalityUsed: personality,
+      adaptationReasons,
+      suggestedFollowUps
+    };
+  }
+
+  private performEnhancedKnowledgeSearch(intent: UserIntent, context: ChatContext) {
+    // Utiliser le nouveau système de recherche avancée
+    const searchQuery = this.buildSmartSearchQuery(intent, context);
+    const searchResults = advancedSearchKnowledge(searchQuery, {
+      maxResults: 5,
+      threshold: 0.3,
+      semanticExpansion: true,
+      contextBoost: true
+    });
+
+    return searchResults.map(result => result.entry);
+  }
+
+  private buildDynamicMessage(
+    adaptiveResponse: AdaptiveResponse,
+    knowledgeResults: any[],
+    personality: ResponsePersonality
+  ): string {
+    let message = adaptiveResponse.message;
+
+    // Ajouter des informations de la base de connaissances si pertinentes
+    if (knowledgeResults.length > 0 && personality.complexity !== 'simple') {
+      const topResult = knowledgeResults[0];
+      message += `\n\n📚 **Référence**: ${topResult.title}\n${this.summarizeContent(topResult.content, personality.complexity)}`;
+    }
+
+    // Ajouter des conseils personnalisés
+    if (personality.style === 'supportive') {
+      const tip = this.generatePersonalizedTip(personality);
+      if (tip) {
+        message += `\n\n💡 **Conseil Paloma**: ${tip}`;
+      }
+    }
+
+    return message;
+  }
+
+  private generateIntelligentActions(
+    intent: UserIntent,
+    context: ChatContext,
+    knowledgeResults: any[]
+  ): ChatAction[] {
+    const actions: ChatAction[] = [];
+
+    // Actions basées sur l'intention
+    const intentActions = this.getIntentSpecificActions(intent);
+    actions.push(...intentActions);
+
+    // Actions basées sur la base de connaissances
+    if (knowledgeResults.length > 0) {
+      const knowledgeActions = this.generateKnowledgeBasedActions(knowledgeResults);
+      actions.push(...knowledgeActions.slice(0, 2));
+    }
+
+    // Actions contextuelles intelligentes
+    const contextualActions = this.generateSmartContextualActions(context);
+    actions.push(...contextualActions);
+
+    return actions.slice(0, 4); // Limiter à 4 actions max
+  }
+
+  private generatePersonalizedQuickReplies(
+    intent: UserIntent,
+    context: ChatContext,
+    dynamicContext: DynamicResponseContext
+  ): string[] {
+    const quickReplies: string[] = [];
+
+    // Quick replies basées sur les objectifs de session
+    if (dynamicContext.sessionGoals.length > 0) {
+      quickReplies.push(...dynamicContext.sessionGoals.slice(0, 2));
+    }
+
+    // Quick replies basées sur l'expertise
+    if (dynamicContext.userExpertiseLevel === 'beginner') {
+      quickReplies.push('Guide étape par étape', 'Explications détaillées');
+    } else if (dynamicContext.userExpertiseLevel === 'expert') {
+      quickReplies.push('Options avancées', 'Raccourcis professionnels');
+    }
+
+    // Quick replies basées sur l'état émotionnel
+    if (dynamicContext.emotionalState === 'frustrated') {
+      quickReplies.push('Contacter le support', 'Solution alternative');
+    } else if (dynamicContext.emotionalState === 'confused') {
+      quickReplies.push('Plus d\'explications', 'Exemple concret');
+    }
+
+    // Ajouter des quick replies par défaut si nécessaire
+    if (quickReplies.length < 3) {
+      const defaultReplies = ['Aide générale', 'Continuer', 'Autre question'];
+      quickReplies.push(...defaultReplies.slice(0, 3 - quickReplies.length));
+    }
+
+    return [...new Set(quickReplies)].slice(0, 4);
+  }
+
+  // Méthodes utilitaires pour l'adaptation dynamique
+
+  private inferExpertiseLevel(intent: UserIntent, context: ChatContext): 'beginner' | 'intermediate' | 'expert' {
+    const complexIntents = ['accounting_entry', 'budget_analysis', 'debt_management'];
+    const recentActions = context.recentActions || [];
+
+    if (complexIntents.includes(intent.intent) && recentActions.length > 10) {
+      return 'expert';
+    }
+    if (recentActions.length > 5) {
+      return 'intermediate';
+    }
+    return 'beginner';
+  }
+
+  private detectEmotionalState(intent: UserIntent, context: ChatContext): DynamicResponseContext['emotionalState'] {
+    const recentActions = context.recentActions || [];
+
+    if (intent.intent === 'technical_issue' || recentActions.filter(a => a.includes('error')).length > 1) {
+      return 'frustrated';
+    }
+    if (intent.intent === 'help_general' || intent.confidence < 0.5) {
+      return 'confused';
+    }
+    if (recentActions.some(a => a.includes('success'))) {
+      return 'satisfied';
+    }
+    return 'neutral';
+  }
+
+  private extractRecentSuccesses(context: ChatContext): string[] {
+    return (context.recentActions || [])
+      .filter(action => action.includes('success') || action.includes('completed'))
+      .slice(-3);
+  }
+
+  private extractRecentFailures(context: ChatContext): string[] {
+    return (context.recentActions || [])
+      .filter(action => action.includes('error') || action.includes('failed'))
+      .slice(-3);
+  }
+
+  private inferPreferredStyle(context: ChatContext): string {
+    // Analyser l'historique pour inférer le style préféré
+    return 'balanced'; // Implémentation simple pour l'instant
+  }
+
+  private identifySessionGoals(context: ChatContext): string[] {
+    const goals: string[] = [];
+    const recentActions = context.recentActions || [];
+
+    if (recentActions.some(a => a.includes('budget'))) {
+      goals.push('Maîtriser la budgétisation');
+    }
+    if (recentActions.some(a => a.includes('inventory'))) {
+      goals.push('Optimiser la gestion des stocks');
+    }
+
+    return goals;
+  }
+
+  private selectVariedResponse(responses: string[], dynamicContext: DynamicResponseContext): string {
+    // Sélectionner une réponse en évitant la répétition
+    const index = dynamicContext.conversationLength % responses.length;
+    return responses[index];
+  }
+
+  private generateSmartFallback(intent: UserIntent, dynamicContext: DynamicResponseContext): string {
+    const baseMessages = [
+      'Hmm, laissez-moi chercher la meilleure façon de vous aider avec ça',
+      'Intéressant ! Cette question mérite une réponse personnalisée',
+      'Je vais adapter ma réponse à votre situation spécifique'
+    ];
+
+    const selected = this.selectRandomFromArray(baseMessages);
+
+    if (dynamicContext.emotionalState === 'frustrated') {
+      return `🤗 ${selected}. Je comprends que ce soit frustrant, prenons le temps de bien résoudre cela.`;
+    }
+
+    return `✨ ${selected}.`;
+  }
+
+  private adaptMessageToPersonality(message: string, personality: ResponsePersonality): string {
+    let adapted = message;
+
+    switch (personality.tone) {
+      case 'enthusiastic':
+        adapted = this.addEnthusiasm(adapted);
+        break;
+      case 'professional':
+        adapted = this.makeProfessional(adapted);
+        break;
+      case 'encouraging':
+        adapted = this.addEncouragement(adapted);
+        break;
+      case 'concise':
+        adapted = this.makeConcise(adapted);
+        break;
+    }
+
+    return adapted;
+  }
+
+  private addEnthusiasm(message: string): string {
+    const enthusiasticOpening = this.selectRandomFromArray(this.responseVariations.opening);
+    return `${enthusiasticOpening} ${message}`;
+  }
+
+  private makeProfessional(message: string): string {
+    return message
+      .replace(/!/g, '.')
+      .replace(/😊|✨|🎯|💡/g, '')
+      .trim();
+  }
+
+  private addEncouragement(message: string): string {
+    const encouragement = this.selectRandomFromArray(this.responseVariations.encouraging);
+    return `${message}\n\n💪 ${encouragement}`;
+  }
+
+  private makeConcise(message: string): string {
+    return message
+      .split('\n')[0] // Prendre seulement la première ligne
+      .replace(/\s*\([^)]*\)/g, '') // Supprimer les parenthèses
+      .trim();
+  }
+
+  private addEmpathyToMessage(message: string): string {
+    const empathyPhrases = [
+      '🤗 Je comprends que ce soit frustrant.',
+      '💙 Pas de souci, on va résoudre ça ensemble.',
+      '🤝 Je suis là pour vous accompagner.'
+    ];
+    const empathy = this.selectRandomFromArray(empathyPhrases);
+    return `${empathy} ${message}`;
+  }
+
+  private generateContextualFollowUps(intent: UserIntent, dynamicContext: DynamicResponseContext): string[] {
+    const followUps: string[] = [];
+
+    if (dynamicContext.userExpertiseLevel === 'beginner') {
+      followUps.push('Besoin d\'un guide pas à pas ?', 'Voulez-vous un exemple concret ?');
+    }
+
+    if (dynamicContext.sessionGoals.length > 0) {
+      followUps.push(`Continuer avec: ${dynamicContext.sessionGoals[0]}`);
+    }
+
+    return followUps;
+  }
+
+  private generatePersonalizedTip(personality: ResponsePersonality): string | null {
+    const tips = [
+      'Sauvegardez régulièrement vos données importantes',
+      'Utilisez les raccourcis clavier pour gagner du temps',
+      'N\'hésitez pas à explorer les options avancées',
+      'Consultez les rapports pour suivre vos performances'
+    ];
+
+    if (personality.complexity === 'expert') {
+      return null; // Pas de tips pour les experts
+    }
+
+    return this.selectRandomFromArray(tips);
+  }
+
+  private calculateDynamicConfidence(
+    intent: UserIntent,
+    knowledgeResults: any[],
+    adaptiveResponse: AdaptiveResponse
+  ): number {
+    let confidence = intent.confidence;
+
+    // Bonus pour les résultats de la base de connaissances
+    if (knowledgeResults.length > 0) {
+      confidence += 0.1;
+    }
+
+    // Bonus pour une adaptation réussie
+    if (adaptiveResponse.adaptationReasons.length > 0) {
+      confidence += 0.05;
+    }
+
+    return Math.min(confidence, 1.0);
+  }
+
+  private determineResponseSource(knowledgeResults: any[], adaptiveResponse: AdaptiveResponse): string {
+    if (knowledgeResults.length > 0) {
+      return 'enhanced-knowledge-base';
+    }
+    if (adaptiveResponse.adaptationReasons.length > 0) {
+      return 'adaptive-ai';
+    }
+    return 'ai';
+  }
+
+  private selectRandomFromArray(array: string[]): string {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+
+  private calculateAdaptationConfidence(template: any, personality: ResponsePersonality): number {
+    let confidence = template ? 0.8 : 0.6;
+
+    // Bonus pour la personnalité appropriée
+    if (personality.tone === 'encouraging' || personality.style === 'supportive') {
+      confidence += 0.1;
+    }
+
+    return confidence;
+  }
+
+  private buildSmartSearchQuery(intent: UserIntent, context: ChatContext): string {
+    let query = intent.intent.replace('_', ' ');
+
+    // Ajouter des entités si disponibles
+    if (intent.entities.module) {
+      query += ` ${intent.entities.module}`;
+    }
+    if (intent.entities.action) {
+      query += ` ${intent.entities.action}`;
+    }
+
+    return query;
+  }
+
+  private summarizeContent(content: string, complexity: 'simple' | 'detailed' | 'expert'): string {
+    const maxLength = complexity === 'simple' ? 100 : complexity === 'detailed' ? 200 : 300;
+    return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+  }
+
+  private getIntentSpecificActions(intent: UserIntent): ChatAction[] {
+    const actionMap: { [key: string]: ChatAction[] } = {
+      budget_help: [{
+        type: 'navigate',
+        label: 'Créer un budget',
+        payload: { route: '/finance/budget/create' },
+        icon: 'plus'
+      }],
+      technical_issue: [{
+        type: 'copy-text',
+        label: 'Copier infos de diagnostic',
+        payload: { text: 'Diagnostic système généré' },
+        icon: 'copy'
+      }]
+    };
+
+    return actionMap[intent.intent] || [];
+  }
+
+  private generateKnowledgeBasedActions(knowledgeResults: any[]): ChatAction[] {
+    return knowledgeResults
+      .filter(result => result.navigationPath)
+      .map(result => ({
+        type: 'navigate' as const,
+        label: `Ouvrir ${result.title}`,
+        payload: { route: result.navigationPath },
+        icon: 'arrow-right'
+      }));
+  }
+
+  private generateSmartContextualActions(context: ChatContext): ChatAction[] {
+    const actions: ChatAction[] = [];
+
+    if (context.currentPage && context.currentPage !== '/dashboard') {
+      actions.push({
+        type: 'navigate',
+        label: 'Retour au tableau de bord',
+        payload: { route: '/dashboard' },
+        icon: 'home'
+      });
+    }
+
+    return actions;
+  }
+
+  private generateFallbackResponse(intent: UserIntent, context: ChatContext): ChatResponse {
+    const dynamicContext = this.buildDynamicContext(intent, context);
+    const personality = this.selectOptimalPersonality(dynamicContext);
+
+    const smartFallback = this.generateSmartFallback(intent, dynamicContext);
+    const adaptedFallback = this.adaptMessageToPersonality(smartFallback, personality);
+
+    return {
+      message: adaptedFallback,
+      confidence: 0.4, // Un peu plus élevé que l'ancien système
+      source: 'adaptive-fallback',
+      quickReplies: this.generatePersonalizedQuickReplies(intent, context, dynamicContext)
     };
   }
 }
@@ -559,4 +1079,7 @@ interface ResponseTemplate {
   dynamicContent?: boolean;
 }
 
-export const responseGenerator = new ResponseGenerator();
+// Maintenir la compatibilité avec l'ancienne interface
+export class ResponseGenerator extends AdvancedResponseGenerator {}
+
+export const responseGenerator = new AdvancedResponseGenerator();
