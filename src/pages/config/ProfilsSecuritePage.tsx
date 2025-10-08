@@ -400,9 +400,9 @@ const ProfilsSecuritePage: React.FC = () => {
       case 'read':
         return <Eye className="h-3 w-3 text-blue-500" />;
       case 'none':
-        return <XSquare className="h-3 w-3 text-gray-400" />;
+        return <XSquare className="h-3 w-3 text-gray-700" />;
       default:
-        return <Minus className="h-3 w-3 text-gray-400" />;
+        return <Minus className="h-3 w-3 text-gray-700" />;
     }
   };
 
@@ -586,7 +586,7 @@ const ProfilsSecuritePage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-5">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
                       placeholder="Rechercher un profil..."
                       value={searchTerm}
@@ -689,7 +689,7 @@ const ProfilsSecuritePage: React.FC = () => {
                                     )}
                                   </div>
                                   <p className="font-semibold text-gray-900 mt-1">{profile.name}</p>
-                                  <p className="text-sm text-gray-500">{profile.description}</p>
+                                  <p className="text-sm text-gray-700">{profile.description}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -707,19 +707,19 @@ const ProfilsSecuritePage: React.FC = () => {
                             <TableCell>
                               <div className="text-center">
                                 <span className="text-lg font-bold text-blue-600">{profile.users_count}</span>
-                                <p className="text-xs text-gray-500">utilisateurs</p>
+                                <p className="text-xs text-gray-700">utilisateurs</p>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="text-center">
                                 <span className="text-lg font-bold text-green-600">{profile.permissions.length}</span>
-                                <p className="text-xs text-gray-500">permissions</p>
+                                <p className="text-xs text-gray-700">permissions</p>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="text-center">
                                 <span className="text-lg font-bold text-orange-600">{profile.restrictions.length}</span>
-                                <p className="text-xs text-gray-500">restrictions</p>
+                                <p className="text-xs text-gray-700">restrictions</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -731,7 +731,7 @@ const ProfilsSecuritePage: React.FC = () => {
                             <TableCell>
                               <div className="text-sm">
                                 <p className="font-medium">{formatDate(profile.last_modified)}</p>
-                                <p className="text-gray-500">par {profile.created_by}</p>
+                                <p className="text-gray-700">par {profile.created_by}</p>
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
@@ -868,7 +868,7 @@ const ProfilsSecuritePage: React.FC = () => {
                       <span>Read - Lecture seule</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <XSquare className="h-3 w-3 text-gray-400" />
+                      <XSquare className="h-3 w-3 text-gray-700" />
                       <span>None - Aucun accès</span>
                     </div>
                   </div>
@@ -899,7 +899,7 @@ const ProfilsSecuritePage: React.FC = () => {
                               </Badge>
                             </div>
                           </div>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-700">
                             {profile.restrictions.filter(r => r.is_active).length} restriction(s) active(s)
                           </span>
                         </div>
@@ -941,9 +941,9 @@ const ProfilsSecuritePage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <Shield className="h-16 w-16 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Journal d'Audit</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     Suivi des accès et modifications des profils de sécurité
                   </p>
                   <div className="flex justify-center space-x-4">

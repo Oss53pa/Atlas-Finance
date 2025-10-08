@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Users, Building2, UserPlus, Phone, Mail, MapPin, 
   CreditCard, FileText, BarChart3, TrendingUp, DollarSign,
@@ -130,6 +131,7 @@ interface Interaction {
 }
 
 const CompleteThirdPartyModule: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedSegment, setSelectedSegment] = useState('all');
@@ -462,7 +464,7 @@ const CompleteThirdPartyModule: React.FC = () => {
           subtitle={`+${stats.nouveauxClients} ce mois`}
         />
         <StatCard
-          title="Fournisseurs"
+          title={t('navigation.suppliers')}
           value={stats.totalSuppliers.toString()}
           icon={Building2}
           trend={{ value: 2.5, type: 'increase' }}
@@ -535,7 +537,7 @@ const CompleteThirdPartyModule: React.FC = () => {
                       </div>
                       <div>
                         <p className="font-medium text-sm">{customer.raisonSociale}</p>
-                        <p className="text-xs text-gray-500">{customer.secteurActivite}</p>
+                        <p className="text-xs text-gray-700">{customer.secteurActivite}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -567,7 +569,7 @@ const CompleteThirdPartyModule: React.FC = () => {
                       </div>
                       <div>
                         <p className="font-medium text-sm">{supplier.raisonSociale}</p>
-                        <p className="text-xs text-gray-500">{supplier.categorie}</p>
+                        <p className="text-xs text-gray-700">{supplier.categorie}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -598,7 +600,7 @@ const CompleteThirdPartyModule: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 w-5 h-5" />
             <input
               type="text"
               placeholder="Rechercher un client..."
@@ -678,7 +680,7 @@ const CompleteThirdPartyModule: React.FC = () => {
                       <td className="py-3 px-4">
                         <div>
                           <p className="text-sm font-medium">{customer.raisonSociale}</p>
-                          <p className="text-xs text-gray-500">{customer.secteurActivite}</p>
+                          <p className="text-xs text-gray-700">{customer.secteurActivite}</p>
                         </div>
                       </td>
                       <td className="py-3 px-4 text-center">
@@ -725,14 +727,14 @@ const CompleteThirdPartyModule: React.FC = () => {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center gap-1">
-                          <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir">
-                            <Eye className="w-4 h-4 text-gray-500" />
+                          <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-gray-700" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Modifier">
-                            <Edit className="w-4 h-4 text-gray-500" />
+                          <button className="p-1 hover:bg-gray-100 rounded transition-colors" title={t('common.edit')}>
+                            <Edit className="w-4 h-4 text-gray-700" />
                           </button>
                           <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Factures">
-                            <Receipt className="w-4 h-4 text-gray-500" />
+                            <Receipt className="w-4 h-4 text-gray-700" />
                           </button>
                         </div>
                       </td>
@@ -752,7 +754,7 @@ const CompleteThirdPartyModule: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 w-5 h-5" />
             <input
               type="text"
               placeholder="Rechercher un fournisseur..."
@@ -804,7 +806,7 @@ const CompleteThirdPartyModule: React.FC = () => {
                       <div>
                         <p className="text-sm font-medium">{supplier.raisonSociale}</p>
                         {supplier.numeroTva && (
-                          <p className="text-xs text-gray-500">TVA: {supplier.numeroTva}</p>
+                          <p className="text-xs text-gray-700">TVA: {supplier.numeroTva}</p>
                         )}
                       </div>
                     </td>
@@ -850,14 +852,14 @@ const CompleteThirdPartyModule: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-center gap-1">
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir">
-                          <Eye className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir" aria-label="Voir les détails">
+                          <Eye className="w-4 h-4 text-gray-700" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Modifier">
-                          <Edit className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title={t('common.edit')}>
+                          <Edit className="w-4 h-4 text-gray-700" />
                         </button>
                         <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Commandes">
-                          <Package className="w-4 h-4 text-gray-500" />
+                          <Package className="w-4 h-4 text-gray-700" />
                         </button>
                       </div>
                     </td>
@@ -899,9 +901,9 @@ const CompleteThirdPartyModule: React.FC = () => {
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8">
           {[
-            { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3 },
-            { id: 'customers', label: 'Clients', icon: Users },
-            { id: 'suppliers', label: 'Fournisseurs', icon: Building2 },
+            { id: 'dashboard', label: t('dashboard.title'), icon: BarChart3 },
+            { id: 'customers', label: t('navigation.clients'), icon: Users },
+            { id: 'suppliers', label: t('navigation.suppliers'), icon: Building2 },
             { id: 'contacts', label: 'Contacts', icon: UserPlus },
             { id: 'transactions', label: 'Transactions', icon: Receipt },
             { id: 'analytics', label: 'Analyses', icon: Activity }
@@ -912,7 +914,7 @@ const CompleteThirdPartyModule: React.FC = () => {
               className={`flex items-center gap-2 py-4 px-1 border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-700 hover:text-gray-700'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -931,6 +933,557 @@ const CompleteThirdPartyModule: React.FC = () => {
         {activeTab === 'transactions' && <div>Module transactions en cours de développement...</div>}
         {activeTab === 'analytics' && <div>Module analyses tiers en cours de développement...</div>}
       </div>
+
+      {/* Customer Modal */}
+      {showCustomerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Nouveau client</h3>
+                    <p className="text-sm text-gray-700">Ajouter un nouveau client au système</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCustomerModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">Informations client</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Remplissez tous les champs obligatoires pour créer le client
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Code client <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                      placeholder="CLI-001"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Raison sociale <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Nom de l'entreprise ou du client"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Type <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="entreprise">Entreprise</option>
+                      <option value="particulier">Particulier</option>
+                      <option value="administration">Administration</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Segment <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="premium">Premium</option>
+                      <option value="standard">Standard</option>
+                      <option value="basic">Basic</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Secteur d'activité <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Ex: Informatique"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Adresse
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Rue <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Numéro et nom de rue"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ville <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Casablanca"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Code postal
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="20000"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Pays <span className="text-red-500">*</span>
+                      </label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="Maroc">Maroc</option>
+                        <option value="France">France</option>
+                        <option value="Belgique">Belgique</option>
+                        <option value="Autre">Autre</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Contact
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Téléphone <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="+212 522 123456"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="contact@entreprise.ma"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Site web
+                      </label>
+                      <input
+                        type="url"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="www.entreprise.ma"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Personne de contact
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Nom du contact principal"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4" />
+                    Conditions commerciales
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Commercial responsable
+                      </label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Sélectionner</option>
+                        <option value="Jean Dupont">Jean Dupont</option>
+                        <option value="Marie Martin">Marie Martin</option>
+                        <option value="Pierre Bernard">Pierre Bernard</option>
+                        <option value="Sophie Legrand">Sophie Legrand</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Crédit autorisé (€)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="50000"
+                        step="1000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Délai de paiement (jours)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="30"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Informations complémentaires..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowCustomerModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Créer le client
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Supplier Modal */}
+      {showSupplierModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Nouveau fournisseur</h3>
+                    <p className="text-sm text-gray-700">Ajouter un nouveau fournisseur au système</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSupplierModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-green-900">Informations fournisseur</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Enregistrez les informations complètes du fournisseur
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Code fournisseur <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
+                      placeholder="FOU-001"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Raison sociale <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Nom du fournisseur"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Type <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="fournisseur">Fournisseur</option>
+                      <option value="prestataire">Prestataire</option>
+                      <option value="sous-traitant">Sous-traitant</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Catégorie <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Ex: Matières premières"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Numéro TVA
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="MA123456789"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Adresse
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Rue <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="Adresse complète"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ville <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="Casablanca"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Code postal
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="20000"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Pays <span className="text-red-500">*</span>
+                      </label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="Maroc">Maroc</option>
+                        <option value="France">France</option>
+                        <option value="Chine">Chine</option>
+                        <option value="Autre">Autre</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Contact
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Téléphone <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="+212 522 123456"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="contact@fournisseur.ma"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Site web
+                      </label>
+                      <input
+                        type="url"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="www.fournisseur.ma"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Personne de contact
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="Nom du contact"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    Conditions de paiement
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Délai de paiement (jours)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="30"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Remise (%)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="5"
+                        step="0.1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Évaluation
+                      </label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                        <option value="4">⭐⭐⭐⭐ Très bon</option>
+                        <option value="3">⭐⭐⭐ Bon</option>
+                        <option value="2">⭐⭐ Moyen</option>
+                        <option value="1">⭐ Faible</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Conditions particulières
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Ex: Remise 5% si paiement sous 10 jours"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Informations complémentaires..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowSupplierModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Créer le fournisseur
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

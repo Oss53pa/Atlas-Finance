@@ -140,10 +140,10 @@ const TaxationDashboard: React.FC = () => {
                 { label: 'Jan', value: 1200, color: 'bg-red-400' },
                 { label: 'Fév', value: 1350, color: 'bg-orange-400' },
                 { label: 'Mar', value: 1180, color: 'bg-amber-400' },
-                { label: 'Avr', value: 1420, color: 'bg-red-500' },
-                { label: 'Mai', value: 1250, color: 'bg-orange-500' },
+                { label: 'Avr', value: 1420, color: 'bg-[var(--color-error)]' },
+                { label: 'Mai', value: 1250, color: 'bg-[var(--color-warning)]' },
                 { label: 'Juin', value: 1380, color: 'bg-amber-500' },
-                { label: 'Juil', value: 1450, color: 'bg-red-600' }
+                { label: 'Juil', value: 1450, color: 'bg-[var(--color-error)]' }
               ]}
               height={160}
             />
@@ -167,8 +167,8 @@ const TaxationDashboard: React.FC = () => {
                     className="p-4 border border-neutral-200 rounded-lg hover:border-red-300 hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-red-50 rounded-lg">
-                        <FileText className="h-5 w-5 text-red-600" />
+                      <div className="p-2 bg-[var(--color-error-lightest)] rounded-lg">
+                        <FileText className="h-5 w-5 text-[var(--color-error)]" />
                       </div>
                       <div>
                         <h3 className="font-medium text-neutral-800">Déclarations TVA</h3>
@@ -201,8 +201,8 @@ const TaxationDashboard: React.FC = () => {
                     className="p-4 border border-neutral-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <Calculator className="h-5 w-5 text-blue-600" />
+                      <div className="p-2 bg-[var(--color-primary-lightest)] rounded-lg">
+                        <Calculator className="h-5 w-5 text-[var(--color-primary)]" />
                       </div>
                       <div>
                         <h3 className="font-medium text-neutral-800">Calculs Automatiques</h3>

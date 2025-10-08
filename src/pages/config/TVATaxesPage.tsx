@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -102,6 +103,7 @@ interface TaxExemption {
 }
 
 const TVATaxesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
@@ -541,7 +543,7 @@ const TVATaxesPage: React.FC = () => {
             <TabsTrigger value="rates">Taux de Taxes</TabsTrigger>
             <TabsTrigger value="rules">Règles d'Application</TabsTrigger>
             <TabsTrigger value="exemptions">Exonérations</TabsTrigger>
-            <TabsTrigger value="settings">Paramètres</TabsTrigger>
+            <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="rates" className="space-y-4">
@@ -550,7 +552,7 @@ const TVATaxesPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-6">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
                       placeholder="Rechercher un taux..."
                       value={searchTerm}
@@ -695,7 +697,7 @@ const TVATaxesPage: React.FC = () => {
                             <TableCell>
                               <div className="text-sm">
                                 <p className="font-medium">Du {formatDate(rate.applicable_depuis)}</p>
-                                <p className="text-gray-500">Au {formatDate(rate.applicable_jusqu)}</p>
+                                <p className="text-gray-700">Au {formatDate(rate.applicable_jusqu)}</p>
                               </div>
                             </TableCell>
                             <TableCell>

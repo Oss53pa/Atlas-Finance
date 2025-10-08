@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
@@ -30,6 +31,7 @@ import { budgetService } from '../../services/budget.service';
 import { Link } from 'react-router-dom';
 
 const BudgetingDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
 
   // Fetch dashboard data
@@ -47,7 +49,7 @@ const BudgetingDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
-            <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-xl font-semibold text-neutral-700">Chargement du tableau de bord...</p>
           </motion.div>
         </div>
@@ -139,11 +141,11 @@ const BudgetingDashboard: React.FC = () => {
               data={[
                 { label: 'Jan', value: 85, color: 'bg-green-400' },
                 { label: 'Fév', value: 78, color: 'bg-yellow-400' },
-                { label: 'Mar', value: 92, color: 'bg-green-500' },
+                { label: 'Mar', value: 92, color: 'bg-[var(--color-success)]' },
                 { label: 'Avr', value: 65, color: 'bg-orange-400' },
                 { label: 'Mai', value: 88, color: 'bg-green-400' },
-                { label: 'Juin', value: 73, color: 'bg-yellow-500' },
-                { label: 'Juil', value: 96, color: 'bg-green-600' }
+                { label: 'Juin', value: 73, color: 'bg-[var(--color-warning)]' },
+                { label: 'Juil', value: 96, color: 'bg-[var(--color-success)]' }
               ]}
               height={180}
             />
@@ -193,15 +195,15 @@ const BudgetingDashboard: React.FC = () => {
                 <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-neutral-800">Charges</h3>
-                    <div className="p-2 bg-blue-100 rounded-xl">
-                      <BarChart3 className="h-5 w-5 text-blue-600" />
+                    <div className="p-2 bg-[var(--color-primary-lighter)] rounded-xl">
+                      <BarChart3 className="h-5 w-5 text-[var(--color-primary)]" />
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-xl font-bold text-blue-700">94%</p>
+                    <p className="text-xl font-bold text-[var(--color-primary-dark)]">94%</p>
                     <p className="text-sm text-neutral-600">Sous contrôle</p>
-                    <div className="w-full bg-blue-100 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full w-[94%]"></div>
+                    <div className="w-full bg-[var(--color-primary-lighter)] rounded-full h-2">
+                      <div className="bg-[var(--color-primary)] h-2 rounded-full w-[94%]"></div>
                     </div>
                   </div>
                 </div>
@@ -268,12 +270,12 @@ const BudgetingDashboard: React.FC = () => {
                     className="bg-white/90"
                   >
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-green-100 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <BarChart3 className="h-8 w-8 text-green-600" />
+                      <div className="p-4 bg-[var(--color-success-lighter)] rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <BarChart3 className="h-8 w-8 text-[var(--color-success)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-green-800 text-lg">Contrôle</h3>
-                        <p className="text-sm text-green-600 mt-1">Suivi et analyse</p>
+                        <h3 className="font-bold text-[var(--color-success-darker)] text-lg">Contrôle</h3>
+                        <p className="text-sm text-[var(--color-success)] mt-1">Suivi et analyse</p>
                       </div>
                     </div>
                   </motion.div>
@@ -353,14 +355,14 @@ const BudgetingDashboard: React.FC = () => {
                       <tr>
                         <th className="text-left p-6 font-bold text-neutral-700">Poste Budgétaire</th>
                         <th className="text-left p-6 font-bold text-neutral-700">Responsable</th>
-                        <th className="text-right p-6 font-bold text-neutral-700">Budget</th>
+                        <th className="text-right p-6 font-bold text-neutral-700">{t('navigation.budget')}</th>
                         <th className="text-right p-6 font-bold text-neutral-700">Réalisé</th>
                         <th className="text-right p-6 font-bold text-neutral-700">Performance</th>
                         <th className="text-center p-6 font-bold text-neutral-700">Statut</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-100">
-                      <tr className="hover:bg-blue-50/30 transition-colors duration-200">
+                      <tr className="hover:bg-[var(--color-primary-lightest)]/30 transition-colors duration-200">
                         <td className="p-6">
                           <div className="space-y-1">
                             <p className="font-semibold text-neutral-900">Ventes Produits</p>
@@ -369,8 +371,8 @@ const BudgetingDashboard: React.FC = () => {
                         </td>
                         <td className="p-6">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Users className="h-4 w-4 text-blue-600" />
+                            <div className="w-8 h-8 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                              <Users className="h-4 w-4 text-[var(--color-primary)]" />
                             </div>
                             <span className="font-medium text-neutral-700">M. Dupont</span>
                           </div>
@@ -394,7 +396,7 @@ const BudgetingDashboard: React.FC = () => {
                         </td>
                       </tr>
 
-                      <tr className="hover:bg-blue-50/30 transition-colors duration-200">
+                      <tr className="hover:bg-[var(--color-primary-lightest)]/30 transition-colors duration-200">
                         <td className="p-6">
                           <div className="space-y-1">
                             <p className="font-semibold text-neutral-900">Marketing Digital</p>
@@ -403,8 +405,8 @@ const BudgetingDashboard: React.FC = () => {
                         </td>
                         <td className="p-6">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                              <Users className="h-4 w-4 text-purple-600" />
+                            <div className="w-8 h-8 bg-[var(--color-info-lighter)] rounded-full flex items-center justify-center">
+                              <Users className="h-4 w-4 text-[var(--color-info)]" />
                             </div>
                             <span className="font-medium text-neutral-700">Mme Martin</span>
                           </div>
@@ -428,7 +430,7 @@ const BudgetingDashboard: React.FC = () => {
                         </td>
                       </tr>
 
-                      <tr className="hover:bg-blue-50/30 transition-colors duration-200">
+                      <tr className="hover:bg-[var(--color-primary-lightest)]/30 transition-colors duration-200">
                         <td className="p-6">
                           <div className="space-y-1">
                             <p className="font-semibold text-neutral-900">Infrastructure IT</p>
@@ -437,8 +439,8 @@ const BudgetingDashboard: React.FC = () => {
                         </td>
                         <td className="p-6">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                              <Users className="h-4 w-4 text-red-600" />
+                            <div className="w-8 h-8 bg-[var(--color-error-lighter)] rounded-full flex items-center justify-center">
+                              <Users className="h-4 w-4 text-[var(--color-error)]" />
                             </div>
                             <span className="font-medium text-neutral-700">M. Tech</span>
                           </div>
@@ -447,16 +449,16 @@ const BudgetingDashboard: React.FC = () => {
                           <span className="font-bold text-neutral-700 text-lg">1.2M €</span>
                         </td>
                         <td className="text-right p-6">
-                          <span className="font-bold text-red-700 text-lg">650K €</span>
+                          <span className="font-bold text-[var(--color-error-dark)] text-lg">650K €</span>
                         </td>
                         <td className="text-right p-6">
                           <div className="flex items-center justify-end space-x-2">
-                            <TrendingDown className="h-4 w-4 text-red-600" />
-                            <span className="font-bold text-red-700 text-lg">54%</span>
+                            <TrendingDown className="h-4 w-4 text-[var(--color-error)]" />
+                            <span className="font-bold text-[var(--color-error-dark)] text-lg">54%</span>
                           </div>
                         </td>
                         <td className="text-center p-6">
-                          <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                          <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]">
                             Critique
                           </span>
                         </td>

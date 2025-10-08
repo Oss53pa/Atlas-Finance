@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, BarChart3, DollarSign, TrendingUp, ArrowLeft, Home, Plus,
@@ -6,6 +7,7 @@ import {
 } from 'lucide-react';
 
 const ModernCustomerDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -13,7 +15,7 @@ const ModernCustomerDashboard: React.FC = () => {
   const tabs = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
     { id: 'clients', label: 'Fiches Clients', icon: Users },
-    { id: 'recouvrement', label: 'Recouvrement', icon: DollarSign },
+    { id: 'recouvrement', label: t('thirdParty.collection'), icon: DollarSign },
   ];
 
   // Top clients
@@ -32,7 +34,7 @@ const ModernCustomerDashboard: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => navigate('/dashboard/manager')}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
               <span className="text-sm font-semibold text-[#444444]">Manager</span>
@@ -129,7 +131,7 @@ const ModernCustomerDashboard: React.FC = () => {
                       { tranche: '60-90 jours', montant: 15000, color: '#7A99AC', pourcentage: 12 },
                       { tranche: '> 90 jours', montant: 37000, color: '#B85450', pourcentage: 30 }
                     ].map((tranche, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-background-secondary)]">
                         <div className="flex items-center space-x-2">
                           <div className="w-3 h-3 rounded-full" style={{backgroundColor: tranche.color}}></div>
                           <span className="text-sm text-[#444444]">{tranche.tranche}</span>
@@ -154,9 +156,9 @@ const ModernCustomerDashboard: React.FC = () => {
                       { client: 'YAOUNDÉ CORP', probleme: 'Paiement en retard', niveau: 'moyen' }
                     ].map((alerte, index) => (
                       <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                        alerte.niveau === 'urgent' ? 'bg-red-50 border-red-400' :
-                        alerte.niveau === 'attention' ? 'bg-yellow-50 border-yellow-400' :
-                        'bg-blue-50 border-blue-400'
+                        alerte.niveau === 'urgent' ? 'bg-[var(--color-error-lightest)] border-red-400' :
+                        alerte.niveau === 'attention' ? 'bg-[var(--color-warning-lightest)] border-yellow-400' :
+                        'bg-[var(--color-primary-lightest)] border-blue-400'
                       }`}>
                         <div className="flex items-center justify-between">
                           <div>
@@ -164,9 +166,9 @@ const ModernCustomerDashboard: React.FC = () => {
                             <p className="text-xs text-[#767676]">{alerte.probleme}</p>
                           </div>
                           <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            alerte.niveau === 'urgent' ? 'bg-red-100 text-red-700' :
-                            alerte.niveau === 'attention' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-blue-100 text-blue-700'
+                            alerte.niveau === 'urgent' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]' :
+                            alerte.niveau === 'attention' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                            'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]'
                           }`}>
                             {alerte.niveau}
                           </span>
@@ -190,9 +192,9 @@ const ModernCustomerDashboard: React.FC = () => {
                         <h4 className="font-semibold text-[#191919] text-sm mb-1">{client.nom}</h4>
                         <p className="text-xs text-[#767676] mb-2">Contact: {client.contact}</p>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          client.statut === 'excellent' ? 'bg-green-100 text-green-700' :
-                          client.statut === 'bon' ? 'bg-blue-100 text-blue-700' :
-                          'bg-yellow-100 text-yellow-700'
+                          client.statut === 'excellent' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+                          client.statut === 'bon' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+                          'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'
                         }`}>
                           {client.statut}
                         </span>
@@ -203,11 +205,11 @@ const ModernCustomerDashboard: React.FC = () => {
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3 text-xs mb-4">
-                      <div className="text-center p-2 rounded bg-gray-50">
+                      <div className="text-center p-2 rounded bg-[var(--color-background-secondary)]">
                         <p className="font-bold text-[#191919]">{client.ca.toLocaleString()}€</p>
                         <p className="text-[#767676]">CA annuel</p>
                       </div>
-                      <div className="text-center p-2 rounded bg-gray-50">
+                      <div className="text-center p-2 rounded bg-[var(--color-background-secondary)]">
                         <p className="font-bold text-[#191919]">{client.dso}j</p>
                         <p className="text-[#767676]">DSO</p>
                       </div>
@@ -216,7 +218,7 @@ const ModernCustomerDashboard: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-sm text-[#444444]">Encours</span>
                       <span className={`font-bold text-sm ${
-                        client.encours < 20000 ? 'text-green-600' : 'text-orange-600'
+                        client.encours < 20000 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'
                       }`}>
                         {client.encours.toLocaleString()}€
                       </span>
@@ -273,14 +275,14 @@ const ModernCustomerDashboard: React.FC = () => {
                       { metric: 'DSO moyen', value: '32j', target: '30j', status: 'attention' },
                       { metric: 'Créances > 90j', value: '2.3%', target: '< 5%', status: 'excellent' }
                     ].map((perf, index) => (
-                      <div key={index} className="text-center p-3 rounded-lg bg-gray-50">
+                      <div key={index} className="text-center p-3 rounded-lg bg-[var(--color-background-secondary)]">
                         <p className="text-xs text-[#767676] mb-1">{perf.metric}</p>
                         <p className="text-lg font-bold text-[#191919] mb-1">{perf.value}</p>
                         <p className="text-xs text-[#444444]">Objectif: {perf.target}</p>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block ${
-                          perf.status === 'excellent' ? 'bg-green-100 text-green-700' :
-                          perf.status === 'bon' ? 'bg-blue-100 text-blue-700' :
-                          'bg-yellow-100 text-yellow-700'
+                          perf.status === 'excellent' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+                          perf.status === 'bon' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+                          'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'
                         }`}>
                           {perf.status}
                         </span>
@@ -297,10 +299,10 @@ const ModernCustomerDashboard: React.FC = () => {
                       { periode: 'Trimestre', nouveau: 34, perdu: 8, net: +26 },
                       { periode: 'Année', nouveau: 89, perdu: 15, net: +74 }
                     ].map((evo, index) => (
-                      <div key={index} className="p-3 rounded-lg bg-gray-50">
+                      <div key={index} className="p-3 rounded-lg bg-[var(--color-background-secondary)]">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm font-medium text-[#191919]">{evo.periode}</span>
-                          <span className="text-sm font-bold text-green-600">+{evo.net}</span>
+                          <span className="text-sm font-bold text-[var(--color-success)]">+{evo.net}</span>
                         </div>
                         <div className="flex justify-between text-xs text-[#767676]">
                           <span>Nouveaux: {evo.nouveau}</span>

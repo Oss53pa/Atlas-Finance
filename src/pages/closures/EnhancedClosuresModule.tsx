@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Lock, Calendar, CheckCircle, AlertTriangle, Clock, X,
   FileText, BarChart3, RefreshCw, Settings, Play, ChevronDown,
@@ -138,6 +139,7 @@ interface ValidationRule {
 }
 
 const EnhancedClosuresModule: React.FC = () => {
+  const { t } = useLanguage();
   const [activeView, setActiveView] = useState<'dashboard' | 'workflows' | 'executions' | 'validations' | 'archives'>('dashboard');
   const [selectedWorkflow, setSelectedWorkflow] = useState<ClosureWorkflow | null>(null);
   const [selectedExecution, setSelectedExecution] = useState<ClosureExecution | null>(null);
@@ -491,57 +493,57 @@ const EnhancedClosuresModule: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <FileCheck className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-[var(--color-primary-lighter)] rounded-lg flex items-center justify-center">
+              <FileCheck className="w-6 h-6 text-[var(--color-primary)]" />
             </div>
-            <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+            <span className="text-xs font-medium text-[var(--color-success)] bg-[var(--color-success-lighter)] px-2 py-1 rounded">
               +12%
             </span>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900">{stats.workflows.total}</h3>
-          <p className="text-sm text-gray-500 mt-1">Workflows configurés</p>
+          <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.workflows.total}</h3>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Workflows configurés</p>
           <div className="mt-4 flex items-center text-xs">
-            <span className="text-gray-600">{stats.workflows.actifs} actifs</span>
+            <span className="text-[var(--color-text-primary)]">{stats.workflows.actifs} actifs</span>
             <span className="mx-2">•</span>
-            <span className="text-gray-600">{stats.workflows.templates} templates</span>
+            <span className="text-[var(--color-text-primary)]">{stats.workflows.templates} templates</span>
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Activity className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-[var(--color-success-lighter)] rounded-lg flex items-center justify-center">
+              <Activity className="w-6 h-6 text-[var(--color-success)]" />
             </div>
-            <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
+            <span className="text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-lighter)] px-2 py-1 rounded">
               En cours
             </span>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900">{stats.executions.enCours}</h3>
-          <p className="text-sm text-gray-500 mt-1">Clôtures actives</p>
+          <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.executions.enCours}</h3>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Clôtures actives</p>
           <div className="mt-4">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '65%' }}></div>
+            <div className="w-full bg-[var(--color-border)] rounded-full h-2">
+              <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: '65%' }}></div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Progression moyenne: 65%</p>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-1">Progression moyenne: 65%</p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-yellow-600" />
+            <div className="w-12 h-12 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-[var(--color-warning)]" />
             </div>
-            <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">
+            <span className="text-xs font-medium text-[var(--color-error)] bg-[var(--color-error-lighter)] px-2 py-1 rounded">
               {stats.anomalies.critiques} critiques
             </span>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900">{stats.anomalies.total}</h3>
-          <p className="text-sm text-gray-500 mt-1">Anomalies détectées</p>
+          <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.anomalies.total}</h3>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Anomalies détectées</p>
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-gray-600">
+            <span className="text-xs text-[var(--color-text-primary)]">
               {stats.anomalies.resolues} résolues
             </span>
-            <span className="text-xs text-orange-600 font-medium">
+            <span className="text-xs text-[var(--color-warning)] font-medium">
               {stats.anomalies.total - stats.anomalies.resolues} en attente
             </span>
           </div>
@@ -552,19 +554,19 @@ const EnhancedClosuresModule: React.FC = () => {
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-purple-600" />
             </div>
-            <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
+            <span className="text-xs font-medium text-[var(--color-success)] bg-[var(--color-success-lighter)] px-2 py-1 rounded">
               +5%
             </span>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900">{stats.performance.tauxReussite}%</h3>
-          <p className="text-sm text-gray-500 mt-1">Taux de réussite</p>
+          <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.performance.tauxReussite}%</h3>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Taux de réussite</p>
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
             <div>
-              <p className="text-gray-500">Temps moy.</p>
+              <p className="text-[var(--color-text-secondary)]">Temps moy.</p>
               <p className="font-semibold">{stats.performance.tempsMovgen} min</p>
             </div>
             <div>
-              <p className="text-gray-500">Conformité</p>
+              <p className="text-[var(--color-text-secondary)]">Conformité</p>
               <p className="font-semibold">{stats.performance.conformite}%</p>
             </div>
           </div>
@@ -576,10 +578,10 @@ const EnhancedClosuresModule: React.FC = () => {
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Performance des clôtures</h3>
-              <p className="text-sm text-gray-500">Évolution sur 6 mois</p>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Performance des clôtures</h3>
+              <p className="text-sm text-[var(--color-text-secondary)]">Évolution sur 6 mois</p>
             </div>
-            <select className="text-sm border border-gray-200 rounded-lg px-3 py-1.5">
+            <select className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-1.5">
               <option>6 derniers mois</option>
               <option>12 derniers mois</option>
               <option>Année en cours</option>
@@ -620,8 +622,8 @@ const EnhancedClosuresModule: React.FC = () => {
 
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Répartition des clôtures</h3>
-            <p className="text-sm text-gray-500">Par type de période</p>
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Répartition des clôtures</h3>
+            <p className="text-sm text-[var(--color-text-secondary)]">Par type de période</p>
           </div>
           <div style={{ position: 'relative', height: '300px', width: '100%' }}>
             <Doughnut data={workflowDistribution} options={chartOptions} />
@@ -634,12 +636,12 @@ const EnhancedClosuresModule: React.FC = () => {
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Clôtures en cours</h3>
-              <p className="text-sm text-gray-500">Suivi en temps réel</p>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Clôtures en cours</h3>
+              <p className="text-sm text-[var(--color-text-secondary)]">Suivi en temps réel</p>
             </div>
             <button 
               onClick={() => setShowExecutionModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2"
             >
               <Play className="w-4 h-4" />
               Nouvelle clôture
@@ -649,16 +651,16 @@ const EnhancedClosuresModule: React.FC = () => {
         <div className="p-6">
           <div className="space-y-4">
             {executions.filter(e => e.statut === 'en-cours').map((execution) => (
-              <div key={execution.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+              <div key={execution.id} className="border border-[var(--color-border)] rounded-lg p-4 hover:border-blue-300 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-semibold text-gray-900">{execution.periode}</h4>
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                      <h4 className="font-semibold text-[var(--color-text-primary)]">{execution.periode}</h4>
+                      <span className="px-2 py-0.5 bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] text-xs rounded-full">
                         {execution.statut}
                       </span>
                       {execution.anomalies.length > 0 && (
-                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full flex items-center gap-1">
+                        <span className="px-2 py-0.5 bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)] text-xs rounded-full flex items-center gap-1">
                           <AlertTriangle className="w-3 h-3" />
                           {execution.anomalies.length} anomalies
                         </span>
@@ -666,25 +668,25 @@ const EnhancedClosuresModule: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-500">Responsable</p>
+                        <p className="text-[var(--color-text-secondary)]">Responsable</p>
                         <p className="font-medium">{execution.responsable}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Début</p>
+                        <p className="text-[var(--color-text-secondary)]">Début</p>
                         <p className="font-medium">{execution.dateDebut.toLocaleString('fr-FR')}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Étape actuelle</p>
+                        <p className="text-[var(--color-text-secondary)]">Étape actuelle</p>
                         <p className="font-medium">
                           {workflows[0].etapes.find(e => e.id === execution.etapeCourante)?.nom || '-'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Progression</p>
+                        <p className="text-[var(--color-text-secondary)]">Progression</p>
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="flex-1 bg-[var(--color-border)] rounded-full h-2">
                             <div 
-                              className="bg-blue-600 h-2 rounded-full transition-all"
+                              className="bg-[var(--color-primary)] h-2 rounded-full transition-all"
                               style={{ width: `${execution.progression}%` }}
                             />
                           </div>
@@ -695,9 +697,9 @@ const EnhancedClosuresModule: React.FC = () => {
                   </div>
                   <button 
                     onClick={() => setSelectedExecution(execution)}
-                    className="ml-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="ml-4 p-2 hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
                   >
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <ChevronRight className="w-5 h-5 text-[var(--color-text-secondary)]" />
                   </button>
                 </div>
               </div>
@@ -709,8 +711,8 @@ const EnhancedClosuresModule: React.FC = () => {
       {/* Métriques de validation */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Métriques de validation</h3>
-          <p className="text-sm text-gray-500">Taux de conformité par type de contrôle</p>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Métriques de validation</h3>
+          <p className="text-sm text-[var(--color-text-secondary)]">Taux de conformité par type de contrôle</p>
         </div>
         <div style={{ position: 'relative', height: '300px', width: '100%' }}>
           <Radar data={validationMetrics} options={chartOptions} />
@@ -724,12 +726,12 @@ const EnhancedClosuresModule: React.FC = () => {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Workflows de clôture</h2>
-          <p className="text-gray-500">Gérez vos processus de clôture automatisés</p>
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Workflows de clôture</h2>
+          <p className="text-[var(--color-text-secondary)]">Gérez vos processus de clôture automatisés</p>
         </div>
         <button
           onClick={() => setShowNewWorkflowModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Nouveau workflow
@@ -744,43 +746,43 @@ const EnhancedClosuresModule: React.FC = () => {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{workflow.nom}</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{workflow.nom}</h3>
                     {workflow.template && (
                       <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
                         Template
                       </span>
                     )}
                     {workflow.actif ? (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">
+                      <span className="px-2 py-0.5 bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] text-xs rounded">
                         Actif
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">
+                      <span className="px-2 py-0.5 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] text-xs rounded">
                         Inactif
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">{workflow.description}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{workflow.description}</p>
                 </div>
                 <button
                   onClick={() => setSelectedWorkflow(workflow)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
                 >
-                  <Settings className="w-4 h-4 text-gray-400" />
+                  <Settings className="w-4 h-4 text-[var(--color-text-secondary)]" />
                 </button>
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Type</p>
+                  <p className="text-[var(--color-text-secondary)]">Type</p>
                   <p className="font-medium capitalize">{workflow.type}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Durée estimée</p>
+                  <p className="text-[var(--color-text-secondary)]">Durée estimée</p>
                   <p className="font-medium">{workflow.dureeEstimee} min</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Étapes</p>
+                  <p className="text-[var(--color-text-secondary)]">Étapes</p>
                   <p className="font-medium">{workflow.etapes.length}</p>
                 </div>
               </div>
@@ -788,22 +790,22 @@ const EnhancedClosuresModule: React.FC = () => {
               {/* Étapes du workflow */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-700">Étapes du processus</p>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">Étapes du processus</p>
                   <button
                     onClick={() => workflow.etapes.forEach(e => toggleStepExpansion(e.id))}
-                    className="text-xs text-blue-600 hover:text-blue-700"
+                    className="text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]"
                   >
                     {expandedSteps.size === 0 ? 'Tout développer' : 'Tout réduire'}
                   </button>
                 </div>
                 {workflow.etapes.map((etape, index) => (
-                  <div key={etape.id} className="border border-gray-200 rounded-lg">
+                  <div key={etape.id} className="border border-[var(--color-border)] rounded-lg">
                     <button
                       onClick={() => toggleStepExpansion(etape.id)}
-                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-[var(--color-background-secondary)] transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold">
+                        <span className="w-6 h-6 bg-[var(--color-primary-lighter)] text-[var(--color-primary)] rounded-full flex items-center justify-center text-xs font-semibold">
                           {etape.ordre}
                         </span>
                         <span className="text-sm font-medium">{etape.nom}</span>
@@ -811,28 +813,28 @@ const EnhancedClosuresModule: React.FC = () => {
                           <Zap className="w-3 h-3 text-yellow-500" />
                         )}
                         {etape.bloquant && (
-                          <Lock className="w-3 h-3 text-red-500" />
+                          <Lock className="w-3 h-3 text-[var(--color-error)]" />
                         )}
                       </div>
                       {expandedSteps.has(etape.id) ? (
-                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                        <ChevronUp className="w-4 h-4 text-[var(--color-text-secondary)]" />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                        <ChevronDown className="w-4 h-4 text-[var(--color-text-secondary)]" />
                       )}
                     </button>
                     {expandedSteps.has(etape.id) && (
-                      <div className="px-3 py-2 border-t border-gray-100 bg-gray-50">
-                        <p className="text-xs text-gray-600 mb-2">{etape.description}</p>
+                      <div className="px-3 py-2 border-t border-gray-100 bg-[var(--color-background-secondary)]">
+                        <p className="text-xs text-[var(--color-text-primary)] mb-2">{etape.description}</p>
                         <div className="space-y-1">
                           {etape.actions.map((action) => (
                             <div key={action.id} className="flex items-center gap-2 text-xs">
                               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
-                              <span className="text-gray-700">{action.nom}</span>
+                              <span className="text-[var(--color-text-primary)]">{action.nom}</span>
                             </div>
                           ))}
                         </div>
                         {etape.responsable && (
-                          <p className="text-xs text-gray-500 mt-2">
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-2">
                             Responsable: {etape.responsable}
                           </p>
                         )}
@@ -844,7 +846,7 @@ const EnhancedClosuresModule: React.FC = () => {
 
               {workflow.dernierUsage && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-[var(--color-text-secondary)]">
                     Dernière utilisation: {new Date(workflow.dernierUsage).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
@@ -861,10 +863,10 @@ const EnhancedClosuresModule: React.FC = () => {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Règles de validation</h2>
-          <p className="text-gray-500">Configurez les contrôles et validations automatiques</p>
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Règles de validation</h2>
+          <p className="text-[var(--color-text-secondary)]">Configurez les contrôles et validations automatiques</p>
         </div>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+        <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Nouvelle règle
         </button>
@@ -873,17 +875,17 @@ const EnhancedClosuresModule: React.FC = () => {
       {/* Filtres */}
       <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
         <div className="flex flex-wrap items-center gap-4">
-          <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+          <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm">
             <option>Tous les types</option>
             <option>Équilibre</option>
             <option>Cohérence</option>
             <option>Rapprochement</option>
             <option>Conformité</option>
           </select>
-          <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+          <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm">
             <option>Tous les niveaux</option>
-            <option>Compte</option>
-            <option>Journal</option>
+            <option>{t('accounting.account')}</option>
+            <option>{t('accounting.journal')}</option>
             <option>Global</option>
           </select>
           <div className="flex items-center gap-2">
@@ -900,25 +902,25 @@ const EnhancedClosuresModule: React.FC = () => {
       {/* Table des règles */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[var(--color-background-secondary)] border-b border-[var(--color-border)]">
             <tr>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase">Règle</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase">Type</th>
-              <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase">Niveau</th>
-              <th className="text-center px-6 py-3 text-xs font-semibold text-gray-600 uppercase">Statut</th>
-              <th className="text-center px-6 py-3 text-xs font-semibold text-gray-600 uppercase">Obligatoire</th>
-              <th className="text-center px-6 py-3 text-xs font-semibold text-gray-600 uppercase">Actions</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Règle</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Type</th>
+              <th className="text-left px-6 py-3 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Niveau</th>
+              <th className="text-center px-6 py-3 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Statut</th>
+              <th className="text-center px-6 py-3 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Obligatoire</th>
+              <th className="text-center px-6 py-3 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {validationRules.map((rule) => (
-              <tr key={rule.id} className="hover:bg-gray-50">
+              <tr key={rule.id} className="hover:bg-[var(--color-background-secondary)]">
                 <td className="px-6 py-4">
                   <div>
-                    <p className="font-medium text-gray-900">{rule.nom}</p>
-                    <p className="text-sm text-gray-500">{rule.description}</p>
+                    <p className="font-medium text-[var(--color-text-primary)]">{rule.nom}</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{rule.description}</p>
                     {rule.formule && (
-                      <code className="text-xs bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">
+                      <code className="text-xs bg-[var(--color-background-hover)] px-2 py-0.5 rounded mt-1 inline-block">
                         {rule.formule}
                       </code>
                     )}
@@ -926,9 +928,9 @@ const EnhancedClosuresModule: React.FC = () => {
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    rule.type === 'equilibre' ? 'bg-blue-100 text-blue-700' :
-                    rule.type === 'coherence' ? 'bg-green-100 text-green-700' :
-                    rule.type === 'rapprochement' ? 'bg-yellow-100 text-yellow-700' :
+                    rule.type === 'equilibre' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+                    rule.type === 'coherence' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+                    rule.type === 'rapprochement' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
                     'bg-purple-100 text-purple-700'
                   }`}>
                     {rule.type}
@@ -939,12 +941,12 @@ const EnhancedClosuresModule: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 text-center">
                   {rule.actif ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] rounded-full text-xs">
                       <CheckCircle className="w-3 h-3" />
                       Active
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-full text-xs">
                       <X className="w-3 h-3" />
                       Inactive
                     </span>
@@ -952,22 +954,22 @@ const EnhancedClosuresModule: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 text-center">
                   {rule.obligatoire ? (
-                    <Lock className="w-4 h-4 text-red-500 mx-auto" />
+                    <Lock className="w-4 h-4 text-[var(--color-error)] mx-auto" />
                   ) : (
                     <span className="text-gray-300">-</span>
                   )}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                      <Edit className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors">
+                      <Edit className="w-4 h-4 text-[var(--color-text-secondary)]" />
                     </button>
-                    <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                      <Eye className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" aria-label="Voir les détails">
+                      <Eye className="w-4 h-4 text-[var(--color-text-secondary)]" />
                     </button>
                     {!rule.obligatoire && (
-                      <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                        <Trash2 className="w-4 h-4 text-gray-500" />
+                      <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" aria-label="Supprimer">
+                        <Trash2 className="w-4 h-4 text-[var(--color-text-secondary)]" />
                       </button>
                     )}
                   </div>
@@ -981,19 +983,19 @@ const EnhancedClosuresModule: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       <div className="p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Module de Clôtures</h1>
-          <p className="text-gray-500 mt-2">Gestion complète des processus de clôture comptable</p>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Module de Clôtures</h1>
+          <p className="text-[var(--color-text-secondary)] mt-2">Gestion complète des processus de clôture comptable</p>
         </div>
 
         {/* Navigation tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
           <div className="flex items-center p-1">
             {[
-              { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+              { id: 'dashboard', label: t('dashboard.title'), icon: LayoutDashboard },
               { id: 'workflows', label: 'Workflows', icon: ListChecks },
               { id: 'executions', label: 'Exécutions', icon: Play },
               { id: 'validations', label: 'Validations', icon: ClipboardCheck },
@@ -1006,8 +1008,8 @@ const EnhancedClosuresModule: React.FC = () => {
                   onClick={() => setActiveView(tab.id as any)}
                   className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
                     activeView === tab.id
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -1023,6 +1025,353 @@ const EnhancedClosuresModule: React.FC = () => {
         {activeView === 'workflows' && renderWorkflows()}
         {activeView === 'validations' && renderValidations()}
         {/* Les autres vues peuvent être implémentées de manière similaire */}
+
+        {/* New Workflow Modal */}
+        {showNewWorkflowModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-[var(--color-border)] flex justify-between items-center sticky top-0 bg-white z-10">
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Nouveau Workflow de Clôture</h2>
+                <button
+                  onClick={() => setShowNewWorkflowModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Nom du workflow <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Clôture mensuelle standard"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Type de clôture <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="journaliere">Journalière</option>
+                      <option value="mensuelle">Mensuelle</option>
+                      <option value="trimestrielle">Trimestrielle</option>
+                      <option value="annuelle">Annuelle</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Description du workflow et de ses objectifs..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Durée estimée (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="60"
+                      min="1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Statut
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif</option>
+                      <option value="template">Template</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
+                    <ListChecks className="w-5 h-5" />
+                    Étapes du workflow
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="border border-[var(--color-border)] rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center justify-center w-8 h-8 bg-[var(--color-primary-lighter)] text-[var(--color-primary)] rounded-full font-semibold">
+                            1
+                          </span>
+                          <div>
+                            <input
+                              type="text"
+                              className="font-medium text-[var(--color-text-primary)] border-0 p-0 focus:ring-0"
+                              placeholder="Nom de l'étape"
+                            />
+                          </div>
+                        </div>
+                        <button className="text-[var(--color-error)] hover:text-[var(--color-error-dark)]" aria-label="Supprimer">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        className="w-full text-sm text-[var(--color-text-primary)] border border-[var(--color-border-dark)] rounded px-3 py-2"
+                        placeholder="Description de l'étape..."
+                      />
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        <select className="text-sm border border-[var(--color-border-dark)] rounded px-2 py-1">
+                          <option>Validation manuelle</option>
+                          <option>Validation automatique</option>
+                          <option>Contrôle</option>
+                          <option>Calcul</option>
+                        </select>
+                        <input
+                          type="number"
+                          className="text-sm border border-[var(--color-border-dark)] rounded px-2 py-1"
+                          placeholder="Durée (min)"
+                        />
+                        <select className="text-sm border border-[var(--color-border-dark)] rounded px-2 py-1">
+                          <option>Obligatoire</option>
+                          <option>Optionnelle</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button className="w-full border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-4 text-[var(--color-text-secondary)] hover:border-blue-400 hover:text-[var(--color-primary)] transition-colors flex items-center justify-center gap-2">
+                      <Plus className="w-5 h-5" />
+                      Ajouter une étape
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="rounded text-[var(--color-primary)] focus:ring-blue-500" />
+                    <span className="text-sm text-[var(--color-text-primary)]">Enregistrer comme template</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" defaultChecked className="rounded text-[var(--color-primary)] focus:ring-blue-500" />
+                    <span className="text-sm text-[var(--color-text-primary)]">Activer les notifications</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="rounded text-[var(--color-primary)] focus:ring-blue-500" />
+                    <span className="text-sm text-[var(--color-text-primary)]">Demander validation avant exécution</span>
+                  </label>
+                </div>
+
+                <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-4">
+                  <p className="text-sm text-[var(--color-primary-darker)]">
+                    Le workflow sera disponible pour l'exécution une fois créé. Vous pourrez le modifier ou le dupliquer à tout moment.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] flex justify-end space-x-3 sticky bottom-0">
+                <button
+                  onClick={() => setShowNewWorkflowModal(false)}
+                  className="px-4 py-2 border border-[var(--color-border-dark)] rounded-lg text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] transition-colors"
+                >
+                  Annuler
+                </button>
+                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2">
+                  <Save className="w-4 h-4" />
+                  Créer le workflow
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Execution Modal */}
+        {showExecutionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-[var(--color-border)] flex justify-between items-center sticky top-0 bg-white z-10">
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+                  <Play className="w-6 h-6 text-[var(--color-primary)]" />
+                  Exécution du Workflow
+                </h2>
+                <button
+                  onClick={() => setShowExecutionModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-[var(--color-primary-darker)] mb-1">Workflow: Clôture Mensuelle - Octobre 2024</h3>
+                      <p className="text-sm text-[var(--color-primary-darker)]">
+                        Ce workflow comprend 8 étapes et prend environ 45 minutes.
+                        Assurez-vous que toutes les écritures sont saisies avant de continuer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-[var(--color-text-primary)] mb-3">Paramètres d'exécution</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                        Période <span className="text-[var(--color-error)]">*</span>
+                      </label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Sélectionner...</option>
+                        <option value="2024-10">Octobre 2024</option>
+                        <option value="2024-09">Septembre 2024</option>
+                        <option value="2024-08">Août 2024</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                        Mode d'exécution
+                      </label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="normal">Normal</option>
+                        <option value="simulation">Simulation (test)</option>
+                        <option value="force">Forcé (ignorer avertissements)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-[var(--color-text-primary)] mb-3">Progression des étapes</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4 p-3 bg-[var(--color-success-lightest)] border border-[var(--color-success-light)] rounded-lg">
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-success)] text-white rounded-full flex-shrink-0">
+                        <Check className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">1. Vérification des écritures</div>
+                        <div className="text-sm text-[var(--color-text-primary)]">Complété - 2 min 34 sec</div>
+                      </div>
+                      <span className="text-sm text-[var(--color-success)] font-medium">Complété</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-3 bg-[var(--color-success-lightest)] border border-[var(--color-success-light)] rounded-lg">
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-success)] text-white rounded-full flex-shrink-0">
+                        <Check className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">2. Rapprochements bancaires</div>
+                        <div className="text-sm text-[var(--color-text-primary)]">Complété - 5 min 12 sec</div>
+                      </div>
+                      <span className="text-sm text-[var(--color-success)] font-medium">Complété</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-3 bg-[var(--color-primary-lightest)] border border-blue-300 rounded-lg">
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-primary)] text-white rounded-full flex-shrink-0">
+                        <Timer className="w-5 h-5 animate-spin" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">3. Calcul des provisions</div>
+                        <div className="text-sm text-[var(--color-text-primary)]">En cours...</div>
+                        <div className="mt-2">
+                          <div className="w-full bg-[var(--color-border)] rounded-full h-2">
+                            <div className="bg-[var(--color-primary)] h-2 rounded-full" style={{ width: '65%' }}></div>
+                          </div>
+                          <div className="text-xs text-[var(--color-text-secondary)] mt-1">65% complété</div>
+                        </div>
+                      </div>
+                      <span className="text-sm text-[var(--color-primary)] font-medium">{t('status.inProgress')}</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-3 bg-[var(--color-background-secondary)] border border-[var(--color-border)] rounded-lg opacity-50">
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-border-dark)] text-[var(--color-text-primary)] rounded-full flex-shrink-0">
+                        4
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">4. Validation des comptes</div>
+                        <div className="text-sm text-[var(--color-text-primary)]">{t('status.pending')}</div>
+                      </div>
+                      <span className="text-sm text-[var(--color-text-secondary)] font-medium">{t('status.pending')}</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-3 bg-[var(--color-background-secondary)] border border-[var(--color-border)] rounded-lg opacity-50">
+                      <div className="flex items-center justify-center w-10 h-10 bg-[var(--color-border-dark)] text-[var(--color-text-primary)] rounded-full flex-shrink-0">
+                        5
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">5. Génération des états financiers</div>
+                        <div className="text-sm text-[var(--color-text-primary)]">{t('status.pending')}</div>
+                      </div>
+                      <span className="text-sm text-[var(--color-text-secondary)] font-medium">{t('status.pending')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-[var(--color-text-primary)] mb-3">Journal d'exécution</h3>
+                  <div className="bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-sm max-h-48 overflow-y-auto">
+                    <div className="text-green-400">[10:32:15] Début de l'exécution du workflow</div>
+                    <div className="text-green-400">[10:32:16] Étape 1: Vérification des écritures - Démarré</div>
+                    <div className="text-blue-400">[10:34:50] Étape 1: 1,247 écritures vérifiées</div>
+                    <div className="text-green-400">[10:34:50] Étape 1: Complété avec succès</div>
+                    <div className="text-green-400">[10:34:51] Étape 2: Rapprochements bancaires - Démarré</div>
+                    <div className="text-blue-400">[10:40:03] Étape 2: 5 comptes rapprochés</div>
+                    <div className="text-green-400">[10:40:03] Étape 2: Complété avec succès</div>
+                    <div className="text-green-400">[10:40:04] Étape 3: Calcul des provisions - Démarré</div>
+                    <div className="text-yellow-400">[10:42:15] Étape 3: Calcul en cours (65%)...</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-[var(--color-background-secondary)] rounded-lg p-4">
+                    <div className="text-sm text-[var(--color-text-primary)] mb-1">Temps écoulé</div>
+                    <div className="text-2xl font-bold text-[var(--color-text-primary)]">12:34</div>
+                  </div>
+                  <div className="bg-[var(--color-background-secondary)] rounded-lg p-4">
+                    <div className="text-sm text-[var(--color-text-primary)] mb-1">Étapes complétées</div>
+                    <div className="text-2xl font-bold text-[var(--color-success)]">2 / 5</div>
+                  </div>
+                  <div className="bg-[var(--color-background-secondary)] rounded-lg p-4">
+                    <div className="text-sm text-[var(--color-text-primary)] mb-1">Temps estimé restant</div>
+                    <div className="text-2xl font-bold text-[var(--color-primary)]">32 min</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] flex justify-between sticky bottom-0">
+                <button className="px-4 py-2 border border-[var(--color-border-dark)] rounded-lg text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] transition-colors flex items-center gap-2">
+                  <Pause className="w-4 h-4" />
+                  Suspendre
+                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowExecutionModal(false)}
+                    className="px-4 py-2 border border-[var(--color-border-dark)] rounded-lg text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] transition-colors"
+                  >
+                    Fermer
+                  </button>
+                  <button className="px-4 py-2 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)] transition-colors flex items-center gap-2">
+                    <X className="w-4 h-4" />
+                    Arrêter l'exécution
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

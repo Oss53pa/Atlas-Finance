@@ -697,7 +697,10 @@ export class AdvancedIntentRecognizer {
   }
 
   private extractModulesWithContext(message: string, context: ChatContext, entities: { [key: string]: string }): void {
-    for (const module of entities.modules) {
+    // Liste des modules à rechercher
+    const availableModules = ['dashboard', 'finance', 'inventory', 'budget', 'treasury', 'accounting', 'sales', 'purchases'];
+
+    for (const module of availableModules) {
       if (message.includes(module) || this.getSynonyms(module).some(syn => message.includes(syn))) {
         entities.module = module;
         break;
@@ -711,7 +714,9 @@ export class AdvancedIntentRecognizer {
   }
 
   private extractPagesWithSynonyms(message: string, entities: { [key: string]: string }): void {
-    for (const page of entities.pages) {
+    const availablePages = ['dashboard', 'accounting', 'treasury', 'inventory', 'settings', 'reports'];
+
+    for (const page of availablePages) {
       const synonyms = this.getSynonyms(page);
       if (synonyms.some(syn => message.includes(syn))) {
         entities.page = page;
@@ -721,7 +726,9 @@ export class AdvancedIntentRecognizer {
   }
 
   private extractActionsWithContext(message: string, context: ChatContext, entities: { [key: string]: string }): void {
-    for (const action of entities.actions) {
+    const availableActions = ['create', 'edit', 'delete', 'view', 'search', 'export', 'import', 'analyze'];
+
+    for (const action of availableActions) {
       const synonyms = this.getSynonyms(action);
       if (synonyms.some(syn => message.includes(syn))) {
         entities.action = action;

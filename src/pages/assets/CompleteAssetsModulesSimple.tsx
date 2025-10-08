@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import {
@@ -19,11 +20,14 @@ interface Asset {
 }
 
 export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = ({ activeModule }) => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNewAssetModal, setShowNewAssetModal] = useState(false);
   const [activeFormSection, setActiveFormSection] = useState('general');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   const [assets, setAssets] = useState<Asset[]>([
     {
@@ -72,6 +76,24 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
     return value.toLocaleString('fr-FR') + ' F CFA';
   };
 
+  const handleCreateNew = () => {
+    setIsEditMode(false);
+    setSelectedAsset(null);
+    setShowNewAssetModal(true);
+  };
+
+  const handleEdit = (asset: Asset) => {
+    setIsEditMode(true);
+    setSelectedAsset(asset);
+    setShowNewAssetModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowNewAssetModal(false);
+    setIsEditMode(false);
+    setSelectedAsset(null);
+  };
+
   const getModuleContent = () => {
     switch (activeModule) {
       case 1:
@@ -79,7 +101,7 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
           <div className="space-y-6">
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <ModernButton variant="primary" size="sm" onClick={() => setShowNewAssetModal(true)}>
+              <ModernButton variant="primary" size="sm" onClick={handleCreateNew}>
                 <Plus className="w-4 h-4 mr-1" />
                 Nouvel Actif
               </ModernButton>
@@ -140,7 +162,7 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
                       <p className="font-medium text-gray-900">Nouvel actif ajouté</p>
                       <p className="text-sm text-gray-600">Serveur Dell PowerEdge</p>
                     </div>
-                    <span className="text-sm text-gray-500">2h</span>
+                    <span className="text-sm text-gray-700">2h</span>
                   </div>
                   <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg">
                     <div className="p-2 bg-yellow-100 rounded">
@@ -150,7 +172,7 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
                       <p className="font-medium text-gray-900">Maintenance programmée</p>
                       <p className="text-sm text-gray-600">Toyota Hilux</p>
                     </div>
-                    <span className="text-sm text-gray-500">4h</span>
+                    <span className="text-sm text-gray-700">4h</span>
                   </div>
                   <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg">
                     <div className="p-2 bg-green-100 rounded">
@@ -160,7 +182,7 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
                       <p className="font-medium text-gray-900">Inventaire mis à jour</p>
                       <p className="text-sm text-gray-600">Bâtiment Siège</p>
                     </div>
-                    <span className="text-sm text-gray-500">1j</span>
+                    <span className="text-sm text-gray-700">1j</span>
                   </div>
                 </div>
               </CardBody>
@@ -188,7 +210,7 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
             {/* Filters Section */}
             <div className="flex gap-4 mb-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Rechercher par désignation, code ou responsable..."
@@ -257,13 +279,16 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
                           <td className="py-3 px-4 text-gray-900">{asset.responsible}</td>
                           <td className="py-3 px-4">
                             <div className="flex gap-2">
-                              <button className="p-1 hover:bg-gray-100 rounded">
+                              <button className="p-1 hover:bg-gray-100 rounded" aria-label="Voir les détails">
                                 <Eye className="w-4 h-4 text-gray-600" />
                               </button>
-                              <button className="p-1 hover:bg-gray-100 rounded">
+                              <button
+                                className="p-1 hover:bg-gray-100 rounded"
+                                onClick={() => handleEdit(asset)}
+                              >
                                 <Edit className="w-4 h-4 text-blue-600" />
                               </button>
-                              <button className="p-1 hover:bg-gray-100 rounded">
+                              <button className="p-1 hover:bg-gray-100 rounded" aria-label="Supprimer">
                                 <Trash2 className="w-4 h-4 text-red-600" />
                               </button>
                             </div>
@@ -318,11 +343,12 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
             {/* Header */}
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Asset Master Data - Nouvel Actif</h2>
+                <h2 className="text-xl font-bold">
+                  Assets Registry - {isEditMode ? 'Modifier Actif' : 'Nouvel Actif'}
+                </h2>
                 <button
-                  onClick={() => setShowNewAssetModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
+                  onClick={handleCloseModal}
+                  className="text-gray-700 hover:text-gray-600" aria-label="Fermer">
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -335,8 +361,8 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
                 <div className="flex-shrink-0">
                   <div className="w-32 h-32 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
                     <div className="text-center">
-                      <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-xs text-gray-500">Ajouter photo</p>
+                      <Camera className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                      <p className="text-xs text-gray-700">Ajouter photo</p>
                     </div>
                   </div>
                 </div>
@@ -344,28 +370,34 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
                 {/* Asset Information */}
                 <div className="flex-1 grid grid-cols-3 gap-4">
                   <div>
-                    <label className="text-xs font-medium text-gray-500 uppercase">Capital Appropriation Request Number</label>
+                    <label className="text-xs font-medium text-gray-700 uppercase">Capital Appropriation Request Number</label>
                     <p className="text-sm font-semibold text-gray-900">CAR-2024-001</p>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-500 uppercase">Asset Number</label>
-                    <p className="text-sm font-semibold text-blue-600">235377</p>
+                    <label className="text-xs font-medium text-gray-700 uppercase">Asset Number</label>
+                    <p className="text-sm font-semibold text-blue-600">
+                      {isEditMode && selectedAsset ? selectedAsset.code : '235377'}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-500 uppercase">Status</label>
-                    <p className="text-sm font-semibold text-green-700">En service</p>
+                    <label className="text-xs font-medium text-gray-700 uppercase">Status</label>
+                    <p className="text-sm font-semibold text-green-700">
+                      {isEditMode && selectedAsset ? selectedAsset.status : 'En service'}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-500 uppercase">UoM Group</label>
+                    <label className="text-xs font-medium text-gray-700 uppercase">UoM Group</label>
                     <p className="text-sm font-semibold text-gray-900">Unité</p>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-500 uppercase">Asset Class</label>
+                    <label className="text-xs font-medium text-gray-700 uppercase">Asset Class</label>
                     <p className="text-sm font-semibold text-gray-900">24 - matériel, mobilier</p>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-500 uppercase">Asset Category</label>
-                    <p className="text-sm font-semibold text-gray-900">Matériel technique</p>
+                    <label className="text-xs font-medium text-gray-700 uppercase">Asset Category</label>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {isEditMode && selectedAsset ? selectedAsset.category : 'Matériel technique'}
+                    </p>
                   </div>
                 </div>
 
@@ -376,7 +408,7 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
                       <QrCode className="w-8 h-8 text-gray-600" />
                     </div>
                     <p className="text-xs font-medium text-gray-700">QR Code</p>
-                    <p className="text-xs text-gray-500">235377</p>
+                    <p className="text-xs text-gray-700">235377</p>
                     <button className="mt-1 text-xs text-blue-600 hover:text-blue-800 font-medium">
                       Générer
                     </button>
@@ -652,7 +684,7 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
 
                 {activeFormSection === 'comptabilite' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Comptabilité</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('accounting.title')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       <div>
                         <label className="block text-sm font-medium mb-1">Compte d'immobilisation</label>
@@ -804,3 +836,5 @@ export const CompleteAssetsModulesSimple: React.FC<{ activeModule: number }> = (
     </div>
   );
 };
+
+export default CompleteAssetsModulesSimple;

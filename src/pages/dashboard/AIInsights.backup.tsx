@@ -219,17 +219,17 @@ const AIInsights: React.FC = () => {
   ];
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 80) return 'text-green-600 bg-green-100';
-    if (confidence >= 60) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
+    if (confidence >= 80) return 'text-[var(--color-success)] bg-[var(--color-success-lighter)]';
+    if (confidence >= 60) return 'text-[var(--color-warning)] bg-[var(--color-warning-lighter)]';
+    return 'text-[var(--color-error)] bg-[var(--color-error-lighter)]';
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'bg-red-100 text-red-700 border-red-200';
-      case 'warning': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'info': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'critical': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] border-[var(--color-error-light)]';
+      case 'warning': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)] border-[var(--color-warning-light)]';
+      case 'info': return 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] border-[var(--color-primary-light)]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)] border-[var(--color-border)]';
     }
   };
 
@@ -244,11 +244,11 @@ const AIInsights: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Brain className="w-8 h-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+            <Brain className="w-8 h-8 text-[var(--color-primary)]" />
             IA Insights & Analyses Prédictives
           </h1>
-          <p className="text-gray-600 mt-1">Intelligence artificielle au service de vos décisions</p>
+          <p className="text-[var(--color-text-primary)] mt-1">Intelligence artificielle au service de vos décisions</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -266,15 +266,14 @@ const AIInsights: React.FC = () => {
           <button
             onClick={handleRefresh}
             className={cn(
-              "p-2 rounded-lg border hover:bg-gray-50 transition-all",
+              "p-2 rounded-lg border hover:bg-[var(--color-background-secondary)] transition-all",
               refreshing && "animate-spin"
             )}
-            disabled={refreshing}
-          >
+            disabled={refreshing} aria-label="Actualiser">
             <RefreshCw className="w-5 h-5" />
           </button>
 
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
             <Settings className="w-4 h-4" />
             Configurer Modèles
           </button>
@@ -282,7 +281,7 @@ const AIInsights: React.FC = () => {
       </div>
 
       {/* AI Score Overview */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-info)] rounded-lg p-6 text-white">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -325,36 +324,36 @@ const AIInsights: React.FC = () => {
           <div key={prediction.id} className="bg-white rounded-lg shadow p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-gray-900">{prediction.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{prediction.description}</p>
+                <h3 className="font-semibold text-[var(--color-text-primary)]">{prediction.title}</h3>
+                <p className="text-sm text-[var(--color-text-primary)] mt-1">{prediction.description}</p>
               </div>
-              <Bot className="w-5 h-5 text-blue-600" />
+              <Bot className="w-5 h-5 text-[var(--color-primary)]" />
             </div>
 
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-[var(--color-text-primary)]">
                   {prediction.type === 'revenue' || prediction.type === 'cashflow'
                     ? `${prediction.value.toLocaleString()} DH`
                     : `${prediction.value} unités`}
                 </span>
-                <span className="text-sm text-gray-500">{prediction.timeframe}</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">{prediction.timeframe}</span>
               </div>
             </div>
 
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Confiance</span>
+                <span className="text-[var(--color-text-primary)]">Confiance</span>
                 <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", getConfidenceColor(prediction.confidence))}>
                   {prediction.confidence}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-[var(--color-border)] rounded-full h-2">
                 <div
                   className={cn(
                     "h-2 rounded-full",
-                    prediction.confidence >= 80 ? "bg-green-500" :
-                    prediction.confidence >= 60 ? "bg-yellow-500" : "bg-red-500"
+                    prediction.confidence >= 80 ? "bg-[var(--color-success)]" :
+                    prediction.confidence >= 60 ? "bg-[var(--color-warning)]" : "bg-[var(--color-error)]"
                   )}
                   style={{ width: `${prediction.confidence}%` }}
                 />
@@ -362,20 +361,20 @@ const AIInsights: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Facteurs clés:</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Facteurs clés:</p>
               <div className="flex flex-wrap gap-1">
                 {prediction.factors.map((factor, i) => (
-                  <span key={i} className="px-2 py-1 bg-gray-100 text-xs rounded">
+                  <span key={i} className="px-2 py-1 bg-[var(--color-background-hover)] text-xs rounded">
                     {factor}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="p-3 bg-[var(--color-primary-lightest)] rounded-lg">
               <div className="flex items-start gap-2">
-                <Lightbulb className="w-4 h-4 text-blue-600 mt-0.5" />
-                <p className="text-sm text-blue-900">{prediction.recommendation}</p>
+                <Lightbulb className="w-4 h-4 text-[var(--color-primary)] mt-0.5" />
+                <p className="text-sm text-[var(--color-primary-darker)]">{prediction.recommendation}</p>
               </div>
             </div>
           </div>
@@ -384,7 +383,7 @@ const AIInsights: React.FC = () => {
 
       {/* Forecast Chart */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Prévisions avec Intervalles de Confiance</h2>
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Prévisions avec Intervalles de Confiance</h2>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={forecastData}>
             <defs>
@@ -409,7 +408,7 @@ const AIInsights: React.FC = () => {
       {/* Anomalies Detection */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Détection d'Anomalies</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Détection d'Anomalies</h2>
           <AlertTriangle className="w-5 h-5 text-yellow-500" />
         </div>
         <div className="space-y-3">
@@ -454,7 +453,7 @@ const AIInsights: React.FC = () => {
       {/* Insights & Opportunities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Insights Actionnables</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Insights Actionnables</h2>
           <div className="space-y-3">
             {insights.map((insight) => (
               <div
@@ -464,28 +463,28 @@ const AIInsights: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-green-600" />}
-                    {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-red-600" />}
-                    {insight.category === 'optimization' && <Zap className="w-5 h-5 text-blue-600" />}
-                    {insight.category === 'trend' && <Activity className="w-5 h-5 text-purple-600" />}
-                    <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />}
+                    {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-[var(--color-error)]" />}
+                    {insight.category === 'optimization' && <Zap className="w-5 h-5 text-[var(--color-primary)]" />}
+                    {insight.category === 'trend' && <Activity className="w-5 h-5 text-[var(--color-info)]" />}
+                    <h4 className="font-medium text-[var(--color-text-primary)]">{insight.title}</h4>
                   </div>
                   <span className={cn(
                     "px-2 py-0.5 text-xs rounded-full font-medium",
-                    insight.priority === 'urgent' && "bg-red-100 text-red-700",
-                    insight.priority === 'high' && "bg-orange-100 text-orange-700",
-                    insight.priority === 'medium' && "bg-yellow-100 text-yellow-700",
-                    insight.priority === 'low' && "bg-green-100 text-green-700"
+                    insight.priority === 'urgent' && "bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]",
+                    insight.priority === 'high' && "bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]",
+                    insight.priority === 'medium' && "bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]",
+                    insight.priority === 'low' && "bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]"
                   )}>
                     {insight.priority}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{insight.description}</p>
+                <p className="text-sm text-[var(--color-text-primary)] mb-2">{insight.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">
                     {insight.potentialGain > 0 ? '+' : ''}{insight.potentialGain.toLocaleString()} DH
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-[var(--color-text-secondary)]">
                     Confiance: {insight.confidence}%
                   </span>
                 </div>
@@ -495,7 +494,7 @@ const AIInsights: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Score de Performance IA</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Score de Performance IA</h2>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={scoringData}>
               <PolarGrid stroke="#E5E7EB" />
@@ -512,7 +511,7 @@ const AIInsights: React.FC = () => {
 
       {/* Correlation Analysis */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Analyse de Corrélations</h2>
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Analyse de Corrélations</h2>
         <ResponsiveContainer width="100%" height={300}>
           <ScatterChart>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />

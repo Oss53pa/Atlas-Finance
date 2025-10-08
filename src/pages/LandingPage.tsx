@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { 
   Calculator,
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen" style={{backgroundColor: '#FFFFFF', fontFamily: 'Sometype Mono, sans-serif'}}>
       
@@ -218,21 +220,21 @@ const LandingPage: React.FC = () => {
             {[
               {
                 icon: Calculator,
-                title: 'Comptabilité',
+                title: {t('navigation.accounting')},
                 description: 'Plan comptable SYSCOHADA, écritures, journaux, grand livre',
                 route: '/accounting',
                 color: '#4F46E5'
               },
               {
                 icon: Wallet,
-                title: 'Trésorerie',
+                title: {t('navigation.treasury')},
                 description: 'Gestion bancaire, rapprochements, flux de trésorerie',
                 route: '/treasury',
                 color: '#059669'
               },
               {
                 icon: Package,
-                title: 'Immobilisations',
+                title: {t('navigation.assets')},
                 description: 'Actifs fixes, amortissements, plus/moins-values',
                 route: '/assets',
                 color: '#DC2626'
@@ -246,7 +248,7 @@ const LandingPage: React.FC = () => {
               },
               {
                 icon: Target,
-                title: 'Budget',
+                title: {t('navigation.budget')},
                 description: 'Budgets prévisionnels, contrôle budgétaire, écarts',
                 route: '/budgeting',
                 color: '#BE185D'
@@ -274,7 +276,7 @@ const LandingPage: React.FC = () => {
               },
               {
                 icon: Shield,
-                title: 'Sécurité',
+                title: t('settings.security'),
                 description: 'Utilisateurs, rôles, permissions, audit de sécurité',
                 route: '/security',
                 color: '#1F2937'

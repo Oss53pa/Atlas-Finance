@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   FileSearch, CheckCircle, AlertTriangle, Clock, Filter,
@@ -25,6 +26,7 @@ interface RevisionItem {
 }
 
 const RevisionsModule: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('en-cours');
   const [filterType, setFilterType] = useState('tous');
@@ -178,32 +180,32 @@ const RevisionsModule: React.FC = () => {
   // Couleurs par type
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'anomalie': return 'text-red-600 bg-red-50 border-red-200';
-      case 'correction': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'ajustement': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'anomalie': return 'text-[var(--color-error)] bg-[var(--color-error-lightest)] border-[var(--color-error-light)]';
+      case 'correction': return 'text-[var(--color-primary)] bg-[var(--color-primary-lightest)] border-[var(--color-primary-light)]';
+      case 'ajustement': return 'text-[var(--color-warning)] bg-orange-50 border-orange-200';
       case 'regularisation': return 'text-purple-600 bg-purple-50 border-purple-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      default: return 'text-[var(--color-text-primary)] bg-[var(--color-background-secondary)] border-[var(--color-border)]';
     }
   };
 
   // Couleur priorité
   const getPrioriteColor = (priorite: string) => {
     switch (priorite) {
-      case 'critique': return 'bg-red-100 text-red-700';
-      case 'haute': return 'bg-orange-100 text-orange-700';
-      case 'moyenne': return 'bg-yellow-100 text-yellow-700';
-      case 'basse': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'critique': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]';
+      case 'haute': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
+      case 'moyenne': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
+      case 'basse': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
   };
 
   // Icône statut
   const getStatutIcon = (statut: string) => {
     switch (statut) {
-      case 'valide': return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'rejete': return <XCircle className="w-5 h-5 text-red-600" />;
-      case 'en_cours': return <Clock className="w-5 h-5 text-blue-600" />;
-      default: return <AlertCircle className="w-5 h-5 text-gray-400" />;
+      case 'valide': return <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />;
+      case 'rejete': return <XCircle className="w-5 h-5 text-[var(--color-error)]" />;
+      case 'en_cours': return <Clock className="w-5 h-5 text-[var(--color-primary)]" />;
+      default: return <AlertCircle className="w-5 h-5 text-[var(--color-text-secondary)]" />;
     }
   };
 
@@ -216,7 +218,7 @@ const RevisionsModule: React.FC = () => {
             <h1 className="text-2xl font-bold text-[#191919]">Module de Révisions Comptables</h1>
             <p className="text-[#767676]">Gestion des anomalies, corrections et ajustements</p>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+          <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2">
             <Plus className="w-4 h-4" />
             <span>Nouvelle révision</span>
           </button>
@@ -224,34 +226,34 @@ const RevisionsModule: React.FC = () => {
 
         {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-[var(--color-primary-light)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-blue-700">Total révisions</span>
-              <FileSearch className="w-5 h-5 text-blue-600" />
+              <span className="text-sm text-[var(--color-primary-dark)]">Total révisions</span>
+              <FileSearch className="w-5 h-5 text-[var(--color-primary)]" />
             </div>
-            <p className="text-2xl font-bold text-blue-900">{stats.total}</p>
+            <p className="text-2xl font-bold text-[var(--color-primary-darker)]">{stats.total}</p>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-orange-700">En cours</span>
-              <Clock className="w-5 h-5 text-orange-600" />
+              <span className="text-sm text-[var(--color-warning-dark)]">{t('status.inProgress')}</span>
+              <Clock className="w-5 h-5 text-[var(--color-warning)]" />
             </div>
             <p className="text-2xl font-bold text-orange-900">{stats.enCours}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-[var(--color-success-light)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-green-700">Validées</span>
-              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span className="text-sm text-[var(--color-success-dark)]">Validées</span>
+              <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
             </div>
             <p className="text-2xl font-bold text-green-900">{stats.validees}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-[var(--color-error-light)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-red-700">Critiques</span>
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <span className="text-sm text-[var(--color-error-dark)]">Critiques</span>
+              <AlertTriangle className="w-5 h-5 text-[var(--color-error)]" />
             </div>
             <p className="text-2xl font-bold text-red-900">{stats.critiques}</p>
           </div>
@@ -274,7 +276,7 @@ const RevisionsModule: React.FC = () => {
             <div className="flex items-center space-x-2">
               {[
                 { id: 'tous', label: 'Toutes' },
-                { id: 'en-cours', label: 'En cours' },
+                { id: 'en-cours', label: t('status.inProgress') },
                 { id: 'validees', label: 'Validées' },
                 { id: 'rejetees', label: 'Rejetées' }
               ].map(tab => (
@@ -283,8 +285,8 @@ const RevisionsModule: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === tab.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)] hover:bg-[var(--color-border)]'
                   }`}
                 >
                   {tab.label}
@@ -296,7 +298,7 @@ const RevisionsModule: React.FC = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+              className="px-3 py-1.5 border border-[var(--color-border-dark)] rounded-lg text-sm"
             >
               <option value="tous">Tous types</option>
               <option value="anomalie">Anomalies</option>
@@ -308,7 +310,7 @@ const RevisionsModule: React.FC = () => {
             <select
               value={filterPriorite}
               onChange={(e) => setFilterPriorite(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+              className="px-3 py-1.5 border border-[var(--color-border-dark)] rounded-lg text-sm"
             >
               <option value="tous">Toutes priorités</option>
               <option value="critique">Critique</option>
@@ -320,13 +322,13 @@ const RevisionsModule: React.FC = () => {
 
           {/* Recherche */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
             <input
               type="text"
               placeholder="Rechercher..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg text-sm"
+              className="pl-10 pr-4 py-1.5 border border-[var(--color-border-dark)] rounded-lg text-sm"
             />
           </div>
         </div>
@@ -337,9 +339,9 @@ const RevisionsModule: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-[var(--color-border)]">
                 <th className="text-left p-4 font-semibold text-[#191919]">Statut</th>
-                <th className="text-left p-4 font-semibold text-[#191919]">Compte</th>
+                <th className="text-left p-4 font-semibold text-[#191919]">{t('accounting.account')}</th>
                 <th className="text-left p-4 font-semibold text-[#191919]">Type</th>
                 <th className="text-left p-4 font-semibold text-[#191919]">Description</th>
                 <th className="text-right p-4 font-semibold text-[#191919]">Montant</th>
@@ -352,7 +354,7 @@ const RevisionsModule: React.FC = () => {
               {filteredRevisions.map((revision) => (
                 <tr
                   key={revision.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                  className="border-b border-gray-100 hover:bg-[var(--color-background-secondary)] cursor-pointer"
                   onClick={() => openDetail(revision)}
                 >
                   <td className="p-4">
@@ -398,13 +400,13 @@ const RevisionsModule: React.FC = () => {
                           e.stopPropagation();
                           openDetail(revision);
                         }}
-                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary-lightest)] rounded"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={(e) => e.stopPropagation()}
-                        className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                        className="p-1 text-[var(--color-text-primary)] hover:bg-[var(--color-background-secondary)] rounded"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -417,7 +419,7 @@ const RevisionsModule: React.FC = () => {
 
           {filteredRevisions.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">Aucune révision trouvée</p>
+              <p className="text-[var(--color-text-secondary)]">Aucune révision trouvée</p>
             </div>
           )}
         </div>
@@ -427,12 +429,12 @@ const RevisionsModule: React.FC = () => {
       {showDetailModal && selectedRevision && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-[#191919]">Détails de la révision {selectedRevision.id}</h3>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -444,7 +446,7 @@ const RevisionsModule: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs text-[#767676]">Compte</label>
+                    <label className="text-xs text-[#767676]">{t('accounting.account')}</label>
                     <p className="font-mono text-sm text-[#191919]">{selectedRevision.compte}</p>
                     <p className="text-sm text-[#767676]">{selectedRevision.libelleCompte}</p>
                   </div>
@@ -523,8 +525,8 @@ const RevisionsModule: React.FC = () => {
                   <label className="text-xs text-[#767676] mb-2 block">Commentaires</label>
                   <div className="space-y-2">
                     {selectedRevision.commentaires.map((comment, index) => (
-                      <div key={index} className="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg">
-                        <MessageSquare className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <div key={index} className="flex items-start space-x-2 p-3 bg-[var(--color-background-secondary)] rounded-lg">
+                        <MessageSquare className="w-4 h-4 text-[var(--color-text-secondary)] mt-0.5" />
                         <p className="text-sm text-[#191919]">{comment}</p>
                       </div>
                     ))}
@@ -538,12 +540,12 @@ const RevisionsModule: React.FC = () => {
                   <label className="text-xs text-[#767676] mb-2 block">Documents associés</label>
                   <div className="space-y-2">
                     {selectedRevision.documents.map((doc, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                      <div key={index} className="flex items-center justify-between p-3 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background-secondary)]">
                         <div className="flex items-center space-x-3">
-                          <FileText className="w-5 h-5 text-gray-400" />
+                          <FileText className="w-5 h-5 text-[var(--color-text-secondary)]" />
                           <span className="text-sm text-[#191919]">{doc}</span>
                         </div>
-                        <button className="text-blue-600 hover:text-blue-700">
+                        <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]" aria-label="Télécharger">
                           <Download className="w-4 h-4" />
                         </button>
                       </div>
@@ -553,23 +555,23 @@ const RevisionsModule: React.FC = () => {
               )}
 
               {/* Actions */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end space-x-3 pt-4 border-t border-[var(--color-border)]">
                 {selectedRevision.statut === 'en_attente' && (
                   <>
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)]">
                       Valider
                     </button>
-                    <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <button className="px-4 py-2 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)]">
                       Rejeter
                     </button>
                   </>
                 )}
                 {selectedRevision.statut === 'en_cours' && (
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                     Marquer comme terminé
                   </button>
                 )}
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]">
                   Modifier
                 </button>
               </div>

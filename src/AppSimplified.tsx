@@ -1,4 +1,5 @@
 import React, { Suspense, useState } from 'react';
+import { useLanguage } from 'contexts/LanguageContext';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -32,12 +33,13 @@ const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen bg-[var(--color-background)]">
     <div className="flex flex-col items-center space-y-4">
       <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-[var(--color-text-secondary)] font-medium">Chargement...</p>
+      <p className="text-[var(--color-text-secondary)] font-medium">{t('common.loading')}</p>
     </div>
   </div>
 );
 
 const AppSimplified: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

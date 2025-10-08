@@ -6,6 +6,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 
+// Language Provider
+import { LanguageProvider } from './contexts/LanguageContext';
+
+// Auth Provider
+import { AuthProvider } from './contexts/AuthContext';
+
 // Modern Layout
 import ModernDoubleSidebarLayout from './components/layout/ModernDoubleSidebarLayout';
 import { NavigationProvider } from './contexts/NavigationContext';
@@ -16,10 +22,11 @@ import { ChatbotProvider } from './components/layout/ChatbotProvider';
 import './styles/globals.css';
 
 // Import des composants accounting
-const TabbedJournalEntry = React.lazy(() => import('./components/accounting/TabbedJournalEntry'));
+const JournalEntryModal = React.lazy(() => import('./components/accounting/JournalEntryModal'));
 
 // Pages principales
 const WiseBookLandingPage = React.lazy(() => import('./pages/WiseBookLandingPage'));
+const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const ComptableWorkspace = React.lazy(() => import('./pages/workspace/ComptableWorkspaceFinal'));
 const EnhancedComptableWorkspace = React.lazy(() => import('./pages/workspace/EnhancedComptableWorkspace'));
 const ManagerWorkspace = React.lazy(() => import('./pages/workspace/ManagerWorkspaceComplete'));
@@ -27,6 +34,7 @@ const EnhancedManagerWorkspace = React.lazy(() => import('./pages/workspace/Enha
 const AdminWorkspace = React.lazy(() => import('./pages/workspace/AdminWorkspaceComplete'));
 const EnhancedAdminWorkspace = React.lazy(() => import('./pages/workspace/EnhancedAdminWorkspace'));
 const ExecutiveDashboardV2 = React.lazy(() => import('./pages/dashboard/ExecutiveDashboard'));
+const AllEntryModals = React.lazy(() => import('./pages/AllEntryModals'));
 const ModernDashboardPage = React.lazy(() => import('./pages/ModernDashboardPage'));
 const ModernSettingsPage = React.lazy(() => import('./pages/ModernSettingsPage'));
 const RegionalSettingsPage = React.lazy(() => import('./pages/settings/RegionalSettingsPage'));
@@ -35,8 +43,10 @@ const BackupSettingsPage = React.lazy(() => import('./pages/settings/BackupPage'
 const APIIntegrationsPage = React.lazy(() => import('./pages/settings/APIIntegrationsPage'));
 const MobileAppPage = React.lazy(() => import('./pages/settings/MobileAppPage'));
 const OfflineModePage = React.lazy(() => import('./pages/settings/OfflineModePage'));
+const IAConfigPage = React.lazy(() => import('./pages/settings/IAConfigPage'));
+const TrackChangePage = React.lazy(() => import('./pages/settings/TrackChangePage'));
 const SettingsUsersPage = React.lazy(() => import('./pages/settings/UsersPage'));
-const AccountingSettingsPage = React.lazy(() => import('./pages/settings/AccountingSettingsPage'));
+const AccountingSettingsPage = React.lazy(() => import('./pages/settings/AccountingSettingsPageV2'));
 const AccountingDashboardV2 = React.lazy(() => import('./pages/accounting/AccountingDashboardV2'));
 const CompleteAccountingDashboardV2 = React.lazy(() => import('./pages/accounting/CompleteAccountingDashboardV2'));
 const CompteResultatPageV2 = React.lazy(() => import('./pages/financial/CompteResultatPageV2'));
@@ -51,9 +61,20 @@ const ModernClientDashboard = React.lazy(() => import('./pages/crm/ModernClientD
 const ModernSupplierDashboard = React.lazy(() => import('./pages/suppliers/ModernSupplierDashboard'));
 const ModernBudgetDashboard = React.lazy(() => import('./pages/budgeting/ModernBudgetDashboard'));
 const CompleteBudgetingModule = React.lazy(() => import('./pages/budgeting/CompleteBudgetingModule'));
+const BudgetRecapPage = React.lazy(() => import('./pages/budgeting/BudgetRecapPage'));
+const BudgetDetailPage = React.lazy(() => import('./pages/budgeting/BudgetDetailPage'));
 const TreasuryDashboardEnterprise = React.lazy(() => import('./pages/treasury/TreasuryDashboardEnterprise'));
 const ModernAssetsManagement = React.lazy(() => import('./pages/assets/ModernAssetsManagement'));
 const CompleteAssetsModule = React.lazy(() => import('./pages/assets/CompleteAssetsModule'));
+const AssetsTransactions = React.lazy(() => import('./pages/assets/AssetsTransactions'));
+const AssetsCategories = React.lazy(() => import('./pages/assets/AssetsCategories'));
+const AssetsCategorySummary = React.lazy(() => import('./pages/assets/AssetsCategorySummary'));
+const AssetsClasses = React.lazy(() => import('./pages/assets/AssetsClasses'));
+const AssetsClassSummary = React.lazy(() => import('./pages/assets/AssetsClassSummary'));
+const AssetsJournal = React.lazy(() => import('./pages/assets/AssetsJournal'));
+const AssetsListComplete = React.lazy(() => import('./pages/assets/AssetsListComplete'));
+const CapitalizationDemo = React.lazy(() => import('./pages/demo/CapitalizationDemo'));
+const AssetsClassificationSettings = React.lazy(() => import('./pages/settings/AssetsClassificationSettings'));
 const CompleteConfigModule = React.lazy(() => import('./pages/config/CompleteConfigModule'));
 const PlanSYSCOHADAPage = React.lazy(() => import('./pages/config/PlanSYSCOHADAPage'));
 const FundCallsPageV2 = React.lazy(() => import('./pages/treasury/FundCallsPageV2'));
@@ -64,7 +85,7 @@ const CompleteThirdPartyModuleV2 = React.lazy(() => import('./pages/third-party/
 const SecurityModuleV2 = React.lazy(() => import('./pages/security/SecurityModuleV2'));
 const ModernTreasuryDashboard = React.lazy(() => import('./pages/treasury/ModernTreasuryDashboard'));
 const ModernReportsAndAnalytics = React.lazy(() => import('./pages/reports/ModernReportsAndAnalytics'));
-// const ParametersPage = React.lazy(() => import('./pages/ParametersPage')); // Remplacé par ModernSettingsPage
+const ParametersPage = React.lazy(() => import('./pages/ParametersPage'));
 
 // Dashboard avancé
 const ExecutivePage = React.lazy(() => import('./pages/dashboard/ExecutivePage'));
@@ -93,11 +114,11 @@ const AccountingDashboard = React.lazy(() => import('./pages/accounting/Accounti
 const OCRInvoices = React.lazy(() => import('./pages/accounting/OCRInvoices'));
 const ElectronicSignature = React.lazy(() => import('./pages/accounting/ElectronicSignature'));
 const JournalsPage = React.lazy(() => import('./pages/accounting/JournalsPage'));
-const SimpleJournalEntryForm = React.lazy(() => import('./components/accounting/SimpleJournalEntryForm'));
 const EntriesPage = React.lazy(() => import('./pages/accounting/EntriesPage'));
 const BalancePage = React.lazy(() => import('./pages/accounting/BalancePage'));
 const AdvancedBalancePage = React.lazy(() => import('./pages/accounting/AdvancedBalancePage'));
 const GeneralLedgerPage = React.lazy(() => import('./pages/accounting/GeneralLedgerPage'));
+const GrandLivreAdvancedPage = React.lazy(() => import('./pages/accounting/GrandLivreAdvancedPage'));
 const LettragePage = React.lazy(() => import('./pages/accounting/LettragePage'));
 const FinancialStatementsPage = React.lazy(() => import('./pages/financial/FinancialStatementsPage'));
 const BalanceSheetPage = React.lazy(() => import('./pages/accounting/BalanceSheetPage'));
@@ -260,30 +281,28 @@ const AssetsSummary = React.lazy(() => import('./pages/assets/AssetsSummary'));
 const AssetsRegistry = React.lazy(() => import('./pages/assets/AssetsRegistry'));
 const AssetsMaintenance = React.lazy(() => import('./pages/assets/AssetsMaintenance'));
 const AssetsDisposals = React.lazy(() => import('./pages/assets/AssetsDisposals'));
+const AssetFormsComparison = React.lazy(() => import('./pages/assets/AssetFormsComparison'));
 
-// Configuration React Query
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 2,
-    },
-  },
-});
+// Configuration React Query - Import depuis notre configuration centralisée
+import { queryClient } from './lib/react-query';
 
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <NavigationProvider>
-          <ToastProvider position="top-right">
-            <ChatbotProvider enabled={true}>
+        <AuthProvider>
+          <NavigationProvider>
+            <ToastProvider position="top-right">
+              <ChatbotProvider enabled={true}>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Landing Page Premium avec sélection de rôles */}
           <Route path="/" element={<WiseBookLandingPage />} />
-          
+
+          {/* Page de connexion - après choix du rôle */}
+          <Route path="/login" element={<LoginPage />} />
+
           {/* Workspaces complets par rôles */}
           <Route path="/dashboard/comptable" element={<EnhancedComptableWorkspace />} />
           <Route path="/dashboard/manager" element={<EnhancedManagerWorkspace />} />
@@ -348,10 +367,12 @@ const App: React.FC = () => {
             <Route path="/reports" element={<ModernReportsAndAnalytics />} />
             <Route path="/reporting" element={<ModernReportsAndAnalytics />} />
             <Route path="/accounting/entries" element={<EntriesPage />} />
-            <Route path="/accounting/entries-advanced" element={<SimpleJournalEntryForm />} />
+            <Route path="/accounting/entries-advanced" element={<EntriesPage />} />
+            <Route path="/all-modals" element={<AllEntryModals />} />
             <Route path="/accounting/balance" element={<BalancePage />} />
             <Route path="/accounting/balance-advanced" element={<AdvancedBalancePage />} />
             <Route path="/accounting/general-ledger" element={<GeneralLedgerPage />} />
+            <Route path="/accounting/grand-livre-advanced" element={<GrandLivreAdvancedPage />} />
             <Route path="/accounting/lettrage" element={<LettragePage />} />
             <Route path="/accounting/financial-statements" element={<FinancialStatementsPage />} />
             <Route path="/accounting/balance-sheet" element={<BalanceSheetPage />} />
@@ -377,6 +398,7 @@ const App: React.FC = () => {
             
             {/* Settings Route */}
             <Route path="/settings" element={<AccountingSettingsPage />} />
+            <Route path="/settings/general" element={<ModernSettingsPage />} />
             <Route path="/settings/accounting" element={<AccountingSettingsPage />} />
             <Route path="/settings/company" element={<EnhancedCompanyConfiguration />} />
             <Route path="/settings/taxes" element={<TaxConfiguration />} />
@@ -386,6 +408,8 @@ const App: React.FC = () => {
             <Route path="/settings/api" element={<APIIntegrationsPage />} />
             <Route path="/settings/mobile" element={<MobileAppPage />} />
             <Route path="/settings/offline" element={<OfflineModePage />} />
+            <Route path="/settings/ia" element={<IAConfigPage />} />
+            <Route path="/settings/track-change" element={<TrackChangePage />} />
             <Route path="/settings/users" element={<SettingsUsersPage />} />
 
             {/* Advanced Configuration */}
@@ -407,6 +431,7 @@ const App: React.FC = () => {
             <Route path="/treasury/cash-flow" element={<PrevisionsTresoreriePage />} />
             <Route path="/treasury/cash-flow/plan/:id" element={<TreasuryPlanDetails />} />
             <Route path="/treasury/loans" element={<SimpleLoansPage />} />
+            <Route path="/treasury/financing" element={<SimpleLoansPage />} />
             <Route path="/treasury/fund-calls" element={<FundCallsPageV2 />} />
             <Route path="/treasury/fund-calls/:id" element={<FundCallDetails />} />
             <Route path="/treasury/banking" element={<ConnexionsBancairesPage />} />
@@ -439,10 +464,18 @@ const App: React.FC = () => {
             <Route path="/assets/fixed-assets" element={<FixedAssetsPage />} />
             <Route path="/assets/fixed" element={<FixedPage />} />
             <Route path="/assets/summary" element={<AssetsSummary />} />
-            <Route path="/assets/registry" element={<AssetsRegistry />} />
+            <Route path="/assets/registry" element={<AssetsListComplete />} />
             <Route path="/assets/maintenance" element={<AssetsMaintenance />} />
             <Route path="/assets/disposals" element={<AssetsDisposals />} />
-            
+            <Route path="/assets/transactions" element={<AssetsTransactions />} />
+            <Route path="/assets/categories" element={<AssetsCategorySummary />} />
+            <Route path="/assets/classes" element={<AssetsClassSummary />} />
+            <Route path="/assets/journal" element={<AssetsJournal />} />
+            <Route path="/assets/forms-comparison" element={<AssetFormsComparison />} />
+            <Route path="/demo/capitalization" element={<CapitalizationDemo />} />
+            <Route path="/accounting/new-entry" element={<EntriesPage />} />
+            <Route path="/settings/assets-classification" element={<AssetsClassificationSettings />} />
+
             {/* Finance */}
             <Route path="/financial" element={<FinancialPage />} />
             <Route path="/assets/depreciation" element={<DepreciationPage />} />
@@ -461,7 +494,9 @@ const App: React.FC = () => {
             <Route path="/budgeting/control" element={<CompleteBudgetingModule />} />
             <Route path="/budgeting/forecasts" element={<CompleteBudgetingModule />} />
             <Route path="/budgeting/variances" element={<CompleteBudgetingModule />} />
-            
+            <Route path="/budgeting/recap" element={<BudgetRecapPage />} />
+            <Route path="/budgeting/detail" element={<BudgetDetailPage />} />
+
             {/* Fiscalité */}
             <Route path="/taxation" element={<TaxationDashboard />} />
             <Route path="/taxation/declarations" element={<TaxDeclarationsPage />} />
@@ -533,12 +568,19 @@ const App: React.FC = () => {
           <Route path="/treasury/fund-calls/:id/validator-preview" element={<ValidatorPreview />} />
         </Routes>
       </Suspense>
-            </ChatbotProvider>
-          </ToastProvider>
-        </NavigationProvider>
+              </ChatbotProvider>
+            </ToastProvider>
+          </NavigationProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
 };
+
+const App = () => (
+  <LanguageProvider>
+    <AppContent />
+  </LanguageProvider>
+);
 
 export default App;

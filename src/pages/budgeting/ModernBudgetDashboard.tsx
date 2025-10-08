@@ -4,6 +4,7 @@
  * Conforme au cahier des charges complet - Interface matricielle
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,6 +83,7 @@ interface GrilleData {
 }
 
 const ModernBudgetDashboard: React.FC = () => {
+  const { t } = useLanguage();
   // État principal
   const [budgetPlans, setBudgetPlans] = useState<BudgetPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string>('');
@@ -254,15 +256,15 @@ const ModernBudgetDashboard: React.FC = () => {
   };
 
   const getVarianceColor = (variance: number) => {
-    if (Math.abs(variance) < 5) return 'text-green-600';
-    if (Math.abs(variance) < 10) return 'text-yellow-600';
-    return 'text-red-600';
+    if (Math.abs(variance) < 5) return 'text-[var(--color-success)]';
+    if (Math.abs(variance) < 10) return 'text-[var(--color-warning)]';
+    return 'text-[var(--color-error)]';
   };
 
   const getVarianceIcon = (variance: number) => {
-    if (variance > 5) return <ArrowUp className="h-4 w-4 text-red-500" />;
-    if (variance < -5) return <ArrowDown className="h-4 w-4 text-green-500" />;
-    return <Equal className="h-4 w-4 text-gray-500" />;
+    if (variance > 5) return <ArrowUp className="h-4 w-4 text-[var(--color-error)]" />;
+    if (variance < -5) return <ArrowDown className="h-4 w-4 text-[var(--color-success)]" />;
+    return <Equal className="h-4 w-4 text-[var(--color-text-secondary)]" />;
   };
 
   // Rendu des KPIs principales
@@ -277,15 +279,15 @@ const ModernBudgetDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Budget Total Annuel</p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-sm text-[var(--color-text-primary)]">Budget Total Annuel</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">
                   {formaterMontant(kpis.budget_total_annuel)}
                 </p>
               </div>
-              <Target className="h-8 w-8 text-blue-500" />
+              <Target className="h-8 w-8 text-[var(--color-primary)]" />
             </div>
             <div className="mt-4">
-              <p className="text-sm text-blue-600">
+              <p className="text-sm text-[var(--color-primary)]">
                 Exercice {new Date().getFullYear()}
               </p>
             </div>
@@ -296,16 +298,16 @@ const ModernBudgetDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Réalisé YTD</p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-sm text-[var(--color-text-primary)]">Réalisé YTD</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">
                   {formaterMontant(kpis.reel_ytd)}
                 </p>
               </div>
-              <Activity className="h-8 w-8 text-green-500" />
+              <Activity className="h-8 w-8 text-[var(--color-success)]" />
             </div>
             <div className="mt-4">
               <Progress value={kpis.taux_execution} className="h-2" />
-              <p className="text-sm text-green-600 mt-1">
+              <p className="text-sm text-[var(--color-success)] mt-1">
                 {kpis.taux_execution}% exécuté
               </p>
             </div>
@@ -316,7 +318,7 @@ const ModernBudgetDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Écart vs Budget</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Écart vs Budget</p>
                 <p className={`text-3xl font-bold ${getVarianceColor(kpis.ecart_pourcentage)}`}>
                   {kpis.ecart_pourcentage > 0 ? '+' : ''}{kpis.ecart_pourcentage}%
                 </p>
@@ -326,7 +328,7 @@ const ModernBudgetDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-4">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[var(--color-text-secondary)]">
                 {formaterMontant(Math.abs(kpis.ecart_montant))} d'écart
               </p>
             </div>
@@ -337,15 +339,15 @@ const ModernBudgetDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Disponible</p>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-sm text-[var(--color-text-primary)]">Disponible</p>
+                <p className="text-3xl font-bold text-[var(--color-success)]">
                   {formaterMontant(kpis.disponible_total)}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <CheckCircle className="h-8 w-8 text-[var(--color-success)]" />
             </div>
             <div className="mt-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-[var(--color-text-primary)]">
                 Engagé: {formaterMontant(kpis.engage_total)}
               </p>
             </div>
@@ -370,9 +372,9 @@ const ModernBudgetDashboard: React.FC = () => {
         <CardContent>
           <div className="space-y-3">
             {stats.recommandations_ia.map((recommendation, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+              <div key={index} className="flex items-start gap-3 p-3 bg-[var(--color-info-lightest)] rounded-lg">
                 <Sparkles className="h-5 w-5 text-purple-500 mt-0.5" />
-                <p className="text-sm text-gray-700">{recommendation}</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{recommendation}</p>
               </div>
             ))}
           </div>
@@ -387,9 +389,9 @@ const ModernBudgetDashboard: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <Calculator className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Sélectionnez un plan budgétaire et un département</p>
-            <p className="text-sm text-gray-500">
+            <Calculator className="h-12 w-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+            <p className="text-[var(--color-text-primary)] mb-4">Sélectionnez un plan budgétaire et un département</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">
               pour accéder à la grille de saisie matricielle
             </p>
           </CardContent>
@@ -401,8 +403,8 @@ const ModernBudgetDashboard: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Chargement de la grille...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
+            <p className="mt-4 text-[var(--color-text-primary)]">Chargement de la grille...</p>
           </CardContent>
         </Card>
       );
@@ -412,8 +414,8 @@ const ModernBudgetDashboard: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Aucune donnée budgétaire</p>
+            <FileSpreadsheet className="h-12 w-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+            <p className="text-[var(--color-text-primary)] mb-4">Aucune donnée budgétaire</p>
             <Button onClick={() => setEditMode(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Commencer la saisie
@@ -488,18 +490,18 @@ const ModernBudgetDashboard: React.FC = () => {
 
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 text-sm">
+            <table className="w-full border-collapse border border-[var(--color-border-dark)] text-sm">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="border border-gray-300 p-3 text-left">Compte</th>
-                  <th className="border border-gray-300 p-3 text-left">Libellé</th>
-                  <th className="border border-gray-300 p-3 text-right">Budget</th>
-                  <th className="border border-gray-300 p-3 text-right">Révisé</th>
-                  <th className="border border-gray-300 p-3 text-right">Réel</th>
-                  <th className="border border-gray-300 p-3 text-right">N-1</th>
-                  <th className="border border-gray-300 p-3 text-center">Var %</th>
-                  <th className="border border-gray-300 p-3 text-left">Commentaires</th>
-                  {editMode && <th className="border border-gray-300 p-3 text-center">Actions</th>}
+                <tr className="bg-[var(--color-background-secondary)]">
+                  <th className="border border-[var(--color-border-dark)] p-3 text-left">{t('accounting.account')}</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-left">{t('accounting.label')}</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-right">{t('navigation.budget')}</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-right">Révisé</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-right">Réel</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-right">N-1</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-center">Var %</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-left">Commentaires</th>
+                  {editMode && <th className="border border-[var(--color-border-dark)] p-3 text-center">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -508,14 +510,14 @@ const ModernBudgetDashboard: React.FC = () => {
                   const editKey = `${ligne.account_code}_${selectedMonth}`;
 
                   return (
-                    <tr key={ligne.account_code} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="border border-gray-300 p-3 font-mono text-sm">
+                    <tr key={ligne.account_code} className={index % 2 === 0 ? 'bg-white' : 'bg-[var(--color-background-secondary)]'}>
+                      <td className="border border-[var(--color-border-dark)] p-3 font-mono text-sm">
                         {ligne.account_code}
                       </td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="border border-[var(--color-border-dark)] p-3">
                         {ligne.account_name}
                       </td>
-                      <td className="border border-gray-300 p-3 text-right font-mono">
+                      <td className="border border-[var(--color-border-dark)] p-3 text-right font-mono">
                         {editMode ? (
                           <Input
                             type="number"
@@ -530,17 +532,17 @@ const ModernBudgetDashboard: React.FC = () => {
                           formaterMontant(moisData.budget_revised || 0)
                         )}
                       </td>
-                      <td className="border border-gray-300 p-3 text-right font-mono">
+                      <td className="border border-[var(--color-border-dark)] p-3 text-right font-mono">
                         {formaterMontant(moisData.budget_revised || 0)}
                       </td>
-                      <td className="border border-gray-300 p-3 text-right font-mono">
+                      <td className="border border-[var(--color-border-dark)] p-3 text-right font-mono">
                         {formaterMontant(moisData.actual || 0)}
                       </td>
-                      <td className="border border-gray-300 p-3 text-right font-mono text-gray-600">
+                      <td className="border border-[var(--color-border-dark)] p-3 text-right font-mono text-[var(--color-text-primary)]">
                         {/* N-1 à implémenter selon données historiques */}
                         {formaterMontant(0)}
                       </td>
-                      <td className="border border-gray-300 p-3 text-center">
+                      <td className="border border-[var(--color-border-dark)] p-3 text-center">
                         <div className="flex items-center justify-center gap-1">
                           {getVarianceIcon(moisData.variance_percent || 0)}
                           <span className={getVarianceColor(moisData.variance_percent || 0)}>
@@ -548,7 +550,7 @@ const ModernBudgetDashboard: React.FC = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="border border-gray-300 p-3">
+                      <td className="border border-[var(--color-border-dark)] p-3">
                         {editMode ? (
                           <Input
                             placeholder="Commentaire..."
@@ -560,13 +562,13 @@ const ModernBudgetDashboard: React.FC = () => {
                             className="w-full"
                           />
                         ) : (
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-[var(--color-text-primary)]">
                             {moisData.comments || '-'}
                           </span>
                         )}
                       </td>
                       {editMode && (
-                        <td className="border border-gray-300 p-3 text-center">
+                        <td className="border border-[var(--color-border-dark)] p-3 text-center">
                           <Button size="sm" variant="outline">
                             <Brain className="h-4 w-4" />
                           </Button>
@@ -580,12 +582,12 @@ const ModernBudgetDashboard: React.FC = () => {
           </div>
 
           {editMode && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <div className="mt-4 p-4 bg-[var(--color-primary-lightest)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-4 w-4 text-blue-500" />
-                <span className="font-medium text-blue-700">Assistant IA activé</span>
+                <Zap className="h-4 w-4 text-[var(--color-primary)]" />
+                <span className="font-medium text-[var(--color-primary-dark)]">Assistant IA activé</span>
               </div>
-              <p className="text-sm text-blue-600">
+              <p className="text-sm text-[var(--color-primary)]">
                 L'IA analyse vos saisies en temps réel et suggère des ajustements basés sur l'historique et les tendances.
               </p>
             </div>
@@ -603,21 +605,21 @@ const ModernBudgetDashboard: React.FC = () => {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-500" />
+            <AlertTriangle className="h-5 w-5 text-[var(--color-error)]" />
             Alertes Critiques
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {stats.alertes_critiques.map((alerte, index) => (
-              <div key={alerte.id} className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+              <div key={alerte.id} className="flex items-start gap-3 p-3 bg-[var(--color-error-lightest)] border border-[var(--color-error-light)] rounded-lg">
+                <AlertCircle className="h-5 w-5 text-[var(--color-error)] mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium text-red-900">{alerte.message}</p>
-                  <p className="text-sm text-red-700 mt-1">
+                  <p className="text-sm text-[var(--color-error-dark)] mt-1">
                     {alerte.department} - {alerte.account}
                   </p>
-                  <p className="text-xs text-red-600 mt-1">
+                  <p className="text-xs text-[var(--color-error)] mt-1">
                     {new Date(alerte.created_at).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
@@ -637,10 +639,10 @@ const ModernBudgetDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
             Module Budget Intelligent
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-[var(--color-text-primary)] mt-2">
             Gestion budgétaire avec IA et analyse prédictive - WiseBook
           </p>
         </div>
@@ -683,7 +685,7 @@ const ModernBudgetDashboard: React.FC = () => {
 
             {selectedPlan && (
               <div className="flex items-center gap-2">
-                <Badge className="bg-blue-100 text-blue-800">
+                <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">
                   {budgetPlans.find(p => p.id === selectedPlan)?.status}
                 </Badge>
               </div>
@@ -712,7 +714,7 @@ const ModernBudgetDashboard: React.FC = () => {
       {/* Onglets principaux */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="dashboard">{t('dashboard.title')}</TabsTrigger>
           <TabsTrigger value="saisie">Saisie Matricielle</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="alerts">Alertes</TabsTrigger>
@@ -726,7 +728,7 @@ const ModernBudgetDashboard: React.FC = () => {
                 <CardTitle>Évolution Mensuelle</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center text-gray-500">
+                <div className="h-64 flex items-center justify-center text-[var(--color-text-secondary)]">
                   <LineChart className="h-12 w-12 mr-4" />
                   <div>
                     <p>Graphique Budget vs Réel</p>
@@ -741,7 +743,7 @@ const ModernBudgetDashboard: React.FC = () => {
                 <CardTitle>Répartition par Département</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center text-gray-500">
+                <div className="h-64 flex items-center justify-center text-[var(--color-text-secondary)]">
                   <PieChart className="h-12 w-12 mr-4" />
                   <div>
                     <p>Répartition budgétaire</p>
@@ -765,9 +767,9 @@ const ModernBudgetDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">Analytics avancés en cours de développement</p>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <BarChart3 className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+                  <p className="text-[var(--color-text-primary)]">Analytics avancés en cours de développement</p>
+                  <p className="text-sm text-[var(--color-text-secondary)] mt-2">
                     Comparaisons YTD, variance analysis, drill-down par compte
                   </p>
                 </div>
@@ -783,9 +785,9 @@ const ModernBudgetDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Zap className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">Module alertes intelligentes en développement</p>
-                <p className="text-sm text-gray-500 mt-2">
+                <Zap className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+                <p className="text-[var(--color-text-primary)]">Module alertes intelligentes en développement</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-2">
                   Alertes prédictives, notifications multicritères, workflow d'approbation
                 </p>
               </div>
@@ -800,9 +802,9 @@ const ModernBudgetDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <FileSpreadsheet className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">Module reporting automatisé en développement</p>
-                <p className="text-sm text-gray-500 mt-2">
+                <FileSpreadsheet className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+                <p className="text-[var(--color-text-primary)]">Module reporting automatisé en développement</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-2">
                   Rapports PDF/Excel, distribution automatique, storytelling IA
                 </p>
               </div>

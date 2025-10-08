@@ -469,31 +469,31 @@ const IAAssistant: React.FC = () => {
 
   const getSeveriteColor = (severite: string) => {
     switch (severite) {
-      case 'critique': return 'text-red-600 bg-red-100';
-      case 'alerte': return 'text-orange-600 bg-orange-100';
-      case 'attention': return 'text-yellow-600 bg-yellow-100';
-      case 'info': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'critique': return 'text-[var(--color-error)] bg-[var(--color-error-lighter)]';
+      case 'alerte': return 'text-[var(--color-warning)] bg-[var(--color-warning-lighter)]';
+      case 'attention': return 'text-[var(--color-warning)] bg-[var(--color-warning-lighter)]';
+      case 'info': return 'text-[var(--color-primary)] bg-[var(--color-primary-lighter)]';
+      default: return 'text-[var(--color-text-primary)] bg-[var(--color-background-hover)]';
     }
   };
 
   const getPrioriteColor = (priorite: string) => {
     switch (priorite) {
-      case 'critique': return 'text-red-600 bg-red-100';
-      case 'haute': return 'text-orange-600 bg-orange-100';
-      case 'moyenne': return 'text-yellow-600 bg-yellow-100';
-      case 'basse': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'critique': return 'text-[var(--color-error)] bg-[var(--color-error-lighter)]';
+      case 'haute': return 'text-[var(--color-warning)] bg-[var(--color-warning-lighter)]';
+      case 'moyenne': return 'text-[var(--color-warning)] bg-[var(--color-warning-lighter)]';
+      case 'basse': return 'text-[var(--color-success)] bg-[var(--color-success-lighter)]';
+      default: return 'text-[var(--color-text-primary)] bg-[var(--color-background-hover)]';
     }
   };
 
   const getStatutIcon = (statut: string) => {
     switch (statut) {
-      case 'traite': case 'implementee': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'en_cours': return <RefreshCw className="w-4 h-4 text-blue-600" />;
-      case 'nouveau': case 'nouvelle': return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
-      case 'reporte': case 'rejetee': return <Clock className="w-4 h-4 text-gray-600" />;
-      default: return <Activity className="w-4 h-4 text-gray-600" />;
+      case 'traite': case 'implementee': return <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'en_cours': return <RefreshCw className="w-4 h-4 text-[var(--color-primary)]" />;
+      case 'nouveau': case 'nouvelle': return <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />;
+      case 'reporte': case 'rejetee': return <Clock className="w-4 h-4 text-[var(--color-text-primary)]" />;
+      default: return <Activity className="w-4 h-4 text-[var(--color-text-primary)]" />;
     }
   };
 
@@ -521,9 +521,9 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Précision IA</p>
-                <p className="text-2xl font-bold text-green-600">{kpis.precisionsIA}%</p>
-                <p className="text-xs text-green-600 mt-1">+2.1% ce mois</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Précision IA</p>
+                <p className="text-2xl font-bold text-[var(--color-success)]">{kpis.precisionsIA}%</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">+2.1% ce mois</p>
               </div>
               <Brain className="w-8 h-8 text-purple-500" />
             </div>
@@ -534,11 +534,11 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Analyses Actives</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Analyses Actives</p>
                 <p className="text-2xl font-bold">{kpis.analysesNonTraitees}</p>
-                <p className="text-xs text-blue-600 mt-1">Détections automatiques</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">Détections automatiques</p>
               </div>
-              <Activity className="w-8 h-8 text-blue-500" />
+              <Activity className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -547,9 +547,9 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Temps Réponse</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Temps Réponse</p>
                 <p className="text-2xl font-bold">{kpis.tempsReponse}s</p>
-                <p className="text-xs text-green-600 mt-1">-0.3s vs objectif</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">-0.3s vs objectif</p>
               </div>
               <Zap className="w-8 h-8 text-yellow-500" />
             </div>
@@ -560,11 +560,11 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Économies IA</p>
-                <p className="text-2xl font-bold text-green-600">{kpis.impactEconomies}h</p>
-                <p className="text-xs text-green-600 mt-1">Ce mois</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Économies IA</p>
+                <p className="text-2xl font-bold text-[var(--color-success)]">{kpis.impactEconomies}h</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">Ce mois</p>
               </div>
-              <Target className="w-8 h-8 text-green-500" />
+              <Target className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -599,7 +599,7 @@ const IAAssistant: React.FC = () => {
                   <CardTitle className="flex items-center gap-2">
                     <Bot className="w-5 h-5 text-purple-600" />
                     Assistant IA Clôture Comptable
-                    <Badge className="bg-green-100 text-green-800 ml-auto">En ligne</Badge>
+                    <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] ml-auto">En ligne</Badge>
                   </CardTitle>
                 </CardHeader>
 
@@ -616,8 +616,8 @@ const IAAssistant: React.FC = () => {
                         >
                           <div className={`max-w-[80%] ${
                             message.type === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-900'
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                           } rounded-lg p-3`}>
                             <div className="flex items-start gap-2 mb-2">
                               {message.type === 'assistant' ? (
@@ -631,19 +631,19 @@ const IAAssistant: React.FC = () => {
                                 {/* Niveau de confiance */}
                                 {message.confidence && (
                                   <div className="mt-2 flex items-center gap-2">
-                                    <span className="text-xs text-gray-600">Confiance:</span>
+                                    <span className="text-xs text-[var(--color-text-primary)]">Confiance:</span>
                                     <Progress value={message.confidence} className="w-16 h-1" />
-                                    <span className="text-xs text-gray-600">{message.confidence.toFixed(0)}%</span>
+                                    <span className="text-xs text-[var(--color-text-primary)]">{message.confidence.toFixed(0)}%</span>
                                   </div>
                                 )}
 
                                 {/* Sources */}
                                 {message.sources && (
                                   <div className="mt-2">
-                                    <p className="text-xs text-gray-600 mb-1">Sources:</p>
+                                    <p className="text-xs text-[var(--color-text-primary)] mb-1">Sources:</p>
                                     <div className="flex flex-wrap gap-1">
                                       {message.sources.map((source, idx) => (
-                                        <Badge key={idx} className="text-xs bg-blue-100 text-blue-800">
+                                        <Badge key={idx} className="text-xs bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">
                                           {source}
                                         </Badge>
                                       ))}
@@ -658,9 +658,9 @@ const IAAssistant: React.FC = () => {
                                       <button
                                         key={idx}
                                         className={`flex items-center gap-1 px-3 py-1 rounded text-xs ${
-                                          action.type === 'primary' ? 'bg-blue-600 text-white' :
-                                          action.type === 'danger' ? 'bg-red-600 text-white' :
-                                          'bg-gray-200 text-gray-700'
+                                          action.type === 'primary' ? 'bg-[var(--color-primary)] text-white' :
+                                          action.type === 'danger' ? 'bg-[var(--color-error)] text-white' :
+                                          'bg-[var(--color-border)] text-[var(--color-text-primary)]'
                                         } hover:opacity-80`}
                                       >
                                         {action.icon}
@@ -673,13 +673,13 @@ const IAAssistant: React.FC = () => {
                                 {/* Suggestions */}
                                 {message.suggestions && (
                                   <div className="mt-3">
-                                    <p className="text-xs text-gray-600 mb-2">Suggestions:</p>
+                                    <p className="text-xs text-[var(--color-text-primary)] mb-2">Suggestions:</p>
                                     <div className="space-y-1">
                                       {message.suggestions.map((suggestion, idx) => (
                                         <button
                                           key={idx}
                                           onClick={() => setInputMessage(suggestion)}
-                                          className="block w-full text-left px-2 py-1 text-xs bg-white border rounded hover:bg-gray-50"
+                                          className="block w-full text-left px-2 py-1 text-xs bg-white border rounded hover:bg-[var(--color-background-secondary)]"
                                         >
                                           {suggestion}
                                         </button>
@@ -705,7 +705,7 @@ const IAAssistant: React.FC = () => {
                         animate={{ opacity: 1 }}
                         className="flex justify-start"
                       >
-                        <div className="bg-gray-100 rounded-lg p-3">
+                        <div className="bg-[var(--color-background-hover)] rounded-lg p-3">
                           <div className="flex items-center gap-2">
                             <Bot className="w-4 h-4 text-purple-600" />
                             <div className="flex gap-1">
@@ -736,8 +736,8 @@ const IAAssistant: React.FC = () => {
                         <button
                           onClick={() => setIsListening(!isListening)}
                           className={`absolute right-2 top-2 p-1 rounded ${
-                            isListening ? 'text-red-600' : 'text-gray-400'
-                          } hover:text-gray-600`}
+                            isListening ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]'
+                          } hover:text-[var(--color-text-primary)]`}
                         >
                           {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                         </button>
@@ -745,7 +745,7 @@ const IAAssistant: React.FC = () => {
                       <button
                         onClick={handleSendMessage}
                         disabled={!inputMessage.trim()}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Send className="w-4 h-4" />
                       </button>
@@ -767,10 +767,10 @@ const IAAssistant: React.FC = () => {
                     <button
                       key={template.id}
                       onClick={() => handleTemplateSelect(template.id)}
-                      className="w-full text-left p-2 border rounded hover:bg-gray-50"
+                      className="w-full text-left p-2 border rounded hover:bg-[var(--color-background-secondary)]"
                     >
                       <p className="font-medium text-sm">{template.nom}</p>
-                      <p className="text-xs text-gray-600">{template.description}</p>
+                      <p className="text-xs text-[var(--color-text-primary)]">{template.description}</p>
                     </button>
                   ))}
                 </CardContent>
@@ -784,11 +784,11 @@ const IAAssistant: React.FC = () => {
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Capacité IA</span>
-                    <Badge className="bg-green-100 text-green-800">Optimale</Badge>
+                    <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">Optimale</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Données à jour</span>
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Analyses actives</span>
@@ -809,7 +809,7 @@ const IAAssistant: React.FC = () => {
                 <RefreshCw className="w-4 h-4" />
                 Actualiser
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Configurer
               </button>
@@ -823,7 +823,7 @@ const IAAssistant: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-lg">{analyse.nom}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">{analyse.description}</p>
+                      <p className="text-sm text-[var(--color-text-primary)] mt-1">{analyse.description}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatutIcon(analyse.statut)}
@@ -837,21 +837,21 @@ const IAAssistant: React.FC = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {/* Données détectées */}
-                    <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded">
+                    <div className="grid grid-cols-2 gap-4 p-3 bg-[var(--color-background-secondary)] rounded">
                       <div>
-                        <p className="text-sm text-gray-600">Valeur détectée</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Valeur détectée</p>
                         <p className="font-bold">{(analyse.donnees.valeurDetectee / 1000000).toFixed(1)}M FCFA</p>
                       </div>
                       {analyse.donnees.valeurAttendue && (
                         <div>
-                          <p className="text-sm text-gray-600">Valeur attendue</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">Valeur attendue</p>
                           <p className="font-bold">{(analyse.donnees.valeurAttendue / 1000000).toFixed(1)}M FCFA</p>
                         </div>
                       )}
                       {analyse.donnees.ecart && (
                         <div className="col-span-2">
-                          <p className="text-sm text-gray-600">Écart</p>
-                          <p className={`font-bold ${analyse.donnees.ecart < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          <p className="text-sm text-[var(--color-text-primary)]">Écart</p>
+                          <p className={`font-bold ${analyse.donnees.ecart < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
                             {analyse.donnees.ecart > 0 ? '+' : ''}{(analyse.donnees.ecart / 1000).toFixed(0)}K FCFA
                           </p>
                         </div>
@@ -877,7 +877,7 @@ const IAAssistant: React.FC = () => {
                       <ul className="space-y-1">
                         {analyse.actionsAutomatisees.map((action, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Zap className="w-3 h-3 text-blue-500 flex-shrink-0 mt-1" />
+                            <Zap className="w-3 h-3 text-[var(--color-primary)] flex-shrink-0 mt-1" />
                             <span>{action}</span>
                           </li>
                         ))}
@@ -886,13 +886,13 @@ const IAAssistant: React.FC = () => {
 
                     {/* Actions */}
                     <div className="flex gap-2 pt-2 border-t">
-                      <button className="flex-1 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                      <button className="flex-1 px-3 py-2 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary-dark)]">
                         Traiter
                       </button>
-                      <button className="px-3 py-2 border rounded text-sm hover:bg-gray-50">
+                      <button className="px-3 py-2 border rounded text-sm hover:bg-[var(--color-background-secondary)]">
                         Détails
                       </button>
-                      <button className="px-3 py-2 border rounded text-sm hover:bg-gray-50">
+                      <button className="px-3 py-2 border rounded text-sm hover:bg-[var(--color-background-secondary)]">
                         Reporter
                       </button>
                     </div>
@@ -915,7 +915,7 @@ const IAAssistant: React.FC = () => {
                 <option value="conformite">Conformité</option>
                 <option value="performance">Performance</option>
               </select>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Rapport
               </button>
@@ -929,16 +929,16 @@ const IAAssistant: React.FC = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <h4 className="font-medium text-lg mb-2">{recommandation.titre}</h4>
-                      <p className="text-gray-600 mb-3">{recommandation.description}</p>
+                      <p className="text-[var(--color-text-primary)] mb-3">{recommandation.description}</p>
 
                       <div className="flex items-center gap-4 mb-4">
                         <Badge className={getPrioriteColor(recommandation.priorite)}>
                           Priorité {recommandation.priorite}
                         </Badge>
-                        <Badge className="bg-blue-100 text-blue-800 capitalize">
+                        <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] capitalize">
                           {recommandation.categorie}
                         </Badge>
-                        <span className="text-sm text-gray-600 capitalize">
+                        <span className="text-sm text-[var(--color-text-primary)] capitalize">
                           Difficulté: {recommandation.difficulte}
                         </span>
                       </div>
@@ -948,8 +948,8 @@ const IAAssistant: React.FC = () => {
                       {getStatutIcon(recommandation.statut)}
                       {recommandation.impactChiffre && (
                         <div className="text-right">
-                          <p className="text-sm text-gray-600">Impact</p>
-                          <p className="font-bold text-green-600">
+                          <p className="text-sm text-[var(--color-text-primary)]">Impact</p>
+                          <p className="font-bold text-[var(--color-success)]">
                             {recommandation.impact === 'temps' ? `${recommandation.impactChiffre}h` :
                              recommandation.impact === 'cout' ? `${(recommandation.impactChiffre / 1000000).toFixed(1)}M FCFA` :
                              `${recommandation.impactChiffre}%`}
@@ -965,7 +965,7 @@ const IAAssistant: React.FC = () => {
                       <ol className="space-y-2">
                         {recommandation.etapes.map((etape, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
-                            <span className="flex-shrink-0 w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs flex items-center justify-center font-medium">
+                            <span className="flex-shrink-0 w-5 h-5 bg-[var(--color-primary-lighter)] text-[var(--color-primary)] rounded-full text-xs flex items-center justify-center font-medium">
                               {idx + 1}
                             </span>
                             <span>{etape}</span>
@@ -979,13 +979,13 @@ const IAAssistant: React.FC = () => {
                       <ul className="space-y-1">
                         {recommandation.ressourcesNecessaires.map((ressource, idx) => (
                           <li key={idx} className="flex items-center gap-2 text-sm">
-                            <CheckCircle className="w-3 h-3 text-green-500" />
+                            <CheckCircle className="w-3 h-3 text-[var(--color-success)]" />
                             <span>{ressource}</span>
                           </li>
                         ))}
                       </ul>
 
-                      <div className="mt-4 text-xs text-gray-500">
+                      <div className="mt-4 text-xs text-[var(--color-text-secondary)]">
                         Créée le {new Date(recommandation.dateCreation).toLocaleDateString()}
                       </div>
                     </div>
@@ -994,25 +994,25 @@ const IAAssistant: React.FC = () => {
                   <div className="flex gap-3 mt-6 pt-4 border-t">
                     {recommandation.statut === 'nouvelle' && (
                       <>
-                        <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded hover:bg-[var(--color-success-dark)]">
                           Accepter
                         </button>
-                        <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
+                        <button className="px-4 py-2 border border-[var(--color-border-dark)] rounded hover:bg-[var(--color-background-secondary)]">
                           Reporter
                         </button>
-                        <button className="px-4 py-2 border border-red-300 text-red-600 rounded hover:bg-red-50">
+                        <button className="px-4 py-2 border border-red-300 text-[var(--color-error)] rounded hover:bg-[var(--color-error-lightest)]">
                           Rejeter
                         </button>
                       </>
                     )}
 
                     {recommandation.statut === 'acceptee' && (
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                      <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded hover:bg-[var(--color-primary-dark)]">
                         Démarrer Implémentation
                       </button>
                     )}
 
-                    <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 ml-auto">
+                    <button className="px-4 py-2 border border-[var(--color-border-dark)] rounded hover:bg-[var(--color-background-secondary)] ml-auto">
                       Voir Détails
                     </button>
                   </div>
@@ -1036,30 +1036,30 @@ const IAAssistant: React.FC = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h4 className="font-medium">{metrique.nom}</h4>
-                          <p className="text-sm text-gray-600">{metrique.description}</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{metrique.description}</p>
                         </div>
                         <div className="flex items-center gap-1">
                           {metrique.tendance === 'hausse' ? (
-                            <TrendingUp className="w-4 h-4 text-green-600" />
+                            <TrendingUp className="w-4 h-4 text-[var(--color-success)]" />
                           ) : metrique.tendance === 'baisse' ? (
-                            <TrendingDown className="w-4 h-4 text-red-600" />
+                            <TrendingDown className="w-4 h-4 text-[var(--color-error)]" />
                           ) : (
-                            <Activity className="w-4 h-4 text-blue-600" />
+                            <Activity className="w-4 h-4 text-[var(--color-primary)]" />
                           )}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-gray-600">Valeur Actuelle</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">Valeur Actuelle</p>
                           <p className="text-2xl font-bold">
                             {metrique.valeur} {metrique.unite}
                           </p>
                         </div>
                         {metrique.objectif && (
                           <div>
-                            <p className="text-sm text-gray-600">Objectif</p>
-                            <p className="text-2xl font-bold text-gray-600">
+                            <p className="text-sm text-[var(--color-text-primary)]">Objectif</p>
+                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                               {metrique.objectif} {metrique.unite}
                             </p>
                           </div>
@@ -1076,7 +1076,7 @@ const IAAssistant: React.FC = () => {
                         </div>
                       )}
 
-                      <p className="text-xs text-gray-500 mt-3">
+                      <p className="text-xs text-[var(--color-text-secondary)] mt-3">
                         Dernière mise à jour: {new Date(metrique.derniereMiseAJour).toLocaleString()}
                       </p>
                     </div>
@@ -1092,25 +1092,25 @@ const IAAssistant: React.FC = () => {
               <CardContent>
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <Cpu className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-blue-600">87%</p>
-                      <p className="text-sm text-gray-600">Utilisation CPU</p>
+                    <div className="text-center p-4 bg-[var(--color-primary-lightest)] rounded-lg">
+                      <Cpu className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-[var(--color-primary)]">87%</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Utilisation CPU</p>
                     </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <Database className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-green-600">2.1GB</p>
-                      <p className="text-sm text-gray-600">Mémoire Utilisée</p>
+                    <div className="text-center p-4 bg-[var(--color-success-lightest)] rounded-lg">
+                      <Database className="w-8 h-8 text-[var(--color-success)] mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-[var(--color-success)]">2.1GB</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Mémoire Utilisée</p>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <Network className="w-8 h-8 text-purple-600 mx-auto mb-2" />
                       <p className="text-2xl font-bold text-purple-600">127</p>
-                      <p className="text-sm text-gray-600">Requêtes/min</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Requêtes/min</p>
                     </div>
-                    <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                      <Activity className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-yellow-600">99.9%</p>
-                      <p className="text-sm text-gray-600">Disponibilité</p>
+                    <div className="text-center p-4 bg-[var(--color-warning-lightest)] rounded-lg">
+                      <Activity className="w-8 h-8 text-[var(--color-warning)] mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-[var(--color-warning)]">99.9%</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Disponibilité</p>
                     </div>
                   </div>
 
@@ -1121,19 +1121,19 @@ const IAAssistant: React.FC = () => {
                     </h4>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-3 h-3 text-green-600 mt-1" />
+                        <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
                         <span>Détection proactive des anomalies comptables</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-3 h-3 text-green-600 mt-1" />
+                        <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
                         <span>Recommandations personnalisées et contextuelles</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-3 h-3 text-green-600 mt-1" />
+                        <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
                         <span>Automatisation des contrôles de cohérence</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-3 h-3 text-green-600 mt-1" />
+                        <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
                         <span>Conformité SYSCOHADA assurée</span>
                       </li>
                     </ul>
@@ -1174,15 +1174,15 @@ const IAAssistant: React.FC = () => {
                   <h4 className="font-medium mb-3">Niveau de Détail des Réponses</h4>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="detail" value="concis" className="text-blue-600" />
+                      <input type="radio" name="detail" value="concis" className="text-[var(--color-primary)]" />
                       <span>Concis - Réponses courtes et directes</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="detail" value="detaille" defaultChecked className="text-blue-600" />
+                      <input type="radio" name="detail" value="detaille" defaultChecked className="text-[var(--color-primary)]" />
                       <span>Détaillé - Explications complètes avec exemples</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="radio" name="detail" value="expert" className="text-blue-600" />
+                      <input type="radio" name="detail" value="expert" className="text-[var(--color-primary)]" />
                       <span>Expert - Analyses approfondies et techniques</span>
                     </label>
                   </div>
@@ -1192,27 +1192,27 @@ const IAAssistant: React.FC = () => {
                   <h4 className="font-medium mb-3">Domaines d'Expertise Activés</h4>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                       <span>Gestion des stocks et inventaires</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                       <span>Créances et cycle clients</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                       <span>Immobilisations et amortissements</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                       <span>Provisions et évaluations</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                       <span>Conformité SYSCOHADA</span>
                     </label>
                     <label className="flex items-center gap-2">
-                      <input type="checkbox" className="text-blue-600" />
+                      <input type="checkbox" className="text-[var(--color-primary)]" />
                       <span>Analyse fiscale et optimisation</span>
                     </label>
                   </div>
@@ -1248,19 +1248,19 @@ const IAAssistant: React.FC = () => {
                   <div className="space-y-2">
                     <label className="flex items-center justify-between">
                       <span>Contrôle quotidien des stocks</span>
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
                       <span>Surveillance des créances échues</span>
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
                       <span>Validation des calculs d'amortissement</span>
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
                       <span>Contrôle de cohérence inter-modules</span>
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                   </div>
                 </div>
@@ -1270,15 +1270,15 @@ const IAAssistant: React.FC = () => {
                   <div className="space-y-2">
                     <label className="flex items-center justify-between">
                       <span>Alertes critiques immédiate</span>
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
                       <span>Rapport quotidien par email</span>
-                      <input type="checkbox" className="text-blue-600" />
+                      <input type="checkbox" className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
                       <span>Recommandations hebdomadaires</span>
-                      <input type="checkbox" defaultChecked className="text-blue-600" />
+                      <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                   </div>
                 </div>
@@ -1289,29 +1289,29 @@ const IAAssistant: React.FC = () => {
                     <div className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">API Bancaire</p>
-                        <p className="text-sm text-gray-600">Rapprochements automatiques</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Rapprochements automatiques</p>
                       </div>
-                      <Badge className="bg-green-100 text-green-800">Connecté</Badge>
+                      <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">Connecté</Badge>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">ERP Principal</p>
-                        <p className="text-sm text-gray-600">Synchronisation des données</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Synchronisation des données</p>
                       </div>
-                      <Badge className="bg-green-100 text-green-800">Actif</Badge>
+                      <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">Actif</Badge>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">Service Fiscal</p>
-                        <p className="text-sm text-gray-600">Validation réglementaire</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Validation réglementaire</p>
                       </div>
-                      <Badge className="bg-yellow-100 text-yellow-800">En configuration</Badge>
+                      <Badge className="bg-[var(--color-warning-lighter)] text-yellow-800">En configuration</Badge>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t">
-                  <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <button className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                     Sauvegarder la Configuration
                   </button>
                 </div>

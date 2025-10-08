@@ -29,7 +29,8 @@ import {
   Wifi,
   WifiOff,
   BookOpen,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 
 // Import des modules internes
@@ -37,10 +38,28 @@ import EnhancedTasksModule from '../../components/tasks/EnhancedTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import NotificationSystem from '../../components/notifications/NotificationSystem';
 
+// Import des hooks API
+import { useSystemInfo, useSystemStats, useSystemModules } from '../../hooks';
+import { useCompanies, useMyWorkspace, useWorkspaceByRole } from '../../hooks';
+
 const EnhancedAdminWorkspace: React.FC = () => {
   const navigate = useNavigate();
   const [activeModule, setActiveModule] = useState<'dashboard' | 'tasks' | 'collaboration'>('dashboard');
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+
+  // Chargement des données système via les hooks
+  const { data: systemInfo, isLoading: loadingInfo } = useSystemInfo();
+  const { data: systemStats, isLoading: loadingStats } = useSystemStats();
+  const { data: systemModules, isLoading: loadingModules } = useSystemModules();
+  const { data: companies, isLoading: loadingCompanies } = useCompanies();
+
+  // Chargement du workspace Admin depuis l'API
+  const { data: adminWorkspace, isLoading: loadingWorkspace } = useWorkspaceByRole('admin');
+
+  // Utiliser les données du workspace si disponibles
+  const workspaceWidgets = adminWorkspace?.widgets || [];
+  const workspaceActions = adminWorkspace?.quick_actions || [];
+  const workspaceStats = adminWorkspace?.statistics || [];
 
   // Sample notifications - In a real app, these would come from a backend or context
   const [notifications, setNotifications] = useState([
@@ -86,29 +105,103 @@ const EnhancedAdminWorkspace: React.FC = () => {
     setActiveModule('tasks');
   };
 
-  // Métriques système
-  const systemMetrics = {
-    cpu: { value: 45, label: 'CPU', unit: '%', status: 'normal' },
-    memory: { value: 68, label: 'RAM', unit: '%', status: 'warning' },
-    storage: { value: 72, label: 'Stockage', unit: '%', status: 'warning' },
-    uptime: { value: '99.9', label: 'Disponibilité', unit: '%', status: 'excellent' }
+  // Métriques système - Utilisation des données réelles de l'API
+  const systemMetrics = systemStats ? {
+    users: { value: systemStats.users?.active || 0, total: systemStats.users?.total || 0, label: 'Utilisateurs actifs', unit: '', status: 'normal' },
+    companies: { value: systemStats.companies?.active || 0, total: systemStats.companies?.total || 0, label: 'Sociétés actives', unit: '', status: 'normal' },
+    uptime: { value: systemStats.system?.uptime || '99.9', label: 'Disponibilité', unit: '%', status: 'excellent' },
+    database: { value: systemStats.system?.database === 'healthy' ? '100' : '0', label: 'Base de données', unit: '%', status: systemStats.system?.database === 'healthy' ? 'excellent' : 'error' }
+  } : {
+    users: { value: 0, total: 0, label: 'Utilisateurs actifs', unit: '', status: 'normal' },
+    companies: { value: 0, total: 0, label: 'Sociétés actives', unit: '', status: 'normal' },
+    uptime: { value: '0', label: 'Disponibilité', unit: '%', status: 'normal' },
+    database: { value: '0', label: 'Base de données', unit: '%', status: 'normal' }
   };
 
-  // Liens d'administration
-  const adminLinks = [
-    { id: 'chart', label: 'Plan comptable', icon: BookOpen, path: '/accounting/chart-of-accounts' },
-    { id: 'closure', label: 'Calendrier de clôture', icon: Calendar, path: '/accounting/closure-calendar' },
-    { id: 'users', label: 'Gestion utilisateurs', icon: Users, path: '/security/users', count: 125 },
-    { id: 'roles', label: 'Rôles & Permissions', icon: Shield, path: '/security/roles', count: 8 },
-    { id: 'config', label: 'Configuration système', icon: Settings, path: '/config' },
-    { id: 'backup', label: 'Sauvegardes', icon: Database, path: '/settings/backup', count: 5 },
-    { id: 'api', label: 'API & Intégrations', icon: Globe, path: '/settings/api', count: 12 },
-    { id: 'security', label: 'Sécurité', icon: Lock, path: '/security' },
-    { id: 'multi-company', label: 'Multi-sociétés', icon: Globe, path: '/multi-company' }
-  ];
+  // Liens d'administration - Utiliser les actions rapides du workspace si disponibles, sinon fallback
+  const adminLinks = workspaceActions.length > 0
+    ? workspaceActions.filter(action => action.is_visible).map(action => ({
+        id: action.id,
+        label: action.label,
+        icon: eval(action.icon) as any, // Convertir le nom de l'icône en composant
+        path: action.action_target,
+        count: undefined
+      }))
+    : [
+        { id: 'chart', label: 'Plan comptable', icon: BookOpen, path: '/accounting/chart-of-accounts' },
+        { id: 'closure', label: 'Calendrier de clôture', icon: Calendar, path: '/accounting/closure-calendar' },
+        { id: 'users', label: 'Gestion utilisateurs', icon: Users, path: '/security/users', count: 125 },
+        { id: 'roles', label: 'Rôles & Permissions', icon: Shield, path: '/security/roles', count: 8 },
+        { id: 'config', label: 'Configuration système', icon: Settings, path: '/config' },
+        { id: 'backup', label: 'Sauvegardes', icon: Database, path: '/settings/backup', count: 5 },
+        { id: 'api', label: 'API & Intégrations', icon: Globe, path: '/settings/api', count: 12 },
+        { id: 'security', label: 'Sécurité', icon: Lock, path: '/security' },
+        { id: 'multi-company', label: 'Multi-sociétés', icon: Globe, path: '/multi-company' }
+      ];
 
-  const renderDashboard = () => (
+  const renderDashboard = () => {
+    // Afficher un loader pendant le chargement des données
+    if (loadingStats || loadingInfo || loadingModules || loadingCompanies || loadingWorkspace) {
+      return (
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-600">Chargement du workspace administrateur...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
     <div className="p-6">
+      {/* Informations workspace en haut */}
+      {adminWorkspace && (
+        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-6 mb-6 text-white">
+          <div className="grid grid-cols-4 gap-6">
+            <div>
+              <p className="text-gray-300 text-sm mb-1">Workspace</p>
+              <p className="text-xl font-bold">{adminWorkspace.name}</p>
+            </div>
+            <div>
+              <p className="text-gray-300 text-sm mb-1">Rôle</p>
+              <p className="text-xl font-bold">{adminWorkspace.role_display}</p>
+            </div>
+            <div>
+              <p className="text-gray-300 text-sm mb-1">Widgets actifs</p>
+              <p className="text-xl font-bold">{adminWorkspace.widget_count}</p>
+            </div>
+            <div>
+              <p className="text-gray-300 text-sm mb-1">Actions rapides</p>
+              <p className="text-xl font-bold">{adminWorkspace.action_count}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Informations système */}
+      {systemInfo && (
+        <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
+          <div className="grid grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-gray-700 mb-1">Système</p>
+              <p className="font-semibold text-gray-900">{systemInfo.name} v{systemInfo.version}</p>
+            </div>
+            <div>
+              <p className="text-gray-700 mb-1">Environnement</p>
+              <p className="font-semibold text-gray-900 capitalize">{systemInfo.environment}</p>
+            </div>
+            <div>
+              <p className="text-gray-700 mb-1">Modules</p>
+              <p className="font-semibold text-gray-900">{systemInfo.features?.modules_count || 0} actifs</p>
+            </div>
+            <div>
+              <p className="text-gray-700 mb-1">Conformité</p>
+              <p className="font-semibold text-green-600">SYSCOHADA ✓</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Métriques système */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {Object.entries(systemMetrics).map(([key, metric]) => (
@@ -124,16 +217,15 @@ const EnhancedAdminWorkspace: React.FC = () => {
             </div>
             <div className="text-2xl font-bold text-gray-900">
               {metric.value}{metric.unit}
+              {(key === 'users' || key === 'companies') && metric.total && (
+                <span className="text-sm text-gray-700 font-normal ml-2">/ {metric.total}</span>
+              )}
             </div>
-            {key !== 'uptime' && (
+            {key !== 'uptime' && key !== 'database' && metric.total && (
               <div className="mt-2 w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className={`h-full transition-all duration-500 ${
-                    Number(metric.value) < 50 ? 'bg-green-500' :
-                    Number(metric.value) < 75 ? 'bg-yellow-500' :
-                    'bg-red-500'
-                  }`}
-                  style={{ width: `${metric.value}%` }}
+                  className="h-full transition-all duration-500 bg-blue-500"
+                  style={{ width: `${(Number(metric.value) / Number(metric.total)) * 100}%` }}
                 />
               </div>
             )}
@@ -200,10 +292,10 @@ const EnhancedAdminWorkspace: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{activity.user}</p>
-                    <p className="text-xs text-gray-500">{activity.action}</p>
+                    <p className="text-xs text-gray-700">{activity.action}</p>
                   </div>
                 </div>
-                <span className="text-xs text-gray-500">{activity.time}</span>
+                <span className="text-xs text-gray-700">{activity.time}</span>
               </div>
             ))}
           </div>
@@ -264,7 +356,7 @@ const EnhancedAdminWorkspace: React.FC = () => {
                 <service.icon className="w-4 h-4 text-gray-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{service.service}</p>
-                  <p className="text-xs text-gray-500">Uptime: {service.uptime}</p>
+                  <p className="text-xs text-gray-700">Uptime: {service.uptime}</p>
                 </div>
               </div>
               <div className={`w-2 h-2 rounded-full ${
@@ -277,7 +369,8 @@ const EnhancedAdminWorkspace: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -287,7 +380,7 @@ const EnhancedAdminWorkspace: React.FC = () => {
           {/* Navigation et logo */}
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-700" />
@@ -300,7 +393,7 @@ const EnhancedAdminWorkspace: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900">Administration Système</h1>
-                <p className="text-xs text-gray-500">WiseBook ERP v3.0</p>
+                <p className="text-xs text-gray-700">WiseBook ERP v3.0</p>
               </div>
             </div>
           </div>
@@ -317,7 +410,7 @@ const EnhancedAdminWorkspace: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
-                Tableau de bord
+                {t('navigation.dashboard')}
               </div>
             </button>
             <button
@@ -365,7 +458,7 @@ const EnhancedAdminWorkspace: React.FC = () => {
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-gray-900">Admin System</p>
-                <p className="text-xs text-gray-500">Administrateur</p>
+                <p className="text-xs text-gray-700">Administrateur</p>
               </div>
             </div>
           </div>

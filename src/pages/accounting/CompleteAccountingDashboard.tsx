@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Calculator, FileText, BookOpen, BarChart3, TrendingUp, PieChart,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 
 const CompleteAccountingDashboardV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -15,8 +17,8 @@ const CompleteAccountingDashboardV2: React.FC = () => {
   const tabs = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
     { id: 'entries', label: 'Écritures', icon: FileText, badge: '8' },
-    { id: 'journals', label: 'Journaux', icon: BookOpen },
-    { id: 'balance', label: 'Balance', icon: Calculator },
+    { id: 'journals', label: t('navigation.journals'), icon: BookOpen },
+    { id: 'balance', label: t('accounting.balance'), icon: Calculator },
     { id: 'statements', label: 'États Financiers', icon: PieChart },
     { id: 'analysis', label: 'Analyses', icon: TrendingUp },
   ];
@@ -37,7 +39,7 @@ const CompleteAccountingDashboardV2: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => navigate('/dashboard/comptable')}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
               <span className="text-sm font-semibold text-[#444444]">Workspace</span>
@@ -63,7 +65,7 @@ const CompleteAccountingDashboardV2: React.FC = () => {
               <span className="text-sm">Executive</span>
             </button>
             
-            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[#767676]" />
             </button>
           </div>
@@ -93,7 +95,7 @@ const CompleteAccountingDashboardV2: React.FC = () => {
                   {tab.badge && (
                     <span className={`
                       px-2 py-0.5 text-xs font-medium rounded-full
-                      ${activeTab === tab.id ? 'bg-[#6A8A82] text-white' : 'bg-red-100 text-red-600'}
+                      ${activeTab === tab.id ? 'bg-[#6A8A82] text-white' : 'bg-[var(--color-error-lighter)] text-[var(--color-error)]'}
                     `}>
                       {tab.badge}
                     </span>
@@ -122,7 +124,7 @@ const CompleteAccountingDashboardV2: React.FC = () => {
                           <IconComponent className="w-5 h-5" style={{color: metric.color}} />
                         </div>
                         <div className={`text-xs font-medium flex items-center space-x-1 ${
-                          metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                          metric.trend === 'up' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
                           {metric.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
                           <span>{metric.change}</span>
@@ -201,7 +203,7 @@ const CompleteAccountingDashboardV2: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-[#191919]">Écritures en Attente de Validation</h3>
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+                      <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Filtrer">
                         <Filter className="w-4 h-4 text-[#767676]" />
                       </button>
                       <button 
@@ -232,23 +234,23 @@ const CompleteAccountingDashboardV2: React.FC = () => {
                           { ref: 'E2025002', desc: 'Achat fournitures', montant: 450, type: 'debit' },
                           { ref: 'E2025003', desc: 'Salaires septembre', montant: 15000, type: 'debit' },
                         ].map((entry, index) => (
-                          <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                          <tr key={index} className="border-b border-gray-100 hover:bg-[var(--color-background-secondary)]">
                             <td className="py-2 text-sm font-mono text-[#191919]">{entry.ref}</td>
                             <td className="py-2 text-sm text-[#444444]">{entry.desc}</td>
                             <td className={`py-2 text-sm font-semibold text-right ${
-                              entry.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                              entry.type === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                             }`}>
                               {entry.montant.toLocaleString()}€
                             </td>
                             <td className="py-2 text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <button className="text-[#6A8A82] hover:text-[#5A7A72]">
+                                <button className="text-[#6A8A82] hover:text-[#5A7A72]" aria-label="Voir les détails">
                                   <Eye className="w-3 h-3" />
                                 </button>
                                 <button className="text-[#B87333] hover:text-[#A86323]">
                                   <Edit className="w-3 h-3" />
                                 </button>
-                                <button className="text-[#7A99AC] hover:text-[#6A89AC]">
+                                <button className="text-[#7A99AC] hover:text-[#6A89AC]" aria-label="Valider">
                                   <CheckCircle className="w-3 h-3" />
                                 </button>
                               </div>
@@ -323,7 +325,7 @@ const CompleteAccountingDashboardV2: React.FC = () => {
                     { classe: '7', nom: 'Comptes de produits', solde: 2450000, type: 'credit' },
                     { classe: '8', nom: 'Comptes spéciaux', solde: 0, type: 'equilibre' }
                   ].map((classe, index) => (
-                    <div key={index} className="p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div key={index} className="p-3 rounded-lg bg-[var(--color-background-secondary)] hover:bg-[var(--color-background-hover)] transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <span className="w-8 h-8 rounded bg-[#6A8A82] text-white text-sm font-bold flex items-center justify-center">
@@ -333,8 +335,8 @@ const CompleteAccountingDashboardV2: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <span className={`text-sm font-bold ${
-                            classe.type === 'credit' ? 'text-green-600' : 
-                            classe.type === 'debit' ? 'text-blue-600' : 'text-gray-600'
+                            classe.type === 'credit' ? 'text-[var(--color-success)]' : 
+                            classe.type === 'debit' ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-primary)]'
                           }`}>
                             {classe.solde > 0 ? (classe.solde / 1000000).toFixed(2) + 'M€' : 'Équilibré'}
                           </span>

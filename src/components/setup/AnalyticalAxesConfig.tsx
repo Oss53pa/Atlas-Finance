@@ -340,9 +340,9 @@ const AnalyticalAxesConfig: React.FC = () => {
               className="p-1 hover:bg-gray-200 rounded"
             >
               {isExpanded ? (
-                <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+                <ChevronDownIcon className="h-4 w-4 text-gray-700" />
               ) : (
-                <ChevronRightIcon className="h-4 w-4 text-gray-500" />
+                <ChevronRightIcon className="h-4 w-4 text-gray-700" />
               )}
             </button>
           ) : (
@@ -371,7 +371,7 @@ const AnalyticalAxesConfig: React.FC = () => {
                 </span>
               )}
             </div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-gray-700 mt-1">
               {section.stats.allocationsCount} affectations • 
               Budget: {section.budgetAmount?.toLocaleString() || 'N/A'} XAF •
               Consommation: {section.stats.budgetConsumption?.toFixed(1) || '0'}%
@@ -517,7 +517,7 @@ const AnalyticalAxesConfig: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                     <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                    <p className="text-sm text-gray-500">{stat.subtitle}</p>
+                    <p className="text-sm text-gray-700">{stat.subtitle}</p>
                   </div>
                   <div className={`h-12 w-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
                     <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
@@ -544,7 +544,7 @@ const AnalyticalAxesConfig: React.FC = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{axis.name}</h3>
-                          <span className="text-xs text-gray-500">{axis.code}</span>
+                          <span className="text-xs text-gray-700">{axis.code}</span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -566,24 +566,24 @@ const AnalyticalAxesConfig: React.FC = () => {
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-500">Sections:</span>
+                          <span className="text-gray-700">Sections:</span>
                           <span className="ml-2 font-medium">{axis.stats.totalSections}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Niveau max:</span>
+                          <span className="text-gray-700">Niveau max:</span>
                           <span className="ml-2 font-medium">{axis.maxAllocationLevels}</span>
                         </div>
                       </div>
 
                       <div className="text-sm">
-                        <span className="text-gray-500">Montant ventilé:</span>
+                        <span className="text-gray-700">Montant ventilé:</span>
                         <span className="ml-2 font-medium text-green-600">
                           {formatCurrency(axis.stats.totalAmount)}
                         </span>
                       </div>
 
                       <div className="text-sm">
-                        <span className="text-gray-500">Obligatoire sur:</span>
+                        <span className="text-gray-700">Obligatoire sur:</span>
                         <div className="mt-1 flex flex-wrap gap-1">
                           {axis.mandatoryOnAccounts.slice(0, 3).map((account) => (
                             <span key={account} className="px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
@@ -599,20 +599,20 @@ const AnalyticalAxesConfig: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-700">
                           Dernière utilisation: {new Date(axis.stats.lastUsed).toLocaleDateString('fr-FR')}
                         </span>
                         <div className="flex space-x-2">
                           <button
                             onClick={() => setSelectedAxis(axis.id)}
-                            className="p-1 text-gray-400 hover:text-indigo-600"
+                            className="p-1 text-gray-700 hover:text-indigo-600"
                           >
                             <EyeIcon className="h-4 w-4" />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-green-600">
+                          <button className="p-1 text-gray-700 hover:text-green-600" aria-label="Modifier">
                             <PencilIcon className="h-4 w-4" />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-red-600">
+                          <button className="p-1 text-gray-700 hover:text-red-600" aria-label="Supprimer">
                             <TrashIcon className="h-4 w-4" />
                           </button>
                         </div>
@@ -646,7 +646,7 @@ const AnalyticalAxesConfig: React.FC = () => {
                         </div>
                         <div>
                           <h3 className="font-medium text-gray-900">{axis.name}</h3>
-                          <span className="text-sm text-gray-500">{axis.stats.totalSections} sections</span>
+                          <span className="text-sm text-gray-700">{axis.stats.totalSections} sections</span>
                         </div>
                       </div>
                       <button
@@ -654,9 +654,9 @@ const AnalyticalAxesConfig: React.FC = () => {
                         className="p-2 hover:bg-gray-100 rounded-lg"
                       >
                         {expandedSections.includes(axis.id) ? (
-                          <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                          <ChevronDownIcon className="h-5 w-5 text-gray-700" />
                         ) : (
-                          <ChevronRightIcon className="h-5 w-5 text-gray-500" />
+                          <ChevronRightIcon className="h-5 w-5 text-gray-700" />
                         )}
                       </button>
                     </div>
@@ -693,7 +693,7 @@ const AnalyticalAxesConfig: React.FC = () => {
                       <div>
                         <div className="font-mono text-lg font-bold text-gray-900">{section.code}</div>
                         <div className="text-gray-700">{section.name}</div>
-                        <div className="text-sm text-gray-500">{section.description}</div>
+                        <div className="text-sm text-gray-700">{section.description}</div>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 text-sm">

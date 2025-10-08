@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { 
   Home,
@@ -20,17 +21,18 @@ interface ERPLayoutProps {
 }
 
 const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
+  const { t } = useLanguage();
   const menuItems = [
-    { path: '/dashboard', icon: Home, label: 'Tableau de bord' },
-    { path: '/accounting', icon: Calculator, label: 'Comptabilité' },
+    { path: '/dashboard', icon: Home, label: t('dashboard.title') },
+    { path: '/accounting', icon: Calculator, label: t('accounting.title') },
     { path: '/third-party', icon: Users, label: 'Tiers' },
-    { path: '/treasury', icon: Wallet, label: 'Trésorerie' },
-    { path: '/assets', icon: Package, label: 'Immobilisations' },
+    { path: '/treasury', icon: Wallet, label: t('treasury.title') },
+    { path: '/assets', icon: Package, label: t('assets.title') },
     { path: '/analytics', icon: PieChart, label: 'Analytique' },
-    { path: '/budgeting', icon: Target, label: 'Budget' },
+    { path: '/budgeting', icon: Target, label: t('budget.title') },
     { path: '/taxation', icon: FileText, label: 'Fiscalité' },
     { path: '/reporting', icon: BarChart3, label: 'Reporting' },
-    { path: '/security', icon: Shield, label: 'Sécurité' },
+    { path: '/security', icon: Shield, label: t('settings.security') },
   ];
 
   return (
@@ -39,7 +41,7 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
       <div className="fixed inset-y-0 left-0 z-50 w-64" style={{backgroundColor: '#353A3B', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}>
         {/* Header */}
         <div className="flex h-16 items-center justify-between px-4" style={{borderBottom: '1px solid #7A8B8E', backgroundColor: '#F7F3E9'}}>
-          <Link to="/" className="flex items-center space-x-3">
+          <Link to="/dashboard" className="flex items-center space-x-3">
             <div 
               className="w-8 h-8 rounded-lg flex items-center justify-center"
               style={{backgroundColor: '#7A8B8E', color: '#FFFFFF'}}
@@ -115,8 +117,8 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
               Paramètres
             </Link>
             
-            <Link 
-              to="/" 
+            <Link
+              to="/dashboard"
               className="flex items-center rounded-lg transition-all"
               style={{
                 padding: '12px 16px',

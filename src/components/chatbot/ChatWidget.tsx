@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { ChatMessage, ChatSession } from './types';
 import { useChatbot } from './hooks/useChatbot';
 import { useDraggable } from './hooks/useDraggable';
@@ -25,6 +26,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   onToggle,
   className = '',
 }) => {
+  const { t } = useLanguage();
   const {
     messages,
     isLoading,
@@ -80,8 +82,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         ref={dragRef}
         className={`chat-widget-toggle ${className} ${isDragging ? 'dragging' : ''}`}
         onClick={onToggle}
-        aria-label="Ouvrir Paloma, votre assistant WiseBook"
-        title="Besoin d'aide ? Cliquez pour discuter avec Paloma, votre assistant WiseBook"
+        aria-label="Ouvrir Paloma, votre assistante WiseBook"
+        title="Besoin d'aide ? Cliquez pour discuter avec Paloma, votre assistante WiseBook"
         style={{
           position: 'fixed',
           left: `${position.x}px`,
@@ -89,8 +91,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           transition: isDragging ? 'none' : 'all 0.3s ease',
         }}
       >
-        <PalomaAvatar size="md" />
-        <span className="chat-widget-toggle__badge">
+        <PalomaAvatar size="lg" showName={true} />
+        <span className="chat-widget-toggle__name">
           Paloma
         </span>
       </button>
@@ -139,7 +141,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
             className="chat-widget__close"
             onClick={onToggle}
             aria-label="Fermer le chat"
-            title="Fermer"
+            title={t('common.close')}
           >
             ×
           </button>

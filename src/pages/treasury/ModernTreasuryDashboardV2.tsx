@@ -42,7 +42,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => navigate('/dashboard/manager')}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
               <span className="text-sm font-semibold text-[#444444]">Manager</span>
@@ -60,8 +60,8 @@ const ModernTreasuryDashboardV2: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="flex items-center space-x-2 bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] px-3 py-1 rounded-full text-sm">
+              <div className="w-2 h-2 bg-[var(--color-success)] rounded-full animate-pulse"></div>
               <span>Temps réel</span>
             </div>
             
@@ -73,7 +73,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
               <span className="text-sm">Executive</span>
             </button>
             
-            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[#767676]" />
             </button>
           </div>
@@ -119,7 +119,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                       {(positionTresorerie.soldeTotal / 1000000).toFixed(2)}M€
                     </p>
                     <div className={`text-sm flex items-center justify-center space-x-1 mt-1 ${
-                      positionTresorerie.evolution24h > 0 ? 'text-green-600' : 'text-red-600'
+                      positionTresorerie.evolution24h > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                     }`}>
                       {positionTresorerie.evolution24h > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                       <span>+{(positionTresorerie.evolution24h / 1000).toFixed(0)}K€ (24h)</span>
@@ -145,7 +145,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                   <div className="text-center">
                     <h3 className="font-semibold text-[#B87333] mb-2">Prévision 30j</h3>
                     <p className="text-3xl font-bold text-[#B87333]">+340K€</p>
-                    <p className="text-sm text-green-600 mt-1">Flux positif</p>
+                    <p className="text-sm text-[var(--color-success)] mt-1">Flux positif</p>
                   </div>
                 </div>
               </div>
@@ -161,7 +161,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                           <Banknote className="w-5 h-5 text-[#B87333]" />
                           <span className="font-medium text-[#191919] text-sm">{compte.nom}</span>
                         </div>
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-[var(--color-success)] rounded-full"></div>
                       </div>
                       <p className="text-xl font-bold text-[#B87333] mb-1">
                         {compte.solde.toLocaleString()}€
@@ -220,12 +220,12 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                       { periode: 'Semaine 3', entrees: 520000, sorties: 310000, solde: +210000 },
                       { periode: 'Semaine 4', entrees: 290000, sorties: 340000, solde: -50000 }
                     ].map((prev, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-background-secondary)]">
                         <span className="text-sm font-medium text-[#444444]">{prev.periode}</span>
                         <div className="flex items-center space-x-4 text-sm">
-                          <span className="text-green-600">+{(prev.entrees / 1000).toFixed(0)}K€</span>
-                          <span className="text-red-600">-{(prev.sorties / 1000).toFixed(0)}K€</span>
-                          <span className={`font-bold ${prev.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className="text-[var(--color-success)]">+{(prev.entrees / 1000).toFixed(0)}K€</span>
+                          <span className="text-[var(--color-error)]">-{(prev.sorties / 1000).toFixed(0)}K€</span>
+                          <span className={`font-bold ${prev.solde > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                             {prev.solde > 0 ? '+' : ''}{(prev.solde / 1000).toFixed(0)}K€
                           </span>
                         </div>
@@ -244,15 +244,15 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                       { type: 'info', message: 'Opportunité placement court terme', action: 'Analyser' }
                     ].map((alerte, index) => (
                       <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                        alerte.type === 'success' ? 'bg-green-50 border-green-400' :
-                        alerte.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
+                        alerte.type === 'success' ? 'bg-[var(--color-success-lightest)] border-green-400' :
+                        alerte.type === 'warning' ? 'bg-[var(--color-warning-lightest)] border-yellow-400' :
                         'bg-[#6A8A82]/5 border-[#6A8A82]'
                       }`}>
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-[#444444] flex-1">{alerte.message}</p>
                           <button className={`text-xs font-medium ${
-                            alerte.type === 'success' ? 'text-green-700' :
-                            alerte.type === 'warning' ? 'text-yellow-700' : 'text-[#6A8A82]'
+                            alerte.type === 'success' ? 'text-[var(--color-success-dark)]' :
+                            alerte.type === 'warning' ? 'text-[var(--color-warning-dark)]' : 'text-[#6A8A82]'
                           }`}>
                             {alerte.action} →
                           </button>
@@ -272,7 +272,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-[#191919]">Mouvements du Jour</h3>
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+                      <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Filtrer">
                         <Filter className="w-4 h-4 text-[#767676]" />
                       </button>
                       <button 
@@ -293,7 +293,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                       { heure: '09:45', operation: 'Encaissement chèque', montant: +67500, compte: 'UBA' },
                       { heure: '08:30', operation: 'Prélèvement charges sociales', montant: -23400, compte: 'SGBC' }
                     ].map((mvt, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-background-secondary)] hover:bg-[var(--color-background-hover)] transition-colors">
                         <div className="flex items-center space-x-3">
                           <span className="text-xs font-mono text-[#767676] w-12">{mvt.heure}</span>
                           <div>
@@ -303,7 +303,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <span className={`text-sm font-bold ${
-                            mvt.montant > 0 ? 'text-green-600' : 'text-red-600'
+                            mvt.montant > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                           }`}>
                             {mvt.montant > 0 ? '+' : ''}{mvt.montant.toLocaleString()}€
                           </span>
@@ -326,7 +326,7 @@ const ModernTreasuryDashboardV2: React.FC = () => {
                         <Building2 className="w-5 h-5 text-[#B87333]" />
                         <span className="font-semibold text-[#191919]">{compte.nom}</span>
                       </div>
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-[var(--color-success)] rounded-full"></div>
                     </div>
                     
                     <div className="space-y-3">

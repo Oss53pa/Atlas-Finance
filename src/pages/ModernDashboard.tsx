@@ -3,6 +3,7 @@
  * Interface optimisée sans problèmes UX + Palette professionnelle
  */
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   TrendingUp,
   TrendingDown,
@@ -22,6 +23,7 @@ import {
 import { Card, CardContent } from '../components/ui';
 
 const ModernDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
 
   // Données KPIs temps réel
@@ -44,7 +46,7 @@ const ModernDashboard: React.FC = () => {
       trend: 'up', 
       icon: DollarSign,
       color: 'blue',
-      bgColor: 'from-blue-500 to-blue-600'
+      bgColor: 'from-[var(--color-primary)] to-[var(--color-primary)]'
     },
     {
       title: 'Créances Clients',
@@ -64,7 +66,7 @@ const ModernDashboard: React.FC = () => {
       trend: 'down',
       icon: CreditCard,
       color: 'purple',
-      bgColor: 'from-purple-500 to-purple-600'
+      bgColor: 'from-[var(--color-info)] to-[var(--color-info)]'
     }
   ];
 
@@ -87,7 +89,7 @@ const ModernDashboard: React.FC = () => {
       amount: -420000,
       time: 'Il y a 1h',
       icon: CreditCard,
-      iconColor: 'text-blue-600'
+      iconColor: 'text-[var(--color-primary)]'
     },
     {
       id: 3,
@@ -97,7 +99,7 @@ const ModernDashboard: React.FC = () => {
       amount: null,
       time: 'Il y a 2h',
       icon: CheckCircle,
-      iconColor: 'text-green-600'
+      iconColor: 'text-[var(--color-success)]'
     },
     {
       id: 4,
@@ -107,7 +109,7 @@ const ModernDashboard: React.FC = () => {
       amount: 125000,
       time: 'Il y a 3h',
       icon: AlertTriangle,
-      iconColor: 'text-orange-600'
+      iconColor: 'text-[var(--color-warning)]'
     }
   ];
 
@@ -161,16 +163,16 @@ const ModernDashboard: React.FC = () => {
       {/* Header avec titre et refresh */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard Executive</h1>
-          <p className="text-gray-600 mt-1">Vue d'ensemble temps réel • {new Date().toLocaleDateString('fr-FR')}</p>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Dashboard Executive</h1>
+          <p className="text-[var(--color-text-primary)] mt-1">Vue d'ensemble temps réel • {new Date().toLocaleDateString('fr-FR')}</p>
         </div>
         
         <button 
           onClick={() => setRefreshing(true)}
-          className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+          className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg border border-[var(--color-border-dark)] hover:bg-[var(--color-background-secondary)] transition-colors"
         >
-          <RefreshCw className={`h-4 w-4 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
-          <span className="text-sm font-medium text-gray-700">Actualiser</span>
+          <RefreshCw className={`h-4 w-4 text-[var(--color-text-primary)] ${refreshing ? 'animate-spin' : ''}`} />
+          <span className="text-sm font-medium text-[var(--color-text-primary)]">{t('common.refresh')}</span>
         </button>
       </div>
 
@@ -194,12 +196,12 @@ const ModernDashboard: React.FC = () => {
                           <Icon className={`h-6 w-6 text-${kpi.color}-600`} />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">{kpi.title}</p>
                           <div className="flex items-baseline space-x-2">
-                            <p className="text-2xl font-bold text-gray-900">
+                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                               {kpi.value}
                             </p>
-                            <span className="text-sm text-gray-500">{kpi.unit}</span>
+                            <span className="text-sm text-[var(--color-text-secondary)]">{kpi.unit}</span>
                           </div>
                         </div>
                       </div>
@@ -207,7 +209,7 @@ const ModernDashboard: React.FC = () => {
                       <div className="text-right">
                         <div className={`flex items-center space-x-1 ${
                           kpi.trend === 'up' ? 'text-emerald-600' : 
-                          kpi.trend === 'down' ? 'text-red-600' : 'text-gray-600'
+                          kpi.trend === 'down' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
                         }`}>
                           <TrendIcon className="h-4 w-4" />
                           <span className="text-sm font-semibold">{kpi.change}</span>
@@ -221,9 +223,9 @@ const ModernDashboard: React.FC = () => {
           </div>
 
           {/* Actions Rapides - Grid horizontal sans scroll */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Actions Rapides</h2>
+          <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)]">
+            <div className="px-6 py-4 border-b border-[var(--color-border)]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Actions Rapides</h2>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-3 gap-4">
@@ -233,15 +235,15 @@ const ModernDashboard: React.FC = () => {
                     <button
                       key={index}
                       className={`
-                        group p-4 rounded-xl border-2 border-dashed border-gray-200
+                        group p-4 rounded-xl border-2 border-dashed border-[var(--color-border)]
                         hover:border-${action.color}-300 hover:bg-${action.color}-50
                         transition-all duration-200 text-left
                       `}
                       onClick={() => window.location.href = action.path}
                     >
                       <Icon className={`h-8 w-8 text-${action.color}-500 mb-3 group-hover:scale-110 transition-transform`} />
-                      <h3 className="font-semibold text-gray-900 mb-1">{action.title}</h3>
-                      <p className="text-sm text-gray-600">{action.description}</p>
+                      <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">{action.title}</h3>
+                      <p className="text-sm text-[var(--color-text-primary)]">{action.description}</p>
                     </button>
                   );
                 })}
@@ -252,11 +254,11 @@ const ModernDashboard: React.FC = () => {
 
         {/* Sidebar droite - Activités récentes */}
         <div className="col-span-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-full">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)] h-full">
+            <div className="px-6 py-4 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Activité Récente</h2>
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Activité Récente</h2>
+                <span className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] px-2 py-1 rounded-full text-xs font-medium">
                   {recentActivities.length} nouvelles
                 </span>
               </div>
@@ -266,18 +268,18 @@ const ModernDashboard: React.FC = () => {
               {recentActivities.map((activity) => {
                 const Icon = activity.icon;
                 return (
-                  <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className={`p-2 rounded-lg bg-gray-100`}>
+                  <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-[var(--color-background-secondary)] transition-colors">
+                    <div className={`p-2 rounded-lg bg-[var(--color-background-hover)]`}>
                       <Icon className={`h-4 w-4 ${activity.iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                      <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)]">{activity.title}</p>
+                      <p className="text-sm text-[var(--color-text-primary)] mt-1">{activity.description}</p>
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-gray-500">{activity.time}</span>
+                        <span className="text-xs text-[var(--color-text-secondary)]">{activity.time}</span>
                         {activity.amount && (
                           <span className={`text-sm font-semibold ${
-                            activity.amount > 0 ? 'text-emerald-600' : 'text-red-600'
+                            activity.amount > 0 ? 'text-emerald-600' : 'text-[var(--color-error)]'
                           }`}>
                             {activity.amount > 0 ? '+' : ''}{activity.amount.toLocaleString('fr-FR')} XAF
                           </span>

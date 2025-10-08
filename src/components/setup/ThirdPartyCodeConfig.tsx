@@ -320,7 +320,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === id
                   ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -352,7 +352,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">{rule.name}</h3>
-                        <span className="text-xs text-gray-500">{rule.type}</span>
+                        <span className="text-xs text-gray-700">{rule.type}</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -400,7 +400,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
                     </div>
 
                     <div className="pt-3 border-t border-gray-200">
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-700">
                         Comptes collectifs: {rule.collectiveAccounts.length}
                       </div>
                       <div className="flex flex-wrap gap-1 mt-1">
@@ -538,10 +538,10 @@ const ThirdPartyCodeConfig: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="p-1 text-gray-400 hover:text-green-600">
+                    <button className="p-1 text-gray-700 hover:text-green-600" aria-label="Modifier">
                       <PencilIcon className="h-4 w-4" />
                     </button>
-                    <button className="p-1 text-gray-400 hover:text-red-600">
+                    <button className="p-1 text-gray-700 hover:text-red-600" aria-label="Supprimer">
                       <TrashIcon className="h-4 w-4" />
                     </button>
                   </div>
@@ -564,25 +564,25 @@ const ThirdPartyCodeConfig: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Pays
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Zone
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Devise
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Préfixe Code
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Exemple Client
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Statut
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -599,7 +599,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
                           <span className="text-2xl">{country.flag}</span>
                           <div>
                             <div className="font-medium text-gray-900">{country.name}</div>
-                            <div className="text-sm text-gray-500">{country.code}</div>
+                            <div className="text-sm text-gray-700">{country.code}</div>
                           </div>
                         </div>
                       </td>
@@ -632,10 +632,10 @@ const ThirdPartyCodeConfig: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex space-x-2 justify-center">
-                          <button className="text-green-600 hover:text-green-900">
+                          <button className="text-green-600 hover:text-green-900" aria-label="Modifier">
                             <PencilIcon className="h-4 w-4" />
                           </button>
-                          <button className="text-gray-600 hover:text-gray-900">
+                          <button className="text-gray-600 hover:text-gray-900" aria-label="Paramètres">
                             <Cog6ToothIcon className="h-4 w-4" />
                           </button>
                         </div>

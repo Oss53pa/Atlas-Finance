@@ -57,7 +57,7 @@ const AssetsDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
-            <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-xl font-semibold text-neutral-700">Chargement du tableau de bord...</p>
           </motion.div>
         </div>
@@ -81,8 +81,8 @@ const AssetsDashboard: React.FC = () => {
                   onClick={() => setPeriod(p)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     period === p
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-neutral-600 hover:text-blue-600'
+                      ? 'bg-[var(--color-primary)] text-white shadow-md'
+                      : 'text-neutral-600 hover:text-[var(--color-primary)]'
                   }`}
                 >
                   {p === 'month' ? 'Mois' : p === 'quarter' ? 'Trimestre' : 'Année'}
@@ -147,8 +147,8 @@ const AssetsDashboard: React.FC = () => {
                     {dashboardData?.nombre_actifs || 0}
                   </p>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-2xl">
-                  <Package className="h-8 w-8 text-blue-600" />
+                <div className="p-3 bg-[var(--color-primary-lighter)] rounded-2xl">
+                  <Package className="h-8 w-8 text-[var(--color-primary)]" />
                 </div>
               </div>
             </UnifiedCard>
@@ -187,8 +187,8 @@ const AssetsDashboard: React.FC = () => {
                     {dashboardData?.age_moyen || 0} ans
                   </p>
                 </div>
-                <div className="p-3 bg-purple-100 rounded-2xl">
-                  <Calendar className="h-8 w-8 text-purple-600" />
+                <div className="p-3 bg-[var(--color-info-lighter)] rounded-2xl">
+                  <Calendar className="h-8 w-8 text-[var(--color-info)]" />
                 </div>
               </div>
             </UnifiedCard>
@@ -224,7 +224,7 @@ const AssetsDashboard: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-3 bg-white/90 rounded-2xl">
-                <PieChart className="h-6 w-6 text-purple-600" />
+                <PieChart className="h-6 w-6 text-[var(--color-info)]" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-neutral-900">Répartition par Catégorie</h2>
@@ -241,7 +241,7 @@ const AssetsDashboard: React.FC = () => {
                   className="flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-2xl text-purple-600">
+                    <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl text-[var(--color-info)]">
                       {getCategoryIcon(category.code)}
                     </div>
                     <div>
@@ -253,7 +253,7 @@ const AssetsDashboard: React.FC = () => {
                     <p className="font-bold text-neutral-900 text-lg">
                       {formatCurrency(category.valeur_nette)}
                     </p>
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-info-lighter)] text-[var(--color-info-dark)]">
                       {formatPercentage(category.pourcentage)}
                     </span>
                   </div>
@@ -266,7 +266,7 @@ const AssetsDashboard: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-3 bg-white/90 rounded-2xl">
-                <TrendingDown className="h-6 w-6 text-orange-600" />
+                <TrendingDown className="h-6 w-6 text-[var(--color-warning)]" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-neutral-900">Derniers Amortissements</h2>
@@ -284,7 +284,7 @@ const AssetsDashboard: React.FC = () => {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <p className="font-semibold text-neutral-900">{amortissement.nom_actif}</p>
-                    <p className="font-bold text-orange-700 text-lg">
+                    <p className="font-bold text-[var(--color-warning-dark)] text-lg">
                       {formatCurrency(amortissement.montant)}
                     </p>
                   </div>
@@ -315,7 +315,7 @@ const AssetsDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-white/90 rounded-2xl">
-                <AlertCircle className="h-6 w-6 text-blue-600" />
+                <AlertCircle className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-neutral-900">État des Immobilisations</h2>
@@ -360,7 +360,7 @@ const AssetsDashboard: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-4 px-2">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]">
                         {actif.nom_categorie}
                       </span>
                     </td>
@@ -376,7 +376,7 @@ const AssetsDashboard: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-4 px-2 text-right">
-                      <span className="font-semibold text-orange-700">
+                      <span className="font-semibold text-[var(--color-warning-dark)]">
                         {formatCurrency(actif.amortissements_cumules)}
                       </span>
                     </td>
@@ -399,8 +399,8 @@ const AssetsDashboard: React.FC = () => {
                           </>
                         ) : actif.pourcentage_amortissement >= 80 ? (
                           <>
-                            <AlertCircle className="h-4 w-4 text-orange-600" />
-                            <span className="text-sm font-medium text-orange-700">Fin de vie</span>
+                            <AlertCircle className="h-4 w-4 text-[var(--color-warning)]" />
+                            <span className="text-sm font-medium text-[var(--color-warning-dark)]">Fin de vie</span>
                           </>
                         ) : (
                           <>
@@ -432,8 +432,8 @@ const AssetsDashboard: React.FC = () => {
                 transition={{ delay: 0.1 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <Building className="h-6 w-6 text-blue-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <Building className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Gérer les Actifs</h3>
                 <p className="text-sm text-neutral-600">Ajouter, modifier, consulter</p>
@@ -448,8 +448,8 @@ const AssetsDashboard: React.FC = () => {
                 transition={{ delay: 0.2 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-orange-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <TrendingDown className="h-6 w-6 text-orange-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-warning-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <TrendingDown className="h-6 w-6 text-[var(--color-warning)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Amortissements</h3>
                 <p className="text-sm text-neutral-600">Calculs et suivi</p>
@@ -464,8 +464,8 @@ const AssetsDashboard: React.FC = () => {
                 transition={{ delay: 0.3 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <BarChart3 className="h-6 w-6 text-[var(--color-info)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Rapports</h3>
                 <p className="text-sm text-neutral-600">États et analyses</p>
@@ -480,8 +480,8 @@ const AssetsDashboard: React.FC = () => {
                 transition={{ delay: 0.4 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-red-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <AlertCircle className="h-6 w-6 text-red-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-error-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <AlertCircle className="h-6 w-6 text-[var(--color-error)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Alertes</h3>
                 <p className="text-sm text-neutral-600">Maintenance et renouvellement</p>

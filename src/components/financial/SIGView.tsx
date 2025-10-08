@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   CalculatorIcon,
   ChartBarIcon,
@@ -47,6 +48,7 @@ interface SIGEvolution {
 }
 
 const SIGView: React.FC = () => {
+  const { t } = useLanguage();
   const [sigData, setSigData] = useState<SIGData[]>([]);
   const [selectedSIG, setSelectedSIG] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'current' | 'evolution' | 'calculate'>('current');
@@ -116,7 +118,7 @@ const SIGView: React.FC = () => {
       case 'down':
         return <ArrowTrendingDownIcon className="h-4 w-4 text-red-500" />;
       default:
-        return <MinusIcon className="h-4 w-4 text-gray-500" />;
+        return <MinusIcon className="h-4 w-4 text-gray-700" />;
     }
   };
 
@@ -177,7 +179,7 @@ const SIGView: React.FC = () => {
         <div className="bg-white rounded-lg border p-8 text-center">
           <CalculatorIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun SIG Calculé</h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-700 mb-4">
             Calculez les Soldes Intermédiaires de Gestion pour analyser la performance de votre entreprise.
           </p>
           <button
@@ -204,7 +206,7 @@ const SIGView: React.FC = () => {
               <p className="text-gray-600 mt-1">
                 Calculé le {new Date(currentSIG.lastCalculation).toLocaleDateString('fr-FR')} à {new Date(currentSIG.lastCalculation).toLocaleTimeString('fr-FR')}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 CA de référence: {formatAmount(currentSIG.revenueBase)}
               </p>
             </div>
@@ -213,9 +215,9 @@ const SIGView: React.FC = () => {
                 <EyeIcon className="h-4 w-4" />
                 <span>Détail</span>
               </button>
-              <button className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 border rounded-md hover:bg-gray-50">
+              <button className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 border rounded-md hover:bg-gray-50" aria-label="Imprimer">
                 <PrinterIcon className="h-4 w-4" />
-                <span>Imprimer</span>
+                <span>{t('common.print')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('calculate')}
@@ -349,7 +351,7 @@ const SIGView: React.FC = () => {
         <div className="bg-white rounded-lg border p-8 text-center">
           <ChartBarIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Données Insuffisantes</h3>
-          <p className="text-gray-500">
+          <p className="text-gray-700">
             Au moins deux périodes sont nécessaires pour analyser l'évolution des SIG.
           </p>
         </div>
@@ -553,7 +555,7 @@ const SIGView: React.FC = () => {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'current'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             SIG Actuel
@@ -563,7 +565,7 @@ const SIGView: React.FC = () => {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'evolution'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             Évolution & Tendances

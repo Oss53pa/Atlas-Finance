@@ -1,4 +1,9 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { toast } from 'react-hot-toast';
+import { coreService, createExerciceSchema } from '../../../services/modules/core.service';
 import { motion } from 'framer-motion';
 import {
   Calendar,
@@ -155,10 +160,109 @@ interface CalendrierPays {
 }
 
 const ParametragePeriodes: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState('periodes');
   const [selectedPeriode, setSelectedPeriode] = useState<PeriodeComptable | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({
+    libelle: '',
+    type: 'mensuelle' as 'mensuelle' | 'trimestrielle' | 'semestrielle' | 'annuelle',
+    date_debut: '',
+    date_fin: '',
+    deadline_cloture: '',
+    responsable: '',
+    controles_obligatoires: [] as string[],
+    notifications_auto: true,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const createMutation = useMutation({
+    mutationFn: coreService.createExercice, // Adaptée pour périodes
+    onSuccess: () => {
+      toast.success('Période de clôture créée avec succès');
+      queryClient.invalidateQueries({ queryKey: ['periodes-cloture'] });
+      setShowCreateModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de la création');
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      libelle: '',
+      type: 'mensuelle',
+      date_debut: '',
+      date_fin: '',
+      deadline_cloture: '',
+      responsable: '',
+      controles_obligatoires: [],
+      notifications_auto: true,
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    if (field === 'controles_obligatoires') {
+      const controlsArray = typeof value === 'string' ? value.split(',').map(item => item.trim()).filter(item => item) : value;
+      setFormData(prev => ({ ...prev, [field]: controlsArray }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Validate with Zod (adapted from createExerciceSchema)
+      const periodeSchema = z.object({
+        libelle: z.string().min(1, 'Le libellé est requis'),
+        type: z.enum(['mensuelle', 'trimestrielle', 'semestrielle', 'annuelle']),
+        date_debut: z.string().min(1, 'La date de début est requise'),
+        date_fin: z.string().min(1, 'La date de fin est requise'),
+        deadline_cloture: z.string().min(1, 'La deadline de clôture est requise'),
+        responsable: z.string().min(1, 'Le responsable est requis'),
+        controles_obligatoires: z.array(z.string()).optional(),
+        notifications_auto: z.boolean(),
+      });
+
+      const validatedData = periodeSchema.parse(formData);
+
+      // Submit to backend
+      await createMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la création de la période');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Données simulées
   const mockPeriodes: PeriodeComptable[] = [
@@ -349,13 +453,13 @@ const ParametragePeriodes: React.FC = () => {
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
-      'planifiee': 'bg-gray-100 text-gray-800',
-      'ouverte': 'bg-blue-100 text-blue-800',
-      'en_cours': 'bg-yellow-100 text-yellow-800',
-      'cloturee': 'bg-green-100 text-green-800',
+      'planifiee': 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]',
+      'ouverte': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
+      'en_cours': 'bg-[var(--color-warning-lighter)] text-yellow-800',
+      'cloturee': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
       'verrouillee': 'bg-purple-100 text-purple-800'
     };
-    return variants[statut] || 'bg-gray-100 text-gray-800';
+    return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getTypeIcon = (type: string) => {
@@ -376,11 +480,11 @@ const ParametragePeriodes: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Périodes Actives</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Périodes Actives</p>
                 <p className="text-2xl font-bold">{kpis.periodesActives}</p>
-                <p className="text-xs text-blue-600">En cours de traitement</p>
+                <p className="text-xs text-[var(--color-primary)]">En cours de traitement</p>
               </div>
-              <Activity className="w-8 h-8 text-blue-500" />
+              <Activity className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -389,9 +493,9 @@ const ParametragePeriodes: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Prochaine Échéance</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Prochaine Échéance</p>
                 <p className="text-2xl font-bold">{kpis.joursRestants}j</p>
-                <p className="text-xs text-orange-600">{kpis.prochainEcheance}</p>
+                <p className="text-xs text-[var(--color-warning)]">{kpis.prochainEcheance}</p>
               </div>
               <Timer className="w-8 h-8 text-orange-500" />
             </div>
@@ -402,11 +506,11 @@ const ParametragePeriodes: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">En Retard</p>
+                <p className="text-sm text-[var(--color-text-primary)]">En Retard</p>
                 <p className="text-2xl font-bold">{kpis.periodesEnRetard}</p>
-                <p className="text-xs text-red-600">Attention requise</p>
+                <p className="text-xs text-[var(--color-error)]">Attention requise</p>
               </div>
-              <AlertTriangle className="w-8 h-8 text-red-500" />
+              <AlertTriangle className="w-8 h-8 text-[var(--color-error)]" />
             </div>
           </CardContent>
         </Card>
@@ -415,11 +519,11 @@ const ParametragePeriodes: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Automatisation</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Automatisation</p>
                 <p className="text-2xl font-bold">{kpis.automatisationTaux}%</p>
                 <Progress value={kpis.automatisationTaux} className="mt-2" />
               </div>
-              <Settings className="w-8 h-8 text-green-500" />
+              <Settings className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -442,7 +546,7 @@ const ParametragePeriodes: React.FC = () => {
           <TabsTrigger value="responsabilites">Responsabilités</TabsTrigger>
           <TabsTrigger value="calendriers">Calendriers</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="parametres">Paramètres</TabsTrigger>
+          <TabsTrigger value="parametres">{t('navigation.settings')}</TabsTrigger>
         </TabsList>
 
         {/* Périodes */}
@@ -453,12 +557,12 @@ const ParametragePeriodes: React.FC = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Nouvelle Période
                 </button>
-                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+                <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                   <RefreshCw className="w-4 h-4" />
                   Générer Auto
                 </button>
@@ -478,12 +582,12 @@ const ParametragePeriodes: React.FC = () => {
                     <select className="px-3 py-2 border rounded-lg text-sm">
                       <option value="tous">Tous statuts</option>
                       <option value="planifiee">Planifiée</option>
-                      <option value="en_cours">En cours</option>
+                      <option value="en_cours">{t('status.inProgress')}</option>
                       <option value="cloturee">Clôturée</option>
                     </select>
                   </div>
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--color-text-secondary)]" />
                     <input
                       type="text"
                       placeholder="Rechercher..."
@@ -495,18 +599,18 @@ const ParametragePeriodes: React.FC = () => {
                 {/* Liste des périodes */}
                 <div className="space-y-3">
                   {mockPeriodes.map(periode => (
-                    <div key={periode.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                    <div key={periode.id} className="border rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <div className="w-12 h-12 bg-[var(--color-primary-lighter)] rounded-lg flex items-center justify-center">
                             {getTypeIcon(periode.type)}
                           </div>
                           <div>
                             <h4 className="font-medium">{periode.nom}</h4>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-[var(--color-text-primary)]">
                               {new Date(periode.dateDebut).toLocaleDateString()} - {new Date(periode.dateFin).toLocaleDateString()}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-[var(--color-text-secondary)]">
                               Échéance: {new Date(periode.delaisCloture.dateEcheanceCloture).toLocaleDateString()}
                             </p>
                           </div>
@@ -518,19 +622,19 @@ const ParametragePeriodes: React.FC = () => {
                           <div className="flex gap-1">
                             <button
                               onClick={() => setSelectedPeriode(periode)}
-                              className="p-2 hover:bg-gray-100 rounded"
+                              className="p-2 hover:bg-[var(--color-background-hover)] rounded"
                             >
-                              <Eye className="w-4 h-4 text-gray-600" />
+                              <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                             </button>
-                            <button className="p-2 hover:bg-gray-100 rounded">
-                              <Edit className="w-4 h-4 text-gray-600" />
+                            <button className="p-2 hover:bg-[var(--color-background-hover)] rounded">
+                              <Edit className="w-4 h-4 text-[var(--color-text-primary)]" />
                             </button>
-                            <button className="p-2 hover:bg-gray-100 rounded">
-                              <Copy className="w-4 h-4 text-gray-600" />
+                            <button className="p-2 hover:bg-[var(--color-background-hover)] rounded" aria-label="Dupliquer">
+                              <Copy className="w-4 h-4 text-[var(--color-text-primary)]" />
                             </button>
                             {periode.statut === 'planifiee' && (
-                              <button className="p-2 hover:bg-red-100 rounded">
-                                <Trash2 className="w-4 h-4 text-red-600" />
+                              <button className="p-2 hover:bg-[var(--color-error-lighter)] rounded" aria-label="Supprimer">
+                                <Trash2 className="w-4 h-4 text-[var(--color-error)]" />
                               </button>
                             )}
                           </div>
@@ -539,7 +643,7 @@ const ParametragePeriodes: React.FC = () => {
 
                       {/* Progress et détails */}
                       {periode.statut === 'en_cours' && (
-                        <div className="mt-4 p-3 bg-blue-50 rounded">
+                        <div className="mt-4 p-3 bg-[var(--color-primary-lightest)] rounded">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium">Progression</span>
                             <span className="text-sm">
@@ -574,31 +678,31 @@ const ParametragePeriodes: React.FC = () => {
                     <h4 className="font-medium mb-4">Délais par Étape (jours)</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center p-3 border rounded">
-                        <span>Trésorerie</span>
+                        <span>{t('navigation.treasury')}</span>
                         <div className="flex items-center gap-2">
                           <input type="number" defaultValue="3" className="w-16 px-2 py-1 border rounded text-center" />
-                          <span className="text-sm text-gray-500">jours</span>
+                          <span className="text-sm text-[var(--color-text-secondary)]">jours</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center p-3 border rounded">
                         <span>Cycles Clients/Fournisseurs</span>
                         <div className="flex items-center gap-2">
                           <input type="number" defaultValue="5" className="w-16 px-2 py-1 border rounded text-center" />
-                          <span className="text-sm text-gray-500">jours</span>
+                          <span className="text-sm text-[var(--color-text-secondary)]">jours</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center p-3 border rounded">
                         <span>Stocks & Immobilisations</span>
                         <div className="flex items-center gap-2">
                           <input type="number" defaultValue="4" className="w-16 px-2 py-1 border rounded text-center" />
-                          <span className="text-sm text-gray-500">jours</span>
+                          <span className="text-sm text-[var(--color-text-secondary)]">jours</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center p-3 border rounded">
                         <span>Contrôles & Validation</span>
                         <div className="flex items-center gap-2">
                           <input type="number" defaultValue="3" className="w-16 px-2 py-1 border rounded text-center" />
-                          <span className="text-sm text-gray-500">jours</span>
+                          <span className="text-sm text-[var(--color-text-secondary)]">jours</span>
                         </div>
                       </div>
                     </div>
@@ -632,14 +736,14 @@ const ParametragePeriodes: React.FC = () => {
                             <span className="text-sm">Niveau 1 (N+1)</span>
                             <div className="flex items-center gap-2">
                               <input type="number" defaultValue="2" className="w-16 px-2 py-1 border rounded text-center text-sm" />
-                              <span className="text-xs text-gray-500">jours</span>
+                              <span className="text-xs text-[var(--color-text-secondary)]">jours</span>
                             </div>
                           </div>
                           <div className="flex justify-between items-center p-2 border rounded">
                             <span className="text-sm">Niveau 2 (Direction)</span>
                             <div className="flex items-center gap-2">
                               <input type="number" defaultValue="5" className="w-16 px-2 py-1 border rounded text-center text-sm" />
-                              <span className="text-xs text-gray-500">jours</span>
+                              <span className="text-xs text-[var(--color-text-secondary)]">jours</span>
                             </div>
                           </div>
                         </div>
@@ -650,7 +754,7 @@ const ParametragePeriodes: React.FC = () => {
 
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-4">Calendrier de Clôture Type</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-[var(--color-background-secondary)] p-4 rounded-lg">
                     <div className="grid grid-cols-7 gap-2 text-center">
                       {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(jour => (
                         <div key={jour} className="font-medium text-sm p-2">{jour}</div>
@@ -664,9 +768,9 @@ const ParametragePeriodes: React.FC = () => {
                           <div
                             key={date}
                             className={`p-2 text-sm rounded ${
-                              isEcheance ? 'bg-red-500 text-white font-bold' :
-                              isWorkDay ? 'bg-blue-500 text-white' :
-                              'bg-gray-200 text-gray-500'
+                              isEcheance ? 'bg-[var(--color-error)] text-white font-bold' :
+                              isWorkDay ? 'bg-[var(--color-primary)] text-white' :
+                              'bg-[var(--color-border)] text-[var(--color-text-secondary)]'
                             }`}
                           >
                             {date}
@@ -676,15 +780,15 @@ const ParametragePeriodes: React.FC = () => {
                     </div>
                     <div className="mt-4 flex justify-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                        <div className="w-4 h-4 bg-[var(--color-primary)] rounded"></div>
                         <span>Jours de travail</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-red-500 rounded"></div>
+                        <div className="w-4 h-4 bg-[var(--color-error)] rounded"></div>
                         <span>Échéance clôture</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                        <div className="w-4 h-4 bg-[var(--color-border)] rounded"></div>
                         <span>Week-ends/Fériés</span>
                       </div>
                     </div>
@@ -700,7 +804,7 @@ const ParametragePeriodes: React.FC = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Attribution des Responsabilités</CardTitle>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Ajouter Rôle
               </button>
@@ -722,18 +826,18 @@ const ParametragePeriodes: React.FC = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <h5 className="font-medium">{item.etape}</h5>
-                              <p className="text-sm text-gray-600">{item.responsable} - {item.role}</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">{item.responsable} - {item.role}</p>
                             </div>
                             <div className="text-right">
-                              <Badge className="bg-blue-100 text-blue-800">
+                              <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">
                                 {item.delai}j
                               </Badge>
                               <div className="flex gap-1 mt-2">
-                                <button className="p-1 hover:bg-gray-100 rounded">
-                                  <Edit className="w-3 h-3 text-gray-600" />
+                                <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                                  <Edit className="w-3 h-3 text-[var(--color-text-primary)]" />
                                 </button>
-                                <button className="p-1 hover:bg-gray-100 rounded">
-                                  <Users className="w-3 h-3 text-gray-600" />
+                                <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Utilisateur">
+                                  <Users className="w-3 h-3 text-[var(--color-text-primary)]" />
                                 </button>
                               </div>
                             </div>
@@ -755,10 +859,10 @@ const ParametragePeriodes: React.FC = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="font-medium">{item.principal}</p>
-                              <p className="text-sm text-gray-600">→ {item.remplacant}</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">→ {item.remplacant}</p>
                             </div>
                             <div className="text-right">
-                              <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                              <Badge className="bg-[var(--color-warning-lighter)] text-yellow-800 text-xs">
                                 {item.periode}
                               </Badge>
                             </div>
@@ -771,7 +875,7 @@ const ParametragePeriodes: React.FC = () => {
                       <h5 className="font-medium mb-3">Matrice RACI</h5>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm border">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-[var(--color-background-secondary)]">
                             <tr>
                               <th className="p-2 text-left">Étape</th>
                               <th className="p-2 text-center">R</th>
@@ -782,7 +886,7 @@ const ParametragePeriodes: React.FC = () => {
                           </thead>
                           <tbody>
                             <tr className="border-t">
-                              <td className="p-2">Trésorerie</td>
+                              <td className="p-2">{t('navigation.treasury')}</td>
                               <td className="p-2 text-center">JO</td>
                               <td className="p-2 text-center">MK</td>
                               <td className="p-2 text-center">FD</td>
@@ -812,11 +916,11 @@ const ParametragePeriodes: React.FC = () => {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Gestion des Calendriers</CardTitle>
               <div className="flex gap-2">
-                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+                <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                   <Globe className="w-4 h-4" />
                   Synchroniser
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   Ajouter Férié
                 </button>
@@ -831,22 +935,22 @@ const ParametragePeriodes: React.FC = () => {
                       {mockCalendriersPays[0].joursFeries.map(ferie => (
                         <div key={ferie.id} className="flex justify-between items-center p-3 border rounded">
                           <div className="flex items-center gap-3">
-                            <Flag className="w-4 h-4 text-blue-600" />
+                            <Flag className="w-4 h-4 text-[var(--color-primary)]" />
                             <div>
                               <p className="font-medium">{ferie.nom}</p>
-                              <p className="text-sm text-gray-600">{new Date(ferie.date).toLocaleDateString()}</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">{new Date(ferie.date).toLocaleDateString()}</p>
                             </div>
                           </div>
                           <div className="flex gap-2">
                             <Badge className={`text-xs ${
-                              ferie.type === 'fixe' ? 'bg-green-100 text-green-800' :
-                              ferie.type === 'variable' ? 'bg-yellow-100 text-yellow-800' :
+                              ferie.type === 'fixe' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                              ferie.type === 'variable' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
                               'bg-purple-100 text-purple-800'
                             }`}>
                               {ferie.type}
                             </Badge>
-                            <button className="p-1 hover:bg-gray-100 rounded">
-                              <Edit className="w-3 h-3 text-gray-600" />
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                              <Edit className="w-3 h-3 text-[var(--color-text-primary)]" />
                             </button>
                           </div>
                         </div>
@@ -860,7 +964,7 @@ const ParametragePeriodes: React.FC = () => {
                       <div className="border rounded-lg p-4">
                         <div className="flex justify-between items-center mb-3">
                           <h5 className="font-medium">Côte d'Ivoire (CI)</h5>
-                          <Badge className="bg-blue-100 text-blue-800">Actif</Badge>
+                          <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">Actif</Badge>
                         </div>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
@@ -878,11 +982,11 @@ const ParametragePeriodes: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="border rounded-lg p-4 border-dashed border-gray-300">
+                      <div className="border rounded-lg p-4 border-dashed border-[var(--color-border-dark)]">
                         <div className="text-center">
-                          <Globe className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">Ajouter un autre pays</p>
-                          <button className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                          <Globe className="w-8 h-8 text-[var(--color-text-secondary)] mx-auto mb-2" />
+                          <p className="text-sm text-[var(--color-text-primary)]">Ajouter un autre pays</p>
+                          <button className="mt-2 px-3 py-1 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary-dark)]">
                             Configurer
                           </button>
                         </div>
@@ -944,40 +1048,40 @@ const ParametragePeriodes: React.FC = () => {
                       <div className="border rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-blue-600" />
+                            <Mail className="w-4 h-4 text-[var(--color-primary)]" />
                             <span className="font-medium">Email</span>
                           </div>
                           <label className="flex items-center">
                             <input type="checkbox" defaultChecked className="mr-2" />
                           </label>
                         </div>
-                        <p className="text-sm text-gray-600">Notifications par email</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Notifications par email</p>
                       </div>
 
                       <div className="border rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-green-600" />
+                            <MessageSquare className="w-4 h-4 text-[var(--color-success)]" />
                             <span className="font-medium">SMS</span>
                           </div>
                           <label className="flex items-center">
                             <input type="checkbox" className="mr-2" />
                           </label>
                         </div>
-                        <p className="text-sm text-gray-600">Notifications SMS</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Notifications SMS</p>
                       </div>
 
                       <div className="border rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <Bell className="w-4 h-4 text-orange-600" />
+                            <Bell className="w-4 h-4 text-[var(--color-warning)]" />
                             <span className="font-medium">Système</span>
                           </div>
                           <label className="flex items-center">
                             <input type="checkbox" defaultChecked className="mr-2" />
                           </label>
                         </div>
-                        <p className="text-sm text-gray-600">Notifications dans l'app</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Notifications dans l'app</p>
                       </div>
                     </div>
                   </div>
@@ -1018,14 +1122,14 @@ const ParametragePeriodes: React.FC = () => {
                         <div key={index} className="flex items-center justify-between p-2 border rounded">
                           <div>
                             <p className="text-sm font-medium">{template.nom}</p>
-                            <p className="text-xs text-gray-500">{template.type}</p>
+                            <p className="text-xs text-[var(--color-text-secondary)]">{template.type}</p>
                           </div>
                           <div className="flex gap-2">
-                            <Badge className={template.actif ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                            <Badge className={template.actif ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' : 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'}>
                               {template.actif ? 'Actif' : 'Inactif'}
                             </Badge>
-                            <button className="p-1 hover:bg-gray-100 rounded">
-                              <Edit className="w-3 h-3 text-gray-600" />
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                              <Edit className="w-3 h-3 text-[var(--color-text-primary)]" />
                             </button>
                           </div>
                         </div>
@@ -1076,7 +1180,7 @@ const ParametragePeriodes: React.FC = () => {
                           <option>6 mois à l'avance</option>
                           <option>12 mois à l'avance</option>
                         </select>
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded hover:bg-[var(--color-primary-dark)]">
                           Appliquer
                         </button>
                       </div>
@@ -1109,26 +1213,26 @@ const ParametragePeriodes: React.FC = () => {
                 <div className="border-t pt-6">
                   <h4 className="font-medium mb-4">Sauvegardes & Historique</h4>
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-lg text-center">
-                      <Database className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg text-center">
+                      <Database className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-2" />
                       <p className="font-medium">Sauvegarde Auto</p>
-                      <p className="text-sm text-gray-600 mt-1">Quotidienne à 2h00</p>
-                      <button className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-sm">
+                      <p className="text-sm text-[var(--color-text-primary)] mt-1">Quotidienne à 2h00</p>
+                      <button className="mt-2 px-3 py-1 bg-[var(--color-primary)] text-white rounded text-sm">
                         Configurer
                       </button>
                     </div>
-                    <div className="p-4 bg-green-50 rounded-lg text-center">
-                      <Shield className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                    <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg text-center">
+                      <Shield className="w-8 h-8 text-[var(--color-success)] mx-auto mb-2" />
                       <p className="font-medium">Archivage</p>
-                      <p className="text-sm text-gray-600 mt-1">Périodes &gt; 2 ans</p>
-                      <button className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm">
+                      <p className="text-sm text-[var(--color-text-primary)] mt-1">Périodes &gt; 2 ans</p>
+                      <button className="mt-2 px-3 py-1 bg-[var(--color-success)] text-white rounded text-sm">
                         Voir Archives
                       </button>
                     </div>
                     <div className="p-4 bg-purple-50 rounded-lg text-center">
                       <Activity className="w-8 h-8 text-purple-600 mx-auto mb-2" />
                       <p className="font-medium">Audit Trail</p>
-                      <p className="text-sm text-gray-600 mt-1">Toutes modifications</p>
+                      <p className="text-sm text-[var(--color-text-primary)] mt-1">Toutes modifications</p>
                       <button className="mt-2 px-3 py-1 bg-purple-600 text-white rounded text-sm">
                         Consulter
                       </button>
@@ -1140,6 +1244,180 @@ const ParametragePeriodes: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Nouvelle Période de Clôture</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  resetForm();
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-[var(--color-primary-darker)] mb-1">Configuration de Période</h4>
+                      <p className="text-sm text-[var(--color-primary-darker)]">Créez une nouvelle période de clôture avec ses paramètres et échéances.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Period Configuration */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Configuration de Base</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Nom de la Période</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: Clôture Septembre 2024" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Type de Clôture</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Sélectionner le type --</option>
+                        <option value="mensuelle">Mensuelle</option>
+                        <option value="trimestrielle">Trimestrielle</option>
+                        <option value="semestrielle">Semestrielle</option>
+                        <option value="annuelle">Annuelle</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Date de Début</label>
+                      <input type="date" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Date de Fin</label>
+                      <input type="date" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deadlines */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Échéances et Délais</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Date Limite Saisie</label>
+                      <input type="date" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Date Limite Validation</label>
+                      <input type="date" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Date Limite Contrôles</label>
+                      <input type="date" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Date de Clôture Définitive</label>
+                      <input type="date" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Responsibilities */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Responsabilités</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Responsable Principal</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Sélectionner responsable --</option>
+                        <option value="chef_comptable">Chef Comptable</option>
+                        <option value="directeur_financier">Directeur Financier</option>
+                        <option value="controleur_gestion">Contrôleur de Gestion</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Validateur Final</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Sélectionner validateur --</option>
+                        <option value="directeur_general">Directeur Général</option>
+                        <option value="directeur_financier">Directeur Financier</option>
+                        <option value="commissaire_comptes">Commissaire aux Comptes</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notifications */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Notifications</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="notif_email" className="rounded border-[var(--color-border-dark)] text-[var(--color-primary)]" defaultChecked />
+                      <label htmlFor="notif_email" className="text-sm text-[var(--color-text-primary)]">Notifications par email</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="rappels_auto" className="rounded border-[var(--color-border-dark)] text-[var(--color-primary)]" defaultChecked />
+                      <label htmlFor="rappels_auto" className="text-sm text-[var(--color-text-primary)]">Rappels automatiques</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="alerte_retard" className="rounded border-[var(--color-border-dark)] text-[var(--color-primary)]" />
+                      <label htmlFor="alerte_retard" className="text-sm text-[var(--color-text-primary)]">Alertes en cas de retard</label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Description</label>
+                  <textarea className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" rows={3} placeholder="Description de la période de clôture..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Création...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Créer la Période</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -23,7 +24,11 @@ import {
   Zap,
   Lock,
   RefreshCw,
-  Eye
+  Eye,
+  Brain,
+  Cpu,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
 import {
   Card,
@@ -66,6 +71,7 @@ interface SystemStatus {
 }
 
 const ConfigurationCentrePage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -436,6 +442,7 @@ const ConfigurationCentrePage: React.FC = () => {
           <TabsList>
             <TabsTrigger value="modules">Modules de Configuration</TabsTrigger>
             <TabsTrigger value="system">État du Système</TabsTrigger>
+            <TabsTrigger value="ai-algorithms">Algorithme IA</TabsTrigger>
             <TabsTrigger value="quick-setup">Configuration Rapide</TabsTrigger>
           </TabsList>
 
@@ -445,7 +452,7 @@ const ConfigurationCentrePage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
                       placeholder="Rechercher un module..."
                       value={searchTerm}
@@ -462,7 +469,7 @@ const ConfigurationCentrePage: React.FC = () => {
                     >
                       <option value="all">Toutes les catégories</option>
                       <option value="company">Entreprise</option>
-                      <option value="accounting">Comptabilité</option>
+                      <option value="accounting">{t('accounting.title')}</option>
                       <option value="security">Sécurité</option>
                       <option value="integration">Intégration</option>
                       <option value="system">Système</option>
@@ -540,8 +547,8 @@ const ConfigurationCentrePage: React.FC = () => {
                           <div className="space-y-3">
                             <div>
                               <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs font-medium text-gray-500">Progression</span>
-                                <span className="text-xs font-medium text-gray-500">
+                                <span className="text-xs font-medium text-gray-700">Progression</span>
+                                <span className="text-xs font-medium text-gray-700">
                                   {module.completionPercentage}%
                                 </span>
                               </div>
@@ -549,14 +556,14 @@ const ConfigurationCentrePage: React.FC = () => {
                             </div>
 
                             {module.lastUpdated && (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-700">
                                 Dernière mise à jour: {formatDate(module.lastUpdated)}
                               </p>
                             )}
 
                             {module.dependencies && module.dependencies.length > 0 && (
                               <div>
-                                <p className="text-xs font-medium text-gray-500 mb-1">Dépendances:</p>
+                                <p className="text-xs font-medium text-gray-700 mb-1">Dépendances:</p>
                                 <div className="flex flex-wrap gap-1">
                                   {module.dependencies.map((dep, idx) => (
                                     <Badge key={idx} variant="outline" className="text-xs">
@@ -625,7 +632,7 @@ const ConfigurationCentrePage: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-700">
                           Vérifié: {formatDate(status.lastChecked)}
                         </p>
                         <Button size="sm" variant="ghost">
@@ -634,6 +641,310 @@ const ConfigurationCentrePage: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ai-algorithms" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Brain className="mr-2 h-6 w-6 text-purple-600" />
+                    <span>Configuration des Algorithmes IA</span>
+                  </div>
+                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nouveau Modèle
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Statistiques globales IA */}
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-purple-700">Modèles Actifs</p>
+                          <p className="text-2xl font-bold text-purple-900">4/6</p>
+                        </div>
+                        <Cpu className="h-8 w-8 text-purple-600" />
+                      </div>
+                    </div>
+                    <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-700">Précision Moyenne</p>
+                          <p className="text-2xl font-bold text-green-900">92.4%</p>
+                        </div>
+                        <TrendingUp className="h-8 w-8 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-blue-700">Prédictions/Jour</p>
+                          <p className="text-2xl font-bold text-blue-900">1,247</p>
+                        </div>
+                        <Activity className="h-8 w-8 text-blue-600" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Liste des modèles IA */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Modèles IA Disponibles</h3>
+
+                    {/* Modèle 1: Prédiction Trésorerie */}
+                    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <TrendingUp className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">Prédiction de Trésorerie</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Analyse prédictive des flux de trésorerie basée sur l'historique et les tendances
+                            </p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Précision:</span>
+                                <Badge className="bg-green-100 text-green-800">94.2%</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Statut:</span>
+                                <Badge className="bg-green-100 text-green-800">Actif</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Dernière formation:</span>
+                                <span className="text-xs text-gray-600">Il y a 2 jours</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <Button size="sm" variant="ghost">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modèle 2: Détection Anomalies */}
+                    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-red-100 rounded-lg">
+                            <AlertTriangle className="h-6 w-6 text-red-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">Détection d'Anomalies</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Identification automatique des transactions et écritures inhabituelles
+                            </p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Précision:</span>
+                                <Badge className="bg-green-100 text-green-800">89.7%</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Statut:</span>
+                                <Badge className="bg-green-100 text-green-800">Actif</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Alertes aujourd'hui:</span>
+                                <Badge className="bg-orange-100 text-orange-800">3</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <Button size="sm" variant="ghost">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modèle 3: Recommandations Comptables */}
+                    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Brain className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">Recommandations Comptables</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Suggestions intelligentes de comptes et d'écritures basées sur le contexte
+                            </p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Précision:</span>
+                                <Badge className="bg-green-100 text-green-800">96.1%</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Statut:</span>
+                                <Badge className="bg-green-100 text-green-800">Actif</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Suggestions utilisées:</span>
+                                <span className="text-xs text-gray-600">87%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <Button size="sm" variant="ghost">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modèle 4: Analyse Risques */}
+                    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-orange-100 rounded-lg">
+                            <Shield className="h-6 w-6 text-orange-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">Analyse de Risques Clients</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Évaluation du risque de défaut de paiement des clients
+                            </p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Précision:</span>
+                                <Badge className="bg-green-100 text-green-800">91.3%</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Statut:</span>
+                                <Badge className="bg-green-100 text-green-800">Actif</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Clients à risque:</span>
+                                <Badge className="bg-red-100 text-red-800">12</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <Button size="sm" variant="ghost">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modèle 5: Optimisation Budget (Désactivé) */}
+                    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-gray-200 rounded-lg">
+                            <BarChart3 className="h-6 w-6 text-gray-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-700">Optimisation Budgétaire</h4>
+                            <p className="text-sm text-gray-700 mt-1">
+                              Suggestions d'optimisation des dépenses et allocations budgétaires
+                            </p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Statut:</span>
+                                <Badge className="bg-gray-200 text-gray-600">Inactif</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">En formation</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <Button size="sm" variant="ghost">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modèle 6: Prévision Ventes (Désactivé) */}
+                    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-gray-200 rounded-lg">
+                            <TrendingUp className="h-6 w-6 text-gray-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-700">Prévision des Ventes</h4>
+                            <p className="text-sm text-gray-700 mt-1">
+                              Prédiction des ventes futures basée sur l'historique et la saisonnalité
+                            </p>
+                            <div className="flex items-center gap-4 mt-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Statut:</span>
+                                <Badge className="bg-gray-200 text-gray-600">Inactif</Badge>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-700">Données insuffisantes</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                          <Button size="sm" variant="ghost">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions globales */}
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="text-sm text-gray-600">
+                      <p>Les modèles IA apprennent continuellement de vos données pour améliorer leur précision.</p>
+                      <p className="mt-1">Dernière mise à jour automatique: il y a 3 heures</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline">
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Réentraîner Tous
+                      </Button>
+                      <Button className="bg-purple-600 hover:bg-purple-700">
+                        <Eye className="mr-2 h-4 w-4" />
+                        Rapport de Performance
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -649,9 +960,9 @@ const ConfigurationCentrePage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <Settings className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <Settings className="h-16 w-16 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Assistant de Configuration</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     Configurez rapidement votre système avec notre assistant pas-à-pas
                   </p>
                   <Button className="bg-blue-600 hover:bg-blue-700">

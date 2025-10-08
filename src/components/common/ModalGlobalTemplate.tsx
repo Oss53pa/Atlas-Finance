@@ -27,8 +27,7 @@ export const ModalGlobalTemplateBtn: React.FC<ModalGlobalTemplateBtnProps> = ({
       <button
         type="submit"
         className="btn btn-primary"
-        disabled={disabled}
-      >
+        disabled={disabled} aria-label="Enregistrer">
         {textSave}
       </button>
     </div>

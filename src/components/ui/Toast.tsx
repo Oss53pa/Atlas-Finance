@@ -90,7 +90,7 @@ export const Toast: React.FC<ToastProps> = ({
             onClick={() => onDismiss?.(id)}
             className="flex-shrink-0 ml-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+            <X className="h-4 w-4 text-gray-700 hover:text-gray-600" />
           </button>
         )}
       </div>

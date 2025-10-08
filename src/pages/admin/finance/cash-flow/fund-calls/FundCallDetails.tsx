@@ -32,6 +32,7 @@ interface FundCallDetails {
 }
 
 export const FundCallDetails: React.FC = () => {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { language } = useLanguage();
@@ -117,7 +118,7 @@ export const FundCallDetails: React.FC = () => {
   if (error || !fundCall) {
     return (
       <div className="alert alert-danger m-3">
-        <h4>Erreur</h4>
+        <h4>{t('common.error')}</h4>
         <p>{error || "Appel de fonds introuvable"}</p>
         <Link to="/admin/finance/cash-flow/fund-calls" className="btn btn-secondary">
           ← Retour à la liste

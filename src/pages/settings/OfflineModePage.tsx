@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   WifiOff,
   Wifi,
@@ -118,12 +119,15 @@ interface StorageMetrics {
 }
 
 const OfflineModePage: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
   const [isOnline, setIsOnline] = useState(true);
   const [offlineMode, setOfflineMode] = useState(false);
   const [autoRefreshCw, setAutoRefreshCw] = useState(true);
   const [selectedConflicts, setSelectedConflicts] = useState<string[]>([]);
   const [showConflictDetails, setShowConflictDetails] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState<ConflictItem | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
 
   // Mock data
   const storageMetrics: StorageMetrics = {
@@ -325,7 +329,28 @@ const OfflineModePage: React.FC = () => {
   };
 
   const handleConflictResolution = (conflictId: string, resolution: 'local' | 'server' | 'manual') => {
-    toast.success(`Conflit résolu en faveur de la version ${resolution === 'local' ? 'locale' : resolution === 'server' ? 'serveur' : 'manuelle'}`);
+    if (resolution === 'manual') {
+      const conflict = conflicts.find(c => c.id === conflictId);
+      if (conflict) {
+        setShowEditModal(conflict);
+        setEditValue(JSON.stringify(conflict.localValue));
+      }
+    } else {
+      toast.success(`Conflit résolu en faveur de la version ${resolution === 'local' ? 'locale' : 'serveur'}`);
+    }
+  };
+
+  const handleSaveManualEdit = () => {
+    if (showEditModal) {
+      try {
+        const parsedValue = JSON.parse(editValue);
+        toast.success(`Valeur manuelle sauvegardée pour ${showEditModal.recordId}`);
+        setShowEditModal(null);
+        setEditValue('');
+      } catch (error) {
+        toast.error('Format JSON invalide');
+      }
+    }
   };
 
   const handleManualRefreshCw = () => {
@@ -342,32 +367,32 @@ const OfflineModePage: React.FC = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-[var(--color-error-light)] text-[var(--color-error)]';
+      case 'medium': return 'bg-[var(--color-warning-light)] text-[var(--color-warning)]';
+      case 'low': return 'bg-[var(--color-border-light)] text-[var(--color-text-secondary)]';
+      default: return 'bg-[var(--color-border-light)] text-[var(--color-text-secondary)]';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'in_progress': return <Clock className="h-4 w-4 text-blue-600" />;
-      case 'pending': return <Clock className="h-4 w-4 text-yellow-600" />;
-      case 'failed': return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'conflict': return <AlertTriangle className="h-4 w-4 text-orange-600" />;
-      default: return <Clock className="h-4 w-4 text-gray-600" />;
+      case 'completed': return <CheckCircle className="h-4 w-4 text-[var(--color-success)]" />;
+      case 'in_progress': return <Clock className="h-4 w-4 text-[var(--color-primary)]" />;
+      case 'pending': return <Clock className="h-4 w-4 text-[var(--color-warning)]" />;
+      case 'failed': return <XCircle className="h-4 w-4 text-[var(--color-error)]" />;
+      case 'conflict': return <AlertTriangle className="h-4 w-4 text-[var(--color-warning)]" />;
+      default: return <Clock className="h-4 w-4 text-[var(--color-text-tertiary)]" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'conflict': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed': return 'bg-[var(--color-success-light)] text-[var(--color-success)]';
+      case 'in_progress': return 'bg-[var(--color-info-light)] text-[var(--color-info)]';
+      case 'pending': return 'bg-[var(--color-warning-light)] text-[var(--color-warning)]';
+      case 'failed': return 'bg-[var(--color-error-light)] text-[var(--color-error)]';
+      case 'conflict': return 'bg-[var(--color-warning-light)] text-[var(--color-warning)]';
+      default: return 'bg-[var(--color-border-light)] text-[var(--color-text-secondary)]';
     }
   };
 
@@ -380,20 +405,20 @@ const OfflineModePage: React.FC = () => {
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <WifiOff className="h-8 w-8 text-blue-600" />
+            <WifiOff className="h-8 w-8 text-[var(--color-primary)]" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Mode Hors-Ligne</h1>
+              <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Mode Hors-Ligne</h1>
               <p className="text-gray-600">Gestion des données et synchronisation offline</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               {isOnline ? (
-                <Wifi className="h-5 w-5 text-green-600" />
+                <Wifi className="h-5 w-5 text-[var(--color-success)]" />
               ) : (
-                <WifiOff className="h-5 w-5 text-red-600" />
+                <WifiOff className="h-5 w-5 text-[var(--color-error)]" />
               )}
-              <span className={`font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`font-medium ${isOnline ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                 {isOnline ? 'En ligne' : 'Hors ligne'}
               </span>
             </div>
@@ -431,14 +456,14 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">État du système</p>
-                    <p className={`text-2xl font-bold ${offlineMode ? 'text-orange-600' : 'text-green-600'}`}>
+                    <p className={`text-2xl font-bold ${offlineMode ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
                       {offlineMode ? 'Hors ligne' : 'En ligne'}
                     </p>
                   </div>
                   {offlineMode ? (
-                    <WifiOff className="h-8 w-8 text-orange-600" />
+                    <WifiOff className="h-8 w-8 text-[var(--color-warning)]" />
                   ) : (
-                    <Wifi className="h-8 w-8 text-green-600" />
+                    <Wifi className="h-8 w-8 text-[var(--color-success)]" />
                   )}
                 </div>
               </CardContent>
@@ -449,18 +474,18 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Espace utilisé</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                       {(storageMetrics.used / 1024).toFixed(1)} GB
                     </p>
                   </div>
-                  <HardDrive className="h-8 w-8 text-blue-600" />
+                  <HardDrive className="h-8 w-8 text-[var(--color-primary)]" />
                 </div>
                 <div className="mt-4">
                   <Progress
                     value={(storageMetrics.used / storageMetrics.total) * 100}
                     className="h-2"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
                     {((storageMetrics.used / storageMetrics.total) * 100).toFixed(1)}% utilisé
                   </p>
                 </div>
@@ -471,12 +496,12 @@ const OfflineModePage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">En attente</p>
-                    <p className="text-2xl font-bold text-yellow-600">
+                    <p className="text-sm font-medium text-gray-600">{t('status.pending')}</p>
+                    <p className="text-2xl font-bold text-[var(--color-warning)]">
                       {syncOperations.filter(op => op.status === 'pending').length}
                     </p>
                   </div>
-                  <Clock className="h-8 w-8 text-yellow-600" />
+                  <Clock className="h-8 w-8 text-[var(--color-warning)]" />
                 </div>
               </CardContent>
             </Card>
@@ -486,11 +511,11 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Conflits</p>
-                    <p className="text-2xl font-bold text-red-600">
+                    <p className="text-2xl font-bold text-[var(--color-error)]">
                       {conflicts.filter(c => c.status === 'pending').length}
                     </p>
                   </div>
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                  <AlertTriangle className="h-8 w-8 text-[var(--color-error)]" />
                 </div>
               </CardContent>
             </Card>
@@ -509,10 +534,10 @@ const OfflineModePage: React.FC = () => {
                   <div key={module} className="flex items-center justify-between">
                     <span className="text-sm font-medium">{module}</span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">{size} MB</span>
-                      <div className="w-24 h-2 bg-gray-200 rounded-full">
+                      <span className="text-sm text-[var(--color-text-secondary)]">{size} MB</span>
+                      <div className="w-24 h-2 bg-[var(--color-border)] rounded-full">
                         <div
-                          className="h-2 bg-blue-600 rounded-full"
+                          className="h-2 bg-[var(--color-primary)] rounded-full"
                           style={{ width: `${(size / Math.max(...Object.values(storageMetrics.modules))) * 100}%` }}
                         />
                       </div>
@@ -531,26 +556,26 @@ const OfflineModePage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div key={activity.id} className="flex items-start space-x-3 p-3 bg-[var(--color-surface-hover)] rounded-lg">
                     <div className={`p-1 rounded-full ${
-                      activity.status === 'success' ? 'bg-green-100' :
-                      activity.status === 'warning' ? 'bg-yellow-100' :
-                      'bg-blue-100'
+                      activity.status === 'success' ? 'bg-[var(--color-success-light)]' :
+                      activity.status === 'warning' ? 'bg-[var(--color-warning-light)]' :
+                      'bg-[var(--color-info-light)]'
                     }`}>
                       {activity.status === 'success' ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <CheckCircle className="h-4 w-4 text-[var(--color-success)]" />
                       ) : activity.status === 'warning' ? (
-                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <AlertTriangle className="h-4 w-4 text-[var(--color-warning)]" />
                       ) : (
-                        <Info className="h-4 w-4 text-blue-600" />
+                        <Info className="h-4 w-4 text-[var(--color-info)]" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{activity.action}</p>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)]">{activity.action}</p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-xs text-gray-500">{activity.module}</span>
-                        <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-[var(--color-text-tertiary)]">{activity.module}</span>
+                        <span className="text-xs text-[var(--color-text-tertiary)]">•</span>
+                        <span className="text-xs text-[var(--color-text-tertiary)]">
                           {activity.timestamp.toLocaleTimeString('fr-FR')}
                         </span>
                       </div>
@@ -591,7 +616,7 @@ const OfflineModePage: React.FC = () => {
                         />
                         <div>
                           <p className="font-medium">{data.module}</p>
-                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <div className="flex items-center space-x-2 text-sm text-[var(--color-text-secondary)]">
                             <span>{data.records.toLocaleString()} enregistrements</span>
                             <span>•</span>
                             <span>{data.size}</span>
@@ -718,29 +743,29 @@ const OfflineModePage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(operation.status)}
                         {operation.type === 'upload' ? (
-                          <Upload className="h-4 w-4 text-gray-500" />
+                          <Upload className="h-4 w-4 text-[var(--color-text-tertiary)]" />
                         ) : operation.type === 'download' ? (
-                          <Download className="h-4 w-4 text-gray-500" />
+                          <Download className="h-4 w-4 text-[var(--color-text-tertiary)]" />
                         ) : (
-                          <RefreshCw className="h-4 w-4 text-gray-500" />
+                          <RefreshCw className="h-4 w-4 text-[var(--color-text-tertiary)]" />
                         )}
                       </div>
                       <div>
                         <p className="font-medium">{operation.operation}</p>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2 text-sm text-[var(--color-text-secondary)]">
                           <span>{operation.module}</span>
                           <span>•</span>
                           <span>{operation.createdAt.toLocaleTimeString('fr-FR')}</span>
                           {operation.errorMessage && (
                             <>
                               <span>•</span>
-                              <span className="text-red-600">{operation.errorMessage}</span>
+                              <span className="text-[var(--color-error)]">{operation.errorMessage}</span>
                             </>
                           )}
                           {operation.conflictCount && (
                             <>
                               <span>•</span>
-                              <span className="text-orange-600">{operation.conflictCount} conflits</span>
+                              <span className="text-[var(--color-warning)]">{operation.conflictCount} conflits</span>
                             </>
                           )}
                         </div>
@@ -750,7 +775,7 @@ const OfflineModePage: React.FC = () => {
                       {operation.status === 'in_progress' && (
                         <div className="w-32">
                           <Progress value={operation.progress} className="h-2" />
-                          <p className="text-xs text-gray-500 mt-1">{operation.progress}%</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{operation.progress}%</p>
                         </div>
                       )}
                       <Badge className={getStatusColor(operation.status)}>
@@ -802,7 +827,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Activer le mode hors-ligne</Label>
-                    <p className="text-sm text-gray-600">Permet de travailler sans connexion internet</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Permet de travailler sans connexion internet</p>
                   </div>
                   <Switch
                     checked={offlineMode}
@@ -813,7 +838,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>RefreshCwhronisation automatique</Label>
-                    <p className="text-sm text-gray-600">RefreshCw auto dès que la connexion est rétablie</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">RefreshCw auto dès que la connexion est rétablie</p>
                   </div>
                   <Switch
                     checked={autoRefreshCw}
@@ -824,7 +849,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Mode économie de données</Label>
-                    <p className="text-sm text-gray-600">Réduire l'utilisation de la bande passante</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Réduire l'utilisation de la bande passante</p>
                   </div>
                   <Switch />
                 </div>
@@ -857,7 +882,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Détection automatique</Label>
-                    <p className="text-sm text-gray-600">Basculer automatiquement entre online/offline</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Basculer automatiquement entre online/offline</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -884,7 +909,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Notifications de statut</Label>
-                    <p className="text-sm text-gray-600">Alertes lors des changements de connexion</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Alertes lors des changements de connexion</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -930,7 +955,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Optimisation mémoire</Label>
-                    <p className="text-sm text-gray-600">Libérer la mémoire après synchronisation</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Libérer la mémoire après synchronisation</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -948,7 +973,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Chiffrement en transit</Label>
-                    <p className="text-sm text-gray-600">TLS 1.3 pour toutes les communications</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">TLS 1.3 pour toutes les communications</p>
                   </div>
                   <Switch defaultChecked disabled />
                 </div>
@@ -956,7 +981,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Validation des certificats</Label>
-                    <p className="text-sm text-gray-600">Vérifier l'authenticité du serveur</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Vérifier l'authenticité du serveur</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -995,7 +1020,7 @@ const OfflineModePage: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tous les conflits</SelectItem>
-                        <SelectItem value="pending">En attente</SelectItem>
+                        <SelectItem value="pending">{t('status.pending')}</SelectItem>
                         <SelectItem value="resolved">Résolus</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1026,7 +1051,7 @@ const OfflineModePage: React.FC = () => {
                             <p className="font-medium">
                               {conflict.recordType} - {conflict.recordId}
                             </p>
-                            <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <div className="flex items-center space-x-2 text-sm text-[var(--color-text-secondary)]">
                               <span>{conflict.module}</span>
                               <span>•</span>
                               <span>Champ: {conflict.field}</span>
@@ -1068,7 +1093,7 @@ const OfflineModePage: React.FC = () => {
                               </h4>
                               <div className="bg-white p-3 rounded border">
                                 <p className="font-mono text-sm">{JSON.stringify(conflict.localValue)}</p>
-                                <p className="text-xs text-gray-500 mt-2">
+                                <p className="text-xs text-gray-700 mt-2">
                                   Modifié: {conflict.lastModifiedLocal.toLocaleString('fr-FR')}
                                 </p>
                               </div>
@@ -1089,7 +1114,7 @@ const OfflineModePage: React.FC = () => {
                               </h4>
                               <div className="bg-white p-3 rounded border">
                                 <p className="font-mono text-sm">{JSON.stringify(conflict.serverValue)}</p>
-                                <p className="text-xs text-gray-500 mt-2">
+                                <p className="text-xs text-gray-700 mt-2">
                                   Modifié: {conflict.lastModifiedServer.toLocaleString('fr-FR')}
                                 </p>
                               </div>
@@ -1171,7 +1196,7 @@ const OfflineModePage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Notification des conflits</Label>
-                      <p className="text-sm text-gray-600">Alerter lors de nouveaux conflits</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Alerter lors de nouveaux conflits</p>
                     </div>
                     <Switch defaultChecked />
                   </div>
@@ -1179,7 +1204,7 @@ const OfflineModePage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Sauvegarde avant résolution</Label>
-                      <p className="text-sm text-gray-600">Conserver une copie de sécurité</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Conserver une copie de sécurité</p>
                     </div>
                     <Switch defaultChecked />
                   </div>
@@ -1215,7 +1240,7 @@ const OfflineModePage: React.FC = () => {
                         <p className="font-medium text-sm">Client CLI-2024-042</p>
                         <p className="text-xs text-gray-600">Résolu automatiquement - Version serveur</p>
                       </div>
-                      <span className="text-xs text-gray-500">Il y a 2h</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 2h</span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1223,7 +1248,7 @@ const OfflineModePage: React.FC = () => {
                         <p className="font-medium text-sm">Article ART-2024-098</p>
                         <p className="text-xs text-gray-600">Résolu manuellement - Fusion</p>
                       </div>
-                      <span className="text-xs text-gray-500">Il y a 5h</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 5h</span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1231,7 +1256,7 @@ const OfflineModePage: React.FC = () => {
                         <p className="font-medium text-sm">Écriture ECR-2024-156</p>
                         <p className="text-xs text-gray-600">Résolu automatiquement - Version locale</p>
                       </div>
-                      <span className="text-xs text-gray-500">Hier</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">{t('common.yesterday')}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -1240,6 +1265,155 @@ const OfflineModePage: React.FC = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Modal d'édition manuelle des conflits */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[#6A8A82] bg-opacity-10 p-2 rounded-lg">
+                  <GitMerge className="w-5 h-5 text-[#6A8A82]" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Résolution Manuelle du Conflit</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditModal(null);
+                  setEditValue('');
+                }}
+                className="text-gray-700 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info sur le conflit */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">Informations du conflit</h4>
+                      <p className="text-sm text-blue-800">
+                        Module: {showEditModal.module} •
+                        Enregistrement: {showEditModal.recordId} •
+                        Champ: {showEditModal.field}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comparaison des valeurs */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-900 flex items-center space-x-2">
+                      <GitBranch className="w-4 h-4 text-[#6A8A82]" />
+                      <span>Valeur locale</span>
+                    </h4>
+                    <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                      <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                        {JSON.stringify(showEditModal.localValue, null, 2)}
+                      </pre>
+                      <p className="text-xs text-gray-700 mt-2">
+                        Modifié: {showEditModal.lastModifiedLocal.toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-900 flex items-center space-x-2">
+                      <Cloud className="w-4 h-4 text-[#7A99AC]" />
+                      <span>Valeur serveur</span>
+                    </h4>
+                    <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                      <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                        {JSON.stringify(showEditModal.serverValue, null, 2)}
+                      </pre>
+                      <p className="text-xs text-gray-700 mt-2">
+                        Modifié: {showEditModal.lastModifiedServer.toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Champ d'édition */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-gray-900 flex items-center space-x-2">
+                    <Edit className="w-4 h-4 text-[#B87333]" />
+                    <span>Valeur de fusion manuelle</span>
+                  </h4>
+                  <textarea
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82] font-mono text-sm"
+                    rows={8}
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    placeholder="Entrez la valeur JSON pour résoudre le conflit..."
+                  />
+                  <p className="text-xs text-gray-700">
+                    Modifiez la valeur JSON ci-dessus pour créer une fusion manuelle des données
+                  </p>
+                </div>
+
+                {/* Options rapides */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm font-medium text-gray-700">Actions rapides:</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditValue(JSON.stringify(showEditModal.localValue, null, 2))}
+                  >
+                    Utiliser valeur locale
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditValue(JSON.stringify(showEditModal.serverValue, null, 2))}
+                  >
+                    Utiliser valeur serveur
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Tentative de fusion automatique simple
+                      if (typeof showEditModal.localValue === 'object' && typeof showEditModal.serverValue === 'object') {
+                        const merged = { ...showEditModal.serverValue, ...showEditModal.localValue };
+                        setEditValue(JSON.stringify(merged, null, 2));
+                      }
+                    }}
+                  >
+                    Fusion automatique
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowEditModal(null);
+                  setEditValue('');
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleSaveManualEdit}
+                className="bg-[#6A8A82] hover:bg-[#7A99AC] text-white"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Sauvegarder la fusion
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

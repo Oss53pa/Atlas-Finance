@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar, CheckCircle, AlertTriangle, Clock, Play, Pause,
@@ -17,6 +18,7 @@ interface EtapeCloture {
 }
 
 const ClotureMensuelle: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -186,7 +188,7 @@ const ClotureMensuelle: React.FC = () => {
             <span className="text-[#767676]">Progression globale</span>
             <span className="font-semibold text-[#191919]">{progressionGlobale()}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
+          <div className="w-full bg-[var(--color-border)] rounded-full h-3">
             <div
               className="h-3 bg-gradient-to-r from-[#6A8A82] to-[#B87333] rounded-full transition-all duration-500"
               style={{width: `${progressionGlobale()}%`}}
@@ -198,9 +200,9 @@ const ClotureMensuelle: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-              clotureStatus === 'validee' ? 'bg-green-100 text-green-700' :
-              clotureStatus === 'en_cours' ? 'bg-blue-100 text-blue-700' :
-              'bg-gray-100 text-gray-700'
+              clotureStatus === 'validee' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+              clotureStatus === 'en_cours' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+              'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
             }`}>
               {clotureStatus === 'validee' ? 'Validée' :
                clotureStatus === 'en_cours' ? 'En cours' : 'En attente'}
@@ -214,8 +216,8 @@ const ClotureMensuelle: React.FC = () => {
             disabled={progressionGlobale() < 100}
             className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
               progressionGlobale() >= 100
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-[var(--color-success)] text-white hover:bg-[var(--color-success-dark)]'
+                : 'bg-[var(--color-border-dark)] text-[var(--color-text-secondary)] cursor-not-allowed'
             }`}
           >
             <Lock className="w-4 h-4" />
@@ -233,10 +235,10 @@ const ClotureMensuelle: React.FC = () => {
             <div
               key={etape.id}
               className={`border rounded-lg p-4 transition-all ${
-                etape.statut === 'complete' ? 'border-green-300 bg-green-50' :
-                etape.statut === 'en_cours' ? 'border-blue-300 bg-blue-50' :
-                etape.statut === 'erreur' ? 'border-red-300 bg-red-50' :
-                'border-gray-200 bg-white'
+                etape.statut === 'complete' ? 'border-green-300 bg-[var(--color-success-lightest)]' :
+                etape.statut === 'en_cours' ? 'border-blue-300 bg-[var(--color-primary-lightest)]' :
+                etape.statut === 'erreur' ? 'border-red-300 bg-[var(--color-error-lightest)]' :
+                'border-[var(--color-border)] bg-white'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -244,13 +246,13 @@ const ClotureMensuelle: React.FC = () => {
                   {/* Icône de statut */}
                   <div className="mt-1">
                     {etape.statut === 'complete' ? (
-                      <CheckCircle className="w-6 h-6 text-green-600" />
+                      <CheckCircle className="w-6 h-6 text-[var(--color-success)]" />
                     ) : etape.statut === 'en_cours' ? (
-                      <Clock className="w-6 h-6 text-blue-600 animate-pulse" />
+                      <Clock className="w-6 h-6 text-[var(--color-primary)] animate-pulse" />
                     ) : etape.statut === 'erreur' ? (
-                      <AlertCircle className="w-6 h-6 text-red-600" />
+                      <AlertCircle className="w-6 h-6 text-[var(--color-error)]" />
                     ) : (
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-300"></div>
+                      <div className="w-6 h-6 rounded-full border-2 border-[var(--color-border-dark)]"></div>
                     )}
                   </div>
 
@@ -259,7 +261,7 @@ const ClotureMensuelle: React.FC = () => {
                     <div className="flex items-center space-x-2 mb-1">
                       <h3 className="font-semibold text-[#191919]">{etape.nom}</h3>
                       {etape.obligatoire && (
-                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] px-2 py-0.5 rounded-full">
                           Obligatoire
                         </span>
                       )}
@@ -273,10 +275,10 @@ const ClotureMensuelle: React.FC = () => {
                           <span className="text-[#767676]">Progression</span>
                           <span className="font-medium">{etape.progression}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-[var(--color-border)] rounded-full h-2">
                           <div
                             className={`h-2 rounded-full transition-all duration-500 ${
-                              etape.statut === 'complete' ? 'bg-green-500' : 'bg-blue-500'
+                              etape.statut === 'complete' ? 'bg-[var(--color-success)]' : 'bg-[var(--color-primary)]'
                             }`}
                             style={{width: `${etape.progression}%`}}
                           ></div>
@@ -291,20 +293,20 @@ const ClotureMensuelle: React.FC = () => {
                   {etape.statut === 'en_attente' && (
                     <button
                       onClick={() => demarrerEtape(etape.id)}
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2 text-sm"
+                      className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2 text-sm"
                     >
                       <Play className="w-3 h-3" />
                       <span>Démarrer</span>
                     </button>
                   )}
                   {etape.statut === 'complete' && (
-                    <button className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg flex items-center space-x-2 text-sm">
+                    <button className="px-3 py-1.5 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg flex items-center space-x-2 text-sm">
                       <Eye className="w-3 h-3" />
                       <span>Détails</span>
                     </button>
                   )}
                   {etape.statut === 'en_cours' && (
-                    <button className="px-3 py-1.5 bg-orange-100 text-orange-600 rounded-lg flex items-center space-x-2 text-sm">
+                    <button className="px-3 py-1.5 bg-[var(--color-warning-lighter)] text-[var(--color-warning)] rounded-lg flex items-center space-x-2 text-sm">
                       <Pause className="w-3 h-3" />
                       <span>Pause</span>
                     </button>
@@ -316,18 +318,18 @@ const ClotureMensuelle: React.FC = () => {
         </div>
 
         {/* Actions globales */}
-        <div className="mt-6 flex items-center justify-between pt-6 border-t border-gray-200">
+        <div className="mt-6 flex items-center justify-between pt-6 border-t border-[var(--color-border)]">
           <div className="flex items-center space-x-2">
-            <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2">
+            <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4" />
-              <span>Actualiser</span>
+              <span>{t('common.refresh')}</span>
             </button>
-            <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2">
+            <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2">
               <Download className="w-4 h-4" />
               <span>Exporter rapport</span>
             </button>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+          <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2">
             <Save className="w-4 h-4" />
             <span>Sauvegarder progression</span>
           </button>
@@ -345,7 +347,7 @@ const ClotureMensuelle: React.FC = () => {
               Êtes-vous sûr de vouloir valider la clôture mensuelle de {moisNoms[selectedMonth]} {selectedYear} ?
               Cette action est irréversible.
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="bg-[var(--color-warning-lightest)] border border-yellow-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-yellow-800">
                 ⚠️ Assurez-vous que toutes les écritures sont correctes avant de valider.
               </p>
@@ -353,13 +355,13 @@ const ClotureMensuelle: React.FC = () => {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowValidationModal(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
               >
                 Annuler
               </button>
               <button
                 onClick={confirmerValidation}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2"
               >
                 <Check className="w-4 h-4" />
                 <span>Confirmer la validation</span>

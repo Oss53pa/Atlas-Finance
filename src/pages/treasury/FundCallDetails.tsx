@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 const FundCallDetails: React.FC = () => {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('position_avant');
@@ -479,22 +481,22 @@ const FundCallDetails: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Select</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Document Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Document Number</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Due Amount</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Outstanding</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice Type</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Arrears Aging (Days)</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Select</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Vendor</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Document Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Document Number</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Reference</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Due Amount</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Outstanding</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Type</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Arrears Aging (Days)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {loading ? (
                         <tr>
-                          <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
+                          <td colSpan={10} className="px-4 py-8 text-center text-gray-700">
                             <div className="flex flex-col items-center space-y-2">
                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B87333]"></div>
                               <p>Chargement des données du Grand Livre...</p>
@@ -522,12 +524,12 @@ const FundCallDetails: React.FC = () => {
                               </td>
                               <td className="px-4 py-3 text-sm font-bold text-[#B87333]">
                                 {vendor}
-                                <div className="text-xs text-gray-500">{aggregate.count} factures</div>
+                                <div className="text-xs text-gray-700">{aggregate.count} factures</div>
                               </td>
-                              <td className="px-4 py-3 text-sm text-gray-500">Multiple</td>
-                              <td className="px-4 py-3 text-sm text-gray-500">Agrégat</td>
-                              <td className="px-4 py-3 text-sm text-gray-500">-</td>
-                              <td className="px-4 py-3 text-sm text-gray-500">
+                              <td className="px-4 py-3 text-sm text-gray-700">Multiple</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">Agrégat</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">-</td>
+                              <td className="px-4 py-3 text-sm text-gray-700">
                                 <span className="bg-[#6A8A82]/10 text-[#6A8A82] px-2 py-1 rounded text-xs">
                                   Total fournisseur
                                 </span>
@@ -567,7 +569,7 @@ const FundCallDetails: React.FC = () => {
                                 </td>
                                 <td className="px-4 py-2 text-sm text-gray-700 pl-8">
                                   <div className="flex items-center">
-                                    <span className="text-gray-400 mr-2">└</span>
+                                    <span className="text-gray-700 mr-2">└</span>
                                     {vendor}
                                   </div>
                                 </td>
@@ -616,7 +618,7 @@ const FundCallDetails: React.FC = () => {
                         className="flex items-center space-x-1 bg-[#6A8A82] hover:bg-[#6A8A82]/80 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
                       >
                         <Plus className="w-4 h-4" />
-                        <span>Ajouter</span>
+                        <span>{t('common.add')}</span>
                       </button>
                     </div>
                     <div className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium">
@@ -629,23 +631,23 @@ const FundCallDetails: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Document Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Document Number</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Due Amount</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Outstanding</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice Type</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Arrears Aging (Days)</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recommendation</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Vendor</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Document Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Document Number</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Reference</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Due Amount</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Outstanding</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Type</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Arrears Aging (Days)</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Recommendation</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {(getSelectedInvoicesDetails().length + newExpenses.length) === 0 ? (
                         <tr>
-                          <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
+                          <td colSpan={11} className="px-4 py-8 text-center text-gray-700">
                             <div className="flex flex-col items-center space-y-2">
                               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                                 📋
@@ -726,7 +728,7 @@ const FundCallDetails: React.FC = () => {
           {activeTab === 'position_avant' && (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-600 mb-2">📊 Position des Comptes Avant Appel</h3>
-              <p className="text-gray-500">Contenu à développer - Balances avant l'appel de fonds</p>
+              <p className="text-gray-700">Contenu à développer - Balances avant l'appel de fonds</p>
             </div>
           )}
 
@@ -1131,19 +1133,19 @@ const FundCallDetails: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50 sticky top-0">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant Demandé</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant Approuvé</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catégorie</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recommendation</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Vendor</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Reference</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant Demandé</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant Approuvé</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Catégorie</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Recommendation</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         <tr>
-                          <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                          <td colSpan={8} className="px-4 py-8 text-center text-gray-700">
                             <div className="flex flex-col items-center space-y-2">
                               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                                 📋
@@ -1253,7 +1255,7 @@ const FundCallDetails: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <button className="p-1 text-[#6A8A82] hover:text-[#5A7A72] transition-colors">
+                          <button className="p-1 text-[#6A8A82] hover:text-[#5A7A72] transition-colors" aria-label="Voir les détails">
                             <Eye className="w-4 h-4" />
                           </button>
                           <button className="p-1 text-[#7A99AC] hover:text-[#6A89AC] transition-colors">
@@ -1292,7 +1294,7 @@ const FundCallDetails: React.FC = () => {
               <h3 className="text-xl font-semibold text-[#191919]">⚙️ Configuration du Workflow</h3>
               <button
                 onClick={() => setShowValidatorConfig(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-700 hover:text-gray-600 text-xl"
               >
                 ✕
               </button>
@@ -1503,7 +1505,7 @@ const FundCallDetails: React.FC = () => {
               <h3 className="text-lg font-semibold text-[#191919]">➕ Ajouter Nouvelle Dépense</h3>
               <button
                 onClick={() => setShowAddExpenseModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-700 hover:text-gray-600"
               >
                 ✕
               </button>
@@ -1641,7 +1643,7 @@ const FundCallDetails: React.FC = () => {
               <h3 className="text-lg font-semibold text-[#191919]">📝 Note sur la Facture</h3>
               <button
                 onClick={() => setShowNoteModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-700 hover:text-gray-600"
               >
                 ✕
               </button>

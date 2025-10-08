@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Plus,
   CheckCircle2,
@@ -182,6 +183,7 @@ interface TaskLink {
 }
 
 const CompleteTasksModule: React.FC = () => {
+  const { t } = useLanguage();
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -512,7 +514,7 @@ const CompleteTasksModule: React.FC = () => {
               <CheckCircle2 className="w-5 h-5 text-green-500" /> :
               task.status === 'blocked' ?
               <AlertCircle className="w-5 h-5 text-orange-500" /> :
-              <Circle className="w-5 h-5 text-gray-400" />
+              <Circle className="w-5 h-5 text-gray-700" />
             }
           </button>
           <div
@@ -522,7 +524,7 @@ const CompleteTasksModule: React.FC = () => {
               setShowTaskDetails(true);
             }}
           >
-            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-400' : ''}`}>
+            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-700' : ''}`}>
               {task.title}
             </h4>
             {task.description && (
@@ -534,7 +536,7 @@ const CompleteTasksModule: React.FC = () => {
                 <div className={`flex items-center gap-1 text-xs ${
                   new Date(task.dueDate) < new Date() && task.status !== 'done'
                     ? 'text-red-500'
-                    : 'text-gray-500'
+                    : 'text-gray-700'
                 }`}>
                   <Calendar className="w-3 h-3" />
                   {new Date(task.dueDate).toLocaleDateString()}
@@ -542,21 +544,21 @@ const CompleteTasksModule: React.FC = () => {
               )}
 
               {task.assignee && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <User className="w-3 h-3" />
                   {task.assignee}
                 </div>
               )}
 
               {task.estimatedHours && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <Timer className="w-3 h-3" />
                   {task.actualHours || 0}/{task.estimatedHours}h
                 </div>
               )}
 
               {task.budget && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <DollarSign className="w-3 h-3" />
                   {task.actualCost || 0}/{task.budget}
                 </div>
@@ -567,21 +569,21 @@ const CompleteTasksModule: React.FC = () => {
               )}
 
               {task.attachments && task.attachments.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <Paperclip className="w-3 h-3" />
                   {task.attachments.length}
                 </div>
               )}
 
               {task.comments && task.comments.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <MessageSquare className="w-3 h-3" />
                   {task.comments.length}
                 </div>
               )}
 
               {task.subTasks && task.subTasks.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <CheckSquare className="w-3 h-3" />
                   {task.subTasks.filter(st => st.completed).length}/{task.subTasks.length}
                 </div>
@@ -622,7 +624,7 @@ const CompleteTasksModule: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
               className="p-1 hover:bg-gray-100 rounded transition-colors"
             >
-              <MoreVertical className="w-4 h-4 text-gray-400" />
+              <MoreVertical className="w-4 h-4 text-gray-700" />
             </button>
           </div>
         </div>
@@ -683,7 +685,7 @@ const CompleteTasksModule: React.FC = () => {
                   {task.tags && (
                     <div className="flex gap-1 mt-1">
                       {task.tags.map(tag => (
-                        <span key={tag} className="text-xs text-gray-500">#{tag}</span>
+                        <span key={tag} className="text-xs text-gray-700">#{tag}</span>
                       ))}
                     </div>
                   )}
@@ -734,7 +736,7 @@ const CompleteTasksModule: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Gestion des Tâches</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 {statistics.total} tâches • {statistics.inProgress} en cours • {statistics.overdue} en retard
               </p>
             </div>
@@ -790,7 +792,7 @@ const CompleteTasksModule: React.FC = () => {
             <div className="flex items-center gap-4">
               {/* Recherche */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
                 <input
                   type="text"
                   placeholder="Rechercher..."
@@ -876,10 +878,10 @@ const CompleteTasksModule: React.FC = () => {
               </div>
 
               {/* Actions supplémentaires */}
-              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" aria-label="Télécharger">
                 <Download className="w-4 h-4" />
               </button>
-              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" aria-label="Paramètres">
                 <Settings className="w-4 h-4" />
               </button>
             </div>
@@ -893,35 +895,35 @@ const CompleteTasksModule: React.FC = () => {
           <div className="grid grid-cols-8 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-900">{statistics.total}</div>
-              <div className="text-xs text-gray-500">Total</div>
+              <div className="text-xs text-gray-700">Total</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{statistics.completed}</div>
-              <div className="text-xs text-gray-500">Terminées</div>
+              <div className="text-xs text-gray-700">Terminées</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-[#6A8A82]">{statistics.inProgress}</div>
-              <div className="text-xs text-gray-500">En cours</div>
+              <div className="text-xs text-gray-700">{t('status.inProgress')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">{statistics.overdue}</div>
-              <div className="text-xs text-gray-500">En retard</div>
+              <div className="text-xs text-gray-700">En retard</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">{statistics.highPriority}</div>
-              <div className="text-xs text-gray-500">Prioritaires</div>
+              <div className="text-xs text-gray-700">Prioritaires</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{statistics.completionRate}%</div>
-              <div className="text-xs text-gray-500">Complété</div>
+              <div className="text-xs text-gray-700">Complété</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">{statistics.totalHours}h</div>
-              <div className="text-xs text-gray-500">Heures</div>
+              <div className="text-xs text-gray-700">Heures</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-[#B87333]">{statistics.avgProgress}%</div>
-              <div className="text-xs text-gray-500">Progrès moy.</div>
+              <div className="text-xs text-gray-700">Progrès moy.</div>
             </div>
           </div>
         </div>
@@ -935,13 +937,13 @@ const CompleteTasksModule: React.FC = () => {
             {viewMode === 'list' && <ListView />}
             {viewMode === 'calendar' && (
               <div className="bg-white rounded-lg p-6 text-center">
-                <CalendarDays className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <CalendarDays className="w-12 h-12 mx-auto mb-4 text-gray-700" />
                 <p className="text-gray-600">Vue calendrier en cours de développement</p>
               </div>
             )}
             {viewMode === 'timeline' && (
               <div className="bg-white rounded-lg p-6 text-center">
-                <GitBranch className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <GitBranch className="w-12 h-12 mx-auto mb-4 text-gray-700" />
                 <p className="text-gray-600">Vue timeline en cours de développement</p>
               </div>
             )}
@@ -950,21 +952,21 @@ const CompleteTasksModule: React.FC = () => {
 
         {activeTab === 'projects' && (
           <div className="bg-white rounded-lg p-6 text-center">
-            <Briefcase className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <Briefcase className="w-12 h-12 mx-auto mb-4 text-gray-700" />
             <p className="text-gray-600">Module Projets en cours de développement</p>
           </div>
         )}
 
         {activeTab === 'team' && (
           <div className="bg-white rounded-lg p-6 text-center">
-            <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <Users className="w-12 h-12 mx-auto mb-4 text-gray-700" />
             <p className="text-gray-600">Module Équipe en cours de développement</p>
           </div>
         )}
 
         {activeTab === 'reports' && (
           <div className="bg-white rounded-lg p-6 text-center">
-            <PieChart className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <PieChart className="w-12 h-12 mx-auto mb-4 text-gray-700" />
             <p className="text-gray-600">Module Rapports en cours de développement</p>
           </div>
         )}
@@ -1030,7 +1032,7 @@ const CompleteTasksModule: React.FC = () => {
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
                   >
                     <option value="todo">À faire</option>
-                    <option value="in-progress">En cours</option>
+                    <option value="in-progress">{t('status.inProgress')}</option>
                   </select>
                 </div>
               </div>

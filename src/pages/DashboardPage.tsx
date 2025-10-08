@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { 
   ChartBarIcon,
@@ -34,6 +35,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const DashboardPage: React.FC = () => {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
@@ -90,7 +92,7 @@ const DashboardPage: React.FC = () => {
           />
           
           <KPICard
-            title="Trésorerie"
+            title={t('navigation.treasury')}
             value="3.85M F"
             subtitle="Position actuelle"
             icon={TrendingUp}
@@ -138,10 +140,10 @@ const DashboardPage: React.FC = () => {
                 { label: 'Jan', value: 2100, color: 'bg-yellow-400' },
                 { label: 'Fév', value: 2300, color: 'bg-orange-400' },
                 { label: 'Mar', value: 2700, color: 'bg-amber-400' },
-                { label: 'Avr', value: 2200, color: 'bg-yellow-500' },
-                { label: 'Mai', value: 2450, color: 'bg-orange-500' },
+                { label: 'Avr', value: 2200, color: 'bg-[var(--color-warning)]' },
+                { label: 'Mai', value: 2450, color: 'bg-[var(--color-warning)]' },
                 { label: 'Juin', value: 2800, color: 'bg-amber-500' },
-                { label: 'Juil', value: 3100, color: 'bg-yellow-600' }
+                { label: 'Juil', value: 3100, color: 'bg-[var(--color-warning)]' }
               ]}
               height={180}
             />
@@ -163,18 +165,27 @@ const DashboardPage: React.FC = () => {
             <div className="space-y-3">
               {alerts.map((alert, index) => {
                 const alertConfig = {
-                  success: { bg: 'bg-green-50', border: 'border-green-400', text: 'text-green-700', icon: CheckCircle },
-                  warning: { bg: 'bg-yellow-50', border: 'border-yellow-400', text: 'text-yellow-700', icon: AlertTriangle },
-                  info: { bg: 'bg-blue-50', border: 'border-blue-400', text: 'text-blue-700', icon: Target }
+                  success: { bg: 'bg-[var(--color-success-lightest)]', border: 'border-green-400', text: 'text-[var(--color-success-dark)]', icon: CheckCircle },
+                  warning: { bg: 'bg-[var(--color-warning-lightest)]', border: 'border-yellow-400', text: 'text-[var(--color-warning-dark)]', icon: AlertTriangle },
+                  info: { bg: 'bg-[var(--color-primary-lightest)]', border: 'border-blue-400', text: 'text-[var(--color-primary-dark)]', icon: Target }
                 }[alert.type];
                 
                 const IconComponent = alertConfig.icon;
                 
                 return (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
+                    role="button"
+                    tabIndex={0}
                     className={`p-3 rounded-lg border-l-4 cursor-pointer hover:bg-opacity-70 transition-all ${alertConfig.bg} ${alertConfig.border}`}
                     onClick={() => navigate(alert.path)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(alert.path);
+                      }
+                    }}
+                    aria-label={`${alert.title}: ${alert.message}`}
                   >
                     <div className="flex items-start space-x-3">
                       <IconComponent className={`w-4 h-4 mt-0.5 ${alertConfig.text}`} />
@@ -217,7 +228,7 @@ const DashboardPage: React.FC = () => {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <ElegantButton
                   variant="primary"
-                  onClick={() => toast.success('Opération réalisée avec succès !', 'Succès')}
+                  onClick={() => toast.success('Opération réalisée avec succès !', t('messages.success'))}
                   icon={TrendingUp}
                 >
                   Test Succès
@@ -233,7 +244,7 @@ const DashboardPage: React.FC = () => {
                 
                 <ElegantButton
                   variant="secondary"
-                  onClick={() => toast.error('Une erreur s\'est produite', 'Erreur')}
+                  onClick={() => toast.error('Une erreur s\'est produite', t('messages.error'))}
                   icon={Users}
                 >
                   Test Erreur
@@ -273,12 +284,12 @@ const DashboardPage: React.FC = () => {
                 <motion.div whileHover={{ scale: 1.03 }} className="group">
                   <div className="bg-white/90">
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-blue-200/50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <FileText className="h-8 w-8 text-blue-700" />
+                      <div className="p-4 bg-[var(--color-primary-light)]/50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <FileText className="h-8 w-8 text-[var(--color-primary-dark)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-blue-900 text-lg">Comptabilité</h3>
-                        <p className="text-sm text-blue-700 mt-1">Journaux & écritures</p>
+                        <h3 className="font-bold text-[var(--color-primary-darker)] text-lg">{t('accounting.title')}</h3>
+                        <p className="text-sm text-[var(--color-primary-dark)] mt-1">Journaux & écritures</p>
                       </div>
                     </div>
                   </div>
@@ -301,12 +312,12 @@ const DashboardPage: React.FC = () => {
                 <motion.div whileHover={{ scale: 1.03 }} className="group">
                   <div className="bg-white/90">
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-purple-200/50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <DollarSign className="h-8 w-8 text-purple-700" />
+                      <div className="p-4 bg-[var(--color-info-light)]/50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <DollarSign className="h-8 w-8 text-[var(--color-info-dark)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-purple-900 text-lg">Trésorerie</h3>
-                        <p className="text-sm text-purple-700 mt-1">Gestion des flux</p>
+                        <h3 className="font-bold text-purple-900 text-lg">{t('navigation.treasury')}</h3>
+                        <p className="text-sm text-[var(--color-info-dark)] mt-1">Gestion des flux</p>
                       </div>
                     </div>
                   </div>
@@ -315,12 +326,12 @@ const DashboardPage: React.FC = () => {
                 <motion.div whileHover={{ scale: 1.03 }} className="group">
                   <div className="bg-white/90">
                     <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="p-4 bg-orange-200/50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                        <Target className="h-8 w-8 text-orange-700" />
+                      <div className="p-4 bg-[var(--color-warning-light)]/50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                        <Target className="h-8 w-8 text-[var(--color-warning-dark)]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-orange-900 text-lg">Budget</h3>
-                        <p className="text-sm text-orange-700 mt-1">Contrôle & suivi</p>
+                        <h3 className="font-bold text-orange-900 text-lg">{t('navigation.budget')}</h3>
+                        <p className="text-sm text-[var(--color-warning-dark)] mt-1">Contrôle & suivi</p>
                       </div>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   AlertTriangle, Bell, Info, CheckCircle, XCircle, TrendingUp,
   TrendingDown, Clock, DollarSign, Users, Package, Settings,
@@ -42,6 +43,7 @@ interface AlertRule {
 }
 
 const AlertsSystem: React.FC = () => {
+  const { t } = useLanguage();
   const [alerts, setAlerts] = useState<Alert[]>([
     {
       id: '1',
@@ -215,8 +217,8 @@ const AlertsSystem: React.FC = () => {
   const getAlertColor = (type: string) => {
     switch (type) {
       case 'critical': return 'bg-red-100 text-red-700 border-red-200';
-      case 'warning': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'info': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'warning': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'info': return 'bg-[#D1DDD9] text-[#588075] border-[#B3C9C3]';
       case 'success': return 'bg-green-100 text-green-700 border-green-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -284,15 +286,15 @@ const AlertsSystem: React.FC = () => {
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={cn(
               "p-2 rounded-lg border transition-colors",
-              soundEnabled ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"
+              soundEnabled ? "bg-[#E8EEEC] border-[#B3C9C3]" : "bg-gray-50 border-gray-200"
             )}
           >
-            {soundEnabled ? <Volume2 className="w-5 h-5 text-blue-600" /> : <VolumeX className="w-5 h-5 text-gray-400" />}
+            {soundEnabled ? <Volume2 className="w-5 h-5 text-[#6A8A82]" /> : <VolumeX className="w-5 h-5 text-gray-700" />}
           </button>
 
           <button
             onClick={() => setShowCreateRule(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#588075]"
           >
             <Settings className="w-4 h-4" />
             Configurer Règles
@@ -305,10 +307,10 @@ const AlertsSystem: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Total Alertes</span>
-            <Bell className="w-5 h-5 text-gray-400" />
+            <Bell className="w-5 h-5 text-gray-700" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-          <p className="text-xs text-gray-500 mt-1">Dernières 24h</p>
+          <p className="text-xs text-gray-700 mt-1">Dernières 24h</p>
         </div>
 
         <div className="bg-red-50 rounded-lg shadow p-4 border border-red-200">
@@ -320,22 +322,22 @@ const AlertsSystem: React.FC = () => {
           <p className="text-xs text-red-600 mt-1">Action immédiate</p>
         </div>
 
-        <div className="bg-yellow-50 rounded-lg shadow p-4 border border-yellow-200">
+        <div className="bg-amber-50 rounded-lg shadow p-4 border border-amber-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-yellow-700">Avertissements</span>
-            <AlertTriangle className="w-5 h-5 text-yellow-500" />
+            <span className="text-sm font-medium text-amber-700">Avertissements</span>
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-yellow-700">{stats.warning}</p>
-          <p className="text-xs text-yellow-600 mt-1">À surveiller</p>
+          <p className="text-2xl font-bold text-amber-700">{stats.warning}</p>
+          <p className="text-xs text-amber-600 mt-1">À surveiller</p>
         </div>
 
-        <div className="bg-blue-50 rounded-lg shadow p-4 border border-blue-200">
+        <div className="bg-[#E8EEEC] rounded-lg shadow p-4 border border-[#B3C9C3]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-700">En cours</span>
-            <Clock className="w-5 h-5 text-blue-500" />
+            <span className="text-sm font-medium text-[#588075]">{t('status.inProgress')}</span>
+            <Clock className="w-5 h-5 text-[#78998F]" />
           </div>
-          <p className="text-2xl font-bold text-blue-700">{stats.acknowledged}</p>
-          <p className="text-xs text-blue-600 mt-1">Traitement</p>
+          <p className="text-2xl font-bold text-[#588075]">{stats.acknowledged}</p>
+          <p className="text-xs text-[#6A8A82] mt-1">Traitement</p>
         </div>
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
@@ -344,7 +346,7 @@ const AlertsSystem: React.FC = () => {
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-2xl font-bold text-green-700">{stats.resolved}</p>
-          <p className="text-xs text-green-600 mt-1">Aujourd'hui</p>
+          <p className="text-xs text-green-600 mt-1">{t('common.today')}</p>
         </div>
       </div>
 
@@ -352,13 +354,13 @@ const AlertsSystem: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700" />
             <input
               type="text"
               placeholder="Rechercher dans les alertes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
             />
           </div>
 
@@ -366,24 +368,24 @@ const AlertsSystem: React.FC = () => {
             <select
               value={filter.type}
               onChange={(e) => setFilter({ ...filter, type: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
             >
               <option value="all">Tous types</option>
               <option value="critical">Critique</option>
               <option value="warning">Avertissement</option>
               <option value="info">Information</option>
-              <option value="success">Succès</option>
+              <option value="success">{t('common.success')}</option>
             </select>
 
             <select
               value={filter.category}
               onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
             >
               <option value="all">Toutes catégories</option>
               <option value="finance">Finance</option>
               <option value="operations">Opérations</option>
-              <option value="clients">Clients</option>
+              <option value="clients">{t('navigation.clients')}</option>
               <option value="stock">Stock</option>
               <option value="performance">Performance</option>
               <option value="security">Sécurité</option>
@@ -392,7 +394,7 @@ const AlertsSystem: React.FC = () => {
             <select
               value={filter.priority}
               onChange={(e) => setFilter({ ...filter, priority: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
             >
               <option value="all">Toutes priorités</option>
               <option value="high">Haute</option>
@@ -403,10 +405,10 @@ const AlertsSystem: React.FC = () => {
             <select
               value={filter.status}
               onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
             >
               <option value="all">Tous statuts</option>
-              <option value="new">Nouveau</option>
+              <option value="new">{t('actions.new')}</option>
               <option value="acknowledged">Reconnu</option>
               <option value="resolved">Résolu</option>
               <option value="ignored">Ignoré</option>
@@ -436,12 +438,12 @@ const AlertsSystem: React.FC = () => {
                     <span className={cn(
                       "px-2 py-0.5 text-xs rounded-full font-medium",
                       alert.priority === 'high' && "bg-red-200 text-red-800",
-                      alert.priority === 'medium' && "bg-yellow-200 text-yellow-800",
+                      alert.priority === 'medium' && "bg-amber-200 text-amber-800",
                       alert.priority === 'low' && "bg-green-200 text-green-800"
                     )}>
                       {alert.priority === 'high' ? 'Haute' : alert.priority === 'medium' ? 'Moyenne' : 'Basse'}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                    <span className="flex items-center gap-1 text-xs text-gray-700">
                       {getCategoryIcon(alert.category)}
                       {alert.category}
                     </span>
@@ -457,7 +459,7 @@ const AlertsSystem: React.FC = () => {
                         <span className="flex items-center gap-1">
                           {alert.trend === 'up' ? <TrendingUp className="w-4 h-4 text-red-600" /> :
                            alert.trend === 'down' ? <TrendingDown className="w-4 h-4 text-green-600" /> :
-                           <Activity className="w-4 h-4 text-gray-400" />}
+                           <Activity className="w-4 h-4 text-gray-700" />}
                         </span>
                       )}
                     </div>
@@ -471,14 +473,14 @@ const AlertsSystem: React.FC = () => {
                   )}
 
                   <div className="flex items-center gap-4 mt-3">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-700">
                       {new Date(alert.timestamp).toLocaleString()}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-700">
                       Source: {alert.source}
                     </span>
                     {alert.assignedTo && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-700">
                         Assigné à: {alert.assignedTo}
                       </span>
                     )}
@@ -489,8 +491,8 @@ const AlertsSystem: React.FC = () => {
               <div className="flex flex-col gap-2">
                 <span className={cn(
                   "px-3 py-1 text-xs rounded-full font-medium",
-                  alert.status === 'new' && "bg-blue-200 text-blue-800",
-                  alert.status === 'acknowledged' && "bg-yellow-200 text-yellow-800",
+                  alert.status === 'new' && "bg-[#B3C9C3] text-[#4A665D]",
+                  alert.status === 'acknowledged' && "bg-amber-200 text-amber-800",
                   alert.status === 'resolved' && "bg-green-200 text-green-800",
                   alert.status === 'ignored' && "bg-gray-200 text-gray-800"
                 )}>
@@ -560,14 +562,14 @@ const AlertsSystem: React.FC = () => {
               <div className="flex items-center gap-2">
                 {rule.notifications.map((notif) => (
                   <span key={notif} className="p-1" title={notif}>
-                    {notif === 'email' && <Mail className="w-4 h-4 text-gray-400" />}
-                    {notif === 'sms' && <MessageSquare className="w-4 h-4 text-gray-400" />}
-                    {notif === 'push' && <Smartphone className="w-4 h-4 text-gray-400" />}
-                    {notif === 'dashboard' && <Bell className="w-4 h-4 text-gray-400" />}
+                    {notif === 'email' && <Mail className="w-4 h-4 text-gray-700" />}
+                    {notif === 'sms' && <MessageSquare className="w-4 h-4 text-gray-700" />}
+                    {notif === 'push' && <Smartphone className="w-4 h-4 text-gray-700" />}
+                    {notif === 'dashboard' && <Bell className="w-4 h-4 text-gray-700" />}
                   </span>
                 ))}
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <Settings className="w-4 h-4 text-gray-400" />
+                <button className="p-1 hover:bg-gray-100 rounded" aria-label="Paramètres">
+                  <Settings className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
             </div>

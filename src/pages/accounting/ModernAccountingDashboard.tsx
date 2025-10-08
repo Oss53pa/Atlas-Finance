@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Calculator, FileText, BarChart3, ArrowLeft, Home, Plus
 } from 'lucide-react';
 
 const ModernAccountingDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   return (
@@ -40,9 +42,9 @@ const ModernAccountingDashboard: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Saisie écritures', icon: Plus, path: '/accounting/entries' },
-            { label: 'Balance', icon: BarChart3, path: '/accounting/balance' },
-            { label: 'États financiers', icon: FileText, path: '/financial-statements' },
-            { label: 'Journaux', icon: Calculator, path: '/accounting/journals' }
+            { label: t('accounting.balance'), icon: BarChart3, path: '/accounting/balance' },
+            { label: t('accounting.financialStatements'), icon: FileText, path: '/financial-statements' },
+            { label: t('navigation.journals'), icon: Calculator, path: '/accounting/journals' }
           ].map((action, index) => {
             const IconComponent = action.icon;
             return (

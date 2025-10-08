@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Plus,
   CheckCircle2,
@@ -52,6 +53,7 @@ interface Task {
 }
 
 const TasksModuleWithSidebar: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -132,7 +134,7 @@ const TasksModuleWithSidebar: React.FC = () => {
   const [showNewTask, setShowNewTask] = useState(false);
 
   const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, count: 0 },
+    { id: 'dashboard', label: t('dashboard.title'), icon: LayoutDashboard, count: 0 },
     { id: 'schedule', label: 'Planning', icon: CalendarDays, count: 0 },
     { id: 'note', label: 'Notes', icon: FileText, count: 0 },
     { id: 'report', label: 'Rapports', icon: FileBarChart, count: 0 },
@@ -140,7 +142,7 @@ const TasksModuleWithSidebar: React.FC = () => {
 
   const sidebarRecords = [
     { id: 'team', label: 'Équipe', icon: UsersIcon },
-    { id: 'clients', label: 'Clients', icon: UserCheck },
+    { id: 'clients', label: t('navigation.clients'), icon: UserCheck },
   ];
 
   const getProgressColor = (progress: number) => {
@@ -185,7 +187,7 @@ const TasksModuleWithSidebar: React.FC = () => {
 
       {/* Description */}
       {task.description && (
-        <p className="text-xs text-gray-500 mb-3">{task.description}</p>
+        <p className="text-xs text-gray-700 mb-3">{task.description}</p>
       )}
 
       {/* Progress Bar */}
@@ -216,20 +218,20 @@ const TasksModuleWithSidebar: React.FC = () => {
 
           {/* Attachments */}
           {task.attachments ? (
-            <span className="text-xs text-gray-500 flex items-center gap-1">
+            <span className="text-xs text-gray-700 flex items-center gap-1">
               📎 {task.attachments}
             </span>
           ) : null}
 
           {/* Comments */}
-          <span className="text-xs text-gray-500 flex items-center gap-1">
+          <span className="text-xs text-gray-700 flex items-center gap-1">
             💬 {task.comments || 0}
           </span>
         </div>
 
         {/* Action Menu */}
         <button className="p-1 hover:bg-gray-100 rounded">
-          <MoreVertical className="w-4 h-4 text-gray-400" />
+          <MoreVertical className="w-4 h-4 text-gray-700" />
         </button>
       </div>
     </div>
@@ -247,7 +249,7 @@ const TasksModuleWithSidebar: React.FC = () => {
             </div>
             <div>
               <span className="font-bold text-lg text-gray-900">WiseBook</span>
-              <p className="text-xs text-gray-500">Gestion des tâches</p>
+              <p className="text-xs text-gray-700">Gestion des tâches</p>
             </div>
           </div>
         </div>
@@ -255,7 +257,7 @@ const TasksModuleWithSidebar: React.FC = () => {
         {/* Search */}
         <div className="px-4 py-3 border-b border-gray-200">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
             <input
               type="text"
               placeholder="Rechercher..."
@@ -267,7 +269,7 @@ const TasksModuleWithSidebar: React.FC = () => {
         {/* Main Navigation */}
         <div className="flex-1 px-4 py-4">
           <div className="mb-6">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">PRINCIPAL</p>
+            <p className="text-xs text-gray-700 uppercase tracking-wider mb-3">PRINCIPAL</p>
             <div className="space-y-1">
               {/* Tasks - Active */}
               <button
@@ -314,7 +316,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                     <span className="text-sm font-medium">{item.label}</span>
                   </div>
                   {item.count > 0 && (
-                    <span className="text-xs text-gray-400">{item.count}</span>
+                    <span className="text-xs text-gray-700">{item.count}</span>
                   )}
                 </button>
               ))}
@@ -323,7 +325,7 @@ const TasksModuleWithSidebar: React.FC = () => {
 
           {/* Records Section */}
           <div className="mb-6">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">GESTION</p>
+            <p className="text-xs text-gray-700 uppercase tracking-wider mb-3">GESTION</p>
             <div className="space-y-1">
               {sidebarRecords.map(item => (
                 <button
@@ -342,7 +344,7 @@ const TasksModuleWithSidebar: React.FC = () => {
         <div className="px-4 py-4 border-t border-gray-200">
           {/* Retour Dashboard */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors mb-2"
           >
             <Home className="w-4 h-4" />
@@ -351,10 +353,9 @@ const TasksModuleWithSidebar: React.FC = () => {
 
           {/* Settings */}
           <button
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
-          >
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors" aria-label="Paramètres">
             <Settings className="w-4 h-4" />
-            <span className="text-sm font-medium">Paramètres</span>
+            <span className="text-sm font-medium">{t('navigation.settings')}</span>
           </button>
 
           {/* User Profile */}
@@ -365,7 +366,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">Utilisateur</p>
-                <p className="text-xs text-gray-500">user@wisebook.com</p>
+                <p className="text-xs text-gray-700">user@wisebook.com</p>
               </div>
             </div>
           </div>
@@ -378,7 +379,7 @@ const TasksModuleWithSidebar: React.FC = () => {
         <div className="bg-white border-b px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-6">
-              <h1 className="text-xl font-semibold text-gray-900">Tableau de bord</h1>
+              <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
               <select className="text-sm text-gray-600 border-0 focus:ring-0">
                 <option>Tâches quotidiennes</option>
                 <option>Tâches hebdomadaires</option>
@@ -401,8 +402,8 @@ const TasksModuleWithSidebar: React.FC = () => {
 
           {/* Date Navigation */}
           <div className="flex items-center gap-4 mt-4">
-            <span className="text-sm text-gray-500">Mars 2024</span>
-            <span className="text-xs text-gray-400">
+            <span className="text-sm text-gray-700">Mars 2024</span>
+            <span className="text-xs text-gray-700">
               Aujourd'hui : {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
           </div>
@@ -418,8 +419,8 @@ const TasksModuleWithSidebar: React.FC = () => {
                   <div className="w-3 h-3 rounded-full bg-[#6A8A82]"></div>
                   <h3 className="font-semibold text-gray-700">À faire</h3>
                 </div>
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <Plus className="w-4 h-4 text-gray-400" />
+                <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
+                  <Plus className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
               <div className="flex-1 space-y-3 bg-gray-50 rounded-lg p-3">
@@ -434,10 +435,10 @@ const TasksModuleWithSidebar: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
-                  <h3 className="font-semibold text-gray-700">En cours</h3>
+                  <h3 className="font-semibold text-gray-700">{t('status.inProgress')}</h3>
                 </div>
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <Plus className="w-4 h-4 text-gray-400" />
+                <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
+                  <Plus className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
               <div className="flex-1 space-y-3 bg-gray-50 rounded-lg p-3">
@@ -454,8 +455,8 @@ const TasksModuleWithSidebar: React.FC = () => {
                   <div className="w-3 h-3 rounded-full bg-[#B87333]"></div>
                   <h3 className="font-semibold text-gray-700">En révision</h3>
                 </div>
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <Plus className="w-4 h-4 text-gray-400" />
+                <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
+                  <Plus className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
               <div className="flex-1 space-y-3 bg-gray-50 rounded-lg p-3">
@@ -470,10 +471,10 @@ const TasksModuleWithSidebar: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
-                  <h3 className="font-semibold text-gray-700">Terminé</h3>
+                  <h3 className="font-semibold text-gray-700">{t('status.completed')}</h3>
                 </div>
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <Plus className="w-4 h-4 text-gray-400" />
+                <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
+                  <Plus className="w-4 h-4 text-gray-700" />
                 </button>
               </div>
               <div className="flex-1 space-y-3 bg-gray-50 rounded-lg p-3">

@@ -290,7 +290,7 @@ const CollaborationModule: React.FC = () => {
 
           {/* Recherche */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
             <input
               type="text"
               placeholder="Rechercher..."
@@ -305,9 +305,9 @@ const CollaborationModule: React.FC = () => {
         <div className="flex-1 overflow-y-auto">
           <div className="p-2">
             <div className="flex items-center justify-between px-2 py-1 mb-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase">Canaux</span>
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <Plus className="w-3 h-3 text-gray-500" />
+              <span className="text-xs font-semibold text-gray-700 uppercase">Canaux</span>
+              <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
+                <Plus className="w-3 h-3 text-gray-700" />
               </button>
             </div>
 
@@ -332,7 +332,7 @@ const CollaborationModule: React.FC = () => {
                     )}
                   </div>
                 </div>
-                {channel.isPinned && <Pin className="w-3 h-3 text-gray-400" />}
+                {channel.isPinned && <Pin className="w-3 h-3 text-gray-700" />}
               </button>
             ))}
           </div>
@@ -340,9 +340,9 @@ const CollaborationModule: React.FC = () => {
           {/* Messages directs */}
           <div className="p-2 border-t">
             <div className="flex items-center justify-between px-2 py-1 mb-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase">Messages directs</span>
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <UserPlus className="w-3 h-3 text-gray-500" />
+              <span className="text-xs font-semibold text-gray-700 uppercase">Messages directs</span>
+              <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
+                <UserPlus className="w-3 h-3 text-gray-700" />
               </button>
             </div>
 
@@ -373,7 +373,7 @@ const CollaborationModule: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 truncate">{channel.lastMessage}</p>
+                  <p className="text-xs text-gray-700 truncate">{channel.lastMessage}</p>
                 </div>
               </button>
             ))}
@@ -391,10 +391,10 @@ const CollaborationModule: React.FC = () => {
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium">Marie Dupont</p>
-              <p className="text-xs text-gray-500">En ligne</p>
+              <p className="text-xs text-gray-700">En ligne</p>
             </div>
-            <button className="p-1 hover:bg-gray-200 rounded">
-              <Settings className="w-4 h-4 text-gray-500" />
+            <button className="p-1 hover:bg-gray-200 rounded" aria-label="Paramètres">
+              <Settings className="w-4 h-4 text-gray-700" />
             </button>
           </div>
         </div>
@@ -406,7 +406,7 @@ const CollaborationModule: React.FC = () => {
         <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {currentChannel?.type === 'channel' ? (
-              <Hash className="w-5 h-5 text-gray-500" />
+              <Hash className="w-5 h-5 text-gray-700" />
             ) : (
               <div className="relative">
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
@@ -420,7 +420,7 @@ const CollaborationModule: React.FC = () => {
             <div>
               <h3 className="font-semibold text-gray-900">{currentChannel?.name}</h3>
               {currentChannel?.description && (
-                <p className="text-xs text-gray-500">{currentChannel.description}</p>
+                <p className="text-xs text-gray-700">{currentChannel.description}</p>
               )}
             </div>
           </div>
@@ -468,8 +468,8 @@ const CollaborationModule: React.FC = () => {
                     <div className="flex-1">
                       <div className={`flex items-baseline space-x-2 mb-1 ${msg.senderId === 'user2' ? 'justify-end' : ''}`}>
                         <span className="text-sm font-medium text-gray-900">{msg.sender}</span>
-                        <span className="text-xs text-gray-500">{formatTime(msg.timestamp)}</span>
-                        {msg.edited && <span className="text-xs text-gray-400">(modifié)</span>}
+                        <span className="text-xs text-gray-700">{formatTime(msg.timestamp)}</span>
+                        {msg.edited && <span className="text-xs text-gray-700">(modifié)</span>}
                       </div>
 
                       {/* Reply to */}
@@ -492,11 +492,11 @@ const CollaborationModule: React.FC = () => {
                         <div className="mt-2 space-y-2">
                           {msg.attachments.map(att => (
                             <div key={att.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-                              <File className="w-4 h-4 text-gray-500" />
+                              <File className="w-4 h-4 text-gray-700" />
                               <span className="text-sm text-gray-700 flex-1">{att.name}</span>
-                              <span className="text-xs text-gray-500">{formatFileSize(att.size)}</span>
-                              <button className="p-1 hover:bg-gray-200 rounded">
-                                <Download className="w-3 h-3 text-gray-500" />
+                              <span className="text-xs text-gray-700">{formatFileSize(att.size)}</span>
+                              <button className="p-1 hover:bg-gray-200 rounded" aria-label="Télécharger">
+                                <Download className="w-3 h-3 text-gray-700" />
                               </button>
                             </div>
                           ))}
@@ -515,8 +515,8 @@ const CollaborationModule: React.FC = () => {
                               <span className="text-gray-600">{reaction.users.length}</span>
                             </button>
                           ))}
-                          <button className="p-1 hover:bg-gray-100 rounded-full">
-                            <Plus className="w-3 h-3 text-gray-400" />
+                          <button className="p-1 hover:bg-gray-100 rounded-full" aria-label="Ajouter">
+                            <Plus className="w-3 h-3 text-gray-700" />
                           </button>
                         </div>
                       )}
@@ -527,7 +527,7 @@ const CollaborationModule: React.FC = () => {
 
               {/* Indicateur de frappe */}
               {isTyping && (
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <div className="flex items-center space-x-2 text-sm text-gray-700">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -542,7 +542,7 @@ const CollaborationModule: React.FC = () => {
             <div className="bg-white border-t p-4">
               <div className="flex items-end space-x-2">
                 <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Paperclip className="w-5 h-5 text-gray-500" />
+                  <Paperclip className="w-5 h-5 text-gray-700" />
                 </button>
 
                 <div className="flex-1">
@@ -558,7 +558,7 @@ const CollaborationModule: React.FC = () => {
                 </div>
 
                 <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Smile className="w-5 h-5 text-gray-500" />
+                  <Smile className="w-5 h-5 text-gray-700" />
                 </button>
 
                 <button
@@ -567,7 +567,7 @@ const CollaborationModule: React.FC = () => {
                   className={`p-2 rounded-lg transition-colors ${
                     message.trim()
                       ? 'bg-[#6A8A82] hover:bg-[#5A7A72] text-white'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 cursor-not-allowed'
                   }`}
                 >
                   <Send className="w-5 h-5" />
@@ -594,7 +594,7 @@ const CollaborationModule: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.role}</p>
+                      <p className="text-xs text-gray-700">{user.role}</p>
                     </div>
                   </div>
                 ))}

@@ -330,7 +330,7 @@ const SecurityProfilesManager: React.FC = () => {
 
   const renderPermissionCell = (hasPermission: boolean, permissionType: string) => {
     if (!hasPermission) {
-      return <span className="text-gray-400 text-xs">-</span>;
+      return <span className="text-gray-700 text-xs">-</span>;
     }
     
     const colors = {
@@ -419,7 +419,7 @@ const SecurityProfilesManager: React.FC = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{profile.name}</h3>
-                          <span className="text-xs text-gray-500">{profile.code}</span>
+                          <span className="text-xs text-gray-700">{profile.code}</span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -502,14 +502,14 @@ const SecurityProfilesManager: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Module
                   </th>
                   {securityProfiles.map((profile) => (
-                    <th key={profile.id} className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th key={profile.id} className="px-3 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       <div className="flex flex-col items-center">
                         <span>{profile.code}</span>
-                        <span className="text-xs text-gray-400">{profile.assignedUsers} users</span>
+                        <span className="text-xs text-gray-700">{profile.assignedUsers} users</span>
                       </div>
                     </th>
                   ))}
@@ -526,7 +526,7 @@ const SecurityProfilesManager: React.FC = () => {
                           <ModuleIcon className="h-5 w-5 text-gray-600" />
                           <div>
                             <div className="font-medium text-gray-900">{module.name}</div>
-                            <div className="text-xs text-gray-500">{module.description}</div>
+                            <div className="text-xs text-gray-700">{module.description}</div>
                           </div>
                         </div>
                       </td>
@@ -535,7 +535,7 @@ const SecurityProfilesManager: React.FC = () => {
                         if (!modulePerms) {
                           return (
                             <td key={profile.id} className="px-3 py-4 text-center">
-                              <span className="text-gray-400">-</span>
+                              <span className="text-gray-700">-</span>
                             </td>
                           );
                         }

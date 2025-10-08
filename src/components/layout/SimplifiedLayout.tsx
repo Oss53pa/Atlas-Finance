@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { 
@@ -17,6 +18,7 @@ interface MenuItem {
 }
 
 const SimplifiedLayout: React.FC = () => {
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, themeType, setTheme } = useTheme();
@@ -31,32 +33,32 @@ const SimplifiedLayout: React.FC = () => {
   const menuItems: MenuItem[] = [
     {
       id: 'dashboard',
-      label: 'Tableau de bord',
+      label: t('dashboard.title'),
       icon: <LayoutDashboard className="w-5 h-5" />,
       path: '/dashboard'
     },
     {
       id: 'accounting',
-      label: 'Comptabilité',
+      label: t('accounting.title'),
       icon: <Calculator className="w-5 h-5" />,
       path: '/accounting',
       badge: '3'
     },
     {
       id: 'recouvrement',
-      label: 'Recouvrement',
+      label: t('thirdParty.collection'),
       icon: <Receipt className="w-5 h-5" />,
       path: '/recouvrement'
     },
     {
       id: 'customers',
-      label: 'Clients',
+      label: t('navigation.clients'),
       icon: <Users className="w-5 h-5" />,
       path: '/customers'
     },
     {
       id: 'treasury',
-      label: 'Trésorerie',
+      label: t('navigation.treasury'),
       icon: <PiggyBank className="w-5 h-5" />,
       path: '/treasury'
     },
@@ -68,7 +70,7 @@ const SimplifiedLayout: React.FC = () => {
     },
     {
       id: 'settings',
-      label: 'Paramètres',
+      label: t('navigation.settings'),
       icon: <Settings className="w-5 h-5" />,
       path: '/settings'
     }
@@ -100,13 +102,13 @@ const SimplifiedLayout: React.FC = () => {
             {sidebarOpen && (
               <div>
                 <h1 className="text-white font-bold text-lg">WiseBook</h1>
-                <p className="text-gray-400 text-xs">ERP Professionnel</p>
+                <p className="text-gray-700 text-xs">ERP Professionnel</p>
               </div>
             )}
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-700 hover:text-white transition-colors"
           >
             <ChevronLeft className={cn(
               "w-5 h-5 transition-transform",
@@ -130,7 +132,7 @@ const SimplifiedLayout: React.FC = () => {
             >
               <div className={cn(
                 'transition-colors',
-                isActive(item.path) ? 'text-[var(--color-primary)]' : 'text-gray-400 group-hover:text-white'
+                isActive(item.path) ? 'text-[var(--color-primary)]' : 'text-gray-700 group-hover:text-white'
               )}>
                 {item.icon}
               </div>
@@ -138,7 +140,7 @@ const SimplifiedLayout: React.FC = () => {
                 <>
                   <span className={cn(
                     'flex-1 text-left text-sm font-medium transition-colors',
-                    isActive(item.path) ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                    isActive(item.path) ? 'text-white' : 'text-gray-700 group-hover:text-white'
                   )}>
                     {item.label}
                   </span>
@@ -170,7 +172,7 @@ const SimplifiedLayout: React.FC = () => {
             {sidebarOpen && (
               <div className="flex-1">
                 <p className="text-sm font-medium text-white">Admin</p>
-                <p className="text-xs text-gray-400">admin@wisebook.com</p>
+                <p className="text-xs text-gray-700">admin@wisebook.com</p>
               </div>
             )}
           </div>
@@ -188,10 +190,10 @@ const SimplifiedLayout: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-white font-bold text-lg">WiseBook</h1>
-                  <p className="text-gray-400 text-xs">ERP Professionnel</p>
+                  <p className="text-gray-700 text-xs">ERP Professionnel</p>
                 </div>
               </div>
-              <button onClick={() => setMobileMenuOpen(false)} className="text-gray-400">
+              <button onClick={() => setMobileMenuOpen(false)} className="text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -211,13 +213,13 @@ const SimplifiedLayout: React.FC = () => {
                 >
                   <div className={cn(
                     'transition-colors',
-                    isActive(item.path) ? 'text-[var(--color-primary)]' : 'text-gray-400'
+                    isActive(item.path) ? 'text-[var(--color-primary)]' : 'text-gray-700'
                   )}>
                     {item.icon}
                   </div>
                   <span className={cn(
                     'flex-1 text-left text-sm font-medium',
-                    isActive(item.path) ? 'text-white' : 'text-gray-400'
+                    isActive(item.path) ? 'text-white' : 'text-gray-700'
                   )}>
                     {item.label}
                   </span>
@@ -348,7 +350,7 @@ const SimplifiedLayout: React.FC = () => {
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                     >
                       <Settings className="w-4 h-4" />
-                      <span className="text-sm">Paramètres</span>
+                      <span className="text-sm">{t('navigation.settings')}</span>
                     </button>
                     <hr className="my-2 border-[var(--color-border)]" />
                     <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] text-[var(--color-error)] transition-colors">

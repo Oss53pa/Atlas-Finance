@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, Award,
   Activity, Briefcase, Globe, BarChart3, PieChart, LineChart,
@@ -37,6 +38,7 @@ ChartJS.register(
 );
 
 const ExecutiveDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
 
@@ -145,11 +147,11 @@ const ExecutiveDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ahead': return 'text-green-600 bg-green-100';
-      case 'on-track': return 'text-blue-600 bg-blue-100';
-      case 'at-risk': return 'text-orange-600 bg-orange-100';
-      case 'delayed': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'ahead': return 'text-[var(--color-success)] bg-[var(--color-success-lighter)]';
+      case 'on-track': return 'text-[var(--color-primary)] bg-[var(--color-primary-lighter)]';
+      case 'at-risk': return 'text-[var(--color-warning)] bg-[var(--color-warning-lighter)]';
+      case 'delayed': return 'text-[var(--color-error)] bg-[var(--color-error-lighter)]';
+      default: return 'text-[var(--color-text-primary)] bg-[var(--color-background-hover)]';
     }
   };
 
@@ -182,13 +184,13 @@ const ExecutiveDashboard: React.FC = () => {
               onChange={useCallback((e) => setSelectedPeriod(e.target.value), [])}
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
             >
-              <option value="day">Aujourd'hui</option>
+              <option value="day">{t('common.today')}</option>
               <option value="week">Cette semaine</option>
               <option value="month">Ce mois</option>
               <option value="quarter">Ce trimestre</option>
               <option value="year">Cette année</option>
             </select>
-            <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background)] transition-colors">
+            <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background)] transition-colors" aria-label="Actualiser">
               <RefreshCw className="w-5 h-5 text-[var(--color-text-secondary)]" />
             </button>
             <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2">
@@ -202,10 +204,10 @@ const ExecutiveDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-green-600" />
+              <div className="p-2 bg-[var(--color-success-lighter)] rounded-lg">
+                <DollarSign className="w-6 h-6 text-[var(--color-success)]" />
               </div>
-              <span className="text-xs text-green-600 font-medium">
+              <span className="text-xs text-[var(--color-success)] font-medium">
                 +{executiveMetrics.revenue.growth}%
               </span>
             </div>
@@ -216,9 +218,9 @@ const ExecutiveDashboard: React.FC = () => {
               Chiffre d'Affaires
             </div>
             <div className="mt-3 flex items-center text-xs">
-              <div className="flex-1 bg-gray-200 rounded-full h-2">
+              <div className="flex-1 bg-[var(--color-border)] rounded-full h-2">
                 <div 
-                  className="bg-green-500 h-2 rounded-full"
+                  className="bg-[var(--color-success)] h-2 rounded-full"
                   style={{ width: `${executiveMetrics.revenue.achievement}%` }}
                 />
               </div>
@@ -230,10 +232,10 @@ const ExecutiveDashboard: React.FC = () => {
 
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-[var(--color-primary-lighter)] rounded-lg">
+                <TrendingUp className="w-6 h-6 text-[var(--color-primary)]" />
               </div>
-              <span className="text-xs text-blue-600 font-medium">
+              <span className="text-xs text-[var(--color-primary)] font-medium">
                 {executiveMetrics.profitability.netMargin}%
               </span>
             </div>
@@ -257,10 +259,10 @@ const ExecutiveDashboard: React.FC = () => {
 
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Users className="w-6 h-6 text-purple-600" />
+              <div className="p-2 bg-[var(--color-info-lighter)] rounded-lg">
+                <Users className="w-6 h-6 text-[var(--color-info)]" />
               </div>
-              <span className="text-xs text-purple-600 font-medium">
+              <span className="text-xs text-[var(--color-info)] font-medium">
                 NPS: 72
               </span>
             </div>
@@ -284,10 +286,10 @@ const ExecutiveDashboard: React.FC = () => {
 
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Globe className="w-6 h-6 text-orange-600" />
+              <div className="p-2 bg-[var(--color-warning-lighter)] rounded-lg">
+                <Globe className="w-6 h-6 text-[var(--color-warning)]" />
               </div>
-              <span className="text-xs text-orange-600 font-medium">
+              <span className="text-xs text-[var(--color-warning)] font-medium">
                 +2.3pts
               </span>
             </div>
@@ -332,13 +334,13 @@ const ExecutiveDashboard: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div className="flex-1 bg-[var(--color-border)] rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full ${
-                          goal.status === 'ahead' ? 'bg-green-500' :
-                          goal.status === 'on-track' ? 'bg-blue-500' :
-                          goal.status === 'at-risk' ? 'bg-orange-500' :
-                          'bg-red-500'
+                          goal.status === 'ahead' ? 'bg-[var(--color-success)]' :
+                          goal.status === 'on-track' ? 'bg-[var(--color-primary)]' :
+                          goal.status === 'at-risk' ? 'bg-[var(--color-warning)]' :
+                          'bg-[var(--color-error)]'
                         }`}
                         style={{ width: `${goal.progress}%` }}
                       />
@@ -460,13 +462,13 @@ const ExecutiveDashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="inline-flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div className="w-24 bg-[var(--color-border)] rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full ${
-                              dept.score >= 90 ? 'bg-green-500' :
-                              dept.score >= 75 ? 'bg-blue-500' :
-                              dept.score >= 60 ? 'bg-orange-500' :
-                              'bg-red-500'
+                              dept.score >= 90 ? 'bg-[var(--color-success)]' :
+                              dept.score >= 75 ? 'bg-[var(--color-primary)]' :
+                              dept.score >= 60 ? 'bg-[var(--color-warning)]' :
+                              'bg-[var(--color-error)]'
                             }`}
                             style={{ width: `${dept.score}%` }}
                           />
@@ -476,9 +478,9 @@ const ExecutiveDashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span className={`font-medium ${
-                        dept.budget > 100 ? 'text-red-600' :
-                        dept.budget > 90 ? 'text-orange-600' :
-                        'text-green-600'
+                        dept.budget > 100 ? 'text-[var(--color-error)]' :
+                        dept.budget > 90 ? 'text-[var(--color-warning)]' :
+                        'text-[var(--color-success)]'
                       }`}>
                         {dept.budget}%
                       </span>
@@ -488,10 +490,10 @@ const ExecutiveDashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        dept.efficiency >= 90 ? 'bg-green-100 text-green-700' :
-                        dept.efficiency >= 80 ? 'bg-blue-100 text-blue-700' :
-                        dept.efficiency >= 70 ? 'bg-orange-100 text-orange-700' :
-                        'bg-red-100 text-red-700'
+                        dept.efficiency >= 90 ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+                        dept.efficiency >= 80 ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+                        dept.efficiency >= 70 ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                        'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]'
                       }`}>
                         {dept.efficiency}%
                       </span>
@@ -543,7 +545,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Taux de Conversion</span>
               </div>
               <div className="text-xl font-bold text-[var(--color-text-primary)]">24.5%</div>
-              <div className="text-xs text-green-600">+2.3% vs mois dernier</div>
+              <div className="text-xs text-[var(--color-success)]">+2.3% vs mois dernier</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -551,7 +553,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Délai Moyen</span>
               </div>
               <div className="text-xl font-bold text-[var(--color-text-primary)]">3.2 jours</div>
-              <div className="text-xs text-green-600">-0.5j vs objectif</div>
+              <div className="text-xs text-[var(--color-success)]">-0.5j vs objectif</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -559,7 +561,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Qualité</span>
               </div>
               <div className="text-xl font-bold text-[var(--color-text-primary)]">98.5%</div>
-              <div className="text-xs text-green-600">Top niveau</div>
+              <div className="text-xs text-[var(--color-success)]">Top niveau</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -567,7 +569,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Coût d'Acquisition</span>
               </div>
               <div className="text-xl font-bold text-[var(--color-text-primary)]">125€</div>
-              <div className="text-xs text-orange-600">+5€ vs objectif</div>
+              <div className="text-xs text-[var(--color-warning)]">+5€ vs objectif</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -575,7 +577,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Rétention</span>
               </div>
               <div className="text-xl font-bold text-[var(--color-text-primary)]">94%</div>
-              <div className="text-xs text-green-600">+1% vs trimestre</div>
+              <div className="text-xs text-[var(--color-success)]">+1% vs trimestre</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -583,7 +585,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Objectifs Atteints</span>
               </div>
               <div className="text-xl font-bold text-[var(--color-text-primary)]">87%</div>
-              <div className="text-xs text-blue-600">12/14 objectifs</div>
+              <div className="text-xs text-[var(--color-primary)]">12/14 objectifs</div>
             </div>
           </div>
         </div>

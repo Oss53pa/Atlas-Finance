@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Search, Filter, Download, Eye, Edit, Trash2 } from 'lucide-react';
 
 interface Column {
@@ -27,6 +28,7 @@ interface KadsTableProps {
 }
 
 const KadsTable: React.FC<KadsTableProps> = ({
+  const { t } = useLanguage();
   title,
   columns,
   data,
@@ -55,7 +57,7 @@ const KadsTable: React.FC<KadsTableProps> = ({
             <div className="flex items-center space-x-3">
               {searchable && (
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                   <input
                     type="text"
                     placeholder="Rechercher..."
@@ -68,18 +70,16 @@ const KadsTable: React.FC<KadsTableProps> = ({
               {filterable && (
                 <button 
                   onClick={onFilter}
-                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Filter className="w-4 h-4 text-gray-500" />
+                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" aria-label="Filtrer">
+                  <Filter className="w-4 h-4 text-gray-700" />
                 </button>
               )}
               
               {exportable && (
                 <button 
                   onClick={onExport}
-                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Download className="w-4 h-4 text-gray-500" />
+                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" aria-label="Télécharger">
+                  <Download className="w-4 h-4 text-gray-700" />
                 </button>
               )}
             </div>
@@ -96,7 +96,7 @@ const KadsTable: React.FC<KadsTableProps> = ({
                 <th
                   key={column.key}
                   className={`
-                    px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider
+                    px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider
                     ${column.align === 'center' ? 'text-center' : 
                       column.align === 'right' ? 'text-right' : 'text-left'}
                   `}
@@ -106,7 +106,7 @@ const KadsTable: React.FC<KadsTableProps> = ({
                 </th>
               ))}
               {actions && (
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
               )}
@@ -149,7 +149,7 @@ const KadsTable: React.FC<KadsTableProps> = ({
                         <button 
                           onClick={() => onEdit(row)}
                           className="text-green-600 hover:text-green-800 transition-colors"
-                          title="Modifier"
+                          title={t('common.edit')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -159,7 +159,7 @@ const KadsTable: React.FC<KadsTableProps> = ({
                         <button 
                           onClick={() => onDelete(row)}
                           className="text-red-600 hover:text-red-800 transition-colors"
-                          title="Supprimer"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -175,7 +175,7 @@ const KadsTable: React.FC<KadsTableProps> = ({
       
       {data.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">Aucune donnée disponible</p>
+          <p className="text-gray-700">Aucune donnée disponible</p>
         </div>
       )}
     </div>

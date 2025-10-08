@@ -1,3 +1,11 @@
+// Migration vers le nouveau système WiseBook API
+import { accountingService } from './accounting-migration.service';
+
+// Export de compatibilité - redirige vers le nouveau système
+export * from './accounting-migration.service';
+export default accountingService;
+
+// Ancien code conservé pour référence, mais utilise maintenant le nouveau backend
 import { apiService } from './api';
 
 // Types pour l'API Comptabilité

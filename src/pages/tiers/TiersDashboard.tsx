@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Users, Building2, UserCheck, Clock, DollarSign, TrendingUp,
@@ -15,6 +16,7 @@ import {
 import { TiersKPI, ClientAnalytics, SupplierAnalytics, ThirdParty, Client, Supplier } from '../../types/tiers';
 
 const TiersDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
@@ -109,7 +111,7 @@ const TiersDashboard: React.FC = () => {
       user: 'Marie Kouam',
       timestamp: '2024-09-19T10:30:00Z',
       icon: Users,
-      color: 'text-green-600 bg-green-100'
+      color: 'text-[var(--color-success)] bg-[var(--color-success-lighter)]'
     },
     {
       id: '2',
@@ -127,7 +129,7 @@ const TiersDashboard: React.FC = () => {
       user: 'Sophie Ndong',
       timestamp: '2024-09-19T08:45:00Z',
       icon: Phone,
-      color: 'text-orange-600 bg-orange-100'
+      color: 'text-[var(--color-warning)] bg-[var(--color-warning-lighter)]'
     },
     {
       id: '4',
@@ -142,13 +144,13 @@ const TiersDashboard: React.FC = () => {
 
   const tabs = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
-    { id: 'clients', label: 'Clients', icon: Users, badge: kpis.totalClients.toString() },
-    { id: 'fournisseurs', label: 'Fournisseurs', icon: Building2, badge: kpis.totalFournisseurs.toString() },
+    { id: 'clients', label: t('navigation.clients'), icon: Users, badge: kpis.totalClients.toString() },
+    { id: 'fournisseurs', label: t('navigation.suppliers'), icon: Building2, badge: kpis.totalFournisseurs.toString() },
     { id: 'contacts', label: 'Contacts', icon: UserCheck, badge: kpis.totalContacts.toString() },
     { id: 'prospects', label: 'Prospects', icon: Target, badge: '47' },
     { id: 'partenaires', label: 'Partenaires', icon: Handshake, badge: '23' },
-    { id: 'recouvrement', label: 'Recouvrement', icon: DollarSign },
-    { id: 'lettrage', label: 'Lettrage', icon: FileText },
+    { id: 'recouvrement', label: t('thirdParty.collection'), icon: DollarSign },
+    { id: 'lettrage', label: t('thirdParty.reconciliation'), icon: FileText },
     { id: 'collaboration', label: 'Collaboration', icon: MessageSquare }
   ];
 
@@ -171,13 +173,13 @@ const TiersDashboard: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'EXCELLENT': 'bg-green-100 text-green-800',
+      'EXCELLENT': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
       'BON': 'bg-[#6A8A82]/10 text-[#6A8A82]',
-      'MOYEN': 'bg-yellow-100 text-yellow-800',
-      'DIFFICILE': 'bg-orange-100 text-orange-800',
-      'CRITIQUE': 'bg-red-100 text-red-800'
+      'MOYEN': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
+      'DIFFICILE': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]',
+      'CRITIQUE': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'
     };
-    return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800';
+    return statusConfig[status as keyof typeof statusConfig] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const COLORS = ['#6A8A82', '#B87333', '#5A6B65', '#9B6B2A', '#7A9B94'];
@@ -190,10 +192,10 @@ const TiersDashboard: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Dashboard</span>
+              <span className="text-sm font-semibold text-[#444444]">{t('dashboard.title')}</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -208,8 +210,8 @@ const TiersDashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 bg-gray-50 rounded-lg px-3 py-2">
-              <Search className="w-4 h-4 text-gray-400" />
+            <div className="flex items-center space-x-2 bg-[var(--color-background-secondary)] rounded-lg px-3 py-2">
+              <Search className="w-4 h-4 text-[var(--color-text-secondary)]" />
               <input
                 type="text"
                 placeholder="Rechercher un tiers..."
@@ -221,22 +223,20 @@ const TiersDashboard: React.FC = () => {
 
             <button
               onClick={handleRefresh}
-              className={`p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors ${loading ? 'animate-spin' : ''}`}
-            >
+              className={`p-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors ${loading ? 'animate-spin' : ''}`} aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[#444444]" />
             </button>
 
             <button
               onClick={handleExport}
-              className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors"
-            >
+              className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
-              <span className="text-sm font-semibold">Exporter</span>
+              <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
 
             <button
               onClick={() => navigate('/tiers/nouveau')}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-semibold">Nouveau Tiers</span>
@@ -245,7 +245,7 @@ const TiersDashboard: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-1 mt-6 bg-gray-100 rounded-lg p-1">
+        <div className="flex space-x-1 mt-6 bg-[var(--color-background-hover)] rounded-lg p-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -278,7 +278,7 @@ const TiersDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#666666]">Total Clients</p>
                   <p className="text-2xl font-bold text-[#191919]">{kpis.totalClients}</p>
-                  <p className="text-xs text-green-600">+{kpis.nouveauxClientsMois} ce mois</p>
+                  <p className="text-xs text-[var(--color-success)]">+{kpis.nouveauxClientsMois} ce mois</p>
                 </div>
                 <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
                   <Users className="w-5 h-5 text-[#6A8A82]" />
@@ -289,7 +289,7 @@ const TiersDashboard: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Fournisseurs</p>
+                  <p className="text-sm text-[#666666]">{t('navigation.suppliers')}</p>
                   <p className="text-2xl font-bold text-[#191919]">{kpis.totalFournisseurs}</p>
                   <p className="text-xs text-[#6A8A82]">Actifs</p>
                 </div>
@@ -304,10 +304,10 @@ const TiersDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#666666]">CA Total</p>
                   <p className="text-2xl font-bold text-[#191919]">{formatCurrency(kpis.chiffreAffairesTotal)}</p>
-                  <p className="text-xs text-green-600">+{kpis.croissanceCA}% vs mois dernier</p>
+                  <p className="text-xs text-[var(--color-success)]">+{kpis.croissanceCA}% vs mois dernier</p>
                 </div>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-[var(--color-success-lighter)] rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />
                 </div>
               </div>
             </div>
@@ -317,10 +317,10 @@ const TiersDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#666666]">Encours Clients</p>
                   <p className="text-2xl font-bold text-[#191919]">{formatCurrency(kpis.encoursClients)}</p>
-                  <p className="text-xs text-orange-600">DSO: {kpis.dsoMoyen} jours</p>
+                  <p className="text-xs text-[var(--color-warning)]">DSO: {kpis.dsoMoyen} jours</p>
                 </div>
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-orange-600" />
+                <div className="w-10 h-10 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-[var(--color-warning)]" />
                 </div>
               </div>
             </div>
@@ -330,10 +330,10 @@ const TiersDashboard: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#666666]">Taux Recouvrement</p>
                   <p className="text-2xl font-bold text-[#191919]">{kpis.tauxRecouvrement}%</p>
-                  <p className="text-xs text-red-600">{formatCurrency(kpis.impayesTotal)} d'impayés</p>
+                  <p className="text-xs text-[var(--color-error)]">{formatCurrency(kpis.impayesTotal)} d'impayés</p>
                 </div>
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-red-600" />
+                <div className="w-10 h-10 bg-[var(--color-error-lighter)] rounded-lg flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-[var(--color-error)]" />
                 </div>
               </div>
             </div>
@@ -394,7 +394,7 @@ const TiersDashboard: React.FC = () => {
               </div>
               <div className="space-y-3">
                 {clientAnalytics.topClients.map((client) => (
-                  <div key={client.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={client.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
                     <div className="flex-1">
                       <p className="font-medium text-[#191919]">{client.nom}</p>
                       <p className="text-sm text-[#666666]">CA: {formatCurrency(client.ca)} • DSO: {client.dso}j</p>

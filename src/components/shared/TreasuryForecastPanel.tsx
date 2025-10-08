@@ -283,7 +283,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                   value={forecastSummary.averageConfidence} 
                   className="h-1"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-700 mt-1">
                   Confiance: {forecastSummary.averageConfidence.toFixed(0)}%
                 </p>
               </div>
@@ -362,7 +362,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                             item.probability > 80 ? 'bg-green-400' :
                             item.probability > 60 ? 'bg-yellow-400' : 'bg-red-400'
                           }`}></div>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-700">
                             {item.probability}% confiance
                           </span>
                         </div>
@@ -449,14 +449,14 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                         </h4>
                         <div className="space-y-2">
                           <div>
-                            <p className="text-xs text-gray-500">Position 30j</p>
+                            <p className="text-xs text-gray-700">Position 30j</p>
                             <p className={`text-lg font-bold ${
                               data?.cash_position_30d >= 0 ? 'text-green-600' : 'text-red-600'
                             }`}>
                               {formatCurrency(data?.cash_position_30d || 0)}
                             </p>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-700">
                             <p>Probabilité: {data?.probability || 0}%</p>
                           </div>
                         </div>
@@ -607,7 +607,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
               <p className="text-xl font-bold text-blue-600">
                 {cashFlowForecast?.performance_metrics?.generation_time_ms || 0}ms
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-700">
                 Objectif: &lt; 2000ms {(cashFlowForecast?.performance_metrics?.generation_time_ms || 0) < 2000 ? '✓' : '✗'}
               </p>
             </div>
@@ -617,7 +617,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
               <p className="text-xl font-bold text-green-600">
                 {formatPercent(cashFlowForecast?.performance_metrics?.forecast_accuracy || 0)}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-700">
                 Objectif: &gt; 85% {(cashFlowForecast?.performance_metrics?.forecast_accuracy || 0) > 85 ? '✓' : '✗'}
               </p>
             </div>
@@ -627,7 +627,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
               <p className="text-xl font-bold text-purple-600">
                 {formatPercent(cashFlowForecast?.performance_metrics?.data_coverage || 0)}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-700">
                 Clients + Fournisseurs intégrés
               </p>
             </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Header {
   name: string;
@@ -11,6 +12,7 @@ interface ContentFunCallsProps {
 }
 
 export const CashFlowCashAccountManagement_content_funCalls: React.FC<ContentFunCallsProps> = ({
+  const { t } = useLanguage();
   contentDrawerActive,
   listFilter,
   headerList
@@ -55,7 +57,7 @@ export const cashFlowCashAccountManagement_items_funCalls = [
   },
   {
     id: 'refresh',
-    title: 'Actualiser',
+    title: t('common.refresh'),
     icon: 'refresh',
     action: 'refresh'
   }

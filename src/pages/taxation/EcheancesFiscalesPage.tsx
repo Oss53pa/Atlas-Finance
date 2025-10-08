@@ -529,7 +529,7 @@ const EcheancesFiscalesPage: React.FC = () => {
                                 )}
                                 <div>
                                   <p className="font-medium text-gray-900">{deadline.nom}</p>
-                                  <p className="text-sm text-gray-500">{deadline.description}</p>
+                                  <p className="text-sm text-gray-700">{deadline.description}</p>
                                   {daysUntil >= 0 ? (
                                     <p className="text-xs text-blue-600">Dans {daysUntil} jour(s)</p>
                                   ) : (

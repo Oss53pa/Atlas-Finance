@@ -4,6 +4,7 @@
  * Gestion complète des fournisseurs avec échéances et lettrage
  */
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,6 +65,7 @@ interface EcheancesDashboard {
 }
 
 const ModernSupplierDashboard: React.FC = () => {
+  const { t } = useLanguage();
   // État principal
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -190,24 +192,24 @@ const ModernSupplierDashboard: React.FC = () => {
 
   const getBadgeColor = (rating: string) => {
     const colors = {
-      'A': 'bg-green-100 text-green-800',
-      'B': 'bg-blue-100 text-blue-800',
-      'C': 'bg-yellow-100 text-yellow-800',
-      'D': 'bg-orange-100 text-orange-800',
-      'E': 'bg-red-100 text-red-800',
+      'A': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'B': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
+      'C': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
+      'D': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]',
+      'E': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]',
     };
-    return colors[rating as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[rating as keyof typeof colors] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'ACTIVE': 'bg-green-100 text-green-800',
-      'QUALIFIED': 'bg-blue-100 text-blue-800',
-      'BLOCKED': 'bg-red-100 text-red-800',
-      'SUSPENDED': 'bg-orange-100 text-orange-800',
-      'ARCHIVED': 'bg-gray-100 text-gray-800',
+      'ACTIVE': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'QUALIFIED': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
+      'BLOCKED': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]',
+      'SUSPENDED': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]',
+      'ARCHIVED': 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]',
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   // Rendu des statistiques principales
@@ -220,13 +222,13 @@ const ModernSupplierDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Fournisseurs</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.total_fournisseurs}</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Total Fournisseurs</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">{stats.total_fournisseurs}</p>
               </div>
-              <Building2 className="h-8 w-8 text-blue-500" />
+              <Building2 className="h-8 w-8 text-[var(--color-primary)]" />
             </div>
             <div className="mt-4">
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-[var(--color-success)]">
                 {stats.fournisseurs_actifs} actifs
               </p>
             </div>
@@ -237,15 +239,15 @@ const ModernSupplierDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Encours Total</p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-sm text-[var(--color-text-primary)]">Encours Total</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">
                   {formaterMontant(stats.encours_total)}
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-500" />
+              <DollarSign className="h-8 w-8 text-[var(--color-success)]" />
             </div>
             <div className="mt-4">
-              <p className="text-sm text-blue-600">
+              <p className="text-sm text-[var(--color-primary)]">
                 {stats.top_encours.length} fournisseurs principaux
               </p>
             </div>
@@ -256,8 +258,8 @@ const ModernSupplierDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Performance Moyenne</p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-sm text-[var(--color-text-primary)]">Performance Moyenne</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">
                   {Math.round(stats.performance_moyenne)}%
                 </p>
               </div>
@@ -273,13 +275,13 @@ const ModernSupplierDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Fournisseurs Bloqués</p>
-                <p className="text-3xl font-bold text-red-600">{stats.fournisseurs_bloques}</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Fournisseurs Bloqués</p>
+                <p className="text-3xl font-bold text-[var(--color-error)]">{stats.fournisseurs_bloques}</p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-500" />
+              <AlertTriangle className="h-8 w-8 text-[var(--color-error)]" />
             </div>
             <div className="mt-4">
-              <p className="text-sm text-red-600">
+              <p className="text-sm text-[var(--color-error)]">
                 Nécessitent une attention
               </p>
             </div>
@@ -297,43 +299,43 @@ const ModernSupplierDashboard: React.FC = () => {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="border-blue-200">
+        <Card className="border-[var(--color-primary-light)]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600">Aujourd'hui</p>
+                <p className="text-sm text-[var(--color-primary)]">{t('common.today')}</p>
                 <p className="text-2xl font-bold">{echeances.aujourd_hui.nombre}</p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.aujourd_hui.montant_total)}
                 </p>
               </div>
-              <Clock className="h-6 w-6 text-blue-500" />
+              <Clock className="h-6 w-6 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-green-200">
+        <Card className="border-[var(--color-success-light)]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600">Cette Semaine</p>
+                <p className="text-sm text-[var(--color-success)]">Cette Semaine</p>
                 <p className="text-2xl font-bold">{echeances.cette_semaine.nombre}</p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.cette_semaine.montant_total)}
                 </p>
               </div>
-              <Calendar className="h-6 w-6 text-green-500" />
+              <Calendar className="h-6 w-6 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-orange-200">
+        <Card className="border-[var(--color-warning-light)]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-600">Ce Mois</p>
+                <p className="text-sm text-[var(--color-warning)]">Ce Mois</p>
                 <p className="text-2xl font-bold">{echeances.ce_mois.nombre}</p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.ce_mois.montant_total)}
                 </p>
               </div>
@@ -342,17 +344,17 @@ const ModernSupplierDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-red-200">
+        <Card className="border-[var(--color-error-light)]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600">En Retard</p>
+                <p className="text-sm text-[var(--color-error)]">En Retard</p>
                 <p className="text-2xl font-bold">{echeances.en_retard.nombre}</p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.en_retard.montant_total)}
                 </p>
               </div>
-              <AlertTriangle className="h-6 w-6 text-red-500" />
+              <AlertTriangle className="h-6 w-6 text-[var(--color-error)]" />
             </div>
           </CardContent>
         </Card>
@@ -448,12 +450,12 @@ const ModernSupplierDashboard: React.FC = () => {
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-gray-900 mb-1">
+            <h3 className="font-semibold text-lg text-[var(--color-text-primary)] mb-1">
               {supplier.legal_name}
             </h3>
-            <p className="text-sm text-gray-500">{supplier.code}</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">{supplier.code}</p>
             {supplier.commercial_name && (
-              <p className="text-sm text-blue-600 italic">{supplier.commercial_name}</p>
+              <p className="text-sm text-[var(--color-primary)] italic">{supplier.commercial_name}</p>
             )}
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -468,26 +470,26 @@ const ModernSupplierDashboard: React.FC = () => {
 
         {/* Informations principales */}
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
             <Building2 className="h-4 w-4" />
             <span>{supplier.supplier_type}</span>
             <span className="text-xs">• {supplier.legal_form}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
             <MapPin className="h-4 w-4" />
             <span>{supplier.city}</span>
           </div>
 
           {supplier.main_phone && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
               <Phone className="h-4 w-4" />
               <span>{supplier.main_phone}</span>
             </div>
           )}
 
           {supplier.email && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
               <Mail className="h-4 w-4" />
               <span>{supplier.email}</span>
             </div>
@@ -497,14 +499,14 @@ const ModernSupplierDashboard: React.FC = () => {
         {/* Encours et performance */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <p className="text-xs text-gray-500">Encours</p>
-            <p className="font-semibold text-blue-600">
+            <p className="text-xs text-[var(--color-text-secondary)]">Encours</p>
+            <p className="font-semibold text-[var(--color-primary)]">
               {formaterMontant(supplier.current_outstanding)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Performance</p>
-            <p className="font-semibold text-green-600">
+            <p className="text-xs text-[var(--color-text-secondary)]">Performance</p>
+            <p className="font-semibold text-[var(--color-success)]">
               {Math.round(supplier.overall_performance)}%
             </p>
           </div>
@@ -529,7 +531,7 @@ const ModernSupplierDashboard: React.FC = () => {
             </Button>
           </div>
           {supplier.last_order_date && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[var(--color-text-secondary)]">
               Dernière cmd: {new Date(supplier.last_order_date).toLocaleDateString('fr-FR')}
             </p>
           )}
@@ -543,8 +545,8 @@ const ModernSupplierDashboard: React.FC = () => {
     if (loading) {
       return (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement des fournisseurs...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
+          <p className="mt-4 text-[var(--color-text-primary)]">Chargement des fournisseurs...</p>
         </div>
       );
     }
@@ -553,8 +555,8 @@ const ModernSupplierDashboard: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Aucun fournisseur trouvé</p>
+            <Building2 className="h-12 w-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+            <p className="text-[var(--color-text-primary)] mb-4">Aucun fournisseur trouvé</p>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Ajouter un fournisseur
@@ -588,9 +590,9 @@ const ModernSupplierDashboard: React.FC = () => {
                   <span className="text-sm font-medium">{type}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold">{count}</span>
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div className="w-20 bg-[var(--color-border)] rounded-full h-2">
                       <div
-                        className="bg-blue-600 h-2 rounded-full"
+                        className="bg-[var(--color-primary)] h-2 rounded-full"
                         style={{ width: `${(count / stats.total_fournisseurs) * 100}%` }}
                       ></div>
                     </div>
@@ -610,15 +612,15 @@ const ModernSupplierDashboard: React.FC = () => {
               {stats.top_encours.map((supplier, index) => (
                 <div key={supplier.code} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center justify-center font-semibold">
+                    <span className="w-6 h-6 bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] rounded-full text-xs flex items-center justify-center font-semibold">
                       {index + 1}
                     </span>
                     <div>
                       <p className="font-medium text-sm">{supplier.legal_name}</p>
-                      <p className="text-xs text-gray-500">{supplier.code}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">{supplier.code}</p>
                     </div>
                   </div>
-                  <span className="text-sm font-semibold text-green-600">
+                  <span className="text-sm font-semibold text-[var(--color-success)]">
                     {formaterMontant(supplier.current_outstanding)}
                   </span>
                 </div>
@@ -635,10 +637,10 @@ const ModernSupplierDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
             Module Fournisseur
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-[var(--color-text-primary)] mt-2">
             Gestion complète des fournisseurs - WiseBook
           </p>
         </div>
@@ -677,10 +679,10 @@ const ModernSupplierDashboard: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="suppliers">Fournisseurs</TabsTrigger>
-          <TabsTrigger value="echeances">Échéances</TabsTrigger>
+          <TabsTrigger value="suppliers">{t('navigation.suppliers')}</TabsTrigger>
+          <TabsTrigger value="echeances">{t('thirdParty.dueDate')}</TabsTrigger>
           <TabsTrigger value="analytics">Analyses</TabsTrigger>
-          <TabsTrigger value="lettrage">Lettrage</TabsTrigger>
+          <TabsTrigger value="lettrage">{t('thirdParty.reconciliation')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
@@ -703,9 +705,9 @@ const ModernSupplierDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">Module échéances détaillé en cours de développement</p>
-                <p className="text-sm text-gray-500 mt-2">
+                <Calendar className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+                <p className="text-[var(--color-text-primary)]">Module échéances détaillé en cours de développement</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-2">
                   Planification paiements, génération SEPA, prévisionnel trésorerie
                 </p>
               </div>
@@ -727,9 +729,9 @@ const ModernSupplierDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Calculator className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">Module lettrage automatique en cours de développement</p>
-                <p className="text-sm text-gray-500 mt-2">
+                <Calculator className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+                <p className="text-[var(--color-text-primary)]">Module lettrage automatique en cours de développement</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-2">
                   Lettrage automatique avec IA, gestion écarts, délettrage
                 </p>
               </div>

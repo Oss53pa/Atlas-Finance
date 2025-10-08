@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2, TrendingUp, BarChart3, Download, ArrowLeft, Home,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 const BilanSYSCOHADAPageV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('synthese');
   const [periode, setPeriode] = useState('current');
@@ -474,7 +476,7 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -521,7 +523,7 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -599,7 +601,7 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -646,7 +648,7 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -717,7 +719,7 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -764,7 +766,7 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -811,7 +813,7 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -884,15 +886,15 @@ const BilanSYSCOHADAPageV2: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 text-gray-700 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                 <div className="text-center py-12">
-                  <p className="text-gray-500 mb-4">Détails en cours de chargement...</p>
-                  <p className="text-sm text-gray-400">Intégration avec la base de données comptable en cours.</p>
+                  <p className="text-gray-700 mb-4">Détails en cours de chargement...</p>
+                  <p className="text-sm text-gray-700">Intégration avec la base de données comptable en cours.</p>
                 </div>
               </div>
             </div>

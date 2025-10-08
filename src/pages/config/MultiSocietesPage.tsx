@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -97,6 +98,7 @@ interface ConsolidationGroup {
 }
 
 const MultiSocietesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
@@ -457,7 +459,7 @@ const MultiSocietesPage: React.FC = () => {
             <TabsTrigger value="companies">Liste des Sociétés</TabsTrigger>
             <TabsTrigger value="consolidation">Consolidation</TabsTrigger>
             <TabsTrigger value="hierarchy">Hiérarchie</TabsTrigger>
-            <TabsTrigger value="settings">Paramètres</TabsTrigger>
+            <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="companies" className="space-y-4">
@@ -466,7 +468,7 @@ const MultiSocietesPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-5">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
                       placeholder="Rechercher une société..."
                       value={searchTerm}
@@ -564,7 +566,7 @@ const MultiSocietesPage: React.FC = () => {
                                 </div>
                                 <div>
                                   <p className="font-semibold text-gray-900">{company.name}</p>
-                                  <p className="text-sm text-gray-500">
+                                  <p className="text-sm text-gray-700">
                                     <Badge variant="outline" className="mr-1">
                                       {company.code}
                                     </Badge>
@@ -576,8 +578,8 @@ const MultiSocietesPage: React.FC = () => {
                             <TableCell>
                               <div className="text-sm">
                                 <p className="font-medium">RCCM: {company.rccm}</p>
-                                <p className="text-gray-500">NIF: {company.nif}</p>
-                                <p className="text-gray-500">{company.currency}</p>
+                                <p className="text-gray-700">NIF: {company.nif}</p>
+                                <p className="text-gray-700">{company.currency}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -585,7 +587,7 @@ const MultiSocietesPage: React.FC = () => {
                                 <span className="text-xl">{getCountryFlag(company.country)}</span>
                                 <div className="text-sm">
                                   <p className="font-medium">{company.city}</p>
-                                  <p className="text-gray-500">{getCountryName(company.country)}</p>
+                                  <p className="text-gray-700">{getCountryName(company.country)}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -606,7 +608,7 @@ const MultiSocietesPage: React.FC = () => {
                                     <Badge variant="outline">
                                       Filiale
                                     </Badge>
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-gray-700 mt-1">
                                       Niveau {company.consolidation_level}
                                     </p>
                                   </div>
@@ -617,15 +619,15 @@ const MultiSocietesPage: React.FC = () => {
                               <div className="text-sm">
                                 <div className="flex items-center space-x-4 mb-1">
                                   <div className="flex items-center space-x-1">
-                                    <Users className="h-3 w-3 text-gray-400" />
+                                    <Users className="h-3 w-3 text-gray-700" />
                                     <span className="text-gray-600">{company.users_count}</span>
                                   </div>
                                   <div className="flex items-center space-x-1">
-                                    <Database className="h-3 w-3 text-gray-400" />
+                                    <Database className="h-3 w-3 text-gray-700" />
                                     <span className="text-gray-600">{company.transactions_count}</span>
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-700">
                                   Dernière activité: {formatDate(company.last_activity)}
                                 </p>
                               </div>
@@ -728,7 +730,7 @@ const MultiSocietesPage: React.FC = () => {
                               Progression Consolidation
                             </label>
                             <Progress value={85} className="mb-2" />
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-700">
                               Dernière consolidation: {formatDate(group.last_consolidation)}
                             </p>
                           </div>
@@ -759,9 +761,9 @@ const MultiSocietesPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <Building2 className="h-16 w-16 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Arbre Hiérarchique</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     Visualisation graphique de la structure du groupe sera disponible prochainement.
                   </p>
                   <Button variant="outline">

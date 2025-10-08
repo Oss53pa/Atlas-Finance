@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   ArrowUpDown,
   Package,
@@ -52,6 +53,7 @@ interface MovementDetailsModalProps {
 }
 
 const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
+  const { t } = useLanguage();
   isOpen,
   onClose,
   movement
@@ -69,7 +71,7 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-700 hover:text-gray-600"
             >
               ×
             </button>
@@ -78,7 +80,7 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
           {/* Movement Header */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.date')}</label>
               <p className="text-sm text-gray-900">{new Date(movement.date).toLocaleDateString()}</p>
             </div>
             <div>
@@ -140,7 +142,7 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
                       <td className="py-4 px-4">
                         <div>
                           <div className="font-medium text-gray-900">{item.name}</div>
-                          <div className="text-sm text-gray-500">{item.sku}</div>
+                          <div className="text-sm text-gray-700">{item.sku}</div>
                         </div>
                       </td>
                       <td className="py-4 px-4 text-right font-mono">
@@ -540,7 +542,7 @@ const InventoryMovements: React.FC = () => {
           {/* Search */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Search movements..."
@@ -667,7 +669,7 @@ const InventoryMovements: React.FC = () => {
                 <tr key={movement.id} className="hover:bg-gray-50">
                   <td className="py-4 px-4">
                     <div className="font-medium text-gray-900">{movement.movementNumber}</div>
-                    <div className="text-sm text-gray-500">{movement.subType}</div>
+                    <div className="text-sm text-gray-700">{movement.subType}</div>
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-2">
@@ -681,7 +683,7 @@ const InventoryMovements: React.FC = () => {
                   <td className="py-4 px-4">
                     <div className="text-sm">
                       <div className="font-medium text-gray-900">{movement.reference.number}</div>
-                      <div className="text-gray-500">{movement.reference.type.replace('_', ' ')}</div>
+                      <div className="text-gray-700">{movement.reference.type.replace('_', ' ')}</div>
                     </div>
                   </td>
                   <td className="py-4 px-4 text-right font-mono">
@@ -703,14 +705,14 @@ const InventoryMovements: React.FC = () => {
                           setSelectedMovement(movement);
                           setIsDetailsModalOpen(true);
                         }}
-                        className="p-1 text-gray-400 hover:text-[#6A8A82]"
+                        className="p-1 text-gray-700 hover:text-[#6A8A82]"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       {movement.status === 'draft' && (
                         <button
-                          className="p-1 text-gray-400 hover:text-green-600"
+                          className="p-1 text-gray-700 hover:text-green-600"
                           title="Edit Movement"
                         >
                           <Edit className="w-4 h-4" />

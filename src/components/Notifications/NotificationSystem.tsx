@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { X, Bell, CheckCircle, AlertCircle, Info, Clock, User, ChevronRight } from 'lucide-react';
 
 interface Notification {
@@ -30,6 +31,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
   onMarkAsRead,
   onTaskClick
 }) => {
+  const { t } = useLanguage();
   const [activePopups, setActivePopups] = useState<Notification[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
@@ -79,7 +81,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
       case 'success':
         return 'text-green-500';
       default:
-        return 'text-gray-500';
+        return 'text-gray-700';
     }
   };
 
@@ -122,7 +124,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                 <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
                 <button
                   onClick={() => setShowDropdown(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-700 hover:text-gray-600"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -130,7 +132,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
             </div>
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-gray-700">
                   Aucune notification
                 </div>
               ) : (
@@ -171,13 +173,13 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                                   </span>
                                 )}
                                 {notification.taskDetails.assignedBy && (
-                                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                                  <span className="text-xs text-gray-700 flex items-center gap-1">
                                     <User className="w-3 h-3" />
                                     {notification.taskDetails.assignedBy}
                                   </span>
                                 )}
                                 {notification.taskDetails.dueDate && (
-                                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                                  <span className="text-xs text-gray-700 flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
                                     {notification.taskDetails.dueDate}
                                   </span>
@@ -185,9 +187,9 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                               </div>
                             )}
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-400 mt-1" />
+                          <ChevronRight className="w-4 h-4 text-gray-700 mt-1" />
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className="text-xs text-gray-700 mt-2">
                           {new Date(notification.timestamp).toLocaleString('fr-FR', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -251,7 +253,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                 <button
                   onClick={() => handlePopupDismiss(popup.id)}
                   className="ml-4 p-0.5 rounded hover:bg-white/20 transition-colors flex items-center justify-center"
-                  title="Fermer"
+                  title={t('common.close')}
                 >
                   <X className="w-4 h-4 text-white stroke-2" />
                 </button>
@@ -268,13 +270,13 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                   <div className="space-y-1">
                     {popup.taskDetails.assignedBy && (
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">Par:</span>
+                        <span className="text-gray-700">Par:</span>
                         <span className="font-medium text-gray-700">{popup.taskDetails.assignedBy}</span>
                       </div>
                     )}
                     {popup.taskDetails.priority && (
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">Priorité:</span>
+                        <span className="text-gray-700">Priorité:</span>
                         <span className={`px-1.5 py-0.5 text-xs rounded ${
                           popup.taskDetails.priority === 'high' ? 'bg-red-100 text-red-700' :
                           popup.taskDetails.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
@@ -287,7 +289,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                     )}
                     {popup.taskDetails.dueDate && (
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">Échéance:</span>
+                        <span className="text-gray-700">Échéance:</span>
                         <span className="font-medium text-gray-700">{popup.taskDetails.dueDate}</span>
                       </div>
                     )}
@@ -319,7 +321,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
 
             {/* Footer with timestamp */}
             <div className="px-3 py-1.5 bg-gray-50 border-t border-gray-100">
-              <p className="text-xs text-gray-400 text-center">
+              <p className="text-xs text-gray-700 text-center">
                 {new Date(popup.timestamp).toLocaleTimeString('fr-FR', {
                   hour: '2-digit',
                   minute: '2-digit'

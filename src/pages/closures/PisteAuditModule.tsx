@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Activity, User, Calendar, Clock, FileText,
   Search, Filter, Download, Eye, ChevronRight,
@@ -32,6 +33,7 @@ interface AuditStats {
 }
 
 const PisteAuditModule: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedPeriode, setSelectedPeriode] = useState<'jour' | 'semaine' | 'mois' | 'annee'>('jour');
   const [filterAction, setFilterAction] = useState<'tous' | AuditEntry['action']>('tous');
   const [filterEntite, setFilterEntite] = useState<'tous' | AuditEntry['entite']>('tous');
@@ -172,11 +174,11 @@ const PisteAuditModule: React.FC = () => {
 
   const getActionIcon = (action: AuditEntry['action']) => {
     switch (action) {
-      case 'creation': return <Plus className="w-4 h-4 text-green-600" />;
-      case 'modification': return <Edit className="w-4 h-4 text-blue-600" />;
-      case 'suppression': return <Trash2 className="w-4 h-4 text-red-600" />;
+      case 'creation': return <Plus className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'modification': return <Edit className="w-4 h-4 text-[var(--color-primary)]" />;
+      case 'suppression': return <Trash2 className="w-4 h-4 text-[var(--color-error)]" />;
       case 'validation': return <CheckCircle className="w-4 h-4 text-purple-600" />;
-      case 'consultation': return <Eye className="w-4 h-4 text-gray-600" />;
+      case 'consultation': return <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />;
     }
   };
 
@@ -192,10 +194,10 @@ const PisteAuditModule: React.FC = () => {
 
   const getImpactBadge = (impact: AuditEntry['impact']) => {
     const colors = {
-      faible: 'bg-gray-100 text-gray-700',
-      moyen: 'bg-yellow-100 text-yellow-700',
-      eleve: 'bg-orange-100 text-orange-700',
-      critique: 'bg-red-100 text-red-700'
+      faible: 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]',
+      moyen: 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
+      eleve: 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
+      critique: 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]'
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[impact]}`}>
@@ -224,23 +226,22 @@ const PisteAuditModule: React.FC = () => {
               onChange={(e) => setSelectedPeriode(e.target.value as any)}
               className="px-4 py-2 border border-[#E8E8E8] rounded-lg"
             >
-              <option value="jour">Aujourd'hui</option>
+              <option value="jour">{t('common.today')}</option>
               <option value="semaine">Cette semaine</option>
               <option value="mois">Ce mois</option>
               <option value="annee">Cette année</option>
             </select>
             <button
               onClick={exporterAudit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-            >
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label="Télécharger">
               <Download className="w-4 h-4" />
-              <span>Exporter</span>
+              <span>{t('common.export')}</span>
             </button>
           </div>
         </div>
 
         {/* Statistiques rapides */}
-        <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-4 gap-4 p-4 bg-[var(--color-background-secondary)] rounded-lg">
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#767676]">Total actions</span>
@@ -250,24 +251,24 @@ const PisteAuditModule: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[#767676]">Aujourd'hui</span>
-              <Clock className="w-4 h-4 text-blue-600" />
+              <span className="text-xs text-[#767676]">{t('common.today')}</span>
+              <Clock className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
-            <p className="text-2xl font-bold text-blue-600">{stats.actionsAujourdhui}</p>
+            <p className="text-2xl font-bold text-[var(--color-primary)]">{stats.actionsAujourdhui}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#767676]">Utilisateurs actifs</span>
-              <User className="w-4 h-4 text-green-600" />
+              <User className="w-4 h-4 text-[var(--color-success)]" />
             </div>
-            <p className="text-2xl font-bold text-green-600">{stats.utilisateursActifs}</p>
+            <p className="text-2xl font-bold text-[var(--color-success)]">{stats.utilisateursActifs}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#767676]">Anomalies</span>
-              <AlertCircle className="w-4 h-4 text-red-600" />
+              <AlertCircle className="w-4 h-4 text-[var(--color-error)]" />
             </div>
-            <p className="text-2xl font-bold text-red-600">{stats.anomaliesDetectees}</p>
+            <p className="text-2xl font-bold text-[var(--color-error)]">{stats.anomaliesDetectees}</p>
           </div>
         </div>
       </div>
@@ -322,9 +323,9 @@ const PisteAuditModule: React.FC = () => {
                   className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
                 >
                   <option value="tous">Toutes entités</option>
-                  <option value="ecriture">Écriture</option>
-                  <option value="compte">Compte</option>
-                  <option value="journal">Journal</option>
+                  <option value="ecriture">{t('accounting.entry')}</option>
+                  <option value="compte">{t('accounting.account')}</option>
+                  <option value="journal">{t('accounting.journal')}</option>
                   <option value="exercice">Exercice</option>
                   <option value="utilisateur">Utilisateur</option>
                   <option value="parametre">Paramètre</option>
@@ -357,7 +358,7 @@ const PisteAuditModule: React.FC = () => {
               {filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="border border-[#E8E8E8] rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="border border-[#E8E8E8] rounded-lg p-4 hover:bg-[var(--color-background-secondary)] transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3 flex-1">
@@ -400,7 +401,7 @@ const PisteAuditModule: React.FC = () => {
                         setSelectedEntry(entry);
                         setShowDetailModal(true);
                       }}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
                     >
                       <ChevronRight className="w-4 h-4 text-[#767676]" />
                     </button>
@@ -474,7 +475,7 @@ const PisteAuditModule: React.FC = () => {
                     <div key={period} className="flex justify-between items-center">
                       <span className="text-sm text-[#767676]">{period}</span>
                       <div className="flex items-center space-x-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div className="w-24 bg-[var(--color-border)] rounded-full h-2">
                           <div
                             className="h-2 bg-gradient-to-r from-[#6A8A82] to-[#B87333] rounded-full"
                             style={{width: `${Math.random() * 100}%`}}
@@ -491,18 +492,18 @@ const PisteAuditModule: React.FC = () => {
               <div className="border border-[#E8E8E8] rounded-lg p-4">
                 <h3 className="font-semibold text-[#191919] mb-4">Alertes récentes</h3>
                 <div className="space-y-3">
-                  <div className="flex items-start space-x-2 p-2 bg-red-50 rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-red-600 mt-0.5" />
+                  <div className="flex items-start space-x-2 p-2 bg-[var(--color-error-lightest)] rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-[var(--color-error)] mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-red-900">Suppression détectée</p>
-                      <p className="text-xs text-red-700">3 écritures supprimées aujourd'hui</p>
+                      <p className="text-xs text-[var(--color-error-dark)]">3 écritures supprimées aujourd'hui</p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-2 p-2 bg-yellow-50 rounded-lg">
-                    <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                  <div className="flex items-start space-x-2 p-2 bg-[var(--color-warning-lightest)] rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-yellow-900">Modification critique</p>
-                      <p className="text-xs text-yellow-700">Changement de rôle détecté</p>
+                      <p className="text-xs text-[var(--color-warning-dark)]">Changement de rôle détecté</p>
                     </div>
                   </div>
                 </div>
@@ -600,12 +601,12 @@ const PisteAuditModule: React.FC = () => {
 
                 {/* Boutons d'action */}
                 <div className="flex justify-end space-x-3 pt-4">
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                  <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]">
                     Annuler
                   </button>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+                  <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label="Enregistrer">
                     <Save className="w-4 h-4" />
-                    <span>Enregistrer</span>
+                    <span>{t('actions.save')}</span>
                   </button>
                 </div>
               </div>
@@ -626,7 +627,7 @@ const PisteAuditModule: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
                 >
                   <XCircle className="w-5 h-5" />
                 </button>
@@ -660,7 +661,7 @@ const PisteAuditModule: React.FC = () => {
               </div>
 
               {/* Détails techniques */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="bg-[var(--color-background-secondary)] rounded-lg p-4 mb-6">
                 <h4 className="font-semibold text-[#191919] mb-3">Informations techniques</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -688,17 +689,17 @@ const PisteAuditModule: React.FC = () => {
                   <h4 className="font-semibold text-[#191919] mb-3">Changements effectués</h4>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedEntry.ancienneValeur && (
-                      <div className="border border-red-200 rounded-lg p-3 bg-red-50">
+                      <div className="border border-[var(--color-error-light)] rounded-lg p-3 bg-[var(--color-error-lightest)]">
                         <p className="text-sm font-medium text-red-900 mb-2">Ancienne valeur</p>
-                        <pre className="text-xs font-mono text-red-700">
+                        <pre className="text-xs font-mono text-[var(--color-error-dark)]">
                           {JSON.stringify(selectedEntry.ancienneValeur, null, 2)}
                         </pre>
                       </div>
                     )}
                     {selectedEntry.nouvelleValeur && (
-                      <div className="border border-green-200 rounded-lg p-3 bg-green-50">
+                      <div className="border border-[var(--color-success-light)] rounded-lg p-3 bg-[var(--color-success-lightest)]">
                         <p className="text-sm font-medium text-green-900 mb-2">Nouvelle valeur</p>
-                        <pre className="text-xs font-mono text-green-700">
+                        <pre className="text-xs font-mono text-[var(--color-success-dark)]">
                           {JSON.stringify(selectedEntry.nouvelleValeur, null, 2)}
                         </pre>
                       </div>
@@ -717,13 +718,13 @@ const PisteAuditModule: React.FC = () => {
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
                 >
                   Fermer
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label="Télécharger">
                   <Download className="w-4 h-4" />
-                  <span>Exporter</span>
+                  <span>{t('common.export')}</span>
                 </button>
               </div>
             </div>

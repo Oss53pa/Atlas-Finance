@@ -3,7 +3,9 @@
  * KPIs temps réel et analytics selon spécifications détaillées
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   TrendingUp,
   TrendingDown,
@@ -55,7 +57,6 @@ interface CustomerDashboardProps {
 }
 
 interface DashboardFilters {
-  period: string;
   zone: string;
   segment: string;
   commercial: string;
@@ -83,13 +84,19 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   companyId,
   fiscalYearId
 }) => {
+  const { t } = useLanguage();
   // États du dashboard
   const [filters, setFilters] = useState<DashboardFilters>({
-    period: 'current_month',
     zone: 'all',
-    segment: 'all', 
+    segment: 'all',
     commercial: 'all',
     paymentStatus: 'all'
+  });
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    period: 'month' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
   });
 
   const [selectedView, setSelectedView] = useState<'overview' | 'aging' | 'forecasts' | 'analysis'>('overview');
@@ -97,20 +104,20 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
   // Queries principales
   const { data: kpiData, isLoading: kpiLoading, refetch: refetchKPIs } = useQuery({
-    queryKey: ['customer-kpis', companyId, fiscalYearId, filters],
-    queryFn: () => customerService.getKPIData({ companyId, fiscalYearId, filters }),
+    queryKey: ['customer-kpis', companyId, fiscalYearId, filters, dateRange],
+    queryFn: () => customerService.getKPIData({ companyId, fiscalYearId, filters, dateRange }),
     refetchInterval: autoRefresh ? 300000 : false, // 5 minutes si auto-refresh
   });
 
   const { data: agingData, isLoading: agingLoading } = useQuery({
-    queryKey: ['customer-aging', companyId, fiscalYearId, filters],
-    queryFn: () => customerService.getAgingAnalysis({ companyId, fiscalYearId, filters }),
+    queryKey: ['customer-aging', companyId, fiscalYearId, filters, dateRange],
+    queryFn: () => customerService.getAgingAnalysis({ companyId, fiscalYearId, filters, dateRange }),
     refetchInterval: autoRefresh ? 300000 : false,
   });
 
   const { data: trendsData, isLoading: trendsLoading } = useQuery({
-    queryKey: ['customer-trends', companyId, filters],
-    queryFn: () => customerService.getTrendsData({ companyId, filters }),
+    queryKey: ['customer-trends', companyId, filters, dateRange],
+    queryFn: () => customerService.getTrendsData({ companyId, filters, dateRange }),
     refetchInterval: autoRefresh ? 600000 : false, // 10 minutes
   });
 
@@ -186,23 +193,24 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   };
 
   const handleExport = (format: 'pdf' | 'excel') => {
-    customerService.exportDashboard({ 
-      companyId, 
-      fiscalYearId, 
-      filters, 
+    customerService.exportDashboard({
+      companyId,
+      fiscalYearId,
+      filters,
+      dateRange,
       format,
-      view: selectedView 
+      view: selectedView
     });
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'current': 'bg-green-100 text-green-800',
-      'overdue': 'bg-red-100 text-red-800', 
-      'disputed': 'bg-yellow-100 text-yellow-800',
-      'critical': 'bg-red-200 text-red-900',
+      'current': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'overdue': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]', 
+      'disputed': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
+      'critical': 'bg-[var(--color-error-light)] text-red-900',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   return (
@@ -210,10 +218,10 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       {/* Header avec contrôles */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
             Dashboard Comptabilité Client
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-[var(--color-text-primary)] mt-1">
             Suivi temps réel des créances et recouvrement
           </p>
         </div>
@@ -223,7 +231,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={autoRefresh ? 'bg-green-50 border-green-200' : ''}
+            className={autoRefresh ? 'bg-[var(--color-success-lightest)] border-[var(--color-success-light)]' : ''}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
             {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
@@ -252,18 +260,22 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       <Card>
         <CardContent className="p-4">
           <div className="grid gap-4 md:grid-cols-5">
-            <Select value={filters.period} onValueChange={(value) => handleFilterChange('period', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Période" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="current_month">Mois en cours</SelectItem>
-                <SelectItem value="last_month">Mois dernier</SelectItem>
-                <SelectItem value="current_quarter">Trimestre</SelectItem>
-                <SelectItem value="current_year">Année</SelectItem>
-                <SelectItem value="last_12_months">12 derniers mois</SelectItem>
-              </SelectContent>
-            </Select>
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Calendar className="w-4 h-4 text-gray-700" />
+              <span>
+                {dateRange.period === 'custom'
+                  ? `${dateRange.startDate} - ${dateRange.endDate}`
+                  : dateRange.period === 'day' ? 'Aujourd\'hui'
+                  : dateRange.period === 'week' ? 'Cette semaine'
+                  : dateRange.period === 'month' ? 'Ce mois'
+                  : dateRange.period === 'quarter' ? 'Ce trimestre'
+                  : 'Cette année'
+                }
+              </span>
+            </button>
 
             <Select value={filters.zone} onValueChange={(value) => handleFilterChange('zone', value)}>
               <SelectTrigger>
@@ -274,7 +286,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 <SelectItem value="cameroun">Cameroun</SelectItem>
                 <SelectItem value="gabon">Gabon</SelectItem>
                 <SelectItem value="tchad">Tchad</SelectItem>
-                <SelectItem value="export">Export</SelectItem>
+                <SelectItem value="export">{t('common.export')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -304,9 +316,16 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               </SelectContent>
             </Select>
 
-            <Button 
-              variant="outline" 
-              onClick={() => setFilters({ period: 'current_month', zone: 'all', segment: 'all', commercial: 'all', paymentStatus: 'all' })}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFilters({ zone: 'all', segment: 'all', commercial: 'all', paymentStatus: 'all' });
+                setDateRange({
+                  startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+                  endDate: new Date().toISOString().split('T')[0],
+                  period: 'month'
+                });
+              }}
             >
               <Filter className="h-4 w-4 mr-2" />
               Reset
@@ -343,18 +362,18 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                             <Icon className={`h-6 w-6 text-${kpi.color}-600`} />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
-                            <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
+                            <p className="text-sm font-medium text-[var(--color-text-primary)]">{kpi.title}</p>
+                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{kpi.value}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className={`flex items-center ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className={`flex items-center ${isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                             <TrendIcon className="h-4 w-4 mr-1" />
                             <span className="text-sm font-medium">
                               {Math.abs(kpi.change)}%
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">vs période préc.</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-1">vs période préc.</p>
                         </div>
                       </div>
                     </CardContent>
@@ -382,8 +401,8 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     data={trendsData?.revenueVsOutstanding || []}
                     xAxisKey="date"
                     lines={[
-                      { key: 'revenue', name: 'Chiffre d\'affaires', color: '#10B981' },
-                      { key: 'outstanding', name: 'Encours', color: '#EF4444' }
+                      { key: 'revenue', name: 'Chiffre d\'affaires', color: "var(--color-success)" },
+                      { key: 'outstanding', name: 'Encours', color: "var(--color-error)" }
                     ]}
                     height={300}
                   />
@@ -432,24 +451,24 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               <CardContent>
                 <div className="space-y-3">
                   {priorityActions.slice(0, 5).map((action, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <div key={index} className="flex items-center justify-between p-3 bg-[var(--color-warning-lightest)] rounded-lg border border-[var(--color-warning-light)]">
                       <div className="flex items-center space-x-3">
                         <Badge className={`
-                          ${action.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
-                            action.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'}
+                          ${action.priority === 'HIGH' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]' :
+                            action.priority === 'MEDIUM' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                            'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'}
                         `}>
                           {action.priority}
                         </Badge>
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-[var(--color-text-primary)]">
                             {action.customerName} ({action.customerCode})
                           </p>
-                          <p className="text-sm text-gray-600">{action.description}</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{action.description}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="font-bold text-red-600">
+                        <span className="font-bold text-[var(--color-error)]">
                           {formatCurrency(action.amount)}
                         </span>
                         <Button size="sm" variant="outline">
@@ -487,42 +506,42 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 <>
                   {/* Résumé par tranche d'ancienneté */}
                   <div className="grid gap-4 md:grid-cols-4 mb-6">
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <p className="text-sm font-medium text-green-800">Courant (0-30j)</p>
+                    <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg border border-[var(--color-success-light)]">
+                      <p className="text-sm font-medium text-[var(--color-success-darker)]">Courant (0-30j)</p>
                       <p className="text-xl font-bold text-green-900">
                         {formatCurrency(agingData?.agingBreakdown?.current || 0)}
                       </p>
-                      <p className="text-xs text-green-600 mt-1">
+                      <p className="text-xs text-[var(--color-success)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.current || 0)}
                       </p>
                     </div>
                     
-                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                      <p className="text-sm font-medium text-yellow-800">30-60 jours</p>
+                    <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg border border-[var(--color-warning-light)]">
+                      <p className="text-sm font-medium text-[var(--color-warning-dark)]">30-60 jours</p>
                       <p className="text-xl font-bold text-yellow-900">
                         {formatCurrency(agingData?.agingBreakdown?.days_30_60 || 0)}
                       </p>
-                      <p className="text-xs text-yellow-600 mt-1">
+                      <p className="text-xs text-[var(--color-warning)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.days_30_60 || 0)}
                       </p>
                     </div>
                     
-                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                      <p className="text-sm font-medium text-orange-800">60-90 jours</p>
+                    <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg border border-[var(--color-warning-light)]">
+                      <p className="text-sm font-medium text-[var(--color-warning-darker)]">60-90 jours</p>
                       <p className="text-xl font-bold text-orange-900">
                         {formatCurrency(agingData?.agingBreakdown?.days_60_90 || 0)}
                       </p>
-                      <p className="text-xs text-orange-600 mt-1">
+                      <p className="text-xs text-[var(--color-warning)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.days_60_90 || 0)}
                       </p>
                     </div>
                     
-                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                      <p className="text-sm font-medium text-red-800">Plus de 90j</p>
+                    <div className="bg-[var(--color-error-lightest)] p-4 rounded-lg border border-[var(--color-error-light)]">
+                      <p className="text-sm font-medium text-[var(--color-error-darker)]">Plus de 90j</p>
                       <p className="text-xl font-bold text-red-900">
                         {formatCurrency(agingData?.agingBreakdown?.over_90 || 0)}
                       </p>
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="text-xs text-[var(--color-error)] mt-1">
                         {formatPercent(agingData?.agingPercentages?.over_90 || 0)}
                       </p>
                     </div>
@@ -545,26 +564,26 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                       </TableHeader>
                       <TableBody>
                         {agingData?.topRiskCustomers?.map((customer) => (
-                          <TableRow key={customer.id} className="hover:bg-gray-50">
+                          <TableRow key={customer.id} className="hover:bg-[var(--color-background-secondary)]">
                             <TableCell>
                               <div>
                                 <p className="font-medium">{customer.legal_name}</p>
-                                <p className="text-sm text-gray-500">{customer.code}</p>
+                                <p className="text-sm text-[var(--color-text-secondary)]">{customer.code}</p>
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="font-bold text-red-600">
+                              <span className="font-bold text-[var(--color-error)]">
                                 {formatCurrency(customer.total_outstanding)}
                               </span>
                             </TableCell>
                             <TableCell>{formatCurrency(customer.current_amount)}</TableCell>
-                            <TableCell className="text-yellow-600">
+                            <TableCell className="text-[var(--color-warning)]">
                               {formatCurrency(customer.days_30_60)}
                             </TableCell>
-                            <TableCell className="text-orange-600">
+                            <TableCell className="text-[var(--color-warning)]">
                               {formatCurrency(customer.days_60_90)}
                             </TableCell>
-                            <TableCell className="text-red-600 font-bold">
+                            <TableCell className="text-[var(--color-error)] font-bold">
                               {formatCurrency(customer.over_90_days)}
                             </TableCell>
                             <TableCell>
@@ -615,25 +634,25 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 <div className="space-y-4">
                   {/* Résumé prévisions */}
                   <div className="grid gap-4 md:grid-cols-3">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-blue-800">Encaissement Attendu</p>
-                      <p className="text-xl font-bold text-blue-900">
+                    <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
+                      <p className="text-sm font-medium text-[var(--color-primary-darker)]">Encaissement Attendu</p>
+                      <p className="text-xl font-bold text-[var(--color-primary-darker)]">
                         {formatCurrency(trendsData?.forecast?.totalExpected || 0)}
                       </p>
-                      <p className="text-xs text-blue-600 mt-1">
+                      <p className="text-xs text-[var(--color-primary)] mt-1">
                         Confiance: {trendsData?.forecast?.confidence || 0}%
                       </p>
                     </div>
                     
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-green-800">Probabilité Recouvrement</p>
+                    <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg">
+                      <p className="text-sm font-medium text-[var(--color-success-darker)]">Probabilité Recouvrement</p>
                       <p className="text-xl font-bold text-green-900">
                         {formatPercent(trendsData?.forecast?.probabilityRate || 0)}
                       </p>
                     </div>
                     
-                    <div className="bg-orange-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-orange-800">Risque d'Impayé</p>
+                    <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg">
+                      <p className="text-sm font-medium text-[var(--color-warning-darker)]">Risque d'Impayé</p>
                       <p className="text-xl font-bold text-orange-900">
                         {formatCurrency(trendsData?.forecast?.riskAmount || 0)}
                       </p>
@@ -645,8 +664,8 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     data={trendsData?.forecast?.weeklyBreakdown || []}
                     xAxisKey="week"
                     lines={[
-                      { key: 'expectedAmount', name: 'Montant attendu', color: '#3B82F6' },
-                      { key: 'confidence', name: 'Confiance (%)', color: '#10B981' }
+                      { key: 'expectedAmount', name: 'Montant attendu', color: "var(--color-primary)" },
+                      { key: 'confidence', name: 'Confiance (%)', color: "var(--color-success)" }
                     ]}
                     height={300}
                   />
@@ -662,7 +681,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             </CardHeader>
             <CardContent>
               {/* TODO: Implémenter affichage promesses */}
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-[var(--color-text-secondary)] text-center py-8">
                 Promesses de paiement en cours de développement
               </p>
             </CardContent>
@@ -681,21 +700,21 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-background-secondary)] rounded">
                     <span className="font-medium">Panier Moyen</span>
-                    <span className="font-bold text-blue-600">
+                    <span className="font-bold text-[var(--color-primary)]">
                       {formatCurrency(kpiData?.averageBasket || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-background-secondary)] rounded">
                     <span className="font-medium">Fréquence d'Achat</span>
-                    <span className="font-bold text-green-600">
+                    <span className="font-bold text-[var(--color-success)]">
                       {(kpiData?.purchaseFrequency || 0).toFixed(1)} /mois
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-background-secondary)] rounded">
                     <span className="font-medium">Taux de Croissance</span>
-                    <span className={`font-bold ${kpiData?.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-bold ${kpiData?.growthRate >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                       {kpiData?.growthRate > 0 ? '+' : ''}{formatPercent(kpiData?.growthRate || 0)}
                     </span>
                   </div>
@@ -713,7 +732,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   data={trendsData?.topClientsConcentration || []}
                   xAxisKey="customerName"
                   bars={[
-                    { key: 'percentage', name: 'Part du CA (%)', color: '#6366F1' }
+                    { key: 'percentage', name: 'Part du CA (%)', color: "var(--color-info)" }
                   ]}
                   height={300}
                 />
@@ -733,21 +752,21 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {trendsData?.geographicBreakdown?.map((zone) => (
                   <div key={zone.region} className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900">{zone.region}</h4>
-                    <p className="text-2xl font-bold text-blue-600 mt-2">
+                    <h4 className="font-medium text-[var(--color-text-primary)]">{zone.region}</h4>
+                    <p className="text-2xl font-bold text-[var(--color-primary)] mt-2">
                       {formatCurrency(zone.amount)}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-[var(--color-text-secondary)]">
                       {zone.customerCount} clients • {formatPercent(zone.percentage)} du total
                     </p>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs">
                         <span>À jour</span>
-                        <span className="text-green-600">{formatPercent(zone.onTimeRate)}</span>
+                        <span className="text-[var(--color-success)]">{formatPercent(zone.onTimeRate)}</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span>En retard</span>
-                        <span className="text-red-600">{formatPercent(100 - zone.onTimeRate)}</span>
+                        <span className="text-[var(--color-error)]">{formatPercent(100 - zone.onTimeRate)}</span>
                       </div>
                     </div>
                   </div>
@@ -767,7 +786,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Segment</TableHead>
-                      <TableHead>Clients</TableHead>
+                      <TableHead>{t('navigation.clients')}</TableHead>
                       <TableHead>CA Total</TableHead>
                       <TableHead>Encours</TableHead>
                       <TableHead>DSO Moyen</TableHead>
@@ -783,7 +802,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                         <TableCell>{formatCurrency(segment.revenue)}</TableCell>
                         <TableCell>{formatCurrency(segment.outstanding)}</TableCell>
                         <TableCell>
-                          <span className={segment.dso > 45 ? 'text-red-600' : 'text-green-600'}>
+                          <span className={segment.dso > 45 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}>
                             {segment.dso} j
                           </span>
                         </TableCell>
@@ -804,7 +823,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       )}
 
       {/* Footer avec dernière mise à jour */}
-      <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+      <div className="flex items-center justify-between text-sm text-[var(--color-text-secondary)] pt-4 border-t">
         <div className="flex items-center space-x-4">
           <span>Dernière maj: {formatDate(new Date())}</span>
           <span>•</span>
@@ -812,7 +831,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           {autoRefresh && (
             <>
               <span>•</span>
-              <span className="text-green-600">Auto-refresh actif</span>
+              <span className="text-[var(--color-success)]">Auto-refresh actif</span>
             </>
           )}
         </div>
@@ -821,6 +840,17 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           <span>Connecté</span>
         </div>
       </div>
+
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        currentRange={dateRange}
+        onPeriodChange={(newRange) => {
+          setDateRange(newRange);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

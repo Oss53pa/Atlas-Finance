@@ -59,13 +59,13 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
         <div className="flex items-center justify-between px-6 py-3">
           {/* Navigation et logo */}
           <div className="flex items-center space-x-4">
-            {/* Bouton retour vers landing page */}
-            <button 
-              onClick={() => navigate('/')}
+            {/* Bouton Accueil */}
+            <button
+              onClick={() => navigate('/dashboard')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors group"
             >
-              <ArrowLeft className="w-4 h-4 text-[#767676] group-hover:text-[#444444]" />
-              <span className="hidden sm:block text-sm text-[#767676] group-hover:text-[#444444]">Retour</span>
+              <Home className="w-4 h-4 text-[#767676] group-hover:text-[#444444]" />
+              <span className="hidden sm:block text-sm text-[#767676] group-hover:text-[#444444]">Accueil</span>
             </button>
 
             <button 

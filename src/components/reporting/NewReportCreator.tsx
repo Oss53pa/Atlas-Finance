@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   X, Plus, Trash2, GripVertical, ChevronRight, ChevronDown,
   FileText, Database, BarChart3, MessageSquare, Download, Share2,
@@ -31,6 +32,7 @@ interface NewReportCreatorProps {
 }
 
 const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) => {
+  const { t } = useLanguage();
   // Ajouter les styles pour l'impression
   React.useEffect(() => {
     const style = document.createElement('style');
@@ -246,7 +248,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
               {!hasChildren && <div className="w-4" />}
             </button>
 
-            <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
+            <GripVertical className="w-4 h-4 text-gray-700 cursor-move" />
 
             {section.type === 'module' && <FolderOpen className="w-4 h-4 text-blue-600" />}
             {section.type === 'rubrique' && <FileText className="w-4 h-4 text-green-600" />}
@@ -459,7 +461,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                      style={{ borderTop: `4px solid ${primaryColor}` }}>
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="w-32 h-20 bg-gray-200 rounded flex items-center justify-center mb-8">
-                      <Building2 className="w-8 h-8 text-gray-400" />
+                      <Building2 className="w-8 h-8 text-gray-700" />
                     </div>
 
                     <h1 className="text-4xl font-bold text-center mb-4" style={{ color: primaryColor }}>
@@ -476,7 +478,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-500">
+                  <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-700">
                     <div className="flex items-center space-x-4">
                       <span>{companyName}</span>
                       <span>•</span>
@@ -625,7 +627,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="text-center">
                       <div className="w-32 h-20 bg-gray-200 rounded flex items-center justify-center mx-auto mb-6">
-                        <Building2 className="w-8 h-8 text-gray-400" />
+                        <Building2 className="w-8 h-8 text-gray-700" />
                       </div>
                       <h2 className="text-2xl font-bold mb-2" style={{ color: primaryColor }}>
                         {companyName}
@@ -678,7 +680,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                     )}
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-500">
+                  <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-700">
                     <div className="flex items-center space-x-4">
                       <span>{companyName}</span>
                       <span>•</span>
@@ -718,7 +720,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                       <div key={item.id} className="p-4 border rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium">{item.type} {idx + 1}</span>
-                          <button className="text-red-500">
+                          <button className="text-red-500" aria-label="Supprimer">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -740,7 +742,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                               <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                             )}
                             {item.periodStart && item.periodEnd && (
-                              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                              <div className="flex items-center space-x-2 text-xs text-gray-700">
                                 <Calendar className="w-3 h-3" />
                                 <span>Période: {item.periodStart} au {item.periodEnd}</span>
                               </div>
@@ -757,7 +759,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                               <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                             )}
                             {item.periodStart && item.periodEnd && (
-                              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                              <div className="flex items-center space-x-2 text-xs text-gray-700">
                                 <Calendar className="w-3 h-3" />
                                 <span>Période: {item.periodStart} au {item.periodEnd}</span>
                               </div>
@@ -779,7 +781,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                   </div>
                 ) : (
                   <div className="py-12 text-center">
-                    <p className="text-gray-500">Aucun contenu dans cette section</p>
+                    <p className="text-gray-700">Aucun contenu dans cette section</p>
                   </div>
                 )}
               </CardContent>
@@ -808,7 +810,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
               {backgroundImage && <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>}
               <div className="flex-1 flex flex-col items-center justify-center relative z-10">
                 <div className="w-32 h-20 bg-gray-200 rounded flex items-center justify-center mb-8">
-                  <Building2 className="w-8 h-8 text-gray-400" />
+                  <Building2 className="w-8 h-8 text-gray-700" />
                 </div>
 
                 <h1 className={`text-4xl font-bold text-center mb-4 ${backgroundImage ? 'text-white' : ''}`}
@@ -826,7 +828,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                 </div>
               </div>
 
-              <div className={`border-t pt-4 flex items-center justify-between text-xs relative z-10 ${backgroundImage ? 'border-gray-400 text-gray-200' : 'border-gray-200 text-gray-500'}`}>
+              <div className={`border-t pt-4 flex items-center justify-between text-xs relative z-10 ${backgroundImage ? 'border-gray-400 text-gray-200' : 'border-gray-200 text-gray-700'}`}>
                 <div className="flex items-center space-x-4">
                   <span>{companyName}</span>
                   <span>•</span>
@@ -855,7 +857,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                         <span className="font-medium">
                           {idx + 1}. {section.title}
                         </span>
-                        <span className="text-gray-500">{idx + 3}</span>
+                        <span className="text-gray-700">{idx + 3}</span>
                       </div>
 
                       {section.children?.map((child, childIdx) => (
@@ -863,7 +865,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                           <span className="text-sm">
                             {idx + 1}.{childIdx + 1} {child.title}
                           </span>
-                          <span className="text-gray-400 text-sm">{idx + 3}</span>
+                          <span className="text-gray-700 text-sm">{idx + 3}</span>
                         </div>
                       ))}
                     </div>
@@ -872,7 +874,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
               </div>
 
               {/* Pied de page du sommaire */}
-              <div className="border-t px-8 py-4 flex justify-between text-sm text-gray-500">
+              <div className="border-t px-8 py-4 flex justify-between text-sm text-gray-700">
                 <div className="flex items-center space-x-4">
                   <span>{companyName}</span>
                   <span>•</span>
@@ -957,7 +959,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                                 </div>
                               </div>
                               <div className="bg-gray-100 h-32 rounded-lg flex items-center justify-center">
-                                <span className="text-gray-500">Graphique Dashboard</span>
+                                <span className="text-gray-700">Graphique Dashboard</span>
                               </div>
                             </div>
                           )}
@@ -1021,7 +1023,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                 </div>
 
                 {/* Pied de page du contenu */}
-                <div className="border-t px-8 py-4 flex justify-between text-sm text-gray-500">
+                <div className="border-t px-8 py-4 flex justify-between text-sm text-gray-700">
                   <div className="flex items-center space-x-4">
                     <span>{companyName}</span>
                     <span>•</span>
@@ -1044,7 +1046,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                 {/* Section supérieure avec logo et informations entreprise */}
                 <div className="text-center">
                   <div className="w-32 h-20 bg-gray-200 rounded flex items-center justify-center mx-auto mb-6">
-                    <Building2 className="w-8 h-8 text-gray-400" />
+                    <Building2 className="w-8 h-8 text-gray-700" />
                   </div>
                   <h2 className="text-2xl font-bold mb-2" style={{ color: primaryColor }}>
                     {companyName}
@@ -1099,7 +1101,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                 )}
               </div>
 
-              <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-500">
+              <div className="border-t border-gray-200 pt-4 flex items-center justify-between text-xs text-gray-700">
                 <div className="flex items-center space-x-4">
                   <span>{companyName}</span>
                   <span>•</span>
@@ -1120,7 +1122,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
             >
               <FileText className="w-4 h-4" />
-              <span>Imprimer</span>
+              <span>{t('common.print')}</span>
             </button>
             <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2">
               <Download className="w-4 h-4" />
@@ -1183,7 +1185,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                     className="p-2 border rounded-lg hover:bg-green-50 flex items-center space-x-2"
                   >
                     <BarChart3 className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">Dashboard</span>
+                    <span className="text-sm">{t('dashboard.title')}</span>
                   </button>
                   <button
                     onClick={() => handleInsertContent(selectedSectionId, 'text')}
@@ -1266,29 +1268,29 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                       </button>
                       <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2">
                         <Edit className="w-4 h-4" />
-                        <span>Modifier</span>
+                        <span>{t('common.edit')}</span>
                       </button>
-                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2">
+                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2" aria-label="Enregistrer">
                         <Save className="w-4 h-4" />
-                        <span>Enregistrer</span>
+                        <span>{t('actions.save')}</span>
                       </button>
                       <hr className="my-1" />
-                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2">
+                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2" aria-label="Télécharger">
                         <Download className="w-4 h-4" />
-                        <span>Exporter</span>
+                        <span>{t('common.export')}</span>
                       </button>
-                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2">
+                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2" aria-label="Imprimer">
                         <Printer className="w-4 h-4" />
-                        <span>Imprimer</span>
+                        <span>{t('common.print')}</span>
                       </button>
                       <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2">
                         <Share2 className="w-4 h-4" />
                         <span>Partager</span>
                       </button>
                       <hr className="my-1" />
-                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2 text-red-600">
+                      <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2 text-red-600" aria-label="Supprimer">
                         <Trash2 className="w-4 h-4" />
-                        <span>Supprimer</span>
+                        <span>{t('common.delete')}</span>
                       </button>
                       <hr className="my-1" />
                       <button className="w-full px-3 py-2 text-left hover:bg-gray-50 rounded flex items-center space-x-2">
@@ -1300,7 +1302,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                 )}
               </div>
 
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Fermer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1354,7 +1356,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                       />
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-700 mt-2">
                     Par défaut, la période du rapport ({reportStartDate} au {reportEndDate}) sera utilisée
                   </p>
                 </div>
@@ -1375,19 +1377,19 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                               Nom
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                               Description
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                               Type de données
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                               Période
                             </th>
-                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                               Actions
                             </th>
                           </tr>
@@ -1606,7 +1608,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                                       // Prévisualisation
                                       console.log('Prévisualisation de:', item.name);
                                     }}
-                                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                                    className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
                                     title="Prévisualiser"
                                   >
                                     <Eye className="w-4 h-4" />

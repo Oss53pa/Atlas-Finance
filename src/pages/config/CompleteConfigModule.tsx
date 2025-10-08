@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   Settings, Building2, Users, Shield, Database, Globe, Palette,
   ArrowLeft, Home, Save, RefreshCw, Eye, Edit, Check, X,
   Key, Mail, Smartphone, Calendar, DollarSign, Calculator,
-  FileText, BarChart3, Upload, Download, Code, Server
+  FileText, BarChart3, Upload, Download, Code, Server, Brain
 } from 'lucide-react';
 
 const CompleteConfigModuleV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('entreprise');
   const [configSaved, setConfigSaved] = useState(false);
+  const [showAlgoModal, setShowAlgoModal] = useState(false);
+  const [selectedAlgo, setSelectedAlgo] = useState<string | null>(null);
 
   // Onglets configuration
   const tabs = [
@@ -20,6 +24,7 @@ const CompleteConfigModuleV2: React.FC = () => {
     { id: 'comptable', label: 'Plan Comptable', icon: Calculator },
     { id: 'fiscal', label: 'Paramètres Fiscaux', icon: FileText },
     { id: 'import', label: 'Import/Export', icon: Database },
+    { id: 'ia', label: 'Algorithme IA', icon: Brain, badge: '4' },
     { id: 'systeme', label: 'Système', icon: Server },
     { id: 'integrations', label: 'Intégrations', icon: Code },
   ];
@@ -27,6 +32,11 @@ const CompleteConfigModuleV2: React.FC = () => {
   const handleSave = () => {
     setConfigSaved(true);
     setTimeout(() => setConfigSaved(false), 3000);
+  };
+
+  const handleViewAlgorithm = (algoName: string) => {
+    setSelectedAlgo(algoName);
+    setShowAlgoModal(true);
   };
 
   return (
@@ -70,7 +80,7 @@ const CompleteConfigModuleV2: React.FC = () => {
               <span className="text-sm">Executive</span>
             </button>
             
-            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[#767676]" />
             </button>
           </div>
@@ -458,6 +468,251 @@ const CompleteConfigModuleV2: React.FC = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'ia' && (
+            <div className="space-y-6">
+              {/* Statistiques IA */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold text-purple-900">🧠 Modèles Actifs</h4>
+                    <Brain className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <p className="text-3xl font-bold text-purple-900">4/6</p>
+                  <p className="text-sm text-purple-700 mt-2">Modèles opérationnels</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold text-green-900">📊 Précision Moyenne</h4>
+                    <BarChart3 className="w-8 h-8 text-green-600" />
+                  </div>
+                  <p className="text-3xl font-bold text-green-900">92.4%</p>
+                  <p className="text-sm text-green-700 mt-2">Sur tous les modèles</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold text-blue-900">⚡ Prédictions/Jour</h4>
+                    <Server className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <p className="text-3xl font-bold text-blue-900">1,247</p>
+                  <p className="text-sm text-blue-700 mt-2">Calculs effectués</p>
+                </div>
+              </div>
+
+              {/* Liste des modèles IA */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-[#191919] flex items-center">
+                  <Brain className="w-5 h-5 mr-2 text-purple-600" />
+                  Modèles d'Intelligence Artificielle
+                </h3>
+
+                {/* Modèle 1: Prédiction Trésorerie */}
+                <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <BarChart3 className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-[#191919]">Prédiction de Trésorerie</h4>
+                        <p className="text-sm text-[#767676] mt-1">
+                          Analyse prédictive des flux de trésorerie basée sur l'historique
+                        </p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="text-xs text-[#444444]">Précision: <span className="font-bold text-green-600">94.2%</span></span>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Actif</span>
+                          <span className="text-xs text-[#767676]">Dernière formation: Il y a 2 jours</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleViewAlgorithm('Prédiction de Trésorerie')} className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 text-sm">
+                        <Eye className="w-4 h-4" />
+                        <span>Voir Algorithme</span>
+                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" defaultChecked />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modèle 2: Détection Anomalies */}
+                <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <div className="p-2 bg-red-100 rounded-lg">
+                        <Shield className="w-6 h-6 text-red-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-[#191919]">Détection d'Anomalies</h4>
+                        <p className="text-sm text-[#767676] mt-1">
+                          Identification automatique des transactions inhabituelles
+                        </p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="text-xs text-[#444444]">Précision: <span className="font-bold text-green-600">89.7%</span></span>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Actif</span>
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">3 alertes aujourd'hui</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleViewAlgorithm('Détection d\'Anomalies')} className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 text-sm">
+                        <Eye className="w-4 h-4" />
+                        <span>Voir Algorithme</span>
+                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" defaultChecked />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modèle 3: Recommandations Comptables */}
+                <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Brain className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-[#191919]">Recommandations Comptables</h4>
+                        <p className="text-sm text-[#767676] mt-1">
+                          Suggestions intelligentes de comptes et d'écritures
+                        </p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="text-xs text-[#444444]">Précision: <span className="font-bold text-green-600">96.1%</span></span>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Actif</span>
+                          <span className="text-xs text-[#767676]">87% des suggestions utilisées</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleViewAlgorithm('Recommandations Comptables')} className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 text-sm">
+                        <Eye className="w-4 h-4" />
+                        <span>Voir Algorithme</span>
+                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" defaultChecked />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modèle 4: Analyse Risques Clients */}
+                <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <div className="p-2 bg-orange-100 rounded-lg">
+                        <Users className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-[#191919]">Analyse de Risques Clients</h4>
+                        <p className="text-sm text-[#767676] mt-1">
+                          Évaluation du risque de défaut de paiement
+                        </p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="text-xs text-[#444444]">Précision: <span className="font-bold text-green-600">91.3%</span></span>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Actif</span>
+                          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">12 clients à risque</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleViewAlgorithm('Analyse de Risques Clients')} className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 text-sm">
+                        <Eye className="w-4 h-4" />
+                        <span>Voir Algorithme</span>
+                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" defaultChecked />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modèles inactifs */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <div className="p-2 bg-gray-200 rounded-lg">
+                        <Calculator className="w-6 h-6 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-700">Optimisation Budgétaire</h4>
+                        <p className="text-sm text-gray-700 mt-1">
+                          Suggestions d'optimisation des dépenses (En formation)
+                        </p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded-full">Inactif</span>
+                          <span className="text-xs text-gray-700">Formation en cours</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button className="px-3 py-1.5 bg-gray-400 text-white rounded-lg cursor-not-allowed flex items-center space-x-2 text-sm" disabled>
+                        <Eye className="w-4 h-4" />
+                        <span>Voir Algorithme</span>
+                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1">
+                      <div className="p-2 bg-gray-200 rounded-lg">
+                        <BarChart3 className="w-6 h-6 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-700">Prévision des Ventes</h4>
+                        <p className="text-sm text-gray-700 mt-1">
+                          Prédiction des ventes futures (Données insuffisantes)
+                        </p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded-full">Inactif</span>
+                          <span className="text-xs text-gray-700">Nécessite plus de données</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button className="px-3 py-1.5 bg-gray-400 text-white rounded-lg cursor-not-allowed flex items-center space-x-2 text-sm" disabled>
+                        <Eye className="w-4 h-4" />
+                        <span>Voir Algorithme</span>
+                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" className="sr-only peer" />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions IA */}
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-purple-900 font-medium">🤖 Les modèles IA apprennent continuellement</p>
+                    <p className="text-xs text-purple-700 mt-1">Dernière mise à jour automatique: il y a 3 heures</p>
+                  </div>
+                  <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
+                    <RefreshCw className="w-4 h-4" />
+                    <span className="text-sm">Réentraîner Tous</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions globales */}
@@ -472,15 +727,306 @@ const CompleteConfigModuleV2: React.FC = () => {
               </button>
               <button 
                 onClick={handleSave}
-                className="px-6 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors flex items-center space-x-2"
-              >
+                className="px-6 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors flex items-center space-x-2" aria-label="Enregistrer">
                 <Save className="w-4 h-4" />
-                <span>Enregistrer</span>
+                <span>{t('actions.save')}</span>
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal Algorithme IA */}
+      {showAlgoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowAlgoModal(false)}>
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Brain className="w-8 h-8" />
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedAlgo}</h2>
+                    <p className="text-purple-100 text-sm mt-1">Détails de l'algorithme d'intelligence artificielle</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAlgoModal(false)} className="p-2 hover:bg-purple-700 rounded-lg transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {selectedAlgo === 'Prédiction de Trésorerie' && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <p className="text-sm text-purple-700 font-medium">Type d'algorithme</p>
+                      <p className="text-lg font-bold text-purple-900 mt-1">LSTM Neural Network</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <p className="text-sm text-green-700 font-medium">Précision actuelle</p>
+                      <p className="text-lg font-bold text-green-900 mt-1">94.2%</p>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700 font-medium">Données d'entraînement</p>
+                      <p className="text-lg font-bold text-blue-900 mt-1">24,567 transactions</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Description</h3>
+                    <p className="text-[#444444] leading-relaxed">Ce modèle utilise un réseau de neurones LSTM (Long Short-Term Memory) pour analyser les flux de trésorerie historiques et prédire les mouvements futurs avec une haute précision. L'algorithme prend en compte les tendances saisonnières, les cycles de paiement clients, et les patterns de dépenses.</p>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Paramètres du modèle</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Couches cachées</p>
+                        <p className="font-semibold text-[#191919]">3 couches (128, 64, 32 neurones)</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Taux d'apprentissage</p>
+                        <p className="font-semibold text-[#191919]">0.001</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Fenêtre temporelle</p>
+                        <p className="font-semibold text-[#191919]">90 jours</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Dropout</p>
+                        <p className="font-semibold text-[#191919]">0.2</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Variables d'entrée</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Soldes bancaires historiques</span>
+                        <span className="text-sm font-semibold text-purple-600">Importance: 32%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Factures clients en attente</span>
+                        <span className="text-sm font-semibold text-purple-600">Importance: 28%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Échéances fournisseurs</span>
+                        <span className="text-sm font-semibold text-purple-600">Importance: 24%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Tendances saisonnières</span>
+                        <span className="text-sm font-semibold text-purple-600">Importance: 16%</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {selectedAlgo === 'Détection d\'Anomalies' && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                      <p className="text-sm text-red-700 font-medium">Type d'algorithme</p>
+                      <p className="text-lg font-bold text-red-900 mt-1">Isolation Forest</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <p className="text-sm text-green-700 font-medium">Précision actuelle</p>
+                      <p className="text-lg font-bold text-green-900 mt-1">89.7%</p>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700 font-medium">Anomalies détectées</p>
+                      <p className="text-lg font-bold text-blue-900 mt-1">147 ce mois</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Description</h3>
+                    <p className="text-[#444444] leading-relaxed">Cet algorithme utilise la méthode Isolation Forest pour détecter les transactions inhabituelles qui pourraient indiquer des erreurs, des fraudes ou des comportements anormaux. Il apprend continuellement des patterns normaux pour mieux identifier les anomalies.</p>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Critères de détection</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Montant inhabituel</span>
+                        <span className="text-sm font-semibold text-red-600">Seuil: ±3σ</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Fréquence anormale</span>
+                        <span className="text-sm font-semibold text-red-600">Seuil: ±2.5σ</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Bénéficiaire inhabituel</span>
+                        <span className="text-sm font-semibold text-red-600">Score &lt; 0.3</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Timing suspect</span>
+                        <span className="text-sm font-semibold text-red-600">Hors heures: 22h-6h</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {selectedAlgo === 'Recommandations Comptables' && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700 font-medium">Type d'algorithme</p>
+                      <p className="text-lg font-bold text-blue-900 mt-1">Random Forest</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <p className="text-sm text-green-700 font-medium">Précision actuelle</p>
+                      <p className="text-lg font-bold text-green-900 mt-1">96.1%</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <p className="text-sm text-purple-700 font-medium">Taux d'adoption</p>
+                      <p className="text-lg font-bold text-purple-900 mt-1">87%</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Description</h3>
+                    <p className="text-[#444444] leading-relaxed">Ce modèle utilise un ensemble d'arbres de décision (Random Forest) pour suggérer les comptes comptables appropriés et proposer des écritures automatiques basées sur l'analyse de milliers de transactions similaires passées.</p>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Paramètres du modèle</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Nombre d'arbres</p>
+                        <p className="font-semibold text-[#191919]">500 arbres</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Profondeur maximale</p>
+                        <p className="font-semibold text-[#191919]">15 niveaux</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Variables par split</p>
+                        <p className="font-semibold text-[#191919]">√n features</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-sm text-[#767676]">Min samples leaf</p>
+                        <p className="font-semibold text-[#191919]">10 échantillons</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Features principales</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Libellé de la transaction</span>
+                        <span className="text-sm font-semibold text-blue-600">Importance: 38%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Montant et devise</span>
+                        <span className="text-sm font-semibold text-blue-600">Importance: 22%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Tiers (client/fournisseur)</span>
+                        <span className="text-sm font-semibold text-blue-600">Importance: 25%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Historique des comptes utilisés</span>
+                        <span className="text-sm font-semibold text-blue-600">Importance: 15%</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {selectedAlgo === 'Analyse de Risques Clients' && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                      <p className="text-sm text-orange-700 font-medium">Type d'algorithme</p>
+                      <p className="text-lg font-bold text-orange-900 mt-1">Gradient Boosting</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <p className="text-sm text-green-700 font-medium">Précision actuelle</p>
+                      <p className="text-lg font-bold text-green-900 mt-1">91.3%</p>
+                    </div>
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                      <p className="text-sm text-red-700 font-medium">Clients à risque</p>
+                      <p className="text-lg font-bold text-red-900 mt-1">12 actuellement</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Description</h3>
+                    <p className="text-[#444444] leading-relaxed">Cet algorithme de Gradient Boosting analyse le comportement de paiement des clients pour prédire le risque de défaut. Il combine plusieurs modèles faibles pour créer une prédiction robuste et fiable du risque client.</p>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Indicateurs de risque</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Historique de retards</span>
+                        <span className="text-sm font-semibold text-orange-600">Importance: 35%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Montant des créances</span>
+                        <span className="text-sm font-semibold text-orange-600">Importance: 28%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Secteur d'activité</span>
+                        <span className="text-sm font-semibold text-orange-600">Importance: 18%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-[#444444]">Santé financière</span>
+                        <span className="text-sm font-semibold text-orange-600">Importance: 19%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold text-lg text-[#191919] mb-3">Niveaux de risque</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-green-900">Risque faible (&lt; 20%)</p>
+                          <p className="text-sm text-green-700">Client fiable, paiements réguliers</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-orange-900">Risque moyen (20-60%)</p>
+                          <p className="text-sm text-orange-700">Surveillance recommandée</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-red-900">Risque élevé (&gt; 60%)</p>
+                          <p className="text-sm text-red-700">Action immédiate requise</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 p-4 rounded-b-xl border-t flex items-center justify-end space-x-3">
+              <button onClick={() => setShowAlgoModal(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                Fermer
+              </button>
+              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
+                <Download className="w-4 h-4" />
+                <span>Exporter les détails</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

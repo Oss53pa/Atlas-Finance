@@ -1,340 +1,266 @@
 /**
- * Service de gestion des paramètres système WiseBook ERP V3.0
+ * SERVICE PARAMÈTRES COMPLET
+ *
+ * Gestion complète des paramètres système:
+ * - Paramètres système (System Parameters)
+ * - Configuration société (Company Configuration)
+ * - Paramètres journaux (Journal Parameters)
+ * - Paramètres notifications (Notification Parameters)
  */
 
-export interface Parameter {
-  key: string;
-  name: string;
-  description: string;
-  category: string;
-  type: string;
-  value: any;
-  default_value: any;
-  required: boolean;
-  editable: boolean;
-  visible: boolean;
-  validation_regex?: string;
-  allowed_values?: string[];
-  min_value?: number;
-  max_value?: number;
-  group: string;
-  order: number;
-  help?: string;
-}
+import BaseApiService, { CrudOptions } from '../lib/base-api.service';
+import { apiClient, QueryParams } from '../lib/api-client';
+import {
+  ParametreSysteme,
+  ConfigurationSociete,
+  JournalParametres,
+  NotificationParametres,
+  CreateParametreSystemeDto,
+  UpdateParametreSystemeDto,
+  CreateConfigurationSocieteDto,
+  UpdateConfigurationSocieteDto,
+  CreateJournalParametresDto,
+  UpdateJournalParametresDto,
+  CreateNotificationParametresDto,
+  UpdateNotificationParametresDto,
+  BulkParameterUpdate,
+  CategoryOption,
+  TypeOption,
+  ParameterQueryParams,
+  JournalQueryParams,
+  NotificationQueryParams,
+  ParameterCategory
+} from '../types/parameters.types';
 
-export interface CompanyConfiguration {
-  id: string;
-  company_id: string;
-  legal_form: string;
-  share_capital?: number;
-  rccm_number?: string;
-  taxpayer_number?: string;
-  chart_type: string;
-  main_currency: string;
-  decimal_places: number;
-  fiscal_year_start: string;
-  fiscal_year_end: string;
-  tax_regime: string;
-  subject_to_vat: boolean;
-  default_vat_rate: number;
-  session_duration: number;
-  max_login_attempts: number;
-  lockout_duration: number;
-  theme: string;
-  default_language: string;
-  logo?: string;
-  primary_color: string;
-  secondary_color: string;
-}
+class ParametreSystemeService extends BaseApiService<
+  ParametreSysteme,
+  CreateParametreSystemeDto,
+  UpdateParametreSystemeDto
+> {
+  protected readonly basePath = '/api/parameters/parametres-systeme';
+  protected readonly entityName = 'paramètre système';
 
-export interface JournalConfiguration {
-  id: string;
-  company_id: string;
-  code: string;
-  name: string;
-  journal_type: string;
-  auto_numbering: boolean;
-  prefix: string;
-  suffix: string;
-  counter: number;
-  digit_count: number;
-  mandatory_counterpart: boolean;
-  auto_lettering: boolean;
-}
-
-class ParametersService {
-  private baseUrl = '/api';
-
-  // Paramètres système
-  async getParameters(category?: string): Promise<Parameter[]> {
-    try {
-      const url = category 
-        ? `${this.baseUrl}/parameters/?category=${category}`
-        : `${this.baseUrl}/parameters/`;
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch parameters');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching parameters:', error);
-      throw error;
-    }
+  async getByCategory(categorie: ParameterCategory): Promise<ParametreSysteme[]> {
+    const response = await apiClient.get<{
+      results: ParametreSysteme[];
+    }>(`${this.basePath}/by-category/${categorie}/`);
+    return response.results;
   }
 
-  async getParametersByCategory(category: string): Promise<Record<string, Parameter[]>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/parameters/by-category/${category}/`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch parameters by category');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching parameters by category:', error);
-      throw error;
-    }
+  async getCategories(): Promise<CategoryOption[]> {
+    const response = await apiClient.get<{
+      categories: CategoryOption[];
+    }>(`${this.basePath}/categories/`);
+    return response.categories;
   }
 
-  async updateParameter(key: string, value: any): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/parameters/${key}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ value }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update parameter');
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error updating parameter:', error);
-      throw error;
-    }
+  async getByGroup(groupe: string): Promise<ParametreSysteme[]> {
+    const response = await apiClient.get<{
+      results: ParametreSysteme[];
+    }>(`${this.basePath}/by-group/${groupe}/`);
+    return response.results;
   }
 
-  async updateMultipleParameters(parameters: Record<string, any>): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/parameters/bulk-update/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ parameters }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update parameters');
+  async resetToDefault(id: string, options?: CrudOptions): Promise<ParametreSysteme> {
+    return this.customAction<ParametreSysteme>(
+      'post',
+      'reset-to-default',
+      id,
+      {},
+      {
+        ...options,
+        successMessage: 'Paramètre réinitialisé aux valeurs par défaut',
       }
-
-      return true;
-    } catch (error) {
-      console.error('Error updating parameters:', error);
-      throw error;
-    }
+    );
   }
 
-  async resetParameter(key: string): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/parameters/${key}/reset/`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to reset parameter');
+  async bulkUpdate(
+    parametres: BulkParameterUpdate,
+    options?: CrudOptions
+  ): Promise<{ updated_count: number; errors?: string[] }> {
+    return apiClient.post<{ updated_count: number; errors?: string[] }>(
+      `${this.basePath}/bulk-update/`,
+      parametres,
+      {
+        showSuccessToast: options?.showSuccessToast ?? true,
+        successMessage: options?.successMessage ?? 'Paramètres mis à jour',
       }
-
-      return true;
-    } catch (error) {
-      console.error('Error resetting parameter:', error);
-      throw error;
-    }
+    );
   }
 
-  // Configuration société
-  async getCompanyConfiguration(companyId: string): Promise<CompanyConfiguration> {
-    try {
-      const response = await fetch(`${this.baseUrl}/companies/${companyId}/configuration/`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch company configuration');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching company configuration:', error);
-      throw error;
-    }
+  async getVisibleOnly(): Promise<ParametreSysteme[]> {
+    const response = await apiClient.get<{
+      results: ParametreSysteme[];
+    }>(`${this.basePath}/visible-only/`);
+    return response.results;
   }
 
-  async updateCompanyConfiguration(
-    companyId: string, 
-    configuration: Partial<CompanyConfiguration>
-  ): Promise<CompanyConfiguration> {
-    try {
-      const response = await fetch(`${this.baseUrl}/companies/${companyId}/configuration/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(configuration),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update company configuration');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating company configuration:', error);
-      throw error;
-    }
+  async getByKey(cle: string): Promise<ParametreSysteme> {
+    return apiClient.get<ParametreSysteme>(`${this.basePath}/get-by-key/`, { cle });
   }
 
-  async initializeDefaultConfiguration(companyId: string): Promise<CompanyConfiguration> {
-    try {
-      const response = await fetch(`${this.baseUrl}/companies/${companyId}/configuration/initialize/`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to initialize default configuration');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error initializing default configuration:', error);
-      throw error;
-    }
-  }
-
-  // Configuration des journaux
-  async getJournalConfigurations(companyId: string): Promise<JournalConfiguration[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}/companies/${companyId}/journals/`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch journal configurations');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching journal configurations:', error);
-      throw error;
-    }
-  }
-
-  async updateJournalConfiguration(
-    journalId: string,
-    configuration: Partial<JournalConfiguration>
-  ): Promise<JournalConfiguration> {
-    try {
-      const response = await fetch(`${this.baseUrl}/journals/${journalId}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(configuration),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update journal configuration');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating journal configuration:', error);
-      throw error;
-    }
-  }
-
-  async initializeDefaultJournals(companyId: string): Promise<JournalConfiguration[]> {
-    try {
-      const response = await fetch(`${this.baseUrl}/companies/${companyId}/journals/initialize/`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to initialize default journals');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error initializing default journals:', error);
-      throw error;
-    }
-  }
-
-  // Utilitaires
-  async exportConfiguration(): Promise<Blob> {
-    try {
-      const response = await fetch(`${this.baseUrl}/configuration/export/`);
-      if (!response.ok) {
-        throw new Error('Failed to export configuration');
-      }
-      
-      return await response.blob();
-    } catch (error) {
-      console.error('Error exporting configuration:', error);
-      throw error;
-    }
-  }
-
-  async importConfiguration(file: File): Promise<boolean> {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch(`${this.baseUrl}/configuration/import/`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to import configuration');
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error importing configuration:', error);
-      throw error;
-    }
-  }
-
-  async validateConfiguration(): Promise<{ valid: boolean; errors: string[] }> {
-    try {
-      const response = await fetch(`${this.baseUrl}/configuration/validate/`);
-      if (!response.ok) {
-        throw new Error('Failed to validate configuration');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error validating configuration:', error);
-      throw error;
-    }
-  }
-
-  // Cache management
-  async clearParametersCache(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/parameters/clear-cache/`, {
-        method: 'POST',
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error('Error clearing parameters cache:', error);
-      return false;
-    }
+  async search(params: ParameterQueryParams): Promise<ParametreSysteme[]> {
+    return apiClient.get<ParametreSysteme[]>(`${this.basePath}/`, params);
   }
 }
 
-// Instance singleton du service
-export const parametersService = new ParametersService();
+class ConfigurationSocieteService extends BaseApiService<
+  ConfigurationSociete,
+  CreateConfigurationSocieteDto,
+  UpdateConfigurationSocieteDto
+> {
+  protected readonly basePath = '/api/parameters/configurations-societe';
+  protected readonly entityName = 'configuration société';
 
-export default parametersService;
+  async getByCompany(societeId: string): Promise<ConfigurationSociete> {
+    return apiClient.get<ConfigurationSociete>(
+      `${this.basePath}/by-company/${societeId}/`
+    );
+  }
+
+  async uploadLogo(
+    configId: string,
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<ConfigurationSociete> {
+    return apiClient.uploadFile<ConfigurationSociete>(
+      `${this.basePath}/${configId}/upload-logo/`,
+      file,
+      {},
+      onProgress
+        ? (progressEvent: any) => {
+            if (progressEvent.total) {
+              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              onProgress(progress);
+            }
+          }
+        : undefined
+    );
+  }
+
+  async deleteLogo(configId: string, options?: CrudOptions): Promise<void> {
+    return this.customAction<void>(
+      'delete',
+      'delete-logo',
+      configId,
+      {},
+      {
+        ...options,
+        successMessage: 'Logo supprimé',
+      }
+    );
+  }
+}
+
+class JournalParametresService extends BaseApiService<
+  JournalParametres,
+  CreateJournalParametresDto,
+  UpdateJournalParametresDto
+> {
+  protected readonly basePath = '/api/parameters/journaux-parametres';
+  protected readonly entityName = 'paramètre journal';
+
+  async getByCompany(societeId: string): Promise<JournalParametres[]> {
+    const response = await apiClient.get<{
+      results: JournalParametres[];
+    }>(`${this.basePath}/by-company/${societeId}/`);
+    return response.results;
+  }
+
+  async getByType(typeJournal: string): Promise<JournalParametres[]> {
+    const response = await apiClient.get<{
+      results: JournalParametres[];
+    }>(`${this.basePath}/by-type/${typeJournal}/`);
+    return response.results;
+  }
+
+  async getTypes(): Promise<TypeOption[]> {
+    const response = await apiClient.get<{
+      types: TypeOption[];
+    }>(`${this.basePath}/types/`);
+    return response.types;
+  }
+
+  async incrementCounter(id: string, options?: CrudOptions): Promise<JournalParametres> {
+    return this.customAction<JournalParametres>(
+      'post',
+      'increment-counter',
+      id,
+      {},
+      {
+        ...options,
+        successMessage: 'Compteur incrémenté',
+      }
+    );
+  }
+
+  async search(params: JournalQueryParams): Promise<JournalParametres[]> {
+    return apiClient.get<JournalParametres[]>(`${this.basePath}/`, params);
+  }
+}
+
+class NotificationParametresService extends BaseApiService<
+  NotificationParametres,
+  CreateNotificationParametresDto,
+  UpdateNotificationParametresDto
+> {
+  protected readonly basePath = '/api/parameters/notifications-parametres';
+  protected readonly entityName = 'paramètre notification';
+
+  async getByCompany(societeId: string): Promise<NotificationParametres[]> {
+    const response = await apiClient.get<{
+      results: NotificationParametres[];
+    }>(`${this.basePath}/by-company/${societeId}/`);
+    return response.results;
+  }
+
+  async getActive(): Promise<NotificationParametres[]> {
+    const response = await apiClient.get<{
+      results: NotificationParametres[];
+    }>(`${this.basePath}/active/`);
+    return response.results;
+  }
+
+  async getEvents(): Promise<TypeOption[]> {
+    const response = await apiClient.get<{
+      events: TypeOption[];
+    }>(`${this.basePath}/events/`);
+    return response.events;
+  }
+
+  async getNotificationTypes(): Promise<TypeOption[]> {
+    const response = await apiClient.get<{
+      types: TypeOption[];
+    }>(`${this.basePath}/notification-types/`);
+    return response.types;
+  }
+
+  async toggleActive(id: string, options?: CrudOptions): Promise<NotificationParametres> {
+    return this.customAction<NotificationParametres>(
+      'post',
+      'toggle-active',
+      id,
+      {},
+      {
+        ...options,
+        successMessage: 'Statut de notification modifié',
+      }
+    );
+  }
+
+  async search(params: NotificationQueryParams): Promise<NotificationParametres[]> {
+    return apiClient.get<NotificationParametres[]>(`${this.basePath}/`, params);
+  }
+}
+
+export const parametreSystemeService = new ParametreSystemeService();
+export const configurationSocieteService = new ConfigurationSocieteService();
+export const journalParametresService = new JournalParametresService();
+export const notificationParametresService = new NotificationParametresService();
+
+export {
+  ParametreSystemeService,
+  ConfigurationSocieteService,
+  JournalParametresService,
+  NotificationParametresService,
+};

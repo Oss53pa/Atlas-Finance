@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   CreditCard,
   Send,
@@ -39,6 +41,7 @@ interface PaymentStats {
 }
 
 const GestionPaiementsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<PaymentStats>({
     todayPayments: 0,
@@ -49,6 +52,10 @@ const GestionPaiementsPage: React.FC = () => {
   });
   const [selectedMethod, setSelectedMethod] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+
+  // États pour le modal de sélection de période
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   useEffect(() => {
     loadPaymentData();
@@ -132,10 +139,10 @@ const GestionPaiementsPage: React.FC = () => {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'executed': return 'Exécuté';
-      case 'validated': return 'Validé';
-      case 'pending': return 'En attente';
+      case 'validated': return t('accounting.validated');
+      case 'pending': return t('status.pending');
       case 'failed': return 'Échec';
-      case 'draft': return 'Brouillon';
+      case 'draft': return t('status.draft');
       default: return status;
     }
   };
@@ -185,7 +192,7 @@ const GestionPaiementsPage: React.FC = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{stats.todayPayments}</p>
-              <p className="text-gray-600 text-sm">Aujourd'hui</p>
+              <p className="text-gray-600 text-sm">{t('common.today')}</p>
             </div>
           </motion.div>
 
@@ -302,7 +309,21 @@ const GestionPaiementsPage: React.FC = () => {
         {/* Liste des paiements */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Paiements</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Paiements</h2>
+              <button
+                onClick={() => setShowPeriodModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm">
+                  {dateRange.start && dateRange.end
+                    ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                    : 'Filtrer par période'
+                  }
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="p-6">
@@ -355,7 +376,7 @@ const GestionPaiementsPage: React.FC = () => {
                         
                         {/* Circuit de validation */}
                         <div className="mt-3 flex items-center space-x-2">
-                          <span className="text-xs text-gray-500">Validation:</span>
+                          <span className="text-xs text-gray-700">Validation:</span>
                           {Array.from({ length: payment.maxValidationLevel }, (_, i) => (
                             <div
                               key={i}
@@ -366,7 +387,7 @@ const GestionPaiementsPage: React.FC = () => {
                               }`}
                             />
                           ))}
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-700">
                             {payment.validationLevel}/{payment.maxValidationLevel}
                           </span>
                         </div>
@@ -391,6 +412,18 @@ const GestionPaiementsPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Modal de sélection de période */}
+        <PeriodSelectorModal
+          isOpen={showPeriodModal}
+          onClose={() => setShowPeriodModal(false)}
+          onApply={(newDateRange) => {
+            setDateRange(newDateRange);
+            // Ici on pourrait filtrer les paiements selon la période sélectionnée
+            // Pour l'instant on met juste à jour l'état dateRange
+          }}
+          initialDateRange={dateRange}
+        />
       </div>
     </div>
   );

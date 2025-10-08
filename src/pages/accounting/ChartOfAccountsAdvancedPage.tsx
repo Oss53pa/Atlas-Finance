@@ -3,6 +3,7 @@
  * Configuration selon EXP-PAR-003 avec tous les comptes obligatoires
  */
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Book,
@@ -104,6 +105,7 @@ const CLASSES_SYSCOHADA = [
 ];
 
 const ChartOfAccountsAdvancedPage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['1', '2', '3', '4', '5', '6', '7']));
@@ -223,7 +225,7 @@ const ChartOfAccountsAdvancedPage: React.FC = () => {
             children: [
               {
                 code: '121',
-                libelle: 'Report à nouveau',
+                libelle: t('closures.carryForward'),
                 classe: 1,
                 type: 'INDIVIDUEL',
                 nature: 'MIXTE',
@@ -425,7 +427,7 @@ const ChartOfAccountsAdvancedPage: React.FC = () => {
             children: [
               {
                 code: '411',
-                libelle: 'Clients',
+                libelle: t('navigation.clients'),
                 classe: 4,
                 type: 'COLLECTIF',
                 nature: 'DEBIT',
@@ -740,7 +742,7 @@ const ChartOfAccountsAdvancedPage: React.FC = () => {
                       <div className="text-sm text-gray-600">{classe.libelle}</div>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-700">
                     {/* Ici on pourrait afficher le nombre de comptes par classe */}
                     45 comptes configurés
                   </div>
@@ -788,7 +790,7 @@ const ChartOfAccountsAdvancedPage: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-700" />
             <Input
               placeholder="Rechercher un compte..."
               value={searchTerm}

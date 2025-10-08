@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { Calculator, Eye, EyeOff, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
 
 const LoginPage: React.FC = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -63,25 +65,25 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-swirl p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center pb-8">
             <div className="flex justify-center mb-6">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-tuatara text-swirl rounded-xl">
+                <div className="p-3 bg-[var(--color-primary)] text-white rounded-xl">
                   <Calculator className="h-8 w-8" />
                 </div>
                 <div className="text-left">
-                  <h1 className="text-2xl font-bold text-tuatara">WiseBook</h1>
-                  <p className="text-sm text-rolling-stone">ERP Comptable V3.0</p>
+                  <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">WiseBook</h1>
+                  <p className="text-sm text-[var(--color-text-secondary)]">ERP Comptable V3.0</p>
                 </div>
               </div>
             </div>
-            <CardTitle className="text-tuatara text-xl">
+            <CardTitle className="text-[var(--color-text-primary)] text-xl">
               Connexion à votre compte
             </CardTitle>
-            <p className="text-sm text-rolling-stone mt-2">
+            <p className="text-sm text-[var(--color-text-secondary)] mt-2">
               SYSCOHADA - Système comptable pour l'Afrique
             </p>
           </CardHeader>
@@ -103,7 +105,7 @@ const LoginPage: React.FC = () => {
                 />
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-tuatara">
+                  <label className="text-sm font-medium text-[var(--color-text-primary)]">
                     Mot de passe
                   </label>
                   <div className="relative">
@@ -122,7 +124,7 @@ const LoginPage: React.FC = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-rolling-stone hover:text-tuatara"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                     >
@@ -137,7 +139,7 @@ const LoginPage: React.FC = () => {
 
                 {showMfaInput && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-tuatara flex items-center gap-2">
+                    <label className="text-sm font-medium text-[var(--color-text-primary)] flex items-center gap-2">
                       <Shield className="h-4 w-4" />
                       Code d'authentification MFA
                     </label>
@@ -154,7 +156,7 @@ const LoginPage: React.FC = () => {
                       aria-describedby={errors.mfaCode ? 'mfa-error' : undefined}
                       className="text-center text-lg tracking-wider"
                     />
-                    <p className="text-xs text-rolling-stone">
+                    <p className="text-xs text-[var(--color-text-secondary)]">
                       Saisissez le code à 6 chiffres de votre application d'authentification
                     </p>
                   </div>
@@ -164,7 +166,7 @@ const LoginPage: React.FC = () => {
               <div className="flex items-center justify-between text-sm">
                 <Link 
                   to="/forgot-password" 
-                  className="text-tuatara hover:text-rolling-stone hover:underline transition-colors"
+                  className="text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
                 >
                   Mot de passe oublié ?
                 </Link>
@@ -172,7 +174,7 @@ const LoginPage: React.FC = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-tuatara hover:bg-rolling-stone text-swirl font-medium py-3 text-base transition-colors focus:ring-2 focus:ring-tuatara focus:ring-offset-2" 
+                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white font-medium py-3 text-base transition-colors focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2" 
                 loading={isLoggingIn}
                 disabled={isLoggingIn}
                 aria-describedby="login-status"
@@ -194,11 +196,11 @@ const LoginPage: React.FC = () => {
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-rolling-stone">Première fois ?</span>
+                  <span className="bg-white px-2 text-[var(--color-text-secondary)]">Première fois ?</span>
                 </div>
               </div>
               <div className="mt-4">
-                <p className="text-sm text-rolling-stone">
+                <p className="text-sm text-[var(--color-text-secondary)]">
                   Contactez votre administrateur système pour obtenir vos identifiants d'accès à WiseBook.
                 </p>
               </div>
@@ -206,7 +208,7 @@ const LoginPage: React.FC = () => {
 
             {/* Demo accounts info */}
             <div className="mt-6 rounded-lg bg-gray-50 border border-gray-200 p-4">
-              <h3 className="text-sm font-semibold text-tuatara mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 Comptes de démonstration
               </h3>
@@ -224,7 +226,7 @@ const LoginPage: React.FC = () => {
                   <p><strong>Mot de passe:</strong> Consultant2024!</p>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-3 italic">
+              <p className="text-xs text-gray-700 mt-3 italic">
                 ⚠️ Environnement de démonstration - Données fictives uniquement
               </p>
             </div>

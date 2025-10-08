@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   ArrowLeft, Edit, Download, Printer, AlertTriangle, CheckCircle, Clock,
   User, Building, MapPin, Phone, Mail, Calendar, DollarSign, FileText,
@@ -146,11 +148,17 @@ interface Echeance {
 }
 
 const ClientDetailView: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { clientId } = useParams();
   const [activeTab, setActiveTab] = useState('synthese');
   const [loading, setLoading] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState('12MOIS');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear() - 1, new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    period: 'year' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
+  });
   const [expandedSections, setExpandedSections] = useState<string[]>(['infos-base']);
 
   // Mock Client Data
@@ -388,25 +396,31 @@ const ClientDetailView: React.FC = () => {
               Score: {clientDetail.financier.scoreRisque}/100
             </div>
 
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
             >
-              <option value="1MOIS">1 mois</option>
-              <option value="3MOIS">3 mois</option>
-              <option value="6MOIS">6 mois</option>
-              <option value="12MOIS">12 mois</option>
-            </select>
+              <Calendar className="w-4 h-4 text-[#666666]" />
+              <span>
+                {dateRange.period === 'custom'
+                  ? `${dateRange.startDate} - ${dateRange.endDate}`
+                  : dateRange.period === 'day' ? '1 jour'
+                  : dateRange.period === 'week' ? '1 semaine'
+                  : dateRange.period === 'month' ? '1 mois'
+                  : dateRange.period === 'quarter' ? '3 mois'
+                  : '12 mois'
+                }
+              </span>
+            </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" aria-label="Imprimer">
               <Printer className="w-4 h-4" />
-              <span className="text-sm font-semibold">Imprimer</span>
+              <span className="text-sm font-semibold">{t('common.print')}</span>
             </button>
 
             <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
               <Edit className="w-4 h-4" />
-              <span className="text-sm font-semibold">Modifier</span>
+              <span className="text-sm font-semibold">{t('common.edit')}</span>
             </button>
           </div>
         </div>
@@ -658,13 +672,13 @@ const ClientDetailView: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Date</th>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Pièce</th>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Libellé</th>
-                    <th className="text-right p-3 text-sm font-medium text-[#666666]">Débit</th>
-                    <th className="text-right p-3 text-sm font-medium text-[#666666]">Crédit</th>
-                    <th className="text-right p-3 text-sm font-medium text-[#666666]">Solde</th>
-                    <th className="text-center p-3 text-sm font-medium text-[#666666]">Lettrage</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('common.date')}</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('accounting.piece')}</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('accounting.label')}</th>
+                    <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.debit')}</th>
+                    <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.credit')}</th>
+                    <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.balance')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[#666666]">{t('thirdParty.reconciliation')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -993,7 +1007,7 @@ const ClientDetailView: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Date</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('common.date')}</th>
                     <th className="text-left p-3 text-sm font-medium text-[#666666]">N° Commande</th>
                     <th className="text-left p-3 text-sm font-medium text-[#666666]">Produits</th>
                     <th className="text-right p-3 text-sm font-medium text-[#666666]">Montant HT</th>
@@ -1011,7 +1025,7 @@ const ClientDetailView: React.FC = () => {
                       <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Livrée</span>
                     </td>
                     <td className="p-3 text-center">
-                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded">
+                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded" aria-label="Voir les détails">
                         <Eye className="w-4 h-4" />
                       </button>
                     </td>
@@ -1022,10 +1036,10 @@ const ClientDetailView: React.FC = () => {
                     <td className="p-3 text-sm">Fournitures de bureau</td>
                     <td className="p-3 text-sm text-right font-medium">{formatCurrency(42000)}</td>
                     <td className="p-3 text-center">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">En cours</span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">{t('status.inProgress')}</span>
                     </td>
                     <td className="p-3 text-center">
-                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded">
+                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded" aria-label="Voir les détails">
                         <Eye className="w-4 h-4" />
                       </button>
                     </td>
@@ -1039,7 +1053,7 @@ const ClientDetailView: React.FC = () => {
                       <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Facturée</span>
                     </td>
                     <td className="p-3 text-center">
-                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded">
+                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded" aria-label="Voir les détails">
                         <Eye className="w-4 h-4" />
                       </button>
                     </td>
@@ -1279,13 +1293,13 @@ const ClientDetailView: React.FC = () => {
                     <p className="text-xs text-[#666666]">Taille: 2.4 MB</p>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
                       <Download className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-red-600 hover:bg-red-100 rounded">
+                    <button className="p-2 text-red-600 hover:bg-red-100 rounded" aria-label="Supprimer">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -1301,13 +1315,13 @@ const ClientDetailView: React.FC = () => {
                     <p className="text-xs text-[#666666]">Taille: 856 KB</p>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
                       <Download className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-red-600 hover:bg-red-100 rounded">
+                    <button className="p-2 text-red-600 hover:bg-red-100 rounded" aria-label="Supprimer">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -1323,13 +1337,13 @@ const ClientDetailView: React.FC = () => {
                     <p className="text-xs text-[#666666]">Taille: 245 KB</p>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
                       <Download className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-red-600 hover:bg-red-100 rounded">
+                    <button className="p-2 text-red-600 hover:bg-red-100 rounded" aria-label="Supprimer">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -1345,13 +1359,13 @@ const ClientDetailView: React.FC = () => {
                     <p className="text-xs text-[#666666]">Taille: 125 KB</p>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+                    <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+                    <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
                       <Download className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-red-600 hover:bg-red-100 rounded">
+                    <button className="p-2 text-red-600 hover:bg-red-100 rounded" aria-label="Supprimer">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -1806,6 +1820,17 @@ const ClientDetailView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        currentRange={dateRange}
+        onPeriodChange={(newRange) => {
+          setDateRange(newRange);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

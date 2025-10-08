@@ -637,7 +637,7 @@ const CompleteFinancialModule: React.FC = () => {
             {ratiosFinanciers.slice(0, 5).map((ratio) => (
               <div key={ratio.nom} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-gray-500">{ratio.nom}</p>
+                  <p className="text-xs text-gray-700">{ratio.nom}</p>
                   {getInterpretationBadge(ratio.interpretation)}
                 </div>
                 <div className="flex items-center gap-2">
@@ -682,7 +682,7 @@ const CompleteFinancialModule: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-sm font-medium">{doc.nom}</p>
-                      <span className="text-xs text-gray-500">{doc.progress}%</span>
+                      <span className="text-xs text-gray-700">{doc.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
@@ -727,7 +727,7 @@ const CompleteFinancialModule: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium">{note.titre}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-700">
                         {note.obligatoire ? 'Obligatoire' : 'Optionnel'}
                       </p>
                     </div>
@@ -749,7 +749,7 @@ const CompleteFinancialModule: React.FC = () => {
                       )}
                     </span>
                     <button className="p-1 hover:bg-gray-100 rounded">
-                      <Edit className="w-3 h-3 text-gray-500" />
+                      <Edit className="w-3 h-3 text-gray-700" />
                     </button>
                   </div>
                 </div>
@@ -767,7 +767,7 @@ const CompleteFinancialModule: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Bilan SYSCOHADA</h2>
-          <p className="text-sm text-gray-500">Exercice clos le 31/12/2023</p>
+          <p className="text-sm text-gray-700">Exercice clos le 31/12/2023</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -810,10 +810,10 @@ const CompleteFinancialModule: React.FC = () => {
                       item.niveau === 1 ? 'font-semibold bg-gray-50' : ''
                     }`}>
                       <td className={`py-2 ${item.niveau === 2 ? 'pl-4' : ''}`}>
-                        <span className="text-xs text-gray-500 mr-2">{item.code}</span>
+                        <span className="text-xs text-gray-700 mr-2">{item.code}</span>
                         {item.libelle}
                       </td>
-                      <td className="py-2 text-right text-xs text-gray-500">{item.note}</td>
+                      <td className="py-2 text-right text-xs text-gray-700">{item.note}</td>
                       <td className="py-2 text-right font-medium">
                         {item.exerciceN.toLocaleString('fr-FR')}
                       </td>
@@ -858,10 +858,10 @@ const CompleteFinancialModule: React.FC = () => {
                       item.niveau === 1 ? 'font-semibold bg-gray-50' : ''
                     }`}>
                       <td className={`py-2 ${item.niveau === 2 ? 'pl-4' : ''}`}>
-                        <span className="text-xs text-gray-500 mr-2">{item.code}</span>
+                        <span className="text-xs text-gray-700 mr-2">{item.code}</span>
                         {item.libelle}
                       </td>
-                      <td className="py-2 text-right text-xs text-gray-500">{item.note}</td>
+                      <td className="py-2 text-right text-xs text-gray-700">{item.note}</td>
                       <td className="py-2 text-right font-medium">
                         {item.exerciceN.toLocaleString('fr-FR')}
                       </td>
@@ -891,7 +891,7 @@ const CompleteFinancialModule: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Compte de Résultat</h2>
-          <p className="text-sm text-gray-500">Exercice du 01/01/2023 au 31/12/2023</p>
+          <p className="text-sm text-gray-700">Exercice du 01/01/2023 au 31/12/2023</p>
         </div>
         <div className="flex items-center gap-3">
           <ModernButton variant="outline" size="sm">
@@ -931,10 +931,10 @@ const CompleteFinancialModule: React.FC = () => {
                   .map((item) => (
                     <tr key={item.code} className="border-b border-gray-100">
                       <td className="py-2 pl-4">
-                        <span className="text-xs text-gray-500 mr-2">{item.code}</span>
+                        <span className="text-xs text-gray-700 mr-2">{item.code}</span>
                         {item.libelle}
                       </td>
-                      <td className="py-2 text-right text-xs text-gray-500">{item.note}</td>
+                      <td className="py-2 text-right text-xs text-gray-700">{item.note}</td>
                       <td className="py-2 text-right font-medium">
                         {item.exerciceN.toLocaleString('fr-FR')}
                       </td>
@@ -958,10 +958,10 @@ const CompleteFinancialModule: React.FC = () => {
                   .map((item) => (
                     <tr key={item.code} className="border-b border-gray-100">
                       <td className="py-2 pl-4">
-                        <span className="text-xs text-gray-500 mr-2">{item.code}</span>
+                        <span className="text-xs text-gray-700 mr-2">{item.code}</span>
                         {item.libelle}
                       </td>
-                      <td className="py-2 text-right text-xs text-gray-500">{item.note}</td>
+                      <td className="py-2 text-right text-xs text-gray-700">{item.note}</td>
                       <td className="py-2 text-right font-medium text-red-600">
                         {Math.abs(item.exerciceN).toLocaleString('fr-FR')}
                       </td>
@@ -1114,7 +1114,7 @@ const CompleteFinancialModule: React.FC = () => {
               className={`flex items-center gap-2 py-4 px-1 border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-700 hover:text-gray-700'
               }`}
             >
               <tab.icon className="w-4 h-4" />

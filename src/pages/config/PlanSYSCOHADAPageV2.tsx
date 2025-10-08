@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Calculator, Search, Filter, Download, ArrowLeft, Home, Plus,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 
 const PlanSYSCOHADAPageV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('classes');
   const [selectedClasse, setSelectedClasse] = useState<string | null>(null);
@@ -242,7 +244,7 @@ const PlanSYSCOHADAPageV2: React.FC = () => {
                             </span>
                           )}
                           <div className="flex items-center space-x-1 mt-1">
-                            <button className="text-[#6A8A82] hover:text-[#5A7A72]">
+                            <button className="text-[#6A8A82] hover:text-[#5A7A72]" aria-label="Voir les détails">
                               <Eye className="w-3 h-3" />
                             </button>
                             <button className="text-[#B87333] hover:text-[#A86323]">
@@ -272,7 +274,7 @@ const PlanSYSCOHADAPageV2: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <button className="p-3 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+                  <button className="p-3 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Filtrer">
                     <Filter className="w-4 h-4 text-[#767676]" />
                   </button>
                 </div>
@@ -302,7 +304,7 @@ const PlanSYSCOHADAPageV2: React.FC = () => {
                           {resultat.solde.toLocaleString()}€
                         </span>
                         <div className="flex items-center space-x-1 mt-1">
-                          <button className="text-[#6A8A82] hover:text-[#5A7A72]">
+                          <button className="text-[#6A8A82] hover:text-[#5A7A72]" aria-label="Voir les détails">
                             <Eye className="w-3 h-3" />
                           </button>
                           <button className="text-[#B87333] hover:text-[#A86323]">
@@ -334,7 +336,7 @@ const PlanSYSCOHADAPageV2: React.FC = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-[#444444] mb-2">Libellé</label>
+                      <label className="block text-sm font-medium text-[#444444] mb-2">{t('accounting.label')}</label>
                       <input 
                         type="text" 
                         placeholder="Libellé du compte"

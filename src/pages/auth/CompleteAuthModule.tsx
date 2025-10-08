@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Users, Shield, Key, Lock, Unlock, UserCheck, UserX,
   Activity, AlertTriangle, CheckCircle, XCircle, Eye, EyeOff,
@@ -113,6 +114,7 @@ interface SecurityPolicy {
 }
 
 const CompleteAuthModule: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -484,29 +486,29 @@ const CompleteAuthModule: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Actif': return 'bg-green-100 text-green-800';
-      case 'Inactif': return 'bg-gray-100 text-gray-800';
-      case 'Suspendu': return 'bg-orange-100 text-orange-800';
-      case 'Verrouillé': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Actif': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]';
+      case 'Inactif': return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
+      case 'Suspendu': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]';
+      case 'Verrouillé': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'Low': return 'text-green-600';
-      case 'Medium': return 'text-yellow-600';
-      case 'High': return 'text-orange-600';
-      case 'Critical': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'Low': return 'text-[var(--color-success)]';
+      case 'Medium': return 'text-[var(--color-warning)]';
+      case 'High': return 'text-[var(--color-warning)]';
+      case 'Critical': return 'text-[var(--color-error)]';
+      default: return 'text-[var(--color-text-primary)]';
     }
   };
 
   const getLogStatusIcon = (status: string) => {
     switch (status) {
-      case 'Success': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'Failed': return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'Warning': return <AlertTriangle className="w-4 h-4 text-orange-500" />;
+      case 'Success': return <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'Failed': return <XCircle className="w-4 h-4 text-[var(--color-error)]" />;
+      case 'Warning': return <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />;
       default: return null;
     }
   };
@@ -545,13 +547,13 @@ const CompleteAuthModule: React.FC = () => {
         {/* Tabs */}
         <div className="flex gap-4 border-b border-[var(--color-border)]">
           {[
-            { id: 'dashboard', label: 'Tableau de bord', icon: Shield },
+            { id: 'dashboard', label: t('dashboard.title'), icon: Shield },
             { id: 'users', label: 'Utilisateurs', icon: Users },
             { id: 'roles', label: 'Rôles', icon: ShieldCheck },
             { id: 'permissions', label: 'Permissions', icon: Key },
             { id: 'sessions', label: 'Sessions', icon: Activity },
             { id: 'security', label: 'Sécurité', icon: Lock },
-            { id: 'logs', label: 'Journaux', icon: FileText }
+            { id: 'logs', label: t('navigation.journals'), icon: FileText }
           ].map(tab => (
             <button
               key={tab.id}
@@ -576,10 +578,10 @@ const CompleteAuthModule: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="w-6 h-6 text-blue-600" />
+                <div className="p-2 bg-[var(--color-primary-lighter)] rounded-lg">
+                  <Users className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
-                <span className="text-xs text-green-600">{stats.activeUsers} actifs</span>
+                <span className="text-xs text-[var(--color-success)]">{stats.activeUsers} actifs</span>
               </div>
               <div className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {stats.totalUsers}
@@ -591,8 +593,8 @@ const CompleteAuthModule: React.FC = () => {
 
             <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Wifi className="w-6 h-6 text-green-600" />
+                <div className="p-2 bg-[var(--color-success-lighter)] rounded-lg">
+                  <Wifi className="w-6 h-6 text-[var(--color-success)]" />
                 </div>
                 <span className="text-xs text-[var(--color-text-secondary)]">En ligne</span>
               </div>
@@ -606,10 +608,10 @@ const CompleteAuthModule: React.FC = () => {
 
             <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <ShieldCheck className="w-6 h-6 text-purple-600" />
+                <div className="p-2 bg-[var(--color-info-lighter)] rounded-lg">
+                  <ShieldCheck className="w-6 h-6 text-[var(--color-info)]" />
                 </div>
-                <span className="text-xs text-green-600">{stats.twoFactorPercent.toFixed(0)}%</span>
+                <span className="text-xs text-[var(--color-success)]">{stats.twoFactorPercent.toFixed(0)}%</span>
               </div>
               <div className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {stats.twoFactorUsers}
@@ -621,10 +623,10 @@ const CompleteAuthModule: React.FC = () => {
 
             <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                <div className="p-2 bg-[var(--color-error-lighter)] rounded-lg">
+                  <AlertTriangle className="w-6 h-6 text-[var(--color-error)]" />
                 </div>
-                <span className="text-xs text-red-600">{stats.lockedUsers} verrouillés</span>
+                <span className="text-xs text-[var(--color-error)]">{stats.lockedUsers} verrouillés</span>
               </div>
               <div className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {stats.criticalAlerts}
@@ -757,9 +759,9 @@ const CompleteAuthModule: React.FC = () => {
                       </td>
                       <td className="p-4 text-center">
                         {user.twoFactorEnabled ? (
-                          <ShieldCheck className="w-5 h-5 text-green-500 mx-auto" />
+                          <ShieldCheck className="w-5 h-5 text-[var(--color-success)] mx-auto" />
                         ) : (
-                          <ShieldAlert className="w-5 h-5 text-gray-400 mx-auto" />
+                          <ShieldAlert className="w-5 h-5 text-[var(--color-text-secondary)] mx-auto" />
                         )}
                       </td>
                       <td className="p-4">
@@ -777,16 +779,16 @@ const CompleteAuthModule: React.FC = () => {
                               setShowUserModal(true);
                             }}
                             className="p-1 hover:bg-[var(--color-background)] rounded transition-colors"
-                            title="Modifier"
+                            title={t('common.edit')}
                           >
-                            <Edit className="w-4 h-4 text-blue-600" />
+                            <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                           <button
                             onClick={() => handleResetPassword(user)}
                             className="p-1 hover:bg-[var(--color-background)] rounded transition-colors"
                             title="Réinitialiser mot de passe"
                           >
-                            <Key className="w-4 h-4 text-orange-600" />
+                            <Key className="w-4 h-4 text-[var(--color-warning)]" />
                           </button>
                           <button
                             onClick={() => handleLockUser(user)}
@@ -794,16 +796,16 @@ const CompleteAuthModule: React.FC = () => {
                             title={user.status === 'Verrouillé' ? 'Déverrouiller' : 'Verrouiller'}
                           >
                             {user.status === 'Verrouillé' ? 
-                              <Unlock className="w-4 h-4 text-green-600" /> :
-                              <Lock className="w-4 h-4 text-red-600" />
+                              <Unlock className="w-4 h-4 text-[var(--color-success)]" /> :
+                              <Lock className="w-4 h-4 text-[var(--color-error)]" />
                             }
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user.id)}
                             className="p-1 hover:bg-[var(--color-background)] rounded transition-colors"
-                            title="Supprimer"
+                            title={t('common.delete')}
                           >
-                            <Trash2 className="w-4 h-4 text-red-600" />
+                            <Trash2 className="w-4 h-4 text-[var(--color-error)]" />
                           </button>
                         </div>
                       </td>
@@ -851,7 +853,7 @@ const CompleteAuthModule: React.FC = () => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-[var(--color-text-secondary)]">2FA:</span>
-                        <span className={selectedUser.twoFactorEnabled ? 'text-green-600' : 'text-red-600'}>
+                        <span className={selectedUser.twoFactorEnabled ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}>
                           {selectedUser.twoFactorEnabled ? 'Activé' : 'Désactivé'}
                         </span>
                       </div>
@@ -875,7 +877,7 @@ const CompleteAuthModule: React.FC = () => {
                             <span className="text-[var(--color-text-primary)]">{session.device}</span>
                             <button
                               onClick={() => handleTerminateSession(session)}
-                              className="text-red-600 hover:underline"
+                              className="text-[var(--color-error)] hover:underline"
                             >
                               Terminer
                             </button>
@@ -911,11 +913,11 @@ const CompleteAuthModule: React.FC = () => {
                 {policies.map(policy => (
                   <div key={policy.id} className="flex items-center justify-between p-4 bg-[var(--color-background)] rounded-lg">
                     <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-lg ${policy.enabled ? 'bg-green-100' : 'bg-gray-100'}`}>
-                        {policy.type === 'password' && <Key className={`w-5 h-5 ${policy.enabled ? 'text-green-600' : 'text-gray-400'}`} />}
-                        {policy.type === '2fa' && <Fingerprint className={`w-5 h-5 ${policy.enabled ? 'text-green-600' : 'text-gray-400'}`} />}
-                        {policy.type === 'lockout' && <Lock className={`w-5 h-5 ${policy.enabled ? 'text-green-600' : 'text-gray-400'}`} />}
-                        {policy.type === 'session' && <Clock className={`w-5 h-5 ${policy.enabled ? 'text-green-600' : 'text-gray-400'}`} />}
+                      <div className={`p-2 rounded-lg ${policy.enabled ? 'bg-[var(--color-success-lighter)]' : 'bg-[var(--color-background-hover)]'}`}>
+                        {policy.type === 'password' && <Key className={`w-5 h-5 ${policy.enabled ? 'text-[var(--color-success)]' : 'text-[var(--color-text-secondary)]'}`} />}
+                        {policy.type === '2fa' && <Fingerprint className={`w-5 h-5 ${policy.enabled ? 'text-[var(--color-success)]' : 'text-[var(--color-text-secondary)]'}`} />}
+                        {policy.type === 'lockout' && <Lock className={`w-5 h-5 ${policy.enabled ? 'text-[var(--color-success)]' : 'text-[var(--color-text-secondary)]'}`} />}
+                        {policy.type === 'session' && <Clock className={`w-5 h-5 ${policy.enabled ? 'text-[var(--color-success)]' : 'text-[var(--color-text-secondary)]'}`} />}
                       </div>
                       <div>
                         <div className="font-medium text-[var(--color-text-primary)]">
@@ -934,7 +936,7 @@ const CompleteAuthModule: React.FC = () => {
                       </div>
                       <button
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          policy.enabled ? 'bg-[var(--color-primary)]' : 'bg-gray-200'
+                          policy.enabled ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'
                         }`}
                       >
                         <span
@@ -1160,10 +1162,396 @@ const CompleteAuthModule: React.FC = () => {
               </button>
               <button
                 onClick={handleSaveUser}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2" aria-label="Enregistrer">
+                <Save className="w-4 h-4" />
+                {editingUser ? 'Modifier' : 'Créer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Modal */}
+      {showRoleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-card-bg)] rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                {editingRole ? 'Modifier le rôle' : 'Nouveau rôle'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowRoleModal(false);
+                  setEditingRole(null);
+                }}
+                className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                  Nom du rôle <span className="text-[var(--color-error)]">*</span>
+                </label>
+                <input
+                  type="text"
+                  defaultValue={editingRole?.name}
+                  className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] text-[var(--color-text-primary)]"
+                  placeholder="Comptable Senior"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  defaultValue={editingRole?.description}
+                  className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] text-[var(--color-text-primary)]"
+                  placeholder="Description du rôle et de ses responsabilités..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                  Couleur
+                </label>
+                <div className="flex gap-2">
+                  {['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map(color => (
+                    <button
+                      key={color}
+                      className="w-10 h-10 rounded-lg border-2 hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color, borderColor: editingRole?.color === color ? '#fff' : color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-3">
+                  Permissions
+                </label>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className="border border-[var(--color-border)] rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <input type="checkbox" className="rounded" id="perm-users" />
+                      <label htmlFor="perm-users" className="font-medium text-[var(--color-text-primary)]">
+                        Gestion des utilisateurs
+                      </label>
+                    </div>
+                    <div className="ml-6 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-users-read" />
+                        <label htmlFor="perm-users-read" className="text-sm text-[var(--color-text-secondary)]">
+                          Lecture
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-users-write" />
+                        <label htmlFor="perm-users-write" className="text-sm text-[var(--color-text-secondary)]">
+                          Écriture
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-users-delete" />
+                        <label htmlFor="perm-users-delete" className="text-sm text-[var(--color-text-secondary)]">
+                          Suppression
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border border-[var(--color-border)] rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <input type="checkbox" className="rounded" id="perm-accounting" />
+                      <label htmlFor="perm-accounting" className="font-medium text-[var(--color-text-primary)]">
+                        Comptabilité
+                      </label>
+                    </div>
+                    <div className="ml-6 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-accounting-read" />
+                        <label htmlFor="perm-accounting-read" className="text-sm text-[var(--color-text-secondary)]">
+                          Consultation
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-accounting-entries" />
+                        <label htmlFor="perm-accounting-entries" className="text-sm text-[var(--color-text-secondary)]">
+                          Saisie d'écritures
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-accounting-validate" />
+                        <label htmlFor="perm-accounting-validate" className="text-sm text-[var(--color-text-secondary)]">
+                          Validation
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border border-[var(--color-border)] rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <input type="checkbox" className="rounded" id="perm-reports" />
+                      <label htmlFor="perm-reports" className="font-medium text-[var(--color-text-primary)]">
+                        Reporting
+                      </label>
+                    </div>
+                    <div className="ml-6 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-reports-view" />
+                        <label htmlFor="perm-reports-view" className="text-sm text-[var(--color-text-secondary)]">
+                          Consultation
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded text-xs" id="perm-reports-export" />
+                        <label htmlFor="perm-reports-export" className="text-sm text-[var(--color-text-secondary)]">
+                          Export
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {editingRole && !editingRole.isSystem && editingRole.usersCount > 0 && (
+                <div className="bg-[var(--color-warning-lightest)] border border-[var(--color-warning-light)] rounded-lg p-3">
+                  <p className="text-sm text-[var(--color-warning-dark)]">
+                    Ce rôle est assigné à {editingRole.usersCount} utilisateur(s). Les modifications affecteront leurs permissions.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowRoleModal(false);
+                  setEditingRole(null);
+                }}
+                className="px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background)] transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  // Logic to save role
+                  setShowRoleModal(false);
+                  setEditingRole(null);
+                }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
-                {editingUser ? 'Modifier' : 'Créer'}
+                {editingRole ? 'Modifier' : 'Créer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permission Modal */}
+      {showPermissionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-card-bg)] rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                Gérer les Permissions
+              </h2>
+              <button
+                onClick={() => setShowPermissionModal(false)}
+                className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher une permission..."
+                    className="w-full pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] text-[var(--color-text-primary)]"
+                  />
+                </div>
+                <select className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] text-[var(--color-text-primary)]">
+                  <option value="all">Tous les modules</option>
+                  <option value="users">Utilisateurs</option>
+                  <option value="accounting">{t('accounting.title')}</option>
+                  <option value="reports">Reporting</option>
+                  <option value="settings">{t('navigation.settings')}</option>
+                </select>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
+                  <div className="bg-[var(--color-background)] px-4 py-3 border-b border-[var(--color-border)]">
+                    <h3 className="font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Gestion des Utilisateurs
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">users.read</div>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                          Permet de consulter la liste des utilisateurs et leurs détails
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">Lecture</span>
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-background-hover)] text-[var(--color-text-primary)]">Utilisateurs</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-[var(--color-text-secondary)]">12 rôles</span>
+                        <button className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors" aria-label="Suivant">
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-between border-t border-[var(--color-border)] pt-3">
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">users.write</div>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                          Permet de créer et modifier les utilisateurs
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">{t('accounting.entry')}</span>
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-background-hover)] text-[var(--color-text-primary)]">Utilisateurs</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-[var(--color-text-secondary)]">5 rôles</span>
+                        <button className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors" aria-label="Suivant">
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-between border-t border-[var(--color-border)] pt-3">
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">users.delete</div>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                          Permet de supprimer des utilisateurs
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]">Suppression</span>
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-background-hover)] text-[var(--color-text-primary)]">Utilisateurs</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-[var(--color-text-secondary)]">2 rôles</span>
+                        <button className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors" aria-label="Suivant">
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
+                  <div className="bg-[var(--color-background)] px-4 py-3 border-b border-[var(--color-border)]">
+                    <h3 className="font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+                      <Database className="w-5 h-5" />
+                      Comptabilité
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">accounting.read</div>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                          Consultation des données comptables
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">Lecture</span>
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-info-lighter)] text-[var(--color-info-darker)]">{t('accounting.title')}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-[var(--color-text-secondary)]">8 rôles</span>
+                        <button className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors" aria-label="Suivant">
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-between border-t border-[var(--color-border)] pt-3">
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">accounting.entries.write</div>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                          Saisie et modification des écritures comptables
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">{t('accounting.entry')}</span>
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-info-lighter)] text-[var(--color-info-darker)]">{t('accounting.title')}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-[var(--color-text-secondary)]">6 rôles</span>
+                        <button className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors" aria-label="Suivant">
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
+                  <div className="bg-[var(--color-background)] px-4 py-3 border-b border-[var(--color-border)]">
+                    <h3 className="font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      Reporting
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-[var(--color-text-primary)]">reports.view</div>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                          Consultation des rapports et tableaux de bord
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">Lecture</span>
+                          <span className="px-2 py-1 text-xs rounded-full bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]">Reporting</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-[var(--color-text-secondary)]">10 rôles</span>
+                        <button className="p-2 hover:bg-[var(--color-background)] rounded-lg transition-colors" aria-label="Suivant">
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Info className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-[var(--color-primary-darker)]">
+                    <p className="font-medium mb-1">Gestion des permissions</p>
+                    <p>Les permissions contrôlent l'accès aux différentes fonctionnalités du système.
+                    Assignez les permissions appropriées à chaque rôle pour garantir la sécurité.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowPermissionModal(false)}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Fermer
               </button>
             </div>
           </div>

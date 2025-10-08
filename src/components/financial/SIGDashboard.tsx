@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChartBarIcon,
@@ -86,6 +87,7 @@ interface SIGData {
 }
 
 const SIGDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedView, setSelectedView] = useState<'waterfall' | 'breakdown' | 'evolution'>('waterfall');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
@@ -176,7 +178,7 @@ const SIGDashboard: React.FC = () => {
   if (!sigData) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">Aucune donnée SIG disponible</p>
+        <p className="text-gray-700">Aucune donnée SIG disponible</p>
       </div>
     );
   }
@@ -196,17 +198,17 @@ const SIGDashboard: React.FC = () => {
 
   // Données pour la répartition de la VA
   const valueAddedBreakdown = [
-    { name: 'Personnel', value: sigData.staffCosts, color: '#ef4444' },
-    { name: 'Impôts/Taxes', value: sigData.taxesAndDuties, color: '#f59e0b' },
-    { name: 'Dotations', value: sigData.depreciationProvisionsDotations, color: '#8b5cf6' },
-    { name: 'Résultat', value: sigData.finalNetResult, color: '#10b981' }
+    { name: 'Personnel', value: sigData.staffCosts, color: '#B85450' },
+    { name: 'Impôts/Taxes', value: sigData.taxesAndDuties, color: '#B87333' },
+    { name: 'Dotations', value: sigData.depreciationProvisionsDotations, color: '#7A99AC' },
+    { name: 'Résultat', value: sigData.finalNetResult, color: '#6A8A82' }
   ];
 
   // Données pour l'évolution des marges
   const marginData = [
-    { name: 'Taux VA', value: sigData.addedValueRate, color: '#3b82f6' },
-    { name: 'Marge Exploit.', value: sigData.operatingMarginRate, color: '#10b981' },
-    { name: 'Marge Nette', value: sigData.netMarginRate, color: '#f59e0b' }
+    { name: 'Taux VA', value: sigData.addedValueRate, color: '#7A99AC' },
+    { name: 'Marge Exploit.', value: sigData.operatingMarginRate, color: '#6A8A82' },
+    { name: 'Marge Nette', value: sigData.netMarginRate, color: '#B87333' }
   ];
 
   return (
@@ -293,8 +295,8 @@ const SIGDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#10b981' : '#ef4444'} />
-                <Line type="monotone" dataKey="cumulative" stroke="#3b82f6" strokeWidth={3} name="Cumul" />
+                <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#6A8A82' : '#B85450'} />
+                <Line type="monotone" dataKey="cumulative" stroke="#7A99AC" strokeWidth={3} name="Cumul" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -427,7 +429,7 @@ const SIGDashboard: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-gray-900">{formatCurrency(item.value)}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-700">
                         {formatPercentage((item.value / sigData.addedValue) * 100)}
                       </p>
                     </div>
@@ -458,7 +460,7 @@ const SIGDashboard: React.FC = () => {
                       }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-xs text-gray-700">
                     <span>0%</span>
                     <span>50%</span>
                   </div>
@@ -495,17 +497,17 @@ const SIGDashboard: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solde</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">% CA</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Évolution</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.balance')}</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">% CA</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Évolution</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Marge Commerciale</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.commercialMargin)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{formatPercentage((sigData.commercialMargin / sigData.revenueBase) * 100)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage((sigData.commercialMargin / sigData.revenueBase) * 100)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <ArrowUpIcon className="w-3 h-3 mr-1" /> +5.2%
@@ -515,7 +517,7 @@ const SIGDashboard: React.FC = () => {
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Valeur Ajoutée</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.addedValue)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{formatPercentage(sigData.addedValueRate)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage(sigData.addedValueRate)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <ArrowUpIcon className="w-3 h-3 mr-1" /> +2.1%
@@ -525,7 +527,7 @@ const SIGDashboard: React.FC = () => {
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EBE</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.grossOperatingSurplus)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{formatPercentage((sigData.grossOperatingSurplus / sigData.revenueBase) * 100)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage((sigData.grossOperatingSurplus / sigData.revenueBase) * 100)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                     <ArrowDownIcon className="w-3 h-3 mr-1" /> -1.8%
@@ -535,7 +537,7 @@ const SIGDashboard: React.FC = () => {
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Résultat d'Exploitation</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{formatCurrency(sigData.operatingResult)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{formatPercentage(sigData.operatingMarginRate)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">{formatPercentage(sigData.operatingMarginRate)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <ArrowUpIcon className="w-3 h-3 mr-1" /> +3.5%

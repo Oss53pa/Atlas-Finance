@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   ArrowLeft, Edit, Download, Printer, AlertTriangle, CheckCircle, Clock,
   User, Building, MapPin, Phone, Mail, Calendar, Euro, FileText,
@@ -182,11 +184,17 @@ interface Commande {
 }
 
 const FournisseurDetailView: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { fournisseurId } = useParams();
   const [activeTab, setActiveTab] = useState('synthese');
   const [loading, setLoading] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState('12MOIS');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear() - 1, new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    period: 'year' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
+  });
   const [expandedSections, setExpandedSections] = useState<string[]>(['infos-base']);
 
   // Mock Fournisseur Data
@@ -685,14 +693,14 @@ const FournisseurDetailView: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Date</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Pièce</th>
+                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('common.date')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('accounting.piece')}</th>
                 <th className="text-left p-3 text-sm font-medium text-[#666666]">N° Facture</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Libellé</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">Débit</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">Crédit</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">Solde</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Lettrage</th>
+                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('accounting.label')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.debit')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.credit')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.balance')}</th>
+                <th className="text-center p-3 text-sm font-medium text-[#666666]">{t('thirdParty.reconciliation')}</th>
               </tr>
             </thead>
             <tbody>
@@ -754,7 +762,7 @@ const FournisseurDetailView: React.FC = () => {
                     {echeance.escomptePossible ? (
                       <span className="text-green-600 text-sm font-medium">2% disponible</span>
                     ) : (
-                      <span className="text-gray-400 text-sm">-</span>
+                      <span className="text-gray-700 text-sm">-</span>
                     )}
                   </td>
                   <td className="p-3 text-center">
@@ -899,7 +907,7 @@ const FournisseurDetailView: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Date</th>
+                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('common.date')}</th>
                 <th className="text-left p-3 text-sm font-medium text-[#666666]">N° Commande</th>
                 <th className="text-right p-3 text-sm font-medium text-[#666666]">Montant HT</th>
                 <th className="text-right p-3 text-sm font-medium text-[#666666]">Montant TTC</th>
@@ -939,7 +947,7 @@ const FournisseurDetailView: React.FC = () => {
                     </span>
                   </td>
                   <td className="p-3 text-center">
-                    <button className="p-1 text-blue-600 hover:bg-blue-100 rounded">
+                    <button className="p-1 text-blue-600 hover:bg-blue-100 rounded" aria-label="Voir les détails">
                       <Eye className="w-4 h-4" />
                     </button>
                   </td>
@@ -1085,10 +1093,10 @@ const FournisseurDetailView: React.FC = () => {
               <p className="text-xs text-[#666666]">Taille: 3.2 MB</p>
             </div>
             <div className="flex space-x-2">
-              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
                 <Eye className="w-4 h-4" />
               </button>
-              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
                 <Download className="w-4 h-4" />
               </button>
             </div>
@@ -1104,10 +1112,10 @@ const FournisseurDetailView: React.FC = () => {
               <p className="text-xs text-[#666666]">Taille: 456 KB</p>
             </div>
             <div className="flex space-x-2">
-              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
                 <Eye className="w-4 h-4" />
               </button>
-              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
                 <Download className="w-4 h-4" />
               </button>
             </div>
@@ -1123,10 +1131,10 @@ const FournisseurDetailView: React.FC = () => {
               <p className="text-xs text-[#666666]">Taille: 1.8 MB</p>
             </div>
             <div className="flex space-x-2">
-              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
                 <Eye className="w-4 h-4" />
               </button>
-              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded">
+              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
                 <Download className="w-4 h-4" />
               </button>
             </div>
@@ -1265,10 +1273,10 @@ const FournisseurDetailView: React.FC = () => {
                   </td>
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center space-x-2">
-                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded">
+                      <button className="p-1 text-blue-600 hover:bg-blue-100 rounded" aria-label="Voir les détails">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-green-600 hover:bg-green-100 rounded">
+                      <button className="p-1 text-green-600 hover:bg-green-100 rounded" aria-label="Télécharger">
                         <Download className="w-4 h-4" />
                       </button>
                     </div>
@@ -1361,25 +1369,31 @@ const FournisseurDetailView: React.FC = () => {
               Score: {fournisseurDetail.financier.scoreRisque}/100
             </div>
 
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
             >
-              <option value="1MOIS">1 mois</option>
-              <option value="3MOIS">3 mois</option>
-              <option value="6MOIS">6 mois</option>
-              <option value="12MOIS">12 mois</option>
-            </select>
+              <Calendar className="w-4 h-4 text-[#666666]" />
+              <span>
+                {dateRange.period === 'custom'
+                  ? `${dateRange.startDate} - ${dateRange.endDate}`
+                  : dateRange.period === 'day' ? '1 jour'
+                  : dateRange.period === 'week' ? '1 semaine'
+                  : dateRange.period === 'month' ? '1 mois'
+                  : dateRange.period === 'quarter' ? '3 mois'
+                  : '12 mois'
+                }
+              </span>
+            </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" aria-label="Imprimer">
               <Printer className="w-4 h-4" />
-              <span className="text-sm font-semibold">Imprimer</span>
+              <span className="text-sm font-semibold">{t('common.print')}</span>
             </button>
 
             <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
               <Edit className="w-4 h-4" />
-              <span className="text-sm font-semibold">Modifier</span>
+              <span className="text-sm font-semibold">{t('common.edit')}</span>
             </button>
           </div>
         </div>
@@ -1410,6 +1424,17 @@ const FournisseurDetailView: React.FC = () => {
       {activeTab === 'achats' && renderAchatsTab()}
       {activeTab === 'documents' && renderDocumentsTab()}
       {activeTab === 'conformite' && renderConformiteTab()}
+
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        currentRange={dateRange}
+        onPeriodChange={(newRange) => {
+          setDateRange(newRange);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

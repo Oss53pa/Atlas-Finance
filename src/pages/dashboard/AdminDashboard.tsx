@@ -83,31 +83,31 @@ const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       {/* Header Admin */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Administration</h1>
-            <p className="text-gray-600">Gestion système et sécurité</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Administration</h1>
+            <p className="text-[var(--color-text-primary)]">Gestion système et sécurité</p>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="flex items-center space-x-2 bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] px-3 py-1 rounded-full text-sm">
+              <div className="w-2 h-2 bg-[var(--color-success)] rounded-full animate-pulse"></div>
               <span>Système en ligne</span>
             </div>
-            <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              <RefreshCw className="w-4 h-4 text-gray-500" />
+            <button className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
+              <RefreshCw className="w-4 h-4 text-[var(--color-text-secondary)]" />
             </button>
-            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-              <Settings className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-[var(--color-info-lighter)] rounded-full flex items-center justify-center">
+              <Settings className="w-5 h-5 text-[var(--color-info)]" />
             </div>
           </div>
         </div>
       </header>
 
       {/* Navigation par onglets */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-[var(--color-border)]">
         <div className="px-6">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
@@ -119,8 +119,8 @@ const AdminDashboard: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id 
-                      ? 'border-purple-500 text-purple-600' 
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-purple-500 text-[var(--color-info)]' 
+                      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                     }
                   `}
                 >
@@ -142,20 +142,20 @@ const AdminDashboard: React.FC = () => {
               {systemMetrics.map((metric, index) => {
                 const IconComponent = metric.icon;
                 return (
-                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
                     <div className="flex items-center justify-between mb-4">
                       <div className={`w-12 h-12 rounded-lg flex items-center justify-center bg-${metric.color}-100`}>
                         <IconComponent className={`w-6 h-6 text-${metric.color}-600`} />
                       </div>
                       <div className={`w-3 h-3 rounded-full ${
-                        metric.status === 'good' ? 'bg-green-500' :
-                        metric.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                        metric.status === 'good' ? 'bg-[var(--color-success)]' :
+                        metric.status === 'warning' ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-error)]'
                       }`}></div>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</h3>
-                      <p className="text-gray-600 text-sm mb-1">{metric.title}</p>
-                      <p className="text-gray-500 text-xs">{metric.change}</p>
+                      <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{metric.value}</h3>
+                      <p className="text-[var(--color-text-primary)] text-sm mb-1">{metric.title}</p>
+                      <p className="text-[var(--color-text-secondary)] text-xs">{metric.change}</p>
                     </div>
                   </div>
                 );
@@ -164,8 +164,8 @@ const AdminDashboard: React.FC = () => {
 
             {/* Monitoring en temps réel */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Serveur</h2>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Performance Serveur</h2>
                 <div className="space-y-4">
                   {[
                     { label: 'CPU', value: '23%', color: 'green' },
@@ -175,10 +175,10 @@ const AdminDashboard: React.FC = () => {
                   ].map((item, index) => (
                     <div key={index}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600">{item.label}</span>
+                        <span className="text-[var(--color-text-primary)]">{item.label}</span>
                         <span className="font-medium">{item.value}</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-[var(--color-border)] rounded-full h-2">
                         <div 
                           className={`bg-${item.color}-500 h-2 rounded-full transition-all duration-300`}
                           style={{ width: item.value }}
@@ -189,12 +189,12 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Activité Réseau</h2>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Activité Réseau</h2>
                 <div className="h-48 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg flex items-center justify-center">
                   <div className="text-center">
-                    <Activity className="w-12 h-12 text-blue-500 mx-auto mb-2" />
-                    <p className="text-gray-600 text-sm">Graphique réseau temps réel</p>
+                    <Activity className="w-12 h-12 text-[var(--color-primary)] mx-auto mb-2" />
+                    <p className="text-[var(--color-text-primary)] text-sm">Graphique réseau temps réel</p>
                   </div>
                 </div>
               </div>
@@ -203,11 +203,11 @@ const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'users' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)]">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Gestion des Utilisateurs</h2>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-purple-700 transition-colors">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion des Utilisateurs</h2>
+                <button className="bg-[var(--color-info)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-purple-700 transition-colors">
                   <UserPlus className="w-4 h-4" />
                   <span>Nouvel utilisateur</span>
                 </button>
@@ -216,34 +216,34 @@ const AdminDashboard: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière connexion</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Utilisateur</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Rôle</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Dernière connexion</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr key={user.id} className="hover:bg-[var(--color-background-secondary)]">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Users className="w-5 h-5 text-blue-600" />
+                          <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                            <Users className="w-5 h-5 text-[var(--color-primary)]" />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm font-medium text-[var(--color-text-primary)]">{user.name}</div>
+                            <div className="text-sm text-[var(--color-text-secondary)]">{user.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          user.role === 'Admin' ? 'bg-purple-100 text-purple-800' :
-                          user.role === 'Manager' ? 'bg-green-100 text-green-800' :
-                          'bg-blue-100 text-blue-800'
+                          user.role === 'Admin' ? 'bg-[var(--color-info-lighter)] text-[var(--color-info-darker)]' :
+                          user.role === 'Manager' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'
                         }`}>
                           {user.role}
                         </span>
@@ -251,24 +251,24 @@ const AdminDashboard: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                           user.status === 'active' 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]'
+                            : 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                         }`}>
                           {user.status === 'active' ? 'Actif' : 'Inactif'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
                         Il y a {user.lastLogin}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800">
+                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]" aria-label="Voir les détails">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="text-green-600 hover:text-green-800">
+                          <button className="text-[var(--color-success)] hover:text-[var(--color-success-darker)]">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="text-red-600 hover:text-red-800">
+                          <button className="text-[var(--color-error)] hover:text-[var(--color-error-darker)]" aria-label="Supprimer">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -284,26 +284,26 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'security' && (
           <div className="space-y-6">
             {/* Alertes sécurité */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Journal de Sécurité</h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Journal de Sécurité</h2>
               <div className="space-y-3">
                 {securityLogs.map((log, index) => (
                   <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                    log.type === 'success' ? 'bg-green-50 border-green-400' :
-                    log.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
-                    'bg-blue-50 border-blue-400'
+                    log.type === 'success' ? 'bg-[var(--color-success-lightest)] border-green-400' :
+                    log.type === 'warning' ? 'bg-[var(--color-warning-lightest)] border-yellow-400' :
+                    'bg-[var(--color-primary-lightest)] border-blue-400'
                   }`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        {log.type === 'success' && <CheckCircle className="w-5 h-5 text-green-600" />}
-                        {log.type === 'warning' && <AlertTriangle className="w-5 h-5 text-yellow-600" />}
-                        {log.type === 'info' && <Clock className="w-5 h-5 text-blue-600" />}
+                        {log.type === 'success' && <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />}
+                        {log.type === 'warning' && <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />}
+                        {log.type === 'info' && <Clock className="w-5 h-5 text-[var(--color-primary)]" />}
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{log.event}</p>
-                          <p className="text-xs text-gray-500">Utilisateur: {log.user} | IP: {log.ip}</p>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">{log.event}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">Utilisateur: {log.user} | IP: {log.ip}</p>
                         </div>
                       </div>
-                      <span className="text-xs text-gray-400">{log.time}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{log.time}</span>
                     </div>
                   </div>
                 ))}
@@ -312,42 +312,42 @@ const AdminDashboard: React.FC = () => {
 
             {/* Configuration sécurité */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Paramètres de Sécurité</h3>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Paramètres de Sécurité</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Authentification 2FA</span>
-                    <div className="w-12 h-6 bg-green-500 rounded-full p-1">
+                    <span className="text-sm text-[var(--color-text-primary)]">Authentification 2FA</span>
+                    <div className="w-12 h-6 bg-[var(--color-success)] rounded-full p-1">
                       <div className="w-4 h-4 bg-white rounded-full ml-6 transition-all"></div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Sessions automatiques</span>
-                    <div className="w-12 h-6 bg-green-500 rounded-full p-1">
+                    <span className="text-sm text-[var(--color-text-primary)]">Sessions automatiques</span>
+                    <div className="w-12 h-6 bg-[var(--color-success)] rounded-full p-1">
                       <div className="w-4 h-4 bg-white rounded-full ml-6 transition-all"></div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Logs détaillés</span>
-                    <div className="w-12 h-6 bg-green-500 rounded-full p-1">
+                    <span className="text-sm text-[var(--color-text-primary)]">Logs détaillés</span>
+                    <div className="w-12 h-6 bg-[var(--color-success)] rounded-full p-1">
                       <div className="w-4 h-4 bg-white rounded-full ml-6 transition-all"></div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sauvegarde</h3>
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Sauvegarde</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Dernière sauvegarde</span>
-                    <span className="text-sm text-green-600">Il y a 2h</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Dernière sauvegarde</span>
+                    <span className="text-sm text-[var(--color-success)]">Il y a 2h</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Fréquence</span>
-                    <span className="text-sm text-gray-900">Toutes les 4h</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Fréquence</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Toutes les 4h</span>
                   </div>
-                  <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                  <button className="w-full bg-[var(--color-primary)] text-white py-2 rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors">
                     Sauvegarder maintenant
                   </button>
                 </div>

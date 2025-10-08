@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Rocket,
@@ -71,6 +72,7 @@ interface CompanyInfo {
 }
 
 const AssistantDemarragePage: React.FC = () => {
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [setupProgress, setSetupProgress] = useState(0);
@@ -142,7 +144,7 @@ const AssistantDemarragePage: React.FC = () => {
     },
     {
       id: 'security',
-      title: 'Sécurité',
+      title: t('settings.security'),
       description: 'Configuration des paramètres de sécurité',
       icon: Shield,
       status: currentStep === 5 ? 'current' : currentStep > 5 ? 'completed' : 'pending',
@@ -222,7 +224,7 @@ const AssistantDemarragePage: React.FC = () => {
       case 'skipped':
         return <IconComponent className={`${baseClasses} text-orange-500`} />;
       default:
-        return <IconComponent className={`${baseClasses} text-gray-400`} />;
+        return <IconComponent className={`${baseClasses} text-gray-700`} />;
     }
   };
 
@@ -270,7 +272,7 @@ const AssistantDemarragePage: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+            <div className="flex items-center justify-center space-x-4 text-sm text-gray-700">
               <div className="flex items-center space-x-1">
                 <Info className="h-4 w-4" />
                 <span>Temps estimé: {getTotalEstimatedTime()} minutes</span>
@@ -720,7 +722,7 @@ const AssistantDemarragePage: React.FC = () => {
                             step.status === 'current' ? 'text-blue-700' :
                             step.status === 'completed' ? 'text-green-700' :
                             step.status === 'skipped' ? 'text-orange-700' :
-                            'text-gray-500'
+                            'text-gray-700'
                           }`}>
                             {step.description}
                           </p>

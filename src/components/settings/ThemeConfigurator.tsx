@@ -3,6 +3,7 @@
  * Interface de personnalisation des thèmes selon cahier des charges 6.1.2
  */
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Palette,
   Sun,
@@ -58,6 +59,7 @@ interface ThemeConfiguratorProps {
 }
 
 const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
+  const { t } = useLanguage();
   currentTheme = 'corporate-blue',
   onThemeChange,
   className = ''
@@ -450,7 +452,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                         <DollarSign className="h-6 w-6 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Trésorerie</p>
+                        <p className="text-sm font-medium text-gray-600">{t('navigation.treasury')}</p>
                         <p className="text-xl font-bold">3 850 000 XAF</p>
                       </div>
                     </div>
@@ -491,12 +493,12 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                     </div>
                     <div className="clarity-nav-item p-2 rounded flex items-center space-x-3">
                       <FileText className="h-4 w-4" />
-                      <span>Comptabilité</span>
+                      <span>{t('accounting.title')}</span>
                       <Badge className="bg-red-500 text-white text-xs ml-auto">3</Badge>
                     </div>
                     <div className="clarity-nav-item p-2 rounded flex items-center space-x-3">
                       <Users className="h-4 w-4" />
-                      <span>Clients</span>
+                      <span>{t('navigation.clients')}</span>
                     </div>
                   </div>
                 </div>
@@ -506,7 +508,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                   <table className="w-full">
                     <thead>
                       <tr className="bg-primary">
-                        <th className="p-3 text-left text-white font-semibold">Date</th>
+                        <th className="p-3 text-left text-white font-semibold">{t('common.date')}</th>
                         <th className="p-3 text-left text-white font-semibold">Description</th>
                         <th className="p-3 text-right text-white font-semibold">Montant</th>
                       </tr>

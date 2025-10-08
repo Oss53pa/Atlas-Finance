@@ -116,7 +116,7 @@ export const renderRegistreCentral = () => (
                 <td className="py-3 px-4">
                   <div>
                     <p className="text-sm font-medium">Serveur Dell PowerEdge R740</p>
-                    <p className="text-xs text-gray-500">MAT-2021-001</p>
+                    <p className="text-xs text-gray-700">MAT-2021-001</p>
                   </div>
                 </td>
                 <td className="py-3 px-4">
@@ -124,7 +124,7 @@ export const renderRegistreCentral = () => (
                     <MapPin className="w-4 h-4 text-green-600" />
                     <div>
                       <p className="text-sm">Salle serveur - Étage 2</p>
-                      <p className="text-xs text-gray-500">GPS: 48.8566, 2.3522</p>
+                      <p className="text-xs text-gray-700">GPS: 48.8566, 2.3522</p>
                     </div>
                   </div>
                 </td>
@@ -137,13 +137,13 @@ export const renderRegistreCentral = () => (
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">
                     <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Scanner QR">
-                      <QrCode className="w-4 h-4 text-gray-500" />
+                      <QrCode className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Localiser">
-                      <MapPin className="w-4 h-4 text-gray-500" />
+                      <MapPin className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Photos">
-                      <Camera className="w-4 h-4 text-gray-500" />
+                      <Camera className="w-4 h-4 text-gray-700" />
                     </button>
                   </div>
                 </td>
@@ -347,11 +347,11 @@ export const renderInventaireAuto = () => (
                     </div>
                     <div>
                       <p className="text-sm font-medium">{scan.asset}</p>
-                      <p className="text-xs text-gray-500">{scan.code}</p>
+                      <p className="text-xs text-gray-700">{scan.code}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-500">Il y a {scan.time}</p>
+                    <p className="text-xs text-gray-700">Il y a {scan.time}</p>
                   </div>
                 </div>
               ))}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar, CheckCircle, FileText, BarChart3, Archive, Clock,
@@ -14,6 +15,7 @@ import {
   ClipboardCheck, FileSpreadsheet, BookOpen, UserCheck,
   Info, HelpCircle, MessageSquare
 } from 'lucide-react';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 
 // Import des composants de section
 import RapprochementBancaire from './sections/RapprochementBancaire';
@@ -41,11 +43,13 @@ interface MenuItem {
 }
 
 const PeriodicClosuresModuleV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['operations', 'controles']);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState('2025-01');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
 
   // Structure du menu selon le cahier des charges
   const menuItems: MenuItem[] = [
@@ -91,7 +95,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
         },
         {
           id: 'immobilisations',
-          label: 'Immobilisations',
+          label: t('navigation.assets'),
           icon: <Building2 className="w-4 h-4" />
         },
         {
@@ -176,7 +180,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
       case 'warning': return 'bg-[#FFB347]/10 text-[#FFB347]';
       case 'error': return 'bg-[#DC3545]/10 text-[#DC3545]';
       case 'info': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
-      default: return 'bg-gray-100 text-gray-700';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
   };
 
@@ -191,7 +195,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
             <Activity className="w-4 h-4 text-[#6A8A82]" />
           </div>
           <p className="text-2xl font-bold text-[#191919]">68%</p>
-          <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+          <div className="mt-2 w-full bg-[var(--color-border)] rounded-full h-2">
             <div className="h-2 bg-[#6A8A82] rounded-full" style={{width: '68%'}}></div>
           </div>
         </div>
@@ -266,12 +270,12 @@ const PeriodicClosuresModuleV2: React.FC = () => {
         <h3 className="text-lg font-bold text-[#191919] mb-4">Progression par Cycle</h3>
         <div className="space-y-3">
           {[
-            { label: 'Trésorerie', progress: 85, status: 'success' },
+            { label: t('navigation.treasury'), progress: 85, status: 'success' },
             { label: 'Rapprochement Bancaire', progress: 70, status: 'warning' },
             { label: 'Cycle Clients', progress: 92, status: 'success' },
             { label: 'Cycle Fournisseurs', progress: 45, status: 'error' },
             { label: 'Stocks', progress: 60, status: 'warning' },
-            { label: 'Immobilisations', progress: 100, status: 'success' },
+            { label: t('navigation.assets'), progress: 100, status: 'success' },
             { label: 'Provisions', progress: 30, status: 'error' }
           ].map((item, idx) => (
             <div key={idx}>
@@ -279,7 +283,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
                 <span className="text-sm text-[#444444]">{item.label}</span>
                 <span className="text-sm font-semibold">{item.progress}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-[var(--color-border)] rounded-full h-2">
                 <div
                   className={`h-2 rounded-full transition-all ${
                     item.status === 'success' ? 'bg-[#4B8B3B]' :
@@ -326,7 +330,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
             { nom: 'Caisse USD', solde: 325000, statut: 'ok', ecart: 0 },
             { nom: 'Caisse Petite Monnaie', solde: 125000, statut: 'error', ecart: -15000 }
           ].map((caisse, idx) => (
-            <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+            <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-[var(--color-background-secondary)]">
               <div className="flex items-center space-x-3">
                 <Wallet className={`w-5 h-5 ${
                   caisse.statut === 'ok' ? 'text-[#4B8B3B]' :
@@ -351,7 +355,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
 
         {/* Actions */}
         <div className="mt-6 flex justify-between">
-          <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2">
+          <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2">
             <Download className="w-4 h-4" />
             <span>Exporter rapport</span>
           </button>
@@ -401,7 +405,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
         return (
           <div className="p-6">
             <div className="bg-white rounded-lg p-12 border border-[#E8E8E8] text-center">
-              <Info className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Info className="w-12 h-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-[#191919] mb-2">Section en développement</h3>
               <p className="text-[#767676]">Cette fonctionnalité sera bientôt disponible</p>
             </div>
@@ -425,7 +429,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
             )}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="p-1 hover:bg-[var(--color-background-hover)] rounded"
             >
               {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
@@ -447,7 +451,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
                   activeSection === item.id
                     ? 'bg-[#6A8A82] text-white'
-                    : 'hover:bg-gray-100 text-[#444444]'
+                    : 'hover:bg-[var(--color-background-hover)] text-[#444444]'
                 }`}
               >
                 <div className="flex items-center space-x-2">
@@ -480,7 +484,7 @@ const PeriodicClosuresModuleV2: React.FC = () => {
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                         activeSection === child.id
                           ? 'bg-[#6A8A82]/10 text-[#6A8A82]'
-                          : 'hover:bg-gray-50 text-[#767676]'
+                          : 'hover:bg-[var(--color-background-secondary)] text-[#767676]'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -509,21 +513,33 @@ const PeriodicClosuresModuleV2: React.FC = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate('/dashboard/comptable')}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-sm">Retour</span>
               </button>
               <div>
                 <h1 className="text-xl font-bold text-[#191919]">Module de Clôture Périodique</h1>
-                <p className="text-sm text-[#767676]">OHADA/SYSCOHADA - Période: {selectedPeriod}</p>
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-[#767676]">OHADA/SYSCOHADA</p>
+                  <button
+                    onClick={() => setShowPeriodModal(true)}
+                    className="flex items-center gap-2 px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    {dateRange.startDate && dateRange.endDate
+                      ? `${dateRange.startDate} - ${dateRange.endDate}`
+                      : 'Sélectionner une période'
+                    }
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="p-2 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg">
                 <HelpCircle className="w-5 h-5 text-[#767676]" />
               </button>
-              <button className="p-2 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg" aria-label="Paramètres">
                 <Settings className="w-5 h-5 text-[#767676]" />
               </button>
             </div>
@@ -535,6 +551,16 @@ const PeriodicClosuresModuleV2: React.FC = () => {
           {renderContent()}
         </div>
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

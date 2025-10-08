@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Users,
   Plus,
@@ -40,9 +40,10 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { thirdPartyService } from '../../services/thirdparty.service';
+import { useClients, useDeleteThirdParty } from '../../hooks';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+import { CreateCustomerModal, EditCustomerModal, CustomerDetailModal } from '../../features/clients/components/CustomerModals';
 
 interface CustomersFilters {
   search: string;
@@ -53,6 +54,7 @@ interface CustomersFilters {
 }
 
 const CustomersPage: React.FC = () => {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<CustomersFilters>({
     search: '',
     statut: '',
@@ -63,38 +65,47 @@ const CustomersPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  // Fetch customers
-  const { data: customersData, isLoading } = useQuery({
-    queryKey: ['customers', 'list', page, filters],
-    queryFn: () => thirdPartyService.getCustomers({ 
-      page, 
-      search: filters.search,
-      statut: filters.statut,
-      ville: filters.ville,
-      segment: filters.segment,
-      commercial: filters.commercial
-    }),
+  // Utilisation des nouveaux hooks
+  const { data: customersData, isLoading } = useClients({
+    page,
+    page_size: 20,
+    search: filters.search || undefined,
+    statut: filters.statut || undefined,
+    ville: filters.ville || undefined,
+    segment: filters.segment || undefined,
+    commercial: filters.commercial || undefined,
   });
 
-  // Delete customer mutation
-  const deleteCustomerMutation = useMutation({
-    mutationFn: thirdPartyService.deleteCustomer,
-    onSuccess: () => {
-      toast.success('Client supprimé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-    },
-    onError: () => {
-      toast.error('Erreur lors de la suppression');
-    }
-  });
+  const deleteCustomer = useDeleteThirdParty();
 
   const handleDeleteCustomer = (customerId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
-      deleteCustomerMutation.mutate(customerId);
+      deleteCustomer.mutate(customerId, {
+        onSuccess: () => {
+          toast.success('Client supprimé avec succès');
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || 'Erreur lors de la suppression');
+        }
+      });
     }
+  };
+
+  const handleViewDetails = (customer: any) => {
+    setSelectedCustomer(customer);
+    setShowDetailModal(true);
+  };
+
+  const handleEditCustomer = (customer: any) => {
+    setSelectedCustomer(customer);
+    setShowEditModal(true);
+  };
+
+  const handleRefreshData = () => {
+    setPage(page);
   };
 
   const handleFilterChange = (key: keyof CustomersFilters, value: string) => {
@@ -149,11 +160,11 @@ const CustomersPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-tuatara flex items-center">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
               <Users className="mr-3 h-7 w-7" />
               Clients
             </h1>
-            <p className="mt-2 text-rolling-stone">
+            <p className="mt-2 text-[var(--color-text-secondary)]">
               Gestion de la base clients et prospects
             </p>
           </div>
@@ -167,7 +178,7 @@ const CustomersPage: React.FC = () => {
               Importer
             </Button>
             <Button 
-              className="bg-tuatara hover:bg-rolling-stone text-swirl"
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -255,7 +266,7 @@ const CustomersPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Rechercher un client..."
                 value={filters.search}
@@ -291,7 +302,7 @@ const CustomersPage: React.FC = () => {
             </Select>
 
             <div className="relative">
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Ville"
                 value={filters.ville}
@@ -346,7 +357,7 @@ const CustomersPage: React.FC = () => {
                       <TableHead>Localisation</TableHead>
                       <TableHead>Segment</TableHead>
                       <TableHead>CA Annuel</TableHead>
-                      <TableHead>Solde</TableHead>
+                      <TableHead>{t('accounting.balance')}</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -367,9 +378,9 @@ const CustomersPage: React.FC = () => {
                               )}
                             </div>
                             <div>
-                              <p className="font-medium text-tuatara">{customer.denomination}</p>
+                              <p className="font-medium text-[var(--color-text-primary)]">{customer.denomination}</p>
                               {customer.forme_juridique && (
-                                <p className="text-sm text-rolling-stone">{customer.forme_juridique}</p>
+                                <p className="text-sm text-[var(--color-text-secondary)]">{customer.forme_juridique}</p>
                               )}
                             </div>
                           </div>
@@ -378,19 +389,19 @@ const CustomersPage: React.FC = () => {
                           <div className="space-y-1">
                             {customer.contact_principal && (
                               <div className="flex items-center text-sm">
-                                <Users className="h-3 w-3 text-gray-400 mr-1" />
+                                <Users className="h-3 w-3 text-gray-700 mr-1" />
                                 {customer.contact_principal}
                               </div>
                             )}
                             {customer.telephone && (
                               <div className="flex items-center text-sm">
-                                <Phone className="h-3 w-3 text-gray-400 mr-1" />
+                                <Phone className="h-3 w-3 text-gray-700 mr-1" />
                                 {customer.telephone}
                               </div>
                             )}
                             {customer.email && (
                               <div className="flex items-center text-sm">
-                                <Mail className="h-3 w-3 text-gray-400 mr-1" />
+                                <Mail className="h-3 w-3 text-gray-700 mr-1" />
                                 {customer.email}
                               </div>
                             )}
@@ -398,11 +409,11 @@ const CustomersPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center text-sm">
-                            <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                            <MapPin className="h-4 w-4 text-gray-700 mr-2" />
                             <div>
                               <p>{customer.ville}</p>
                               {customer.pays && (
-                                <p className="text-xs text-gray-500">{customer.pays}</p>
+                                <p className="text-xs text-gray-700">{customer.pays}</p>
                               )}
                             </div>
                           </div>
@@ -440,7 +451,7 @@ const CustomersPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setSelectedCustomer(customer)}
+                              onClick={() => handleViewDetails(customer)}
                               aria-label="Voir les détails"
                             >
                               <Eye className="h-4 w-4" />
@@ -448,6 +459,7 @@ const CustomersPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEditCustomer(customer)}
                               aria-label="Modifier"
                             >
                               <Edit className="h-4 w-4" />
@@ -482,15 +494,15 @@ const CustomersPage: React.FC = () => {
 
               {(!customersData?.results || customersData.results.length === 0) && (
                 <div className="text-center py-12">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Users className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun client trouvé</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     {filters.search || filters.statut || filters.ville || filters.segment || filters.commercial
                       ? 'Aucun client ne correspond aux critères de recherche.'
                       : 'Commencez par créer votre premier client.'}
                   </p>
                   <Button 
-                    className="bg-tuatara hover:bg-rolling-stone text-swirl"
+                    className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -502,6 +514,30 @@ const CustomersPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modales */}
+      <CreateCustomerModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleRefreshData}
+      />
+
+      <EditCustomerModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        customer={selectedCustomer}
+        onSuccess={handleRefreshData}
+      />
+
+      <CustomerDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        customer={selectedCustomer}
+        onEdit={() => {
+          setShowDetailModal(false);
+          setShowEditModal(true);
+        }}
+      />
     </div>
   );
 };

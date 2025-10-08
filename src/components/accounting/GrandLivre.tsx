@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   ChevronDown, ChevronRight, FileText, Calendar, Filter,
   Printer, Download, Search, Calculator, BookOpen,
@@ -27,7 +29,9 @@ interface Account {
 }
 
 const GrandLivre: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState({ from: '2024-01-01', to: '2024-12-31' });
+  const { t } = useLanguage();
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [searchAccount, setSearchAccount] = useState('');
   const [showZeroBalance, setShowZeroBalance] = useState(false);
   const [viewMode, setViewMode] = useState<'grouped' | 'list'>('grouped');
@@ -37,7 +41,7 @@ const GrandLivre: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([
     {
       code: '401',
-      libelle: 'Fournisseurs',
+      libelle: t('navigation.suppliers')},
       entries: [
         { date: '01/01/2024', piece: 'FAC001', journal: 'AC', libelle: 'Achat marchandises SUPPLIER A', debit: 0, credit: 15000, solde: -15000 },
         { date: '05/01/2024', piece: 'REG001', journal: 'BQ', libelle: 'Règlement SUPPLIER A', debit: 15000, credit: 0, solde: 0 },
@@ -53,7 +57,7 @@ const GrandLivre: React.FC = () => {
     },
     {
       code: '411',
-      libelle: 'Clients',
+      libelle: t('navigation.clients')},
       entries: [
         { date: '02/01/2024', piece: 'FCT001', journal: 'VT', libelle: 'Vente CLIENT X', debit: 25000, credit: 0, solde: 25000 },
         { date: '07/01/2024', piece: 'ENC001', journal: 'BQ', libelle: 'Encaissement CLIENT X', debit: 0, credit: 25000, solde: 0 },
@@ -149,27 +153,27 @@ const GrandLivre: React.FC = () => {
   }), { totalDebit: 0, totalCredit: 0, soldeDebiteur: 0, soldeCrediteur: 0 });
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-[#F0F3F2] min-h-screen">
       {/* En-tête */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+      <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#ECECEC] shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <BookOpen className="w-6 h-6 text-[#6A8A82]" />
             <div>
-              <h2 className="text-xl font-bold text-[#191919]">Grand Livre</h2>
-              <p className="text-sm text-[#767676]">Vue détaillée des mouvements par compte</p>
+              <h2 className="text-xl font-bold text-[#191919]">{t('accounting.generalLedger')}</h2>
+              <p className="text-sm text-[#191919]/70">Vue détaillée des mouvements par compte</p>
             </div>
           </div>
 
           {/* BOUTONS DE MODE D'AFFICHAGE */}
           <div className="flex items-center space-x-4">
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-[#ECECEC] rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grouped')}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'grouped'
                     ? 'bg-[#B87333] text-white'
-                    : 'text-[#444444] hover:bg-gray-200'
+                    : 'text-[#191919]/70 hover:bg-[#ECECEC]'
                 }`}
               >
                 Groupé
@@ -179,7 +183,7 @@ const GrandLivre: React.FC = () => {
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'list'
                     ? 'bg-[#B87333] text-white'
-                    : 'text-[#444444] hover:bg-gray-200'
+                    : 'text-[#191919]/70 hover:bg-[#ECECEC]'
                 }`}
               >
                 Liste
@@ -187,13 +191,13 @@ const GrandLivre: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-3">
-              <button className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors flex items-center space-x-2">
+              <button className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors flex items-center space-x-2" aria-label="Imprimer">
                 <Printer className="w-4 h-4" />
-                <span>Imprimer</span>
+                <span>{t('common.print')}</span>
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2" aria-label="Télécharger">
                 <Download className="w-4 h-4" />
-                <span>Exporter</span>
+                <span>{t('common.export')}</span>
               </button>
             </div>
           </div>
@@ -201,37 +205,34 @@ const GrandLivre: React.FC = () => {
       </div>
 
       {/* Filtres */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
+      <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#ECECEC]">
         {/* Filtres de période et recherche */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-[#444444] mb-1">Du</label>
-            <input
-              type="date"
-              value={selectedPeriod.from}
-              onChange={(e) => setSelectedPeriod(prev => ({ ...prev, from: e.target.value }))}
-              className="w-full px-3 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
-            />
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-[#191919] mb-1">Période</label>
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="w-full px-3 py-2 border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82] text-left flex items-center justify-between hover:bg-gray-50"
+            >
+              <span className="text-sm">
+                {dateRange.start && dateRange.end
+                  ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                  : 'Sélectionner une période'
+                }
+              </span>
+              <Calendar className="w-4 h-4 text-[#6A8A82]" />
+            </button>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#444444] mb-1">Au</label>
-            <input
-              type="date"
-              value={selectedPeriod.to}
-              onChange={(e) => setSelectedPeriod(prev => ({ ...prev, to: e.target.value }))}
-              className="w-full px-3 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[#444444] mb-1">Rechercher compte</label>
+            <label className="block text-sm font-medium text-[#191919] mb-1">Rechercher compte</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#767676]" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#191919]/50" />
               <input
                 type="text"
                 value={searchAccount}
                 onChange={(e) => setSearchAccount(e.target.value)}
                 placeholder="Code ou libellé..."
-                className="w-full pl-10 pr-3 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                className="w-full pl-10 pr-3 py-2 border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
               />
             </div>
           </div>
@@ -241,16 +242,16 @@ const GrandLivre: React.FC = () => {
                 type="checkbox"
                 checked={showZeroBalance}
                 onChange={(e) => setShowZeroBalance(e.target.checked)}
-                className="rounded border-[#D9D9D9] text-[#6A8A82] focus:ring-[#6A8A82]"
+                className="rounded border-[#ECECEC] text-[#6A8A82] focus:ring-[#6A8A82]"
               />
-              <span className="text-sm text-[#444444]">Afficher soldes nuls</span>
+              <span className="text-sm text-[#191919]/70">Afficher soldes nuls</span>
             </label>
           </div>
         </div>
 
         {/* Statistiques */}
-        <div className="flex items-center justify-end mt-4 pt-4 border-t border-[#E8E8E8]">
-          <div className="text-sm text-[#767676]">
+        <div className="flex items-center justify-end mt-4 pt-4 border-t border-[#ECECEC]">
+          <div className="text-sm text-[#191919]/70">
             {filteredAccounts.length} compte(s) - {
               filteredAccounts.reduce((total, acc) => total + acc.entries.length, 0)
             } écriture(s)
@@ -264,15 +265,15 @@ const GrandLivre: React.FC = () => {
         <div className="space-y-4">
           {/* Comptes groupés */}
           {filteredAccounts.map((account) => (
-          <div key={account.code} className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
+          <div key={account.code} className="bg-[#F0F3F2] rounded-lg border border-[#ECECEC] overflow-hidden">
             {/* En-tête du compte */}
             <div
-              className="px-4 py-3 bg-gradient-to-r from-[#6A8A82]/10 to-[#7A99AC]/10 cursor-pointer hover:bg-[#6A8A82]/20 transition-colors"
+              className="px-4 py-3 bg-gradient-to-r from-[#6A8A82]/10 to-[#6A8A82]/15 cursor-pointer hover:bg-[#6A8A82]/20 transition-colors"
               onClick={() => toggleAccount(account.code)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <button className="text-[#6A8A82] hover:text-[#5A7A72]">
+                  <button className="text-[#6A8A82] hover:text-[#5A7A72]" aria-label="Ouvrir le menu">
                     {account.isExpanded ? (
                       <ChevronDown className="w-5 h-5" />
                     ) : (
@@ -284,7 +285,7 @@ const GrandLivre: React.FC = () => {
                       <span className="font-mono font-bold text-[#B87333]">{account.code}</span>
                       <span className="font-semibold text-[#191919]">{account.libelle}</span>
                     </div>
-                    <div className="text-xs text-[#767676] mt-1">
+                    <div className="text-xs text-[#191919]/70 mt-1">
                       {account.entries.length} mouvement(s)
                     </div>
                   </div>
@@ -293,7 +294,7 @@ const GrandLivre: React.FC = () => {
                 {/* Totaux du compte */}
                 <div className="flex items-center space-x-6 text-sm">
                   <div className="text-right">
-                    <p className="text-xs text-[#767676]">Total Débit</p>
+                    <p className="text-xs text-[#191919]/70">Total Débit</p>
                     <p className="font-semibold text-red-600">{formatAmount(account.totalDebit)}</p>
                   </div>
                   <div className="text-right">
@@ -301,7 +302,7 @@ const GrandLivre: React.FC = () => {
                     <p className="font-semibold text-green-600">{formatAmount(account.totalCredit)}</p>
                   </div>
                   <div className="text-right min-w-[120px]">
-                    <p className="text-xs text-[#767676]">Solde</p>
+                    <p className="text-xs text-[#767676]">{t('accounting.balance')}</p>
                     {account.soldeDebiteur > 0 ? (
                       <p className="font-bold text-red-600">D: {formatAmount(account.soldeDebiteur)}</p>
                     ) : (
@@ -318,13 +319,13 @@ const GrandLivre: React.FC = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr className="text-xs text-[#767676]">
-                      <th className="px-4 py-2 text-left font-medium">Date</th>
-                      <th className="px-4 py-2 text-left font-medium">Pièce</th>
-                      <th className="px-4 py-2 text-left font-medium">Journal</th>
-                      <th className="px-4 py-2 text-left font-medium">Libellé</th>
-                      <th className="px-4 py-2 text-right font-medium">Débit</th>
-                      <th className="px-4 py-2 text-right font-medium">Crédit</th>
-                      <th className="px-4 py-2 text-right font-medium">Solde</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('common.date')}</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('accounting.piece')}</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('accounting.journal')}</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('accounting.label')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('accounting.debit')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('accounting.credit')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('accounting.balance')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E8E8E8]">
@@ -346,7 +347,7 @@ const GrandLivre: React.FC = () => {
                           ) : entry.solde < 0 ? (
                             <span className="text-green-600">{formatAmount(Math.abs(entry.solde))}</span>
                           ) : (
-                            <span className="text-gray-400">0,00</span>
+                            <span className="text-gray-700">0,00</span>
                           )}
                         </td>
                       </tr>
@@ -379,20 +380,20 @@ const GrandLivre: React.FC = () => {
         </div>
       ) : (
         // Mode liste chronologique
-        <div className="bg-white rounded-lg border-2 border-[#B87333] overflow-hidden shadow-lg h-[600px] flex flex-col">
+        <div className="bg-[#F0F3F2] rounded-lg border-2 border-[#B87333] overflow-hidden shadow-lg h-[600px] flex flex-col">
           <div className="overflow-auto flex-1">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-              <tr className="text-xs text-[#767676]">
-                <th className="px-4 py-3 text-left font-medium">Date</th>
-                <th className="px-4 py-3 text-left font-medium">Pièce</th>
-                <th className="px-4 py-3 text-left font-medium">Journal</th>
-                <th className="px-4 py-3 text-left font-medium">Compte</th>
+              <thead className="bg-[#6A8A82] sticky top-0 z-10">
+              <tr className="text-xs text-[#F0F3F2]">
+                <th className="px-4 py-3 text-left font-medium">{t('common.date')}</th>
+                <th className="px-4 py-3 text-left font-medium">{t('accounting.piece')}</th>
+                <th className="px-4 py-3 text-left font-medium">{t('accounting.journal')}</th>
+                <th className="px-4 py-3 text-left font-medium">{t('accounting.account')}</th>
                 <th className="px-4 py-3 text-left font-medium">Libellé compte</th>
-                <th className="px-4 py-3 text-left font-medium">Libellé</th>
-                <th className="px-4 py-3 text-right font-medium">Débit</th>
-                <th className="px-4 py-3 text-right font-medium">Crédit</th>
-                <th className="px-4 py-3 text-right font-medium">Solde</th>
+                <th className="px-4 py-3 text-left font-medium">{t('accounting.label')}</th>
+                <th className="px-4 py-3 text-right font-medium">{t('accounting.debit')}</th>
+                <th className="px-4 py-3 text-right font-medium">{t('accounting.credit')}</th>
+                <th className="px-4 py-3 text-right font-medium">{t('accounting.balance')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E8E8E8]">
@@ -417,7 +418,7 @@ const GrandLivre: React.FC = () => {
                       ) : entry.solde < 0 ? (
                         <span className="text-green-600">{formatAmount(Math.abs(entry.solde))}</span>
                       ) : (
-                        <span className="text-gray-400">0,00</span>
+                        <span className="text-gray-700">0,00</span>
                       )}
                     </td>
                   </tr>
@@ -435,30 +436,38 @@ const GrandLivre: React.FC = () => {
       )}
 
       {/* Totaux généraux */}
-      <div className="bg-white rounded-lg p-4 border-2 border-[#B87333]">
+      <div className="bg-[#F0F3F2] rounded-lg p-4 border-2 border-[#B87333]">
         <h3 className="text-lg font-semibold text-[#191919] mb-3 flex items-center">
           <Calculator className="w-5 h-5 mr-2 text-[#B87333]" />
           Totaux généraux
         </h3>
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center p-3 bg-red-50 rounded-lg">
-            <p className="text-sm text-[#767676]">Total Débits</p>
+            <p className="text-sm text-[#191919]/70">Total Débits</p>
             <p className="text-xl font-bold text-red-600">{formatAmount(totals.totalDebit)}</p>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-sm text-[#767676]">Total Crédits</p>
+            <p className="text-sm text-[#191919]/70">Total Crédits</p>
             <p className="text-xl font-bold text-green-600">{formatAmount(totals.totalCredit)}</p>
           </div>
           <div className="text-center p-3 bg-orange-50 rounded-lg">
-            <p className="text-sm text-[#767676]">Solde Débiteur</p>
+            <p className="text-sm text-[#191919]/70">Solde Débiteur</p>
             <p className="text-xl font-bold text-orange-600">{formatAmount(totals.soldeDebiteur)}</p>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-[#767676]">Solde Créditeur</p>
+            <p className="text-sm text-[#191919]/70">Solde Créditeur</p>
             <p className="text-xl font-bold text-blue-600">{formatAmount(totals.soldeCrediteur)}</p>
           </div>
         </div>
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

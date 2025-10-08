@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -28,6 +29,7 @@ import { thirdPartyService } from '../../services/thirdparty.service';
 import { formatCurrency, formatDate } from '../../lib/utils';
 
 const ThirdPartyDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
 
   // Fetch third party statistics
@@ -57,7 +59,7 @@ const ThirdPartyDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-4 bg-white/90 backdrop-blur-sm p-8 rounded-xl shadow-sm"
           >
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="w-16 h-16 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-lg font-medium text-neutral-700">Chargement du module tiers...</p>
           </motion.div>
         </div>
@@ -112,7 +114,7 @@ const ThirdPartyDashboard: React.FC = () => {
           />
           
           <KPICard
-            title="Fournisseurs"
+            title={t('navigation.suppliers')}
             value={(stats?.total_suppliers || 245).toString()}
             subtitle={`${stats?.active_suppliers || 189} actifs`}
             icon={Building}
@@ -149,10 +151,10 @@ const ThirdPartyDashboard: React.FC = () => {
                 { label: 'Jan', value: 2100, color: 'bg-blue-400' },
                 { label: 'Fév', value: 2300, color: 'bg-green-400' },
                 { label: 'Mar', value: 2700, color: 'bg-purple-400' },
-                { label: 'Avr', value: 2200, color: 'bg-blue-500' },
-                { label: 'Mai', value: 2450, color: 'bg-green-500' },
-                { label: 'Juin', value: 2800, color: 'bg-purple-500' },
-                { label: 'Juil', value: 2875, color: 'bg-blue-600' }
+                { label: 'Avr', value: 2200, color: 'bg-[var(--color-primary)]' },
+                { label: 'Mai', value: 2450, color: 'bg-[var(--color-success)]' },
+                { label: 'Juin', value: 2800, color: 'bg-[var(--color-info)]' },
+                { label: 'Juil', value: 2875, color: 'bg-[var(--color-primary)]' }
               ]}
               height={160}
             />
@@ -176,8 +178,8 @@ const ThirdPartyDashboard: React.FC = () => {
                     className="p-4 border border-neutral-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <Users className="h-5 w-5 text-blue-600" />
+                      <div className="p-2 bg-[var(--color-primary-lightest)] rounded-lg">
+                        <Users className="h-5 w-5 text-[var(--color-primary)]" />
                       </div>
                       <div>
                         <h3 className="font-medium text-neutral-800">Gestion Clients</h3>
@@ -193,11 +195,11 @@ const ThirdPartyDashboard: React.FC = () => {
                     className="p-4 border border-neutral-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-50 rounded-lg">
-                        <Building className="h-5 w-5 text-green-600" />
+                      <div className="p-2 bg-[var(--color-success-lightest)] rounded-lg">
+                        <Building className="h-5 w-5 text-[var(--color-success)]" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-neutral-800">Fournisseurs</h3>
+                        <h3 className="font-medium text-neutral-800">{t('navigation.suppliers')}</h3>
                         <p className="text-sm text-neutral-500">Gestion & suivi</p>
                       </div>
                     </div>
@@ -214,7 +216,7 @@ const ThirdPartyDashboard: React.FC = () => {
                         <AlertTriangle className="h-5 w-5 text-amber-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-neutral-800">Recouvrement</h3>
+                        <h3 className="font-medium text-neutral-800">{t('thirdParty.collection')}</h3>
                         <p className="text-sm text-neutral-500">Créances échues</p>
                       </div>
                     </div>

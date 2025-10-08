@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -100,6 +101,7 @@ interface DepreciationSchedule {
 }
 
 const CycleVieCompletPage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('tous');
   const [selectedPhase, setSelectedPhase] = useState<string>('tous');
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
@@ -566,7 +568,7 @@ const CycleVieCompletPage: React.FC = () => {
           <TabsList>
             <TabsTrigger value="assets">Inventaire des Actifs</TabsTrigger>
             <TabsTrigger value="maintenance">Plan de Maintenance</TabsTrigger>
-            <TabsTrigger value="depreciation">Amortissements</TabsTrigger>
+            <TabsTrigger value="depreciation">{t('assets.depreciation')}</TabsTrigger>
             <TabsTrigger value="analytics">Analyses</TabsTrigger>
           </TabsList>
 
@@ -611,8 +613,8 @@ const CycleVieCompletPage: React.FC = () => {
                                 </div>
                                 <div>
                                   <p className="font-medium text-gray-900">{asset.nom}</p>
-                                  <p className="text-sm text-gray-500 font-mono">{asset.numero_inventaire}</p>
-                                  <p className="text-xs text-gray-400">{asset.categorie}</p>
+                                  <p className="text-sm text-gray-700 font-mono">{asset.numero_inventaire}</p>
+                                  <p className="text-xs text-gray-700">{asset.categorie}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -644,7 +646,7 @@ const CycleVieCompletPage: React.FC = () => {
                             <TableCell>
                               <div>
                                 <p className="text-sm text-gray-900">{asset.localisation}</p>
-                                <p className="text-xs text-gray-500">{asset.responsable}</p>
+                                <p className="text-xs text-gray-700">{asset.responsable}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -851,9 +853,9 @@ const CycleVieCompletPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <TrendingDown className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <TrendingDown className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Plan d'Amortissement</h3>
-                    <p className="text-gray-500 mb-6">
+                    <p className="text-gray-700 mb-6">
                       Sélectionnez un actif dans l'inventaire pour voir son plan d'amortissement détaillé.
                     </p>
                     <Button variant="outline">
@@ -877,8 +879,8 @@ const CycleVieCompletPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12">
-                    <PieChart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Graphique de répartition par catégorie</p>
+                    <PieChart className="h-12 w-12 text-gray-700 mx-auto mb-4" />
+                    <p className="text-gray-700">Graphique de répartition par catégorie</p>
                   </div>
                 </CardContent>
               </Card>
@@ -892,8 +894,8 @@ const CycleVieCompletPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12">
-                    <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Graphique d'évolution des valeurs</p>
+                    <BarChart3 className="h-12 w-12 text-gray-700 mx-auto mb-4" />
+                    <p className="text-gray-700">Graphique d'évolution des valeurs</p>
                   </div>
                 </CardContent>
               </Card>
@@ -914,7 +916,7 @@ const CycleVieCompletPage: React.FC = () => {
                         <div key={asset.id} className="flex items-center justify-between p-3 border rounded">
                           <div>
                             <p className="font-medium text-gray-900">{asset.nom}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-700">
                               Renouvellement prévu dans {remainingYears} ans
                             </p>
                           </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Calendar, AlertCircle, CheckCircle, Clock, FileText,
   TrendingUp, TrendingDown, Minus, ChevronRight, Download,
@@ -35,6 +36,7 @@ interface ReportExercice {
 }
 
 const ReportsANouveauModule: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedExercice, setSelectedExercice] = useState('2025');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedCompte, setSelectedCompte] = useState<ReportCompte | null>(null);
@@ -194,7 +196,7 @@ const ReportsANouveauModule: React.FC = () => {
             </select>
             <button
               onClick={lancerReportANouveau}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Générer reports</span>
@@ -203,13 +205,13 @@ const ReportsANouveauModule: React.FC = () => {
         </div>
 
         {/* Informations de l'exercice */}
-        <div className="grid grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-5 gap-4 p-4 bg-[var(--color-background-secondary)] rounded-lg">
           <div>
             <p className="text-xs text-[#767676] mb-1">Statut</p>
             <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
-              exerciceInfo.statut === 'valide' ? 'bg-green-100 text-green-700' :
-              exerciceInfo.statut === 'en_cours' ? 'bg-blue-100 text-blue-700' :
-              'bg-yellow-100 text-yellow-700'
+              exerciceInfo.statut === 'valide' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+              exerciceInfo.statut === 'en_cours' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+              'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'
             }`}>
               {exerciceInfo.statut === 'valide' ? <CheckCircle className="w-3 h-3" /> :
                exerciceInfo.statut === 'en_cours' ? <Clock className="w-3 h-3" /> :
@@ -233,14 +235,14 @@ const ReportsANouveauModule: React.FC = () => {
           </div>
           <div>
             <p className="text-xs text-[#767676] mb-1">Résultat N-1</p>
-            <p className="font-semibold text-green-600">
+            <p className="font-semibold text-[var(--color-success)]">
               {exerciceInfo.resultatN1.toLocaleString('fr-FR')} FCFA
             </p>
           </div>
           <div>
             <p className="text-xs text-[#767676] mb-1">Écart global</p>
             <p className={`font-semibold ${
-              exerciceInfo.ecartGlobal === 0 ? 'text-green-600' : 'text-red-600'
+              exerciceInfo.ecartGlobal === 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
             }`}>
               {exerciceInfo.ecartGlobal.toLocaleString('fr-FR')} FCFA
             </p>
@@ -260,23 +262,23 @@ const ReportsANouveauModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#767676] text-sm">Validés</span>
-            <CheckCircle className="w-4 h-4 text-green-600" />
+            <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
           </div>
-          <p className="text-2xl font-bold text-green-600">{stats.comptesValides}</p>
+          <p className="text-2xl font-bold text-[var(--color-success)]">{stats.comptesValides}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#767676] text-sm">À vérifier</span>
-            <AlertCircle className="w-4 h-4 text-yellow-600" />
+            <AlertCircle className="w-4 h-4 text-[var(--color-warning)]" />
           </div>
-          <p className="text-2xl font-bold text-yellow-600">{stats.comptesAVerifier}</p>
+          <p className="text-2xl font-bold text-[var(--color-warning)]">{stats.comptesAVerifier}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#767676] text-sm">En erreur</span>
-            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <AlertTriangle className="w-4 h-4 text-[var(--color-error)]" />
           </div>
-          <p className="text-2xl font-bold text-red-600">{stats.comptesEnErreur}</p>
+          <p className="text-2xl font-bold text-[var(--color-error)]">{stats.comptesEnErreur}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
@@ -360,7 +362,7 @@ const ReportsANouveauModule: React.FC = () => {
                 <thead>
                   <tr className="border-b border-[#E8E8E8]">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-[#767676]">Code</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#767676]">Libellé</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#767676]">{t('accounting.label')}</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-[#767676]">Solde N-1</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-[#767676]">Mouvements</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-[#767676]">Solde N</th>
@@ -370,7 +372,7 @@ const ReportsANouveauModule: React.FC = () => {
                 </thead>
                 <tbody>
                   {filteredComptes.map((compte) => (
-                    <tr key={compte.id} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                    <tr key={compte.id} className="border-b border-[#E8E8E8] hover:bg-[var(--color-background-secondary)]">
                       <td className="py-3 px-4">
                         <span className="font-mono font-semibold text-[#191919]">{compte.code}</span>
                       </td>
@@ -388,10 +390,10 @@ const ReportsANouveauModule: React.FC = () => {
                       <td className="py-3 px-4">
                         <div className="text-right font-mono text-sm">
                           {compte.mouvementDebit > 0 && (
-                            <p className="text-red-600">D: {compte.mouvementDebit.toLocaleString('fr-FR')}</p>
+                            <p className="text-[var(--color-error)]">D: {compte.mouvementDebit.toLocaleString('fr-FR')}</p>
                           )}
                           {compte.mouvementCredit > 0 && (
-                            <p className="text-green-600">C: {compte.mouvementCredit.toLocaleString('fr-FR')}</p>
+                            <p className="text-[var(--color-success)]">C: {compte.mouvementCredit.toLocaleString('fr-FR')}</p>
                           )}
                         </div>
                       </td>
@@ -400,10 +402,10 @@ const ReportsANouveauModule: React.FC = () => {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
-                          compte.statut === 'valide' ? 'bg-green-100 text-green-700' :
-                          compte.statut === 'a_verifier' ? 'bg-yellow-100 text-yellow-700' :
-                          compte.statut === 'erreur' ? 'bg-red-100 text-red-700' :
-                          'bg-blue-100 text-blue-700'
+                          compte.statut === 'valide' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+                          compte.statut === 'a_verifier' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                          compte.statut === 'erreur' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]' :
+                          'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]'
                         }`}>
                           {compte.statut === 'valide' ? <Check className="w-3 h-3" /> :
                            compte.statut === 'a_verifier' ? <AlertCircle className="w-3 h-3" /> :
@@ -423,11 +425,11 @@ const ReportsANouveauModule: React.FC = () => {
                               setSelectedCompte(compte);
                               setShowDetailModal(true);
                             }}
-                            className="p-1.5 text-[#767676] hover:text-[#191919] hover:bg-gray-100 rounded"
+                            className="p-1.5 text-[#767676] hover:text-[#191919] hover:bg-[var(--color-background-hover)] rounded"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 text-[#767676] hover:text-[#191919] hover:bg-gray-100 rounded">
+                          <button className="p-1.5 text-[#767676] hover:text-[#191919] hover:bg-[var(--color-background-hover)] rounded" aria-label="Paramètres">
                             <Settings className="w-4 h-4" />
                           </button>
                         </div>
@@ -441,18 +443,18 @@ const ReportsANouveauModule: React.FC = () => {
             {/* Actions en bas */}
             <div className="mt-6 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2">
+                <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2" aria-label="Télécharger">
                   <Download className="w-4 h-4" />
-                  <span>Exporter</span>
+                  <span>{t('common.export')}</span>
                 </button>
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center space-x-2">
+                <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2">
                   <Archive className="w-4 h-4" />
                   <span>Archiver</span>
                 </button>
               </div>
               <button
                 onClick={validerReport}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2"
               >
                 <Check className="w-4 h-4" />
                 <span>Valider le report</span>
@@ -477,23 +479,23 @@ const ReportsANouveauModule: React.FC = () => {
                 ].map((etape, index) => (
                   <div key={index} className="flex items-center space-x-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      etape.statut === 'complete' ? 'bg-green-100' :
-                      etape.statut === 'en_cours' ? 'bg-blue-100' :
-                      'bg-gray-100'
+                      etape.statut === 'complete' ? 'bg-[var(--color-success-lighter)]' :
+                      etape.statut === 'en_cours' ? 'bg-[var(--color-primary-lighter)]' :
+                      'bg-[var(--color-background-hover)]'
                     }`}>
                       {etape.statut === 'complete' ? (
-                        <Check className="w-5 h-5 text-green-600" />
+                        <Check className="w-5 h-5 text-[var(--color-success)]" />
                       ) : etape.statut === 'en_cours' ? (
-                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
                       ) : (
-                        <span className="text-gray-400">{index + 1}</span>
+                        <span className="text-[var(--color-text-secondary)]">{index + 1}</span>
                       )}
                     </div>
                     <div className="flex-1">
                       <p className={`font-medium ${
-                        etape.statut === 'complete' ? 'text-green-600' :
-                        etape.statut === 'en_cours' ? 'text-blue-600' :
-                        'text-gray-400'
+                        etape.statut === 'complete' ? 'text-[var(--color-success)]' :
+                        etape.statut === 'en_cours' ? 'text-[var(--color-primary)]' :
+                        'text-[var(--color-text-secondary)]'
                       }`}>
                         {etape.nom}
                       </p>
@@ -502,17 +504,17 @@ const ReportsANouveauModule: React.FC = () => {
                 ))}
               </div>
 
-              <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="mt-8 p-4 bg-[var(--color-warning-lightest)] border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
                   ⚠️ La validation du report à nouveau est irréversible. Assurez-vous que tous les contrôles ont été effectués.
                 </p>
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]">
                   Annuler
                 </button>
-                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2">
                   <Send className="w-4 h-4" />
                   <span>Finaliser le report</span>
                 </button>
@@ -529,7 +531,7 @@ const ReportsANouveauModule: React.FC = () => {
                 { date: '2023-01-12', exercice: '2023', statut: 'complete', montant: 12345678 },
                 { date: '2022-01-18', exercice: '2022', statut: 'complete', montant: 10234567 }
               ].map((report, index) => (
-                <div key={index} className="border border-[#E8E8E8] rounded-lg p-4 hover:bg-gray-50">
+                <div key={index} className="border border-[#E8E8E8] rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-[#191919]">Exercice {report.exercice}</p>
@@ -539,7 +541,7 @@ const ReportsANouveauModule: React.FC = () => {
                       <p className="font-semibold text-[#191919]">
                         {report.montant.toLocaleString('fr-FR')} FCFA
                       </p>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] px-2 py-1 rounded-full">
                         Complété
                       </span>
                     </div>
@@ -563,7 +565,7 @@ const ReportsANouveauModule: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -590,17 +592,17 @@ const ReportsANouveauModule: React.FC = () => {
                 <h4 className="font-semibold text-[#191919] mb-3">Mouvements de report</h4>
                 <div className="space-y-2">
                   {selectedCompte.mouvementDebit > 0 && (
-                    <div className="flex justify-between p-3 bg-red-50 rounded-lg">
+                    <div className="flex justify-between p-3 bg-[var(--color-error-lightest)] rounded-lg">
                       <span className="text-sm">Mouvement débit</span>
-                      <span className="font-mono font-semibold text-red-600">
+                      <span className="font-mono font-semibold text-[var(--color-error)]">
                         {selectedCompte.mouvementDebit.toLocaleString('fr-FR')}
                       </span>
                     </div>
                   )}
                   {selectedCompte.mouvementCredit > 0 && (
-                    <div className="flex justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
                       <span className="text-sm">Mouvement crédit</span>
-                      <span className="font-mono font-semibold text-green-600">
+                      <span className="font-mono font-semibold text-[var(--color-success)]">
                         {selectedCompte.mouvementCredit.toLocaleString('fr-FR')}
                       </span>
                     </div>
@@ -611,7 +613,7 @@ const ReportsANouveauModule: React.FC = () => {
               {selectedCompte.commentaire && (
                 <div className="mt-6">
                   <h4 className="font-semibold text-[#191919] mb-2">Commentaire</h4>
-                  <p className="text-[#767676] p-3 bg-gray-50 rounded-lg">
+                  <p className="text-[#767676] p-3 bg-[var(--color-background-secondary)] rounded-lg">
                     {selectedCompte.commentaire}
                   </p>
                 </div>
@@ -620,11 +622,11 @@ const ReportsANouveauModule: React.FC = () => {
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
                 >
                   Fermer
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                   Modifier
                 </button>
               </div>

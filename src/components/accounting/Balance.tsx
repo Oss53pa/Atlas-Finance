@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
+import ExportMenu from '../shared/ExportMenu';
 import {
   ChevronDown, ChevronRight, FileText, Calendar, Filter,
-  Printer, Download, Search, Calculator, Scale,
+  Printer, Search, Calculator, Scale,
   TrendingUp, TrendingDown, Eye, EyeOff, Folder, FolderOpen,
   TreePine, List, Grid3x3, RefreshCw, Settings, Columns,
   Mail, FileSpreadsheet, Users, Building
 } from 'lucide-react';
+import PrintableArea from '../ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
 
 interface BalanceAccount {
   code: string;
@@ -23,7 +28,15 @@ interface BalanceAccount {
 }
 
 const Balance: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState({ from: '2024-01-01', to: '2024-12-31' });
+  const { t } = useLanguage();
+  const { printRef, handlePrint } = usePrintReport({
+    title: 'Balance Comptable',
+    orientation: 'landscape',
+    pageSize: 'A4'
+  });
+
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [searchAccount, setSearchAccount] = useState('');
   const [showZeroBalance, setShowZeroBalance] = useState(false);
   const [balanceType, setBalanceType] = useState<'generale' | 'auxiliaire' | 'agee' | 'cloture'>('generale');
@@ -143,7 +156,7 @@ const Balance: React.FC = () => {
           children: [
             {
               code: '401',
-              libelle: 'Fournisseurs',
+              libelle: t('navigation.suppliers')},
               niveau: 3,
               parent: '40',
               soldeDebiteurAN: 0,
@@ -171,7 +184,7 @@ const Balance: React.FC = () => {
           children: [
             {
               code: '411',
-              libelle: 'Clients',
+              libelle: t('navigation.clients')},
               niveau: 3,
               parent: '41',
               soldeDebiteurAN: 45000,
@@ -456,7 +469,7 @@ const Balance: React.FC = () => {
   const renderAccounts = (accounts: BalanceAccount[], parentLevel = 0) => {
     return accounts.map((account) => (
       <React.Fragment key={account.code}>
-        <tr className={`hover:bg-gray-50 ${getNiveauStyle(account.niveau)}`}>
+        <tr className={`hover:bg-[#ECECEC] ${getNiveauStyle(account.niveau)}`}>
           {visibleColumns.compte && (
             <td className={`px-4 py-2 ${account.niveau > 1 ? `pl-${4 + (account.niveau - 1) * 8}` : ''}`}>
               <div className="flex items-center space-x-2">
@@ -552,27 +565,53 @@ const Balance: React.FC = () => {
   const totals = calculateTotals(accounts);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-[#F0F3F2] min-h-screen">
+      <PrintableArea
+        ref={printRef}
+        documentTitle={`Balance Comptable - ${dateRange.start} au ${dateRange.end}`}
+        orientation="landscape"
+        showPrintButton={false}
+        headerContent={
+          <div className="text-center mb-4">
+            <h1 className="text-xl font-bold">Balance Comptable</h1>
+            <p>Période: {dateRange.start} au {dateRange.end}</p>
+          </div>
+        }
+      >
       {/* En-tête */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+      <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#ECECEC] shadow-sm print-hide">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Scale className="w-6 h-6 text-[#6A8A82]" />
             <div>
               <h2 className="text-xl font-bold text-[#191919]">Balance Générale</h2>
-              <p className="text-sm text-[#767676]">Vue synthétique des comptes</p>
+              <p className="text-sm text-[#191919]/70">Vue synthétique des comptes</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Bouton de sélection de période */}
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="px-3 py-2 border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82] text-left flex items-center space-x-2 hover:bg-gray-50"
+            >
+              <Calendar className="w-4 h-4 text-[#6A8A82]" />
+              <span className="text-sm">
+                {dateRange.start && dateRange.end
+                  ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                  : 'Période'
+                }
+              </span>
+            </button>
+
             {/* BOUTONS DE MODE D'AFFICHAGE */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-[#ECECEC] rounded-lg p-1">
               <button
                 onClick={() => setViewMode('tree')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'tree'
-                    ? 'bg-[#6A8A82] text-white'
-                    : 'text-[#444444] hover:bg-gray-200'
+                    ? 'bg-[#6A8A82] text-[#F0F3F2]'
+                    : 'text-[#191919]/70 hover:bg-[#ECECEC]'
                 }`}
               >
                 Arborescence
@@ -581,8 +620,8 @@ const Balance: React.FC = () => {
                 onClick={() => setViewMode('list')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'list'
-                    ? 'bg-[#6A8A82] text-white'
-                    : 'text-[#444444] hover:bg-gray-200'
+                    ? 'bg-[#6A8A82] text-[#F0F3F2]'
+                    : 'text-[#191919]/70 hover:bg-[#ECECEC]'
                 }`}
               >
                 Liste
@@ -591,8 +630,8 @@ const Balance: React.FC = () => {
                 onClick={() => setViewMode('grid')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'grid'
-                    ? 'bg-[#6A8A82] text-white'
-                    : 'text-[#444444] hover:bg-gray-200'
+                    ? 'bg-[#6A8A82] text-[#F0F3F2]'
+                    : 'text-[#191919]/70 hover:bg-[#ECECEC]'
                 }`}
               >
                 Grille
@@ -602,7 +641,7 @@ const Balance: React.FC = () => {
             <select
               value={balanceType}
               onChange={(e) => setBalanceType(e.target.value as any)}
-              className="px-3 py-1.5 text-sm border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-3 py-1.5 text-sm border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
             >
               <option value="generale">Balance Générale</option>
               <option value="auxiliaire">Balance Auxiliaire</option>
@@ -613,7 +652,7 @@ const Balance: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowColumnsDropdown(!showColumnsDropdown)}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-1"
+                className="px-3 py-1.5 text-sm border border-[#ECECEC] rounded-lg hover:bg-[#ECECEC] flex items-center space-x-1"
               >
                 <Columns className="w-4 h-4" />
                 <span>Colonnes ({columnCount})</span>
@@ -635,7 +674,7 @@ const Balance: React.FC = () => {
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">4 colonnes (Version simplifiée)</div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-700 mt-1">
                             N° compte • Intitulé • Total Débit • Total Crédit
                           </div>
                         </div>
@@ -651,7 +690,7 @@ const Balance: React.FC = () => {
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">5 colonnes (Version intermédiaire)</div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-700 mt-1">
                             N° compte • Intitulé • Total Débit • Total Crédit • Solde (avec mention D/C)
                           </div>
                         </div>
@@ -667,7 +706,7 @@ const Balance: React.FC = () => {
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">6 colonnes (Version complète SYSCOHADA)</div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-700 mt-1">
                             N° compte • Intitulé • Total Débit • Total Crédit • Solde Débiteur • Solde Créditeur
                           </div>
                         </div>
@@ -678,9 +717,9 @@ const Balance: React.FC = () => {
               )}
             </div>
 
-            <button className="px-3 py-1.5 text-sm bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors flex items-center space-x-1">
+            <button className="px-3 py-1.5 text-sm bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors flex items-center space-x-1" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4" />
-              <span>Actualiser</span>
+              <span>{t('common.refresh')}</span>
             </button>
 
           </div>
@@ -696,8 +735,8 @@ const Balance: React.FC = () => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  {visibleColumns.compte && <th className="px-4 py-3 text-left font-semibold text-[#191919]">Compte</th>}
-                  {visibleColumns.libelle && <th className="px-4 py-3 text-left font-semibold text-[#191919]">Libellé</th>}
+                  {visibleColumns.compte && <th className="px-4 py-3 text-left font-semibold text-[#191919]">{t('accounting.account')}</th>}
+                  {visibleColumns.libelle && <th className="px-4 py-3 text-left font-semibold text-[#191919]">{t('accounting.label')}</th>}
                   {(visibleColumns.soldeDebiteurAN || visibleColumns.soldeCrediteurAN) && (
                     <th className="px-4 py-3 text-right font-semibold text-[#191919]"
                         colSpan={(visibleColumns.soldeDebiteurAN && visibleColumns.soldeCrediteurAN) ? 2 : 1}>
@@ -722,8 +761,8 @@ const Balance: React.FC = () => {
                   {visibleColumns.libelle && <th className="px-4 py-2 text-left font-medium"></th>}
                   {visibleColumns.soldeDebiteurAN && <th className="px-4 py-2 text-right font-medium">Débiteur</th>}
                   {visibleColumns.soldeCrediteurAN && <th className="px-4 py-2 text-right font-medium">Créditeur</th>}
-                  {visibleColumns.mouvementsDebit && <th className="px-4 py-2 text-right font-medium">Débit</th>}
-                  {visibleColumns.mouvementsCredit && <th className="px-4 py-2 text-right font-medium">Crédit</th>}
+                  {visibleColumns.mouvementsDebit && <th className="px-4 py-2 text-right font-medium">{t('accounting.debit')}</th>}
+                  {visibleColumns.mouvementsCredit && <th className="px-4 py-2 text-right font-medium">{t('accounting.credit')}</th>}
                   {visibleColumns.soldeDebiteur && <th className="px-4 py-2 text-right font-medium">Débiteur</th>}
                   {visibleColumns.soldeCrediteur && <th className="px-4 py-2 text-right font-medium">Créditeur</th>}
                 </tr>
@@ -762,7 +801,7 @@ const Balance: React.FC = () => {
                   <th className="px-4 py-3 text-right font-semibold text-[#191919]">Total Débit</th>
                   <th className="px-4 py-3 text-right font-semibold text-[#191919]">Total Crédit</th>
                   {columnCount >= 5 && (
-                    <th className="px-4 py-3 text-right font-semibold text-[#191919]">Solde</th>
+                    <th className="px-4 py-3 text-right font-semibold text-[#191919]">{t('accounting.balance')}</th>
                   )}
                   {columnCount === 6 && (
                     <>
@@ -849,7 +888,19 @@ const Balance: React.FC = () => {
                           title="Exporter le compte"
                           onClick={() => handleExportAccountExcel(account)}
                         >
-                          <Download className="w-4 h-4" />
+                          <ExportMenu
+                            data={[account]}
+                            filename={`compte-${account.code}`}
+                            columns={[
+                              { key: 'code', label: 'Code' },
+                              { key: 'libelle', label: 'Libellé' },
+                              { key: 'soldeDebiteur', label: 'Solde Débiteur' },
+                              { key: 'soldeCrediteur', label: 'Solde Créditeur' }
+                            ]}
+                            buttonText=""
+                            iconOnly={true}
+                            buttonVariant="icon"
+                          />
                         </button>
                         <button
                           className="text-red-600 hover:text-red-800 transition-colors"
@@ -1038,13 +1089,13 @@ const Balance: React.FC = () => {
                 <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-[#191919]">Compte</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[#191919]">{t('accounting.account')}</th>
                   <th className="px-4 py-3 text-left font-semibold text-[#191919]">Tiers</th>
                   <th className="px-4 py-3 text-right font-semibold text-[#191919]">Solde Antérieur</th>
                   <th className="px-4 py-3 text-right font-semibold text-[#191919]">Débit Période</th>
                   <th className="px-4 py-3 text-right font-semibold text-[#191919]">Crédit Période</th>
                   <th className="px-4 py-3 text-right font-semibold text-[#191919]">Solde Final</th>
-                  <th className="px-4 py-3 text-center font-semibold text-[#191919]">Lettrage</th>
+                  <th className="px-4 py-3 text-center font-semibold text-[#191919]">{t('thirdParty.reconciliation')}</th>
                   <th className="px-4 py-3 text-center font-semibold text-[#191919]">Actions</th>
                 </tr>
               </thead>
@@ -1077,7 +1128,7 @@ const Balance: React.FC = () => {
                     <button
                       className="text-orange-600 hover:text-orange-800"
                       onClick={() => alert('Impression en cours...')}
-                      title="Imprimer"
+                      title={t('common.print')}
                     >
                       <Printer className="w-4 h-4" />
                     </button>
@@ -1111,7 +1162,7 @@ const Balance: React.FC = () => {
                     <button
                       className="text-orange-600 hover:text-orange-800"
                       onClick={() => alert('Impression en cours...')}
-                      title="Imprimer"
+                      title={t('common.print')}
                     >
                       <Printer className="w-4 h-4" />
                     </button>
@@ -1240,7 +1291,7 @@ const Balance: React.FC = () => {
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
                         <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-gray-400 font-semibold">—</span>
+                        <span className="text-gray-700 font-semibold">—</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
@@ -1372,7 +1423,7 @@ const Balance: React.FC = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-3 text-left">Compte</th>
+                      <th className="px-4 py-3 text-left">{t('accounting.account')}</th>
                       <th className="px-4 py-3 text-left">Client</th>
                       <th className="px-4 py-3 text-right">Solde Total</th>
                       <th className="px-4 py-3 text-right">Non échu</th>
@@ -1471,12 +1522,12 @@ const Balance: React.FC = () => {
 
                       <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span className="text-gray-600">31-60j:</span>
-                        <span className="text-gray-400 font-semibold">—</span>
+                        <span className="text-gray-700 font-semibold">—</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span className="text-gray-600">&gt;60j:</span>
-                        <span className="text-gray-400 font-semibold">—</span>
+                        <span className="text-gray-700 font-semibold">—</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
@@ -1549,8 +1600,8 @@ const Balance: React.FC = () => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-[#191919]">Compte</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[#191919]">Libellé</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[#191919]">{t('accounting.account')}</th>
+                  <th className="px-4 py-3 text-left font-semibold text-[#191919]">{t('accounting.label')}</th>
                   <th className="px-4 py-3 text-right font-semibold text-[#191919]" colSpan={2}>
                     <div className="text-center">Soldes d'ouverture</div>
                   </th>
@@ -1565,12 +1616,12 @@ const Balance: React.FC = () => {
                 <tr className="text-xs text-[#767676]">
                   <th className="px-4 py-2"></th>
                   <th className="px-4 py-2"></th>
-                  <th className="px-4 py-2 text-right">Débit</th>
-                  <th className="px-4 py-2 text-right">Crédit</th>
-                  <th className="px-4 py-2 text-right">Débit</th>
-                  <th className="px-4 py-2 text-right">Crédit</th>
-                  <th className="px-4 py-2 text-right">Débit</th>
-                  <th className="px-4 py-2 text-right">Crédit</th>
+                  <th className="px-4 py-2 text-right">{t('accounting.debit')}</th>
+                  <th className="px-4 py-2 text-right">{t('accounting.credit')}</th>
+                  <th className="px-4 py-2 text-right">{t('accounting.debit')}</th>
+                  <th className="px-4 py-2 text-right">{t('accounting.credit')}</th>
+                  <th className="px-4 py-2 text-right">{t('accounting.debit')}</th>
+                  <th className="px-4 py-2 text-right">{t('accounting.credit')}</th>
                   <th className="px-4 py-2"></th>
                 </tr>
               </thead>
@@ -1585,7 +1636,7 @@ const Balance: React.FC = () => {
                   <td className="px-4 py-2 text-right font-semibold">18 000 000,00</td>
                   <td className="px-4 py-2 text-right font-semibold">11 500 000,00</td>
                   <td className="px-4 py-2 text-center">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Bilan</span>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{t('accounting.balanceSheet')}</span>
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 border-b bg-green-50">
@@ -1671,8 +1722,8 @@ const Balance: React.FC = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-3 text-left">Compte</th>
-                      <th className="px-4 py-3 text-left">Libellé</th>
+                      <th className="px-4 py-3 text-left">{t('accounting.account')}</th>
+                      <th className="px-4 py-3 text-left">{t('accounting.label')}</th>
                       <th className="px-4 py-3 text-right">Solde Ouverture</th>
                       <th className="px-4 py-3 text-right">Mouvements</th>
                       <th className="px-4 py-3 text-right">Solde Clôture</th>
@@ -1687,7 +1738,7 @@ const Balance: React.FC = () => {
                       <td className="px-4 py-2 text-right">1 500 000,00</td>
                       <td className="px-4 py-2 text-right font-semibold">6 500 000,00</td>
                       <td className="px-4 py-2 text-center">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Bilan</span>
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{t('accounting.balanceSheet')}</span>
                       </td>
                     </tr>
                   </tbody>
@@ -1750,14 +1801,14 @@ const Balance: React.FC = () => {
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
                         <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-gray-400 font-semibold">—</span>
+                        <span className="text-gray-700 font-semibold">—</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
                         <span className="text-gray-600">Mouvements:</span>
                         <div className="text-right">
                           <div className="text-red-600">D: +23 500 000</div>
-                          <div className="text-gray-400">C: —</div>
+                          <div className="text-gray-700">C: —</div>
                         </div>
                       </div>
 
@@ -1782,13 +1833,13 @@ const Balance: React.FC = () => {
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
                         <span className="text-gray-600">Solde AN:</span>
-                        <span className="text-gray-400 font-semibold">—</span>
+                        <span className="text-gray-700 font-semibold">—</span>
                       </div>
 
                       <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
                         <span className="text-gray-600">Mouvements:</span>
                         <div className="text-right">
-                          <div className="text-gray-400">D: —</div>
+                          <div className="text-gray-700">D: —</div>
                           <div className="text-green-600">C: +37 500 000</div>
                         </div>
                       </div>
@@ -1880,13 +1931,22 @@ const Balance: React.FC = () => {
                   <Printer className="w-4 h-4 mr-2" />
                   Imprimer
                 </button>
-                <button
-                  onClick={handleExportExcel}
-                  className="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-sm font-medium flex items-center justify-center transition-all"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Exporter Excel
-                </button>
+                <ExportMenu
+                  data={accounts}
+                  filename="balance-comptable"
+                  columns={[
+                    { key: 'code', label: 'Code' },
+                    { key: 'libelle', label: 'Libellé' },
+                    { key: 'soldeDebiteurAN', label: 'Solde Débiteur AN' },
+                    { key: 'soldeCrediteurAN', label: 'Solde Créditeur AN' },
+                    { key: 'mouvementsDebit', label: 'Mouvements Débit' },
+                    { key: 'mouvementsCredit', label: 'Mouvements Crédit' },
+                    { key: 'soldeDebiteur', label: 'Solde Débiteur' },
+                    { key: 'soldeCrediteur', label: 'Solde Créditeur' }
+                  ]}
+                  buttonText="Exporter Excel"
+                  buttonVariant="outline"
+                />
                 <button
                   onClick={handleGeneratePDF}
                   className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 text-sm font-medium flex items-center justify-center transition-all"
@@ -1948,7 +2008,16 @@ const Balance: React.FC = () => {
         </div>
       </div>
       )}
-    </div>
+    </PrintableArea>
+
+    {/* Modal de sélection de période */}
+    <PeriodSelectorModal
+      isOpen={showPeriodModal}
+      onClose={() => setShowPeriodModal(false)}
+      onApply={(range) => setDateRange(range)}
+      initialDateRange={dateRange}
+    />
+  </div>
   );
 };
 

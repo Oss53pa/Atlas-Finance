@@ -3,9 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, BarChart3, FileText, Plus, Search, Filter, Edit, Eye,
   ArrowLeft, Home, Download, RefreshCw, Calculator, Settings,
-  Archive, Printer, FileSpreadsheet, ChevronUp, ChevronDown, ChevronRight
+  Archive, Printer, FileSpreadsheet, ChevronUp, ChevronDown, ChevronRight,
+  RotateCcw, X, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import JournalDashboard from '../../components/accounting/JournalDashboard';
+import DataTable, { Column } from '../../components/ui/DataTable';
+import PrintableArea from '../../components/ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
+import { useReverseEntry } from '../../hooks/useAccounting';
+import { useLanguage } from '../../contexts/LanguageContext';
+import toast from 'react-hot-toast';
 
 interface Journal {
   id: string;
@@ -19,21 +26,215 @@ interface Journal {
   color: string;
 }
 
+interface EcritureJournal {
+  mvt: string;
+  jnl: string;
+  date: string;
+  piece: string;
+  echeance: string;
+  compte: string;
+  compteLib: string;
+  libelle: string;
+  debit: string;
+  credit: string;
+}
+
 const JournalsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('journaux');
   const [selectedJournal, setSelectedJournal] = useState<Journal | null>(null);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showRecapTable, setShowRecapTable] = useState(true);
+  const [showRecapTable, setShowRecapTable] = useState(false);
   const [showEditEntryModal, setShowEditEntryModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [selectedEntryLines, setSelectedEntryLines] = useState<any[]>([]);
   const [showSubJournals, setShowSubJournals] = useState<{[key: string]: boolean}>({});
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [savedEntry, setSavedEntry] = useState<any>(null);
+
+  // Pour tester le modal via URL: /accounting/journals?test-modal=true
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('test-modal') === 'true') {
+      // Données de test pour le modal
+      const testEntry = {
+        mvt: '001',
+        piece: 'FAC-2025-123',
+        jnl: 'VT',
+        date: '10/09/2025',
+        echeance: '10/10/2025',
+        tiers: 'CLIENT A',
+        lines: [
+          { compte: '411000', compteLib: 'Clients', libelle: 'Vente CLIENT A', debit: '150 000', credit: '' },
+          { compte: '445671', compteLib: 'TVA collectée', libelle: 'TVA sur vente', debit: '', credit: '30 000' },
+          { compte: '701000', compteLib: 'Ventes', libelle: 'Vente marchandises', debit: '', credit: '120 000' }
+        ],
+        totalDebit: 150000,
+        totalCredit: 150000
+      };
+      setSavedEntry(testEntry);
+      setShowConfirmationModal(true);
+    }
+  }, []);
+
+  // Hook d'impression pour les rapports
+  const { printRef, handlePrint, isPrinting, PrintWrapper } = usePrintReport({
+    title: `Journal ${selectedJournal?.code || ''} - ${new Date().toLocaleDateString('fr-FR')}`,
+    orientation: 'landscape',
+    showHeaders: true,
+    showFooters: true
+  });
+
+  // Hook pour reverser une écriture
+  const reverseEntryMutation = useReverseEntry();
+
+  // Configuration des colonnes pour DataTable
+  const ecrituresColumns: Column<EcritureJournal>[] = [
+    {
+      key: 'mvt',
+      label: t('accounting.movement'),
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '60px',
+      align: 'center',
+      render: (item) => (
+        <span className="text-xs font-mono">{item.mvt}</span>
+      )
+    },
+    {
+      key: 'jnl',
+      label: t('accounting.journal'),
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: 'VT', label: 'VT' },
+        { value: 'AC', label: 'AC' },
+        { value: 'BQ', label: 'BQ' },
+        { value: 'CA', label: 'CA' },
+        { value: 'OD', label: 'OD' }
+      ],
+      width: '40px',
+      align: 'center',
+      render: (item) => (
+        <span className="text-xs font-bold text-[#B87333]">{item.jnl}</span>
+      )
+    },
+    {
+      key: 'date',
+      label: t('common.date'),
+      sortable: true,
+      filterable: true,
+      filterType: 'date',
+      width: '80px',
+      align: 'center',
+      render: (item) => (
+        <span className="text-xs">{item.date}</span>
+      )
+    },
+    {
+      key: 'piece',
+      label: t('accounting.piece'),
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '100px',
+      align: 'center',
+      render: (item) => (
+        <span className="text-xs font-mono">{item.piece}</span>
+      )
+    },
+    {
+      key: 'echeance',
+      label: t('accounting.dueDate'),
+      sortable: true,
+      filterable: true,
+      filterType: 'date',
+      width: '80px',
+      align: 'center',
+      render: (item) => (
+        <span className="text-xs">{item.echeance}</span>
+      )
+    },
+    {
+      key: 'compte',
+      label: t('accounting.account'),
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '80px',
+      align: 'center',
+      render: (item) => (
+        <span className="text-xs font-mono text-[#6A8A82] font-semibold">{item.compte}</span>
+      )
+    },
+    {
+      key: 'compteLib',
+      label: t('accounting.accountName'),
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '150px',
+      render: (item) => (
+        <span className="text-xs">{item.compteLib}</span>
+      )
+    },
+    {
+      key: 'libelle',
+      label: t('accounting.label'),
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '200px',
+      render: (item) => (
+        <span className="text-xs">{item.libelle}</span>
+      )
+    },
+    {
+      key: 'debit',
+      label: t('accounting.debit'),
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      width: '100px',
+      align: 'right',
+      render: (item) => {
+        const isNegative = item.debit && item.debit.includes('-');
+        const amount = item.debit ? item.debit.replace('-', '') : '';
+        return (
+          <span className="text-xs font-medium text-[var(--color-error)]">
+            {amount}{isNegative && '-'}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'credit',
+      label: t('accounting.credit'),
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      width: '100px',
+      align: 'right',
+      render: (item) => {
+        const isNegative = item.credit && item.credit.includes('-');
+        const amount = item.credit ? item.credit.replace('-', '') : '';
+        return (
+          <span className="text-xs font-medium text-[var(--color-success)]">
+            {amount}{isNegative && '-'}
+          </span>
+        );
+      }
+    }
+  ];
 
   // Onglets principaux
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'journaux', label: 'Journaux', icon: BookOpen },
+    { id: 'dashboard', label: t('navigation.dashboard'), icon: BarChart3 },
+    { id: 'journaux', label: t('navigation.journals'), icon: BookOpen },
     ...(selectedJournal ? [{ id: 'journal-view', label: `📚 ${selectedJournal.code}`, icon: Eye }] : [])
   ];
 
@@ -42,7 +243,7 @@ const JournalsPage: React.FC = () => {
     {
       id: '1',
       code: 'VT',
-      libelle: 'Journal des Ventes',
+      libelle: t('accounting.salesJournal'),
       type: 'VT',
       entries: 156,
       totalDebit: 0,
@@ -53,7 +254,7 @@ const JournalsPage: React.FC = () => {
     {
       id: '2',
       code: 'AC',
-      libelle: 'Journal des Achats',
+      libelle: t('accounting.purchaseJournal'),
       type: 'AC',
       entries: 89,
       totalDebit: 1890000,
@@ -64,7 +265,7 @@ const JournalsPage: React.FC = () => {
     {
       id: '3',
       code: 'BQ',
-      libelle: 'Journal de Banque',
+      libelle: t('accounting.bankJournal'),
       type: 'BQ',
       entries: 234,
       totalDebit: 890000,
@@ -75,7 +276,7 @@ const JournalsPage: React.FC = () => {
     {
       id: '4',
       code: 'CA',
-      libelle: 'Journal de Caisse',
+      libelle: t('accounting.cashJournal'),
       type: 'CA',
       entries: 45,
       totalDebit: 120000,
@@ -86,7 +287,7 @@ const JournalsPage: React.FC = () => {
     {
       id: '5',
       code: 'OD',
-      libelle: 'Journal Opérations Diverses',
+      libelle: t('accounting.miscJournal'),
       type: 'OD',
       entries: 67,
       totalDebit: 340000,
@@ -121,7 +322,88 @@ const JournalsPage: React.FC = () => {
 
   const handleDoubleClickEntry = (entry: any) => {
     setSelectedEntry(entry);
+
+    // Récupérer toutes les lignes de l'écriture (même numéro de mouvement)
+    const allEntries = getEcrituresJournal(entry.jnl);
+    const entryLines = allEntries.filter(e => e.mvt === entry.mvt);
+
+    setSelectedEntryLines(entryLines);
     setShowEditEntryModal(true);
+  };
+
+  // Fonction pour sauvegarder une écriture modifiée
+  const handleSaveEntry = () => {
+    if (!selectedEntry || !selectedEntryLines.length) {
+      toast.error(t('messages.saveError'));
+      return;
+    }
+
+    // Vérifier l'équilibre
+    const totalDebit = selectedEntryLines.reduce((sum, line) => {
+      const debit = parseFloat(line.debit?.replace(/\s/g, '').replace('-', '') || '0');
+      return sum + debit;
+    }, 0);
+    const totalCredit = selectedEntryLines.reduce((sum, line) => {
+      const credit = parseFloat(line.credit?.replace(/\s/g, '').replace('-', '') || '0');
+      return sum + credit;
+    }, 0);
+
+    if (totalDebit !== totalCredit) {
+      toast.error(t('validation.mustBalance'));
+      return;
+    }
+
+    // Sauvegarder l'écriture (appel API ici)
+    // Pour le moment, on simule la sauvegarde
+    const entryToSave = {
+      ...selectedEntry,
+      lines: selectedEntryLines,
+      totalDebit,
+      totalCredit
+    };
+
+    // Fermer le modal d'édition
+    setShowEditEntryModal(false);
+
+    // Sauvegarder les données pour le modal de confirmation
+    setSavedEntry(entryToSave);
+
+    // Afficher le modal de confirmation
+    setShowConfirmationModal(true);
+
+    toast.success(t('messages.saveSuccess'));
+  };
+
+  // Fonction pour reverser une écriture
+  const handleReverseEntry = async (entry: EcritureJournal) => {
+    if (!entry.mvt) {
+      toast.error(t('messages.saveError'));
+      return;
+    }
+
+    try {
+      // Date du jour pour le reversement
+      const todayDate = new Date().toISOString().split('T')[0];
+
+      // Le reversement conserve :
+      // 1. Le même numéro de pièce (entry.piece)
+      // 2. La même structure (débit reste débit, crédit reste crédit)
+      // 3. Les montants avec le signe "-" après (ex: 150 000-)
+      // 4. Le libellé préfixé par "REVERSEMENT: "
+      // 5. Il sera affiché juste à côté de l'écriture d'origine (trié par n° pièce)
+
+      await reverseEntryMutation.mutateAsync({
+        id: entry.mvt,
+        date: todayDate,
+        pieceNumber: entry.piece // Conserver le même numéro de pièce
+      });
+
+      toast.success(t('messages.saveSuccess'));
+      setShowEditEntryModal(false);
+    } catch (error: any) {
+      console.error('Erreur lors du reversement:', error);
+      toast.error(error?.message || t('messages.saveError'));
+    }
   };
 
   // Données d'écritures par journal
@@ -131,25 +413,25 @@ const JournalsPage: React.FC = () => {
         return [
           { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
           { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: 'Clients', libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
+          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
           { mvt: '6', jnl: 'VT', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Vente CLIENT XYZ', debit: '', credit: '200,00' },
           { mvt: '6', jnl: 'VT', date: '05/03/19', piece: 'FCT3', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Vente CLIENT XYZ', debit: '', credit: '40,00' },
-          { mvt: '6', jnl: 'VT', date: '05/03/19', piece: 'FCT3', echeance: '10/03/19', compte: '411', compteLib: 'Clients', libelle: 'Vente CLIENT XYZ', debit: '240,00', credit: '' }
+          { mvt: '6', jnl: 'VT', date: '05/03/19', piece: 'FCT3', echeance: '10/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Vente CLIENT XYZ', debit: '240,00', credit: '' }
         ];
       case 'AC':
         return [
           { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Achat FOURNISSEUR A', debit: '120,00', credit: '' },
           { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Achat FOURNISSEUR A', debit: '24,00', credit: '' },
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '22/11/19', compte: '401', compteLib: 'Fournisseurs', libelle: 'Achat FOURNISSEUR A', debit: '', credit: '144,00' },
+          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '22/11/19', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat FOURNISSEUR A', debit: '', credit: '144,00' },
           { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Achat planches', debit: '133,33', credit: '' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: 'Fournisseurs', libelle: 'Achat planches', debit: '', credit: '160,00' },
+          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat planches', debit: '', credit: '160,00' },
           { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Achat planches', debit: '26,67', credit: '' }
         ];
       case 'BQ':
         return [
-          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: 'Fournisseurs', libelle: 'Paiement fournisseur', debit: '160,00', credit: '' },
+          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Paiement fournisseur', debit: '160,00', credit: '' },
           { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Paiement fournisseur', debit: '', credit: '160,00' },
-          { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '411', compteLib: 'Clients', libelle: 'Encaissement client', debit: '', credit: '120,00' },
+          { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '411', compteLib: t('navigation.clients'), libelle: 'Encaissement client', debit: '', credit: '120,00' },
           { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Encaissement client', debit: '120,00', credit: '' }
         ];
       case 'CA':
@@ -168,16 +450,16 @@ const JournalsPage: React.FC = () => {
         return [
           { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '701', compteLib: 'Ventes de produits finis', libelle: 'Produit 01 de ma société', debit: '', credit: '100,00' },
           { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '', compte: '4457', compteLib: 'TVA collectée', libelle: 'Produit 01 de ma société', debit: '', credit: '20,00' },
-          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: 'Clients', libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
+          { mvt: '1', jnl: 'VT', date: '01/03/19', piece: 'FCT2', echeance: '06/03/19', compte: '411', compteLib: t('navigation.clients'), libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
           { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Produit 01 de ma société', debit: '120,00', credit: '' },
           { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Produit 01 de ma société', debit: '24,00', credit: '' },
-          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '22/11/19', compte: '401', compteLib: 'Fournisseurs', libelle: 'Produit 01 de ma société', debit: '', credit: '144,00' },
-          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: 'Fournisseurs', libelle: 'Achat planches', debit: '160,00', credit: '' },
+          { mvt: '2', jnl: 'AC', date: '15/11/19', piece: 'FFR1', echeance: '22/11/19', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Produit 01 de ma société', debit: '', credit: '144,00' },
+          { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat planches', debit: '160,00', credit: '' },
           { mvt: '3', jnl: 'BQ', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Achat planches', debit: '', credit: '160,00' },
           { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '601', compteLib: 'Achats stockés - Matières premières', libelle: 'Achat planches', debit: '133,33', credit: '' },
-          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: 'Fournisseurs', libelle: 'Achat planches', debit: '', credit: '160,00' },
+          { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '401', compteLib: t('navigation.suppliers'), libelle: 'Achat planches', debit: '', credit: '160,00' },
           { mvt: '4', jnl: 'AC', date: '21/02/19', piece: 'ECR3', echeance: '', compte: '44566', compteLib: 'TVA déductible sur achats', libelle: 'Achat planches', debit: '26,67', credit: '' },
-          { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '411', compteLib: 'Clients', libelle: 'Rgt FC 2 - Produit 01 de ma société', debit: '', credit: '120,00' },
+          { mvt: '5', jnl: 'BQ', date: '03/03/19', piece: 'FCT2', echeance: '', compte: '411', compteLib: t('navigation.clients'), libelle: 'Rgt FC 2 - Produit 01 de ma société', debit: '', credit: '120,00' },
           { mvt: '7', jnl: 'CA', date: '10/01/19', piece: 'CA001', echeance: '', compte: '571', compteLib: 'Caisse', libelle: 'Vente comptant produit 02', debit: '50,00', credit: '' },
           { mvt: '8', jnl: 'OD', date: '31/12/19', piece: 'OD001', echeance: '', compte: '681', compteLib: 'Dotations aux amortissements', libelle: 'Amortissement matériel', debit: '15,00', credit: '' }
         ];
@@ -192,10 +474,10 @@ const JournalsPage: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/accounting')}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border-light)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Comptabilité</span>
+              <span className="text-sm font-semibold text-[#444444]">{t('accounting.title')}</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -259,13 +541,13 @@ const JournalsPage: React.FC = () => {
                   <h2 className="font-semibold text-[#191919]">📚 Gestion des Journaux</h2>
                   <div className="flex items-center space-x-3">
                     {/* Switch vue */}
-                    <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                    <div className="flex items-center bg-[var(--color-surface-hover)] rounded-lg p-1">
                       <button
                         onClick={() => setViewMode('cards')}
                         className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
                           viewMode === 'cards'
                             ? 'bg-white text-[#B87333] shadow-sm'
-                            : 'text-gray-600 hover:text-gray-800'
+                            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                         }`}
                       >
                         <BookOpen className="w-4 h-4" />
@@ -276,7 +558,7 @@ const JournalsPage: React.FC = () => {
                         className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
                           viewMode === 'table'
                             ? 'bg-white text-[#B87333] shadow-sm'
-                            : 'text-gray-600 hover:text-gray-800'
+                            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                         }`}
                       >
                         <FileText className="w-4 h-4" />
@@ -393,19 +675,19 @@ const JournalsPage: React.FC = () => {
 
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="text-center p-3 rounded-lg bg-gray-50">
+                          <div className="text-center p-3 rounded-lg bg-[var(--color-surface-hover)]">
                             <p className="text-lg font-bold text-[#191919]">{journal.entries}</p>
                             <p className="text-xs text-[#767676]">Écritures</p>
                           </div>
-                          <div className="text-center p-3 rounded-lg bg-gray-50">
+                          <div className="text-center p-3 rounded-lg bg-[var(--color-surface-hover)]">
                             <p className="text-lg font-bold text-[#B87333]">
                               {journal.totalCredit.toLocaleString()}€
                             </p>
-                            <p className="text-xs text-[#767676]">Crédit</p>
+                            <p className="text-xs text-[#767676]">{t('accounting.credit')}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-light)]">
                           <span className="text-xs text-[#767676]">Dernière écriture: {journal.lastEntry}</span>
                           <div className="flex items-center space-x-2">
                             <button
@@ -443,11 +725,11 @@ const JournalsPage: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-[#6A8A82]/10">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Code</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Libellé</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Code</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">{t('accounting.label')}</th>
                           <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Écritures</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Débit</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Crédit</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">{t('accounting.debit')}</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">{t('accounting.credit')}</th>
                           <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Dernière écriture</th>
                           <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
                         </tr>
@@ -462,7 +744,7 @@ const JournalsPage: React.FC = () => {
                                   {sousJournaux[journal.code as keyof typeof sousJournaux] && (
                                     <button
                                       onClick={() => toggleSubJournals(journal.code)}
-                                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                                      className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition-colors"
                                     >
                                       {showSubJournals[journal.code] ? (
                                         <ChevronDown className="w-4 h-4" />
@@ -488,14 +770,14 @@ const JournalsPage: React.FC = () => {
                               </td>
                               <td className="px-4 py-4 text-right">
                                 {journal.totalDebit > 0 && (
-                                  <span className="text-sm font-mono text-red-600">
+                                  <span className="text-sm font-mono text-[var(--color-error)]">
                                     {journal.totalDebit.toLocaleString()}€
                                   </span>
                                 )}
                               </td>
                               <td className="px-4 py-4 text-right">
                                 {journal.totalCredit > 0 && (
-                                  <span className="text-sm font-mono text-green-600">
+                                  <span className="text-sm font-mono text-[var(--color-success)]">
                                     {journal.totalCredit.toLocaleString()}€
                                   </span>
                                 )}
@@ -531,7 +813,7 @@ const JournalsPage: React.FC = () => {
 
                             {/* Sous-journaux */}
                             {showSubJournals[journal.code] && sousJournaux[journal.code as keyof typeof sousJournaux]?.map((sousJournal) => (
-                              <tr key={sousJournal.id} className="bg-gray-50 hover:bg-gray-100">
+                              <tr key={sousJournal.id} className="bg-[var(--color-surface-hover)] hover:bg-[var(--color-border-light)]">
                                 <td className="px-4 py-3 pl-16">
                                   <div className="flex items-center space-x-3">
                                     <div
@@ -540,23 +822,23 @@ const JournalsPage: React.FC = () => {
                                     >
                                       {sousJournal.code.slice(-2)}
                                     </div>
-                                    <span className="font-mono text-sm text-gray-700">{sousJournal.code}</span>
+                                    <span className="font-mono text-sm text-[var(--color-text-secondary)]">{sousJournal.code}</span>
                                   </div>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <span className="text-sm text-gray-700">{sousJournal.libelle}</span>
+                                  <span className="text-sm text-[var(--color-text-secondary)]">{sousJournal.libelle}</span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   <span className="text-sm">{sousJournal.entries}</span>
                                 </td>
                                 <td className="px-4 py-3 text-right">
-                                  <span className="text-xs text-gray-500">-</span>
+                                  <span className="text-xs text-[var(--color-text-tertiary)]">-</span>
                                 </td>
                                 <td className="px-4 py-3 text-right">
-                                  <span className="text-xs text-gray-500">-</span>
+                                  <span className="text-xs text-[var(--color-text-tertiary)]">-</span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className="text-xs text-gray-500">-</span>
+                                  <span className="text-xs text-[var(--color-text-tertiary)]">-</span>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center space-x-2">
@@ -613,7 +895,7 @@ const JournalsPage: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-white rounded-lg border border-[#E8E8E8]">
                 {/* Header du journal réorganisé */}
-                <div className="bg-gradient-to-r from-[#6A8A82]/10 to-[#7A99AC]/10 border-b border-gray-200">
+                <div className="bg-gradient-to-r from-[#6A8A82]/10 to-[#7A99AC]/10 border-b border-[var(--color-border)]">
                   {/* Ligne 1: Titre + Actions principales */}
                   <div className="flex items-center justify-between p-4 pb-3">
                     <div className="flex items-center space-x-4">
@@ -628,44 +910,40 @@ const JournalsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => setActiveTab('journaux')}
-                        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)]"
                       >
                         ← Retour
                       </button>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                        <Printer className="w-4 h-4" />
-                        <span>Imprimer</span>
-                      </button>
-                      <button className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors flex items-center space-x-2">
+                      <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2">
                         <FileSpreadsheet className="w-4 h-4" />
-                        <span>Exporter</span>
+                        <span>{t('common.export')}</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Ligne 2: Filtres + Totaux */}
-                  <div className="flex items-center justify-between px-4 pb-4 border-t border-gray-200 pt-3">
+                  <div className="flex items-center justify-between px-4 pb-4 border-t border-[var(--color-border)] pt-3">
                     {/* Filtres à gauche */}
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium text-gray-700">Du</label>
+                        <label className="text-sm font-medium text-[var(--color-text-secondary)]">Du</label>
                         <input
                           type="date"
                           defaultValue="2019-01-01"
-                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
                         />
                       </div>
                       <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium text-gray-700">au</label>
+                        <label className="text-sm font-medium text-[var(--color-text-secondary)]">au</label>
                         <input
                           type="date"
                           defaultValue="2019-12-31"
-                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
                         />
                       </div>
                       <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium text-gray-700">Journal</label>
-                        <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]">
+                        <label className="text-sm font-medium text-[var(--color-text-secondary)]">{t('accounting.journal')}</label>
+                        <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]">
                           <option>&lt;tout&gt;</option>
                           <option>VT</option>
                           <option>AC</option>
@@ -681,74 +959,84 @@ const JournalsPage: React.FC = () => {
 
                     {/* Totaux à droite */}
                     <div className="flex items-center space-x-6">
-                      <div className="flex items-center space-x-2 bg-red-50 px-3 py-2 rounded-lg">
+                      <div className="flex items-center space-x-2 bg-[var(--color-error-light)] px-3 py-2 rounded-lg">
                         <span className="text-sm font-medium text-gray-700">Débit:</span>
-                        <span className="text-lg font-bold text-red-600">944,00</span>
+                        <span className="text-lg font-bold text-[var(--color-error)]">944,00</span>
                       </div>
-                      <div className="flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-lg">
+                      <div className="flex items-center space-x-2 bg-[var(--color-success-light)] px-3 py-2 rounded-lg">
                         <span className="text-sm font-medium text-gray-700">Crédit:</span>
-                        <span className="text-lg font-bold text-green-600">944,00</span>
+                        <span className="text-lg font-bold text-[var(--color-success)]">944,00</span>
                       </div>
-                      <div className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg">
+                      <div className="flex items-center space-x-2 bg-[var(--color-info-light)] px-3 py-2 rounded-lg">
                         <span className="text-sm font-medium text-gray-700">Équilibre:</span>
-                        <span className="text-lg font-bold text-blue-600">✓</span>
+                        <span className="text-lg font-bold text-[var(--color-info)]">✓</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Table des écritures reproduite de l'image */}
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <table className="w-full text-sm border-collapse">
-                    <thead className="bg-[#6A8A82]/20 sticky top-0">
-                      <tr className="text-xs">
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">N° Mvt</th>
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Jnl</th>
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Date</th>
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">N° pièce</th>
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Échéance</th>
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Compte</th>
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Libellé compte</th>
-                        <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Libellé</th>
-                        <th className="px-2 py-2 text-right font-semibold border-r border-gray-300">Débit</th>
-                        <th className="px-2 py-2 text-right font-semibold">Crédit</th>
-                      </tr>
-                    </thead>
-                  </table>
-                  <div className="overflow-y-auto max-h-80">
-                    <table className="w-full text-sm border-collapse">
-                      <tbody>
-                        {getEcrituresJournal(selectedJournal?.code || 'TOUS').map((ligne, index) => (
-                          <tr
-                            key={index}
-                            className="hover:bg-[#6A8A82]/5 border-b border-gray-200 cursor-pointer"
-                            onDoubleClick={() => handleDoubleClickEntry(ligne)}
-                            title="Double-cliquer pour modifier cette écriture"
-                          >
-                            <td className="px-2 py-1 text-xs font-mono border-r border-gray-300">{ligne.mvt}</td>
-                            <td className="px-2 py-1 text-xs font-bold text-[#B87333] border-r border-gray-300">{ligne.jnl}</td>
-                            <td className="px-2 py-1 text-xs border-r border-gray-300">{ligne.date}</td>
-                            <td className="px-2 py-1 text-xs font-mono border-r border-gray-300">{ligne.piece}</td>
-                            <td className="px-2 py-1 text-xs border-r border-gray-300">{ligne.echeance}</td>
-                            <td className="px-2 py-1 text-xs font-mono text-[#6A8A82] font-semibold border-r border-gray-300">{ligne.compte}</td>
-                            <td className="px-2 py-1 text-xs border-r border-gray-300">{ligne.compteLib}</td>
-                            <td className="px-2 py-1 text-xs border-r border-gray-300">{ligne.libelle}</td>
-                            <td className="px-2 py-1 text-xs text-right font-medium text-red-600 border-r border-gray-300">{ligne.debit}</td>
-                            <td className="px-2 py-1 text-xs text-right font-medium text-green-600">{ligne.credit}</td>
-                          </tr>
-                        ))}
-                        <tr className="bg-[#B87333]/10 font-bold border-t-2 border-[#B87333]">
-                          <td colSpan={8} className="px-2 py-2 text-sm font-bold text-[#B87333] border-r border-gray-300">TOTAL</td>
-                          <td className="px-2 py-2 text-right text-sm font-bold text-red-600 border-r border-gray-300">944,00</td>
-                          <td className="px-2 py-2 text-right text-sm font-bold text-green-600">944,00</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                <PrintableArea
+                  documentTitle={`Journal ${selectedJournal?.code || 'TOUS'} - ${new Date().toLocaleDateString('fr-FR')}`}
+                  orientation="landscape"
+                  showPrintButton={false}
+                  headerContent={
+                    <div className="text-center mb-4">
+                      <h1 className="text-xl font-bold">Journal {selectedJournal?.code || 'TOUS'}</h1>
+                      <p className="text-sm text-[var(--color-text-secondary)]">
+                        Généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')}
+                      </p>
+                    </div>
+                  }
+                  footerContent={
+                    <div className="text-center text-xs text-[var(--color-text-tertiary)]">
+                      WiseBook - Logiciel de Comptabilité
+                    </div>
+                  }
+                >
+                  {/* Totaux d'impression */}
+                  <div className="print-only mb-4 flex justify-center space-x-6">
+                    <div className="text-center">
+                      <span className="text-sm font-medium">Total Débit:</span>
+                      <span className="ml-2 font-bold">944,00</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-sm font-medium">Total Crédit:</span>
+                      <span className="ml-2 font-bold">944,00</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-sm font-medium">Équilibre:</span>
+                      <span className="ml-2 font-bold text-[var(--color-success)]">✓</span>
+                    </div>
                   </div>
-                </div>
+
+                  {/* Table des écritures avec DataTable */}
+                  <DataTable
+                    columns={ecrituresColumns}
+                    data={getEcrituresJournal(selectedJournal?.code || 'TOUS')}
+                    pageSize={15}
+                    searchable={true}
+                    exportable={true}
+                    refreshable={true}
+                    printable={true}
+                    onPrint={handlePrint}
+                    actions={(item) => (
+                      <div className="flex items-center justify-center">
+                        <button
+                          onClick={() => handleDoubleClickEntry(item)}
+                          className="p-1.5 hover:bg-[var(--color-info-light)] rounded transition-colors"
+                          title="Modifier cette écriture"
+                        >
+                          <Edit className="w-3.5 h-3.5 text-[var(--color-info)]" />
+                        </button>
+                      </div>
+                    )}
+                    emptyMessage="Aucune écriture trouvée pour ce journal"
+                    className="border border-[var(--color-border)] rounded-lg data-table"
+                  />
+                </PrintableArea>
 
                 {/* Table récapitulative par compte (comme dans l'image) */}
-                <div className="mt-6 border-t border-gray-300">
+                <div className="mt-6 border-t border-[var(--color-border)]">
                   <div className="flex items-center justify-between p-3 bg-[#7A99AC]/10">
                     <h4 className="text-sm font-medium text-[#7A99AC] flex items-center space-x-2">
                       <BarChart3 className="w-4 h-4" />
@@ -764,46 +1052,44 @@ const JournalsPage: React.FC = () => {
                   </div>
 
                   {showRecapTable && (
-                    <div className="border border-gray-300 rounded-lg overflow-hidden">
-                      <table className="w-full text-sm border-collapse">
-                        <thead className="bg-[#7A99AC]/20 sticky top-0">
-                          <tr className="text-xs">
-                            <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Compte</th>
-                            <th className="px-2 py-2 text-left font-semibold border-r border-gray-300">Libellé du compte</th>
-                            <th className="px-2 py-2 text-right font-semibold border-r border-gray-300">Débit</th>
-                            <th className="px-2 py-2 text-right font-semibold border-r border-gray-300">Crédit</th>
-                            <th className="px-2 py-2 text-right font-semibold border-r border-gray-300">Solde débit</th>
-                            <th className="px-2 py-2 text-right font-semibold">Solde crédit</th>
-                          </tr>
-                        </thead>
-                      </table>
+                    <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
                       <div className="overflow-y-auto max-h-60">
                         <table className="w-full text-sm border-collapse">
+                          <thead className="bg-[#7A99AC]/20 sticky top-0 z-10">
+                            <tr className="text-xs">
+                              <th className="px-2 py-2 text-left font-semibold border-r border-[var(--color-border)] w-[80px]">{t('accounting.account')}</th>
+                              <th className="px-2 py-2 text-left font-semibold border-r border-[var(--color-border)] min-w-[250px]">Libellé du compte</th>
+                              <th className="px-2 py-2 text-right font-semibold border-r border-[var(--color-border)] w-[100px]">{t('accounting.debit')}</th>
+                              <th className="px-2 py-2 text-right font-semibold border-r border-[var(--color-border)] w-[100px]">{t('accounting.credit')}</th>
+                              <th className="px-2 py-2 text-right font-semibold border-r border-[var(--color-border)] w-[100px]">Solde débit</th>
+                              <th className="px-2 py-2 text-right font-semibold w-[100px]">Solde crédit</th>
+                            </tr>
+                          </thead>
                           <tbody>
                             {[
-                              { compte: '401', libelle: 'Fournisseurs', debit: '160,00', credit: '304,00', soldeDebit: '', soldeCredit: '144,00' },
-                              { compte: '411', libelle: 'Clients', debit: '120,00', credit: '360,00', soldeDebit: '', soldeCredit: '240,00' },
+                              { compte: '401', libelle: t('navigation.suppliers'), debit: '160,00', credit: '304,00', soldeDebit: '', soldeCredit: '144,00' },
+                              { compte: '411', libelle: t('navigation.clients'), debit: '120,00', credit: '360,00', soldeDebit: '', soldeCredit: '240,00' },
                               { compte: '44566', libelle: 'TVA déductible sur achats de biens et services', debit: '50,67', credit: '', soldeDebit: '50,67', soldeCredit: '' },
                               { compte: '4457', libelle: 'TVA collectée', debit: '', credit: '20,00', soldeDebit: '', soldeCredit: '20,00' },
                               { compte: '512', libelle: 'Banques', debit: '360,00', credit: '160,00', soldeDebit: '200,00', soldeCredit: '' },
                               { compte: '601', libelle: 'Achats stockés - Matières premières (et fournitures)', debit: '253,33', credit: '', soldeDebit: '253,33', soldeCredit: '' },
                               { compte: '701', libelle: 'Ventes de produits finis', debit: '', credit: '100,00', soldeDebit: '', soldeCredit: '100,00' }
                             ].map((compte, index) => (
-                              <tr key={index} className="hover:bg-[#7A99AC]/5 border-b border-gray-200">
-                                <td className="px-2 py-1 text-xs font-mono text-[#B87333] font-bold border-r border-gray-300">{compte.compte}</td>
-                                <td className="px-2 py-1 text-xs border-r border-gray-300">{compte.libelle}</td>
-                                <td className="px-2 py-1 text-xs text-right font-medium text-red-600 border-r border-gray-300">{compte.debit}</td>
-                                <td className="px-2 py-1 text-xs text-right font-medium text-green-600 border-r border-gray-300">{compte.credit}</td>
-                                <td className="px-2 py-1 text-xs text-right font-medium text-red-600 border-r border-gray-300">{compte.soldeDebit}</td>
-                                <td className="px-2 py-1 text-xs text-right font-medium text-green-600">{compte.soldeCredit}</td>
+                              <tr key={index} className="hover:bg-[#7A99AC]/5 border-b border-[var(--color-border)]">
+                                <td className="px-2 py-1 text-xs font-mono text-[#B87333] font-bold border-r border-[var(--color-border)]">{compte.compte}</td>
+                                <td className="px-2 py-1 text-xs border-r border-[var(--color-border)]">{compte.libelle}</td>
+                                <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-error)] border-r border-[var(--color-border)]">{compte.debit}</td>
+                                <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-success)] border-r border-[var(--color-border)]">{compte.credit}</td>
+                                <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-error)] border-r border-[var(--color-border)]">{compte.soldeDebit}</td>
+                                <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-success)]">{compte.soldeCredit}</td>
                               </tr>
                             ))}
                             <tr className="bg-[#7A99AC]/20 font-bold border-t-2 border-[#7A99AC]">
-                              <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[#7A99AC] border-r border-gray-300">TOTAL</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-red-600 border-r border-gray-300">944,00</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-green-600 border-r border-gray-300">944,00</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-red-600 border-r border-gray-300">504,00</td>
-                              <td className="px-2 py-2 text-right text-sm font-bold text-green-600">504,00</td>
+                              <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[#7A99AC] border-r border-[var(--color-border)]">TOTAL</td>
+                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">944,00</td>
+                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)] border-r border-[var(--color-border)]">944,00</td>
+                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">504,00</td>
+                              <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)]">504,00</td>
                             </tr>
                           </tbody>
                         </table>
@@ -813,8 +1099,8 @@ const JournalsPage: React.FC = () => {
                 </div>
 
                 {/* Footer avec clôture comptable */}
-                <div className="p-2 bg-gray-50 border-t border-gray-300 text-right">
-                  <span className="text-xs text-gray-600">Clôture comptable au 31/12</span>
+                <div className="p-2 bg-[var(--color-surface-hover)] border-t border-[var(--color-border)] text-right">
+                  <span className="text-xs text-[var(--color-text-secondary)]">Clôture comptable au 31/12</span>
                 </div>
               </div>
             </div>
@@ -828,15 +1114,15 @@ const JournalsPage: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-xl font-semibold text-tuatara flex items-center space-x-2">
+                <h3 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
                   <Plus className="w-5 h-5" />
                   <span>Création d'un Sous-journal</span>
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">Les 5 journaux principaux SYSCOHADA sont déjà créés</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-1">Les 5 journaux principaux SYSCOHADA sont déjà créés</p>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] text-xl"
               >
                 ✕
               </button>
@@ -850,7 +1136,7 @@ const JournalsPage: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Journal parent *</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333]" required>
+                  <select className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[#B87333]" required>
                     <option value="">Choisir le journal principal</option>
                     <option value="VT">VT - Journal des Ventes</option>
                     <option value="AC">AC - Journal des Achats</option>
@@ -867,7 +1153,7 @@ const JournalsPage: React.FC = () => {
                       type="text"
                       placeholder="ex. VT01, AC01"
                       maxLength={5}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] font-mono"
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[#B87333] font-mono"
                       required
                     />
                   </div>
@@ -876,7 +1162,7 @@ const JournalsPage: React.FC = () => {
                     <input
                       type="text"
                       placeholder="ex. Ventes Export"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333]"
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[#B87333]"
                       required
                     />
                   </div>
@@ -887,7 +1173,7 @@ const JournalsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                 >
                   Annuler
                 </button>
@@ -906,15 +1192,15 @@ const JournalsPage: React.FC = () => {
       {/* Modal Édition Écriture */}
       {showEditEntryModal && selectedEntry && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-tuatara flex items-center space-x-2">
+              <h3 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
                 <Edit className="w-5 h-5" />
                 <span>Modifier l'écriture {selectedEntry.piece}</span>
               </h3>
               <button
                 onClick={() => setShowEditEntryModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] text-xl"
               >
                 ✕
               </button>
@@ -933,7 +1219,7 @@ const JournalsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Journal</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('accounting.journal')}</label>
                   <input
                     type="text"
                     defaultValue={selectedEntry.jnl}
@@ -942,7 +1228,7 @@ const JournalsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('common.date')}</label>
                   <input
                     type="text"
                     defaultValue={selectedEntry.date}
@@ -971,71 +1257,336 @@ const JournalsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Détails du compte */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-              <h4 className="font-medium text-gray-800 mb-4">Détails du compte</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Compte</label>
-                  <input
-                    type="text"
-                    defaultValue={selectedEntry.compte}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Libellé compte</label>
-                  <input
-                    type="text"
-                    defaultValue={selectedEntry.compteLib}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
-                  />
-                </div>
+            {/* Lignes d'écriture */}
+            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-4 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-medium text-[var(--color-text-primary)]">
+                  Lignes de l'écriture ({selectedEntryLines.length})
+                </h4>
+                <button
+                  onClick={() => {
+                    // Ajouter une nouvelle ligne vide
+                  }}
+                  className="px-3 py-1 bg-[#6A8A82] text-white text-sm rounded-lg hover:bg-[#5A7A72] flex items-center space-x-1"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Ajouter une ligne</span>
+                </button>
               </div>
 
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Libellé de l'opération</label>
-                <input
-                  type="text"
-                  defaultValue={selectedEntry.libelle}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Débit</label>
-                  <input
-                    type="text"
-                    defaultValue={selectedEntry.debit}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 font-mono text-red-600"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Crédit</label>
-                  <input
-                    type="text"
-                    defaultValue={selectedEntry.credit}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 font-mono text-green-600"
-                  />
-                </div>
+              {/* Table des lignes d'écriture */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[var(--color-surface-hover)] border-b">
+                    <tr>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">{t('accounting.account')}</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">Libellé compte</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">{t('accounting.label')}</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">Code Analytique</th>
+                      <th className="px-2 py-2 text-right text-xs font-medium text-gray-700">{t('accounting.debit')}</th>
+                      <th className="px-2 py-2 text-right text-xs font-medium text-gray-700">{t('accounting.credit')}</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-700">Note</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {/* Afficher toutes les lignes de l'écriture */}
+                    {selectedEntryLines.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-[var(--color-text-secondary)]">
+                          Aucune ligne trouvée pour cette écriture
+                        </td>
+                      </tr>
+                    ) : (
+                      selectedEntryLines.map((line, index) => (
+                      <tr key={index}>
+                        <td className="px-2 py-2">
+                          <input
+                            type="text"
+                            defaultValue={line.compte}
+                            className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm font-mono"
+                            placeholder={t('accounting.account')}
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="text"
+                            defaultValue={line.compteLib}
+                            className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm"
+                            placeholder="Libellé compte"
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="text"
+                            defaultValue={line.libelle}
+                            className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm"
+                            placeholder={t('accounting.label')}
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <select
+                            className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm"
+                            defaultValue=""
+                          >
+                            <option value="">Aucun</option>
+                            <option value="AX001">AX001 - Centre 1</option>
+                            <option value="AX002">AX002 - Centre 2</option>
+                            <option value="AX003">AX003 - Centre 3</option>
+                          </select>
+                        </td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="text"
+                            defaultValue={line.debit}
+                            className="w-20 px-2 py-1 border border-[var(--color-border)] rounded text-sm text-right font-mono text-[var(--color-error)]"
+                            placeholder="0"
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="text"
+                            defaultValue={line.credit}
+                            className="w-20 px-2 py-1 border border-[var(--color-border)] rounded text-sm text-right font-mono text-[var(--color-success)]"
+                            placeholder="0"
+                          />
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <button
+                            className="p-1 text-[var(--color-info)] hover:text-[var(--color-info)] hover:bg-[var(--color-info-light)] rounded"
+                            title="Ajouter une note"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <button className="text-[var(--color-error)] hover:text-[var(--color-error)]" aria-label="Fermer">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                      ))
+                    )}
+                  </tbody>
+                  <tfoot className="bg-[var(--color-surface-hover)] border-t-2">
+                    <tr>
+                      <td colSpan={4} className="px-2 py-2 text-right font-medium text-sm">Totaux :</td>
+                      <td className="px-2 py-2 text-right font-mono font-bold text-sm text-[var(--color-error)]">
+                        {selectedEntryLines.reduce((sum, line) => {
+                          const debit = parseFloat(line.debit?.replace(/\s/g, '').replace('-', '') || '0');
+                          return sum + debit;
+                        }, 0).toLocaleString('fr-FR')}
+                      </td>
+                      <td className="px-2 py-2 text-right font-mono font-bold text-sm text-[var(--color-success)]">
+                        {selectedEntryLines.reduce((sum, line) => {
+                          const credit = parseFloat(line.credit?.replace(/\s/g, '').replace('-', '') || '0');
+                          return sum + credit;
+                        }, 0).toLocaleString('fr-FR')}
+                      </td>
+                      <td colSpan={2}></td>
+                    </tr>
+                    <tr>
+                      <td colSpan={8} className="px-2 py-2 text-center">
+                        {(() => {
+                          const totalDebit = selectedEntryLines.reduce((sum, line) => {
+                            const debit = parseFloat(line.debit?.replace(/\s/g, '').replace('-', '') || '0');
+                            return sum + debit;
+                          }, 0);
+                          const totalCredit = selectedEntryLines.reduce((sum, line) => {
+                            const credit = parseFloat(line.credit?.replace(/\s/g, '').replace('-', '') || '0');
+                            return sum + credit;
+                          }, 0);
+                          return totalDebit === totalCredit ? (
+                            <span className="text-[var(--color-success)] font-medium flex items-center justify-center">
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Écriture équilibrée
+                            </span>
+                          ) : (
+                            <span className="text-[var(--color-error)] font-medium flex items-center justify-center">
+                              <AlertTriangle className="w-4 h-4 mr-1" />
+                              Écriture déséquilibrée (Débit: {totalDebit.toLocaleString('fr-FR')} - Crédit: {totalCredit.toLocaleString('fr-FR')})
+                            </span>
+                          );
+                        })()}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-between">
+              {/* Actions à gauche */}
               <button
-                onClick={() => setShowEditEntryModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={() => {
+                  if (selectedEntry) {
+                    handleReverseEntry(selectedEntry);
+                  }
+                }}
+                disabled={reverseEntryMutation.isPending}
+                className="px-4 py-2 bg-[var(--color-warning)] text-white rounded-lg hover:bg-[var(--color-warning)] transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                <RotateCcw className="w-4 h-4" />
+                <span>{reverseEntryMutation.isPending ? 'Reversement en cours...' : 'Reverser l\'écriture'}</span>
               </button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                Supprimer l'écriture
-              </button>
-              <button className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors">
-                Enregistrer les modifications
-              </button>
+
+              {/* Actions à droite */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowEditEntryModal(false)}
+                  className="px-4 py-2 text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSaveEntry}
+                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                >
+                  Enregistrer les modifications
+                </button>
+                <button
+                  onClick={() => {
+                    // Vérifier que l'écriture est équilibrée avant de valider
+                    if (selectedEntry && selectedEntry.debit === selectedEntry.credit) {
+                      alert(`Écriture ${selectedEntry.piece} validée et transférée au journal ${selectedEntry.jnl}`);
+                      setShowEditEntryModal(false);
+                      // Ici on ajouterait l'appel API pour valider et transférer l'écriture
+                    } else {
+                      alert('L\'écriture doit être équilibrée avant validation');
+                    }
+                  }}
+                  className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Valider et transférer au journal</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmation après enregistrement */}
+      {showConfirmationModal && savedEntry && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
+            {/* Header avec succès */}
+            <div className="p-6" style={{ background: 'linear-gradient(135deg, var(--color-success) 0%, var(--color-primary) 100%)' }}>
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-10 h-10" style={{ color: 'var(--color-success)' }} />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-white text-center">
+                Écriture enregistrée avec succès !
+              </h2>
+              <p className="text-white/90 text-center mt-2">
+                Votre écriture a été sauvegardée dans le journal {savedEntry.jnl}
+              </p>
+            </div>
+
+            {/* Détails de l'écriture */}
+            <div className="p-6">
+              {/* Informations principales */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">N° Pièce</label>
+                    <div className="text-2xl font-bold mt-1" style={{ color: 'var(--color-secondary)' }}>{savedEntry.piece}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">N° Écriture</label>
+                    <div className="text-2xl font-bold text-gray-800 mt-1">{savedEntry.mvt}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">{t('accounting.journal')}</label>
+                    <div className="text-lg font-semibold text-gray-800 mt-1">{savedEntry.jnl}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">{t('common.date')}</label>
+                    <div className="text-lg font-semibold text-gray-800 mt-1">{savedEntry.date}</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">Échéance</label>
+                    <div className="text-lg font-semibold text-gray-800 mt-1">{savedEntry.echeance}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Détails - Tiers uniquement */}
+              <div className="mb-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <label className="text-sm font-semibold text-gray-600 w-24">Tiers :</label>
+                    <span className="text-base font-semibold text-gray-800">
+                      {savedEntry.tiers || 'Non renseigné'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Statut d'équilibre */}
+              <div className="rounded-lg p-3 mb-4" style={{
+                backgroundColor: 'var(--color-success-light)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--color-success)'
+              }}>
+                <div className="flex items-center justify-center" style={{ color: 'var(--color-success)' }}>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  <span className="font-semibold">Écriture équilibrée</span>
+                  <span className="ml-2 text-sm">
+                    (Débit = Crédit = {savedEntry.totalDebit?.toLocaleString('fr-FR')})
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => {
+                    setShowConfirmationModal(false);
+                    setSavedEntry(null);
+                  }}
+                  className="px-6 py-3 text-white rounded-lg transition-colors font-semibold"
+                  style={{
+                    backgroundColor: 'var(--color-secondary)',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  Fermer
+                </button>
+                <button
+                  onClick={() => {
+                    // Imprimer l'écriture
+                    window.print();
+                  }}
+                  className="px-6 py-3 rounded-lg transition-colors font-semibold flex items-center gap-2"
+                  style={{
+                    borderWidth: '2px',
+                    borderStyle: 'solid',
+                    borderColor: 'var(--color-secondary)',
+                    color: 'var(--color-secondary)',
+                    backgroundColor: 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-secondary)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = 'var(--color-secondary)';
+                  }}
+                >
+                  <Printer className="w-4 h-4" />
+                  Imprimer
+                </button>
+              </div>
             </div>
           </div>
         </div>

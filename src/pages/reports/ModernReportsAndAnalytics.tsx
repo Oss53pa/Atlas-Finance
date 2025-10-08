@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   BarChart3, TrendingUp, FileText, Download, Calendar,
   Filter, Eye, Share2, Settings, Target, DollarSign,
@@ -64,6 +65,7 @@ interface KPI {
 }
 
 const ModernReportsAndAnalytics: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -148,7 +150,7 @@ const ModernReportsAndAnalytics: React.FC = () => {
     },
     {
       id: '2',
-      title: 'États financiers',
+      title: t('accounting.financialStatements'),
       description: 'Bilan, compte de résultat et flux de trésorerie',
       category: 'financial',
       type: 'table',
@@ -317,7 +319,7 @@ const ModernReportsAndAnalytics: React.FC = () => {
     const badges = {
       active: { bg: 'bg-green-100', text: 'text-green-700', label: 'Actif' },
       scheduled: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Programmé' },
-      draft: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Brouillon' }
+      draft: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('status.draft') }
     };
     const badge = badges[status as keyof typeof badges];
     return (
@@ -397,7 +399,7 @@ const ModernReportsAndAnalytics: React.FC = () => {
                   <div className={`flex items-center gap-1 text-xs ${
                     kpi.trend === 'up' ? 'text-green-500' :
                     kpi.trend === 'down' ? 'text-red-500' :
-                    'text-gray-500'
+                    'text-gray-700'
                   }`}>
                     {kpi.trend === 'up' && <ArrowUpRight className="w-3 h-3" />}
                     {kpi.trend === 'down' && <ArrowDownRight className="w-3 h-3" />}
@@ -545,11 +547,11 @@ const ModernReportsAndAnalytics: React.FC = () => {
               <option value="all">Toutes catégories</option>
               <option value="financial">Financier</option>
               <option value="sales">Ventes</option>
-              <option value="customers">Clients</option>
+              <option value="customers">{t('thirdParty.customers')}</option>
               <option value="inventory">Stock</option>
-              <option value="performance">Performance</option>
+              <option value="performance">{t('dashboard.performance')}</option>
             </select>
-            <button className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors">
+            <button className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors" aria-label="Filtrer">
               <Filter className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             </button>
           </div>
@@ -568,14 +570,14 @@ const ModernReportsAndAnalytics: React.FC = () => {
                     icon={Icon}
                     action={
                       <div className="flex items-center gap-1">
-                        <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Voir">
-                          <Eye className="w-4 h-4 text-gray-500" />
+                        <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title={t('common.view')} aria-label="Voir les détails">
+                          <Eye className="w-4 h-4 text-gray-700" />
                         </button>
-                        <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Partager">
-                          <Share2 className="w-4 h-4 text-gray-500" />
+                        <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Partager" aria-label="Partager">
+                          <Share2 className="w-4 h-4 text-gray-700" />
                         </button>
-                        <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Télécharger">
-                          <Download className="w-4 h-4 text-gray-500" />
+                        <button className="p-1.5 hover:bg-gray-100 rounded transition-colors" title={t('actions.download')} aria-label="Télécharger">
+                          <Download className="w-4 h-4 text-gray-700" />
                         </button>
                       </div>
                     }

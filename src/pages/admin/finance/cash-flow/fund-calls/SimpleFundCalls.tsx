@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 
 interface FundCall {
@@ -14,6 +15,7 @@ interface FundCall {
 }
 
 export const SimpleFundCalls: React.FC = () => {
+  const { t } = useLanguage();
   const [fundsCall, setFundsCall] = useState<FundCall[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -81,7 +83,7 @@ export const SimpleFundCalls: React.FC = () => {
           {loading ? (
             <div className="text-center p-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Chargement...</span>
+                <span className="visually-hidden">{t('common.loading')}</span>
               </div>
             </div>
           ) : (
@@ -89,7 +91,7 @@ export const SimpleFundCalls: React.FC = () => {
               <table className="table table-hover">
                 <thead className="table-dark">
                   <tr>
-                    <th>Date</th>
+                    <th>{t('common.date')}</th>
                     <th>Référence</th>
                     <th>Statut</th>
                     <th>Banque départ</th>
@@ -179,7 +181,7 @@ export const SimpleFundCalls: React.FC = () => {
               <div className="card bg-warning text-dark">
                 <div className="card-body text-center">
                   <h5>{fundsCall.filter(f => !f.is_mark_as_pre_approved).length}</h5>
-                  <p className="mb-0">En attente</p>
+                  <p className="mb-0">{t('status.pending')}</p>
                 </div>
               </div>
             </div>

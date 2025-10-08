@@ -55,10 +55,10 @@ export const theme = {
       900: '#0A0A0A',
     },
     status: {
-      success: '#10B981',
-      warning: '#F59E0B',
-      error: '#EF4444',
-      info: '#3B82F6',
+      success: '#6A8A82',
+      warning: '#B87333',
+      error: '#B85450',
+      info: '#7A99AC',
     },
     semantic: {
       background: '#ECECEC',

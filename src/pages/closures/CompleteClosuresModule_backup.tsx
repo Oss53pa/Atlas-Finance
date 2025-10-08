@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Lock, Calendar, CheckCircle, AlertTriangle, Clock,
   FileText, BarChart3, RefreshCw, Settings, Play,
@@ -119,6 +120,7 @@ interface ArchiveEntry {
 }
 
 const CompleteClosuresModule: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const [showClosureModal, setShowClosureModal] = useState(false);
@@ -495,21 +497,21 @@ const CompleteClosuresModule: React.FC = () => {
 
   const getStatutBadge = (statut: string) => {
     const badges = {
-      'ouverte': { bg: 'bg-green-100', text: 'text-green-700', icon: Play },
-      'en-cours': { bg: 'bg-blue-100', text: 'text-blue-700', icon: Clock },
-      'en-validation': { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: AlertTriangle },
-      'cloturee': { bg: 'bg-gray-100', text: 'text-gray-700', icon: Lock },
+      'ouverte': { bg: 'bg-[var(--color-success-lighter)]', text: 'text-[var(--color-success-dark)]', icon: Play },
+      'en-cours': { bg: 'bg-[var(--color-primary-lighter)]', text: 'text-[var(--color-primary-dark)]', icon: Clock },
+      'en-validation': { bg: 'bg-[var(--color-warning-lighter)]', text: 'text-[var(--color-warning-dark)]', icon: AlertTriangle },
+      'cloturee': { bg: 'bg-[var(--color-background-hover)]', text: 'text-[var(--color-text-primary)]', icon: Lock },
       'archivee': { bg: 'bg-purple-100', text: 'text-purple-700', icon: Archive },
-      'en-attente': { bg: 'bg-gray-100', text: 'text-gray-700', icon: Clock },
-      'complete': { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle },
-      'erreur': { bg: 'bg-red-100', text: 'text-red-700', icon: AlertCircle },
-      'ignore': { bg: 'bg-gray-100', text: 'text-gray-700', icon: X },
-      'passe': { bg: 'bg-green-100', text: 'text-green-700', icon: Check },
-      'echoue': { bg: 'bg-red-100', text: 'text-red-700', icon: X },
-      'non-execute': { bg: 'bg-gray-100', text: 'text-gray-700', icon: Clock },
-      'disponible': { bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle },
-      'ouvert': { bg: 'bg-green-100', text: 'text-green-700', icon: Play },
-      'cloture': { bg: 'bg-gray-100', text: 'text-gray-700', icon: Lock },
+      'en-attente': { bg: 'bg-[var(--color-background-hover)]', text: 'text-[var(--color-text-primary)]', icon: Clock },
+      'complete': { bg: 'bg-[var(--color-success-lighter)]', text: 'text-[var(--color-success-dark)]', icon: CheckCircle },
+      'erreur': { bg: 'bg-[var(--color-error-lighter)]', text: 'text-[var(--color-error-dark)]', icon: AlertCircle },
+      'ignore': { bg: 'bg-[var(--color-background-hover)]', text: 'text-[var(--color-text-primary)]', icon: X },
+      'passe': { bg: 'bg-[var(--color-success-lighter)]', text: 'text-[var(--color-success-dark)]', icon: Check },
+      'echoue': { bg: 'bg-[var(--color-error-lighter)]', text: 'text-[var(--color-error-dark)]', icon: X },
+      'non-execute': { bg: 'bg-[var(--color-background-hover)]', text: 'text-[var(--color-text-primary)]', icon: Clock },
+      'disponible': { bg: 'bg-[var(--color-success-lighter)]', text: 'text-[var(--color-success-dark)]', icon: CheckCircle },
+      'ouvert': { bg: 'bg-[var(--color-success-lighter)]', text: 'text-[var(--color-success-dark)]', icon: Play },
+      'cloture': { bg: 'bg-[var(--color-background-hover)]', text: 'text-[var(--color-text-primary)]', icon: Lock },
       'archive': { bg: 'bg-purple-100', text: 'text-purple-700', icon: Archive }
     };
     const badge = badges[statut as keyof typeof badges];
@@ -524,10 +526,10 @@ const CompleteClosuresModule: React.FC = () => {
 
   const getSeveriteBadge = (severite: string) => {
     const badges = {
-      'bloquant': { bg: 'bg-red-100', text: 'text-red-700' },
-      'critique': { bg: 'bg-orange-100', text: 'text-orange-700' },
-      'majeur': { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-      'mineur': { bg: 'bg-blue-100', text: 'text-blue-700' }
+      'bloquant': { bg: 'bg-[var(--color-error-lighter)]', text: 'text-[var(--color-error-dark)]' },
+      'critique': { bg: 'bg-[var(--color-warning-lighter)]', text: 'text-[var(--color-warning-dark)]' },
+      'majeur': { bg: 'bg-[var(--color-warning-lighter)]', text: 'text-[var(--color-warning-dark)]' },
+      'mineur': { bg: 'bg-[var(--color-primary-lighter)]', text: 'text-[var(--color-primary-dark)]' }
     };
     const badge = badges[severite as keyof typeof badges];
     return (
@@ -586,39 +588,39 @@ const CompleteClosuresModule: React.FC = () => {
         />
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500">Période</p>
+            <div className="p-4 bg-[var(--color-background-secondary)] rounded-lg">
+              <p className="text-xs text-[var(--color-text-secondary)]">Période</p>
               <p className="text-sm font-medium mt-1">
                 {new Date(exerciseInfo.dateDebut).toLocaleDateString('fr-FR')} - {new Date(exerciseInfo.dateFin).toLocaleDateString('fr-FR')}
               </p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500">Écritures</p>
+            <div className="p-4 bg-[var(--color-background-secondary)] rounded-lg">
+              <p className="text-xs text-[var(--color-text-secondary)]">Écritures</p>
               <p className="text-xl font-bold mt-1">{exerciseInfo.nombreEcritures.toLocaleString('fr-FR')}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500">Comptes actifs</p>
+            <div className="p-4 bg-[var(--color-background-secondary)] rounded-lg">
+              <p className="text-xs text-[var(--color-text-secondary)]">Comptes actifs</p>
               <p className="text-xl font-bold mt-1">{exerciseInfo.nombreComptes}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500">Résultat net</p>
-              <p className="text-xl font-bold mt-1 text-green-600">
+            <div className="p-4 bg-[var(--color-background-secondary)] rounded-lg">
+              <p className="text-xs text-[var(--color-text-secondary)]">Résultat net</p>
+              <p className="text-xl font-bold mt-1 text-[var(--color-success)]">
                 €{exerciseInfo.resultatNet.toLocaleString('fr-FR')}
               </p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500">Statut</p>
+            <div className="p-4 bg-[var(--color-background-secondary)] rounded-lg">
+              <p className="text-xs text-[var(--color-text-secondary)]">Statut</p>
               <div className="mt-1">
                 {getStatutBadge(exerciseInfo.statut)}
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg">
             <div className="flex items-center gap-3">
-              <Info className="w-5 h-5 text-blue-600" />
+              <Info className="w-5 h-5 text-[var(--color-primary)]" />
               <div>
-                <p className="text-sm font-medium text-blue-900">Prochaine clôture mensuelle</p>
-                <p className="text-xs text-blue-700">Prévue le {stats.prochaineCloture}</p>
+                <p className="text-sm font-medium text-[var(--color-primary-darker)]">Prochaine clôture mensuelle</p>
+                <p className="text-xs text-[var(--color-primary-dark)]">Prévue le {stats.prochaineCloture}</p>
               </div>
             </div>
             <ModernButton size="sm" variant="primary">
@@ -673,24 +675,24 @@ const CompleteClosuresModule: React.FC = () => {
         <CardBody>
           <div className="space-y-3">
             {closurePeriods.slice(0, 4).map((closure) => (
-              <div key={closure.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div key={closure.id} className="flex items-center justify-between p-4 bg-[var(--color-background-secondary)] rounded-lg hover:bg-[var(--color-background-hover)] transition-colors">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    closure.statut === 'cloturee' ? 'bg-gray-100' :
-                    closure.statut === 'en-cours' ? 'bg-blue-100' :
-                    closure.statut === 'en-validation' ? 'bg-yellow-100' :
-                    'bg-green-100'
+                    closure.statut === 'cloturee' ? 'bg-[var(--color-background-hover)]' :
+                    closure.statut === 'en-cours' ? 'bg-[var(--color-primary-lighter)]' :
+                    closure.statut === 'en-validation' ? 'bg-[var(--color-warning-lighter)]' :
+                    'bg-[var(--color-success-lighter)]'
                   }`}>
                     <Calendar className={`w-6 h-6 ${
-                      closure.statut === 'cloturee' ? 'text-gray-600' :
-                      closure.statut === 'en-cours' ? 'text-blue-600' :
-                      closure.statut === 'en-validation' ? 'text-yellow-600' :
-                      'text-green-600'
+                      closure.statut === 'cloturee' ? 'text-[var(--color-text-primary)]' :
+                      closure.statut === 'en-cours' ? 'text-[var(--color-primary)]' :
+                      closure.statut === 'en-validation' ? 'text-[var(--color-warning)]' :
+                      'text-[var(--color-success)]'
                     }`} />
                   </div>
                   <div>
                     <p className="font-medium text-sm">{closure.periode}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-[var(--color-text-secondary)]">
                       {closure.ecritures} écritures • {closure.responsable}
                     </p>
                   </div>
@@ -698,14 +700,14 @@ const CompleteClosuresModule: React.FC = () => {
                 <div className="flex items-center gap-4">
                   {closure.statut === 'en-cours' || closure.statut === 'en-validation' ? (
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">Progression</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">Progression</p>
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div className="w-24 bg-[var(--color-border)] rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full ${
-                              closure.progression === 100 ? 'bg-green-500' :
-                              closure.progression >= 60 ? 'bg-blue-500' :
-                              'bg-yellow-500'
+                              closure.progression === 100 ? 'bg-[var(--color-success)]' :
+                              closure.progression >= 60 ? 'bg-[var(--color-primary)]' :
+                              'bg-[var(--color-warning)]'
                             }`}
                             style={{ width: `${closure.progression}%` }}
                           />
@@ -715,7 +717,7 @@ const CompleteClosuresModule: React.FC = () => {
                     </div>
                   ) : null}
                   {closure.anomalies > 0 && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] rounded text-xs">
                       <AlertTriangle className="w-3 h-3" />
                       {closure.anomalies}
                     </div>
@@ -723,9 +725,9 @@ const CompleteClosuresModule: React.FC = () => {
                   {getStatutBadge(closure.statut)}
                   <button 
                     onClick={() => setSelectedClosure(closure)}
-                    className="p-2 hover:bg-gray-200 rounded transition-colors"
+                    className="p-2 hover:bg-[var(--color-border)] rounded transition-colors"
                   >
-                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                    <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
                   </button>
                 </div>
               </div>
@@ -741,17 +743,17 @@ const CompleteClosuresModule: React.FC = () => {
       {/* Barre d'outils */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <select className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm">
+          <select className="px-4 py-2 bg-white border border-[var(--color-border)] rounded-lg text-sm">
             <option value="all">Tous les types</option>
             <option value="journaliere">Journalière</option>
             <option value="mensuelle">Mensuelle</option>
             <option value="trimestrielle">Trimestrielle</option>
             <option value="annuelle">Annuelle</option>
           </select>
-          <select className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm">
+          <select className="px-4 py-2 bg-white border border-[var(--color-border)] rounded-lg text-sm">
             <option value="all">Tous les statuts</option>
             <option value="ouverte">Ouverte</option>
-            <option value="en-cours">En cours</option>
+            <option value="en-cours">{t('status.inProgress')}</option>
             <option value="en-validation">En validation</option>
             <option value="cloturee">Clôturée</option>
             <option value="archivee">Archivée</option>
@@ -775,27 +777,27 @@ const CompleteClosuresModule: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Type</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Période</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Écritures</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Débit</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Crédit</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Équilibre</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Anomalies</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Progression</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Statut</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Type</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Période</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Écritures</th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">{t('accounting.debit')}</th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">{t('accounting.credit')}</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Équilibre</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Anomalies</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Progression</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Statut</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {closurePeriods.map((closure) => (
-                  <tr key={closure.id} className="hover:bg-gray-50">
+                  <tr key={closure.id} className="hover:bg-[var(--color-background-secondary)]">
                     <td className="py-3 px-4">
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                        closure.type === 'journaliere' ? 'bg-blue-100 text-blue-700' :
-                        closure.type === 'mensuelle' ? 'bg-green-100 text-green-700' :
-                        closure.type === 'trimestrielle' ? 'bg-yellow-100 text-yellow-700' :
+                        closure.type === 'journaliere' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+                        closure.type === 'mensuelle' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
+                        closure.type === 'trimestrielle' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
                         'bg-purple-100 text-purple-700'
                       }`}>
                         {closure.type}
@@ -804,7 +806,7 @@ const CompleteClosuresModule: React.FC = () => {
                     <td className="py-3 px-4">
                       <div>
                         <p className="text-sm font-medium">{closure.periode}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-[var(--color-text-secondary)]">
                           {new Date(closure.dateDebut).toLocaleDateString('fr-FR')} - {new Date(closure.dateFin).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
@@ -814,34 +816,34 @@ const CompleteClosuresModule: React.FC = () => {
                     <td className="py-3 px-4 text-right text-sm">€{closure.soldeCredit.toLocaleString('fr-FR')}</td>
                     <td className="py-3 px-4 text-center">
                       {closure.equilibre ? (
-                        <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)] mx-auto" />
                       ) : (
-                        <AlertCircle className="w-4 h-4 text-red-500 mx-auto" />
+                        <AlertCircle className="w-4 h-4 text-[var(--color-error)] mx-auto" />
                       )}
                     </td>
                     <td className="py-3 px-4 text-center">
                       {closure.anomalies > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] rounded-full text-xs">
                           <AlertTriangle className="w-3 h-3" />
                           {closure.anomalies}
                         </span>
                       ) : (
-                        <span className="text-green-600 text-xs">Aucune</span>
+                        <span className="text-[var(--color-success)] text-xs">Aucune</span>
                       )}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div className="flex-1 bg-[var(--color-border)] rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full ${
-                              closure.progression === 100 ? 'bg-green-500' :
-                              closure.progression >= 60 ? 'bg-blue-500' :
-                              'bg-yellow-500'
+                              closure.progression === 100 ? 'bg-[var(--color-success)]' :
+                              closure.progression >= 60 ? 'bg-[var(--color-primary)]' :
+                              'bg-[var(--color-warning)]'
                             }`}
                             style={{ width: `${closure.progression}%` }}
                           />
                         </div>
-                        <span className="text-xs text-gray-600">{closure.progression}%</span>
+                        <span className="text-xs text-[var(--color-text-primary)]">{closure.progression}%</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-center">
@@ -849,22 +851,22 @@ const CompleteClosuresModule: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-center gap-1">
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir">
-                          <Eye className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" title="Voir" aria-label="Voir les détails">
+                          <Eye className="w-4 h-4 text-[var(--color-text-secondary)]" />
                         </button>
                         {closure.statut === 'en-cours' && (
-                          <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Continuer">
-                            <Play className="w-4 h-4 text-gray-500" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" title="Continuer" aria-label="Lire">
+                            <Play className="w-4 h-4 text-[var(--color-text-secondary)]" />
                           </button>
                         )}
                         {closure.statut === 'ouverte' && (
-                          <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Lancer">
-                            <Play className="w-4 h-4 text-gray-500" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" title="Lancer" aria-label="Lire">
+                            <Play className="w-4 h-4 text-[var(--color-text-secondary)]" />
                           </button>
                         )}
                         {closure.statut === 'en-validation' && (
-                          <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Valider">
-                            <CheckCircle className="w-4 h-4 text-gray-500" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" title={t('actions.validate')} aria-label="Valider">
+                            <CheckCircle className="w-4 h-4 text-[var(--color-text-secondary)]" />
                           </button>
                         )}
                       </div>
@@ -889,7 +891,7 @@ const CompleteClosuresModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">{selectedClosure.periode}</h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-[var(--color-text-secondary)]">
                     {selectedClosure.ecritures} écritures • Responsable: {selectedClosure.responsable}
                   </p>
                 </div>
@@ -906,16 +908,16 @@ const CompleteClosuresModule: React.FC = () => {
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-medium">Progression globale</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-[var(--color-text-secondary)]">
                     Étape {selectedClosure.etape} sur {selectedClosure.totalEtapes}
                   </p>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full bg-[var(--color-border)] rounded-full h-3">
                   <div 
                     className={`h-3 rounded-full ${
-                      selectedClosure.progression === 100 ? 'bg-green-500' :
-                      selectedClosure.progression >= 60 ? 'bg-blue-500' :
-                      'bg-yellow-500'
+                      selectedClosure.progression === 100 ? 'bg-[var(--color-success)]' :
+                      selectedClosure.progression >= 60 ? 'bg-[var(--color-primary)]' :
+                      'bg-[var(--color-warning)]'
                     }`}
                     style={{ width: `${selectedClosure.progression}%` }}
                   />
@@ -949,44 +951,44 @@ const CompleteClosuresModule: React.FC = () => {
                   .filter(task => task.closureId === selectedClosure.id)
                   .map((task) => (
                     <div key={task.id} className={`p-4 border rounded-lg ${
-                      task.statut === 'complete' ? 'border-green-200 bg-green-50' :
-                      task.statut === 'en-cours' ? 'border-blue-200 bg-blue-50' :
-                      task.statut === 'erreur' ? 'border-red-200 bg-red-50' :
-                      'border-gray-200 bg-gray-50'
+                      task.statut === 'complete' ? 'border-[var(--color-success-light)] bg-[var(--color-success-lightest)]' :
+                      task.statut === 'en-cours' ? 'border-[var(--color-primary-light)] bg-[var(--color-primary-lightest)]' :
+                      task.statut === 'erreur' ? 'border-[var(--color-error-light)] bg-[var(--color-error-lightest)]' :
+                      'border-[var(--color-border)] bg-[var(--color-background-secondary)]'
                     }`}>
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
                           <div className="mt-1">
                             {task.statut === 'complete' ? (
-                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                             ) : task.statut === 'en-cours' ? (
-                              <Clock className="w-5 h-5 text-blue-600 animate-pulse" />
+                              <Clock className="w-5 h-5 text-[var(--color-primary)] animate-pulse" />
                             ) : task.statut === 'erreur' ? (
-                              <AlertCircle className="w-5 h-5 text-red-600" />
+                              <AlertCircle className="w-5 h-5 text-[var(--color-error)]" />
                             ) : (
-                              <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
+                              <div className="w-5 h-5 border-2 border-[var(--color-border-dark)] rounded-full" />
                             )}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="font-medium text-sm">{task.ordre}. {task.libelle}</p>
                               {task.obligatoire && (
-                                <span className="px-1.5 py-0.5 text-xs bg-red-100 text-red-700 rounded">
+                                <span className="px-1.5 py-0.5 text-xs bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] rounded">
                                   Obligatoire
                                 </span>
                               )}
                               {task.automatique && (
-                                <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                                <span className="px-1.5 py-0.5 text-xs bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] rounded">
                                   Auto
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">{task.description}</p>
+                            <p className="text-xs text-[var(--color-text-secondary)] mt-1">{task.description}</p>
                             {task.resultat && (
-                              <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                                <p className="text-xs text-gray-600">{task.resultat}</p>
+                              <div className="mt-2 p-2 bg-white rounded border border-[var(--color-border)]">
+                                <p className="text-xs text-[var(--color-text-primary)]">{task.resultat}</p>
                                 {task.dateExecution && (
-                                  <p className="text-xs text-gray-400 mt-1">
+                                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
                                     {new Date(task.dateExecution).toLocaleString('fr-FR')}
                                     {task.executePar && ` par ${task.executePar}`}
                                   </p>
@@ -994,9 +996,9 @@ const CompleteClosuresModule: React.FC = () => {
                               </div>
                             )}
                             {task.erreurs && task.erreurs.length > 0 && (
-                              <div className="mt-2 p-2 bg-red-50 rounded border border-red-200">
+                              <div className="mt-2 p-2 bg-[var(--color-error-lightest)] rounded border border-[var(--color-error-light)]">
                                 {task.erreurs.map((erreur, index) => (
-                                  <p key={index} className="text-xs text-red-600">• {erreur}</p>
+                                  <p key={index} className="text-xs text-[var(--color-error)]">• {erreur}</p>
                                 ))}
                               </div>
                             )}
@@ -1024,8 +1026,8 @@ const CompleteClosuresModule: React.FC = () => {
         </>
       ) : (
         <div className="text-center py-12">
-          <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">Sélectionnez une clôture pour voir les détails</p>
+          <Calendar className="w-12 h-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+          <p className="text-[var(--color-text-secondary)]">Sélectionnez une clôture pour voir les détails</p>
         </div>
       )}
     </div>
@@ -1050,10 +1052,10 @@ const CompleteClosuresModule: React.FC = () => {
           <div className="space-y-4">
             {closureControls.map((control) => (
               <div key={control.id} className={`p-4 border rounded-lg ${
-                control.statut === 'passe' ? 'border-green-200 bg-green-50' :
-                control.statut === 'echoue' ? 'border-red-200 bg-red-50' :
-                control.statut === 'en-cours' ? 'border-blue-200 bg-blue-50' :
-                'border-gray-200 bg-gray-50'
+                control.statut === 'passe' ? 'border-[var(--color-success-light)] bg-[var(--color-success-lightest)]' :
+                control.statut === 'echoue' ? 'border-[var(--color-error-light)] bg-[var(--color-error-lightest)]' :
+                control.statut === 'en-cours' ? 'border-[var(--color-primary-light)] bg-[var(--color-primary-lightest)]' :
+                'border-[var(--color-border)] bg-[var(--color-background-secondary)]'
               }`}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
@@ -1061,28 +1063,28 @@ const CompleteClosuresModule: React.FC = () => {
                       <h4 className="font-medium text-sm">{control.nom}</h4>
                       {getSeveriteBadge(control.severite)}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{control.description}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">{control.description}</p>
                   </div>
                   {getStatutBadge(control.statut)}
                 </div>
 
                 {control.resultat && (
-                  <div className="mt-3 p-3 bg-white rounded border border-gray-200">
+                  <div className="mt-3 p-3 bg-white rounded border border-[var(--color-border)]">
                     <div className="grid grid-cols-3 gap-4 text-xs">
                       <div>
-                        <p className="text-gray-500">Attendu</p>
+                        <p className="text-[var(--color-text-secondary)]">Attendu</p>
                         <p className="font-medium">{control.resultat.attendu}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Obtenu</p>
+                        <p className="text-[var(--color-text-secondary)]">Obtenu</p>
                         <p className="font-medium">{control.resultat.obtenu}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Écart</p>
+                        <p className="text-[var(--color-text-secondary)]">Écart</p>
                         <p className={`font-medium ${
                           control.resultat.ecart === 0 || control.resultat.ecart === 'Aucun' 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
+                            ? 'text-[var(--color-success)]' 
+                            : 'text-[var(--color-error)]'
                         }`}>
                           {control.resultat.ecart}
                         </p>
@@ -1092,10 +1094,10 @@ const CompleteClosuresModule: React.FC = () => {
                 )}
 
                 {control.corrections && control.corrections.length > 0 && (
-                  <div className="mt-3 p-3 bg-yellow-50 rounded border border-yellow-200">
+                  <div className="mt-3 p-3 bg-[var(--color-warning-lightest)] rounded border border-yellow-200">
                     <p className="text-xs font-medium text-yellow-800 mb-2">Actions correctives requises:</p>
                     {control.corrections.map((correction, index) => (
-                      <div key={index} className="flex items-center gap-2 text-xs text-yellow-700">
+                      <div key={index} className="flex items-center gap-2 text-xs text-[var(--color-warning-dark)]">
                         <AlertTriangle className="w-3 h-3" />
                         <p>{correction}</p>
                       </div>
@@ -1117,16 +1119,16 @@ const CompleteClosuresModule: React.FC = () => {
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Espace utilisé</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">Espace utilisé</p>
               <p className="text-xl font-bold mt-1">{stats.espaceArchive}</p>
             </div>
-            <Database className="w-8 h-8 text-blue-500" />
+            <Database className="w-8 h-8 text-[var(--color-primary)]" />
           </div>
         </ModernCard>
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Archives disponibles</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">Archives disponibles</p>
               <p className="text-xl font-bold mt-1">{archives.length}</p>
             </div>
             <Archive className="w-8 h-8 text-purple-500" />
@@ -1135,16 +1137,16 @@ const CompleteClosuresModule: React.FC = () => {
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Dernière archive</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">Dernière archive</p>
               <p className="text-sm font-medium mt-1">{stats.derniereArchive}</p>
             </div>
-            <Clock className="w-8 h-8 text-green-500" />
+            <Clock className="w-8 h-8 text-[var(--color-success)]" />
           </div>
         </ModernCard>
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Prochaine sauvegarde</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">Prochaine sauvegarde</p>
               <p className="text-sm font-medium mt-1">Ce soir 22h00</p>
             </div>
             <RefreshCw className="w-8 h-8 text-orange-500" />
@@ -1174,25 +1176,25 @@ const CompleteClosuresModule: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Type</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Exercice</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Fichier</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Taille</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Date</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Responsable</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Statut</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Type</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Exercice</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Fichier</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Taille</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">{t('common.date')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Responsable</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Statut</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-[var(--color-text-primary)] uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {archives.map((archive) => (
-                  <tr key={archive.id} className="hover:bg-gray-50">
+                  <tr key={archive.id} className="hover:bg-[var(--color-background-secondary)]">
                     <td className="py-3 px-4">
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
                         archive.type === 'archive' ? 'bg-purple-100 text-purple-700' :
-                        archive.type === 'backup' ? 'bg-blue-100 text-blue-700' :
-                        'bg-green-100 text-green-700'
+                        archive.type === 'backup' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
+                        'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]'
                       }`}>
                         {archive.type}
                       </span>
@@ -1201,7 +1203,7 @@ const CompleteClosuresModule: React.FC = () => {
                     <td className="py-3 px-4">
                       <div>
                         <p className="text-sm font-mono">{archive.fichier}</p>
-                        <p className="text-xs text-gray-500">{archive.description}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{archive.description}</p>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-center text-sm">{archive.taille}</td>
@@ -1214,14 +1216,14 @@ const CompleteClosuresModule: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-center gap-1">
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Télécharger">
-                          <Download className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" title={t('actions.download')} aria-label="Télécharger">
+                          <Download className="w-4 h-4 text-[var(--color-text-secondary)]" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Restaurer">
-                          <Upload className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" title="Restaurer">
+                          <Upload className="w-4 h-4 text-[var(--color-text-secondary)]" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Supprimer">
-                          <Trash2 className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded transition-colors" title={t('common.delete')} aria-label="Supprimer">
+                          <Trash2 className="w-4 h-4 text-[var(--color-text-secondary)]" />
                         </button>
                       </div>
                     </td>
@@ -1248,7 +1250,7 @@ const CompleteClosuresModule: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <select className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm">
+          <select className="px-4 py-2 bg-white border border-[var(--color-border)] rounded-lg text-sm">
             <option value="2024">Exercice 2024</option>
             <option value="2023">Exercice 2023</option>
             <option value="2022">Exercice 2022</option>
@@ -1261,7 +1263,7 @@ const CompleteClosuresModule: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-[var(--color-border)]">
         <nav className="flex space-x-8">
           {[
             { id: 'dashboard', label: 'Vue d\'ensemble', icon: BarChart3 },
@@ -1277,7 +1279,7 @@ const CompleteClosuresModule: React.FC = () => {
               className={`flex items-center gap-2 py-4 px-1 border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
             >
               <tab.icon className="w-4 h-4" />

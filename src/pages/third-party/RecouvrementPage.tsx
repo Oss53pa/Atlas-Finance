@@ -277,13 +277,13 @@ const RecouvrementPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                      <button className="p-2 text-gray-700 hover:text-blue-600 transition-colors">
                         <Phone className="h-4 w-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                      <button className="p-2 text-gray-700 hover:text-blue-600 transition-colors">
                         <Mail className="h-4 w-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                      <button className="p-2 text-gray-700 hover:text-blue-600 transition-colors">
                         <Send className="h-4 w-4" />
                       </button>
                     </div>

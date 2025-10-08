@@ -126,7 +126,7 @@ const Modal: React.FC<ModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 
             id="modal-title"
-            className="text-xl font-semibold text-tuatara"
+            className="text-xl font-semibold text-[var(--color-text-primary)]"
           >
             {title}
           </h2>
@@ -135,7 +135,7 @@ const Modal: React.FC<ModalProps> = ({
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-700 hover:text-gray-600"
               aria-label="Fermer la modale"
             >
               <X className="h-5 w-5" />

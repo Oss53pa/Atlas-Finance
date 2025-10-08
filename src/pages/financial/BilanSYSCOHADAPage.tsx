@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2, TrendingUp, BarChart3, Download, ArrowLeft, Home,
   DollarSign, Target, Activity, FileText, Calculator, PieChart,
   ArrowUpRight, Eye, Filter, RefreshCw, ChevronRight, X
 } from 'lucide-react';
+import PrintableArea from '../../components/ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
 
 const BilanSYSCOHADAPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bilan');
   const [periode, setPeriode] = useState('current');
@@ -16,6 +20,11 @@ const BilanSYSCOHADAPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
+
+  const { printRef, handlePrint } = usePrintReport({
+    orientation: 'landscape',
+    fileName: 'bilan-syscohada.pdf'
+  });
 
   // Onglets des états financiers SYSCOHADA
   const tabs = [
@@ -366,6 +375,18 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#ECECEC] font-['Sometype Mono']">
+      <PrintableArea
+        ref={printRef}
+        orientation="landscape"
+        pageSize="A4"
+        showPrintButton={false}
+        headerContent={
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold">États Financiers SYSCOHADA</h2>
+            <p className="text-sm text-gray-600">{tabs.find(t => t.id === activeTab)?.label || 'Bilan'}</p>
+          </div>
+        }
+      >
       {/* En-tête */}
       <div className="bg-white border-b border-[#E8E8E8] p-6">
         <div className="flex items-center justify-between">
@@ -442,7 +463,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-2 text-[#191919]">Réf</th>
-                          <th className="text-left p-2 text-[#191919]">Libellé</th>
+                          <th className="text-left p-2 text-[#191919]">{t('accounting.label')}</th>
                           <th className="text-right p-2 text-[#191919]">N</th>
                           <th className="text-right p-2 text-[#191919]">N-1</th>
                         </tr>
@@ -543,7 +564,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-2 text-[#191919]">Réf</th>
-                          <th className="text-left p-2 text-[#191919]">Libellé</th>
+                          <th className="text-left p-2 text-[#191919]">{t('accounting.label')}</th>
                           <th className="text-right p-2 text-[#191919]">N</th>
                           <th className="text-right p-2 text-[#191919]">N-1</th>
                         </tr>
@@ -656,7 +677,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b-2 border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Exercice N</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Exercice N-1</th>
                         </tr>
@@ -689,7 +710,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b-2 border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Exercice N</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Exercice N-1</th>
                         </tr>
@@ -959,7 +980,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -1006,7 +1027,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -1077,7 +1098,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -1124,7 +1145,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
                           <th className="text-left p-3 text-[#191919] font-semibold">Réf</th>
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -1170,7 +1191,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b border-[#E8E8E8]">
-                          <th className="text-left p-3 text-[#191919] font-semibold">Libellé</th>
+                          <th className="text-left p-3 text-[#191919] font-semibold">{t('accounting.label')}</th>
                           <th className="text-right p-3 text-[#191919] font-semibold">Montant</th>
                         </tr>
                       </thead>
@@ -1274,8 +1295,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
               <h2 className="text-xl font-bold text-[#191919]">{selectedDetail.title}</h2>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">
                 <X className="w-5 h-5 text-[#767676]" />
               </button>
             </div>
@@ -1293,7 +1313,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="text-left p-3 border-b border-[#E8E8E8]">Code</th>
-                          <th className="text-left p-3 border-b border-[#E8E8E8]">Libellé</th>
+                          <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.label')}</th>
                           <th className="text-right p-3 border-b border-[#E8E8E8]">Montant</th>
                           <th className="text-center p-3 border-b border-[#E8E8E8]">Actions</th>
                         </tr>
@@ -1335,12 +1355,12 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     <table className="w-full text-sm border-collapse">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="text-left p-3 border-b border-[#E8E8E8]">Date</th>
+                          <th className="text-left p-3 border-b border-[#E8E8E8]">{t('common.date')}</th>
                           <th className="text-left p-3 border-b border-[#E8E8E8]">Référence</th>
-                          <th className="text-left p-3 border-b border-[#E8E8E8]">Libellé</th>
+                          <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.label')}</th>
                           <th className="text-left p-3 border-b border-[#E8E8E8]">Tiers</th>
                           <th className="text-right p-3 border-b border-[#E8E8E8]">Montant</th>
-                          <th className="text-left p-3 border-b border-[#E8E8E8]">Pièce</th>
+                          <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.piece')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1363,7 +1383,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </PrintableArea>
+  </div>
   );
 };
 

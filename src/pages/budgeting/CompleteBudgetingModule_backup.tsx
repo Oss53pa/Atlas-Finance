@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   TrendingUp, Target, AlertTriangle, CheckCircle, XCircle,
   PlusCircle, Edit, Trash2, Save, X, Copy, FileText,
@@ -119,6 +120,7 @@ interface BudgetControl {
 }
 
 const CompleteBudgetingModule: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
@@ -289,7 +291,7 @@ const CompleteBudgetingModule: React.FC = () => {
     labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
     datasets: [
       {
-        label: 'Budget',
+        label: t('navigation.budget'),
         data: [4000000, 4000000, 4200000, 4200000, 4200000, 4500000, 4500000, 4500000, 4300000, 4300000, 4300000, 4500000],
         borderColor: 'var(--color-primary)',
         backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)',
@@ -425,7 +427,7 @@ const CompleteBudgetingModule: React.FC = () => {
         {/* Tabs */}
         <div className="flex gap-4 border-b border-[var(--color-border)]">
           {[
-            { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3 },
+            { id: 'dashboard', label: t('dashboard.title'), icon: BarChart3 },
             { id: 'budgets', label: 'Budgets', icon: Calculator },
             { id: 'allocations', label: 'Allocations', icon: Layers },
             { id: 'monitoring', label: 'Suivi & Contrôle', icon: Activity },
@@ -474,7 +476,7 @@ const CompleteBudgetingModule: React.FC = () => {
                 <div className="p-2 bg-green-100 rounded-lg">
                   <TrendingUp className="w-6 h-6 text-green-600" />
                 </div>
-                <span className="text-xs text-[var(--color-text-secondary)]">Budget</span>
+                <span className="text-xs text-[var(--color-text-secondary)]">{t('navigation.budget')}</span>
               </div>
               <div className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {(stats.totalBudgeted / 1000000).toFixed(1)}M
@@ -609,9 +611,9 @@ const CompleteBudgetingModule: React.FC = () => {
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
             >
               <option value="all">Tous les statuts</option>
-              <option value="Brouillon">Brouillon</option>
-              <option value="Validé">Validé</option>
-              <option value="En cours">En cours</option>
+              <option value="Brouillon">{t('accounting.draft')}</option>
+              <option value="Validé">{t('accounting.validated')}</option>
+              <option value="En cours">{t('status.inProgress')}</option>
               <option value="Clôturé">Clôturé</option>
               <option value="Révisé">Révisé</option>
             </select>
@@ -623,7 +625,7 @@ const CompleteBudgetingModule: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Budget</th>
+                    <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">{t('navigation.budget')}</th>
                     <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Type</th>
                     <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Période</th>
                     <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Statut</th>
@@ -697,7 +699,7 @@ const CompleteBudgetingModule: React.FC = () => {
                               setShowBudgetModal(true);
                             }}
                             className="p-1 hover:bg-[var(--color-background)] rounded transition-colors"
-                            title="Modifier"
+                            title={t('common.edit')}
                           >
                             <Edit className="w-4 h-4 text-blue-600" />
                           </button>
@@ -712,7 +714,7 @@ const CompleteBudgetingModule: React.FC = () => {
                             <button
                               onClick={() => handleValidateBudget(budget)}
                               className="p-1 hover:bg-[var(--color-background)] rounded transition-colors"
-                              title="Valider"
+                              title={t('actions.validate')}
                             >
                               <CheckCircle className="w-4 h-4 text-green-600" />
                             </button>
@@ -720,7 +722,7 @@ const CompleteBudgetingModule: React.FC = () => {
                           <button
                             onClick={() => handleDeleteBudget(budget.id)}
                             className="p-1 hover:bg-[var(--color-background)] rounded transition-colors"
-                            title="Supprimer"
+                            title={t('common.delete')}
                           >
                             <Trash2 className="w-4 h-4 text-red-600" />
                           </button>
@@ -875,8 +877,8 @@ const CompleteBudgetingModule: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Date</th>
-                    <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Budget</th>
+                    <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">{t('common.date')}</th>
+                    <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">{t('navigation.budget')}</th>
                     <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Version</th>
                     <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Motif</th>
                     <th className="text-right p-4 font-medium text-[var(--color-text-secondary)]">Montant Précédent</th>
@@ -1053,8 +1055,7 @@ const CompleteBudgetingModule: React.FC = () => {
               </button>
               <button
                 onClick={handleSaveBudget}
-                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
-              >
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2" aria-label="Enregistrer">
                 <Save className="w-4 h-4" />
                 {editingBudget ? 'Modifier' : 'Créer'}
               </button>

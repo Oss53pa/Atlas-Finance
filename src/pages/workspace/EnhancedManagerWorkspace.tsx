@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
@@ -25,7 +26,8 @@ import {
   BookOpen,
   ChevronRight,
   LineChart,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 
 // Import des modules internes
@@ -34,11 +36,24 @@ import CollaborationModule from '../../components/collaboration/CollaborationMod
 import ExecutiveDashboard from '../dashboard/ExecutiveDashboard';
 import NotificationSystem from '../../components/notifications/NotificationSystem';
 
+// Import des hooks API
+import { useWorkspaceByRole, useSystemInfo } from '../../hooks';
+
 const EnhancedManagerWorkspace: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeModule, setActiveModule] = useState<'dashboard' | 'tasks' | 'collaboration'>('dashboard');
   const [dashboardView, setDashboardView] = useState<'manager' | 'executive'>('manager');
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+
+  // Chargement du workspace Manager depuis l'API
+  const { data: managerWorkspace, isLoading: loadingWorkspace } = useWorkspaceByRole('manager');
+  const { data: systemInfo } = useSystemInfo();
+
+  // Utiliser les données du workspace si disponibles
+  const workspaceWidgets = managerWorkspace?.widgets || [];
+  const workspaceActions = managerWorkspace?.quick_actions || [];
+  const workspaceStats = managerWorkspace?.statistics || [];
 
   // Sample notifications for Manager
   const [notifications, setNotifications] = useState([
@@ -115,7 +130,7 @@ const EnhancedManagerWorkspace: React.FC = () => {
       progress: 92
     },
     {
-      title: 'Trésorerie',
+      title: t('navigation.treasury'),
       value: '450K€',
       variation: +8,
       target: '500K€',
@@ -130,19 +145,38 @@ const EnhancedManagerWorkspace: React.FC = () => {
     }
   ];
 
-  // Liens rapides manager
-  const managerLinks = [
-    { id: 'chart', label: 'Plan comptable', icon: BookOpen, path: '/accounting/chart-of-accounts' },
-    { id: 'closure', label: 'Calendrier de clôture', icon: Calendar, path: '/accounting/closure-calendar' },
-    { id: 'financial', label: 'Analyse financière', icon: DollarSign, path: '/financial-analysis-advanced' },
-    { id: 'performance', label: 'Performance', icon: TrendingUp, path: '/reporting/dashboards' },
-    { id: 'forecasts', label: 'Prévisions', icon: Target, path: '/treasury/cash-flow' },
-    { id: 'reports', label: 'Rapports', icon: PieChart, path: '/reports' },
-    { id: 'teams', label: 'Équipes', icon: Users, path: '/security/users' },
-    { id: 'objectives', label: 'Objectifs', icon: Briefcase, path: '/budgeting' }
-  ];
+  // Liens rapides manager - Utiliser les actions rapides du workspace si disponibles, sinon fallback
+  const managerLinks = workspaceActions.length > 0
+    ? workspaceActions.filter(action => action.is_visible).map(action => ({
+        id: action.id,
+        label: action.label,
+        icon: eval(action.icon) as any,
+        path: action.action_target
+      }))
+    : [
+        { id: 'chart', label: 'Plan comptable', icon: BookOpen, path: '/accounting/chart-of-accounts' },
+        { id: 'closure', label: 'Calendrier de clôture', icon: Calendar, path: '/accounting/closure-calendar' },
+        { id: 'financial', label: 'Analyse financière', icon: DollarSign, path: '/financial-analysis-advanced' },
+        { id: 'performance', label: 'Performance', icon: TrendingUp, path: '/reporting/dashboards' },
+        { id: 'forecasts', label: 'Prévisions', icon: Target, path: '/treasury/cash-flow' },
+        { id: 'reports', label: 'Rapports', icon: PieChart, path: '/reports' },
+        { id: 'teams', label: 'Équipes', icon: Users, path: '/security/users' },
+        { id: 'objectives', label: 'Objectifs', icon: Briefcase, path: '/budgeting' }
+      ];
 
   const renderDashboard = () => {
+    // Afficher un loader pendant le chargement
+    if (loadingWorkspace) {
+      return (
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
+            <p className="text-gray-600">Chargement du workspace manager...</p>
+          </div>
+        </div>
+      );
+    }
+
     // Si la vue executive est sélectionnée, afficher le dashboard executive
     if (dashboardView === 'executive') {
       return <ExecutiveDashboard />;
@@ -151,6 +185,30 @@ const EnhancedManagerWorkspace: React.FC = () => {
     // Sinon afficher le dashboard manager par défaut
     return (
     <div className="p-6">
+      {/* Informations workspace en haut */}
+      {managerWorkspace && (
+        <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-lg p-6 mb-6 text-white">
+          <div className="grid grid-cols-4 gap-6">
+            <div>
+              <p className="text-blue-200 text-sm mb-1">Workspace</p>
+              <p className="text-xl font-bold">{managerWorkspace.name}</p>
+            </div>
+            <div>
+              <p className="text-blue-200 text-sm mb-1">Rôle</p>
+              <p className="text-xl font-bold">{managerWorkspace.role_display}</p>
+            </div>
+            <div>
+              <p className="text-blue-200 text-sm mb-1">Widgets actifs</p>
+              <p className="text-xl font-bold">{managerWorkspace.widget_count}</p>
+            </div>
+            <div>
+              <p className="text-blue-200 text-sm mb-1">Actions rapides</p>
+              <p className="text-xl font-bold">{managerWorkspace.action_count}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* KPIs principaux */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         {kpis.map((kpi, idx) => (
@@ -169,7 +227,7 @@ const EnhancedManagerWorkspace: React.FC = () => {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">Objectif</span>
+                <span className="text-gray-700">Objectif</span>
                 <span className="font-medium">{kpi.target}</span>
               </div>
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -229,14 +287,14 @@ const EnhancedManagerWorkspace: React.FC = () => {
               <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900">{team.team}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-700">
                     {team.completed}/{team.tasks} tâches complétées
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-lg font-bold text-[#6A8A82]">{team.score}%</p>
-                    <p className="text-xs text-gray-500">Score</p>
+                    <p className="text-xs text-gray-700">Score</p>
                   </div>
                 </div>
               </div>
@@ -290,7 +348,7 @@ const EnhancedManagerWorkspace: React.FC = () => {
                 className="w-full bg-gradient-to-t from-[#6A8A82] to-[#B87333] rounded-t transition-all duration-300 hover:opacity-80"
                 style={{ height: `${(value / 250) * 100}%` }}
               />
-              <span className="text-xs text-gray-500 mt-2">
+              <span className="text-xs text-gray-700 mt-2">
                 {['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][idx]}
               </span>
             </div>
@@ -309,7 +367,7 @@ const EnhancedManagerWorkspace: React.FC = () => {
           {/* Navigation et logo */}
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-700" />
@@ -322,7 +380,7 @@ const EnhancedManagerWorkspace: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900">Espace Manager</h1>
-                <p className="text-xs text-gray-500">WiseBook ERP v3.0</p>
+                <p className="text-xs text-gray-700">WiseBook ERP v3.0</p>
               </div>
             </div>
           </div>
@@ -339,7 +397,7 @@ const EnhancedManagerWorkspace: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
-                Tableau de bord
+                {t('navigation.dashboard')}
                 {activeModule === 'dashboard' && (
                   <ChevronRight className="w-3 h-3" />
                 )}
@@ -417,7 +475,7 @@ const EnhancedManagerWorkspace: React.FC = () => {
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-gray-900">Jean Martin</p>
-                <p className="text-xs text-gray-500">Manager</p>
+                <p className="text-xs text-gray-700">Manager</p>
               </div>
             </div>
           </div>

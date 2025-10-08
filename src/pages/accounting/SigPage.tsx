@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { 
   Calculator,
   TrendingUp,
@@ -55,6 +57,9 @@ interface Ratio {
 }
 
 const SigPage: React.FC = () => {
+  const { t } = useLanguage();
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [selectedPeriod, setSelectedPeriod] = useState('2024');
   const [viewMode, setViewMode] = useState('sig'); // sig, ratios
   
@@ -353,7 +358,7 @@ const SigPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">
-                <TableHead className="font-semibold">Solde</TableHead>
+                <TableHead className="font-semibold">{t('accounting.balance')}</TableHead>
                 <TableHead className="font-semibold text-right">N</TableHead>
                 <TableHead className="font-semibold text-right">N-1</TableHead>
                 <TableHead className="font-semibold text-right">Variation</TableHead>
@@ -429,7 +434,7 @@ const SigPage: React.FC = () => {
                             <span className="text-2xl font-bold text-gray-900">
                               {ratio.valeur_n.toFixed(ratio.unite === '%' ? 1 : 2)}
                             </span>
-                            <span className="text-sm text-gray-500">{ratio.unite}</span>
+                            <span className="text-sm text-gray-700">{ratio.unite}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-sm text-gray-600">
@@ -445,7 +450,7 @@ const SigPage: React.FC = () => {
                         </div>
                         
                         <div className="text-right">
-                          <p className="text-xs text-gray-500">Benchmark</p>
+                          <p className="text-xs text-gray-700">Benchmark</p>
                           <p className="text-sm font-medium text-gray-700">
                             {ratio.benchmark.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
@@ -539,6 +544,14 @@ const SigPage: React.FC = () => {
       {/* Contenu */}
       {viewMode === 'sig' && renderSIG()}
       {viewMode === 'ratios' && renderRatios()}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

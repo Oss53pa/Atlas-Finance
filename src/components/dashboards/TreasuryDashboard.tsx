@@ -3,6 +3,7 @@
  * Position multi-banques, appels de fonds et prévisions selon EXF-TR-003
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Banknote,
@@ -70,6 +71,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
   fiscalYearId,
   className = ''
 }) => {
+  const { t } = useLanguage();
   // États
   const [forecastPeriod, setForecastPeriod] = useState('30');
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -164,10 +166,10 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
 
   const getAlertSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'CRITICAL': return 'bg-red-100 text-red-800 border-red-300';
-      case 'WARNING': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'INFO': return 'bg-blue-100 text-blue-800 border-blue-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'CRITICAL': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)] border-red-300';
+      case 'WARNING': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)] border-orange-300';
+      case 'INFO': return 'bg-[#ECECEC] text-[#6A8A82] border-[#ECECEC]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)] border-[var(--color-border-dark)]';
     }
   };
 
@@ -181,22 +183,22 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-[#191919]">
               Dashboard Trésorerie
             </h1>
             <div className="flex items-center space-x-2 mt-1">
               <div className="flex items-center space-x-1">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-600">Temps réel</span>
+                <span className="text-sm text-[#191919]/70">Temps réel</span>
               </div>
-              <span className="text-gray-400">•</span>
-              <span className="text-sm text-gray-500">
+              <span className="text-[var(--color-text-secondary)]">•</span>
+              <span className="text-sm text-[#191919]/50">
                 Dernière maj: {treasuryPosition?.last_update && formatDate(new Date(treasuryPosition.last_update))}
               </span>
               {treasuryPosition?.performance_ms && (
                 <>
-                  <span className="text-gray-400">•</span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-[var(--color-text-secondary)]">•</span>
+                  <span className="text-sm text-[#191919]/50">
                     {treasuryPosition.performance_ms}ms
                   </span>
                 </>
@@ -210,7 +212,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={autoRefresh ? 'bg-green-50 border-green-200' : ''}
+            className={autoRefresh ? 'bg-[#F0F3F2] border-[#6A8A82]' : ''}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
             {autoRefresh ? 'Live' : 'Manuel'}
@@ -236,9 +238,9 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
 
       {/* Alertes critiques */}
       {treasuryPosition?.alerts?.length > 0 && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-[var(--color-error-light)] bg-[var(--color-error-lightest)]">
           <CardHeader>
-            <CardTitle className="flex items-center text-red-800">
+            <CardTitle className="flex items-center text-[var(--color-error-darker)]">
               <AlertTriangle className="h-5 w-5 mr-2 animate-pulse" />
               Alertes Trésorerie ({treasuryPosition.alerts.length})
             </CardTitle>
@@ -266,7 +268,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
       )}
 
       {/* Navigation des vues */}
-      <Tabs value={selectedView} onValueChange={useCallback((v: any) => setSelectedView(v), [])}>
+      <Tabs value={selectedView} onValueChange={(v: any) => setSelectedView(v)}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="position">Position Temps Réel</TabsTrigger>
           <TabsTrigger value="flows">Flux & Prévisions</TabsTrigger>
@@ -296,18 +298,18 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-full bg-${kpi.color}-100`}>
-                            <Icon className={`h-6 w-6 text-${kpi.color}-600`} />
+                          <div className={`p-2 rounded-full bg-[#ECECEC]`}>
+                            <Icon className={`h-6 w-6 text-[#6A8A82]`} />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
-                            <p className="text-xl font-bold text-gray-900">{kpi.value}</p>
-                            <p className="text-xs text-gray-500">{kpi.subValue}</p>
+                            <p className="text-sm font-medium text-[#191919]/70">{kpi.title}</p>
+                            <p className="text-xl font-bold text-[#191919]">{kpi.value}</p>
+                            <p className="text-xs text-[#191919]/50">{kpi.subValue}</p>
                           </div>
                         </div>
                         {kpi.trend !== 'neutral' && (
                           <div className="text-right">
-                            <TrendIcon className={`h-4 w-4 ${kpi.color === 'green' ? 'text-green-600' : 'text-red-600'}`} />
+                            <TrendIcon className={`h-4 w-4 ${kpi.color === 'green' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`} />
                           </div>
                         )}
                       </div>
@@ -342,7 +344,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Compte</TableHead>
+                      <TableHead>{t('accounting.account')}</TableHead>
                       <TableHead>Banque</TableHead>
                       <TableHead>Devise</TableHead>
                       <TableHead className="text-right">Solde Actuel</TableHead>
@@ -356,11 +358,11 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                   </TableHeader>
                   <TableBody>
                     {treasuryPosition?.accounts_detail?.map((account, index) => (
-                      <TableRow key={index} className="hover:bg-gray-50">
+                      <TableRow key={index} className="hover:bg-[var(--color-background-secondary)]">
                         <TableCell>
                           <div>
                             <p className="font-medium">{account.label}</p>
-                            <p className="text-sm text-gray-500 font-mono">{account.account_number}</p>
+                            <p className="text-sm text-[#191919]/50 font-mono">{account.account_number}</p>
                           </div>
                         </TableCell>
                         <TableCell>{account.bank_name}</TableCell>
@@ -370,28 +372,28 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                           </Badge>
                         </TableCell>
                         <TableCell className={`text-right font-mono font-bold ${
-                          account.current_balance >= 0 ? 'text-green-600' : 'text-red-600'
+                          account.current_balance >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
                           {formatCurrency(account.current_balance)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-blue-600">
+                        <TableCell className="text-right font-mono text-[#6A8A82]">
                           {formatCurrency(account.available_balance)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-green-600">
+                        <TableCell className="text-right font-mono text-[var(--color-success)]">
                           +{formatCurrency(account.inflows_today)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-red-600">
+                        <TableCell className="text-right font-mono text-[var(--color-error)]">
                           -{formatCurrency(account.outflows_today)}
                         </TableCell>
                         <TableCell className={`text-right font-mono font-bold ${
-                          account.forecast_7d_inflows - account.forecast_7d_outflows >= 0 ? 'text-green-600' : 'text-red-600'
+                          account.forecast_7d_inflows - account.forecast_7d_outflows >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
                           {account.forecast_7d_inflows - account.forecast_7d_outflows >= 0 ? '+' : ''}
                           {formatCurrency(account.forecast_7d_inflows - account.forecast_7d_outflows)}
                         </TableCell>
                         <TableCell>
                           <Badge className={`
-                            ${account.balance_status === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                            ${account.balance_status === 'OK' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' : 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                           `}>
                             {account.balance_status}
                           </Badge>
@@ -433,9 +435,9 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                   data={cashFlowForecast?.detailed_forecast?.daily_breakdown || []}
                   xAxisKey="date"
                   lines={[
-                    { key: 'receivables_inflow', name: 'Encaissements', color: '#10B981' },
-                    { key: 'payables_outflow', name: 'Décaissements', color: '#EF4444' },
-                    { key: 'cumulative_balance', name: 'Position cumulative', color: '#3B82F6' }
+                    { key: 'receivables_inflow', name: 'Encaissements', color: "var(--color-success)" },
+                    { key: 'payables_outflow', name: 'Décaissements', color: "var(--color-error)" },
+                    { key: 'cumulative_balance', name: 'Position cumulative', color: "var(--color-primary)" }
                   ]}
                   height={400}
                 />
@@ -447,28 +449,28 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center text-green-700">
+                <CardTitle className="flex items-center text-[var(--color-success-dark)]">
                   <ArrowUpCircle className="h-5 w-5 mr-2" />
                   Encaissements Prévus
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <span className="font-medium">Paiements clients</span>
-                    <span className="font-bold text-green-600">
+                    <span className="font-bold text-[var(--color-success)]">
                       {formatCurrency(cashFlowForecast?.expected_receivables || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <span className="font-medium">Appels de fonds</span>
-                    <span className="font-bold text-green-600">
+                    <span className="font-bold text-[var(--color-success)]">
                       {formatCurrency(fundCallsDashboard?.summary?.total_amount_called - fundCallsDashboard?.summary?.total_amount_received || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <span className="font-medium">Autres entrées</span>
-                    <span className="font-bold text-green-600">
+                    <span className="font-bold text-[var(--color-success)]">
                       {formatCurrency(cashFlowForecast?.other_inflows || 0)}
                     </span>
                   </div>
@@ -478,28 +480,28 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center text-red-700">
+                <CardTitle className="flex items-center text-[var(--color-error-dark)]">
                   <ArrowDownCircle className="h-5 w-5 mr-2" />
                   Décaissements Prévus
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <span className="font-medium">Paiements fournisseurs</span>
-                    <span className="font-bold text-red-600">
+                    <span className="font-bold text-[var(--color-error)]">
                       {formatCurrency(cashFlowForecast?.expected_payables || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <span className="font-medium">Salaires & charges</span>
-                    <span className="font-bold text-red-600">
+                    <span className="font-bold text-[var(--color-error)]">
                       {formatCurrency(cashFlowForecast?.other_outflows || 0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <span className="font-medium">Taxes & impôts</span>
-                    <span className="font-bold text-red-600">
+                    <span className="font-bold text-[var(--color-error)]">
                       {formatCurrency(0)}
                     </span>
                   </div>
@@ -515,28 +517,28 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-[#6A8A82]">
                   {fundCallsDashboard?.summary?.active_calls || 0}
                 </div>
-                <p className="text-sm text-gray-600">Appels actifs</p>
+                <p className="text-sm text-[#191919]/70">Appels actifs</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-2xl font-bold text-[#6A8A82]">
                   {formatCurrency(fundCallsDashboard?.summary?.total_amount_called || 0)}
                 </div>
-                <p className="text-sm text-gray-600">Montant total appelé</p>
+                <p className="text-sm text-[#191919]/70">Montant total appelé</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-[var(--color-success)]">
                   {formatCurrency(fundCallsDashboard?.summary?.total_amount_received || 0)}
                 </div>
-                <p className="text-sm text-gray-600">Montant reçu</p>
+                <p className="text-sm text-[#191919]/70">Montant reçu</p>
                 <Progress 
                   value={
                     fundCallsDashboard?.summary?.total_amount_called > 0 
@@ -554,7 +556,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Appels de Fonds en Cours</span>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button className="bg-[#B87333] hover:bg-[#A66B2A] text-white">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Nouvel Appel
                 </Button>
@@ -566,29 +568,29 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
               ) : (
                 <div className="space-y-4">
                   {fundCallsDashboard?.calls_detail?.map((call, index) => (
-                    <div key={index} className="border rounded-lg p-4 hover:bg-gray-50">
+                    <div key={index} className="border rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
                           <Badge className={`
-                            ${call.urgency_level === 'CRITICAL' ? 'bg-red-100 text-red-800' :
-                              call.urgency_level === 'HIGH' ? 'bg-orange-100 text-orange-800' :
-                              'bg-yellow-100 text-yellow-800'}
+                            ${call.urgency_level === 'CRITICAL' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]' :
+                              call.urgency_level === 'HIGH' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]' :
+                              'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'}
                           `}>
                             {call.urgency_level}
                           </Badge>
                           <div>
                             <p className="font-bold text-lg">{call.title}</p>
-                            <p className="text-sm text-gray-600">
-                              Réf: {call.call_reference} • 
+                            <p className="text-sm text-[#191919]/70">
+                              Réf: {call.call_reference} •
                               Échéance: {call.days_until_deadline}j
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold text-blue-600">
+                          <p className="text-xl font-bold text-[#6A8A82]">
                             {formatCurrency(call.amount_needed)}
                           </p>
-                          <p className="text-sm text-green-600">
+                          <p className="text-sm text-[var(--color-success)]">
                             Reçu: {formatCurrency(call.amount_received)} ({call.funding_rate}%)
                           </p>
                         </div>
@@ -601,16 +603,16 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-medium text-sm">{contributor.name}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[#191919]/50">
                                   {contributor.percentage}% • {formatCurrency(contributor.allocated)}
                                 </p>
                               </div>
                               <div className="text-right">
                                 <Badge className={`text-xs ${
-                                  contributor.status === 'FULLY_PAID' ? 'bg-green-100 text-green-800' :
-                                  contributor.status === 'PARTIALLY_PAID' ? 'bg-yellow-100 text-yellow-800' :
-                                  contributor.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'
+                                  contributor.status === 'FULLY_PAID' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                                  contributor.status === 'PARTIALLY_PAID' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                                  contributor.status === 'OVERDUE' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]' :
+                                  'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                                 }`}>
                                   {contributor.rate}%
                                 </Badge>
@@ -634,7 +636,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                         {call.status === 'APPROVED' && (
                           <Button 
                             size="sm" 
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                            className="bg-[var(--color-success)] hover:bg-[var(--color-success-dark)] text-white"
                             onClick={() => handleExecuteFundCall(call.call_reference)}
                           >
                             <Mail className="h-4 w-4 mr-2" />
@@ -664,7 +666,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {performanceMetrics?.metrics_detail && Object.entries(performanceMetrics.metrics_detail).map(([key, metric]) => (
                   <div key={key} className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-800 mb-2">
+                    <h4 className="font-medium text-[#191919] mb-2">
                       {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </h4>
                     <div className="space-y-2">
@@ -679,9 +681,9 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                       <Progress value={Math.min(100, metric.score)} className="h-2" />
                       <div className="text-center">
                         <Badge className={`
-                          ${metric.status === 'EXCELLENT' ? 'bg-green-100 text-green-800' :
-                            metric.status === 'GOOD' ? 'bg-blue-100 text-blue-800' :
-                            'bg-orange-100 text-orange-800'}
+                          ${metric.status === 'EXCELLENT' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                            metric.status === 'GOOD' ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                            'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]'}
                         `}>
                           {metric.status} ({metric.score.toFixed(0)}%)
                         </Badge>
@@ -691,22 +693,22 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                 ))}
               </div>
               
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mt-6 p-4 bg-[#ECECEC] border border-[#ECECEC] rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-blue-900">Score Global de Performance</h3>
-                    <p className="text-sm text-blue-700">
+                    <h3 className="font-bold text-[#6A8A82]">Score Global de Performance</h3>
+                    <p className="text-sm text-[#6A8A82]">
                       {performanceMetrics?.targets_met || 0} objectifs atteints sur {performanceMetrics?.total_metrics || 0}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-blue-600">
+                    <div className="text-3xl font-bold text-[#6A8A82]">
                       {(performanceMetrics?.overall_performance_score || 0).toFixed(1)}%
                     </div>
                     <Badge className={`
-                      ${performanceMetrics?.overall_status === 'EXCELLENT' ? 'bg-green-100 text-green-800' :
-                        performanceMetrics?.overall_status === 'GOOD' ? 'bg-blue-100 text-blue-800' :
-                        'bg-orange-100 text-orange-800'}
+                      ${performanceMetrics?.overall_status === 'EXCELLENT' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                        performanceMetrics?.overall_status === 'GOOD' ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                        'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]'}
                     `}>
                       {performanceMetrics?.overall_status}
                     </Badge>
@@ -731,9 +733,9 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium">{connection.bank_name}</h4>
                       <Badge className={`
-                        ${connection.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                          connection.status === 'ERROR' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'}
+                        ${connection.status === 'ACTIVE' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          connection.status === 'ERROR' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]' :
+                          'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'}
                       `}>
                         {connection.status}
                       </Badge>
@@ -749,7 +751,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                       </div>
                       <div className="flex justify-between">
                         <span>Taux succès:</span>
-                        <span className="font-bold text-green-600">
+                        <span className="font-bold text-[var(--color-success)]">
                           {formatPercent(connection.success_rate)}
                         </span>
                       </div>

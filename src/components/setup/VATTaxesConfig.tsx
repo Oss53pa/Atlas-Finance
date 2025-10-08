@@ -271,7 +271,7 @@ const VATTaxesConfig: React.FC = () => {
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === id
                   ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -310,7 +310,7 @@ const VATTaxesConfig: React.FC = () => {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="font-semibold text-gray-900">{vatRate.name}</h3>
-                      <span className="text-xs text-gray-500">{vatRate.code}</span>
+                      <span className="text-xs text-gray-700">{vatRate.code}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className={`text-2xl font-bold ${getVATColor(vatRate.rate)}`}>
@@ -385,10 +385,10 @@ const VATTaxesConfig: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex space-x-2">
-                        <button className="p-1 text-gray-400 hover:text-indigo-600">
+                        <button className="p-1 text-gray-700 hover:text-indigo-600" aria-label="Modifier">
                           <PencilIcon className="h-4 w-4" />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-red-600">
+                        <button className="p-1 text-gray-700 hover:text-red-600" aria-label="Supprimer">
                           <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
@@ -456,28 +456,28 @@ const VATTaxesConfig: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Taxe
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Taux
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Comptes
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Conditions
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Région
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -487,7 +487,7 @@ const VATTaxesConfig: React.FC = () => {
                     <tr key={tax.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">{tax.name}</div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-700">
                           Base: {tax.baseCalculation}
                           {tax.minAmount && ` • Seuil: ${formatCurrency(tax.minAmount)}`}
                         </div>
@@ -540,10 +540,10 @@ const VATTaxesConfig: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex space-x-2 justify-center">
-                          <button className="text-indigo-600 hover:text-indigo-900">
+                          <button className="text-indigo-600 hover:text-indigo-900" aria-label="Modifier">
                             <PencilIcon className="h-4 w-4" />
                           </button>
-                          <button className="text-red-600 hover:text-red-900">
+                          <button className="text-red-600 hover:text-red-900" aria-label="Supprimer">
                             <TrashIcon className="h-4 w-4" />
                           </button>
                         </div>
@@ -678,7 +678,7 @@ const VATTaxesConfig: React.FC = () => {
                         checked={automation.enabled}
                         className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                       />
-                      <span className={`text-sm ${automation.enabled ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className={`text-sm ${automation.enabled ? 'text-green-600' : 'text-gray-700'}`}>
                         {automation.enabled ? 'Activé' : 'Désactivé'}
                       </span>
                     </div>
@@ -723,7 +723,7 @@ const VATTaxesConfig: React.FC = () => {
                         checked={control.enabled}
                         className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                       />
-                      <span className={`text-sm ${control.enabled ? 'text-green-600' : 'text-gray-500'}`}>
+                      <span className={`text-sm ${control.enabled ? 'text-green-600' : 'text-gray-700'}`}>
                         {control.enabled ? 'Activé' : 'Désactivé'}
                       </span>
                     </div>
@@ -743,8 +743,8 @@ const VATTaxesConfig: React.FC = () => {
             Déclarations Fiscales Automatisées
           </h2>
           
-          <div className="text-center text-gray-500 py-12">
-            <DocumentTextIcon className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+          <div className="text-center text-gray-700 py-12">
+            <DocumentTextIcon className="h-16 w-16 mx-auto mb-4 text-gray-700" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Module en Développement</h3>
             <p className="text-gray-600 mb-4">
               Configuration des déclarations TVA, BIC, IS selon calendrier fiscal

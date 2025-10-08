@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Target, DollarSign, Calendar, Users, BarChart3, ArrowLeft, Home,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 const FundCallsPageV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('historique');
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
@@ -264,7 +266,7 @@ const FundCallsPageV2: React.FC = () => {
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Trésorerie</span>
+              <span className="text-sm font-semibold text-[#444444]">{t('navigation.treasury')}</span>
             </button>
             
             <div className="flex items-center space-x-3">
@@ -348,15 +350,15 @@ const FundCallsPageV2: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Banque départ</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Banque arrivée</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Initié par</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commentaires</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('common.date')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Référence</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Banque départ</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Banque arrivée</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Initié par</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Commentaires</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -382,13 +384,13 @@ const FundCallsPageV2: React.FC = () => {
                           <td className="px-4 py-3 text-sm text-gray-600">{fundCall.commentaires}</td>
                           <td className="px-4 py-3 text-center">
                             <div className="flex items-center justify-center space-x-1">
-                              <button className="text-[#6A8A82] hover:text-[#5A7A72] p-1 rounded transition-colors" title="Détails">
+                              <button className="text-[#6A8A82] hover:text-[#5A7A72] p-1 rounded transition-colors" title="Détails" aria-label="Voir les détails">
                                 <Eye className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => navigate(`/treasury/fund-calls/${fundCall.id}`)}
                                 className="text-[#B87333] hover:text-[#A86323] p-1 rounded transition-colors"
-                                title="Modifier"
+                                title={t('common.edit')}
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
@@ -490,7 +492,7 @@ const FundCallsPageV2: React.FC = () => {
               <h3 className="text-lg font-semibold text-[#191919]">➕ Ajouter Nouvelle Dépense</h3>
               <button
                 onClick={() => setShowAddExpenseModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-700 hover:text-gray-600"
               >
                 ✕
               </button>
@@ -533,7 +535,7 @@ const FundCallsPageV2: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
                   />
                   {formDocDate && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-700 mt-1">
                       Âge calculé: {calculateAge(formDocDate)} jours
                     </p>
                   )}
@@ -636,7 +638,7 @@ const FundCallsPageV2: React.FC = () => {
               <h3 className="text-lg font-semibold text-[#191919]">💰 Fund Call Request</h3>
               <button
                 onClick={() => setShowNewFundCallModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-700 hover:text-gray-600"
               >
                 ✕
               </button>
@@ -660,13 +662,13 @@ const FundCallsPageV2: React.FC = () => {
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.date')}</label>
                       <input
                         name="date"
                         type="date"
                         defaultValue={new Date().toISOString().split('T')[0]}
                         disabled
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
                       />
                     </div>
 
@@ -684,7 +686,7 @@ const FundCallsPageV2: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="text-center text-gray-500 font-medium">à</div>
+                    <div className="text-center text-gray-700 font-medium">à</div>
 
                     <div>
                       <select

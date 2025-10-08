@@ -9,11 +9,11 @@ const ExecutivePage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Executive Dashboard
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-700">
             Vue d'ensemble stratégique et indicateurs clés de performance
           </p>
         </div>
-        
+
         <ExecutiveDashboard companyId="1" fiscalYearId="2024" />
       </div>
     </div>

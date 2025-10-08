@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import {
   Lock,
@@ -32,6 +33,7 @@ interface ClosureModule {
 }
 
 const ClosureModulesIndex: React.FC = () => {
+  const { t } = useLanguage();
   const modules: ClosureModule[] = [
     {
       id: 'periodic',
@@ -56,7 +58,7 @@ const ClosureModulesIndex: React.FC = () => {
       description: 'Créez vos workflows de clôture personnalisés avec éditeur graphique',
       path: '/closures/workflow-designer',
       icon: GitBranch,
-      color: 'bg-blue-500',
+      color: 'bg-[var(--color-primary)]',
       features: [
         'Éditeur graphique drag & drop',
         'Templates SYSCOHADA prédéfinis',
@@ -73,7 +75,7 @@ const ClosureModulesIndex: React.FC = () => {
       description: 'Créez des formules complexes avec variables contextuelles et validation SYSCOHADA',
       path: '/closures/formula-editor',
       icon: Calculator,
-      color: 'bg-green-500',
+      color: 'bg-[var(--color-success)]',
       features: [
         'Syntaxe Excel/Python compatible',
         'Variables contextuelles SYSCOHADA',
@@ -106,7 +108,7 @@ const ClosureModulesIndex: React.FC = () => {
       description: 'Module enhanced avec fonctionnalités avancées et analytics',
       path: '/closures/enhanced',
       icon: Zap,
-      color: 'bg-yellow-500',
+      color: 'bg-[var(--color-warning)]',
       features: [
         'Analytics avancés',
         'Reporting automatisé',
@@ -154,7 +156,7 @@ const ClosureModulesIndex: React.FC = () => {
       description: 'Gestion des reports à nouveau et ouverture d\'exercice',
       path: '/closures/carry-forward',
       icon: Calendar,
-      color: 'bg-orange-500',
+      color: 'bg-[var(--color-warning)]',
       features: [
         'Reports automatiques',
         'Ouverture exercice',
@@ -169,7 +171,7 @@ const ClosureModulesIndex: React.FC = () => {
   const getStatusBadge = (status: string, badge?: string) => {
     if (badge) {
       return (
-        <span className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">
+        <span className="px-3 py-1 bg-[var(--color-error)] text-white text-xs font-bold rounded-full animate-pulse">
           {badge}
         </span>
       );
@@ -177,32 +179,32 @@ const ClosureModulesIndex: React.FC = () => {
 
     switch (status) {
       case 'new':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Nouveau</span>;
+        return <span className="px-2 py-1 bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] text-xs font-medium rounded-full">{t('actions.new')}</span>;
       case 'enhanced':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Amélioré</span>;
+        return <span className="px-2 py-1 bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] text-xs font-medium rounded-full">Amélioré</span>;
       default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">Actif</span>;
+        return <span className="px-2 py-1 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] text-xs font-medium rounded-full">Actif</span>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       {/* En-tête */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center">
                   <Lock className="h-8 w-8 mr-3 text-purple-600" />
                   Modules de Gestion des Clôtures
                 </h1>
-                <p className="mt-2 text-gray-600">
+                <p className="mt-2 text-[var(--color-text-primary)]">
                   Suite complète d'outils pour l'automatisation des clôtures comptables SYSCOHADA
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-600">WiseBook v3.0</div>
+                <div className="text-sm text-[var(--color-text-primary)]">WiseBook v3.0</div>
                 <div className="text-lg font-bold text-purple-600">8 Modules Disponibles</div>
               </div>
             </div>
@@ -218,28 +220,28 @@ const ClosureModulesIndex: React.FC = () => {
                   <Bot className="h-8 w-8 text-purple-500" />
                 </div>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
+              <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-600">Gain de Temps</p>
+                    <p className="text-sm text-[var(--color-success)]">Gain de Temps</p>
                     <p className="text-2xl font-bold text-green-900">-50%</p>
                   </div>
-                  <Clock className="h-8 w-8 text-green-500" />
+                  <Clock className="h-8 w-8 text-[var(--color-success)]" />
                 </div>
               </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-600">Conformité</p>
-                    <p className="text-2xl font-bold text-blue-900">98.7%</p>
+                    <p className="text-sm text-[var(--color-primary)]">Conformité</p>
+                    <p className="text-2xl font-bold text-[var(--color-primary-darker)]">98.7%</p>
                   </div>
-                  <Shield className="h-8 w-8 text-blue-500" />
+                  <Shield className="h-8 w-8 text-[var(--color-primary)]" />
                 </div>
               </div>
               <div className="bg-orange-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-orange-600">Utilisateurs</p>
+                    <p className="text-sm text-[var(--color-warning)]">Utilisateurs</p>
                     <p className="text-2xl font-bold text-orange-900">50+</p>
                   </div>
                   <Users className="h-8 w-8 text-orange-500" />
@@ -260,7 +262,7 @@ const ClosureModulesIndex: React.FC = () => {
               <Link
                 key={module.id}
                 to={module.path}
-                className="group bg-white rounded-xl border border-gray-200 p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
+                className="group bg-white rounded-xl border border-[var(--color-border)] p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`${module.color} p-3 rounded-lg group-hover:scale-110 transition-transform`}>
@@ -269,30 +271,30 @@ const ClosureModulesIndex: React.FC = () => {
                   {getStatusBadge(module.status, module.badge)}
                 </div>
 
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-900">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-primary-darker)]">
                   {module.title}
                 </h3>
 
-                <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                <p className="text-[var(--color-text-primary)] text-sm leading-relaxed mb-4">
                   {module.description}
                 </p>
 
                 {/* Liste des fonctionnalités */}
                 <div className="space-y-1 mb-4">
                   {module.features.slice(0, 3).map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-xs text-gray-500">
-                      <CheckCircle className="h-3 w-3 text-green-500" />
+                    <div key={index} className="flex items-center space-x-2 text-xs text-[var(--color-text-secondary)]">
+                      <CheckCircle className="h-3 w-3 text-[var(--color-success)]" />
                       <span>{feature}</span>
                     </div>
                   ))}
                   {module.features.length > 3 && (
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-[var(--color-text-secondary)]">
                       +{module.features.length - 3} autres fonctionnalités...
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center text-blue-600 font-medium text-sm group-hover:text-blue-700">
+                <div className="flex items-center text-[var(--color-primary)] font-medium text-sm group-hover:text-[var(--color-primary-dark)]">
                   <span>Accéder au module</span>
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -302,8 +304,8 @@ const ClosureModulesIndex: React.FC = () => {
         </div>
 
         {/* Section raccourcis rapides */}
-        <div className="mt-12 bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+        <div className="mt-12 bg-white rounded-xl border border-[var(--color-border)] p-6">
+          <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6 flex items-center">
             <Zap className="h-6 w-6 mr-3 text-yellow-500" />
             Accès Rapides
           </h2>
@@ -322,34 +324,34 @@ const ClosureModulesIndex: React.FC = () => {
 
             <Link
               to="/closures/workflow-designer"
-              className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              className="flex items-center space-x-3 p-4 bg-[var(--color-primary-lightest)] rounded-lg hover:bg-[var(--color-primary-lighter)] transition-colors"
             >
-              <GitBranch className="h-8 w-8 text-blue-600" />
+              <GitBranch className="h-8 w-8 text-[var(--color-primary)]" />
               <div>
-                <div className="font-medium text-blue-900">Designer BPMN</div>
-                <div className="text-sm text-blue-700">Créer workflow</div>
+                <div className="font-medium text-[var(--color-primary-darker)]">Designer BPMN</div>
+                <div className="text-sm text-[var(--color-primary-dark)]">Créer workflow</div>
               </div>
             </Link>
 
             <Link
               to="/closures/formula-editor"
-              className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              className="flex items-center space-x-3 p-4 bg-[var(--color-success-lightest)] rounded-lg hover:bg-[var(--color-success-lighter)] transition-colors"
             >
-              <Calculator className="h-8 w-8 text-green-600" />
+              <Calculator className="h-8 w-8 text-[var(--color-success)]" />
               <div>
                 <div className="font-medium text-green-900">Formules</div>
-                <div className="text-sm text-green-700">Calculs avancés</div>
+                <div className="text-sm text-[var(--color-success-dark)]">Calculs avancés</div>
               </div>
             </Link>
 
             <Link
               to="/closures/enhanced"
-              className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+              className="flex items-center space-x-3 p-4 bg-[var(--color-warning-lightest)] rounded-lg hover:bg-[var(--color-warning-lighter)] transition-colors"
             >
-              <Brain className="h-8 w-8 text-yellow-600" />
+              <Brain className="h-8 w-8 text-[var(--color-warning)]" />
               <div>
                 <div className="font-medium text-yellow-900">Analytics IA</div>
-                <div className="text-sm text-yellow-700">Insights avancés</div>
+                <div className="text-sm text-[var(--color-warning-dark)]">Insights avancés</div>
               </div>
             </Link>
           </div>
@@ -357,64 +359,64 @@ const ClosureModulesIndex: React.FC = () => {
 
         {/* Statistiques d'utilisation */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-blue-500" />
+          <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
+              <Clock className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
               Performance Temps Réel
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Temps moyen clôture</span>
-                <span className="font-bold text-green-600">7.2 jours</span>
+                <span className="text-[var(--color-text-primary)]">Temps moyen clôture</span>
+                <span className="font-bold text-[var(--color-success)]">7.2 jours</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Objectif cible</span>
-                <span className="font-bold text-blue-600">7 jours</span>
+                <span className="text-[var(--color-text-primary)]">Objectif cible</span>
+                <span className="font-bold text-[var(--color-primary)]">7 jours</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Amélioration</span>
+                <span className="text-[var(--color-text-primary)]">Amélioration</span>
                 <span className="font-bold text-purple-600">-52%</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-green-500" />
+          <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
+              <Shield className="h-5 w-5 mr-2 text-[var(--color-success)]" />
               Conformité SYSCOHADA
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Score moyen</span>
-                <span className="font-bold text-green-600">98.7%</span>
+                <span className="text-[var(--color-text-primary)]">Score moyen</span>
+                <span className="font-bold text-[var(--color-success)]">98.7%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Contrôles automatiques</span>
-                <span className="font-bold text-blue-600">247/jour</span>
+                <span className="text-[var(--color-text-primary)]">Contrôles automatiques</span>
+                <span className="font-bold text-[var(--color-primary)]">247/jour</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Taux de réussite</span>
-                <span className="font-bold text-green-600">98.9%</span>
+                <span className="text-[var(--color-text-primary)]">Taux de réussite</span>
+                <span className="font-bold text-[var(--color-success)]">98.9%</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
               <Users className="h-5 w-5 mr-2 text-orange-500" />
               Adoption Utilisateurs
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Utilisateurs actifs</span>
-                <span className="font-bold text-orange-600">50+</span>
+                <span className="text-[var(--color-text-primary)]">Utilisateurs actifs</span>
+                <span className="font-bold text-[var(--color-warning)]">50+</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Satisfaction</span>
-                <span className="font-bold text-green-600">9/10</span>
+                <span className="text-[var(--color-text-primary)]">Satisfaction</span>
+                <span className="font-bold text-[var(--color-success)]">9/10</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Adoption IA</span>
+                <span className="text-[var(--color-text-primary)]">Adoption IA</span>
                 <span className="font-bold text-purple-600">+18%</span>
               </div>
             </div>
@@ -422,41 +424,41 @@ const ClosureModulesIndex: React.FC = () => {
         </div>
 
         {/* Documentation et formation */}
-        <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
+        <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-[var(--color-primary-light)] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-blue-900 flex items-center">
+            <h2 className="text-xl font-semibold text-[var(--color-primary-darker)] flex items-center">
               <FileText className="h-6 w-6 mr-3" />
               Documentation & Formation
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-lg border border-blue-200">
-              <h4 className="font-medium text-blue-900 mb-2">📚 Guide Utilisateur</h4>
-              <p className="text-sm text-blue-800 mb-3">
+            <div className="bg-white p-4 rounded-lg border border-[var(--color-primary-light)]">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">📚 Guide Utilisateur</h4>
+              <p className="text-sm text-[var(--color-primary-darker)] mb-3">
                 Documentation complète des workflows et fonctionnalités
               </p>
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium">
                 Consulter →
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-blue-200">
-              <h4 className="font-medium text-blue-900 mb-2">🎓 Formation SYSCOHADA</h4>
-              <p className="text-sm text-blue-800 mb-3">
+            <div className="bg-white p-4 rounded-lg border border-[var(--color-primary-light)]">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">🎓 Formation SYSCOHADA</h4>
+              <p className="text-sm text-[var(--color-primary-darker)] mb-3">
                 Modules e-learning sur les normes comptables
               </p>
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium">
                 Commencer →
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-blue-200">
-              <h4 className="font-medium text-blue-900 mb-2">🛠️ Support Technique</h4>
-              <p className="text-sm text-blue-800 mb-3">
+            <div className="bg-white p-4 rounded-lg border border-[var(--color-primary-light)]">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">🛠️ Support Technique</h4>
+              <p className="text-sm text-[var(--color-primary-darker)] mb-3">
                 Assistance pour configuration et utilisation avancée
               </p>
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium">
                 Contacter →
               </button>
             </div>

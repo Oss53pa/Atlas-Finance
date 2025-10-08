@@ -3,6 +3,7 @@
  * Vue d'ensemble consolidée tous modules selon cahier des charges
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import {
   BarChart3,
@@ -90,6 +91,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   fiscalYearId,
   className = ''
 }) => {
+  const { t } = useLanguage();
   // États
   const [selectedPeriod, setSelectedPeriod] = useState('current_month');
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -209,14 +211,14 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#6A8A82] to-[#B87333] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">W</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
+              <h1 className="text-2xl font-bold text-[#191919]" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
                 WiseBook Executive
               </h1>
-              <p className="text-gray-600">
+              <p className="text-[#191919]/70">
                 Vue d'ensemble consolidée • Temps réel
               </p>
             </div>
@@ -228,7 +230,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             {criticalAlerts?.count > 0 && (
               <Button variant="outline" size="sm" className="relative">
                 <Bell className="h-4 w-4" />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-[var(--color-error)] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {criticalAlerts.count}
                 </span>
               </Button>
@@ -238,7 +240,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               variant="outline"
               size="sm"
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={autoRefresh ? 'bg-green-50 border-green-200' : ''}
+              className={autoRefresh ? 'bg-[#F0F3F2] border-[#6A8A82]' : ''}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
               {autoRefresh ? 'Live' : 'Manuel'}
@@ -250,7 +252,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="today">Aujourd'hui</SelectItem>
+              <SelectItem value="today">{t('common.today')}</SelectItem>
               <SelectItem value="current_week">Cette semaine</SelectItem>
               <SelectItem value="current_month">Ce mois</SelectItem>
               <SelectItem value="current_quarter">Ce trimestre</SelectItem>
@@ -267,9 +269,9 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
 
       {/* Alertes Critiques Executive */}
       {criticalAlerts?.alerts?.length > 0 && (
-        <Card className="border-red-200 bg-gradient-to-r from-red-50 to-orange-50">
+        <Card className="border-[var(--color-error-light)] bg-gradient-to-r from-red-50 to-orange-50">
           <CardHeader>
-            <CardTitle className="flex items-center text-red-800">
+            <CardTitle className="flex items-center text-[var(--color-error-darker)]">
               <AlertTriangle className="h-5 w-5 mr-2 animate-bounce" />
               Alertes Direction ({criticalAlerts.count})
             </CardTitle>
@@ -277,18 +279,18 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           <CardContent>
             <div className="grid gap-3 md:grid-cols-2">
               {criticalAlerts.alerts.slice(0, 4).map((alert, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-white border border-red-200 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-[#F0F3F2] border border-[var(--color-error-light)] rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <Badge className="bg-red-100 text-red-800">
+                    <Badge className="bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]">
                       {alert.module}
                     </Badge>
                     <div>
                       <p className="font-medium text-red-900">{alert.title}</p>
-                      <p className="text-sm text-red-700">{alert.description}</p>
+                      <p className="text-sm text-[var(--color-error-dark)]">{alert.description}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-red-600">
+                    <p className="font-bold text-[var(--color-error)]">
                       {formatCurrency(alert.amount)}
                     </p>
                     <Button size="sm" variant="outline" className="mt-1">
@@ -308,7 +310,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <LoadingSpinner size="sm" text="Chargement..." />
+                <LoadingSpinner size="sm" text={t('common.loading')} />
               </CardContent>
             </Card>
           ))
@@ -319,35 +321,35 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             const moduleColor = getModuleColor(kpi.module);
             
             return (
-              <Card key={index} className={`hover:shadow-lg transition-all duration-300 border-l-4 border-l-${moduleColor}-500`}>
+              <Card key={index} className={`hover:shadow-lg transition-all duration-300 border-l-4 border-l-[#6A8A82]`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className={`p-3 rounded-xl bg-${moduleColor}-100`}>
-                        <Icon className={`h-7 w-7 text-${moduleColor}-600`} />
+                      <div className={`p-3 rounded-xl bg-[#ECECEC]`}>
+                        <Icon className={`h-7 w-7 text-[#6A8A82]`} />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+                        <p className="text-sm font-medium text-[#191919]/70 uppercase tracking-wide">
                           {kpi.title}
                         </p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">
+                        <p className="text-2xl font-bold text-[#191919] mt-1">
                           {kpi.value}
                         </p>
                         {kpi.subValue && (
-                          <p className="text-sm text-gray-500 mt-1">{kpi.subValue}</p>
+                          <p className="text-sm text-[#191919]/50 mt-1">{kpi.subValue}</p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
                       <div className={`flex items-center ${
-                        kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                        kpi.trend === 'up' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                       }`}>
                         <TrendIcon className="h-5 w-5 mr-1" />
                         <span className="text-lg font-bold">
                           {Math.abs(kpi.change)}%
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">vs période préc.</p>
+                      <p className="text-xs text-[#191919]/50 mt-1">vs période préc.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -378,7 +380,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </span>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline">Données consolidées</Badge>
-                  <Badge className="bg-blue-100 text-blue-800">Temps réel</Badge>
+                  <Badge className="bg-[#ECECEC] text-[#6A8A82]">Temps réel</Badge>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -390,10 +392,10 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   data={financialTrends?.consolidated_trends || []}
                   xAxisKey="date"
                   lines={[
-                    { key: 'cash_position', name: 'Position Trésorerie', color: '#3B82F6' },
-                    { key: 'receivables', name: 'Créances Clients', color: '#10B981' },
-                    { key: 'payables', name: 'Dettes Fournisseurs', color: '#F59E0B' },
-                    { key: 'net_income', name: 'Résultat Net', color: '#8B5CF6' }
+                    { key: 'cash_position', name: 'Position Trésorerie', color: "var(--color-primary)" },
+                    { key: 'receivables', name: 'Créances Clients', color: "var(--color-success)" },
+                    { key: 'payables', name: 'Dettes Fournisseurs', color: "var(--color-warning)" },
+                    { key: 'net_income', name: 'Résultat Net', color: "var(--color-info)" }
                   ]}
                   height={400}
                 />
@@ -416,18 +418,18 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   {performanceBenchmark?.modules_performance?.map((module, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900">{module.name}</h4>
+                        <h4 className="font-medium text-[#191919]">{module.name}</h4>
                         <Badge className={`
-                          ${module.score >= 95 ? 'bg-green-100 text-green-800' :
-                            module.score >= 80 ? 'bg-blue-100 text-blue-800' :
-                            module.score >= 65 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'}
+                          ${module.score >= 95 ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                            module.score >= 80 ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                            module.score >= 65 ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                            'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                         `}>
                           {module.score.toFixed(0)}%
                         </Badge>
                       </div>
                       <Progress value={module.score} className="mb-2" />
-                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                      <div className="grid grid-cols-2 gap-2 text-xs text-[#191919]/70">
                         <span>Objectifs atteints: {module.targets_met}/{module.total_targets}</span>
                         <span className="text-right">Status: {module.status}</span>
                       </div>
@@ -449,26 +451,26 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="space-y-3">
                   {operationalMetrics?.priority_actions?.map((action, index) => (
                     <div key={index} className={`p-3 rounded-lg border ${
-                      action.priority === 'CRITICAL' ? 'bg-red-50 border-red-200' :
-                      action.priority === 'HIGH' ? 'bg-orange-50 border-orange-200' :
-                      'bg-yellow-50 border-yellow-200'
+                      action.priority === 'CRITICAL' ? 'bg-[var(--color-error-lightest)] border-[var(--color-error-light)]' :
+                      action.priority === 'HIGH' ? 'bg-[var(--color-warning-lightest)] border-[var(--color-warning-light)]' :
+                      'bg-[var(--color-warning-lightest)] border-[var(--color-warning-light)]'
                     }`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Badge className={`text-xs ${
-                            action.priority === 'CRITICAL' ? 'bg-red-100 text-red-800' :
-                            action.priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
-                            'bg-yellow-100 text-yellow-800'
+                            action.priority === 'CRITICAL' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]' :
+                            action.priority === 'HIGH' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]' :
+                            'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'
                           }`}>
                             {action.module}
                           </Badge>
                           <div>
-                            <p className="font-medium text-gray-900">{action.title}</p>
-                            <p className="text-sm text-gray-600">{action.description}</p>
+                            <p className="font-medium text-[#191919]">{action.title}</p>
+                            <p className="text-sm text-[#191919]/70">{action.description}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-red-600">
+                          <p className="font-bold text-[var(--color-error)]">
                             {formatCurrency(action.amount)}
                           </p>
                           <Button size="sm" variant="outline" className="mt-1">
@@ -486,27 +488,27 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           {/* Widgets temps réel modulaires */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Widget Trésorerie */}
-            <Card className="border-l-4 border-l-blue-500">
+            <Card className="border-l-4 border-l-[#6A8A82]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-blue-800 flex items-center">
+                <CardTitle className="text-sm font-medium text-[#6A8A82] flex items-center">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Trésorerie
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-blue-600">
+                <div className="text-xl font-bold text-[#6A8A82]">
                   {formatCurrency(consolidatedKPIs?.cashPosition || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-600">Disponible</span>
-                  <span className="text-xs font-medium text-blue-600">
+                  <span className="text-xs text-[#191919]/70">Disponible</span>
+                  <span className="text-xs font-medium text-[#6A8A82]">
                     {formatCurrency(consolidatedKPIs?.cashPosition + consolidatedKPIs?.creditLines || 0)}
                   </span>
                 </div>
                 <div className="mt-2">
-                  <div className="h-1 bg-gray-200 rounded">
-                    <div 
-                      className="h-1 bg-blue-500 rounded transition-all duration-500"
+                  <div className="h-1 bg-[#ECECEC] rounded">
+                    <div
+                      className="h-1 bg-[#6A8A82] rounded transition-all duration-500"
                       style={{ 
                         width: `${Math.min(100, (consolidatedKPIs?.cashPosition / (consolidatedKPIs?.cashPosition + consolidatedKPIs?.creditLines) * 100) || 0)}%` 
                       }}
@@ -519,26 +521,26 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             {/* Widget Clients */}
             <Card className="border-l-4 border-l-green-500">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-green-800 flex items-center">
+                <CardTitle className="text-sm font-medium text-[var(--color-success-darker)] flex items-center">
                   <Users className="h-4 w-4 mr-2" />
                   Clients
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-green-600">
+                <div className="text-xl font-bold text-[var(--color-success)]">
                   {formatCurrency(consolidatedKPIs?.totalReceivables || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-600">DSO</span>
+                  <span className="text-xs text-[#191919]/70">DSO</span>
                   <span className={`text-xs font-medium ${
-                    consolidatedKPIs?.dso <= 30 ? 'text-green-600' : 'text-red-600'
+                    consolidatedKPIs?.dso <= 30 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                   }`}>
                     {consolidatedKPIs?.dso || 0}j
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">Recouvrement</span>
-                  <span className="text-xs font-medium text-green-600">
+                  <span className="text-xs text-[#191919]/70">{t('thirdParty.collection')}</span>
+                  <span className="text-xs font-medium text-[var(--color-success)]">
                     {formatPercent(consolidatedKPIs?.collectionRate || 0)}
                   </span>
                 </div>
@@ -546,26 +548,26 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
 
             {/* Widget Fournisseurs */}
-            <Card className="border-l-4 border-l-orange-500">
+            <Card className="border-l-4 border-l-[#B87333]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-orange-800 flex items-center">
+                <CardTitle className="text-sm font-medium text-[#B87333] flex items-center">
                   <CreditCard className="h-4 w-4 mr-2" />
                   Fournisseurs
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-orange-600">
+                <div className="text-xl font-bold text-[#B87333]">
                   {formatCurrency(consolidatedKPIs?.totalPayables || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-600">DPO</span>
-                  <span className="text-xs font-medium text-orange-600">
+                  <span className="text-xs text-[#191919]/70">DPO</span>
+                  <span className="text-xs font-medium text-[#B87333]">
                     {consolidatedKPIs?.dpo || 0}j
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">Escomptes</span>
-                  <span className="text-xs font-medium text-green-600">
+                  <span className="text-xs text-[#191919]/70">Escomptes</span>
+                  <span className="text-xs font-medium text-[var(--color-success)]">
                     {formatCurrency(consolidatedKPIs?.discountsCaptured || 0)}
                   </span>
                 </div>
@@ -573,28 +575,28 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
 
             {/* Widget Performance */}
-            <Card className="border-l-4 border-l-purple-500">
+            <Card className="border-l-4 border-l-[#6A8A82]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-purple-800 flex items-center">
+                <CardTitle className="text-sm font-medium text-[#6A8A82] flex items-center">
                   <Activity className="h-4 w-4 mr-2" />
                   Performance
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-purple-600">
+                <div className="text-xl font-bold text-[#6A8A82]">
                   {formatPercent(consolidatedKPIs?.operatingMargin || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-600">Marge</span>
+                  <span className="text-xs text-[#191919]/70">Marge</span>
                   <span className={`text-xs font-medium ${
-                    consolidatedKPIs?.operatingMargin >= 15 ? 'text-green-600' : 'text-red-600'
+                    consolidatedKPIs?.operatingMargin >= 15 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                   }`}>
                     Objectif: 15%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">Cycle BFR</span>
-                  <span className="text-xs font-medium text-purple-600">
+                  <span className="text-xs text-[#191919]/70">Cycle BFR</span>
+                  <span className="text-xs font-medium text-[#6A8A82]">
                     {consolidatedKPIs?.cashConversionCycle || 0}j
                   </span>
                 </div>
@@ -635,16 +637,16 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{ratio.name}</p>
-                        <p className="text-sm text-gray-600">{ratio.description}</p>
+                        <p className="text-sm text-[#191919]/70">{ratio.description}</p>
                       </div>
                       <div className="text-right">
                         <p className={`text-lg font-bold ${
-                          ratio.status === 'GOOD' ? 'text-green-600' :
-                          ratio.status === 'WARNING' ? 'text-yellow-600' : 'text-red-600'
+                          ratio.status === 'GOOD' ? 'text-[var(--color-success)]' :
+                          ratio.status === 'WARNING' ? 'text-[var(--color-warning)]' : 'text-[var(--color-error)]'
                         }`}>
                           {ratio.value}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-[#191919]/50">
                           Norme: {ratio.benchmark}
                         </p>
                       </div>
@@ -668,8 +670,8 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 data={financialTrends?.cash_flow_breakdown || []}
                 xAxisKey="category"
                 bars={[
-                  { key: 'inflows', name: 'Entrées', color: '#10B981' },
-                  { key: 'outflows', name: 'Sorties', color: '#EF4444' }
+                  { key: 'inflows', name: 'Entrées', color: "var(--color-success)" },
+                  { key: 'outflows', name: 'Sorties', color: "var(--color-error)" }
                 ]}
                 height={300}
               />
@@ -683,45 +685,45 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent className="p-4 text-center">
-                <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-600">
+                <Clock className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
+                <div className="text-2xl font-bold text-[#6A8A82]">
                   {operationalMetrics?.processing_times?.average_entry_time || 0}s
                 </div>
-                <p className="text-sm text-gray-600">Temps Saisie Écriture</p>
-                <p className="text-xs text-gray-500">Objectif: &lt; 0.5s</p>
+                <p className="text-sm text-[#191919]/70">Temps Saisie Écriture</p>
+                <p className="text-xs text-[#191919]/50">Objectif: &lt; 0.5s</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-green-600">
+                <CheckCircle className="h-8 w-8 text-[var(--color-success)] mx-auto mb-2" />
+                <div className="text-2xl font-bold text-[var(--color-success)]">
                   {operationalMetrics?.automation_rates?.reconciliation || 0}%
                 </div>
-                <p className="text-sm text-gray-600">Lettrage Auto</p>
-                <p className="text-xs text-gray-500">Objectif: &gt; 98%</p>
+                <p className="text-sm text-[#191919]/70">Lettrage Auto</p>
+                <p className="text-xs text-[#191919]/50">Objectif: &gt; 98%</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Target className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-purple-600">
+                <Target className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
+                <div className="text-2xl font-bold text-[#6A8A82]">
                   {operationalMetrics?.performance_scores?.overall_system || 0}%
                 </div>
-                <p className="text-sm text-gray-600">Performance Système</p>
-                <p className="text-xs text-gray-500">Score global</p>
+                <p className="text-sm text-[#191919]/70">Performance Système</p>
+                <p className="text-xs text-[#191919]/50">Score global</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Shield className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-indigo-600">
+                <Shield className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
+                <div className="text-2xl font-bold text-[#6A8A82]">
                   99.9%
                 </div>
-                <p className="text-sm text-gray-600">Disponibilité</p>
-                <p className="text-xs text-gray-500">SLA respecté</p>
+                <p className="text-sm text-[#191919]/70">Disponibilité</p>
+                <p className="text-xs text-[#191919]/50">SLA respecté</p>
               </CardContent>
             </Card>
           </div>
@@ -750,35 +752,35 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <tbody className="space-y-2">
                     <tr>
                       <td className="py-2">Temps réponse moyen</td>
-                      <td className="text-center font-bold text-green-600">&lt; 100ms</td>
-                      <td className="text-center text-gray-600">500-1000ms</td>
-                      <td className="text-center text-gray-600">300-800ms</td>
-                      <td className="text-center text-gray-600">200-500ms</td>
-                      <td className="text-center font-bold text-green-600">5-10x</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">&lt; 100ms</td>
+                      <td className="text-center text-[#191919]/70">500-1000ms</td>
+                      <td className="text-center text-[#191919]/70">300-800ms</td>
+                      <td className="text-center text-[#191919]/70">200-500ms</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">5-10x</td>
                     </tr>
                     <tr>
                       <td className="py-2">Clôture mensuelle</td>
-                      <td className="text-center font-bold text-green-600">&lt; 30min</td>
-                      <td className="text-center text-gray-600">2-4h</td>
-                      <td className="text-center text-gray-600">1-3h</td>
-                      <td className="text-center text-gray-600">1-2h</td>
-                      <td className="text-center font-bold text-green-600">4-8x</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">&lt; 30min</td>
+                      <td className="text-center text-[#191919]/70">2-4h</td>
+                      <td className="text-center text-[#191919]/70">1-3h</td>
+                      <td className="text-center text-[#191919]/70">1-2h</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">4-8x</td>
                     </tr>
                     <tr>
                       <td className="py-2">Lettrage automatique</td>
-                      <td className="text-center font-bold text-green-600">&gt; 98%</td>
-                      <td className="text-center text-gray-600">70-80%</td>
-                      <td className="text-center text-gray-600">75-85%</td>
-                      <td className="text-center text-gray-600">60-70%</td>
-                      <td className="text-center font-bold text-green-600">+20%</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">&gt; 98%</td>
+                      <td className="text-center text-[#191919]/70">70-80%</td>
+                      <td className="text-center text-[#191919]/70">75-85%</td>
+                      <td className="text-center text-[#191919]/70">60-70%</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">+20%</td>
                     </tr>
                     <tr>
                       <td className="py-2">SYSCOHADA natif</td>
-                      <td className="text-center font-bold text-green-600">100%</td>
-                      <td className="text-center text-gray-600">Adapté</td>
-                      <td className="text-center text-gray-600">Adapté</td>
-                      <td className="text-center text-gray-600">Partiel</td>
-                      <td className="text-center font-bold text-green-600">Natif</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">100%</td>
+                      <td className="text-center text-[#191919]/70">Adapté</td>
+                      <td className="text-center text-[#191919]/70">Adapté</td>
+                      <td className="text-center text-[#191919]/70">Partiel</td>
+                      <td className="text-center font-bold text-[var(--color-success)]">Natif</td>
                     </tr>
                   </tbody>
                 </table>
@@ -800,20 +802,20 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-800">Objectifs de Performance</h4>
+                  <h4 className="font-semibold text-[#191919]">Objectifs de Performance</h4>
                   {performanceBenchmark?.performance_targets?.map((target, index) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{target.metric_name}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[#191919]/70">
                           Actuel: {target.current_value} • Cible: {target.target_value}
                         </p>
                       </div>
                       <div className="text-right">
                         <Badge className={`
-                          ${target.achievement >= 100 ? 'bg-green-100 text-green-800' :
-                            target.achievement >= 80 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'}
+                          ${target.achievement >= 100 ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                            target.achievement >= 80 ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                            'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                         `}>
                           {target.achievement.toFixed(0)}%
                         </Badge>
@@ -823,12 +825,12 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-800">Score Global</h4>
-                  <div className="text-center p-6 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-4xl font-bold text-blue-600 mb-2">
+                  <h4 className="font-semibold text-[#191919]">Score Global</h4>
+                  <div className="text-center p-6 bg-[#ECECEC] rounded-lg border border-[#ECECEC]">
+                    <div className="text-4xl font-bold text-[#6A8A82] mb-2">
                       {performanceBenchmark?.global_score?.toFixed(1) || 0}%
                     </div>
-                    <p className="text-blue-800 font-medium">Excellence Opérationnelle</p>
+                    <p className="text-[#6A8A82] font-medium">Excellence Opérationnelle</p>
                     <Progress 
                       value={performanceBenchmark?.global_score || 0} 
                       className="mt-3 h-2"
@@ -836,17 +838,17 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   </div>
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="text-center p-2 bg-green-50 rounded">
-                      <p className="font-bold text-green-600">
+                    <div className="text-center p-2 bg-[var(--color-success-lightest)] rounded">
+                      <p className="font-bold text-[var(--color-success)]">
                         {performanceBenchmark?.targets_exceeded || 0}
                       </p>
-                      <p className="text-green-800 text-xs">Objectifs dépassés</p>
+                      <p className="text-[var(--color-success-darker)] text-xs">Objectifs dépassés</p>
                     </div>
-                    <div className="text-center p-2 bg-blue-50 rounded">
-                      <p className="font-bold text-blue-600">
+                    <div className="text-center p-2 bg-[#ECECEC] rounded">
+                      <p className="font-bold text-[#6A8A82]">
                         {performanceBenchmark?.targets_met || 0}
                       </p>
-                      <p className="text-blue-800 text-xs">Objectifs atteints</p>
+                      <p className="text-[#6A8A82] text-xs">Objectifs atteints</p>
                     </div>
                   </div>
                 </div>
@@ -857,7 +859,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       </Tabs>
 
       {/* Footer avec métriques système */}
-      <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+      <div className="flex items-center justify-between text-sm text-[#191919]/50 pt-4 border-t">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -871,7 +873,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             Utilisateurs connectés: {operationalMetrics?.active_users || 0}
           </span>
           {autoRefresh && (
-            <span className="text-green-600">Live data • 5min refresh</span>
+            <span className="text-[var(--color-success)]">Live data • 5min refresh</span>
           )}
         </div>
         

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { 
   Calculator, FileText, BookOpen, BarChart3, TrendingUp, DollarSign, 
   ArrowUpRight, ArrowDownRight, Plus, Download, Filter, RefreshCw,
@@ -18,8 +20,10 @@ interface JournalEntry {
 }
 
 const AccountingDashboardV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
-  const [selectedPeriod, setSelectedPeriod] = useState('current');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [activeTab, setActiveTab] = useState('overview');
 
   // Métriques comptables temps réel
@@ -78,7 +82,7 @@ const AccountingDashboardV2: React.FC = () => {
   const accountingTabs = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
     { id: 'entries', label: 'Écritures récentes', icon: FileText },
-    { id: 'validation', label: 'En attente', icon: Clock, badge: '8' },
+    { id: 'validation', label: t('status.pending'), icon: Clock, badge: '8' },
     { id: 'syscohada', label: 'États SYSCOHADA', icon: PieChart },
   ];
 
@@ -90,8 +94,8 @@ const AccountingDashboardV2: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button 
-                onClick={() => navigate('/')}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 text-[#444444]" />
                 <span className="text-sm font-semibold text-[#444444]">Workspaces</span>
@@ -117,18 +121,20 @@ const AccountingDashboardV2: React.FC = () => {
                 <span className="text-sm">Workspace</span>
               </button>
               
-              <select 
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-2 border border-[#D9D9D9] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82]/20"
+              <button
+                onClick={() => setShowPeriodModal(true)}
+                className="px-3 py-2 border border-[#D9D9D9] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82]/20 flex items-center space-x-2 hover:bg-gray-50"
               >
-                <option value="current">Période actuelle</option>
-                <option value="month">Ce mois</option>
-                <option value="quarter">Ce trimestre</option>
-                <option value="year">Cette année</option>
-              </select>
+                <Calendar className="w-4 h-4 text-[#6A8A82]" />
+                <span>
+                  {dateRange.start && dateRange.end
+                    ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                    : 'Période'
+                  }
+                </span>
+              </button>
               
-              <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+              <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
                 <RefreshCw className="w-4 h-4 text-[#767676]" />
               </button>
             </div>
@@ -157,7 +163,7 @@ const AccountingDashboardV2: React.FC = () => {
                   {tab.badge && (
                     <span className={`
                       px-2 py-0.5 text-xs font-medium rounded-full
-                      ${activeTab === tab.id ? 'bg-[#6A8A82] text-white' : 'bg-red-100 text-red-600'}
+                      ${activeTab === tab.id ? 'bg-[#6A8A82] text-white' : 'bg-[var(--color-error-lighter)] text-[var(--color-error)]'}
                     `}>
                       {tab.badge}
                     </span>
@@ -192,7 +198,7 @@ const AccountingDashboardV2: React.FC = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className={`text-xs font-medium flex items-center space-x-1 ${
-                          metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                          metric.trend === 'up' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
                           {metric.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                           <span>{metric.change}</span>
@@ -254,10 +260,10 @@ const AccountingDashboardV2: React.FC = () => {
                   <p className="text-sm text-[#767676]">Dernières saisies et validations</p>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+                  <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Filtrer">
                     <Filter className="w-4 h-4 text-[#767676]" />
                   </button>
-                  <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+                  <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Télécharger">
                     <Download className="w-4 h-4 text-[#767676]" />
                   </button>
                   <button 
@@ -273,45 +279,45 @@ const AccountingDashboardV2: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[#767676] uppercase">Référence</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#767676] uppercase">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#767676] uppercase">Description</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-[#767676] uppercase">Débit</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-[#767676] uppercase">Crédit</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#767676] uppercase">{t('time.date')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#767676] uppercase">{t('form.description')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-[#767676] uppercase">{t('accounting.debit')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-[#767676] uppercase">{t('accounting.credit')}</th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-[#767676] uppercase">Statut</th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-[#767676] uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {recentEntries.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={entry.id} className="hover:bg-[var(--color-background-secondary)] transition-colors">
                       <td className="px-4 py-3 text-sm font-mono text-[#191919]">{entry.reference}</td>
                       <td className="px-4 py-3 text-sm text-[#444444]">{entry.date}</td>
                       <td className="px-4 py-3 text-sm text-[#444444]">{entry.description}</td>
                       <td className="px-4 py-3 text-sm font-mono text-right">
                         {entry.debit > 0 && (
-                          <span className="text-red-600 font-medium">{entry.debit.toLocaleString()}€</span>
+                          <span className="text-[var(--color-error)] font-medium">{entry.debit.toLocaleString()}€</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm font-mono text-right">
                         {entry.credit > 0 && (
-                          <span className="text-green-600 font-medium">{entry.credit.toLocaleString()}€</span>
+                          <span className="text-[var(--color-success)] font-medium">{entry.credit.toLocaleString()}€</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          entry.status === 'validated' ? 'bg-green-100 text-green-800' :
-                          entry.status === 'posted' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
+                          entry.status === 'validated' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          entry.status === 'posted' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                          'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'
                         }`}>
                           {entry.status === 'validated' ? 'Validé' : entry.status === 'posted' ? 'Comptabilisé' : 'Brouillon'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center space-x-2">
-                          <button className="text-[#6A8A82] hover:text-[#5A7A72]">
+                          <button className="text-[#6A8A82] hover:text-[#5A7A72]" aria-label="Voir les détails">
                             <Eye className="w-4 h-4" />
                           </button>
                           <button className="text-[#B87333] hover:text-[#A86323]">
@@ -327,6 +333,14 @@ const AccountingDashboardV2: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

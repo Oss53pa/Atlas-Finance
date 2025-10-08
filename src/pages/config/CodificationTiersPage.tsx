@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -106,6 +107,7 @@ interface ThirdPartyExample {
 }
 
 const CodificationTiersPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('active');
@@ -514,7 +516,7 @@ const CodificationTiersPage: React.FC = () => {
             <TabsTrigger value="rules">Règles de Codification</TabsTrigger>
             <TabsTrigger value="categories">Catégories</TabsTrigger>
             <TabsTrigger value="examples">Exemples Générés</TabsTrigger>
-            <TabsTrigger value="settings">Paramètres</TabsTrigger>
+            <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="rules" className="space-y-4">
@@ -523,7 +525,7 @@ const CodificationTiersPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
                       placeholder="Rechercher une règle..."
                       value={searchTerm}
@@ -538,8 +540,8 @@ const CodificationTiersPage: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tous les types</SelectItem>
-                      <SelectItem value="client">Clients</SelectItem>
-                      <SelectItem value="fournisseur">Fournisseurs</SelectItem>
+                      <SelectItem value="client">{t('navigation.clients')}</SelectItem>
+                      <SelectItem value="fournisseur">{t('navigation.suppliers')}</SelectItem>
                       <SelectItem value="employe">Employés</SelectItem>
                       <SelectItem value="autre">Autres</SelectItem>
                     </SelectContent>
@@ -604,7 +606,7 @@ const CodificationTiersPage: React.FC = () => {
                                 </div>
                                 <div>
                                   <p className="font-semibold text-gray-900">{rule.name}</p>
-                                  <p className="text-sm text-gray-500">{rule.description}</p>
+                                  <p className="text-sm text-gray-700">{rule.description}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -619,13 +621,13 @@ const CodificationTiersPage: React.FC = () => {
                                 <Badge variant="outline" className="font-mono mb-1">
                                   {rule.pattern}
                                 </Badge>
-                                <p className="text-xs text-gray-500">{rule.format}</p>
+                                <p className="text-xs text-gray-700">{rule.format}</p>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
                                 <p className="font-medium">Actuel: {rule.counter_current}</p>
-                                <p className="text-gray-500">Longueur: {rule.length}</p>
+                                <p className="text-gray-700">Longueur: {rule.length}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -639,7 +641,7 @@ const CodificationTiersPage: React.FC = () => {
                                   </Badge>
                                 </div>
                                 {rule.prefix && (
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-gray-700">
                                     Préfixe: {rule.prefix}
                                   </div>
                                 )}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { cn } from '../../lib/utils';
 import { Loader2 } from 'lucide-react';
 
@@ -98,7 +99,7 @@ const ModernButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {isLoading ? (
           <>
             <Loader2 className="animate-spin" size={size === 'xs' ? 14 : size === 'sm' ? 16 : 18} />
-            <span>Chargement...</span>
+            <span>{t('common.loading')}</span>
           </>
         ) : (
           <>

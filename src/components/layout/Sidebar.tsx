@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  BookOpen, 
-  Users, 
-  FileText, 
-  Calendar, 
-  Settings, 
+import {
+  BookOpen,
+  Users,
+  FileText,
+  Calendar,
+  Settings,
   BarChart3,
   Home,
   BookMarked,
@@ -15,6 +15,7 @@ import {
 import { useAuthStore } from '@/store/auth';
 import { UserRole } from '@/types';
 import { cn } from '@/utils/cn';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface SidebarProps {
 
 interface NavigationItem {
   name: string;
+  translationKey?: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   requiredRole?: UserRole;
@@ -31,6 +33,7 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   {
     name: 'Dashboard',
+    translationKey: 'navigation.dashboard',
     href: '/dashboard',
     icon: Home,
   },
@@ -77,6 +80,7 @@ const navigation: NavigationItem[] = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuthStore();
+  const { t } = useLanguage();
 
   const filteredNavigation = navigation.filter(item => {
     if (!item.requiredRole) return true;
@@ -153,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     onClick={onClose}
                   >
                     <item.icon className="h-5 w-5" />
-                    {item.name}
+                    {item.translationKey ? t(item.translationKey) : item.name}
                   </NavLink>
                 </li>
               ))}

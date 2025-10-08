@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { toast } from 'react-hot-toast';
+import { closuresService, uploadDocumentSchema } from '../../../services/modules/closures.service';
 import {
   FileText, Upload, Download, FolderOpen, Archive,
   Search, Filter, Clock, CheckCircle, AlertCircle,
@@ -6,7 +11,7 @@ import {
   User, Tag, Paperclip, File, FileSpreadsheet,
   Shield, Database, Cloud, HardDrive, FolderArchive,
   FileCheck, FileX, FilePlus, History, Key,
-  Hash, ChevronRight, MoreVertical, Grid, List
+  Hash, ChevronRight, MoreVertical, Grid, List, X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
@@ -52,11 +57,38 @@ interface DossierCloture {
 }
 
 const DocumentsArchives: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedDossier, setSelectedDossier] = useState<string>('2025-01');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [filterCategorie, setFilterCategorie] = useState('tous');
   const [searchQuery, setSearchQuery] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [formData, setFormData] = useState({
+    type: 'balance' as 'balance' | 'grand_livre' | 'etats_financiers' | 'pv' | 'liasse_fiscale',
+    fichier: null as File | null,
+    periode: new Date().toISOString().substring(0, 7), // YYYY-MM
+    exercice: new Date().getFullYear().toString(),
+    tags: [] as string[],
+    niveau_securite: 'restreint' as 'public' | 'restreint' | 'confidentiel' | 'strictement_confidentiel',
+    duree_conservation: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const uploadMutation = useMutation({
+    mutationFn: closuresService.uploadDocument,
+    onSuccess: () => {
+      toast.success('Document archivé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      setShowUploadModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de l\'upload');
+    },
+  });
 
   // Données exemple - Dossiers de clôture
   const dossiersCloture: DossierCloture[] = [
@@ -400,7 +432,7 @@ const DocumentsArchives: React.FC = () => {
     { value: 'rapprochement', label: 'Rapprochements', icon: FileCheck },
     { value: 'inventaire', label: 'Inventaires', icon: Archive },
     { value: 'provisions', label: 'Provisions', icon: Database },
-    { value: 'immobilisations', label: 'Immobilisations', icon: HardDrive },
+    { value: 'immobilisations', label: t('navigation.assets'), icon: HardDrive },
     { value: 'audit', label: 'Rapports d\'Audit', icon: Shield },
     { value: 'pv', label: 'PV & Validations', icon: FileCheck },
     { value: 'autre', label: 'Autres', icon: File }
@@ -408,21 +440,90 @@ const DocumentsArchives: React.FC = () => {
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case 'pdf': return <FileText className="w-5 h-5 text-red-500" />;
-      case 'excel': return <FileSpreadsheet className="w-5 h-5 text-green-500" />;
-      case 'word': return <FileText className="w-5 h-5 text-blue-500" />;
+      case 'pdf': return <FileText className="w-5 h-5 text-[var(--color-error)]" />;
+      case 'excel': return <FileSpreadsheet className="w-5 h-5 text-[var(--color-success)]" />;
+      case 'word': return <FileText className="w-5 h-5 text-[var(--color-primary)]" />;
       case 'zip': return <Archive className="w-5 h-5 text-yellow-500" />;
-      default: return <File className="w-5 h-5 text-gray-500" />;
+      default: return <File className="w-5 h-5 text-[var(--color-text-secondary)]" />;
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      type: 'balance',
+      fichier: null,
+      periode: new Date().toISOString().substring(0, 7),
+      exercice: new Date().getFullYear().toString(),
+      tags: [],
+      niveau_securite: 'restreint',
+      duree_conservation: '',
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    if (field === 'fichier') {
+      const file = (value as FileList)?.[0] || null;
+      setFormData(prev => ({ ...prev, fichier: file }));
+    } else if (field === 'tags') {
+      const tagsArray = typeof value === 'string' ? value.split(',').map(tag => tag.trim()).filter(tag => tag) : value;
+      setFormData(prev => ({ ...prev, [field]: tagsArray }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Validation spéciale pour fichiers
+      if (!formData.fichier) {
+        setErrors({ fichier: 'Un fichier est requis' });
+        toast.error('Veuillez sélectionner un fichier');
+        return;
+      }
+
+      // Validate with Zod
+      const validatedData = uploadDocumentSchema.parse(formData);
+
+      // Submit to backend
+      await uploadMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de l\'archivage du document');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const getStatutColor = (statut: string) => {
     switch (statut) {
-      case 'valide': return 'bg-green-100 text-green-700';
-      case 'en_revision': return 'bg-yellow-100 text-yellow-700';
-      case 'archive': return 'bg-gray-100 text-gray-700';
-      case 'obsolete': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'valide': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]';
+      case 'en_revision': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
+      case 'archive': return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
+      case 'obsolete': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
   };
 
@@ -446,7 +547,7 @@ const DocumentsArchives: React.FC = () => {
               <Upload className="w-4 h-4" />
               <span>Ajouter documents</span>
             </button>
-            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2">
               <Download className="w-4 h-4" />
               <span>Exporter archive</span>
             </button>
@@ -455,21 +556,21 @@ const DocumentsArchives: React.FC = () => {
 
         {/* Statistiques globales */}
         <div className="grid grid-cols-6 gap-4">
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg border border-[var(--color-primary-light)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-blue-700">Dossiers</span>
-              <FolderOpen className="w-4 h-4 text-blue-600" />
+              <span className="text-sm text-[var(--color-primary-dark)]">Dossiers</span>
+              <FolderOpen className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
-            <p className="text-2xl font-bold text-blue-800">{stats.totalDossiers}</p>
-            <p className="text-xs text-blue-600 mt-1">{stats.dossiersValides} validés</p>
+            <p className="text-2xl font-bold text-[var(--color-primary-darker)]">{stats.totalDossiers}</p>
+            <p className="text-xs text-[var(--color-primary)] mt-1">{stats.dossiersValides} validés</p>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg border border-[var(--color-success-light)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-green-700">Documents</span>
-              <FileText className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-[var(--color-success-dark)]">Documents</span>
+              <FileText className="w-4 h-4 text-[var(--color-success)]" />
             </div>
-            <p className="text-2xl font-bold text-green-800">{stats.totalDocuments}</p>
-            <p className="text-xs text-green-600 mt-1">{stats.documentsConformes} conformes</p>
+            <p className="text-2xl font-bold text-[var(--color-success-darker)]">{stats.totalDocuments}</p>
+            <p className="text-xs text-[var(--color-success)] mt-1">{stats.documentsConformes} conformes</p>
           </div>
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
             <div className="flex items-center justify-between mb-2">
@@ -481,11 +582,11 @@ const DocumentsArchives: React.FC = () => {
           </div>
           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-orange-700">Espace utilisé</span>
-              <HardDrive className="w-4 h-4 text-orange-600" />
+              <span className="text-sm text-[var(--color-warning-dark)]">Espace utilisé</span>
+              <HardDrive className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
             <p className="text-lg font-bold text-orange-800">{stats.espaceTotalUtilise}</p>
-            <p className="text-xs text-orange-600 mt-1">Sur 5 GB</p>
+            <p className="text-xs text-[var(--color-warning)] mt-1">Sur 5 GB</p>
           </div>
           <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
             <div className="flex items-center justify-between mb-2">
@@ -523,7 +624,7 @@ const DocumentsArchives: React.FC = () => {
                   <button
                     key={dossier.id}
                     onClick={() => setSelectedDossier(dossier.periode)}
-                    className={`w-full text-left p-3 hover:bg-gray-50 border-l-4 transition-colors ${
+                    className={`w-full text-left p-3 hover:bg-[var(--color-background-secondary)] border-l-4 transition-colors ${
                       selectedDossier === dossier.periode
                         ? 'bg-[#6A8A82]/10 border-[#6A8A82]'
                         : 'border-transparent'
@@ -540,8 +641,8 @@ const DocumentsArchives: React.FC = () => {
                               dossier.type === 'annuelle'
                                 ? 'border-purple-300 text-purple-700'
                                 : dossier.type === 'trimestrielle'
-                                ? 'border-blue-300 text-blue-700'
-                                : 'border-gray-300'
+                                ? 'border-blue-300 text-[var(--color-primary-dark)]'
+                                : 'border-[var(--color-border-dark)]'
                             }`}
                           >
                             {dossier.type}
@@ -565,7 +666,7 @@ const DocumentsArchives: React.FC = () => {
                       </div>
                       <div className="ml-2">
                         {dossier.conforme ? (
-                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                         ) : (
                           <AlertCircle className="w-4 h-4 text-yellow-500" />
                         )}
@@ -591,15 +692,15 @@ const DocumentsArchives: React.FC = () => {
               <CardTitle className="text-sm">Actions Rapides</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <button className="w-full text-left p-2 hover:bg-gray-50 rounded flex items-center space-x-2">
+              <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
                 <FilePlus className="w-4 h-4 text-[#6A8A82]" />
                 <span className="text-sm">Créer nouveau dossier</span>
               </button>
-              <button className="w-full text-left p-2 hover:bg-gray-50 rounded flex items-center space-x-2">
+              <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
                 <History className="w-4 h-4 text-[#767676]" />
                 <span className="text-sm">Historique des modifications</span>
               </button>
-              <button className="w-full text-left p-2 hover:bg-gray-50 rounded flex items-center space-x-2">
+              <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
                 <Key className="w-4 h-4 text-[#767676]" />
                 <span className="text-sm">Gérer les accès</span>
               </button>
@@ -636,13 +737,13 @@ const DocumentsArchives: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded ${viewMode === 'list' ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
+                  className={`p-2 rounded ${viewMode === 'list' ? 'bg-[var(--color-background-hover)]' : 'hover:bg-[var(--color-background-secondary)]'}`}
                 >
                   <List className="w-5 h-5 text-[#767676]" />
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded ${viewMode === 'grid' ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
+                  className={`p-2 rounded ${viewMode === 'grid' ? 'bg-[var(--color-background-hover)]' : 'hover:bg-[var(--color-background-secondary)]'}`}
                 >
                   <Grid className="w-5 h-5 text-[#767676]" />
                 </button>
@@ -655,12 +756,12 @@ const DocumentsArchives: React.FC = () => {
             <div className="bg-white rounded-lg border border-[#E8E8E8]">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-[#E8E8E8]">
+                  <thead className="bg-[var(--color-background-secondary)] border-b border-[#E8E8E8]">
                     <tr>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">Document</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">Catégorie</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">Auteur</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">Date</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">{t('common.date')}</th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-[#444444]">Statut</th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-[#444444]">Sécurité</th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-[#444444]">Actions</th>
@@ -668,7 +769,7 @@ const DocumentsArchives: React.FC = () => {
                   </thead>
                   <tbody>
                     {filteredDocuments.map(doc => (
-                      <tr key={doc.id} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                      <tr key={doc.id} className="border-b border-[#E8E8E8] hover:bg-[var(--color-background-secondary)]">
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-3">
                             {getFileIcon(doc.type)}
@@ -697,30 +798,30 @@ const DocumentsArchives: React.FC = () => {
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center space-x-2">
                             {doc.verrouille ? (
-                              <Lock className="w-4 h-4 text-red-500" />
+                              <Lock className="w-4 h-4 text-[var(--color-error)]" />
                             ) : (
-                              <Unlock className="w-4 h-4 text-gray-400" />
+                              <Unlock className="w-4 h-4 text-[var(--color-text-secondary)]" />
                             )}
                             {doc.signature && (
-                              <Shield className="w-4 h-4 text-green-500" />
+                              <Shield className="w-4 h-4 text-[var(--color-success)]" />
                             )}
                             {doc.conforme && (
-                              <CheckCircle className="w-4 h-4 text-blue-500" />
+                              <CheckCircle className="w-4 h-4 text-[var(--color-primary)]" />
                             )}
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 hover:bg-gray-100 rounded">
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
                               <Eye className="w-4 h-4 text-[#767676]" />
                             </button>
-                            <button className="p-1 hover:bg-gray-100 rounded">
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Télécharger">
                               <Download className="w-4 h-4 text-[#767676]" />
                             </button>
-                            <button className="p-1 hover:bg-gray-100 rounded">
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Partager">
                               <Share2 className="w-4 h-4 text-[#767676]" />
                             </button>
-                            <button className="p-1 hover:bg-gray-100 rounded">
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
                               <MoreVertical className="w-4 h-4 text-[#767676]" />
                             </button>
                           </div>
@@ -736,12 +837,12 @@ const DocumentsArchives: React.FC = () => {
                   Affichage de 1-{Math.min(10, filteredDocuments.length)} sur {filteredDocuments.length} documents
                 </span>
                 <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-gray-50 text-sm">
+                  <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)] text-sm">
                     Précédent
                   </button>
                   <button className="px-3 py-1 bg-[#6A8A82] text-white rounded text-sm">1</button>
-                  <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-gray-50 text-sm">2</button>
-                  <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-gray-50 text-sm">
+                  <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)] text-sm">2</button>
+                  <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)] text-sm">
                     Suivant
                   </button>
                 </div>
@@ -756,9 +857,9 @@ const DocumentsArchives: React.FC = () => {
                     <div className="flex items-start justify-between mb-3">
                       {getFileIcon(doc.type)}
                       <div className="flex items-center space-x-1">
-                        {doc.verrouille && <Lock className="w-3 h-3 text-red-500" />}
-                        {doc.signature && <Shield className="w-3 h-3 text-green-500" />}
-                        {doc.conforme && <CheckCircle className="w-3 h-3 text-blue-500" />}
+                        {doc.verrouille && <Lock className="w-3 h-3 text-[var(--color-error)]" />}
+                        {doc.signature && <Shield className="w-3 h-3 text-[var(--color-success)]" />}
+                        {doc.conforme && <CheckCircle className="w-3 h-3 text-[var(--color-primary)]" />}
                       </div>
                     </div>
                     <h3 className="font-medium text-sm text-[#191919] mb-1 truncate">{doc.nom}</h3>
@@ -779,10 +880,10 @@ const DocumentsArchives: React.FC = () => {
                         {doc.statut}
                       </Badge>
                       <div className="flex items-center space-x-1">
-                        <button className="p-1 hover:bg-gray-100 rounded">
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
                           <Eye className="w-3 h-3 text-[#767676]" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 rounded">
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Télécharger">
                           <Download className="w-3 h-3 text-[#767676]" />
                         </button>
                       </div>
@@ -811,7 +912,7 @@ const DocumentsArchives: React.FC = () => {
               Les modifications sont tracées et l'intégrité des fichiers est vérifiée automatiquement.
             </AlertDescription>
           </Alert>
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-4 p-4 bg-[var(--color-background-secondary)] rounded-lg">
             <h4 className="text-sm font-medium mb-3">Dernières activités</h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
@@ -830,6 +931,245 @@ const DocumentsArchives: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Téléverser Document</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  resetForm();
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <FileText className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-purple-900 mb-1">Ajout de Document</h4>
+                      <p className="text-sm text-purple-800">Téléversez et cataloguez vos documents de clôture dans l&apos;archive digitale sécurisée.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* File Upload */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sélection de Fichier</h3>
+                  <div className="border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-6 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
+                    <div className="mt-4">
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        <span className="mt-2 block text-sm font-medium text-[var(--color-text-primary)]">
+                          Glissez vos fichiers ici ou cliquez pour parcourir
+                        </span>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          className="sr-only"
+                          accept=".pdf,.xlsx,.xls,.docx,.doc,.jpg,.jpeg,.png,.zip"
+                          onChange={(e) => handleInputChange('fichier', e.target.files)}
+                          disabled={isSubmitting}
+                        />
+                      </label>
+                      {formData.fichier && (
+                        <p className="mt-1 text-sm text-[var(--color-success)]">
+                          Fichier sélectionné: {formData.fichier.name}
+                        </p>
+                      )}
+                      {errors.fichier && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.fichier}</p>
+                      )}
+                      <p className="mt-1 text-xs text-[var(--color-text-secondary)]">PDF, Excel, Word, Images jusqu&apos;à 10MB</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Metadata */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Informations du Document</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Nom du Document</label>
+                      <input
+                        type="text"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Ex: Balance Générale Sept 2024"
+                        value={formData.type}
+                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.type && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.type}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Catégorie</label>
+                      <select
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={formData.type}
+                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="">-- Sélectionner catégorie --</option>
+                        <option value="balance">Balance Générale</option>
+                        <option value="grand_livre">Grand Livre</option>
+                        <option value="etats_financiers">États Financiers</option>
+                        <option value="pv">Procès-Verbaux</option>
+                        <option value="liasse_fiscale">Liasse Fiscale</option>
+                      </select>
+                      {errors.type && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.type}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période</label>
+                      <input
+                        type="month"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Ex: 2024-09"
+                        value={formData.periode}
+                        onChange={(e) => handleInputChange('periode', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.periode && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.periode}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Type de Clôture</label>
+                      <input
+                        type="text"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Ex: 2024"
+                        value={formData.exercice}
+                        onChange={(e) => handleInputChange('exercice', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.exercice && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.exercice}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Security and Access */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sécurité et Accès</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Niveau de Confidentialité</label>
+                      <select
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={formData.niveau_securite}
+                        onChange={(e) => handleInputChange('niveau_securite', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="public">Public</option>
+                        <option value="restreint">Restreint</option>
+                        <option value="confidentiel">Confidentiel</option>
+                        <option value="strictement_confidentiel">Strictement Confidentiel</option>
+                      </select>
+                      {errors.niveau_securite && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.niveau_securite}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Droits d&apos;Accès</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Ex: 10 (ans)"
+                        value={formData.duree_conservation}
+                        onChange={(e) => handleInputChange('duree_conservation', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.duree_conservation && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.duree_conservation}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tags and Description */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Classification</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Tags (séparés par des virgules)</label>
+                      <input
+                        type="text"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="comptabilité, clôture, septembre, validation"
+                        value={Array.isArray(formData.tags) ? formData.tags.join(', ') : ''}
+                        onChange={(e) => handleInputChange('tags', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.tags && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.tags}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Description</label>
+                      <textarea className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows={3} placeholder="Description détaillée du document..."></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Téléversement...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    <span>Téléverser le Document</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

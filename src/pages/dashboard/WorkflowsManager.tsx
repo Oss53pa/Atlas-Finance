@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   GitBranch, CheckCircle, XCircle, Clock, Play, Pause,
   SkipForward, AlertTriangle, User, Users, Calendar,
@@ -56,6 +57,7 @@ interface ApprovalRequest {
 }
 
 const WorkflowsManager: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'workflows' | 'approvals' | 'templates'>('workflows');
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
@@ -311,7 +313,7 @@ const WorkflowsManager: React.FC = () => {
         return 'bg-green-100 text-green-700';
       case 'paused':
       case 'pending':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-amber-100 text-amber-700';
       case 'failed':
       case 'rejected':
       case 'cancelled':
@@ -319,7 +321,7 @@ const WorkflowsManager: React.FC = () => {
       case 'draft':
         return 'bg-gray-100 text-gray-700';
       default:
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-[#D1DDD9] text-[#588075]';
     }
   };
 
@@ -330,9 +332,9 @@ const WorkflowsManager: React.FC = () => {
       case 'high':
         return <Flag className="w-4 h-4 text-orange-600" />;
       case 'medium':
-        return <Flag className="w-4 h-4 text-yellow-600" />;
+        return <Flag className="w-4 h-4 text-amber-600" />;
       case 'low':
-        return <Flag className="w-4 h-4 text-gray-400" />;
+        return <Flag className="w-4 h-4 text-gray-700" />;
       default:
         return null;
     }
@@ -385,7 +387,7 @@ const WorkflowsManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <GitBranch className="w-8 h-8 text-blue-600" />
+            <GitBranch className="w-8 h-8 text-[#6A8A82]" />
             Workflows & Approbations
           </h1>
           <p className="text-gray-600 mt-1">Automatisation et gestion des processus métier</p>
@@ -396,7 +398,7 @@ const WorkflowsManager: React.FC = () => {
             <Upload className="w-4 h-4" />
             Importer
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#588075]">
             <Plus className="w-4 h-4" />
             Nouveau Workflow
           </button>
@@ -408,19 +410,19 @@ const WorkflowsManager: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Workflows Actifs</span>
-            <Activity className="w-5 h-5 text-blue-500" />
+            <Activity className="w-5 h-5 text-[#78998F]" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.activeWorkflows}</p>
-          <p className="text-xs text-gray-500 mt-1">En cours d'exécution</p>
+          <p className="text-xs text-gray-700 mt-1">En cours d'exécution</p>
         </div>
 
-        <div className="bg-yellow-50 rounded-lg shadow p-4 border border-yellow-200">
+        <div className="bg-amber-50 rounded-lg shadow p-4 border border-amber-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-yellow-700">En Attente</span>
-            <Clock className="w-5 h-5 text-yellow-500" />
+            <span className="text-sm font-medium text-amber-700">En Attente</span>
+            <Clock className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-yellow-700">{stats.pendingApprovals}</p>
-          <p className="text-xs text-yellow-600 mt-1">Approbations requises</p>
+          <p className="text-2xl font-bold text-amber-700">{stats.pendingApprovals}</p>
+          <p className="text-xs text-amber-600 mt-1">Approbations requises</p>
         </div>
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
@@ -429,16 +431,16 @@ const WorkflowsManager: React.FC = () => {
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-2xl font-bold text-green-700">{stats.completedToday}</p>
-          <p className="text-xs text-green-600 mt-1">Aujourd'hui</p>
+          <p className="text-xs text-green-600 mt-1">{t('common.today')}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Temps Moyen</span>
-            <Timer className="w-5 h-5 text-gray-500" />
+            <Timer className="w-5 h-5 text-gray-700" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.avgCompletionTime}</p>
-          <p className="text-xs text-gray-500 mt-1">Par workflow</p>
+          <p className="text-xs text-gray-700 mt-1">Par workflow</p>
         </div>
       </div>
 
@@ -453,8 +455,8 @@ const WorkflowsManager: React.FC = () => {
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                   activeTab === tab
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "border-[#78998F] text-[#6A8A82]"
+                    : "border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300"
                 )}
               >
                 {tab === 'workflows' && 'Workflows Actifs'}
@@ -470,13 +472,13 @@ const WorkflowsManager: React.FC = () => {
           {/* Search and Filters */}
           <div className="flex gap-4 mb-6">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
               />
             </div>
             {activeTab === 'workflows' && (
@@ -484,7 +486,7 @@ const WorkflowsManager: React.FC = () => {
                 <select
                   value={filter.status}
                   onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
                 >
                   <option value="all">Tous les statuts</option>
                   <option value="active">Actif</option>
@@ -494,7 +496,7 @@ const WorkflowsManager: React.FC = () => {
                 <select
                   value={filter.category}
                   onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
                 >
                   <option value="all">Toutes catégories</option>
                   <option value="finance">Finance</option>
@@ -531,12 +533,12 @@ const WorkflowsManager: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                       {workflow.status === 'active' && (
-                        <button className="p-1 hover:bg-gray-100 rounded">
+                        <button className="p-1 hover:bg-gray-100 rounded" aria-label="Pause">
                           <Pause className="w-4 h-4 text-gray-600" />
                         </button>
                       )}
                       {workflow.status === 'paused' && (
-                        <button className="p-1 hover:bg-gray-100 rounded">
+                        <button className="p-1 hover:bg-gray-100 rounded" aria-label="Lire">
                           <Play className="w-4 h-4 text-gray-600" />
                         </button>
                       )}
@@ -548,13 +550,13 @@ const WorkflowsManager: React.FC = () => {
 
                   {/* Progress Bar */}
                   <div className="mb-3">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <div className="flex justify-between text-xs text-gray-700 mb-1">
                       <span>Étape {workflow.currentStep} sur {workflow.totalSteps}</span>
                       <span>{workflow.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        className="bg-[#6A8A82] h-2 rounded-full transition-all"
                         style={{ width: `${workflow.progress}%` }}
                       />
                     </div>
@@ -567,8 +569,8 @@ const WorkflowsManager: React.FC = () => {
                         <div className={cn(
                           "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium",
                           step.status === 'completed' && "bg-green-100 text-green-700",
-                          step.status === 'in_progress' && "bg-blue-100 text-blue-700",
-                          step.status === 'pending' && "bg-gray-100 text-gray-400",
+                          step.status === 'in_progress' && "bg-[#D1DDD9] text-[#588075]",
+                          step.status === 'pending' && "bg-gray-100 text-gray-700",
                           step.status === 'failed' && "bg-red-100 text-red-700"
                         )}>
                           {step.status === 'completed' ? <CheckCircle className="w-4 h-4" /> :
@@ -583,7 +585,7 @@ const WorkflowsManager: React.FC = () => {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                  <div className="flex items-center gap-4 mt-3 text-xs text-gray-700">
                     <span>Créé par: {workflow.createdBy}</span>
                     <span>Modifié: {new Date(workflow.lastModified).toLocaleString()}</span>
                   </div>
@@ -614,8 +616,8 @@ const WorkflowsManager: React.FC = () => {
                       <p className="text-sm text-gray-600 mb-2">{approval.description}</p>
 
                       <div className="flex items-center gap-4 text-sm">
-                        <span className="text-gray-500">Type: {approval.type}</span>
-                        <span className="text-gray-500">Demandeur: {approval.requester}</span>
+                        <span className="text-gray-700">Type: {approval.type}</span>
+                        <span className="text-gray-700">Demandeur: {approval.requester}</span>
                         {approval.amount && (
                           <span className="font-medium text-gray-900">
                             Montant: {approval.amount.toLocaleString()}
@@ -625,14 +627,14 @@ const WorkflowsManager: React.FC = () => {
 
                       {approval.attachments && approval.attachments.length > 0 && (
                         <div className="flex items-center gap-2 mt-2">
-                          <FileText className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-500">
+                          <FileText className="w-4 h-4 text-gray-700" />
+                          <span className="text-sm text-gray-700">
                             {approval.attachments.length} pièce(s) jointe(s)
                           </span>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-700">
                         <span>Créé: {new Date(approval.createdAt).toLocaleString()}</span>
                         <span className="text-red-600">Échéance: {new Date(approval.dueDate).toLocaleDateString()}</span>
                       </div>
@@ -676,11 +678,11 @@ const WorkflowsManager: React.FC = () => {
                 >
                   <div className="flex items-start justify-between mb-3">
                     {getCategoryIcon(template.category)}
-                    <span className="text-xs text-gray-500">{template.uses} utilisations</span>
+                    <span className="text-xs text-gray-700">{template.uses} utilisations</span>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
                   <p className="text-sm text-gray-600 mb-3">{template.steps} étapes</p>
-                  <button className="w-full px-3 py-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100">
+                  <button className="w-full px-3 py-2 bg-[#E8EEEC] text-[#588075] rounded hover:bg-[#D1DDD9]">
                     Utiliser ce modèle
                   </button>
                 </div>

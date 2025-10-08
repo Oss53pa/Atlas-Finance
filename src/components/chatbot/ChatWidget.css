@@ -19,59 +19,143 @@
   --chat-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Toggle Button - Bouton flottant */
+/* Toggle Button - Bouton flottant amélioré */
 .chat-widget-toggle {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--chat-primary), var(--chat-secondary));
+  width: 85px;
+  height: 85px;
+  background: linear-gradient(135deg, #6A8A82, #4A6A62);
   color: white;
-  border: none;
+  border: 3px solid white;
   border-radius: 50%;
-  cursor: grab;
-  box-shadow: var(--chat-shadow-lg);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(106, 138, 130, 0.4), 0 5px 15px rgba(0, 0, 0, 0.2);
   transition: var(--chat-transition);
   z-index: 1000;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-}
-
-.chat-widget-toggle:active {
-  cursor: grabbing;
+  overflow: visible;
+  position: relative;
 }
 
 .chat-widget-toggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  transform: scale(1.08);
+  box-shadow: 0 15px 40px rgba(106, 138, 130, 0.5), 0 8px 20px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, #4A6A62, #6A8A82);
 }
 
 .chat-widget-toggle:active {
-  transform: scale(0.95);
+  transform: scale(1.02);
 }
 
-.chat-widget-toggle__badge {
+.chat-widget-toggle__name {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  background: var(--chat-secondary);
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #B87333, #D4A574);
   color: white;
-  font-size: 9px;
-  font-weight: 600;
-  padding: 3px 7px;
-  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
   border: 2px solid white;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  animation: badgePulse 2s infinite ease-in-out;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  animation: namePulse 3s infinite ease-in-out;
 }
 
-@keyframes badgePulse {
+@keyframes namePulse {
   0%, 100% {
-    transform: scale(1);
+    transform: translateX(-50%) scale(1);
   }
   50% {
-    transform: scale(1.05);
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+/* Styles pour l'avatar Paloma */
+.paloma-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.paloma-avatar__container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.paloma-avatar--lg .paloma-name,
+.paloma-avatar--xl .paloma-name {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.paloma-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.paloma-name__text {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.paloma-name__subtitle {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 2px;
+}
+
+.paloma-typing-indicator {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  display: flex;
+  gap: 2px;
+  background: white;
+  padding: 4px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.paloma-typing-indicator span {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #6A8A82;
+  animation: typing 1.4s infinite;
+}
+
+.paloma-typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.paloma-typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
   }
 }
 
@@ -79,7 +163,7 @@
 .chat-widget {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  left: 24px;
   width: 380px;
   height: 600px;
   background: var(--chat-background);

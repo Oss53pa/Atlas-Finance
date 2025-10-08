@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, Building2, UserCheck, Clock, DollarSign, TrendingUp,
@@ -7,16 +8,17 @@ import {
 } from 'lucide-react';
 
 const CompleteThirdPartyModuleV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('clients');
 
   // Onglets gestion tiers
   const tabs = [
-    { id: 'clients', label: 'Clients', icon: Users, badge: '156' },
-    { id: 'fournisseurs', label: 'Fournisseurs', icon: Building2, badge: '89' },
+    { id: 'clients', label: t('navigation.clients'), icon: Users, badge: '156' },
+    { id: 'fournisseurs', label: t('navigation.suppliers'), icon: Building2, badge: '89' },
     { id: 'contacts', label: 'Contacts', icon: UserCheck, badge: '234' },
-    { id: 'echeances', label: 'Échéances', icon: Clock, badge: '12' },
-    { id: 'recouvrement', label: 'Recouvrement', icon: DollarSign },
+    { id: 'echeances', label: t('thirdParty.dueDate'), icon: Clock, badge: '12' },
+    { id: 'recouvrement', label: t('thirdParty.collection'), icon: DollarSign },
     { id: 'analytics', label: 'Analyses', icon: TrendingUp },
   ];
 

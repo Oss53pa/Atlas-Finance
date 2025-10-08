@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -30,7 +31,8 @@ import {
   Save,
   RefreshCw,
   Zap,
-  List
+  List,
+  X
 } from 'lucide-react';
 import {
   Card,
@@ -58,6 +60,7 @@ import {
   TabsTrigger,
   Progress
 } from '../../components/ui';
+import DataTable, { Column } from '../../components/ui/DataTable';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
@@ -108,11 +111,200 @@ interface AllocationRule {
 }
 
 const AxesAnalytiquesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('active');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newAxis, setNewAxis] = useState({
+    code: '',
+    libelle: '',
+    description: '',
+    type: 'centre_cout' as const,
+    niveau: 1,
+    parent_id: '',
+    is_mandatory: false,
+    obligatoire_saisie: false,
+    account_mask: ''
+  });
+
+  // Configuration des colonnes pour DataTable
+  const axesColumns: Column<AnalyticalAxis>[] = [
+    {
+      key: 'code',
+      label: 'Code/Libellé',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '200px',
+      render: (item) => (
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            {getTypeIcon(item.type)}
+          </div>
+          <div>
+            <div style={{ paddingLeft: `${(item.niveau - 1) * 20}px` }}>
+              <span className="inline-block font-mono text-xs bg-gray-100 px-2 py-1 rounded mb-1">
+                {item.code}
+              </span>
+            </div>
+            <p className="font-medium text-gray-900 text-sm">{item.libelle}</p>
+            {item.parent_id && (
+              <div className="flex items-center mt-1">
+                <GitBranch className="h-3 w-3 text-gray-700 mr-1" />
+                <span className="text-xs text-gray-700">Sous-axe</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'type',
+      label: 'Type',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: 'centre_cout', label: 'Centre de Coût' },
+        { value: 'centre_profit', label: 'Centre de Profit' },
+        { value: 'projet', label: 'Projet' },
+        { value: 'geographique', label: 'Géographique' },
+        { value: 'activite', label: 'Activité' },
+        { value: 'produit', label: 'Produit' }
+      ],
+      width: '150px',
+      render: (item) => (
+        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(item.type)}`}>
+          {getTypeIcon(item.type)}
+          <span className="ml-1">
+            {item.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'niveau',
+      label: 'Niveau',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: '1', label: 'Niveau 1' },
+        { value: '2', label: 'Niveau 2' },
+        { value: '3', label: 'Niveau 3' }
+      ],
+      width: '120px',
+      align: 'center',
+      render: (item) => (
+        <div className="flex items-center space-x-2 justify-center">
+          <span className="inline-block px-2 py-1 text-xs border rounded">
+            Niveau {item.niveau}
+          </span>
+          {item.children_count > 0 && (
+            <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+              {item.children_count} enfants
+            </span>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'is_mandatory',
+      label: 'Configuration',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: 'true', label: 'Obligatoire' },
+        { value: 'false', label: 'Facultatif' }
+      ],
+      width: '130px',
+      render: (item) => (
+        <div className="space-y-1">
+          {item.is_mandatory && (
+            <span className="inline-block text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+              Obligatoire
+            </span>
+          )}
+          {item.obligatoire_saisie && (
+            <span className="inline-block text-xs border px-2 py-1 rounded">
+              Saisie Requise
+            </span>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'account_mask',
+      label: 'Masque Comptes',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '120px',
+      align: 'center',
+      render: (item) => (
+        <span className="inline-block font-mono text-xs border px-2 py-1 rounded">
+          {item.account_mask}
+        </span>
+      )
+    },
+    {
+      key: 'transactions_count',
+      label: 'Activité',
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      width: '120px',
+      render: (item) => (
+        <div className="text-sm">
+          <p className="font-medium text-gray-700">
+            {item.transactions_count} écritures
+          </p>
+          <p className="text-xs text-gray-700">
+            Dernière: {formatDate(item.last_activity)}
+          </p>
+        </div>
+      )
+    },
+    {
+      key: 'total_amount',
+      label: 'Montant',
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      width: '120px',
+      align: 'right',
+      render: (item) => (
+        <span className={`font-bold text-sm ${
+          item.total_amount >= 0 ? 'text-green-700' : 'text-red-700'
+        }`}>
+          {formatCurrency(Math.abs(item.total_amount))}
+        </span>
+      )
+    },
+    {
+      key: 'is_active',
+      label: 'Statut',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: 'true', label: 'Actif' },
+        { value: 'false', label: 'Inactif' }
+      ],
+      width: '100px',
+      align: 'center',
+      render: (item) => (
+        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.is_active)}`}>
+          {getStatusIcon(item.is_active)}
+          <span className="ml-1">{item.is_active ? 'Actif' : 'Inactif'}</span>
+        </div>
+      )
+    }
+  ];
 
   // Mock data for analytical axes
   const mockAxes: AnalyticalAxis[] = [
@@ -384,7 +576,28 @@ const AxesAnalytiquesPage: React.FC = () => {
   };
 
   const handleCreateAxis = () => {
-    toast.success('Création d\'un nouvel axe analytique...');
+    setShowCreateModal(true);
+  };
+
+  const handleSaveNewAxis = () => {
+    if (!newAxis.code || !newAxis.libelle) {
+      toast.error('Le code et le libellé sont obligatoires');
+      return;
+    }
+
+    toast.success(`Code analytique ${newAxis.code} créé avec succès`);
+    setShowCreateModal(false);
+    setNewAxis({
+      code: '',
+      libelle: '',
+      description: '',
+      type: 'centre_cout',
+      niveau: 1,
+      parent_id: '',
+      is_mandatory: false,
+      obligatoire_saisie: false,
+      account_mask: ''
+    });
   };
 
   const handleEditAxis = (axisId: string) => {
@@ -548,80 +761,7 @@ const AxesAnalytiquesPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value="axes" className="space-y-4">
-            {/* Filters */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="grid gap-4 md:grid-cols-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Rechercher un axe..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tous les types</SelectItem>
-                      <SelectItem value="centre_cout">Centre de Coût</SelectItem>
-                      <SelectItem value="centre_profit">Centre de Profit</SelectItem>
-                      <SelectItem value="projet">Projet</SelectItem>
-                      <SelectItem value="geographique">Géographique</SelectItem>
-                      <SelectItem value="activite">Activité</SelectItem>
-                      <SelectItem value="produit">Produit</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tous</SelectItem>
-                      <SelectItem value="active">Actif</SelectItem>
-                      <SelectItem value="inactive">Inactif</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Niveau" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tous les niveaux</SelectItem>
-                      <SelectItem value="1">Niveau 1</SelectItem>
-                      <SelectItem value="2">Niveau 2</SelectItem>
-                      <SelectItem value="3">Niveau 3</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="show-inactive"
-                      checked={showInactive}
-                      onChange={(e) => setShowInactive(e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                    <label htmlFor="show-inactive" className="text-sm text-gray-700">
-                      Inclure inactifs
-                    </label>
-                  </div>
-
-                  <Button variant="outline" className="flex items-center">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filtres Avancés
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Axes Table */}
+            {/* Axes Table avec DataTable intégré */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -632,149 +772,44 @@ const AxesAnalytiquesPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <LoadingSpinner size="lg" text="Chargement des axes analytiques..." />
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Code/Libellé</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Niveau</TableHead>
-                          <TableHead>Configuration</TableHead>
-                          <TableHead>Masque Comptes</TableHead>
-                          <TableHead>Activité</TableHead>
-                          <TableHead>Montant</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead className="text-center">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredAxes.map((axis) => (
-                          <TableRow key={axis.id} className="hover:bg-gray-50">
-                            <TableCell>
-                              <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                  {getTypeIcon(axis.type)}
-                                </div>
-                                <div>
-                                  <div style={{ paddingLeft: `${(axis.niveau - 1) * 20}px` }}>
-                                    <Badge variant="outline" className="font-mono mb-1">
-                                      {axis.code}
-                                    </Badge>
-                                  </div>
-                                  <p className="font-medium text-gray-900">{axis.libelle}</p>
-                                  {axis.parent_id && (
-                                    <div className="flex items-center mt-1">
-                                      <GitBranch className="h-3 w-3 text-gray-400 mr-1" />
-                                      <span className="text-xs text-gray-500">Sous-axe</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(axis.type)}`}>
-                                {getTypeIcon(axis.type)}
-                                <span className="ml-1">
-                                  {axis.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="outline">
-                                  Niveau {axis.niveau}
-                                </Badge>
-                                {axis.children_count > 0 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {axis.children_count} enfants
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="space-y-1">
-                                {axis.is_mandatory && (
-                                  <Badge variant="default" className="text-xs bg-red-100 text-red-800">
-                                    Obligatoire
-                                  </Badge>
-                                )}
-                                {axis.obligatoire_saisie && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Saisie Requise
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="font-mono">
-                                {axis.account_mask}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                <p className="font-medium text-gray-700">
-                                  {axis.transactions_count} écritures
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  Dernière: {formatDate(axis.last_activity)}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className={`font-bold ${
-                                axis.total_amount >= 0 ? 'text-green-700' : 'text-red-700'
-                              }`}>
-                                {formatCurrency(Math.abs(axis.total_amount))}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(axis.is_active)}`}>
-                                {getStatusIcon(axis.is_active)}
-                                <span className="ml-1">{axis.is_active ? 'Actif' : 'Inactif'}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex items-center justify-center space-x-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditAxis(axis.id)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteAxis(axis.id)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
+                <DataTable
+                  columns={axesColumns}
+                  data={filteredAxes}
+                  loading={isLoading}
+                  pageSize={10}
+                  searchable={true}
+                  exportable={true}
+                  refreshable={true}
+                  actions={(item) => (
+                    <div className="flex items-center space-x-1">
+                      <button
+                        className="p-1 hover:bg-gray-100 rounded transition-colors"
+                        title="Voir les détails" aria-label="Voir les détails">
+                        <Eye className="w-4 h-4 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={() => handleEditAxis(item.id)}
+                        className="p-1 hover:bg-blue-100 rounded transition-colors"
+                        title="Modifier l'axe"
+                      >
+                        <Edit className="w-4 h-4 text-blue-600" />
+                      </button>
+                      <button
+                        className="p-1 hover:bg-green-100 rounded transition-colors"
+                        title="Dupliquer l'axe" aria-label="Dupliquer">
+                        <Copy className="w-4 h-4 text-green-600" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAxis(item.id)}
+                        className="p-1 hover:bg-red-100 rounded transition-colors"
+                        title="Supprimer l'axe"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </div>
+                  )}
+                  emptyMessage="Aucun axe analytique trouvé"
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -979,9 +1014,9 @@ const AxesAnalytiquesPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <BarChart3 className="h-16 w-16 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Rapports Analytiques</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     Tableaux de bord et rapports de contrôle de gestion
                   </p>
                   <div className="flex justify-center space-x-4">
@@ -1004,6 +1039,213 @@ const AxesAnalytiquesPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </motion.div>
+
+      {/* Modal de création de code analytique */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <Plus className="mr-2 h-6 w-6 text-blue-600" />
+                Créer un nouveau code analytique
+              </h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Formulaire de création */}
+            <div className="grid grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Code *
+                </label>
+                <input
+                  type="text"
+                  value={newAxis.code}
+                  onChange={(e) => setNewAxis({ ...newAxis, code: e.target.value.toUpperCase() })}
+                  placeholder="Ex: CC001, PRJ001..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Libellé *
+                </label>
+                <input
+                  type="text"
+                  value={newAxis.libelle}
+                  onChange={(e) => setNewAxis({ ...newAxis, libelle: e.target.value })}
+                  placeholder="Ex: Direction Générale, Projet Alpha..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={newAxis.description}
+                  onChange={(e) => setNewAxis({ ...newAxis, description: e.target.value })}
+                  placeholder="Description détaillée du code analytique..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type *
+                </label>
+                <select
+                  value={newAxis.type}
+                  onChange={(e) => setNewAxis({ ...newAxis, type: e.target.value as any })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="centre_cout">Centre de Coût</option>
+                  <option value="centre_profit">Centre de Profit</option>
+                  <option value="centre_investissement">Centre d'Investissement</option>
+                  <option value="activite">Activité</option>
+                  <option value="projet">Projet</option>
+                  <option value="geographique">Zone Géographique</option>
+                  <option value="produit">Produit/Service</option>
+                  <option value="custom">Personnalisé</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Niveau
+                </label>
+                <input
+                  type="number"
+                  value={newAxis.niveau}
+                  onChange={(e) => setNewAxis({ ...newAxis, niveau: parseInt(e.target.value) })}
+                  min="1"
+                  max="10"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Code Parent (optionnel)
+                </label>
+                <select
+                  value={newAxis.parent_id}
+                  onChange={(e) => setNewAxis({ ...newAxis, parent_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">-- Aucun parent --</option>
+                  {axes.map(axis => (
+                    <option key={axis.id} value={axis.id}>
+                      {axis.code} - {axis.libelle}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Masque de comptes
+                </label>
+                <input
+                  type="text"
+                  value={newAxis.account_mask}
+                  onChange={(e) => setNewAxis({ ...newAxis, account_mask: e.target.value })}
+                  placeholder="Ex: 6*, 7*, 60-62..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="col-span-2 flex space-x-6">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={newAxis.is_mandatory}
+                    onChange={(e) => setNewAxis({ ...newAxis, is_mandatory: e.target.checked })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Axe obligatoire</span>
+                </label>
+
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={newAxis.obligatoire_saisie}
+                    onChange={(e) => setNewAxis({ ...newAxis, obligatoire_saisie: e.target.checked })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Saisie obligatoire</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Table des codes existants */}
+            <div className="border rounded-lg overflow-hidden mb-6">
+              <div className="bg-gray-50 px-4 py-2 border-b">
+                <h3 className="text-sm font-semibold text-gray-700">Codes analytiques existants</h3>
+              </div>
+              <div className="max-h-48 overflow-y-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-100 sticky top-0">
+                    <tr className="text-xs">
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Code</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">{t('accounting.label')}</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Type</th>
+                      <th className="px-3 py-2 text-center font-semibold text-gray-700">Niveau</th>
+                      <th className="px-3 py-2 text-center font-semibold text-gray-700">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {axes.slice(0, 10).map((axis) => (
+                      <tr key={axis.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 text-sm font-mono font-medium text-blue-600">{axis.code}</td>
+                        <td className="px-3 py-2 text-sm">{axis.libelle}</td>
+                        <td className="px-3 py-2 text-sm">
+                          <span className={`px-2 py-1 text-xs rounded-full ${getTypeColor(axis.type)}`}>
+                            {axis.type.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-sm text-center">{axis.niveau}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            axis.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {axis.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                onClick={() => setShowCreateModal(false)}
+                variant="outline"
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleSaveNewAxis}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Créer le code analytique
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

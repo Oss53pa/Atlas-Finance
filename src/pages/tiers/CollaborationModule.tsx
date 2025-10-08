@@ -344,7 +344,7 @@ const CollaborationModule: React.FC = () => {
             <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
               <Bell className="w-5 h-5" />
             </button>
-            <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
+            <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg" aria-label="Paramètres">
               <Settings className="w-5 h-5" />
             </button>
           </div>
@@ -377,7 +377,7 @@ const CollaborationModule: React.FC = () => {
             <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm h-full flex flex-col">
               <div className="p-4 border-b border-gray-200">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                   <input
                     type="text"
                     placeholder="Rechercher..."
@@ -422,8 +422,8 @@ const CollaborationModule: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500 truncate mt-1">{chat.lastMessage}</p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-sm text-gray-700 truncate mt-1">{chat.lastMessage}</p>
+                        <p className="text-xs text-gray-700 mt-1">
                           {formatTime(chat.lastMessageTime)}
                         </p>
                       </div>
@@ -452,7 +452,7 @@ const CollaborationModule: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">{selectedChat.name}</h3>
-                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <div className="flex items-center space-x-2 text-sm text-gray-700">
                         {selectedChat.participants.map((participant, index) => (
                           <span key={participant.id}>
                             {participant.name}
@@ -537,7 +537,7 @@ const CollaborationModule: React.FC = () => {
                         )}
 
                         <p className={`text-xs mt-1 ${
-                          message.isOwn ? 'text-[#6A8A82]/70' : 'text-gray-500'
+                          message.isOwn ? 'text-[#6A8A82]/70' : 'text-gray-700'
                         }`}>
                           {formatTime(message.timestamp)}
                         </p>
@@ -583,8 +583,8 @@ const CollaborationModule: React.FC = () => {
               <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm h-full flex items-center justify-center">
                 <div className="text-center">
                   <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-500 mb-2">Sélectionnez une conversation</h3>
-                  <p className="text-gray-400">Choisissez un chat pour commencer à communiquer</p>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Sélectionnez une conversation</h3>
+                  <p className="text-gray-700">Choisissez un chat pour commencer à communiquer</p>
                 </div>
               </div>
             )}
@@ -661,7 +661,7 @@ const CollaborationModule: React.FC = () => {
                           </span>
                         </div>
                         <p className="text-gray-600 mb-3">{collab.description}</p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex items-center space-x-4 text-sm text-gray-700">
                           <span className="flex items-center">
                             <Calendar className="w-4 h-4 mr-1" />
                             Échéance: {formatDate(collab.dueDate)}
@@ -674,7 +674,7 @@ const CollaborationModule: React.FC = () => {
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <button className="p-2 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded-lg">
+                        <button className="p-2 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded-lg" aria-label="Voir les détails">
                           <Eye className="w-4 h-4" />
                         </button>
                         <button className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg">
@@ -707,7 +707,7 @@ const CollaborationModule: React.FC = () => {
                               {participant.name.split(' ').map(n => n[0]).join('')}
                             </div>
                             <span className="text-sm text-gray-700">{participant.name}</span>
-                            <span className="text-xs text-gray-500 ml-1">({participant.role})</span>
+                            <span className="text-xs text-gray-700 ml-1">({participant.role})</span>
                           </div>
                         ))}
                       </div>
@@ -721,10 +721,10 @@ const CollaborationModule: React.FC = () => {
                           <div key={task.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
                             <div className="flex items-center space-x-3">
                               <CheckCircle className={`w-4 h-4 ${
-                                task.status === 'TERMINE' ? 'text-green-500' : 'text-gray-400'
+                                task.status === 'TERMINE' ? 'text-green-500' : 'text-gray-700'
                               }`} />
                               <span className={`text-sm ${
-                                task.status === 'TERMINE' ? 'line-through text-gray-500' : 'text-gray-900'
+                                task.status === 'TERMINE' ? 'line-through text-gray-700' : 'text-gray-900'
                               }`}>
                                 {task.title}
                               </span>
@@ -733,7 +733,7 @@ const CollaborationModule: React.FC = () => {
                               <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTaskStatusColor(task.status)}`}>
                                 {task.status}
                               </span>
-                              <span className="text-xs text-gray-500">{task.assignee}</span>
+                              <span className="text-xs text-gray-700">{task.assignee}</span>
                             </div>
                           </div>
                         ))}

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { 
   ChartBarIcon,
   ExclamationTriangleIcon,
@@ -58,12 +60,17 @@ interface MonthlyData {
 }
 
 const BudgetControlPage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState('2024');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'charts'>('table');
+
+  // États pour le modal de sélection de période
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   const { data: budgetControls = [], isLoading } = useQuery({
     queryKey: ['budget-controls', selectedPeriod, selectedDepartment, selectedStatus, searchTerm],
@@ -219,12 +226,12 @@ const BudgetControlPage: React.FC = () => {
           status === 'at_risk' ? 'À risque' :
           status === 'over_budget' ? 'Dépassé' : 'Sous-budget',
     value: count,
-    color: status === 'on_track' ? '#10b981' :
-           status === 'at_risk' ? '#f59e0b' :
-           status === 'over_budget' ? '#ef4444' : '#3b82f6'
+    color: status === 'on_track' ? '#6A8A82' :
+           status === 'at_risk' ? '#B87333' :
+           status === 'over_budget' ? '#B85450' : '#7A99AC'
   }));
 
-  const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
+  const COLORS = ['#6A8A82', '#B87333', '#B85450', '#7A99AC'];
 
   return (
     <div className="space-y-6">
@@ -242,9 +249,9 @@ const BudgetControlPage: React.FC = () => {
             <ChartBarIcon className="h-5 w-5" />
             <span>{viewMode === 'table' ? 'Vue Graphiques' : 'Vue Tableau'}</span>
           </button>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors" aria-label="Télécharger">
             <DocumentArrowDownIcon className="h-5 w-5" />
-            <span>Exporter</span>
+            <span>{t('common.export')}</span>
           </button>
         </div>
       </div>
@@ -313,7 +320,7 @@ const BudgetControlPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher un budget..."
@@ -336,16 +343,19 @@ const BudgetControlPage: React.FC = () => {
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
-              <select
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              <button
+                type="button"
+                onClick={() => setShowPeriodModal(true)}
+                className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-                <option value="Q4-2024">Q4 2024</option>
-                <option value="Q3-2024">Q3 2024</option>
-              </select>
+                <CalendarIcon className="h-4 w-4" />
+                <span>
+                  {dateRange.start && dateRange.end
+                    ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                    : 'Sélectionner une période'
+                  }
+                </span>
+              </button>
             </div>
 
             <div>
@@ -371,7 +381,7 @@ const BudgetControlPage: React.FC = () => {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
-                <option value="on_track">En cours</option>
+                <option value="on_track">{t('status.inProgress')}</option>
                 <option value="at_risk">À risque</option>
                 <option value="over_budget">Dépassé</option>
                 <option value="under_budget">Sous-budget</option>
@@ -395,8 +405,8 @@ const BudgetControlPage: React.FC = () => {
                   <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Legend />
-                  <Line type="monotone" dataKey="budgeted" stroke="#3b82f6" name="Budgété" />
-                  <Line type="monotone" dataKey="actual" stroke="#10b981" name="Réalisé" />
+                  <Line type="monotone" dataKey="budgeted" stroke="#7A99AC" name="Budgété" />
+                  <Line type="monotone" dataKey="actual" stroke="#6A8A82" name="Réalisé" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -443,8 +453,8 @@ const BudgetControlPage: React.FC = () => {
                 <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar dataKey="budgeted" fill="#3b82f6" name="Budgété" />
-                <Bar dataKey="actual" fill="#10b981" name="Réalisé" />
+                <Bar dataKey="budgeted" fill="#7A99AC" name="Budgété" />
+                <Bar dataKey="actual" fill="#6A8A82" name="Réalisé" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -456,28 +466,28 @@ const BudgetControlPage: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Budget
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Statut
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Budgété
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Réalisé
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Écart
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Responsable
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Alertes
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -514,7 +524,7 @@ const BudgetControlPage: React.FC = () => {
                   ))
                 ) : budgetControls.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-700">
                       Aucun contrôle budgétaire trouvé
                     </td>
                   </tr>
@@ -524,7 +534,7 @@ const BudgetControlPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{control.budgetName}</div>
-                          <div className="text-sm text-gray-500">{control.department} - {control.period}</div>
+                          <div className="text-sm text-gray-700">{control.department} - {control.period}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -553,7 +563,7 @@ const BudgetControlPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{control.responsible}</div>
-                        <div className="text-sm text-gray-500">{control.category}</div>
+                        <div className="text-sm text-gray-700">{control.category}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-1">
@@ -568,15 +578,14 @@ const BudgetControlPage: React.FC = () => {
                             ></div>
                           ))}
                           {control.alerts.length === 0 && (
-                            <span className="text-sm text-gray-400">Aucune</span>
+                            <span className="text-sm text-gray-700">Aucune</span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
-                          title="Voir les détails"
-                        >
+                          className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                          title="Voir les détails" aria-label="Voir les détails">
                           <EyeIcon className="h-5 w-5" />
                         </button>
                       </td>
@@ -588,6 +597,22 @@ const BudgetControlPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(newDateRange) => {
+          setDateRange(newDateRange);
+          // Mettre à jour la logique de filtrage avec la nouvelle période
+          // Ici on pourrait déterminer automatiquement la période basée sur les dates
+          const startDate = new Date(newDateRange.start);
+          const endDate = new Date(newDateRange.end);
+          const year = startDate.getFullYear().toString();
+          setSelectedPeriod(year);
+        }}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

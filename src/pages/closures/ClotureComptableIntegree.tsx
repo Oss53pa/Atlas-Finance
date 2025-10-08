@@ -4,6 +4,7 @@
  * Respecte exactement le cahier des charges fourni sections A-G
  */
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,6 +90,7 @@ interface OperationRegularisation {
 }
 
 const ClotureComptableIntegree: React.FC = () => {
+  const { t } = useLanguage();
   // État principal
   const [exercicesDisponibles, setExercicesDisponibles] = useState<FiscalYear[]>([]);
   const [exerciceSelectionne, setExerciceSelectionne] = useState<string>('');
@@ -315,10 +317,10 @@ const ClotureComptableIntegree: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Clôtures Actives</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Clôtures Actives</p>
                     <p className="text-2xl font-bold">3</p>
                   </div>
-                  <Clock className="h-8 w-8 text-blue-500" />
+                  <Clock className="h-8 w-8 text-[var(--color-primary)]" />
                 </div>
               </CardContent>
             </Card>
@@ -327,10 +329,10 @@ const ClotureComptableIntegree: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Progression Moyenne</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Progression Moyenne</p>
                     <p className="text-2xl font-bold">{indicateurs.progression_globale || 0}%</p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-green-500" />
+                  <TrendingUp className="h-8 w-8 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -339,7 +341,7 @@ const ClotureComptableIntegree: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Délai Moyen</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Délai Moyen</p>
                     <p className="text-2xl font-bold">{indicateurs.delai_moyen_jours || 0}j</p>
                   </div>
                   <Calendar className="h-8 w-8 text-orange-500" />
@@ -351,10 +353,10 @@ const ClotureComptableIntegree: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Taux d'Erreur</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Taux d'Erreur</p>
                     <p className="text-2xl font-bold">{indicateurs.taux_erreur || 0}%</p>
                   </div>
-                  <AlertCircle className="h-8 w-8 text-red-500" />
+                  <AlertCircle className="h-8 w-8 text-[var(--color-error)]" />
                 </div>
               </CardContent>
             </Card>
@@ -384,36 +386,36 @@ const ClotureComptableIntegree: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Provisions Clients (SYSCOHADA)</h3>
             {provisionsClients.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-300">
+                <table className="w-full border-collapse border border-[var(--color-border-dark)]">
                   <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border border-gray-300 p-2 text-left">Compte</th>
-                      <th className="border border-gray-300 p-2 text-left">Libellé</th>
-                      <th className="border border-gray-300 p-2 text-right">Solde</th>
-                      <th className="border border-gray-300 p-2 text-center">Ancienneté</th>
-                      <th className="border border-gray-300 p-2 text-center">Taux SYSCOHADA</th>
-                      <th className="border border-gray-300 p-2 text-right">Provision</th>
-                      <th className="border border-gray-300 p-2 text-center">Actions</th>
+                    <tr className="bg-[var(--color-background-secondary)]">
+                      <th className="border border-[var(--color-border-dark)] p-2 text-left">{t('accounting.account')}</th>
+                      <th className="border border-[var(--color-border-dark)] p-2 text-left">{t('accounting.label')}</th>
+                      <th className="border border-[var(--color-border-dark)] p-2 text-right">{t('accounting.balance')}</th>
+                      <th className="border border-[var(--color-border-dark)] p-2 text-center">Ancienneté</th>
+                      <th className="border border-[var(--color-border-dark)] p-2 text-center">Taux SYSCOHADA</th>
+                      <th className="border border-[var(--color-border-dark)] p-2 text-right">Provision</th>
+                      <th className="border border-[var(--color-border-dark)] p-2 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {provisionsClients.map((provision, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="border border-gray-300 p-2 font-mono">{provision.compte}</td>
-                        <td className="border border-gray-300 p-2">{provision.libelle}</td>
-                        <td className="border border-gray-300 p-2 text-right font-mono">
+                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-[var(--color-background-secondary)]'}>
+                        <td className="border border-[var(--color-border-dark)] p-2 font-mono">{provision.compte}</td>
+                        <td className="border border-[var(--color-border-dark)] p-2">{provision.libelle}</td>
+                        <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono">
                           {formaterMontant(provision.solde)}
                         </td>
-                        <td className="border border-gray-300 p-2 text-center">
+                        <td className="border border-[var(--color-border-dark)] p-2 text-center">
                           {provision.anciennete_jours} jours
                         </td>
-                        <td className="border border-gray-300 p-2 text-center">
+                        <td className="border border-[var(--color-border-dark)] p-2 text-center">
                           {provision.taux_syscohada}%
                         </td>
-                        <td className="border border-gray-300 p-2 text-right font-mono text-red-600 font-bold">
+                        <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono text-[var(--color-error)] font-bold">
                           {formaterMontant(provision.provision_calculee)}
                         </td>
-                        <td className="border border-gray-300 p-2 text-center">
+                        <td className="border border-[var(--color-border-dark)] p-2 text-center">
                           <Button
                             size="sm"
                             onClick={() => validerProvision(provision.compte, provision.provision_calculee)}
@@ -451,36 +453,36 @@ const ClotureComptableIntegree: React.FC = () => {
         <CardContent>
           {balanceGenerale.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300 text-sm">
+              <table className="w-full border-collapse border border-[var(--color-border-dark)] text-sm">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border border-gray-300 p-2 text-left">Compte</th>
-                    <th className="border border-gray-300 p-2 text-left">Libellé</th>
-                    <th className="border border-gray-300 p-2 text-right">Total Débit</th>
-                    <th className="border border-gray-300 p-2 text-right">Total Crédit</th>
-                    <th className="border border-gray-300 p-2 text-right">Solde Débiteur</th>
-                    <th className="border border-gray-300 p-2 text-right">Solde Créditeur</th>
-                    <th className="border border-gray-300 p-2 text-center">Écritures</th>
+                  <tr className="bg-[var(--color-background-secondary)]">
+                    <th className="border border-[var(--color-border-dark)] p-2 text-left">{t('accounting.account')}</th>
+                    <th className="border border-[var(--color-border-dark)] p-2 text-left">{t('accounting.label')}</th>
+                    <th className="border border-[var(--color-border-dark)] p-2 text-right">Total Débit</th>
+                    <th className="border border-[var(--color-border-dark)] p-2 text-right">Total Crédit</th>
+                    <th className="border border-[var(--color-border-dark)] p-2 text-right">Solde Débiteur</th>
+                    <th className="border border-[var(--color-border-dark)] p-2 text-right">Solde Créditeur</th>
+                    <th className="border border-[var(--color-border-dark)] p-2 text-center">Écritures</th>
                   </tr>
                 </thead>
                 <tbody>
                   {balanceGenerale.map((ligne, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="border border-gray-300 p-2 font-mono">{ligne.compte}</td>
-                      <td className="border border-gray-300 p-2">{ligne.libelle}</td>
-                      <td className="border border-gray-300 p-2 text-right font-mono">
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-[var(--color-background-secondary)]'}>
+                      <td className="border border-[var(--color-border-dark)] p-2 font-mono">{ligne.compte}</td>
+                      <td className="border border-[var(--color-border-dark)] p-2">{ligne.libelle}</td>
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono">
                         {formaterMontant(ligne.total_debit)}
                       </td>
-                      <td className="border border-gray-300 p-2 text-right font-mono">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono">
                         {formaterMontant(ligne.total_credit)}
                       </td>
-                      <td className="border border-gray-300 p-2 text-right font-mono">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono">
                         {ligne.solde_debiteur !== '0' ? formaterMontant(ligne.solde_debiteur) : ''}
                       </td>
-                      <td className="border border-gray-300 p-2 text-right font-mono">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono">
                         {ligne.solde_crediteur !== '0' ? formaterMontant(ligne.solde_crediteur) : ''}
                       </td>
-                      <td className="border border-gray-300 p-2 text-center">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-center">
                         {ligne.nb_ecritures}
                       </td>
                     </tr>
@@ -510,9 +512,9 @@ const ClotureComptableIntegree: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600">Module en cours de développement</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <Settings className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+            <p className="text-[var(--color-text-primary)]">Module en cours de développement</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-2">
               Circuit de validation configurable avec niveaux d'approbation selon les seuils de montants
             </p>
           </div>
@@ -530,9 +532,9 @@ const ClotureComptableIntegree: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600">Module en cours de développement</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <Settings className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+            <p className="text-[var(--color-text-primary)]">Module en cours de développement</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-2">
               Automatisation des tâches récurrentes et paramétrage des règles de gestion
             </p>
           </div>
@@ -553,20 +555,20 @@ const ClotureComptableIntegree: React.FC = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-center">
-                  <PieChart className="h-16 w-16 text-blue-500" />
+                  <PieChart className="h-16 w-16 text-[var(--color-primary)]" />
                 </div>
                 <h4 className="text-center mt-4 font-semibold">Graphiques de Progression</h4>
-                <p className="text-center text-sm text-gray-500">Visualisation temps réel</p>
+                <p className="text-center text-sm text-[var(--color-text-secondary)]">Visualisation temps réel</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-center">
-                  <BarChart className="h-16 w-16 text-green-500" />
+                  <BarChart className="h-16 w-16 text-[var(--color-success)]" />
                 </div>
                 <h4 className="text-center mt-4 font-semibold">Rapports Détaillés</h4>
-                <p className="text-center text-sm text-gray-500">Export PDF/Excel</p>
+                <p className="text-center text-sm text-[var(--color-text-secondary)]">Export PDF/Excel</p>
               </CardContent>
             </Card>
 
@@ -576,7 +578,7 @@ const ClotureComptableIntegree: React.FC = () => {
                   <LineChart className="h-16 w-16 text-purple-500" />
                 </div>
                 <h4 className="text-center mt-4 font-semibold">Analyse Tendances</h4>
-                <p className="text-center text-sm text-gray-500">Historique performance</p>
+                <p className="text-center text-sm text-[var(--color-text-secondary)]">Historique performance</p>
               </CardContent>
             </Card>
           </div>
@@ -594,9 +596,9 @@ const ClotureComptableIntegree: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <Archive className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600">Module en cours de développement</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <Archive className="h-12 w-12 mx-auto text-[var(--color-text-secondary)] mb-4" />
+            <p className="text-[var(--color-text-primary)]">Module en cours de développement</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-2">
               Archivage automatique avec chiffrement AES-256 et compression selon obligations légales
             </p>
           </div>
@@ -608,10 +610,10 @@ const ClotureComptableIntegree: React.FC = () => {
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
           Module de Gestion de Clôture Comptable Périodique
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-[var(--color-text-primary)] mt-2">
           Système intégré WiseBook - Conforme SYSCOHADA
         </p>
       </div>
@@ -662,7 +664,7 @@ const ClotureComptableIntegree: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="p-6">
             <div className="flex items-center gap-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
               <span>Traitement en cours...</span>
             </div>
           </Card>

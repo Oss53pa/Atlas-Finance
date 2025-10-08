@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Target, TrendingUp, TrendingDown, Activity, Gauge, Award,
   CheckCircle, XCircle, AlertTriangle, Info, Clock, Calendar,
@@ -6,6 +7,7 @@ import {
   PieChart, Users, DollarSign, ShoppingCart, Package, Zap,
   ThumbsUp, Star, Flag, Layers, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -53,8 +55,10 @@ interface KPI {
 }
 
 const KPIDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // KPI Data
@@ -324,28 +328,28 @@ const KPIDashboard: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success': return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'success': return <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />;
       case 'warning': return <AlertTriangle className="w-5 h-5 text-orange-500" />;
-      case 'danger': return <XCircle className="w-5 h-5 text-red-500" />;
-      default: return <Info className="w-5 h-5 text-gray-500" />;
+      case 'danger': return <XCircle className="w-5 h-5 text-[var(--color-error)]" />;
+      default: return <Info className="w-5 h-5 text-[var(--color-text-secondary)]" />;
     }
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-green-500" />;
-      case 'down': return <TrendingDown className="w-4 h-4 text-red-500" />;
-      default: return <Activity className="w-4 h-4 text-gray-500" />;
+      case 'up': return <TrendingUp className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'down': return <TrendingDown className="w-4 h-4 text-[var(--color-error)]" />;
+      default: return <Activity className="w-4 h-4 text-[var(--color-text-secondary)]" />;
     }
   };
 
   const getImportanceColor = (importance: string) => {
     switch (importance) {
-      case 'critical': return 'bg-red-100 text-red-700';
-      case 'high': return 'bg-orange-100 text-orange-700';
-      case 'medium': return 'bg-yellow-100 text-yellow-700';
-      case 'low': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'critical': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]';
+      case 'high': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
+      case 'medium': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
+      case 'low': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
   };
 
@@ -381,11 +385,11 @@ const KPIDashboard: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             <select
-              value={selectedPeriod}
+              value={dateRange.startDate ? 'custom' : 'month'
               onChange={(e) => setSelectedPeriod(e.target.value)}
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
             >
-              <option value="day">Aujourd'hui</option>
+              <option value="day">{t('common.today')}</option>
               <option value="week">Cette semaine</option>
               <option value="month">Ce mois</option>
               <option value="quarter">Ce trimestre</option>
@@ -405,7 +409,7 @@ const KPIDashboard: React.FC = () => {
                 <BarChart3 className="w-4 h-4" />
               </button>
             </div>
-            <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background)] transition-colors">
+            <button className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background)] transition-colors" aria-label="Actualiser">
               <RefreshCw className="w-5 h-5 text-[var(--color-text-secondary)]" />
             </button>
             <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2">
@@ -451,12 +455,12 @@ const KPIDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">KPIs Atteints</span>
-              <CheckCircle className="w-4 h-4 text-green-500" />
+              <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
             </div>
             <div className="text-2xl font-bold text-[var(--color-text-primary)]">
               {kpis.filter(k => k.achievement >= 100).length}/{kpis.length}
             </div>
-            <div className="text-xs text-green-600 mt-1">
+            <div className="text-xs text-[var(--color-success)] mt-1">
               {Math.round((kpis.filter(k => k.achievement >= 100).length / kpis.length) * 100)}% de réussite
             </div>
           </div>
@@ -469,7 +473,7 @@ const KPIDashboard: React.FC = () => {
             <div className="text-2xl font-bold text-[var(--color-text-primary)]">
               {kpis.filter(k => k.status === 'warning').length}
             </div>
-            <div className="text-xs text-orange-600 mt-1">
+            <div className="text-xs text-[var(--color-warning)] mt-1">
               Nécessitent une attention
             </div>
           </div>
@@ -477,7 +481,7 @@ const KPIDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">Critiques</span>
-              <Flag className="w-4 h-4 text-red-500" />
+              <Flag className="w-4 h-4 text-[var(--color-error)]" />
             </div>
             <div className="text-2xl font-bold text-[var(--color-text-primary)]">
               {kpis.filter(k => k.importance === 'critical').length}
@@ -490,12 +494,12 @@ const KPIDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">Tendance Positive</span>
-              <TrendingUp className="w-4 h-4 text-green-500" />
+              <TrendingUp className="w-4 h-4 text-[var(--color-success)]" />
             </div>
             <div className="text-2xl font-bold text-[var(--color-text-primary)]">
               {kpis.filter(k => k.trend === 'up').length}
             </div>
-            <div className="text-xs text-green-600 mt-1">
+            <div className="text-xs text-[var(--color-success)] mt-1">
               En progression
             </div>
           </div>
@@ -555,13 +559,13 @@ const KPIDashboard: React.FC = () => {
                     {formatValue(kpi.target, kpi.unit)}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-[var(--color-border)] rounded-full h-2">
                   <div 
                     className={`h-2 rounded-full ${
-                      kpi.achievement >= 100 ? 'bg-green-500' :
-                      kpi.achievement >= 90 ? 'bg-blue-500' :
-                      kpi.achievement >= 80 ? 'bg-orange-500' :
-                      'bg-red-500'
+                      kpi.achievement >= 100 ? 'bg-[var(--color-success)]' :
+                      kpi.achievement >= 90 ? 'bg-[var(--color-primary)]' :
+                      kpi.achievement >= 80 ? 'bg-[var(--color-warning)]' :
+                      'bg-[var(--color-error)]'
                     }`}
                     style={{ width: `${Math.min(100, kpi.achievement)}%` }}
                   />
@@ -569,10 +573,10 @@ const KPIDashboard: React.FC = () => {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-[var(--color-text-secondary)]">Réalisation</span>
                   <span className={`font-medium ${
-                    kpi.achievement >= 100 ? 'text-green-600' :
-                    kpi.achievement >= 90 ? 'text-blue-600' :
-                    kpi.achievement >= 80 ? 'text-orange-600' :
-                    'text-red-600'
+                    kpi.achievement >= 100 ? 'text-[var(--color-success)]' :
+                    kpi.achievement >= 90 ? 'text-[var(--color-primary)]' :
+                    kpi.achievement >= 80 ? 'text-[var(--color-warning)]' :
+                    'text-[var(--color-error)]'
                   }`}>
                     {kpi.achievement.toFixed(1)}%
                   </span>
@@ -622,22 +626,22 @@ const KPIDashboard: React.FC = () => {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div className="w-20 bg-[var(--color-border)] rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full ${
-                              kpi.achievement >= 100 ? 'bg-green-500' :
-                              kpi.achievement >= 90 ? 'bg-blue-500' :
-                              kpi.achievement >= 80 ? 'bg-orange-500' :
-                              'bg-red-500'
+                              kpi.achievement >= 100 ? 'bg-[var(--color-success)]' :
+                              kpi.achievement >= 90 ? 'bg-[var(--color-primary)]' :
+                              kpi.achievement >= 80 ? 'bg-[var(--color-warning)]' :
+                              'bg-[var(--color-error)]'
                             }`}
                             style={{ width: `${Math.min(100, kpi.achievement)}%` }}
                           />
                         </div>
                         <span className={`font-medium ${
-                          kpi.achievement >= 100 ? 'text-green-600' :
-                          kpi.achievement >= 90 ? 'text-blue-600' :
-                          kpi.achievement >= 80 ? 'text-orange-600' :
-                          'text-red-600'
+                          kpi.achievement >= 100 ? 'text-[var(--color-success)]' :
+                          kpi.achievement >= 90 ? 'text-[var(--color-primary)]' :
+                          kpi.achievement >= 80 ? 'text-[var(--color-warning)]' :
+                          'text-[var(--color-error)]'
                         }`}>
                           {kpi.achievement.toFixed(1)}%
                         </span>
@@ -700,6 +704,16 @@ const KPIDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

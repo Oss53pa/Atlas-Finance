@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Plus, Search, Filter, Download, Eye, Edit, Trash2,
   ArrowLeft, Check, X, AlertCircle, Calendar, DollarSign,
@@ -10,9 +12,14 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer
 } from 'recharts';
+import { LoadingSpinner } from '../../components/ui';
 import { Reconciliation, ThirdParty } from '../../types/tiers';
+import { tiersService, createLettrageSchema } from '../../services/modules/tiers.service';
+import { z } from 'zod';
+import { toast } from 'react-hot-toast';
 
 const LettrageModule: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('comptes');
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +28,87 @@ const LettrageModule: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [showLettrageModal, setShowLettrageModal] = useState(false);
   const [autoMode, setAutoMode] = useState(false);
+  const [formData, setFormData] = useState({
+    compte_id: '',
+    reference: '',
+    montant_debit: 0,
+    montant_credit: 0,
+    date_operation: '',
+    commentaire: '',
+    pieces_jointes: [] as string[],
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  // Create lettrage mutation
+  const createMutation = useMutation({
+    mutationFn: tiersService.createLettrage,
+    onSuccess: () => {
+      toast.success('Lettrage créé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['lettrages'] });
+      setShowLettrageModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de la création');
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      compte_id: '',
+      reference: '',
+      montant_debit: 0,
+      montant_credit: 0,
+      date_operation: '',
+      commentaire: '',
+      pieces_jointes: [],
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Validate with Zod
+      const validatedData = createLettrageSchema.parse(formData);
+
+      // Submit to backend
+      await createMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la création');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Mock Accounts Data with unreconciled items
   const mockAccounts = [
@@ -200,7 +288,7 @@ const LettrageModule: React.FC = () => {
 
   const tabs = [
     { id: 'comptes', label: 'Comptes Tiers', icon: FileText },
-    { id: 'lettrage', label: 'Lettrage', icon: CheckCircle },
+    { id: 'lettrage', label: t('thirdParty.reconciliation'), icon: CheckCircle },
     { id: 'delettrage', label: 'Délettrage', icon: RotateCcw },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 }
   ];
@@ -214,8 +302,8 @@ const LettrageModule: React.FC = () => {
 
   const tiersOptions = [
     { value: 'tous', label: 'Tous les tiers' },
-    { value: 'clients', label: 'Clients' },
-    { value: 'fournisseurs', label: 'Fournisseurs' }
+    { value: 'clients', label: t('navigation.clients') },
+    { value: 'fournisseurs', label: t('navigation.suppliers') }
   ];
 
   const getStatutBadge = (account: any) => {
@@ -352,9 +440,9 @@ const LettrageModule: React.FC = () => {
               </label>
             </div>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
-              <span className="text-sm font-semibold">Exporter</span>
+              <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
           </div>
         </div>
@@ -425,7 +513,7 @@ const LettrageModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                 <input
                   type="text"
                   placeholder="Rechercher par nom ou code tiers..."
@@ -455,7 +543,7 @@ const LettrageModule: React.FC = () => {
                 ))}
               </select>
 
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label="Filtrer">
                 <Filter className="w-5 h-5 text-gray-600" />
               </button>
             </div>
@@ -467,13 +555,13 @@ const LettrageModule: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiers</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solde Comptable</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Soldé Lettré</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solde Non Lettré</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Écritures</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tiers</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Solde Comptable</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Soldé Lettré</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Solde Non Lettré</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Écritures</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -494,7 +582,7 @@ const LettrageModule: React.FC = () => {
                             </div>
                             <div>
                               <div className="text-sm font-medium text-gray-900">{account.tiersNom}</div>
-                              <div className="text-sm text-gray-500">{account.tiersCode}</div>
+                              <div className="text-sm text-gray-700">{account.tiersCode}</div>
                             </div>
                           </div>
                         </td>
@@ -646,7 +734,7 @@ const LettrageModule: React.FC = () => {
                 </h2>
                 <button
                   onClick={() => setSelectedAccount(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-700 hover:text-gray-600"
                 >
                   ×
                 </button>
@@ -684,13 +772,13 @@ const LettrageModule: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-100">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Libellé</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Débit</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Crédit</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Lettrage</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('common.date')}</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Référence</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.label')}</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{t('accounting.debit')}</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{t('accounting.credit')}</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">{t('thirdParty.reconciliation')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -764,6 +852,189 @@ const LettrageModule: React.FC = () => {
             <RotateCcw className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-[#191919] mb-2">Délettrage</h3>
             <p className="text-[#666666]">Annulation des lettrages existants</p>
+          </div>
+        </div>
+      )}
+
+      {/* Lettrage Modal */}
+      {showLettrageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-indigo-100 text-indigo-600 p-2 rounded-lg">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Lettrage Comptable</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowLettrageModal(false);
+                  resetForm();
+                }}
+                className="text-gray-700 hover:text-gray-700"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-indigo-900 mb-1">Lettrage de Comptes</h4>
+                      <p className="text-sm text-indigo-800">Rapprochez les écritures comptables pour équilibrer le compte tiers sélectionné.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Selection */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Sélection du Compte</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Compte Tiers *</label>
+                      <select
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        value={formData.compte_id}
+                        onChange={(e) => handleInputChange('compte_id', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="">-- Sélectionner un compte --</option>
+                        <option value="CLI001">CLI001 - SARL CONGO BUSINESS</option>
+                        <option value="FOU001">FOU001 - CEMAC SUPPLIES</option>
+                        <option value="CLI002">CLI002 - STE AFRICAINE TECH</option>
+                      </select>
+                      {errors.compte_id && (
+                        <p className="mt-1 text-sm text-red-600">{errors.compte_id}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Type de Lettrage</label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="manuel">Lettrage Manuel</option>
+                        <option value="automatique">Lettrage Automatique</option>
+                        <option value="partiel">Lettrage Partiel</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lettrage Details */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Détails du Lettrage</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Montant Débit *</label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="0"
+                        value={formData.montant_debit}
+                        onChange={(e) => handleInputChange('montant_debit', parseFloat(e.target.value) || 0)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.montant_debit && (
+                        <p className="mt-1 text-sm text-red-600">{errors.montant_debit}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Montant Crédit *</label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="0"
+                        value={formData.montant_credit}
+                        onChange={(e) => handleInputChange('montant_credit', parseFloat(e.target.value) || 0)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.montant_credit && (
+                        <p className="mt-1 text-sm text-red-600">{errors.montant_credit}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Référence *</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Référence du lettrage"
+                        value={formData.reference}
+                        onChange={(e) => handleInputChange('reference', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.reference && (
+                        <p className="mt-1 text-sm text-red-600">{errors.reference}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date d'Opération *</label>
+                      <input
+                        type="date"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        value={formData.date_operation}
+                        onChange={(e) => handleInputChange('date_operation', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.date_operation && (
+                        <p className="mt-1 text-sm text-red-600">{errors.date_operation}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comments */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Commentaires</label>
+                  <textarea
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    rows={3}
+                    placeholder="Commentaires sur le lettrage..."
+                    value={formData.commentaire}
+                    onChange={(e) => handleInputChange('commentaire', e.target.value)}
+                    disabled={isSubmitting}
+                  ></textarea>
+                  {errors.commentaire && (
+                    <p className="mt-1 text-sm text-red-600">{errors.commentaire}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowLettrageModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>Création...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Effectuer le Lettrage</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -110,6 +111,7 @@ interface PermissionMatrix {
 }
 
 const PermissionsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState<string>('permissions');
   const [selectedModule, setSelectedModule] = useState<string>('tous');
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -625,7 +627,7 @@ const PermissionsPage: React.FC = () => {
                   Recherche Permission
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                   <Input 
                     placeholder="Nom ou code permission..." 
                     className="pl-10"
@@ -638,7 +640,7 @@ const PermissionsPage: React.FC = () => {
                   Recherche Utilisateur
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                   <Input 
                     placeholder="Nom ou email..." 
                     className="pl-10"
@@ -697,7 +699,7 @@ const PermissionsPage: React.FC = () => {
                           <TableHead>Niveau</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead>Créé par</TableHead>
-                          <TableHead>Date</TableHead>
+                          <TableHead>{t('common.date')}</TableHead>
                           <TableHead className="text-center">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -707,8 +709,8 @@ const PermissionsPage: React.FC = () => {
                             <TableCell>
                               <div>
                                 <p className="font-medium text-gray-900">{permission.nom}</p>
-                                <p className="text-sm text-gray-500 font-mono">{permission.code}</p>
-                                <p className="text-xs text-gray-400">{permission.description}</p>
+                                <p className="text-sm text-gray-700 font-mono">{permission.code}</p>
+                                <p className="text-xs text-gray-700">{permission.description}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -895,8 +897,8 @@ const PermissionsPage: React.FC = () => {
                                 </div>
                                 <div>
                                   <p className="font-medium text-gray-900">{user.nom}</p>
-                                  <p className="text-sm text-gray-500">{user.email}</p>
-                                  <p className="text-xs text-gray-400">{user.service}</p>
+                                  <p className="text-sm text-gray-700">{user.email}</p>
+                                  <p className="text-xs text-gray-700">{user.service}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -916,7 +918,7 @@ const PermissionsPage: React.FC = () => {
                               <Badge variant="outline">
                                 {user.permissions_directes.length} directe(s)
                               </Badge>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-gray-700 mt-1">
                                 {userPermissionsCount} total
                               </p>
                             </TableCell>
@@ -1045,7 +1047,7 @@ const PermissionsPage: React.FC = () => {
                                     </div>
                                     <div>
                                       <p className="font-medium text-gray-900">{permission.nom}</p>
-                                      <p className="text-sm text-gray-500">{permission.description}</p>
+                                      <p className="text-sm text-gray-700">{permission.description}</p>
                                     </div>
                                   </div>
                                   <div className="flex items-center space-x-4">
@@ -1075,9 +1077,9 @@ const PermissionsPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Key className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <Key className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Matrice des Permissions</h3>
-                    <p className="text-gray-500 mb-6">
+                    <p className="text-gray-700 mb-6">
                       Sélectionnez un utilisateur ou un rôle pour voir la matrice des permissions détaillée.
                     </p>
                   </div>

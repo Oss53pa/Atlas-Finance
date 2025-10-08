@@ -52,18 +52,6 @@ const KPIsRealTime: React.FC = () => {
       category: 'financier'
     },
     {
-      id: 'conversion',
-      name: 'Taux de Conversion',
-      value: 3.2,
-      unit: '%',
-      target: 3.0,
-      status: 'success',
-      trend: 6.7,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'commercial'
-    },
-    {
       id: 'margin',
       name: 'Marge Brute',
       value: 28.5,
@@ -76,42 +64,6 @@ const KPIsRealTime: React.FC = () => {
       category: 'financier'
     },
     {
-      id: 'satisfaction',
-      name: 'Satisfaction Client',
-      value: 4.6,
-      unit: '/5',
-      target: 4.5,
-      status: 'success',
-      trend: 3.1,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'qualite'
-    },
-    {
-      id: 'productivity',
-      name: 'Productivité',
-      value: 87,
-      unit: '%',
-      target: 85,
-      status: 'success',
-      trend: 5.2,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'operationnel'
-    },
-    {
-      id: 'inventory',
-      name: 'Rotation Stock',
-      value: 12.3,
-      unit: 'jours',
-      target: 15,
-      status: 'success',
-      trend: -8.2,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'operationnel'
-    },
-    {
       id: 'cashflow',
       name: 'Cash Flow',
       value: 456000,
@@ -122,66 +74,6 @@ const KPIsRealTime: React.FC = () => {
       lastUpdate: new Date(),
       history: [],
       category: 'financier'
-    },
-    {
-      id: 'orders',
-      name: 'Commandes/Heure',
-      value: 24,
-      unit: '',
-      target: 20,
-      status: 'success',
-      trend: 20.0,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'commercial'
-    },
-    {
-      id: 'response',
-      name: 'Temps Réponse',
-      value: 1.2,
-      unit: 's',
-      target: 2,
-      status: 'success',
-      trend: -15.0,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'technique'
-    },
-    {
-      id: 'availability',
-      name: 'Disponibilité',
-      value: 99.8,
-      unit: '%',
-      target: 99.5,
-      status: 'success',
-      trend: 0.3,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'technique'
-    },
-    {
-      id: 'newclients',
-      name: 'Nouveaux Clients',
-      value: 45,
-      unit: '',
-      target: 40,
-      status: 'success',
-      trend: 12.5,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'commercial'
-    },
-    {
-      id: 'retention',
-      name: 'Taux Rétention',
-      value: 92,
-      unit: '%',
-      target: 90,
-      status: 'success',
-      trend: 2.2,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'commercial'
     }
   ]);
 
@@ -244,7 +136,7 @@ const KPIsRealTime: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success': return 'text-green-600 bg-green-100';
-      case 'warning': return 'text-yellow-600 bg-yellow-100';
+      case 'warning': return 'text-amber-600 bg-amber-100';
       case 'danger': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }
@@ -281,7 +173,7 @@ const KPIsRealTime: React.FC = () => {
         <div className="flex items-center gap-3">
           {/* Auto-refresh Toggle */}
           <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border">
-            <Activity className={cn("w-4 h-4", autoRefresh ? "text-green-600" : "text-gray-400")} />
+            <Activity className={cn("w-4 h-4", autoRefresh ? "text-green-600" : "text-gray-700")} />
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -289,7 +181,7 @@ const KPIsRealTime: React.FC = () => {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#A1BBB4] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6A8A82]"></div>
             </label>
             <span className="text-sm font-medium">Live</span>
           </div>
@@ -310,7 +202,7 @@ const KPIsRealTime: React.FC = () => {
           {/* Export Button */}
           <button
             onClick={exportData}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#588075]"
           >
             <Download className="w-4 h-4" />
             Exporter
@@ -320,16 +212,16 @@ const KPIsRealTime: React.FC = () => {
 
       {/* Category Filter */}
       <div className="flex items-center gap-2 p-4 bg-white rounded-lg shadow">
-        <Filter className="w-5 h-5 text-gray-500" />
+        <Filter className="w-5 h-5 text-gray-700" />
         <div className="flex gap-2">
-          {['all', 'financier', 'commercial', 'operationnel', 'qualite', 'technique'].map(cat => (
+          {['all', 'financier'].map(cat => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
               className={cn(
                 "px-3 py-1 rounded-lg text-sm font-medium transition-all",
                 filterCategory === cat
-                  ? "bg-blue-600 text-white"
+                  ? "bg-[#6A8A82] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               )}
             >
@@ -346,7 +238,7 @@ const KPIsRealTime: React.FC = () => {
             key={kpi.id}
             className={cn(
               "bg-white rounded-lg shadow p-4 cursor-pointer transition-all hover:shadow-lg",
-              selectedKPI === kpi.id && "ring-2 ring-blue-500",
+              selectedKPI === kpi.id && "ring-2 ring-[#78998F]",
               fullscreenKPI === kpi.id && "fixed inset-4 z-50"
             )}
             onClick={() => setSelectedKPI(kpi.id)}
@@ -358,7 +250,7 @@ const KPIsRealTime: React.FC = () => {
                   <span className="text-2xl font-bold text-gray-900">
                     {kpi.value}
                   </span>
-                  <span className="text-sm text-gray-500">{kpi.unit}</span>
+                  <span className="text-sm text-gray-700">{kpi.unit}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -380,7 +272,7 @@ const KPIsRealTime: React.FC = () => {
 
             {/* Progress Bar */}
             <div className="mb-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <div className="flex justify-between text-xs text-gray-700 mb-1">
                 <span>Objectif: {kpi.target}{kpi.unit}</span>
                 <span>{((kpi.value / kpi.target) * 100).toFixed(1)}%</span>
               </div>
@@ -389,7 +281,7 @@ const KPIsRealTime: React.FC = () => {
                   className={cn(
                     "h-2 rounded-full transition-all",
                     kpi.status === 'success' && "bg-green-500",
-                    kpi.status === 'warning' && "bg-yellow-500",
+                    kpi.status === 'warning' && "bg-amber-500",
                     kpi.status === 'danger' && "bg-red-500"
                   )}
                   style={{ width: `${Math.min((kpi.value / kpi.target) * 100, 100)}%` }}
@@ -412,7 +304,7 @@ const KPIsRealTime: React.FC = () => {
                   {Math.abs(kpi.trend).toFixed(1)}%
                 </span>
               </div>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-700">
                 Mis à jour: {kpi.lastUpdate.toLocaleTimeString()}
               </span>
             </div>
@@ -424,14 +316,14 @@ const KPIsRealTime: React.FC = () => {
                   <AreaChart data={kpi.history}>
                     <defs>
                       <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#78998F" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#78998F" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <Area
                       type="monotone"
                       dataKey="value"
-                      stroke="#3B82F6"
+                      stroke="#78998F"
                       fillOpacity={1}
                       fill={`url(#gradient-${kpi.id})`}
                     />
@@ -449,7 +341,7 @@ const KPIsRealTime: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Temps Réel</h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={realTimeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#D1D5DB" />
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={(value) => new Date(value).toLocaleTimeString()}
@@ -460,7 +352,7 @@ const KPIsRealTime: React.FC = () => {
                 labelFormatter={(value) => new Date(value).toLocaleTimeString()}
               />
               <Legend />
-              <Line type="monotone" dataKey="sales" stroke="#3B82F6" name="Ventes" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="sales" stroke="#78998F" name="Ventes" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="orders" stroke="#10B981" name="Commandes" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="conversion" stroke="#F59E0B" name="Conversion (%)" strokeWidth={2} dot={false} />
             </LineChart>
@@ -471,10 +363,10 @@ const KPIsRealTime: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Global Performance</h2>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="#E5E7EB" />
+              <PolarGrid stroke="#D1D5DB" />
               <PolarAngleAxis dataKey="subject" stroke="#6B7280" />
               <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#6B7280" />
-              <Radar name="Performance" dataKey="A" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.6} />
+              <Radar name="Performance" dataKey="A" stroke="#78998F" fill="#78998F" fillOpacity={0.6} />
               <Tooltip />
             </RadarChart>
           </ResponsiveContainer>
@@ -491,8 +383,8 @@ const KPIsRealTime: React.FC = () => {
               <div className="flex items-center justify-center mb-2">
                 <div className={cn(
                   "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl",
-                  index === 0 && "bg-gradient-to-br from-yellow-400 to-yellow-600",
-                  index === 1 && "bg-gradient-to-br from-blue-400 to-blue-600",
+                  index === 0 && "bg-gradient-to-br from-amber-400 to-amber-600",
+                  index === 1 && "bg-gradient-to-br from-[#8BA99F] to-[#6A8A82]",
                   index === 2 && "bg-gradient-to-br from-purple-400 to-purple-600"
                 )}>
                   #{index + 1}
@@ -503,7 +395,7 @@ const KPIsRealTime: React.FC = () => {
                 {index === 1 && "Produit XYZ"}
                 {index === 2 && "Société ABC"}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-700">
                 {index === 0 && "250,000 DH ce mois"}
                 {index === 1 && "500 unités vendues"}
                 {index === 2 && "1.2M DH de CA"}
@@ -514,21 +406,21 @@ const KPIsRealTime: React.FC = () => {
       </div>
 
       {/* Alerts & Notifications */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-[#E8EEEC] to-indigo-50 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Bell className="w-6 h-6 text-blue-600" />
+          <Bell className="w-6 h-6 text-[#6A8A82]" />
           <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-lg p-4 border-l-4 border-yellow-500">
+          <div className="bg-white rounded-lg p-4 border-l-4 border-amber-500">
             <h4 className="font-medium text-gray-900">Marge en baisse</h4>
             <p className="text-sm text-gray-600 mt-1">La marge brute est passée sous le seuil de 30%</p>
-            <p className="text-xs text-gray-400 mt-2">Il y a 5 minutes</p>
+            <p className="text-xs text-gray-700 mt-2">Il y a 5 minutes</p>
           </div>
           <div className="bg-white rounded-lg p-4 border-l-4 border-green-500">
             <h4 className="font-medium text-gray-900">Objectif dépassé</h4>
             <p className="text-sm text-gray-600 mt-1">Le CA journalier a dépassé l'objectif de 10%</p>
-            <p className="text-xs text-gray-400 mt-2">Il y a 15 minutes</p>
+            <p className="text-xs text-gray-700 mt-2">Il y a 15 minutes</p>
           </div>
         </div>
       </div>

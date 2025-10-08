@@ -328,13 +328,13 @@ const AdminWorkspace: React.FC = () => {
                     </td>
                     <td className="py-4 text-center">
                       <div className="flex items-center justify-center space-x-2">
-                        <button className="text-[#7A99AC] hover:text-[#6A89AC]">
+                        <button className="text-[#7A99AC] hover:text-[#6A89AC]" aria-label="Voir les détails">
                           <Eye className="w-4 h-4" />
                         </button>
                         <button className="text-[#6A8A82] hover:text-[#5A7A72]">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-[#B85450] hover:text-[#A84440]">
+                        <button className="text-[#B85450] hover:text-[#A84440]" aria-label="Supprimer">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

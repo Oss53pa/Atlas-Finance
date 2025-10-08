@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
   Users,
@@ -26,13 +27,19 @@ import {
   Mail,
   Phone,
   Shield,
-  Activity
+  Activity,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/progress';
+import { closuresService, createProvisionSchema } from '../../../services/modules/closures.service';
+import { z } from 'zod';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import { LoadingSpinner, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui';
 
 interface Client {
   id: string;
@@ -88,11 +95,97 @@ interface AnalyseRisque {
 }
 
 const CycleClients: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [filterStatut, setFilterStatut] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');
   const [showProvisionModal, setShowProvisionModal] = useState(false);
+  const [formData, setFormData] = useState({
+    type: 'creances_douteuses' as 'creances_douteuses' | 'depreciation_stocks' | 'risques_clients' | 'autres',
+    montant: '',
+    base_calcul: '',
+    justification: '',
+    compte_debit: '',
+    compte_credit: '',
+    date_comptabilisation: new Date().toISOString().split('T')[0],
+    methode_calcul: '',
+    piece_justificative: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const createMutation = useMutation({
+    mutationFn: closuresService.createProvision,
+    onSuccess: () => {
+      toast.success('Provision créée avec succès');
+      queryClient.invalidateQueries({ queryKey: ['provisions'] });
+      setShowProvisionModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de la création de la provision');
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      type: 'creances_douteuses',
+      montant: '',
+      base_calcul: '',
+      justification: '',
+      compte_debit: '',
+      compte_credit: '',
+      date_comptabilisation: new Date().toISOString().split('T')[0],
+      methode_calcul: '',
+      piece_justificative: '',
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      const submitData = {
+        ...formData,
+        montant: formData.montant ? parseFloat(formData.montant) : 0,
+        base_calcul: formData.base_calcul ? parseFloat(formData.base_calcul) : 0,
+      };
+
+      const validatedData = createProvisionSchema.parse(submitData);
+      await createMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la création');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Données simulées
   const mockClients: Client[] = [
@@ -238,23 +331,23 @@ const CycleClients: React.FC = () => {
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
-      'en_cours': 'bg-green-100 text-green-800',
-      'echue': 'bg-yellow-100 text-yellow-800',
-      'contentieux': 'bg-red-100 text-red-800',
-      'provision': 'bg-orange-100 text-orange-800',
-      'irrecoverable': 'bg-gray-100 text-gray-800'
+      'en_cours': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'echue': 'bg-[var(--color-warning-lighter)] text-yellow-800',
+      'contentieux': 'bg-[var(--color-error-lighter)] text-red-800',
+      'provision': 'bg-[var(--color-warning-lighter)] text-orange-800',
+      'irrecoverable': 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
     };
-    return variants[statut] || 'bg-gray-100 text-gray-800';
+    return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getRisqueBadge = (risque: string) => {
     const variants: Record<string, string> = {
-      'faible': 'bg-green-100 text-green-800',
-      'modere': 'bg-yellow-100 text-yellow-800',
-      'eleve': 'bg-orange-100 text-orange-800',
-      'critique': 'bg-red-100 text-red-800'
+      'faible': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'modere': 'bg-[var(--color-warning-lighter)] text-yellow-800',
+      'eleve': 'bg-[var(--color-warning-lighter)] text-orange-800',
+      'critique': 'bg-[var(--color-error-lighter)] text-red-800'
     };
-    return variants[risque] || 'bg-gray-100 text-gray-800';
+    return variants[risque] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   return (
@@ -265,11 +358,11 @@ const CycleClients: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Créances</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Total Créances</p>
                 <p className="text-2xl font-bold">{(kpis.totalCreances / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-green-600 mt-1">+12% vs mois dernier</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">+12% vs mois dernier</p>
               </div>
-              <DollarSign className="w-8 h-8 text-blue-500" />
+              <DollarSign className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -278,9 +371,9 @@ const CycleClients: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Créances Échues</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Créances Échues</p>
                 <p className="text-2xl font-bold">{(kpis.totalEchu / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-red-600 mt-1">{mockCreances.filter(c => c.statut === 'echue').length} factures</p>
+                <p className="text-xs text-[var(--color-error)] mt-1">{mockCreances.filter(c => c.statut === 'echue').length} factures</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-yellow-500" />
             </div>
@@ -291,11 +384,11 @@ const CycleClients: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Taux Recouvrement</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Taux Recouvrement</p>
                 <p className="text-2xl font-bold">{kpis.tauxRecouvrement.toFixed(1)}%</p>
                 <Progress value={kpis.tauxRecouvrement} className="mt-2" />
               </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
+              <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -304,11 +397,11 @@ const CycleClients: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Clients à Risque</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Clients à Risque</p>
                 <p className="text-2xl font-bold">{kpis.nombreClientsRisque}</p>
-                <p className="text-xs text-orange-600 mt-1">Surveillance renforcée</p>
+                <p className="text-xs text-[var(--color-warning)] mt-1">Surveillance renforcée</p>
               </div>
-              <Shield className="w-8 h-8 text-red-500" />
+              <Shield className="w-8 h-8 text-[var(--color-error)]" />
             </div>
           </CardContent>
         </Card>
@@ -342,28 +435,28 @@ const CycleClients: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-5 gap-4">
-                  <div className="text-center p-3 bg-green-50 rounded">
-                    <p className="text-sm text-gray-600">0-30 jours</p>
-                    <p className="text-xl font-bold text-green-600">8.5M</p>
+                  <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
+                    <p className="text-sm text-[var(--color-text-primary)]">0-30 jours</p>
+                    <p className="text-xl font-bold text-[var(--color-success)]">8.5M</p>
                     <p className="text-xs">42% du total</p>
                   </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded">
-                    <p className="text-sm text-gray-600">31-60 jours</p>
-                    <p className="text-xl font-bold text-yellow-600">5.2M</p>
+                  <div className="text-center p-3 bg-[var(--color-warning-lightest)] rounded">
+                    <p className="text-sm text-[var(--color-text-primary)]">31-60 jours</p>
+                    <p className="text-xl font-bold text-[var(--color-warning)]">5.2M</p>
                     <p className="text-xs">26% du total</p>
                   </div>
                   <div className="text-center p-3 bg-orange-50 rounded">
-                    <p className="text-sm text-gray-600">61-90 jours</p>
-                    <p className="text-xl font-bold text-orange-600">3.8M</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">61-90 jours</p>
+                    <p className="text-xl font-bold text-[var(--color-warning)]">3.8M</p>
                     <p className="text-xs">19% du total</p>
                   </div>
-                  <div className="text-center p-3 bg-red-50 rounded">
-                    <p className="text-sm text-gray-600">91-120 jours</p>
-                    <p className="text-xl font-bold text-red-600">1.5M</p>
+                  <div className="text-center p-3 bg-[var(--color-error-lightest)] rounded">
+                    <p className="text-sm text-[var(--color-text-primary)]">91-120 jours</p>
+                    <p className="text-xl font-bold text-[var(--color-error)]">1.5M</p>
                     <p className="text-xs">8% du total</p>
                   </div>
                   <div className="text-center p-3 bg-purple-50 rounded">
-                    <p className="text-sm text-gray-600">+120 jours</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">+120 jours</p>
                     <p className="text-xl font-bold text-purple-600">1.0M</p>
                     <p className="text-xs">5% du total</p>
                   </div>
@@ -379,14 +472,14 @@ const CycleClients: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {mockClients.map(client => (
-                  <div key={client.id} className="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
+                  <div key={client.id} className="flex items-center justify-between p-3 border rounded hover:bg-[var(--color-background-secondary)]">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Users className="w-5 h-5 text-blue-600" />
+                      <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-[var(--color-primary)]" />
                       </div>
                       <div>
                         <p className="font-medium">{client.nom}</p>
-                        <p className="text-sm text-gray-500">{client.secteur}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{client.secteur}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -407,7 +500,7 @@ const CycleClients: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
                   placeholder="Rechercher..."
@@ -422,18 +515,18 @@ const CycleClients: React.FC = () => {
                 onChange={(e) => setFilterStatut(e.target.value)}
               >
                 <option value="tous">Tous les statuts</option>
-                <option value="en_cours">En cours</option>
+                <option value="en_cours">{t('status.inProgress')}</option>
                 <option value="echue">Échue</option>
                 <option value="contentieux">Contentieux</option>
                 <option value="provision">Provisionné</option>
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Exporter
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Brain className="w-4 h-4" />
                 Analyse IA
               </button>
@@ -443,21 +536,21 @@ const CycleClients: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Client</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">N° Facture</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Échéance</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Montant</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Solde</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Retard</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Client</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">N° Facture</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Échéance</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Montant</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">{t('accounting.balance')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Retard</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {creancesFiltrees.map(creance => (
-                    <tr key={creance.id} className="border-t hover:bg-gray-50">
+                    <tr key={creance.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <p className="font-medium">{creance.clientNom}</p>
                       </td>
@@ -466,14 +559,14 @@ const CycleClients: React.FC = () => {
                       <td className="px-4 py-3 text-right font-medium">
                         {(creance.montantTTC / 1000000).toFixed(2)}M
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-red-600">
+                      <td className="px-4 py-3 text-right font-medium text-[var(--color-error)]">
                         {(creance.solde / 1000000).toFixed(2)}M
                       </td>
                       <td className="px-4 py-3 text-center">
                         {creance.joursRetard > 0 ? (
-                          <span className="text-red-600 font-medium">{creance.joursRetard}j</span>
+                          <span className="text-[var(--color-error)] font-medium">{creance.joursRetard}j</span>
                         ) : (
-                          <span className="text-green-600">-</span>
+                          <span className="text-[var(--color-success)]">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -483,11 +576,11 @@ const CycleClients: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Send className="w-4 h-4 text-blue-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Send className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
                       </td>
@@ -509,35 +602,35 @@ const CycleClients: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <Mail className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm text-gray-500">Niveau 1</span>
+                    <Mail className="w-5 h-5 text-[var(--color-primary)]" />
+                    <span className="text-sm text-[var(--color-text-secondary)]">Niveau 1</span>
                   </div>
                   <p className="font-medium">Rappel Courtois</p>
-                  <p className="text-sm text-gray-600 mt-1">J+5 après échéance</p>
-                  <p className="text-2xl font-bold text-blue-600 mt-2">12</p>
-                  <p className="text-xs text-gray-500">envois programmés</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">J+5 après échéance</p>
+                  <p className="text-2xl font-bold text-[var(--color-primary)] mt-2">12</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">envois programmés</p>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <Phone className="w-5 h-5 text-orange-500" />
-                    <span className="text-sm text-gray-500">Niveau 2</span>
+                    <span className="text-sm text-[var(--color-text-secondary)]">Niveau 2</span>
                   </div>
                   <p className="font-medium">Relance Téléphonique</p>
-                  <p className="text-sm text-gray-600 mt-1">J+15 après échéance</p>
-                  <p className="text-2xl font-bold text-orange-600 mt-2">8</p>
-                  <p className="text-xs text-gray-500">appels à effectuer</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">J+15 après échéance</p>
+                  <p className="text-2xl font-bold text-[var(--color-warning)] mt-2">8</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">appels à effectuer</p>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <FileText className="w-5 h-5 text-red-500" />
-                    <span className="text-sm text-gray-500">Niveau 3</span>
+                    <FileText className="w-5 h-5 text-[var(--color-error)]" />
+                    <span className="text-sm text-[var(--color-text-secondary)]">Niveau 3</span>
                   </div>
                   <p className="font-medium">Mise en Demeure</p>
-                  <p className="text-sm text-gray-600 mt-1">J+30 après échéance</p>
-                  <p className="text-2xl font-bold text-red-600 mt-2">3</p>
-                  <p className="text-xs text-gray-500">courriers à envoyer</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">J+30 après échéance</p>
+                  <p className="text-2xl font-bold text-[var(--color-error)] mt-2">3</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">courriers à envoyer</p>
                 </div>
               </div>
 
@@ -545,19 +638,19 @@ const CycleClients: React.FC = () => {
                 <h4 className="font-medium mb-3">Historique des Relances</h4>
                 <div className="space-y-2">
                   {mockCreances[0].actionsRelance.map(action => (
-                    <div key={action.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div key={action.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded">
                       <div className="flex items-center gap-3">
-                        {action.type === 'email' && <Mail className="w-4 h-4 text-blue-500" />}
+                        {action.type === 'email' && <Mail className="w-4 h-4 text-[var(--color-primary)]" />}
                         {action.type === 'telephone' && <Phone className="w-4 h-4 text-orange-500" />}
-                        {action.type === 'mise_en_demeure' && <FileText className="w-4 h-4 text-red-500" />}
+                        {action.type === 'mise_en_demeure' && <FileText className="w-4 h-4 text-[var(--color-error)]" />}
                         <div>
                           <p className="font-medium capitalize">{action.type.replace('_', ' ')}</p>
-                          <p className="text-sm text-gray-600">{action.resultat}</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{action.resultat}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-sm">{new Date(action.date).toLocaleDateString()}</p>
-                        <Badge className={action.statut === 'execute' ? 'bg-green-100' : 'bg-gray-100'}>
+                        <Badge className={action.statut === 'execute' ? 'bg-[var(--color-success-lighter)]' : 'bg-[var(--color-background-hover)]'}>
                           {action.statut}
                         </Badge>
                       </div>
@@ -585,36 +678,36 @@ const CycleClients: React.FC = () => {
                 </Alert>
 
                 <div className="grid grid-cols-4 gap-4">
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-gray-600">0-90 jours</p>
+                  <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg">
+                    <p className="text-sm text-[var(--color-text-primary)]">0-90 jours</p>
                     <p className="text-2xl font-bold">0%</p>
-                    <p className="text-sm text-gray-500 mt-1">Pas de provision</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">Pas de provision</p>
                   </div>
-                  <div className="p-4 bg-yellow-50 rounded-lg">
-                    <p className="text-sm text-gray-600">91-180 jours</p>
+                  <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
+                    <p className="text-sm text-[var(--color-text-primary)]">91-180 jours</p>
                     <p className="text-2xl font-bold">25%</p>
-                    <p className="text-sm text-gray-500 mt-1">1.25M FCFA</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">1.25M FCFA</p>
                   </div>
                   <div className="p-4 bg-orange-50 rounded-lg">
-                    <p className="text-sm text-gray-600">181-365 jours</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">181-365 jours</p>
                     <p className="text-2xl font-bold">50%</p>
-                    <p className="text-sm text-gray-500 mt-1">3.0M FCFA</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">3.0M FCFA</p>
                   </div>
-                  <div className="p-4 bg-red-50 rounded-lg">
-                    <p className="text-sm text-gray-600">+365 jours</p>
+                  <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
+                    <p className="text-sm text-[var(--color-text-primary)]">+365 jours</p>
                     <p className="text-2xl font-bold">100%</p>
-                    <p className="text-sm text-gray-500 mt-1">1.0M FCFA</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">1.0M FCFA</p>
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="mt-6 p-4 bg-[var(--color-primary-lightest)] rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-gray-600">Total Provisions Requises</p>
-                      <p className="text-3xl font-bold text-blue-600">5.25M FCFA</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Total Provisions Requises</p>
+                      <p className="text-3xl font-bold text-[var(--color-primary)]">5.25M FCFA</p>
                     </div>
                     <button
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                      className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
                       onClick={() => setShowProvisionModal(true)}
                     >
                       <CheckCircle className="w-5 h-5" />
@@ -643,7 +736,7 @@ const CycleClients: React.FC = () => {
                         <div key={client.id} className="flex items-center justify-between p-3 border rounded">
                           <div>
                             <p className="font-medium">{client.nom}</p>
-                            <p className="text-sm text-gray-500">{client.secteur}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">{client.secteur}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="w-32">
@@ -691,15 +784,15 @@ const CycleClients: React.FC = () => {
                       </div>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-start gap-2">
-                          <ChevronRight className="w-4 h-4 text-gray-400 mt-0.5" />
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)] mt-0.5" />
                           <span>Réduire la limite de crédit de KOUASSI & FILS à 10M FCFA</span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <ChevronRight className="w-4 h-4 text-gray-400 mt-0.5" />
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)] mt-0.5" />
                           <span>Demander une garantie bancaire pour les nouvelles commandes importantes</span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <ChevronRight className="w-4 h-4 text-gray-400 mt-0.5" />
+                          <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)] mt-0.5" />
                           <span>Mettre en place un suivi hebdomadaire des encours à risque</span>
                         </li>
                       </ul>
@@ -711,6 +804,220 @@ const CycleClients: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Provision Modal */}
+      {showProvisionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[var(--color-warning-lighter)] text-[var(--color-warning)] p-2 rounded-lg">
+                  <Users className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Provision Cycle Clients</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowProvisionModal(false);
+                  resetForm();
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-orange-900 mb-1">Calcul de Provision</h4>
+                      <p className="text-sm text-orange-800">Calculez et enregistrez les provisions pour créances douteuses du cycle clients.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Basic Information */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Informations Générales</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Type de provision *</label>
+                      <Select
+                        value={formData.type}
+                        onValueChange={(value) => handleInputChange('type', value)}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner le type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="creances_douteuses">Créances douteuses</SelectItem>
+                          <SelectItem value="depreciation_stocks">Dépréciation stocks</SelectItem>
+                          <SelectItem value="risques_clients">Risques clients</SelectItem>
+                          <SelectItem value="autres">Autres</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.type && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.type}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Date de comptabilisation *</label>
+                      <Input
+                        type="date"
+                        value={formData.date_comptabilisation}
+                        onChange={(e) => handleInputChange('date_comptabilisation', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.date_comptabilisation && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.date_comptabilisation}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Provision Calculation */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Calcul de la Provision</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Base de calcul *</label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="Montant de base"
+                        value={formData.base_calcul}
+                        onChange={(e) => handleInputChange('base_calcul', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.base_calcul && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.base_calcul}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Montant provision *</label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="Montant de la provision"
+                        value={formData.montant}
+                        onChange={(e) => handleInputChange('montant', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.montant && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.montant}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Méthode de calcul</label>
+                      <Input
+                        placeholder="Ex: Pourcentage sur ancienneté"
+                        value={formData.methode_calcul}
+                        onChange={(e) => handleInputChange('methode_calcul', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Pièce justificative</label>
+                      <Input
+                        placeholder="Ex: PROV-2024-001"
+                        value={formData.piece_justificative}
+                        onChange={(e) => handleInputChange('piece_justificative', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Accounting Details */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Écriture Comptable</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Compte débit *</label>
+                      <Input
+                        placeholder="Ex: 6815"
+                        value={formData.compte_debit}
+                        onChange={(e) => handleInputChange('compte_debit', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.compte_debit && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.compte_debit}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Compte crédit *</label>
+                      <Input
+                        placeholder="Ex: 4915"
+                        value={formData.compte_credit}
+                        onChange={(e) => handleInputChange('compte_credit', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.compte_credit && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.compte_credit}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Justification */}
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Justification de la provision *</label>
+                  <textarea
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    rows={3}
+                    placeholder="Justification du calcul de la provision..."
+                    value={formData.justification}
+                    onChange={(e) => handleInputChange('justification', e.target.value)}
+                    disabled={isSubmitting}
+                  ></textarea>
+                  {errors.justification && (
+                    <p className="mt-1 text-sm text-[var(--color-error)]">{errors.justification}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowProvisionModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-[var(--color-warning)] text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>Traitement...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Enregistrer la Provision</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

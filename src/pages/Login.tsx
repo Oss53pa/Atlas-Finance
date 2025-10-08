@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
+  const { t } = useLanguage();
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
@@ -82,7 +84,7 @@ export default function Login() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-gray-700 text-center">
             Pour tester: Utilisez n'importe quel email et mot de passe
           </p>
         </div>

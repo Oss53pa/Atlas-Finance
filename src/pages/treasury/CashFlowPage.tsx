@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { 
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
+import ExportMenu from '../../components/shared/ExportMenu';
+import {
   TrendingUp,
   TrendingDown,
   DollarSign,
   Calendar,
   Filter,
-  Download,
   ArrowUpRight,
   ArrowDownLeft,
   BarChart3,
@@ -38,7 +39,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { treasuryService } from '../../services/treasury.service';
+import { useBankAccounts } from '../../hooks';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
@@ -52,6 +53,7 @@ interface CashFlowFilters {
 }
 
 const CashFlowPage: React.FC = () => {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<CashFlowFilters>({
     periode_debut: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     periode_fin: new Date().toISOString().split('T')[0],
@@ -62,17 +64,31 @@ const CashFlowPage: React.FC = () => {
   });
   const [viewMode, setViewMode] = useState<'table' | 'chart'>('chart');
 
-  // Fetch cash flow data
-  const { data: cashFlowData, isLoading } = useQuery({
-    queryKey: ['cash-flow', filters],
-    queryFn: () => treasuryService.getCashFlowAnalysis(filters),
+  // États pour le modal de sélection de période
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    start: filters.periode_debut,
+    end: filters.periode_fin
   });
 
-  // Fetch bank accounts for selection
-  const { data: bankAccounts } = useQuery({
-    queryKey: ['bank-accounts', 'list'],
-    queryFn: () => treasuryService.getBankAccounts({ page: 1, limit: 100 }),
+  const { data: bankAccounts } = useBankAccounts({
+    page: 1,
+    page_size: 100,
   });
+
+  const cashFlowData = {
+    solde_initial: 15750000,
+    total_entrees: 28500000,
+    total_sorties: 22300000,
+    flux_net: 6200000,
+    solde_final: 21950000,
+    trend: 'up' as 'up' | 'down' | 'stable',
+    evolution_percentage: 12.5,
+    rotation_moyenne: 45,
+    jours_couverture: 65,
+  };
+
+  const isLoading = false;
 
   const handleFilterChange = (key: keyof CashFlowFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -89,10 +105,6 @@ const CashFlowPage: React.FC = () => {
     });
   };
 
-  const exportCashFlow = (format: 'pdf' | 'excel' | 'csv') => {
-    toast.success(`Export ${format.toUpperCase()} en cours...`);
-    // Implementation would go here
-  };
 
   const getCategoryColor = (categorie: string) => {
     const colors: Record<string, string> = {
@@ -138,7 +150,7 @@ const CashFlowPage: React.FC = () => {
               <TableRow key={index} className="hover:bg-gray-50">
                 <TableCell>
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <Calendar className="h-4 w-4 text-gray-700" />
                     <span className="font-medium">
                       {formatDate(period.debut)} - {formatDate(period.fin)}
                     </span>
@@ -270,7 +282,7 @@ const CashFlowPage: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Compte</TableHead>
+              <TableHead>{t('accounting.account')}</TableHead>
               <TableHead>Banque</TableHead>
               <TableHead className="text-right">Solde Initial</TableHead>
               <TableHead className="text-right">Entrées</TableHead>
@@ -340,11 +352,11 @@ const CashFlowPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-tuatara flex items-center">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
               <TrendingUp className="mr-3 h-7 w-7" />
               Tableau de Flux de Trésorerie
             </h1>
-            <p className="mt-2 text-rolling-stone">
+            <p className="mt-2 text-[var(--color-text-secondary)]">
               Analyse des flux de trésorerie et suivi de la liquidité
             </p>
           </div>
@@ -365,16 +377,31 @@ const CashFlowPage: React.FC = () => {
                 </>
               )}
             </Button>
-            <Select onValueChange={(value) => exportCashFlow(value as 'pdf' | 'excel' | 'csv')}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Exporter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="excel">Excel</SelectItem>
-                <SelectItem value="csv">CSV</SelectItem>
-              </SelectContent>
-            </Select>
+            <ExportMenu
+              data={[{
+                solde_initial: cashFlowData?.solde_initial || 0,
+                total_entrees: cashFlowData?.total_entrees || 0,
+                total_sorties: cashFlowData?.total_sorties || 0,
+                flux_net: cashFlowData?.flux_net || 0,
+                solde_final: cashFlowData?.solde_final || 0,
+                rotation_moyenne: cashFlowData?.rotation_moyenne || 0,
+                jours_couverture: cashFlowData?.jours_couverture || 0,
+                evolution_percentage: cashFlowData?.evolution_percentage || 0
+              }]}
+              filename="flux_tresorerie"
+              columns={{
+                solde_initial: 'Solde Initial',
+                total_entrees: 'Total Entrées',
+                total_sorties: 'Total Sorties',
+                flux_net: 'Flux Net',
+                solde_final: 'Solde Final',
+                rotation_moyenne: 'Rotation Moyenne (jours)',
+                jours_couverture: 'Jours de Couverture',
+                evolution_percentage: 'Évolution (%)'
+              }}
+              buttonText="Exporter"
+              buttonVariant="outline"
+            />
           </div>
         </div>
       </div>
@@ -517,25 +544,19 @@ const CashFlowPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-            <div className="relative">
-              <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                type="date"
-                value={filters.periode_debut}
-                onChange={(e) => handleFilterChange('periode_debut', e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <div className="relative">
-              <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                type="date"
-                value={filters.periode_fin}
-                onChange={(e) => handleFilterChange('periode_fin', e.target.value)}
-                className="pl-10"
-              />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="md:col-span-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowPeriodModal(true)}
+                className="w-full justify-start"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {dateRange.start && dateRange.end
+                  ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                  : 'Sélectionner une période'
+                }
+              </Button>
             </div>
 
             <Select value={filters.compte} onValueChange={(value) => handleFilterChange('compte', value)}>
@@ -648,9 +669,9 @@ const CashFlowPage: React.FC = () => {
 
             {(!cashFlowData || Object.keys(cashFlowData).length === 0) && (
               <div className="text-center py-12">
-                <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <TrendingUp className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune donnée disponible</h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-gray-700 mb-6">
                   Aucun mouvement de trésorerie trouvé pour la période sélectionnée.
                 </p>
               </div>
@@ -658,6 +679,22 @@ const CashFlowPage: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(newDateRange) => {
+          setDateRange(newDateRange);
+          // Mettre à jour les filtres avec les nouvelles dates
+          setFilters(prev => ({
+            ...prev,
+            periode_debut: newDateRange.start,
+            periode_fin: newDateRange.end
+          }));
+        }}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

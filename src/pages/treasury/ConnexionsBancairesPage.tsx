@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -96,6 +97,7 @@ interface SyncLog {
 }
 
 const ConnexionsBancairesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [syncInProgress, setSyncInProgress] = useState<Set<string>>(new Set());
@@ -184,7 +186,7 @@ const ConnexionsBancairesPage: React.FC = () => {
       compte_id: '1',
       statut: 'traité',
       reference: 'VIR240131001',
-      categorie: 'Fournisseurs'
+      categorie: t('navigation.suppliers')
     },
     {
       id: '2',
@@ -196,7 +198,7 @@ const ConnexionsBancairesPage: React.FC = () => {
       compte_id: '1',
       statut: 'traité',
       reference: 'ENC240131002',
-      categorie: 'Clients'
+      categorie: t('navigation.clients')
     },
     {
       id: '3',
@@ -529,7 +531,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                                 {connection.nom_banque}
                               </h3>
                               <p className="text-sm text-gray-600">{connection.nom_compte}</p>
-                              <p className="text-xs font-mono text-gray-500">
+                              <p className="text-xs font-mono text-gray-700">
                                 {connection.numero_compte}
                               </p>
                             </div>
@@ -569,7 +571,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                             {connection.auto_sync ? (
                               <Wifi className="h-4 w-4 text-green-600" />
                             ) : (
-                              <WifiOff className="h-4 w-4 text-gray-400" />
+                              <WifiOff className="h-4 w-4 text-gray-700" />
                             )}
                           </div>
                           <div>
@@ -647,11 +649,11 @@ const ConnexionsBancairesPage: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Libellé</TableHead>
-                        <TableHead>Compte</TableHead>
+                        <TableHead>{t('common.date')}</TableHead>
+                        <TableHead>{t('accounting.label')}</TableHead>
+                        <TableHead>{t('accounting.account')}</TableHead>
                         <TableHead className="text-right">Montant</TableHead>
-                        <TableHead className="text-right">Solde</TableHead>
+                        <TableHead className="text-right">{t('accounting.balance')}</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Référence</TableHead>
                       </TableRow>
@@ -679,7 +681,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                             <TableCell>
                               <div>
                                 <p className="text-sm font-medium">{account?.nom_banque}</p>
-                                <p className="text-xs text-gray-500">{account?.nom_compte}</p>
+                                <p className="text-xs text-gray-700">{account?.nom_compte}</p>
                               </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -741,7 +743,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                           <div>
                             <p className="font-medium text-gray-900">{account?.nom_banque}</p>
                             <p className="text-sm text-gray-600">{log.message}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-700">
                               {formatDate(log.date_sync)} • Durée: {log.duree}s
                             </p>
                           </div>

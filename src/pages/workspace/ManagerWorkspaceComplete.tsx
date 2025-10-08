@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout';
 import {
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 const ManagerWorkspaceComplete: React.FC = () => {
+  const { t } = useLanguage();
   const [activeModule, setActiveModule] = useState('overview');
   const [timeRange, setTimeRange] = useState('month');
   const navigate = useNavigate();
@@ -156,7 +158,7 @@ const ManagerWorkspaceComplete: React.FC = () => {
             <option value="quarter">Ce trimestre</option>
             <option value="year">Cette année</option>
           </select>
-          <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+          <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Actualiser">
             <RefreshCw className="w-4 h-4 text-[#767676]" />
           </button>
         </div>
@@ -168,7 +170,7 @@ const ManagerWorkspaceComplete: React.FC = () => {
           { title: 'Chiffre d\'Affaires', value: '€2.4M', change: '+15.3%', trend: 'up', color: '#B87333', icon: DollarSign, path: '/financial-analysis-advanced' },
           { title: 'Marge Brute', value: '38.5%', change: '+2.1%', trend: 'up', color: '#6A8A82', icon: TrendingUp, path: '/accounting/sig' },
           { title: 'DSO Clients', value: '32j', change: '-5j', trend: 'up', color: '#7A99AC', icon: Target, path: '/customers' },
-          { title: 'Trésorerie', value: '€890K', change: '+12.8%', trend: 'up', color: '#B87333', icon: Activity, path: '/treasury' }
+          { title: t('navigation.treasury'), value: '€890K', change: '+12.8%', trend: 'up', color: '#B87333', icon: Activity, path: '/treasury' }
         ].map((kpi, index) => {
           const IconComponent = kpi.icon;
           return (

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Calculator,
@@ -32,13 +33,14 @@ import {
 } from 'lucide-react';
 
 const ComptableWorkspaceFinal: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Liens directs vers WiseBook
   const wiseBookLinks = [
     { id: 'entries', label: 'Saisie d\'écritures', icon: FileText, badge: '5', path: '/accounting/entries' },
-    { id: 'journals', label: 'Journaux', icon: BookOpen, path: '/accounting/journals' },
+    { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
     { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
     { id: 'balance', label: 'Balance générale', icon: PieChart, path: '/accounting/balance' },
     { id: 'statements', label: 'États financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
@@ -56,7 +58,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           <div className="flex items-center space-x-4">
             {/* BOUTON RETOUR BIEN VISIBLE */}
             <button 
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors border-2 border-gray-300"
             >
               <ArrowLeft className="w-5 h-5 text-[#444444]" />

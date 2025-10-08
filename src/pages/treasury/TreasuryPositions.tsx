@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -62,6 +63,7 @@ interface PositionModal {
 }
 
 const TreasuryPositions: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCurrency, setFilterCurrency] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -422,8 +424,8 @@ const TreasuryPositions: React.FC = () => {
                   <thead>
                     <tr className="border-b border-neutral-200">
                       <th className="text-left py-3 px-4 font-medium text-neutral-600">Banque</th>
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Compte</th>
-                      <th className="text-right py-3 px-4 font-medium text-neutral-600">Solde</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('accounting.account')}</th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600">{t('accounting.balance')}</th>
                       <th className="text-right py-3 px-4 font-medium text-neutral-600">Disponible</th>
                       <th className="text-center py-3 px-4 font-medium text-neutral-600">Statut</th>
                       <th className="text-center py-3 px-4 font-medium text-neutral-600">Risque</th>

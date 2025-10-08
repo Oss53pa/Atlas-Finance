@@ -15,6 +15,7 @@ import {
   Download,
   Settings
 } from 'lucide-react';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   Card,
   CardContent,
@@ -103,13 +104,14 @@ interface ClosureControl {
 
 const ClosurePage: React.FC = () => {
   const [selectedProcedure, setSelectedProcedure] = useState<string>('');
-  const [selectedPeriod, setSelectedPeriod] = useState('current');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [viewMode, setViewMode] = useState<'list' | 'details' | 'monitoring'>('list');
 
   const queryClient = useQueryClient();
 
   const { data: procedures, isLoading } = useQuery({
-    queryKey: ['closure-procedures', selectedPeriod],
+    queryKey: ['closure-procedures', dateRange],
     queryFn: async (): Promise<ClosureProcedure[]> => {
       // Mock data - remplacer par vraie API
       return [
@@ -244,22 +246,22 @@ const ClosurePage: React.FC = () => {
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case 'PLANIFIEE': return 'bg-gray-100 text-gray-800';
-      case 'EN_COURS': return 'bg-blue-100 text-blue-800';
-      case 'EN_ATTENTE_APPROBATION': return 'bg-yellow-100 text-yellow-800';
-      case 'CLOTUE': return 'bg-green-100 text-green-800';
-      case 'REJETEE': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'PLANIFIEE': return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
+      case 'EN_COURS': return 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]';
+      case 'EN_ATTENTE_APPROBATION': return 'bg-[var(--color-warning-lighter)] text-yellow-800';
+      case 'CLOTUE': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]';
+      case 'REJETEE': return 'bg-[var(--color-error-lighter)] text-red-800';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
   };
 
   const getStepStatusIcon = (statut: string) => {
     switch (statut) {
-      case 'COMPLETEE': return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'EN_COURS': return <Clock className="h-5 w-5 text-blue-500" />;
-      case 'ERREUR': return <AlertTriangle className="h-5 w-5 text-red-500" />;
-      case 'EN_ATTENTE': return <Clock className="h-5 w-5 text-gray-400" />;
-      default: return <Clock className="h-5 w-5 text-gray-400" />;
+      case 'COMPLETEE': return <CheckCircle className="h-5 w-5 text-[var(--color-success)]" />;
+      case 'EN_COURS': return <Clock className="h-5 w-5 text-[var(--color-primary)]" />;
+      case 'ERREUR': return <AlertTriangle className="h-5 w-5 text-[var(--color-error)]" />;
+      case 'EN_ATTENTE': return <Clock className="h-5 w-5 text-[var(--color-text-secondary)]" />;
+      default: return <Clock className="h-5 w-5 text-[var(--color-text-secondary)]" />;
     }
   };
 
@@ -279,13 +281,13 @@ const ClosurePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-[var(--color-background-secondary)] p-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Clôtures Périodiques</h1>
-            <p className="text-gray-600">Orchestration des processus de clôture SYSCOHADA</p>
+            <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Clôtures Périodiques</h1>
+            <p className="text-[var(--color-text-primary)]">Orchestration des processus de clôture SYSCOHADA</p>
           </div>
           <div className="flex space-x-4">
             <Select value={viewMode} onValueChange={setViewMode}>
@@ -315,7 +317,7 @@ const ClosurePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg">{procedure.libelle}</CardTitle>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mt-2">
+                    <div className="flex items-center space-x-4 text-sm text-[var(--color-text-primary)] mt-2">
                       <span className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
                         {procedure.dateDebutPeriode} → {procedure.dateFinPeriode}
@@ -334,7 +336,7 @@ const ClosurePage: React.FC = () => {
                        procedure.statut === 'CLOTUE' ? 'Clôturée' : 'Rejetée'}
                     </Badge>
                     {procedure.nombreAnomaliesCritiques > 0 && (
-                      <Badge className="bg-red-100 text-red-800">
+                      <Badge className="bg-[var(--color-error-lighter)] text-red-800">
                         {procedure.nombreAnomaliesCritiques} critique(s)
                       </Badge>
                     )}
@@ -346,8 +348,8 @@ const ClosurePage: React.FC = () => {
                   {/* Progression */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Avancement</span>
-                      <span className="text-sm text-gray-600">{procedure.pourcentageAvancement}%</span>
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Avancement</span>
+                      <span className="text-sm text-[var(--color-text-primary)]">{procedure.pourcentageAvancement}%</span>
                     </div>
                     <Progress value={procedure.pourcentageAvancement} className="h-2" />
                   </div>
@@ -355,21 +357,21 @@ const ClosurePage: React.FC = () => {
                   {/* Informations clés */}
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600">Type de clôture</p>
+                      <p className="text-[var(--color-text-primary)]">Type de clôture</p>
                       <p className="font-medium">{procedure.typeCloture.nom}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Étapes</p>
+                      <p className="text-[var(--color-text-primary)]">Étapes</p>
                       <p className="font-medium">
                         {procedure.etapes.filter(e => e.statut === 'COMPLETEE').length} / {procedure.etapes.length}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Anomalies</p>
+                      <p className="text-[var(--color-text-primary)]">Anomalies</p>
                       <p className="font-medium">
                         {procedure.nombreAnomalies} 
                         {procedure.nombreAnomaliesCritiques > 0 && (
-                          <span className="text-red-600"> ({procedure.nombreAnomaliesCritiques} critiques)</span>
+                          <span className="text-[var(--color-error)]"> ({procedure.nombreAnomaliesCritiques} critiques)</span>
                         )}
                       </p>
                     </div>
@@ -377,10 +379,10 @@ const ClosurePage: React.FC = () => {
 
                   {/* Étapes en cours */}
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Étapes</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Étapes</p>
                     <div className="space-y-2">
                       {procedure.etapes.slice(0, 3).map((etape) => (
-                        <div key={etape.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div key={etape.id} className="flex items-center justify-between p-2 bg-[var(--color-background-secondary)] rounded">
                           <div className="flex items-center space-x-2">
                             {getStepStatusIcon(etape.statut)}
                             <span className="text-sm">{etape.nomEtape}</span>
@@ -391,12 +393,12 @@ const ClosurePage: React.FC = () => {
                                 {etape.controles.filter(c => c.resultatConforme).length}/{etape.controles.length} contrôles
                               </Badge>
                             )}
-                            <span className="text-xs text-gray-500">{formatDuration(etape.dureePrevueHeures)}</span>
+                            <span className="text-xs text-[var(--color-text-secondary)]">{formatDuration(etape.dureePrevueHeures)}</span>
                           </div>
                         </div>
                       ))}
                       {procedure.etapes.length > 3 && (
-                        <p className="text-xs text-gray-500 text-center">
+                        <p className="text-xs text-[var(--color-text-secondary)] text-center">
                           +{procedure.etapes.length - 3} autres étapes
                         </p>
                       )}
@@ -434,7 +436,7 @@ const ClosurePage: React.FC = () => {
                         <Button 
                           onClick={() => approveClosureMutation.mutate(procedure.id)}
                           size="sm"
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-[var(--color-success)] hover:bg-[var(--color-success-dark)]"
                           disabled={approveClosureMutation.isPending}
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
@@ -471,7 +473,7 @@ const ClosurePage: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-xl">{procedure.libelle}</CardTitle>
-                        <p className="text-gray-600">{procedure.numeroAloture}</p>
+                        <p className="text-[var(--color-text-primary)]">{procedure.numeroAloture}</p>
                       </div>
                       <Badge className={`${getStatusColor(procedure.statut)} text-lg px-4 py-2`}>
                         {procedure.statut === 'EN_COURS' ? 'En Cours' : procedure.statut}
@@ -481,32 +483,32 @@ const ClosurePage: React.FC = () => {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div>
-                        <p className="text-sm text-gray-600">Avancement Global</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Avancement Global</p>
                         <div className="mt-2">
                           <Progress value={procedure.pourcentageAvancement} className="h-3" />
                           <p className="text-lg font-bold text-center mt-1">{procedure.pourcentageAvancement}%</p>
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Étapes Complétées</p>
-                        <p className="text-2xl font-bold text-green-600">
+                        <p className="text-sm text-[var(--color-text-primary)]">Étapes Complétées</p>
+                        <p className="text-2xl font-bold text-[var(--color-success)]">
                           {procedure.etapes.filter(e => e.statut === 'COMPLETEE').length}
                         </p>
-                        <p className="text-sm text-gray-500">sur {procedure.etapes.length}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">sur {procedure.etapes.length}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Anomalies</p>
-                        <p className="text-2xl font-bold text-yellow-600">{procedure.nombreAnomalies}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-[var(--color-text-primary)]">Anomalies</p>
+                        <p className="text-2xl font-bold text-[var(--color-warning)]">{procedure.nombreAnomalies}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">
                           {procedure.nombreAnomaliesCritiques} critique(s)
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Équilibre Balance</p>
-                        <p className={`text-2xl font-bold ${procedure.ecartBalance === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <p className="text-sm text-[var(--color-text-primary)]">Équilibre Balance</p>
+                        <p className={`text-2xl font-bold ${procedure.ecartBalance === 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                           {procedure.ecartBalance.toFixed(2)} XAF
                         </p>
-                        <p className="text-sm text-gray-500">Écart</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">Écart</p>
                       </div>
                     </div>
                   </CardContent>
@@ -523,7 +525,7 @@ const ClosurePage: React.FC = () => {
                         <div key={etape.id} className="relative">
                           {/* Ligne de connexion */}
                           {index < procedure.etapes.length - 1 && (
-                            <div className="absolute left-6 top-12 w-0.5 h-16 bg-gray-200"></div>
+                            <div className="absolute left-6 top-12 w-0.5 h-16 bg-[var(--color-border)]"></div>
                           )}
                           
                           <div className="flex items-start space-x-4">
@@ -533,18 +535,18 @@ const ClosurePage: React.FC = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <h4 className="text-sm font-medium text-gray-900">
+                                  <h4 className="text-sm font-medium text-[var(--color-text-primary)]">
                                     {etape.numeroEtape} - {etape.nomEtape}
                                   </h4>
-                                  <p className="text-sm text-gray-600">{etape.description}</p>
+                                  <p className="text-sm text-[var(--color-text-primary)]">{etape.description}</p>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <Badge variant="outline" className={
-                                    etape.automatique ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-700'
+                                    etape.automatique ? 'bg-[var(--color-primary-lightest)] text-[var(--color-primary-dark)]' : 'bg-[var(--color-background-secondary)] text-[var(--color-text-primary)]'
                                   }>
                                     {etape.automatique ? 'Auto' : 'Manuel'}
                                   </Badge>
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs text-[var(--color-text-secondary)]">
                                     {formatDuration(etape.dureePrevueHeures)}
                                   </span>
                                 </div>
@@ -554,24 +556,24 @@ const ClosurePage: React.FC = () => {
                               {etape.controles.length > 0 && (
                                 <div className="mt-3 space-y-2">
                                   {etape.controles.map((controle) => (
-                                    <div key={controle.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                                    <div key={controle.id} className="flex items-center justify-between p-2 bg-[var(--color-background-secondary)] rounded text-sm">
                                       <div className="flex items-center space-x-2">
                                         {controle.resultatConforme ? 
-                                          <CheckCircle className="h-4 w-4 text-green-500" /> :
-                                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                                          <CheckCircle className="h-4 w-4 text-[var(--color-success)]" /> :
+                                          <AlertTriangle className="h-4 w-4 text-[var(--color-error)]" />
                                         }
                                         <span>{controle.nomControle}</span>
                                       </div>
                                       <div className="flex items-center space-x-2">
                                         <Badge className={
-                                          controle.niveauCriticite === 'BLOQUANT' ? 'bg-red-100 text-red-800' :
-                                          controle.niveauCriticite === 'AVERTISSEMENT' ? 'bg-yellow-100 text-yellow-800' :
-                                          'bg-blue-100 text-blue-800'
+                                          controle.niveauCriticite === 'BLOQUANT' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                                          controle.niveauCriticite === 'AVERTISSEMENT' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
+                                          'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'
                                         }>
                                           {controle.niveauCriticite}
                                         </Badge>
                                         {controle.nombreAnomalies > 0 && (
-                                          <span className="text-red-600 font-medium">
+                                          <span className="text-[var(--color-error)] font-medium">
                                             {controle.nombreAnomalies} anomalie(s)
                                           </span>
                                         )}
@@ -612,7 +614,7 @@ const ClosurePage: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {procedures?.map((procedure) => (
-                  <div key={procedure.id} className="p-4 border border-gray-200 rounded-lg">
+                  <div key={procedure.id} className="p-4 border border-[var(--color-border)] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium">{procedure.libelle}</span>
                       <Badge className={getStatusColor(procedure.statut)}>
@@ -620,7 +622,7 @@ const ClosurePage: React.FC = () => {
                       </Badge>
                     </div>
                     <Progress value={procedure.pourcentageAvancement} className="h-2" />
-                    <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                    <div className="flex items-center justify-between mt-2 text-xs text-[var(--color-text-primary)]">
                       <span>
                         {procedure.etapes.filter(e => e.statut === 'COMPLETEE').length} / {procedure.etapes.length} étapes
                       </span>
@@ -651,7 +653,7 @@ const ClosurePage: React.FC = () => {
                           <div className="flex items-center justify-between">
                             <div>
                               <span className="font-medium">{p.libelle}</span>
-                              <span className="text-sm text-gray-600"> - {etape.nomEtape}</span>
+                              <span className="text-sm text-[var(--color-text-primary)]"> - {etape.nomEtape}</span>
                               {etape.messagesErreur && (
                                 <p className="text-sm mt-1">{etape.messagesErreur}</p>
                               )}
@@ -666,8 +668,8 @@ const ClosurePage: React.FC = () => {
                 ) || []}
                 
                 {procedures?.every(p => p.nombreAnomaliesCritiques === 0) && (
-                  <div className="text-center text-gray-500 py-8">
-                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                  <div className="text-center text-[var(--color-text-secondary)] py-8">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-4 text-[var(--color-success)]" />
                     <p>Aucune alerte critique</p>
                   </div>
                 )}
@@ -676,6 +678,16 @@ const ClosurePage: React.FC = () => {
           </Card>
         </div>
       )}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

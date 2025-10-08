@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
+import ExportMenu from '../../components/shared/ExportMenu';
 import {
-  Users, Plus, Search, Filter, Download, Eye, Edit, Trash2,
+  Users, Plus, Search, Filter, Eye, Edit, Trash2,
   ArrowLeft, Phone, Mail, MapPin, Calendar, DollarSign,
   Target, TrendingUp, Activity, AlertTriangle, CheckCircle,
   Star, Heart, Award, Clock, CreditCard, FileText,
@@ -16,8 +19,13 @@ import {
   AreaChart, Area
 } from 'recharts';
 import { Client, CRMData, Interaction, Opportunity } from '../../types/tiers';
+import DataTable from '../../components/ui/DataTable';
+import { useDataTable } from '../../hooks/useDataTable';
+import { clientService } from '../../services/api.service';
+import { toast } from 'react-hot-toast';
 
 const ClientsModule: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('liste');
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,8 +34,12 @@ const ClientsModule: React.FC = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showOpportunityModal, setShowOpportunityModal] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const [selectedYear, setSelectedYear] = useState('2025');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    period: 'month' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
+  });
   const [compareMode, setCompareMode] = useState(false);
 
   // Mock Clients Data
@@ -241,13 +253,88 @@ const ClientsModule: React.FC = () => {
     }).format(amount);
   };
 
-  const filteredClients = mockClients.filter(client => {
-    const matchSearch = client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       client.code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchSegment = filterSegment === 'tous' || client.segmentClient === filterSegment;
-    const matchStatut = filterStatut === 'tous' || client.statut === filterStatut;
-    return matchSearch && matchSegment && matchStatut;
+  // Utiliser useDataTable
+  const {
+    data: filteredClients,
+    loading,
+    error,
+    totalCount,
+    currentPage,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search,
+    filters,
+    setPage,
+    setPageSize,
+    setSort,
+    setSearch,
+    setFilters,
+    refresh,
+    totalPages
+  } = useDataTable<Client>({
+    fetchData: async (params) => {
+      // Pour l'instant, utiliser les données mock
+      let filteredData = [...mockClients];
+
+      // Filtrer par recherche
+      if (params.search) {
+        filteredData = filteredData.filter(client =>
+          client.nom.toLowerCase().includes(params.search!.toLowerCase()) ||
+          client.code.toLowerCase().includes(params.search!.toLowerCase())
+        );
+      }
+
+      // Filtrer par segment
+      if (params.filters?.segment && params.filters.segment !== 'tous') {
+        filteredData = filteredData.filter(client => client.segmentClient === params.filters!.segment);
+      }
+
+      // Filtrer par statut
+      if (params.filters?.statut && params.filters.statut !== 'tous') {
+        filteredData = filteredData.filter(client => client.statut === params.filters!.statut);
+      }
+
+      // Tri
+      if (params.sortBy) {
+        filteredData.sort((a, b) => {
+          const aValue = a[params.sortBy as keyof Client];
+          const bValue = b[params.sortBy as keyof Client];
+          const order = params.sortOrder === 'asc' ? 1 : -1;
+
+          if (typeof aValue === 'string' && typeof bValue === 'string') {
+            return aValue.localeCompare(bValue) * order;
+          }
+          if (typeof aValue === 'number' && typeof bValue === 'number') {
+            return (aValue - bValue) * order;
+          }
+          return 0;
+        });
+      }
+
+      // Pagination
+      const start = ((params.page || 1) - 1) * (params.pageSize || 10);
+      const end = start + (params.pageSize || 10);
+      const paginatedData = filteredData.slice(start, end);
+
+      return {
+        data: paginatedData,
+        total: filteredData.length,
+        page: params.page || 1,
+        pageSize: params.pageSize || 10
+      };
+    },
+    initialPageSize: 10,
+    autoFetch: true
   });
+
+  // Mettre à jour les filtres quand ils changent
+  useEffect(() => {
+    setFilters({
+      segment: filterSegment,
+      statut: filterStatut
+    });
+  }, [filterSegment, filterStatut, setFilters]);
 
   // Mock Analytics Data
   const analyticsData = {
@@ -310,10 +397,21 @@ const ClientsModule: React.FC = () => {
               <span className="text-sm font-semibold">Nouveau Client</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors">
-              <Download className="w-4 h-4" />
-              <span className="text-sm font-semibold">Exporter</span>
-            </button>
+            <ExportMenu
+              data={filteredClients}
+              filename="clients"
+              columns={[
+                { key: 'nom', label: 'Nom' },
+                { key: 'code', label: 'Code' },
+                { key: 'segmentClient', label: 'Segment' },
+                { key: 'chiffreAffaires', label: 'CA' },
+                { key: 'encours', label: 'Encours' },
+                { key: 'dso', label: 'DSO' },
+                { key: 'risqueClient', label: 'Risque' },
+                { key: 'statut', label: 'Statut' }
+              ]}
+              buttonText={t('common.export')}
+            />
           </div>
         </div>
 
@@ -343,7 +441,7 @@ const ClientsModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                 <input
                   type="text"
                   placeholder="Rechercher par nom ou code client..."
@@ -373,7 +471,7 @@ const ClientsModule: React.FC = () => {
                 ))}
               </select>
 
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label="Filtrer">
                 <Filter className="w-5 h-5 text-gray-600" />
               </button>
             </div>
@@ -385,14 +483,14 @@ const ClientsModule: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segment</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CA</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Encours</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DSO</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risque</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Client</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Segment</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">CA</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Encours</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">DSO</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Risque</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -405,7 +503,7 @@ const ClientsModule: React.FC = () => {
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-900">{client.nom}</div>
-                            <div className="text-sm text-gray-500">{client.code}</div>
+                            <div className="text-sm text-gray-700">{client.code}</div>
                           </div>
                         </div>
                       </td>
@@ -452,7 +550,7 @@ const ClientsModule: React.FC = () => {
                           <button className="p-1 text-green-600 hover:text-green-900">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-red-600 hover:text-red-900">
+                          <button className="p-1 text-red-600 hover:text-red-900" aria-label="Supprimer">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -473,30 +571,22 @@ const ClientsModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-[#666666]" />
-                  <select
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
-                  >
-                    <option value="day">Aujourd'hui</option>
-                    <option value="week">Cette semaine</option>
-                    <option value="month">Ce mois</option>
-                    <option value="quarter">Ce trimestre</option>
-                    <option value="year">Cette année</option>
-                    <option value="custom">Personnalisé</option>
-                  </select>
-                </div>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
+                <button
+                  onClick={() => setShowPeriodModal(true)}
+                  className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
                 >
-                  <option value="2025">2025</option>
-                  <option value="2024">2024</option>
-                  <option value="2023">2023</option>
-                </select>
+                  <Calendar className="w-4 h-4 text-[#666666]" />
+                  <span>
+                    {dateRange.period === 'custom'
+                      ? `${dateRange.startDate} - ${dateRange.endDate}`
+                      : dateRange.period === 'day' ? t('common.today')
+                      : dateRange.period === 'week' ? 'Cette semaine'
+                      : dateRange.period === 'month' ? 'Ce mois'
+                      : dateRange.period === 'quarter' ? 'Ce trimestre'
+                      : 'Cette année'
+                    }
+                  </span>
+                </button>
                 <button
                   onClick={() => setCompareMode(!compareMode)}
                   className={`px-4 py-2 rounded-lg text-sm transition-colors ${
@@ -510,7 +600,7 @@ const ClientsModule: React.FC = () => {
                 </button>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="p-2 text-gray-600 hover:text-gray-900">
+                <button className="p-2 text-gray-600 hover:text-gray-900" aria-label="Actualiser">
                   <RefreshCw className="w-4 h-4" />
                 </button>
                 <button className="px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] text-sm">
@@ -530,7 +620,7 @@ const ClientsModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">156</p>
               <p className="text-sm text-[#666666]">Clients Actifs</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronUp className="w-3 h-3 text-green-500 mr-1" />
                 <span>18 nouveaux ce mois</span>
               </div>
@@ -543,7 +633,7 @@ const ClientsModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">2.45M</p>
               <p className="text-sm text-[#666666]">Chiffre d'Affaires</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
                 <span>FCFA YTD</span>
               </div>
@@ -556,7 +646,7 @@ const ClientsModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">15.7K</p>
               <p className="text-sm text-[#666666]">Panier Moyen</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <Info className="w-3 h-3 text-blue-500 mr-1" />
                 <span>FCFA par commande</span>
               </div>
@@ -569,7 +659,7 @@ const ClientsModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">32j</p>
               <p className="text-sm text-[#666666]">DSO Moyen</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronDown className="w-3 h-3 text-green-500 mr-1" />
                 <span>Amélioration</span>
               </div>
@@ -582,7 +672,7 @@ const ClientsModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">487K</p>
               <p className="text-sm text-[#666666]">Encours Total</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <AlertTriangle className="w-3 h-3 text-orange-500 mr-1" />
                 <span>3 impayés critiques</span>
               </div>
@@ -651,7 +741,7 @@ const ClientsModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">78</span>
-                    <span className="text-xs text-gray-500">clients</span>
+                    <span className="text-xs text-gray-700">clients</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
@@ -661,7 +751,7 @@ const ClientsModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">52</span>
-                    <span className="text-xs text-gray-500">clients</span>
+                    <span className="text-xs text-gray-700">clients</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
@@ -671,7 +761,7 @@ const ClientsModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">21</span>
-                    <span className="text-xs text-gray-500">clients</span>
+                    <span className="text-xs text-gray-700">clients</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
@@ -681,7 +771,7 @@ const ClientsModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">5</span>
-                    <span className="text-xs text-gray-500">clients</span>
+                    <span className="text-xs text-gray-700">clients</span>
                   </div>
                 </div>
               </div>
@@ -742,7 +832,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[#191919]">Évolution du CA Mensuel</h3>
                 <div className="flex items-center space-x-2">
-                  <button className="p-1 text-gray-400 hover:text-gray-600">
+                  <button className="p-1 text-gray-700 hover:text-gray-600" aria-label="Information">
                     <Info className="w-4 h-4" />
                   </button>
                 </div>
@@ -963,7 +1053,7 @@ const ClientsModule: React.FC = () => {
                 <h2 className="text-xl font-bold text-[#191919]">Détails Client</h2>
                 <button
                   onClick={() => setSelectedClient(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-700 hover:text-gray-600"
                 >
                   ×
                 </button>
@@ -975,19 +1065,19 @@ const ClientsModule: React.FC = () => {
                   <h3 className="text-lg font-semibold text-[#191919]">Informations Générales</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Nom</label>
+                      <label className="text-sm font-medium text-gray-700">Nom</label>
                       <p className="text-[#191919]">{selectedClient.nom}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Code</label>
+                      <label className="text-sm font-medium text-gray-700">Code</label>
                       <p className="text-[#191919]">{selectedClient.code}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Secteur d'activité</label>
+                      <label className="text-sm font-medium text-gray-700">Secteur d'activité</label>
                       <p className="text-[#191919]">{selectedClient.secteurActivite}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Segment</label>
+                      <label className="text-sm font-medium text-gray-700">Segment</label>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSegmentColor(selectedClient.segmentClient)}`}>
                         {selectedClient.segmentClient}
                       </span>
@@ -1000,19 +1090,19 @@ const ClientsModule: React.FC = () => {
                   <h3 className="text-lg font-semibold text-[#191919]">Informations Financières</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Chiffre d'affaires</label>
+                      <label className="text-sm font-medium text-gray-700">Chiffre d'affaires</label>
                       <p className="text-[#191919]">{formatCurrency(selectedClient.chiffreAffaires)}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Encours</label>
+                      <label className="text-sm font-medium text-gray-700">Encours</label>
                       <p className="text-[#191919]">{formatCurrency(selectedClient.encours)}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">DSO</label>
+                      <label className="text-sm font-medium text-gray-700">DSO</label>
                       <p className="text-[#191919]">{selectedClient.dso} jours</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Risque</label>
+                      <label className="text-sm font-medium text-gray-700">Risque</label>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRiskColor(selectedClient.risqueClient)}`}>
                         {selectedClient.risqueClient}
                       </span>
@@ -1026,19 +1116,19 @@ const ClientsModule: React.FC = () => {
                   {selectedClient.contacts[0] && (
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Nom</label>
+                        <label className="text-sm font-medium text-gray-700">Nom</label>
                         <p className="text-[#191919]">{selectedClient.contacts[0].prenom} {selectedClient.contacts[0].nom}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Fonction</label>
+                        <label className="text-sm font-medium text-gray-700">Fonction</label>
                         <p className="text-[#191919]">{selectedClient.contacts[0].fonction}</p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-gray-400" />
+                        <Phone className="w-4 h-4 text-gray-700" />
                         <span className="text-[#191919]">{selectedClient.contacts[0].telephone}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
+                        <Mail className="w-4 h-4 text-gray-700" />
                         <span className="text-[#191919]">{selectedClient.contacts[0].email}</span>
                       </div>
                     </div>
@@ -1050,7 +1140,7 @@ const ClientsModule: React.FC = () => {
                   <h3 className="text-lg font-semibold text-[#191919]">Score CRM</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Score de prospection</label>
+                      <label className="text-sm font-medium text-gray-700">Score de prospection</label>
                       <div className="flex items-center space-x-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div
@@ -1062,11 +1152,11 @@ const ClientsModule: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Probabilité de vente</label>
+                      <label className="text-sm font-medium text-gray-700">Probabilité de vente</label>
                       <p className="text-[#191919]">{selectedClient.crm.probabiliteVente}%</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Valeur opportunité</label>
+                      <label className="text-sm font-medium text-gray-700">Valeur opportunité</label>
                       <p className="text-[#191919]">{formatCurrency(selectedClient.crm.valeurOpportunite || 0)}</p>
                     </div>
                   </div>
@@ -1088,6 +1178,492 @@ const ClientsModule: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Client Modal */}
+      {showClientModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Nouveau client</h3>
+                    <p className="text-sm text-gray-700">Créer une fiche client complète</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowClientModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">Création d'un client</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Renseignez les informations essentielles pour créer le client
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Code client <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                      placeholder="CLI001"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Raison sociale / Nom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Nom du client"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Catégorie <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="ENTREPRISE">Entreprise</option>
+                      <option value="PARTICULIER">Particulier</option>
+                      <option value="ADMINISTRATION">Administration</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Segment <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="VIP">VIP</option>
+                      <option value="PREMIUM">Premium</option>
+                      <option value="STANDARD">Standard</option>
+                      <option value="BASIC">Basic</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Secteur d'activité
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Ex: Commerce"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Numéro RC
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="RC-2025-XXX"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Numéro NIF
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="NIF123456789"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Adresse
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Rue <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Adresse complète"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ville <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Brazzaville"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Pays <span className="text-red-500">*</span>
+                      </label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="Congo">Congo</option>
+                        <option value="France">France</option>
+                        <option value="Autre">Autre</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Contact principal
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nom du contact <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Prénom Nom"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Fonction
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Directeur"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Téléphone <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="+242 06 123 45 67"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="contact@client.cg"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4" />
+                    Informations commerciales
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Responsable commercial
+                      </label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Sélectionner</option>
+                        <option value="Marie Kouam">Marie Kouam</option>
+                        <option value="Jean Dupont">Jean Dupont</option>
+                        <option value="Sophie Martin">Sophie Martin</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Délai de paiement (jours)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="30"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Remise habituelle (%)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="5"
+                        step="0.1"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowClientModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Créer le client
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Opportunity Modal */}
+      {showOpportunityModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Nouvelle opportunité</h3>
+                    <p className="text-sm text-gray-700">Créer une opportunité commerciale</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowOpportunityModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <TrendingUp className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-green-900">Suivi d'opportunité</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Enregistrez une opportunité commerciale pour suivre son évolution
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Titre de l'opportunité <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Ex: Vente équipement informatique"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Client <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="">Sélectionner un client</option>
+                      <option value="1">SARL CONGO BUSINESS</option>
+                      <option value="2">SA CENTRAL AFRICA</option>
+                      <option value="3">ETS DIGITAL SOLUTIONS</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Valeur estimée (XAF) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="50000"
+                      step="1000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Probabilité (%) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="70"
+                      min="0"
+                      max="100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date de clôture prévue
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Stade de l'opportunité <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="stade" value="PROSPECT" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Prospect</p>
+                        <p className="text-xs text-gray-700">Identification</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="stade" value="QUALIFICATION" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Qualification</p>
+                        <p className="text-xs text-gray-700">En étude</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="stade" value="PROPOSITION" className="mr-3" defaultChecked />
+                      <div>
+                        <p className="font-medium text-sm">Proposition</p>
+                        <p className="text-xs text-gray-700">Devis envoyé</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="stade" value="NEGOCIATION" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Négociation</p>
+                        <p className="text-xs text-gray-700">En discussion</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Responsable commercial
+                  </label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="">Sélectionner</option>
+                    <option value="Marie Kouam">Marie Kouam</option>
+                    <option value="Jean Dupont">Jean Dupont</option>
+                    <option value="Sophie Martin">Sophie Martin</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description de l'opportunité
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Décrivez les détails de l'opportunité, les besoins du client, etc."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prochaine action
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Ex: Appel de suivi, Rendez-vous, Envoi devis..."
+                  />
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-900">Suivi important</p>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        N'oubliez pas de planifier des actions de suivi régulières pour maximiser vos chances de succès
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowOpportunityModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Créer l'opportunité
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        currentRange={dateRange}
+        onPeriodChange={(newRange) => {
+          setDateRange(newRange);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

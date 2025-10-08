@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Calculator, Search, Filter, Download, ArrowLeft, Home, Plus,
@@ -8,14 +9,50 @@ import {
   CheckCircle, Info, Menu, FileSpreadsheet, Printer, RefreshCw,
   ChevronLeft
 } from 'lucide-react';
+import DataTable from '../../components/ui/DataTable';
+import { useDataTable } from '../../hooks/useDataTable';
+import { accountService } from '../../services/api.service';
+import { accountingService, createJournalSchema } from '../../services/modules/accounting.service';
+import { z } from 'zod';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import { Button, Input } from '../../components/ui';
+
+interface Compte {
+  id?: string;
+  code: string;
+  libelle: string;
+  solde: number;
+  type: string;
+  status: string;
+  classe: string;
+  sousComptes?: Array<{
+    code: string;
+    libelle: string;
+    solde: number;
+  }>;
+}
 
 const PlanSYSCOHADAPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedClasse, setSelectedClasse] = useState<string>('1');
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedComptes, setSelectedComptes] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [expandedAccounts, setExpandedAccounts] = useState<string[]>([]);
+  const [showNewAccountModal, setShowNewAccountModal] = useState(false);
+  const [formData, setFormData] = useState({
+    code: '',
+    libelle: '',
+    type: 'general',
+    classe: '1',
+    description: '',
+    actif: true,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
 
   // Plan comptable SYSCOHADA par classes
   const planComptable = {
@@ -611,6 +648,147 @@ const PlanSYSCOHADAPage: React.FC = () => {
     }
   };
 
+  const fetchData = useCallback(async (params: any) => {
+    const currentClass = planComptable[selectedClasse as keyof typeof planComptable];
+    if (!currentClass) return { data: [], total: 0, page: 1, pageSize: 10 };
+
+    const allComptes = currentClass.comptes.map(c => ({
+      ...c,
+      id: c.code,
+      classe: selectedClasse
+    }));
+
+      // Filtrer par recherche
+      let filteredData = allComptes;
+      if (params.search) {
+        filteredData = allComptes.filter(compte =>
+          compte.code.includes(params.search!) ||
+          compte.libelle.toLowerCase().includes(params.search!.toLowerCase())
+        );
+      }
+
+      // Tri
+      if (params.sortBy) {
+        filteredData.sort((a, b) => {
+          const aValue = a[params.sortBy as keyof Compte];
+          const bValue = b[params.sortBy as keyof Compte];
+          const order = params.sortOrder === 'asc' ? 1 : -1;
+
+          if (typeof aValue === 'string' && typeof bValue === 'string') {
+            return aValue.localeCompare(bValue) * order;
+          }
+          if (typeof aValue === 'number' && typeof bValue === 'number') {
+            return (aValue - bValue) * order;
+          }
+          return 0;
+        });
+      }
+
+      // Pagination
+      const start = ((params.page || 1) - 1) * (params.pageSize || 10);
+      const end = start + (params.pageSize || 10);
+      const paginatedData = filteredData.slice(start, end);
+
+    return {
+      data: paginatedData,
+      total: filteredData.length,
+      page: params.page || 1,
+      pageSize: params.pageSize || 10
+    };
+  }, [selectedClasse]);
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: accountingService.createJournal, // Temporaire
+    onSuccess: () => {
+      toast.success('Compte SYSCOHADA créé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['comptes-syscohada'] });
+      setShowNewAccountModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de la création du compte');
+    },
+  });
+
+  const {
+    data: comptes,
+    loading,
+    error,
+    totalCount,
+    currentPage,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search,
+    filters,
+    setPage,
+    setPageSize,
+    setSort,
+    setSearch,
+    setFilters,
+    refresh,
+    totalPages
+  } = useDataTable<Compte>({
+    fetchData,
+    initialPageSize: 20,
+    initialSortBy: 'code',
+    initialSortOrder: 'asc'
+  });
+
+  const resetForm = () => {
+    setFormData({
+      code: '',
+      libelle: '',
+      type: 'general',
+      classe: selectedClasse,
+      description: '',
+      actif: true,
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Validate with Zod
+      const validatedData = createJournalSchema.parse(formData);
+
+      // Submit to backend
+      await createMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la création du compte');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('fr-FR').format(Math.abs(num));
   };
@@ -639,13 +817,62 @@ const PlanSYSCOHADAPage: React.FC = () => {
   };
 
   const currentClass = planComptable[selectedClasse];
-  const filteredComptes = searchQuery
-    ? currentClass.comptes.filter(
-        compte =>
-          compte.code.includes(searchQuery) ||
-          compte.libelle.toLowerCase().includes(searchQuery.toLowerCase())
+
+  // Colonnes pour le DataTable
+  const columns = useMemo(() => [
+    {
+      key: 'code',
+      label: 'Code',
+      sortable: true,
+      render: (compte: Compte) => (
+        <div className="flex items-center gap-2">
+          {compte.sousComptes && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleAccountExpansion(compte.code);
+              }}
+              className="p-0.5 hover:bg-[var(--color-surface-hover)] rounded transition-colors"
+            >
+              <ChevronRight
+                className={`w-4 h-4 text-[var(--color-text-tertiary)] transition-transform ${
+                  expandedAccounts.includes(compte.code) ? 'rotate-90' : ''
+                }`}
+              />
+            </button>
+          )}
+          <span
+            className="font-mono font-semibold text-sm"
+            style={{ color: currentClass.color }}
+          >
+            {compte.code}
+          </span>
+        </div>
       )
-    : currentClass.comptes;
+    },
+    {
+      key: 'libelle',
+      label: t('accounting.label'),
+      sortable: true
+    },
+    {
+      key: 'solde',
+      label: t('accounting.balance'),
+      sortable: true,
+      render: (compte: Compte) => (
+        <span className={`text-sm font-medium ${
+          compte.solde >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
+        }`}>
+          {formatNumber(compte.solde)}
+        </span>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Statut',
+      render: (compte: Compte) => getStatusBadge(compte.status)
+    }
+  ], [currentClass.color, expandedAccounts]);
 
   return (
     <div className="flex h-full bg-[var(--color-background)]">
@@ -775,7 +1002,10 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 <Printer className="w-4 h-4" />
                 Imprimer
               </button>
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2">
+              <button
+                onClick={() => setShowNewAccountModal(true)}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2"
+              >
                 <Plus className="w-4 h-4" />
                 Nouveau Compte
               </button>
@@ -788,163 +1018,98 @@ const PlanSYSCOHADAPage: React.FC = () => {
             <input
               type="text"
               placeholder="Rechercher un compte dans cette classe..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
             />
           </div>
         </div>
 
-        {/* Accounts Table */}
+        {/* Accounts DataTable */}
+        <div className="flex-1 overflow-auto p-6">
+          <DataTable
+            data={comptes}
+            columns={columns}
+            loading={loading}
+            totalCount={totalCount}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            onSort={setSort}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            selectable
+            selectedRows={selectedComptes}
+            onSelectRow={(compte: Compte) => {
+              if (selectedComptes.includes(compte.code)) {
+                setSelectedComptes(selectedComptes.filter(c => c !== compte.code));
+              } else {
+                setSelectedComptes([...selectedComptes, compte.code]);
+              }
+            }}
+            onSelectAll={(selected: boolean) => {
+              if (selected) {
+                setSelectedComptes(comptes.map(c => c.code));
+              } else {
+                setSelectedComptes([]);
+              }
+            }}
+            actions={[
+              {
+                icon: Eye,
+                label: 'Voir détails',
+                onClick: (compte: Compte) => console.log('View', compte)
+              },
+              {
+                icon: Edit,
+                label: t('common.edit'),
+                onClick: (compte: Compte) => console.log('Edit', compte)
+              },
+              {
+                icon: Copy,
+                label: 'Dupliquer',
+                onClick: (compte: Compte) => console.log('Copy', compte)
+              }
+            ]}
+            emptyMessage="Aucun compte trouvé"
+            expandedRows={expandedAccounts}
+            onToggleExpand={toggleAccountExpansion}
+            renderExpandedRow={(compte: Compte) => {
+              if (!compte.sousComptes) return null;
+              return (
+                <div className="pl-12 py-2 bg-[var(--color-surface)]">
+                  {compte.sousComptes.map((sousCompte) => (
+                    <div key={sousCompte.code} className="flex items-center justify-between py-1 px-4 hover:bg-[var(--color-surface-hover)]">
+                      <div className="flex items-center gap-4">
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)]">
+                          {sousCompte.code}
+                        </span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">
+                          {sousCompte.libelle}
+                        </span>
+                      </div>
+                      <span className={`text-sm ${
+                        sousCompte.solde >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
+                      }`}>
+                        {formatNumber(sousCompte.solde)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            }}
+          />
+        </div>
+
+        {/* Old table code removed
         <div className="flex-1 overflow-auto">
           <div className="min-w-full">
             <table className="w-full">
-              <thead className="bg-[var(--color-surface)] sticky top-0 z-10 border-b border-[var(--color-border)]">
-                <tr>
-                  <th className="w-12 px-4 py-3">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedComptes(filteredComptes.map(c => c.code));
-                        } else {
-                          setSelectedComptes([]);
-                        }
-                      }}
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Code
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Libellé
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Solde
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Statut
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-[var(--color-background)] divide-y divide-[var(--color-border)]">
-                {filteredComptes.map((compte) => (
-                  <React.Fragment key={compte.code}>
-                    <tr className="hover:bg-[var(--color-surface-hover)] transition-colors">
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedComptes.includes(compte.code)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedComptes([...selectedComptes, compte.code]);
-                            } else {
-                              setSelectedComptes(selectedComptes.filter(c => c !== compte.code));
-                            }
-                          }}
-                          className="w-4 h-4 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {compte.sousComptes && (
-                            <button
-                              onClick={() => toggleAccountExpansion(compte.code)}
-                              className="p-0.5 hover:bg-[var(--color-surface-hover)] rounded transition-colors"
-                            >
-                              <ChevronRight
-                                className={`w-4 h-4 text-[var(--color-text-tertiary)] transition-transform ${
-                                  expandedAccounts.includes(compte.code) ? 'rotate-90' : ''
-                                }`}
-                              />
-                            </button>
-                          )}
-                          <span
-                            className="font-mono font-semibold text-sm"
-                            style={{ color: currentClass.color }}
-                          >
-                            {compte.code}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                          {compte.libelle}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`text-sm font-medium ${
-                          compte.solde >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
-                        }`}>
-                          {formatNumber(compte.solde)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {getStatusBadge(compte.status)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            className="p-1.5 hover:bg-[var(--color-surface-hover)] rounded transition-colors"
-                            aria-label="Voir détails"
-                          >
-                            <Eye className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                          </button>
-                          <button
-                            className="p-1.5 hover:bg-[var(--color-surface-hover)] rounded transition-colors"
-                            aria-label="Modifier"
-                          >
-                            <Edit className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                          </button>
-                          <button
-                            className="p-1.5 hover:bg-[var(--color-surface-hover)] rounded transition-colors"
-                            aria-label="Copier"
-                          >
-                            <Copy className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Sous-comptes */}
-                    {compte.sousComptes && expandedAccounts.includes(compte.code) &&
-                      compte.sousComptes.map((sousCompte) => (
-                        <tr
-                          key={sousCompte.code}
-                          className="bg-[var(--color-surface)] hover:bg-[var(--color-surface-hover)] transition-colors"
-                        >
-                          <td className="px-4 py-2"></td>
-                          <td className="px-4 py-2 pl-12">
-                            <span className="font-mono text-sm text-[var(--color-text-secondary)]">
-                              {sousCompte.code}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2">
-                            <span className="text-sm text-[var(--color-text-secondary)]">
-                              {sousCompte.libelle}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-right">
-                            <span className={`text-sm ${
-                              sousCompte.solde >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
-                            }`}>
-                              {formatNumber(sousCompte.solde)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2" colSpan={2}></td>
-                        </tr>
-                      ))
-                    }
-                  </React.Fragment>
-                ))}
-              </tbody>
             </table>
           </div>
         </div>
+        -->
 
         {/* Footer Actions */}
         {selectedComptes.length > 0 && (
@@ -976,6 +1141,311 @@ const PlanSYSCOHADAPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* New Account Modal */}
+      {showNewAccountModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Nouveau Compte SYSCOHADA</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowNewAccountModal(false);
+                  resetForm();
+                }}
+                className="text-gray-700 hover:text-gray-700"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">Nouveau Compte</h4>
+                      <p className="text-sm text-blue-800">Créez un nouveau compte dans la classe {selectedClasse} - {currentClass.shortName}. Le code doit respecter la nomenclature SYSCOHADA.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Information */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations du Compte</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Code du compte *</label>
+                      <Input
+                        placeholder={`${selectedClasse}X...`}
+                        value={formData.code}
+                        onChange={(e) => handleInputChange('code', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.code && (
+                        <p className="mt-1 text-sm text-red-600">{errors.code}</p>
+                      )}
+                      <p className="text-xs text-gray-700 mt-1">Doit commencer par {selectedClasse} (classe sélectionnée)</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Libellé du compte *</label>
+                      <Input
+                        placeholder="Libellé du compte..."
+                        value={formData.libelle}
+                        onChange={(e) => handleInputChange('libelle', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.libelle && (
+                        <p className="mt-1 text-sm text-red-600">{errors.libelle}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Type and Category */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Classification</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Type de compte *</label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value={formData.type}
+                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="general">Général</option>
+                        <option value="detail">Compte de détail</option>
+                        <option value="collectif">Compte collectif</option>
+                        <option value="auxiliaire">Compte auxiliaire</option>
+                      </select>
+                      {errors.type && (
+                        <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Classe *</label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value={formData.classe}
+                        onChange={(e) => handleInputChange('classe', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="1">1 - Ressources durables</option>
+                        <option value="2">2 - Actif immobilisé</option>
+                        <option value="3">3 - Stocks</option>
+                        <option value="4">4 - Tiers</option>
+                        <option value="5">5 - Trésorerie</option>
+                        <option value="6">6 - Charges</option>
+                        <option value="7">7 - Produits</option>
+                        <option value="8">8 - Autres C/P</option>
+                      </select>
+                      {errors.classe && (
+                        <p className="mt-1 text-sm text-red-600">{errors.classe}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SYSCOHADA Specifics */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Spécificités SYSCOHADA</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Nature économique</label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Sélectionner la nature</option>
+                        {selectedClasse === '1' && (
+                          <>
+                            <option value="capital">Capital</option>
+                            <option value="reserve">Réserves</option>
+                            <option value="resultat">Résultat</option>
+                            <option value="emprunt">Emprunts</option>
+                          </>
+                        )}
+                        {selectedClasse === '2' && (
+                          <>
+                            <option value="incorporel">Immobilisation incorporelle</option>
+                            <option value="terrain">Terrain</option>
+                            <option value="batiment">Bâtiment</option>
+                            <option value="materiel">Matériel</option>
+                          </>
+                        )}
+                        {selectedClasse === '3' && (
+                          <>
+                            <option value="stock">Stock de marchandises</option>
+                            <option value="matiere">Matières premières</option>
+                            <option value="encours">Produits en cours</option>
+                            <option value="fini">Produits finis</option>
+                          </>
+                        )}
+                        {selectedClasse === '4' && (
+                          <>
+                            <option value="client">Client</option>
+                            <option value="fournisseur">Fournisseur</option>
+                            <option value="personnel">Personnel</option>
+                            <option value="etat">État</option>
+                          </>
+                        )}
+                        {selectedClasse === '5' && (
+                          <>
+                            <option value="banque">Banque</option>
+                            <option value="caisse">Caisse</option>
+                            <option value="titre">Titres de placement</option>
+                          </>
+                        )}
+                        {selectedClasse === '6' && (
+                          <>
+                            <option value="achat">Achats</option>
+                            <option value="service">Services extérieurs</option>
+                            <option value="personnel">Charges de personnel</option>
+                            <option value="financier">Charges financières</option>
+                          </>
+                        )}
+                        {selectedClasse === '7' && (
+                          <>
+                            <option value="vente">Ventes</option>
+                            <option value="production">Production</option>
+                            <option value="financier">Produits financiers</option>
+                          </>
+                        )}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Sens normal</label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="debit">Débiteur</option>
+                        <option value="credit">Créditeur</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Parameters */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Paramètres Supplémentaires</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="lettrage"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="lettrage" className="text-sm text-gray-700">
+                        Compte lettrable (pour rapprochements)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="analytique"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="analytique" className="text-sm text-gray-700">
+                        Ventilation analytique obligatoire
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="tiers"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="tiers" className="text-sm text-gray-700">
+                        Gestion des tiers (codes auxiliaires)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="devise"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="devise" className="text-sm text-gray-700">
+                        Compte multi-devises
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Notes et Commentaires</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Description détaillée</label>
+                      <textarea
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        rows={3}
+                        placeholder="Description détaillée du compte et de son utilisation..."
+                        value={formData.description}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.description && (
+                        <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="actif"
+                        checked={formData.actif}
+                        onChange={(e) => handleInputChange('actif', e.target.checked)}
+                        disabled={isSubmitting}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="actif" className="text-sm text-gray-700">
+                        Compte actif
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowNewAccountModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Création...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Créer le compte</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

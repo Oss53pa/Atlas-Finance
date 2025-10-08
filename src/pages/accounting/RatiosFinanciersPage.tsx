@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   PieChart,
   TrendingUp,
@@ -48,6 +49,8 @@ interface RatioCategory {
 }
 
 const RatiosFinanciersPage: React.FC = () => {
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [categories, setCategories] = useState<RatioCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('structure');
   const [loading, setLoading] = useState(true);
@@ -291,7 +294,7 @@ const RatiosFinanciersPage: React.FC = () => {
     switch (trend) {
       case 'up': return <TrendingUp className="h-4 w-4 text-green-500" />;
       case 'down': return <TrendingDown className="h-4 w-4 text-red-500" />;
-      default: return <span className="h-4 w-4 text-gray-400">→</span>;
+      default: return <span className="h-4 w-4 text-gray-700">→</span>;
     }
   };
 
@@ -330,7 +333,7 @@ const RatiosFinanciersPage: React.FC = () => {
                     className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                       selectedCategory === category.id
                         ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        : 'border-transparent text-gray-700 hover:text-gray-700'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -379,7 +382,7 @@ const RatiosFinanciersPage: React.FC = () => {
                           {ratio.category === 'rentabilite' || ratio.formula.includes('%') ? '%' : ''}
                         </span>
                         {ratio.benchmark_cemac && ratio.benchmark_uemoa && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-700">
                             CEMAC: {ratio.benchmark_cemac} | UEMOA: {ratio.benchmark_uemoa}
                           </div>
                         )}
@@ -411,13 +414,13 @@ const RatiosFinanciersPage: React.FC = () => {
                     
                     <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                       <div className="flex items-center mb-2">
-                        <Info className="h-4 w-4 text-gray-500 mr-2" />
+                        <Info className="h-4 w-4 text-gray-700 mr-2" />
                         <span className="text-sm font-medium text-gray-700">Formule SYSCOHADA</span>
                       </div>
                       <p className="text-sm text-gray-600 font-mono mb-1">
                         {ratio.formula}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-700">
                         {ratio.formula_detail}
                       </p>
                       {ratio.syscohada_reference && (
@@ -451,6 +454,14 @@ const RatiosFinanciersPage: React.FC = () => {
             })}
           </div>
         )}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
       </div>
     </div>
   );

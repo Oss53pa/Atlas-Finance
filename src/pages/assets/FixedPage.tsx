@@ -1,10 +1,12 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const FixedPage: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Immobilisations</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('assets.title')}</h1>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
           Nouvelle immobilisation
         </button>

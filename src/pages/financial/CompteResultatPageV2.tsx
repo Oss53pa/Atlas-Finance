@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   TrendingUp, BarChart3, PieChart, Download, Filter, RefreshCw,
   DollarSign, ArrowUpRight, ArrowDownRight, Eye, ArrowLeft,
   Home, Target, Activity, Calculator, FileText
 } from 'lucide-react';
+import PrintableArea from '../../components/ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
 
 const CompteResultatPageV2: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('synthese');
   const [periode, setPeriode] = useState('current');
+
+  const { printRef, handlePrint } = usePrintReport({
+    orientation: 'portrait',
+    fileName: 'compte-resultat.pdf'
+  });
 
   // Onglets du compte de résultat
   const tabs = [
@@ -37,6 +44,18 @@ const CompteResultatPageV2: React.FC = () => {
 
   return (
     <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+      <PrintableArea
+        ref={printRef}
+        orientation="portrait"
+        pageSize="A4"
+        showPrintButton={false}
+        headerContent={
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold">Compte de Résultat</h2>
+            <p className="text-sm text-gray-600">Période: {periode === 'current' ? 'Actuelle' : 'Précédente'}</p>
+          </div>
+        }
+      >
       {/* Header avec navigation */}
       <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between">
@@ -72,7 +91,7 @@ const CompteResultatPageV2: React.FC = () => {
               <option value="comparison">Comparaison N/N-1</option>
             </select>
             
-            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[#767676]" />
             </button>
             
@@ -427,7 +446,8 @@ const CompteResultatPageV2: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </PrintableArea>
+  </div>
   );
 };
 

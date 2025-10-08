@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -31,7 +32,6 @@ import {
   Archive,
   Bell,
   Settings,
-  Tools,
   ShieldCheck,
   XCircle
 } from 'lucide-react';
@@ -97,6 +97,7 @@ interface MaintenanceModal {
 }
 
 const AssetsMaintenance: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -329,7 +330,7 @@ const AssetsMaintenance: React.FC = () => {
       case 'materiel_informatique': return <Monitor className="h-5 w-5" />;
       case 'vehicules': return <Truck className="h-5 w-5" />;
       case 'equipements': return <Wrench className="h-5 w-5" />;
-      default: return <Tools className="h-5 w-5" />;
+      default: return <Wrench className="h-5 w-5" />;
     }
   };
 
@@ -391,7 +392,7 @@ const AssetsMaintenance: React.FC = () => {
   const statusChartData = [
     { label: 'Terminés', value: aggregatedData.completedRecords, color: 'bg-green-500' },
     { label: 'Planifiés', value: aggregatedData.scheduledRecords, color: 'bg-blue-500' },
-    { label: 'En cours', value: aggregatedData.inProgressRecords, color: 'bg-yellow-500' },
+    { label: t('status.inProgress'), value: aggregatedData.inProgressRecords, color: 'bg-yellow-500' },
     { label: 'En retard', value: aggregatedData.overdueRecords, color: 'bg-red-500' }
   ];
 
@@ -525,8 +526,6 @@ const AssetsMaintenance: React.FC = () => {
                   <ColorfulBarChart
                     data={statusChartData}
                     height={160}
-                    showValues={true}
-                    valueFormatter={(value) => `${value} intervention${value !== 1 ? 's' : ''}`}
                   />
                 </ModernChartCard>
               </motion.div>
@@ -544,8 +543,6 @@ const AssetsMaintenance: React.FC = () => {
                   <ColorfulBarChart
                     data={typeChartData}
                     height={160}
-                    showValues={true}
-                    valueFormatter={(value) => `${value} intervention${value !== 1 ? 's' : ''}`}
                   />
                 </ModernChartCard>
               </motion.div>
@@ -817,10 +814,10 @@ const AssetsMaintenance: React.FC = () => {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex justify-center space-x-2">
-                            <button className="p-2 text-neutral-400 hover:text-blue-600 transition-colors">
+                            <button className="p-2 text-neutral-400 hover:text-blue-600 transition-colors" aria-label="Calendrier">
                               <Calendar className="h-4 w-4" />
                             </button>
-                            <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors">
+                            <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Paramètres">
                               <Settings className="h-4 w-4" />
                             </button>
                           </div>

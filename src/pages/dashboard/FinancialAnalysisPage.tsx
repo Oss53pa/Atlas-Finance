@@ -3,13 +3,13 @@ import FinancialAnalysisDashboard from '../../components/dashboards/FinancialAna
 
 const FinancialAnalysisPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-var(--slate-50)">
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-var(--gray-900) mb-2">
             Analyse Financière Avancée
           </h1>
-          <p className="text-gray-600">
+          <p className="text-var(--gray-600)">
             Ratios, tendances et analyses de performance financière
           </p>
         </div>

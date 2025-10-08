@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout';
 import { 
@@ -24,13 +25,14 @@ import {
 } from 'lucide-react';
 
 const ComptableWorkspaceV2Complete: React.FC = () => {
+  const { t } = useLanguage();
   const [activeModule, setActiveModule] = useState('dashboard');
   const navigate = useNavigate();
 
   // Liens directs vers WiseBook
   const wiseBookLinks = [
     { id: 'entries', label: 'Saisie d\'écritures', icon: FileText, badge: '5', path: '/accounting/entries' },
-    { id: 'journals', label: 'Journaux', icon: BookOpen, path: '/accounting/journals' },
+    { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
     { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
     { id: 'balance', label: 'Balance générale', icon: PieChart, path: '/accounting/balance' },
     { id: 'statements', label: 'États financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
@@ -226,7 +228,20 @@ const ComptableWorkspaceV2Complete: React.FC = () => {
                 { ref: 'E2025002', desc: 'Vente ABC Corp', amount: '2,500.00€', status: 'pending' },
                 { ref: 'E2025003', desc: 'Salaires équipe', amount: '15,000.00€', status: 'validated' },
               ].map((entry, index) => (
-                <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 rounded cursor-pointer" onClick={() => navigate('/accounting/entries')}>
+                <div
+                  key={index}
+                  role="button"
+                  tabIndex={0}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 rounded cursor-pointer"
+                  onClick={() => navigate('/accounting/entries')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate('/accounting/entries');
+                    }
+                  }}
+                  aria-label={`Voir écriture ${entry.ref}: ${entry.desc}`}
+                >
                   <div className="flex-1">
                     <p className="text-sm font-medium text-[#191919]">{entry.ref}</p>
                     <p className="text-xs text-[#767676]">{entry.desc}</p>

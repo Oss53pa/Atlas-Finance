@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   UserCheck, Plus, Search, Filter, Download, Eye, Edit, Trash2,
@@ -14,6 +15,7 @@ import {
 import { Contact, Interaction, ThirdParty } from '../../types/tiers';
 
 const ContactsModule: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('liste');
   const [searchTerm, setSearchTerm] = useState('');
@@ -169,8 +171,8 @@ const ContactsModule: React.FC = () => {
 
   const tiersOptions = [
     { value: 'tous', label: 'Tous les tiers' },
-    { value: 'clients', label: 'Clients' },
-    { value: 'fournisseurs', label: 'Fournisseurs' },
+    { value: 'clients', label: t('navigation.clients') },
+    { value: 'fournisseurs', label: t('navigation.suppliers') },
     { value: 'prospects', label: 'Prospects' }
   ];
 
@@ -309,9 +311,9 @@ const ContactsModule: React.FC = () => {
               <span className="text-sm font-semibold">Nouveau Contact</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
-              <span className="text-sm font-semibold">Exporter</span>
+              <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
           </div>
         </div>
@@ -342,7 +344,7 @@ const ContactsModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                 <input
                   type="text"
                   placeholder="Rechercher par nom, prénom, email ou entreprise..."
@@ -372,7 +374,7 @@ const ContactsModule: React.FC = () => {
                 ))}
               </select>
 
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label="Filtrer">
                 <Filter className="w-5 h-5 text-gray-600" />
               </button>
             </div>
@@ -384,13 +386,13 @@ const ContactsModule: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entreprise</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fonction</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Communications</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Entreprise</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fonction</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Communications</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Interactions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -413,13 +415,13 @@ const ContactsModule: React.FC = () => {
                                 <Star className="w-4 h-4 text-yellow-500" />
                               )}
                             </div>
-                            <div className="text-sm text-gray-500">{contact.departement}</div>
+                            <div className="text-sm text-gray-700">{contact.departement}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Building className="w-4 h-4 text-gray-400 mr-2" />
+                          <Building className="w-4 h-4 text-gray-700 mr-2" />
                           <span className="text-sm text-gray-900">{contact.tiers}</span>
                         </div>
                       </td>
@@ -450,7 +452,7 @@ const ContactsModule: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <MessageSquare className="w-4 h-4 text-gray-400 mr-2" />
+                          <MessageSquare className="w-4 h-4 text-gray-700 mr-2" />
                           <span className="text-sm font-medium text-gray-900">
                             {contact.interactions.length}
                           </span>
@@ -480,7 +482,7 @@ const ContactsModule: React.FC = () => {
                           <button className="p-1 text-green-600 hover:text-green-900">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-red-600 hover:text-red-900">
+                          <button className="p-1 text-red-600 hover:text-red-900" aria-label="Supprimer">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -677,7 +679,7 @@ const ContactsModule: React.FC = () => {
                 <h2 className="text-xl font-bold text-[#191919]">Détails Contact</h2>
                 <button
                   onClick={() => setSelectedContact(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-700 hover:text-gray-600"
                 >
                   ×
                 </button>
@@ -700,19 +702,19 @@ const ContactsModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Fonction</label>
+                      <label className="text-sm font-medium text-gray-700">Fonction</label>
                       <p className="text-[#191919]">{selectedContact.fonction}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Département</label>
+                      <label className="text-sm font-medium text-gray-700">Département</label>
                       <p className="text-[#191919]">{selectedContact.departement}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Entreprise</label>
+                      <label className="text-sm font-medium text-gray-700">Entreprise</label>
                       <p className="text-[#191919]">{selectedContact.tiers}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Langue préférée</label>
+                      <label className="text-sm font-medium text-gray-700">Langue préférée</label>
                       <p className="text-[#191919]">{selectedContact.languePrefere}</p>
                     </div>
                   </div>
@@ -724,25 +726,25 @@ const ContactsModule: React.FC = () => {
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     {selectedContact.telephone && (
                       <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-gray-400" />
+                        <Phone className="w-4 h-4 text-gray-700" />
                         <span className="text-[#191919]">{selectedContact.telephone}</span>
                       </div>
                     )}
                     {selectedContact.mobile && (
                       <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-gray-400" />
+                        <Phone className="w-4 h-4 text-gray-700" />
                         <span className="text-[#191919]">{selectedContact.mobile} (Mobile)</span>
                       </div>
                     )}
                     {selectedContact.email && (
                       <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
+                        <Mail className="w-4 h-4 text-gray-700" />
                         <span className="text-[#191919]">{selectedContact.email}</span>
                       </div>
                     )}
                     {selectedContact.linkedin && (
                       <div className="flex items-center space-x-2">
-                        <Linkedin className="w-4 h-4 text-gray-400" />
+                        <Linkedin className="w-4 h-4 text-gray-700" />
                         <span className="text-[#191919]">{selectedContact.linkedin}</span>
                       </div>
                     )}
@@ -808,6 +810,369 @@ const ContactsModule: React.FC = () => {
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-[#191919] mb-2">Organigramme des Contacts</h3>
             <p className="text-[#666666]">Visualisation hiérarchique des contacts par entreprise</p>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <UserCheck className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Nouveau contact</h3>
+                    <p className="text-sm text-gray-700">Ajouter un contact à un tiers</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tiers associé <span className="text-red-500">*</span>
+                  </label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Sélectionner un tiers</option>
+                    <option value="1">SARL CONGO BUSINESS</option>
+                    <option value="2">SA CENTRAL AFRICA</option>
+                    <option value="3">ETS DIGITAL SOLUTIONS</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Civilité <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="M">M.</option>
+                      <option value="Mme">Mme</option>
+                      <option value="Mlle">Mlle</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Prénom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Jean"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="MAMBOU"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fonction <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Directeur Commercial"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Département
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Commercial"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Téléphone fixe <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="+242 06 123 45 67"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Mobile
+                    </label>
+                    <input
+                      type="tel"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="+242 06 987 65 43"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="contact@email.cg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      LinkedIn
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="profil-linkedin"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date de naissance
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Langue préférée
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="Français">Français</option>
+                      <option value="Anglais">Anglais</option>
+                      <option value="Lingala">Lingala</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                    <span className="text-sm text-gray-700">Contact principal</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" defaultChecked />
+                    <span className="text-sm text-gray-700">Actif</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Informations complémentaires sur le contact..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
+                <UserCheck className="w-4 h-4" />
+                Créer le contact
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interaction Modal */}
+      {showInteractionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <MessageSquare className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Nouvelle interaction</h3>
+                    <p className="text-sm text-gray-700">Enregistrer une interaction avec un contact</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowInteractionModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contact <span className="text-red-500">*</span>
+                  </label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="">Sélectionner un contact</option>
+                    <option value="1">Jean MAMBOU - SARL CONGO BUSINESS</option>
+                    <option value="2">Marie MBEMBA - SA CENTRAL AFRICA</option>
+                    <option value="3">Paul NGOMA - ETS DIGITAL SOLUTIONS</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Type d'interaction <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="APPEL">Appel téléphonique</option>
+                      <option value="EMAIL">Email</option>
+                      <option value="REUNION">Réunion</option>
+                      <option value="VISITE">Visite</option>
+                      <option value="AUTRE">Autre</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Objet de l'interaction <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Ex: Suivi commande, Négociation contrat..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Compte-rendu <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    rows={5}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Détails de l'interaction, points discutés, décisions prises..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prochaine action
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Action de suivi à planifier"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date de suivi
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Responsable
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="Marie Kouam">Marie Kouam</option>
+                      <option value="Jean Dupont">Jean Dupont</option>
+                      <option value="Sophie Martin">Sophie Martin</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">Historique des interactions</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Toutes les interactions sont tracées et disponibles dans l'historique du contact
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowInteractionModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Enregistrer l'interaction
+              </button>
+            </div>
           </div>
         </div>
       )}

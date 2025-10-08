@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import { useLanguage } from 'contexts/LanguageContext';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -80,7 +81,7 @@ const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen bg-slate-100">
     <div className="flex flex-col items-center space-y-4">
       <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-gray-600 font-medium">Chargement...</p>
+      <p className="text-gray-600 font-medium">{t('common.loading')}</p>
     </div>
   </div>
 );

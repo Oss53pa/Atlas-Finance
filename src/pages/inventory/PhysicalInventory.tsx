@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   ClipboardList,
   Users,
@@ -27,6 +28,7 @@ import {
   BarChart3,
   UserCheck
 } from 'lucide-react';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   BarChart,
   Bar,
@@ -60,6 +62,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
   onClose,
   onSubmit
 }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     type: 'cycle' as 'full' | 'cycle' | 'spot',
     locationId: '',
@@ -127,7 +130,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
             <h3 className="text-xl font-semibold text-gray-900">Create Physical Count</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-700 hover:text-gray-600"
             >
               ×
             </button>
@@ -174,7 +177,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Scheduled Date
+                Date planifiée
               </label>
               <input
                 type="date"
@@ -359,7 +362,7 @@ const CountDetailsModal: React.FC<CountDetailsModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-700 hover:text-gray-600"
             >
               ×
             </button>
@@ -436,6 +439,8 @@ const PhysicalInventory: React.FC = () => {
   const [selectedCount, setSelectedCount] = useState<PhysicalCount | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -562,11 +567,24 @@ const PhysicalInventory: React.FC = () => {
         </div>
 
         <div className="flex gap-2 mt-2 lg:mt-0">
+          <button
+            onClick={() => setShowPeriodModal(true)}
+            className="flex items-center gap-1 px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            <Calendar className="w-3 h-3" />
+            {dateRange.startDate && dateRange.endDate
+              ? `${dateRange.startDate} - ${dateRange.endDate}`
+              : 'Période'
+            }
+          </button>
           <button className="flex items-center gap-1 px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
             <QrCode className="w-3 h-3" />
             Scanner
           </button>
-          <button className="flex items-center gap-1 px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-1 px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          >
             <Plus className="w-3 h-3" />
             Nouvelle Session
           </button>
@@ -596,7 +614,7 @@ const PhysicalInventory: React.FC = () => {
               <p className="text-lg font-bold text-gray-900">
                 {counts.filter(c => c.status === 'in_progress').length}
               </p>
-              <p className="text-xs text-gray-600">En cours</p>
+              <p className="text-xs text-gray-600">{t('status.inProgress')}</p>
             </div>
           </div>
         </div>
@@ -720,7 +738,7 @@ const PhysicalInventory: React.FC = () => {
                             </span>
                           </td>
                           <td className="py-2 px-3 text-center">
-                            <button className="p-1 text-gray-400 hover:text-[#6A8A82] rounded">
+                            <button className="p-1 text-gray-700 hover:text-[#6A8A82] rounded">
                               <QrCode className="w-3 h-3" />
                             </button>
                           </td>
@@ -867,8 +885,8 @@ const PhysicalInventory: React.FC = () => {
                   <div className="space-y-2">
                     <h4 className="text-xs font-medium text-gray-700">Analyse des écarts</h4>
                     <div className="bg-gray-50 rounded p-3 h-24 flex items-center justify-center">
-                      <BarChart3 className="w-8 h-8 text-gray-400" />
-                      <span className="text-xs text-gray-500 ml-2">Graphique des écarts par catégorie</span>
+                      <BarChart3 className="w-8 h-8 text-gray-700" />
+                      <span className="text-xs text-gray-700 ml-2">Graphique des écarts par catégorie</span>
                     </div>
                   </div>
                 </div>
@@ -898,6 +916,15 @@ const PhysicalInventory: React.FC = () => {
       </div>
 
       {/* Modals */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
+
       <CreateCountModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

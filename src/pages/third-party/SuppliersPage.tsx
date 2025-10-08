@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Truck,
   Plus,
@@ -42,9 +42,10 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { thirdPartyService } from '../../services/thirdparty.service';
+import { useSuppliers, useDeleteThirdParty } from '../../hooks';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+import { CreateSupplierModal, EditSupplierModal, SupplierDetailModal } from '../../features/suppliers/components';
 
 interface SuppliersFilters {
   search: string;
@@ -55,6 +56,7 @@ interface SuppliersFilters {
 }
 
 const SuppliersPage: React.FC = () => {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<SuppliersFilters>({
     search: '',
     statut: '',
@@ -65,38 +67,47 @@ const SuppliersPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  // Fetch suppliers
-  const { data: suppliersData, isLoading } = useQuery({
-    queryKey: ['suppliers', 'list', page, filters],
-    queryFn: () => thirdPartyService.getSuppliers({ 
-      page, 
-      search: filters.search,
-      statut: filters.statut,
-      ville: filters.ville,
-      categorie: filters.categorie,
-      evaluation: filters.evaluation
-    }),
+  // Utilisation des nouveaux hooks
+  const { data: suppliersData, isLoading } = useSuppliers({
+    page,
+    page_size: 20,
+    search: filters.search || undefined,
+    statut: filters.statut || undefined,
+    ville: filters.ville || undefined,
+    categorie: filters.categorie || undefined,
+    evaluation: filters.evaluation || undefined,
   });
 
-  // Delete supplier mutation
-  const deleteSupplierMutation = useMutation({
-    mutationFn: thirdPartyService.deleteSupplier,
-    onSuccess: () => {
-      toast.success('Fournisseur supprimé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-    },
-    onError: () => {
-      toast.error('Erreur lors de la suppression');
-    }
-  });
+  const deleteSupplier = useDeleteThirdParty();
 
   const handleDeleteSupplier = (supplierId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
-      deleteSupplierMutation.mutate(supplierId);
+      deleteSupplier.mutate(supplierId, {
+        onSuccess: () => {
+          toast.success('Fournisseur supprimé avec succès');
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || 'Erreur lors de la suppression');
+        }
+      });
     }
+  };
+
+  const handleViewDetails = (supplier: any) => {
+    setSelectedSupplier(supplier);
+    setShowDetailModal(true);
+  };
+
+  const handleEditSupplier = (supplier: any) => {
+    setSelectedSupplier(supplier);
+    setShowEditModal(true);
+  };
+
+  const handleRefreshData = () => {
+    setPage(page);
   };
 
   const handleFilterChange = (key: keyof SuppliersFilters, value: string) => {
@@ -171,11 +182,11 @@ const SuppliersPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-tuatara flex items-center">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
               <Truck className="mr-3 h-7 w-7" />
               Fournisseurs
             </h1>
-            <p className="mt-2 text-rolling-stone">
+            <p className="mt-2 text-[var(--color-text-secondary)]">
               Gestion des fournisseurs et prestataires
             </p>
           </div>
@@ -189,7 +200,7 @@ const SuppliersPage: React.FC = () => {
               Importer
             </Button>
             <Button 
-              className="bg-tuatara hover:bg-rolling-stone text-swirl"
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -277,7 +288,7 @@ const SuppliersPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Rechercher un fournisseur..."
                 value={filters.search}
@@ -315,7 +326,7 @@ const SuppliersPage: React.FC = () => {
             </Select>
 
             <div className="relative">
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Ville"
                 value={filters.ville}
@@ -377,7 +388,7 @@ const SuppliersPage: React.FC = () => {
                       <TableHead>Catégorie</TableHead>
                       <TableHead>Évaluation</TableHead>
                       <TableHead>Achats Annuels</TableHead>
-                      <TableHead>Solde</TableHead>
+                      <TableHead>{t('accounting.balance')}</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -398,9 +409,9 @@ const SuppliersPage: React.FC = () => {
                               )}
                             </div>
                             <div>
-                              <p className="font-medium text-tuatara">{supplier.denomination}</p>
+                              <p className="font-medium text-[var(--color-text-primary)]">{supplier.denomination}</p>
                               {supplier.forme_juridique && (
-                                <p className="text-sm text-rolling-stone">{supplier.forme_juridique}</p>
+                                <p className="text-sm text-[var(--color-text-secondary)]">{supplier.forme_juridique}</p>
                               )}
                             </div>
                           </div>
@@ -409,19 +420,19 @@ const SuppliersPage: React.FC = () => {
                           <div className="space-y-1">
                             {supplier.contact_principal && (
                               <div className="flex items-center text-sm">
-                                <Users className="h-3 w-3 text-gray-400 mr-1" />
+                                <Users className="h-3 w-3 text-gray-700 mr-1" />
                                 {supplier.contact_principal}
                               </div>
                             )}
                             {supplier.telephone && (
                               <div className="flex items-center text-sm">
-                                <Phone className="h-3 w-3 text-gray-400 mr-1" />
+                                <Phone className="h-3 w-3 text-gray-700 mr-1" />
                                 {supplier.telephone}
                               </div>
                             )}
                             {supplier.email && (
                               <div className="flex items-center text-sm">
-                                <Mail className="h-3 w-3 text-gray-400 mr-1" />
+                                <Mail className="h-3 w-3 text-gray-700 mr-1" />
                                 {supplier.email}
                               </div>
                             )}
@@ -429,11 +440,11 @@ const SuppliersPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center text-sm">
-                            <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                            <MapPin className="h-4 w-4 text-gray-700 mr-2" />
                             <div>
                               <p>{supplier.ville}</p>
                               {supplier.pays && (
-                                <p className="text-xs text-gray-500">{supplier.pays}</p>
+                                <p className="text-xs text-gray-700">{supplier.pays}</p>
                               )}
                             </div>
                           </div>
@@ -450,7 +461,7 @@ const SuppliersPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           {supplier.evaluation ? renderRating(supplier.evaluation) : (
-                            <span className="text-gray-400 text-sm">Non évalué</span>
+                            <span className="text-gray-700 text-sm">Non évalué</span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -478,7 +489,7 @@ const SuppliersPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setSelectedSupplier(supplier)}
+                              onClick={() => handleViewDetails(supplier)}
                               aria-label="Voir les détails"
                             >
                               <Eye className="h-4 w-4" />
@@ -486,6 +497,7 @@ const SuppliersPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEditSupplier(supplier)}
                               aria-label="Modifier"
                             >
                               <Edit className="h-4 w-4" />
@@ -520,15 +532,15 @@ const SuppliersPage: React.FC = () => {
 
               {(!suppliersData?.results || suppliersData.results.length === 0) && (
                 <div className="text-center py-12">
-                  <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Truck className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun fournisseur trouvé</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     {filters.search || filters.statut || filters.ville || filters.categorie || filters.evaluation
                       ? 'Aucun fournisseur ne correspond aux critères de recherche.'
                       : 'Commencez par créer votre premier fournisseur.'}
                   </p>
                   <Button 
-                    className="bg-tuatara hover:bg-rolling-stone text-swirl"
+                    className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -540,6 +552,30 @@ const SuppliersPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modales */}
+      <CreateSupplierModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleRefreshData}
+      />
+
+      <EditSupplierModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        supplier={selectedSupplier}
+        onSuccess={handleRefreshData}
+      />
+
+      <SupplierDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        supplier={selectedSupplier}
+        onEdit={() => {
+          setShowDetailModal(false);
+          setShowEditModal(true);
+        }}
+      />
     </div>
   );
 };

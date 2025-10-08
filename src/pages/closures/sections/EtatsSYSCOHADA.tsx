@@ -1,4 +1,9 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { toast } from 'react-hot-toast';
+import { reportingService, generateRapportSchema } from '../../../services/modules/reporting.service';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -44,7 +49,8 @@ import {
   Lock,
   Unlock,
   Clock,
-  Search
+  Search,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
@@ -133,10 +139,110 @@ interface DocumentReglementaire {
 }
 
 const EtatsSYSCOHADA: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedEtat, setSelectedEtat] = useState<string>('bilan');
   const [periodeComparaison, setPeriodeComparaison] = useState<string>('N-1');
   const [showGenerationModal, setShowGenerationModal] = useState(false);
+  const [formData, setFormData] = useState({
+    type: 'bilan' as 'balance' | 'grand_livre' | 'journal' | 'bilan' | 'resultat' | 'tresorerie',
+    etats_selectionnes: [] as string[],
+    periode_debut: '',
+    periode_fin: '',
+    format: 'pdf' as 'pdf' | 'excel' | 'csv',
+    donnees_comparatives_n1: false,
+    notes_explicatives: false,
+    devise_edition: 'XAF',
+    generation_immediate: true,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const generateMutation = useMutation({
+    mutationFn: reportingService.generateRapport,
+    onSuccess: () => {
+      toast.success('Génération des états SYSCOHADA lancée');
+      queryClient.invalidateQueries({ queryKey: ['etats-syscohada'] });
+      setShowGenerationModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de la génération');
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      type: 'bilan',
+      etats_selectionnes: [],
+      periode_debut: '',
+      periode_fin: '',
+      format: 'pdf',
+      donnees_comparatives_n1: false,
+      notes_explicatives: false,
+      devise_edition: 'XAF',
+      generation_immediate: true,
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    if (field === 'etats_selectionnes') {
+      const currentArray = Array.isArray(formData.etats_selectionnes) ? formData.etats_selectionnes : [];
+      const newArray = currentArray.includes(value)
+        ? currentArray.filter(item => item !== value)
+        : [...currentArray, value];
+      setFormData(prev => ({ ...prev, etats_selectionnes: newArray }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Validation des états sélectionnés
+      if (!formData.etats_selectionnes.length) {
+        setErrors({ etats_selectionnes: 'Veuillez sélectionner au moins un état' });
+        toast.error('Veuillez sélectionner au moins un état');
+        return;
+      }
+
+      // Validate with Zod
+      const validatedData = generateRapportSchema.parse(formData);
+
+      // Submit to backend
+      await generateMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la génération des états');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Données simulées - États financiers
   const mockEtatsFinanciers: EtatFinancier[] = [
@@ -433,40 +539,40 @@ const EtatsSYSCOHADA: React.FC = () => {
 
   const getStatutIcon = (statut: string) => {
     switch (statut) {
-      case 'definitif': return <Lock className="w-4 h-4 text-green-600" />;
-      case 'provisoire': return <Unlock className="w-4 h-4 text-yellow-600" />;
-      case 'brouillon': return <Edit className="w-4 h-4 text-gray-600" />;
-      case 'transmis': return <CheckCircle className="w-4 h-4 text-blue-600" />;
-      default: return <Clock className="w-4 h-4 text-gray-600" />;
+      case 'definitif': return <Lock className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'provisoire': return <Unlock className="w-4 h-4 text-[var(--color-warning)]" />;
+      case 'brouillon': return <Edit className="w-4 h-4 text-[var(--color-text-primary)]" />;
+      case 'transmis': return <CheckCircle className="w-4 h-4 text-[var(--color-primary)]" />;
+      default: return <Clock className="w-4 h-4 text-[var(--color-text-primary)]" />;
     }
   };
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
-      'definitif': 'bg-green-100 text-green-800',
-      'provisoire': 'bg-yellow-100 text-yellow-800',
-      'brouillon': 'bg-gray-100 text-gray-800',
-      'transmis': 'bg-blue-100 text-blue-800'
+      'definitif': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'provisoire': 'bg-[var(--color-warning-lighter)] text-yellow-800',
+      'brouillon': 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]',
+      'transmis': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'
     };
-    return variants[statut] || 'bg-gray-100 text-gray-800';
+    return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getRatioStatutColor = (statut: string) => {
     switch (statut) {
-      case 'bon': return 'text-green-600';
-      case 'moyen': return 'text-yellow-600';
-      case 'mauvais': return 'text-orange-600';
-      case 'critique': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'bon': return 'text-[var(--color-success)]';
+      case 'moyen': return 'text-[var(--color-warning)]';
+      case 'mauvais': return 'text-[var(--color-warning)]';
+      case 'critique': return 'text-[var(--color-error)]';
+      default: return 'text-[var(--color-text-primary)]';
     }
   };
 
   const getEvolutionIcon = (evolution: string) => {
     switch (evolution) {
-      case 'amelioration': return <TrendingUp className="w-4 h-4 text-green-600" />;
-      case 'deterioration': return <TrendingDown className="w-4 h-4 text-red-600" />;
-      case 'stable': return <Activity className="w-4 h-4 text-blue-600" />;
-      default: return <Activity className="w-4 h-4 text-gray-600" />;
+      case 'amelioration': return <TrendingUp className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'deterioration': return <TrendingDown className="w-4 h-4 text-[var(--color-error)]" />;
+      case 'stable': return <Activity className="w-4 h-4 text-[var(--color-primary)]" />;
+      default: return <Activity className="w-4 h-4 text-[var(--color-text-primary)]" />;
     }
   };
 
@@ -487,11 +593,11 @@ const EtatsSYSCOHADA: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Actif</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Total Actif</p>
                 <p className="text-2xl font-bold">{(kpis.totalActif / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-blue-600 mt-1">+57% vs N-1</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">+57% vs N-1</p>
               </div>
-              <Building className="w-8 h-8 text-blue-500" />
+              <Building className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -500,11 +606,11 @@ const EtatsSYSCOHADA: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Résultat Net</p>
-                <p className="text-2xl font-bold text-green-600">{(kpis.resultatNet / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-green-600 mt-1">+34.7% vs N-1</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
+                <p className="text-2xl font-bold text-[var(--color-success)]">{(kpis.resultatNet / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">+34.7% vs N-1</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
+              <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -513,9 +619,9 @@ const EtatsSYSCOHADA: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">États Générés</p>
+                <p className="text-sm text-[var(--color-text-primary)]">États Générés</p>
                 <p className="text-2xl font-bold">{kpis.etatsGeneres}</p>
-                <p className="text-xs text-blue-600 mt-1">{kpis.etatsConformes} conformes SYSCOHADA</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.etatsConformes} conformes SYSCOHADA</p>
               </div>
               <FileText className="w-8 h-8 text-purple-500" />
             </div>
@@ -526,7 +632,7 @@ const EtatsSYSCOHADA: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Conformité</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Conformité</p>
                 <p className="text-2xl font-bold">{kpis.tauxConformite.toFixed(0)}%</p>
                 <Progress value={kpis.tauxConformite} className="mt-2" />
               </div>
@@ -578,10 +684,10 @@ const EtatsSYSCOHADA: React.FC = () => {
                   {mockEtatsFinanciers.map(etat => (
                     <div key={etat.id} className="flex items-center justify-between p-3 border rounded">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-blue-600" />
+                        <FileText className="w-5 h-5 text-[var(--color-primary)]" />
                         <div>
                           <p className="font-medium">{etat.nom}</p>
-                          <p className="text-sm text-gray-500">{etat.codeSYSCOHADA}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{etat.codeSYSCOHADA}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -590,7 +696,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                           {etat.statutGeneration}
                         </Badge>
                         {etat.conformiteSYSCOHADA && (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                         )}
                       </div>
                     </div>
@@ -606,27 +712,27 @@ const EtatsSYSCOHADA: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-blue-50 rounded">
-                      <p className="text-sm text-gray-600">CA 2024</p>
-                      <p className="text-2xl font-bold text-blue-600">450M</p>
-                      <p className="text-xs text-green-600">+18.4%</p>
+                    <div className="text-center p-3 bg-[var(--color-primary-lightest)] rounded">
+                      <p className="text-sm text-[var(--color-text-primary)]">CA 2024</p>
+                      <p className="text-2xl font-bold text-[var(--color-primary)]">450M</p>
+                      <p className="text-xs text-[var(--color-success)]">+18.4%</p>
                     </div>
-                    <div className="text-center p-3 bg-green-50 rounded">
-                      <p className="text-sm text-gray-600">Résultat Net</p>
-                      <p className="text-2xl font-bold text-green-600">48.5M</p>
-                      <p className="text-xs text-green-600">+34.7%</p>
+                    <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
+                      <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
+                      <p className="text-2xl font-bold text-[var(--color-success)]">48.5M</p>
+                      <p className="text-xs text-[var(--color-success)]">+34.7%</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-purple-50 rounded">
-                      <p className="text-sm text-gray-600">ROE</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">ROE</p>
                       <p className="text-2xl font-bold text-purple-600">17.7%</p>
-                      <p className="text-xs text-green-600">+1.7pt</p>
+                      <p className="text-xs text-[var(--color-success)]">+1.7pt</p>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded">
-                      <p className="text-sm text-gray-600">Endettement</p>
-                      <p className="text-2xl font-bold text-orange-600">59%</p>
-                      <p className="text-xs text-red-600">+14pt</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Endettement</p>
+                      <p className="text-2xl font-bold text-[var(--color-warning)]">59%</p>
+                      <p className="text-xs text-[var(--color-error)]">+14pt</p>
                     </div>
                   </div>
                 </div>
@@ -643,22 +749,22 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div className="text-center">
                   <h4 className="font-medium mb-2">Actif Immobilisé</h4>
                   <div className="relative w-24 h-24 mx-auto">
-                    <div className="w-24 h-24 rounded-full border-8 border-blue-200 border-t-blue-600 border-r-blue-600"></div>
+                    <div className="w-24 h-24 rounded-full border-8 border-[var(--color-primary-light)] border-t-blue-600 border-r-blue-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-sm font-bold">66%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">443M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">443M FCFA</p>
                 </div>
                 <div className="text-center">
                   <h4 className="font-medium mb-2">Actif Circulant</h4>
                   <div className="relative w-24 h-24 mx-auto">
-                    <div className="w-24 h-24 rounded-full border-8 border-green-200 border-t-green-600"></div>
+                    <div className="w-24 h-24 rounded-full border-8 border-[var(--color-success-light)] border-t-green-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-sm font-bold">34%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">231M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">231M FCFA</p>
                 </div>
                 <div className="text-center">
                   <h4 className="font-medium mb-2">Capitaux Propres</h4>
@@ -668,17 +774,17 @@ const EtatsSYSCOHADA: React.FC = () => {
                       <span className="text-sm font-bold">41%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">274M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">274M FCFA</p>
                 </div>
                 <div className="text-center">
                   <h4 className="font-medium mb-2">Total Dettes</h4>
                   <div className="relative w-24 h-24 mx-auto">
-                    <div className="w-24 h-24 rounded-full border-8 border-red-200 border-t-red-600 border-r-red-600 border-b-red-600"></div>
+                    <div className="w-24 h-24 rounded-full border-8 border-[var(--color-error-light)] border-t-red-600 border-r-red-600 border-b-red-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-sm font-bold">59%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">385M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">385M FCFA</p>
                 </div>
               </div>
             </CardContent>
@@ -699,7 +805,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <option value="N-2">Comparaison N-2</option>
                 <option value="budget">Comparaison Budget</option>
               </select>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Exporter PDF
               </button>
@@ -710,13 +816,13 @@ const EtatsSYSCOHADA: React.FC = () => {
             {/* ACTIF */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-center bg-blue-50 py-2">ACTIF</CardTitle>
+                <CardTitle className="text-center bg-[var(--color-primary-lightest)] py-2">ACTIF</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[var(--color-background-secondary)]">
                     <tr>
-                      <th className="px-3 py-2 text-left font-medium">Libellé</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('accounting.label')}</th>
                       <th className="px-3 py-2 text-right font-medium">Note</th>
                       <th className="px-3 py-2 text-right font-medium">2024</th>
                       <th className="px-3 py-2 text-right font-medium">2023</th>
@@ -728,15 +834,15 @@ const EtatsSYSCOHADA: React.FC = () => {
                       <tr
                         key={poste.code}
                         className={`border-t ${
-                          poste.total ? 'bg-blue-50 font-bold' :
-                          poste.sousTotal ? 'bg-gray-50 font-medium' :
+                          poste.total ? 'bg-[var(--color-primary-lightest)] font-bold' :
+                          poste.sousTotal ? 'bg-[var(--color-background-secondary)] font-medium' :
                           poste.niveau === 0 ? 'font-medium' : ''
                         }`}
                       >
                         <td className={`px-3 py-2 ${poste.niveau === 1 ? 'pl-6' : ''}`}>
                           {poste.libelle}
                         </td>
-                        <td className="px-3 py-2 text-right text-xs text-gray-500">
+                        <td className="px-3 py-2 text-right text-xs text-[var(--color-text-secondary)]">
                           {poste.noteBilan}
                         </td>
                         <td className="px-3 py-2 text-right">
@@ -746,8 +852,8 @@ const EtatsSYSCOHADA: React.FC = () => {
                           {formatNumber(poste.exercicePrecedent)}
                         </td>
                         <td className={`px-3 py-2 text-right ${
-                          poste.variationPourcentage > 0 ? 'text-green-600' :
-                          poste.variationPourcentage < 0 ? 'text-red-600' : 'text-gray-600'
+                          poste.variationPourcentage > 0 ? 'text-[var(--color-success)]' :
+                          poste.variationPourcentage < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
                         }`}>
                           {poste.variationPourcentage !== 0 && (
                             poste.variationPourcentage > 0 ? '+' : ''
@@ -764,13 +870,13 @@ const EtatsSYSCOHADA: React.FC = () => {
             {/* PASSIF */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-center bg-green-50 py-2">PASSIF</CardTitle>
+                <CardTitle className="text-center bg-[var(--color-success-lightest)] py-2">PASSIF</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[var(--color-background-secondary)]">
                     <tr>
-                      <th className="px-3 py-2 text-left font-medium">Libellé</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('accounting.label')}</th>
                       <th className="px-3 py-2 text-right font-medium">Note</th>
                       <th className="px-3 py-2 text-right font-medium">2024</th>
                       <th className="px-3 py-2 text-right font-medium">2023</th>
@@ -782,15 +888,15 @@ const EtatsSYSCOHADA: React.FC = () => {
                       <tr
                         key={poste.code}
                         className={`border-t ${
-                          poste.total ? 'bg-green-50 font-bold' :
-                          poste.sousTotal ? 'bg-gray-50 font-medium' :
+                          poste.total ? 'bg-[var(--color-success-lightest)] font-bold' :
+                          poste.sousTotal ? 'bg-[var(--color-background-secondary)] font-medium' :
                           poste.niveau === 0 ? 'font-medium' : ''
                         }`}
                       >
                         <td className={`px-3 py-2 ${poste.niveau === 1 ? 'pl-6' : ''}`}>
                           {poste.libelle}
                         </td>
-                        <td className="px-3 py-2 text-right text-xs text-gray-500">
+                        <td className="px-3 py-2 text-right text-xs text-[var(--color-text-secondary)]">
                           {poste.noteBilan}
                         </td>
                         <td className="px-3 py-2 text-right">
@@ -800,8 +906,8 @@ const EtatsSYSCOHADA: React.FC = () => {
                           {formatNumber(poste.exercicePrecedent)}
                         </td>
                         <td className={`px-3 py-2 text-right ${
-                          poste.variationPourcentage > 0 ? 'text-green-600' :
-                          poste.variationPourcentage < 0 ? 'text-red-600' : 'text-gray-600'
+                          poste.variationPourcentage > 0 ? 'text-[var(--color-success)]' :
+                          poste.variationPourcentage < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
                         }`}>
                           {poste.variationPourcentage !== 0 && (
                             poste.variationPourcentage > 0 ? '+' : ''
@@ -831,11 +937,11 @@ const EtatsSYSCOHADA: React.FC = () => {
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Compte de Résultat - Exercice 2024</h3>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Graphiques
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Exporter
               </button>
@@ -845,9 +951,9 @@ const EtatsSYSCOHADA: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium">Libellé</th>
+                    <th className="px-4 py-3 text-left font-medium">{t('accounting.label')}</th>
                     <th className="px-4 py-3 text-right font-medium">Note</th>
                     <th className="px-4 py-3 text-right font-medium">2024</th>
                     <th className="px-4 py-3 text-right font-medium">2023</th>
@@ -860,30 +966,30 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <tr
                       key={poste.code}
                       className={`border-t ${
-                        poste.total ? 'bg-blue-50 font-bold text-lg' :
-                        poste.sousTotal ? 'bg-gray-50 font-medium' :
+                        poste.total ? 'bg-[var(--color-primary-lightest)] font-bold text-lg' :
+                        poste.sousTotal ? 'bg-[var(--color-background-secondary)] font-medium' :
                         poste.niveau === 0 ? 'font-medium' : ''
                       }`}
                     >
                       <td className={`px-4 py-3 ${poste.niveau === 1 ? 'pl-8' : ''}`}>
                         {poste.libelle}
                       </td>
-                      <td className="px-4 py-3 text-right text-xs text-gray-500">
+                      <td className="px-4 py-3 text-right text-xs text-[var(--color-text-secondary)]">
                         {poste.noteCompte}
                       </td>
                       <td className={`px-4 py-3 text-right ${
-                        poste.exerciceActuel > 0 ? 'text-black' : 'text-red-600'
+                        poste.exerciceActuel > 0 ? 'text-black' : 'text-[var(--color-error)]'
                       }`}>
                         {formatNumber(poste.exerciceActuel)}
                       </td>
                       <td className={`px-4 py-3 text-right ${
-                        poste.exercicePrecedent > 0 ? 'text-black' : 'text-red-600'
+                        poste.exercicePrecedent > 0 ? 'text-black' : 'text-[var(--color-error)]'
                       }`}>
                         {formatNumber(poste.exercicePrecedent)}
                       </td>
                       <td className={`px-4 py-3 text-right ${
-                        poste.variation > 0 ? 'text-green-600' :
-                        poste.variation < 0 ? 'text-red-600' : 'text-gray-600'
+                        poste.variation > 0 ? 'text-[var(--color-success)]' :
+                        poste.variation < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
                       }`}>
                         {poste.variation !== 0 && (
                           poste.variation > 0 ? '+' : ''
@@ -891,8 +997,8 @@ const EtatsSYSCOHADA: React.FC = () => {
                         {formatNumber(poste.variation)}
                       </td>
                       <td className={`px-4 py-3 text-right ${
-                        poste.variationPourcentage > 0 ? 'text-green-600' :
-                        poste.variationPourcentage < 0 ? 'text-red-600' : 'text-gray-600'
+                        poste.variationPourcentage > 0 ? 'text-[var(--color-success)]' :
+                        poste.variationPourcentage < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'
                       }`}>
                         {Math.abs(poste.variationPourcentage) !== Infinity &&
                          !isNaN(poste.variationPourcentage) && (
@@ -916,7 +1022,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
+                  <div className="flex justify-between items-center p-2 bg-[var(--color-primary-lightest)] rounded">
                     <span>Marge Commerciale</span>
                     <span className="font-bold">176.5M</span>
                   </div>
@@ -924,17 +1030,17 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <span>Valeur Ajoutée</span>
                     <span className="font-bold">90.5M</span>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-green-50 rounded">
+                  <div className="flex justify-between items-center p-2 bg-[var(--color-success-lightest)] rounded">
                     <span>EBE</span>
                     <span className="font-bold">55.5M</span>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-red-50 rounded">
+                  <div className="flex justify-between items-center p-2 bg-[var(--color-error-lightest)] rounded">
                     <span>Résultat d'Exploitation</span>
-                    <span className="font-bold text-red-600">-19.5M</span>
+                    <span className="font-bold text-[var(--color-error)]">-19.5M</span>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div className="flex justify-between items-center p-2 bg-[var(--color-background-secondary)] rounded">
                     <span>Résultat HAO</span>
-                    <span className="font-bold text-green-600">83.0M</span>
+                    <span className="font-bold text-[var(--color-success)]">83.0M</span>
                   </div>
                 </div>
               </CardContent>
@@ -964,7 +1070,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Taux de Résultat Net</span>
-                    <span className="font-bold text-green-600">10.8%</span>
+                    <span className="font-bold text-[var(--color-success)]">10.8%</span>
                   </div>
                 </div>
               </CardContent>
@@ -978,23 +1084,23 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between items-center">
                     <span>Chiffre d'Affaires</span>
-                    <span className="font-bold text-green-600">+18.4%</span>
+                    <span className="font-bold text-[var(--color-success)]">+18.4%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Charges d'Exploitation</span>
-                    <span className="font-bold text-red-600">+28.1%</span>
+                    <span className="font-bold text-[var(--color-error)]">+28.1%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Charges Financières</span>
-                    <span className="font-bold text-red-600">+50.0%</span>
+                    <span className="font-bold text-[var(--color-error)]">+50.0%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Produits HAO</span>
-                    <span className="font-bold text-green-600">+70.0%</span>
+                    <span className="font-bold text-[var(--color-success)]">+70.0%</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Résultat Net</span>
-                    <span className="font-bold text-green-600">+34.7%</span>
+                    <span className="font-bold text-[var(--color-success)]">+34.7%</span>
                   </div>
                 </div>
               </CardContent>
@@ -1016,7 +1122,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h4 className="font-medium">{ratio.nom}</h4>
-                          <p className="text-sm text-gray-600">{ratio.interpretation}</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{ratio.interpretation}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           {getEvolutionIcon(ratio.evolution)}
@@ -1028,26 +1134,26 @@ const EtatsSYSCOHADA: React.FC = () => {
 
                       <div className="grid grid-cols-3 gap-4 mt-3">
                         <div className="text-center">
-                          <p className="text-sm text-gray-600">Valeur Actuelle</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">Valeur Actuelle</p>
                           <p className={`text-xl font-bold ${getRatioStatutColor(ratio.statut)}`}>
                             {ratio.valeur.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
                         <div className="text-center">
-                          <p className="text-sm text-gray-600">Valeur N-1</p>
-                          <p className="text-xl font-bold text-gray-600">
+                          <p className="text-sm text-[var(--color-text-primary)]">Valeur N-1</p>
+                          <p className="text-xl font-bold text-[var(--color-text-primary)]">
                             {ratio.valeurPrecedente.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
                         <div className="text-center">
-                          <p className="text-sm text-gray-600">Seuil</p>
-                          <p className="text-xl font-bold text-blue-600">
+                          <p className="text-sm text-[var(--color-text-primary)]">Seuil</p>
+                          <p className="text-xl font-bold text-[var(--color-primary)]">
                             {ratio.seuil?.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
                       </div>
 
-                      <div className="mt-3 text-xs text-gray-500">
+                      <div className="mt-3 text-xs text-[var(--color-text-secondary)]">
                         <strong>Formule:</strong> {ratio.formuleCalcul}
                       </div>
                     </div>
@@ -1067,13 +1173,13 @@ const EtatsSYSCOHADA: React.FC = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h4 className="font-medium">{indicateur.nom}</h4>
-                          <p className="text-sm text-gray-600">Secteur: {indicateur.secteurReference}</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">Secteur: {indicateur.secteurReference}</p>
                         </div>
                         <Badge className={
-                          indicateur.position === 'excellent' ? 'bg-green-100 text-green-800' :
-                          indicateur.position === 'bon' ? 'bg-blue-100 text-blue-800' :
-                          indicateur.position === 'moyen' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                          indicateur.position === 'excellent' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          indicateur.position === 'bon' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                          indicateur.position === 'moyen' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
+                          'bg-[var(--color-error-lighter)] text-red-800'
                         }>
                           {indicateur.position}
                         </Badge>
@@ -1090,25 +1196,25 @@ const EtatsSYSCOHADA: React.FC = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Quartile supérieur</span>
-                          <span className="text-green-600">{indicateur.quartileSup}</span>
+                          <span className="text-[var(--color-success)]">{indicateur.quartileSup}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Quartile inférieur</span>
-                          <span className="text-red-600">{indicateur.quartileInf}</span>
+                          <span className="text-[var(--color-error)]">{indicateur.quartileInf}</span>
                         </div>
                       </div>
 
                       <div className="mt-3">
-                        <div className="relative h-2 bg-gray-200 rounded">
+                        <div className="relative h-2 bg-[var(--color-border)] rounded">
                           <div
-                            className="absolute h-2 bg-blue-600 rounded"
+                            className="absolute h-2 bg-[var(--color-primary)] rounded"
                             style={{
                               left: `${Math.max(0, Math.min(100, ((indicateur.valeurEntreprise - indicateur.quartileInf) / (indicateur.quartileSup - indicateur.quartileInf)) * 100))}%`,
                               width: '4px'
                             }}
                           />
                         </div>
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mt-1">
                           <span>Q3</span>
                           <span>Moyenne</span>
                           <span>Q1</span>
@@ -1140,7 +1246,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-3 bg-blue-50 rounded">
+                  <div className="p-3 bg-[var(--color-primary-lightest)] rounded">
                     <h4 className="font-medium mb-2">I. RESSOURCES DURABLES</h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
@@ -1166,7 +1272,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-red-50 rounded">
+                  <div className="p-3 bg-[var(--color-error-lightest)] rounded">
                     <h4 className="font-medium mb-2">II. EMPLOIS DURABLES</h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
@@ -1188,10 +1294,10 @@ const EtatsSYSCOHADA: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-gray-50 rounded">
+                  <div className="p-3 bg-[var(--color-background-secondary)] rounded">
                     <div className="flex justify-between font-bold">
                       <span>Variation du FDR</span>
-                      <span className="text-red-600">-24M</span>
+                      <span className="text-[var(--color-error)]">-24M</span>
                     </div>
                   </div>
                 </div>
@@ -1204,7 +1310,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-3 bg-green-50 rounded">
+                  <div className="p-3 bg-[var(--color-success-lightest)] rounded">
                     <h4 className="font-medium mb-2">Flux de Trésorerie d'Exploitation</h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
@@ -1221,21 +1327,21 @@ const EtatsSYSCOHADA: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span>Variation BFR</span>
-                        <span className="font-medium text-red-600">-25M</span>
+                        <span className="font-medium text-[var(--color-error)]">-25M</span>
                       </div>
                       <div className="flex justify-between font-bold border-t pt-1">
                         <span>Flux Exploitation</span>
-                        <span className="text-green-600">98.5M</span>
+                        <span className="text-[var(--color-success)]">98.5M</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-blue-50 rounded">
+                  <div className="p-3 bg-[var(--color-primary-lightest)] rounded">
                     <h4 className="font-medium mb-2">Flux d'Investissement</h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>Acquisitions immobilisations</span>
-                        <span className="font-medium text-red-600">-193M</span>
+                        <span className="font-medium text-[var(--color-error)]">-193M</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Cessions d'actifs</span>
@@ -1243,7 +1349,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                       </div>
                       <div className="flex justify-between font-bold border-t pt-1">
                         <span>Flux Investissement</span>
-                        <span className="text-red-600">-193M</span>
+                        <span className="text-[var(--color-error)]">-193M</span>
                       </div>
                     </div>
                   </div>
@@ -1261,15 +1367,15 @@ const EtatsSYSCOHADA: React.FC = () => {
                       </div>
                       <div className="flex justify-between font-bold border-t pt-1">
                         <span>Flux Financement</span>
-                        <span className="text-blue-600">60M</span>
+                        <span className="text-[var(--color-primary)]">60M</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-gray-100 rounded">
+                  <div className="p-3 bg-[var(--color-background-hover)] rounded">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Variation Trésorerie</span>
-                      <span className="text-red-600">-34.5M</span>
+                      <span className="text-[var(--color-error)]">-34.5M</span>
                     </div>
                   </div>
                 </div>
@@ -1322,20 +1428,20 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h4 className="font-medium">{doc.nom}</h4>
-                        <p className="text-sm text-gray-600">{doc.description}</p>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-[var(--color-text-primary)]">{doc.description}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
                           Destinataire: {doc.autoriteDestinataire}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {doc.obligatoire && (
-                          <Badge className="bg-red-100 text-red-800">Obligatoire</Badge>
+                          <Badge className="bg-[var(--color-error-lighter)] text-red-800">Obligatoire</Badge>
                         )}
                         <Badge className={
-                          doc.statut === 'complete' ? 'bg-green-100 text-green-800' :
-                          doc.statut === 'en_cours' ? 'bg-blue-100 text-blue-800' :
+                          doc.statut === 'complete' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          doc.statut === 'en_cours' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
                           doc.statut === 'transmis' ? 'bg-purple-100 text-purple-800' :
-                          'bg-gray-100 text-gray-800'
+                          'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                         }>
                           {doc.statut.replace('_', ' ')}
                         </Badge>
@@ -1344,18 +1450,18 @@ const EtatsSYSCOHADA: React.FC = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600">Fréquence</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Fréquence</p>
                         <p className="font-medium">{doc.frequence}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Date limite</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Date limite</p>
                         <p className="font-medium">{new Date(doc.dateLimite).toLocaleDateString()}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Délai restant</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">Délai restant</p>
                         <p className={`font-medium ${
                           new Date(doc.dateLimite) < new Date(Date.now() + 30*24*60*60*1000) ?
-                          'text-red-600' : 'text-green-600'
+                          'text-[var(--color-error)]' : 'text-[var(--color-success)]'
                         }`}>
                           {Math.ceil((new Date(doc.dateLimite).getTime() - Date.now()) / (24*60*60*1000))} jours
                         </p>
@@ -1363,7 +1469,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                     </div>
 
                     {doc.sanctions && (
-                      <div className="mt-3 p-2 bg-red-50 rounded">
+                      <div className="mt-3 p-2 bg-[var(--color-error-lightest)] rounded">
                         <p className="text-sm text-red-800">
                           <strong>Sanctions:</strong> {doc.sanctions}
                         </p>
@@ -1397,9 +1503,9 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <div key={index} className="flex items-center justify-between p-2 border rounded">
                       <span className="text-sm">{item.tache}</span>
                       {item.statut === 'complete' ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                       ) : (
-                        <Clock className="w-5 h-5 text-yellow-600" />
+                        <Clock className="w-5 h-5 text-[var(--color-warning)]" />
                       )}
                     </div>
                   ))}
@@ -1454,6 +1560,211 @@ const EtatsSYSCOHADA: React.FC = () => {
           </div>
         </TabsContent>
       </Tabs>
+      {/* Generation Modal */}
+      {showGenerationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-emerald-100 text-emerald-600 p-2 rounded-lg">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Génération États SYSCOHADA</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowGenerationModal(false);
+                  resetForm();
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-emerald-900 mb-1">Génération d&apos;États</h4>
+                      <p className="text-sm text-emerald-800">Générez automatiquement les états financiers conformes au référentiel SYSCOHADA.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Statement Selection */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sélection des États</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="bilan"
+                        className="rounded border-[var(--color-border-dark)] text-emerald-500"
+                        checked={formData.etats_selectionnes.includes('bilan')}
+                        onChange={(e) => handleInputChange('etats_selectionnes', 'bilan')}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="bilan" className="text-sm text-[var(--color-text-primary)]">Bilan (Actif/Passif)</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="compte_resultat"
+                        className="rounded border-[var(--color-border-dark)] text-emerald-500"
+                        checked={formData.etats_selectionnes.includes('compte_resultat')}
+                        onChange={(e) => handleInputChange('etats_selectionnes', 'compte_resultat')}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="compte_resultat" className="text-sm text-[var(--color-text-primary)]">Compte de Résultat</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="tafire"
+                        className="rounded border-[var(--color-border-dark)] text-emerald-500"
+                        checked={formData.etats_selectionnes.includes('tafire')}
+                        onChange={(e) => handleInputChange('etats_selectionnes', 'tafire')}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="tafire" className="text-sm text-[var(--color-text-primary)]">TAFIRE (Flux de Trésorerie)</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="annexes"
+                        className="rounded border-[var(--color-border-dark)] text-emerald-500"
+                        checked={formData.etats_selectionnes.includes('annexes')}
+                        onChange={(e) => handleInputChange('etats_selectionnes', 'annexes')}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="annexes" className="text-sm text-[var(--color-text-primary)]">Notes Annexes</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="etats_fiscaux"
+                        className="rounded border-[var(--color-border-dark)] text-emerald-500"
+                        checked={formData.etats_selectionnes.includes('etats_fiscaux')}
+                        onChange={(e) => handleInputChange('etats_selectionnes', 'etats_fiscaux')}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="etats_fiscaux" className="text-sm text-[var(--color-text-primary)]">États Fiscaux</label>
+                    </div>
+                      {errors.etats_selectionnes && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.etats_selectionnes}</p>
+                      )}
+                  </div>
+                </div>
+
+                {/* Generation Parameters */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Paramètres de Génération</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">-- Sélectionner période --</option>
+                        <option value="mensuelle">Mensuelle</option>
+                        <option value="trimestrielle">Trimestrielle</option>
+                        <option value="semestrielle">Semestrielle</option>
+                        <option value="annuelle">Annuelle</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Exercice</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Format de Sortie</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel</option>
+                        <option value="xml">XML SYSCOHADA</option>
+                        <option value="all">Tous les formats</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Niveau de Détail</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="synthese">Synthèse</option>
+                        <option value="detaille">Détaillé</option>
+                        <option value="complet">Complet avec notes</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Options */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Options Avancées</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="comparaison" className="rounded border-[var(--color-border-dark)] text-emerald-500" />
+                      <label htmlFor="comparaison" className="text-sm text-[var(--color-text-primary)]">Inclure comparaison N-1</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="signature" className="rounded border-[var(--color-border-dark)] text-emerald-500" defaultChecked />
+                      <label htmlFor="signature" className="text-sm text-[var(--color-text-primary)]">Signature électronique</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="archivage" className="rounded border-[var(--color-border-dark)] text-emerald-500" defaultChecked />
+                      <label htmlFor="archivage" className="text-sm text-[var(--color-text-primary)]">Archivage automatique</label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comments */}
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Commentaires</label>
+                  <textarea className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500" rows={3} placeholder="Notes sur la génération d'états..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowGenerationModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Génération...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4" />
+                    <span>Générer les États</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

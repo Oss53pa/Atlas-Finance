@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Calendar,
   Calculator,
@@ -28,6 +29,7 @@ interface ClosureOperation {
 }
 
 const SimpleClosurePage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>('');
   const [operations, setOperations] = useState<ClosureOperation[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -200,15 +202,15 @@ const SimpleClosurePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       {/* En-tête simple */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Calculator className="h-6 w-6 mr-3 text-blue-600" />
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
             Clôture Comptable Périodique
           </h1>
-          <p className="mt-1 text-gray-600">
+          <p className="mt-1 text-[var(--color-text-primary)]">
             Opérations de clôture automatisées conformes SYSCOHADA
           </p>
         </div>
@@ -217,7 +219,7 @@ const SimpleClosurePage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Sélection exercice */}
         <div className="bg-white rounded-lg border p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Sélection de l'Exercice</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Sélection de l'Exercice</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {fiscalYears.map((fy) => (
               <button
@@ -225,22 +227,22 @@ const SimpleClosurePage: React.FC = () => {
                 onClick={() => setSelectedFiscalYear(fy.id)}
                 className={`p-4 rounded-lg border text-left transition-colors ${
                   selectedFiscalYear === fy.id
-                    ? 'border-blue-500 bg-blue-50'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-lightest)]'
                     : fy.is_closed
-                    ? 'border-gray-200 bg-gray-50 opacity-75'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    ? 'border-[var(--color-border)] bg-[var(--color-background-secondary)] opacity-75'
+                    : 'border-[var(--color-border)] hover:border-blue-300 hover:bg-[var(--color-primary-lightest)]'
                 }`}
                 disabled={fy.is_closed}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">{fy.name}</span>
+                  <span className="font-medium text-[var(--color-text-primary)]">{fy.name}</span>
                   {fy.is_closed ? (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">Clôturé</span>
+                    <span className="px-2 py-1 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] text-xs rounded">Clôturé</span>
                   ) : (
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Ouvert</span>
+                    <span className="px-2 py-1 bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] text-xs rounded">Ouvert</span>
                   )}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-sm text-[var(--color-text-primary)] mt-1">
                   {fy.start_date} → {fy.end_date}
                 </div>
               </button>
@@ -250,13 +252,13 @@ const SimpleClosurePage: React.FC = () => {
 
         {/* Actions de clôture */}
         <div className="bg-white rounded-lg border p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions de Clôture</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Actions de Clôture</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <button
               onClick={startClosure}
               disabled={isProcessing || !selectedFiscalYear}
-              className="p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="p-4 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               <Play className="h-5 w-5" />
               <span>Clôture Complète</span>
@@ -266,42 +268,42 @@ const SimpleClosurePage: React.FC = () => {
               <button
                 onClick={calculateProvisions}
                 disabled={!selectedFiscalYear}
-                className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-center disabled:opacity-50"
+                className="p-3 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)] text-center disabled:opacity-50"
               >
-                <Calculator className="h-5 w-5 mx-auto mb-1 text-orange-600" />
+                <Calculator className="h-5 w-5 mx-auto mb-1 text-[var(--color-warning)]" />
                 <div className="text-xs">Provisions</div>
               </button>
 
               <button
                 onClick={calculateDepreciation}
                 disabled={!selectedFiscalYear}
-                className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-center disabled:opacity-50"
+                className="p-3 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)] text-center disabled:opacity-50"
               >
-                <Settings className="h-5 w-5 mx-auto mb-1 text-blue-600" />
+                <Settings className="h-5 w-5 mx-auto mb-1 text-[var(--color-primary)]" />
                 <div className="text-xs">Amortissements</div>
               </button>
 
               <button
                 onClick={generateTrialBalance}
                 disabled={!selectedFiscalYear}
-                className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-center disabled:opacity-50"
+                className="p-3 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)] text-center disabled:opacity-50"
               >
                 <Database className="h-5 w-5 mx-auto mb-1 text-purple-600" />
-                <div className="text-xs">Balance</div>
+                <div className="text-xs">{t('accounting.balance')}</div>
               </button>
             </div>
           </div>
 
           {/* État actuel */}
           {currentOperation && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-4 bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg">
               <div className="flex items-center space-x-2">
                 {isProcessing ? (
-                  <Clock className="h-4 w-4 text-blue-600 animate-spin" />
+                  <Clock className="h-4 w-4 text-[var(--color-primary)] animate-spin" />
                 ) : (
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-[var(--color-success)]" />
                 )}
-                <span className="text-blue-900 font-medium">{currentOperation}</span>
+                <span className="text-[var(--color-primary-darker)] font-medium">{currentOperation}</span>
               </div>
             </div>
           )}
@@ -310,29 +312,29 @@ const SimpleClosurePage: React.FC = () => {
         {/* Résultats des opérations */}
         {operations.length > 0 && (
           <div className="bg-white rounded-lg border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Résultats</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Résultats</h2>
             <div className="space-y-3">
               {operations.map((operation, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
                   <div className="flex items-center space-x-3">
                     {operation.status === 'completed' ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <CheckCircle className="h-5 w-5 text-[var(--color-success)]" />
                     ) : operation.status === 'error' ? (
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      <AlertTriangle className="h-5 w-5 text-[var(--color-error)]" />
                     ) : (
-                      <Clock className="h-5 w-5 text-blue-500" />
+                      <Clock className="h-5 w-5 text-[var(--color-primary)]" />
                     )}
                     <div>
-                      <div className="font-medium text-gray-900">{operation.name}</div>
-                      <div className="text-sm text-gray-600">{operation.result}</div>
+                      <div className="font-medium text-[var(--color-text-primary)]">{operation.name}</div>
+                      <div className="text-sm text-[var(--color-text-primary)]">{operation.result}</div>
                     </div>
                   </div>
                   {operation.entries_created && operation.entries_created > 0 && (
                     <div className="text-right">
-                      <div className="text-sm font-medium text-green-600">
+                      <div className="text-sm font-medium text-[var(--color-success)]">
                         {operation.entries_created} écritures
                       </div>
-                      <div className="text-xs text-gray-500">générées</div>
+                      <div className="text-xs text-[var(--color-text-secondary)]">générées</div>
                     </div>
                   )}
                 </div>
@@ -344,11 +346,11 @@ const SimpleClosurePage: React.FC = () => {
                 <FileText className="h-4 w-4 mr-2 inline" />
                 Journal de Clôture
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)]">
                 <Database className="h-4 w-4 mr-2 inline" />
                 Balance Générale
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                 <Download className="h-4 w-4 mr-2 inline" />
                 États Financiers
               </button>
@@ -357,28 +359,28 @@ const SimpleClosurePage: React.FC = () => {
         )}
 
         {/* Informations SYSCOHADA */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">Conformité SYSCOHADA</h3>
+        <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-6 mt-6">
+          <h3 className="text-lg font-semibold text-[var(--color-primary-darker)] mb-4">Conformité SYSCOHADA</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Provisions (Art. 45)</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Provisions (Art. 45)</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Plus de 6 mois : 50% provision</li>
                 <li>• Plus de 12 mois : 100% provision</li>
                 <li>• Justification documentée</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Amortissements (Art. 42)</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Amortissements (Art. 42)</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Matériel informatique : 3 ans</li>
                 <li>• Matériel bureau : 5 ans</li>
                 <li>• Constructions : 5-20 ans</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Régularisations (Art. 58)</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Régularisations (Art. 58)</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Charges à payer identifiées</li>
                 <li>• Produits à recevoir justifiés</li>
                 <li>• Cut-off strict 31/12</li>

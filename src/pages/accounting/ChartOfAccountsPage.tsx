@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { 
   Book,
@@ -30,7 +30,7 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { accountingService } from '../../services/accounting.service';
+import { useChartOfAccounts } from '../../hooks';
 import { formatCurrency } from '../../lib/utils';
 
 // Types SYSCOHADA pour le plan comptable
@@ -52,17 +52,16 @@ interface SyscohadaAccount {
 }
 
 const ChartOfAccountsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState<number | 'all'>('all');
   const [selectedLevel, setSelectedLevel] = useState<number | 'all'>('all');
   const [showInactive, setShowInactive] = useState(false);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  // Fetch chart of accounts
-  const { data: accounts, isLoading } = useQuery({
-    queryKey: ['accounting', 'chart-of-accounts'],
-    queryFn: () => accountingService.getChartOfAccounts(),
-  });
+  // Fetch chart of accounts avec le nouveau hook
+  const { data: accountsData, isLoading } = useChartOfAccounts();
+  const accounts = accountsData?.results || [];
 
   // Plan comptable SYSCOHADA standard avec structure hiérarchique
   const syscohadaPlan: SyscohadaAccount[] = [
@@ -319,7 +318,7 @@ const ChartOfAccountsPage: React.FC = () => {
                   <thead className="bg-gradient-to-r from-neutral-100 to-neutral-50">
                     <tr>
                       <th className="text-left p-4 font-bold text-neutral-800">Code SYSCOHADA</th>
-                      <th className="text-left p-4 font-bold text-neutral-800">Libellé</th>
+                      <th className="text-left p-4 font-bold text-neutral-800">{t('accounting.label')}</th>
                       <th className="text-center p-4 font-bold text-neutral-800">Classe</th>
                       <th className="text-center p-4 font-bold text-neutral-800">Nature</th>
                       <th className="text-center p-4 font-bold text-neutral-800">Sens</th>
@@ -419,14 +418,14 @@ const ChartOfAccountsPage: React.FC = () => {
                             </td>
                             <td className="p-4 text-center">
                               <div className="flex justify-center gap-1">
-                                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" aria-label="Voir les détails">
                                   <Eye className="h-4 w-4" />
                                 </button>
                                 <button className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all">
                                   <Edit className="h-4 w-4" />
                                 </button>
                                 {!account.is_collectif && account.nb_mouvements === 0 && (
-                                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all" aria-label="Supprimer">
                                     <Trash2 className="h-4 w-4" />
                                   </button>
                                 )}

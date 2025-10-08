@@ -14,6 +14,7 @@ import {
   XCircle,
   Info
 } from 'lucide-react';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   BarChart,
   Bar,
@@ -296,7 +297,7 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
                     <td className="py-4 px-4">
                       <div>
                         <div className="font-medium text-gray-900">{result.name}</div>
-                        <div className="text-sm text-gray-500">{result.sku}</div>
+                        <div className="text-sm text-gray-700">{result.sku}</div>
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right">
@@ -345,7 +346,8 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
 
 const InventoryValuation: React.FC = () => {
   const [selectedMethod, setSelectedMethod] = useState<ValuationMethod>('FIFO');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [valuationData, setValuationData] = useState<InventoryValuation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lcmResults, setLcmResults] = useState<any[]>([]);
@@ -419,7 +421,7 @@ const InventoryValuation: React.FC = () => {
 
   useEffect(() => {
     runValuation();
-  }, [selectedMethod, selectedDate]);
+  }, [selectedMethod, dateRange]);
 
   const categoryBreakdown = valuationData?.items.reduce((acc, item) => {
     const existing = acc.find(cat => cat.category === item.category);
@@ -452,20 +454,20 @@ const InventoryValuation: React.FC = () => {
         </div>
 
         <div className="flex gap-4 mt-4 lg:mt-0">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
-            />
-          </div>
+          <button
+            onClick={() => setShowPeriodModal(true)}
+            className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+          >
+            <Calendar className="w-4 h-4 text-gray-700" />
+            {dateRange.startDate && dateRange.endDate
+              ? `${dateRange.startDate} - ${dateRange.endDate}`
+              : 'Sélectionner une période'
+            }
+          </button>
           <button
             onClick={runValuation}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] disabled:opacity-50"
-          >
+            className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] disabled:opacity-50" aria-label="Actualiser">
             {isLoading ? (
               <LoadingSpinner size="sm" />
             ) : (
@@ -516,6 +518,16 @@ const InventoryValuation: React.FC = () => {
         </div>
       </div>
 
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
+
       {/* Valuation Methods Comparison */}
       <ValuationComparison
         methods={valuationMethods}
@@ -532,7 +544,7 @@ const InventoryValuation: React.FC = () => {
             </h3>
             <div className="flex items-center gap-4">
               <ValuationMethodBadge method={selectedMethod} showDescription />
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-700">
                 As of {new Date(selectedDate).toLocaleDateString()}
               </span>
             </div>
@@ -629,8 +641,8 @@ const InventoryValuation: React.FC = () => {
                     <td className="py-4 px-4">
                       <div>
                         <div className="font-medium text-gray-900">{item.name}</div>
-                        <div className="text-sm text-gray-500">{item.sku}</div>
-                        <div className="text-xs text-gray-400">{item.category} • {item.location}</div>
+                        <div className="text-sm text-gray-700">{item.sku}</div>
+                        <div className="text-xs text-gray-700">{item.category} • {item.location}</div>
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right font-mono">

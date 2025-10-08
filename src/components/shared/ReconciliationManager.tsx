@@ -3,6 +3,7 @@
  * Fonctionnalités transverses Clients/Fournisseurs - Section 4.1
  */
 import React, { useState, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeftRight,
@@ -62,6 +63,7 @@ interface ReconciliationFilters {
 }
 
 const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
+  const { t } = useLanguage();
   companyId,
   fiscalYearId,
   accountId,
@@ -320,7 +322,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
             </Select>
 
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Rechercher..."
                 className="pl-10"
@@ -432,7 +434,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                   </span>
                 </div>
                 
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <div className="flex items-center space-x-2 text-sm text-gray-700">
                   <Calculator className="h-4 w-4" />
                   <span>
                     Algorithmes IA: {reconciliationStats?.algorithmsAvailable || 4} disponibles
@@ -446,14 +448,14 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>{t('common.date')}</TableHead>
                       <TableHead>N° Pièce</TableHead>
-                      <TableHead>Compte</TableHead>
-                      <TableHead>Libellé</TableHead>
+                      <TableHead>{t('accounting.account')}</TableHead>
+                      <TableHead>{t('accounting.label')}</TableHead>
                       <TableHead>Tiers</TableHead>
-                      <TableHead className="text-right">Débit</TableHead>
-                      <TableHead className="text-right">Crédit</TableHead>
-                      <TableHead className="text-right">Solde</TableHead>
+                      <TableHead className="text-right">{t('accounting.debit')}</TableHead>
+                      <TableHead className="text-right">{t('accounting.credit')}</TableHead>
+                      <TableHead className="text-right">{t('accounting.balance')}</TableHead>
                       <TableHead>Ancienneté</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -633,7 +635,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                 <p className="text-xl font-bold text-green-600">
                   {(reconciliationStats?.aiAccuracy || 0).toFixed(1)}%
                 </p>
-                <p className="text-xs text-gray-500">Précision algorithmes</p>
+                <p className="text-xs text-gray-700">Précision algorithmes</p>
               </div>
             </div>
             
@@ -643,7 +645,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                 <p className="text-xl font-bold text-purple-600">
                   {reconciliationStats?.averageProcessingTime || 0}ms
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-700">
                   Objectif: &lt; 200ms ✓
                 </p>
               </div>

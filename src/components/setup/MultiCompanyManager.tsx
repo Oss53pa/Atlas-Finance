@@ -311,9 +311,9 @@ const MultiCompanyManager: React.FC = () => {
               className="p-1 hover:bg-gray-200 rounded"
             >
               {isExpanded ? (
-                <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+                <ChevronDownIcon className="h-4 w-4 text-gray-700" />
               ) : (
-                <ChevronRightIcon className="h-4 w-4 text-gray-500" />
+                <ChevronRightIcon className="h-4 w-4 text-gray-700" />
               )}
             </button>
           ) : (
@@ -362,16 +362,16 @@ const MultiCompanyManager: React.FC = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-400 hover:text-indigo-600 transition-colors">
+            <button className="p-2 text-gray-700 hover:text-indigo-600 transition-colors" aria-label="Voir les détails">
               <EyeIcon className="h-4 w-4" />
             </button>
-            <button className="p-2 text-gray-400 hover:text-green-600 transition-colors">
+            <button className="p-2 text-gray-700 hover:text-green-600 transition-colors" aria-label="Modifier">
               <PencilIcon className="h-4 w-4" />
             </button>
-            <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+            <button className="p-2 text-gray-700 hover:text-blue-600 transition-colors" aria-label="Dupliquer">
               <CopyIcon className="h-4 w-4" />
             </button>
-            <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+            <button className="p-2 text-gray-700 hover:text-red-600 transition-colors" aria-label="Supprimer">
               <TrashIcon className="h-4 w-4" />
             </button>
           </div>
@@ -399,20 +399,20 @@ const MultiCompanyManager: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-[#6A8A82] rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-              <BuildingOfficeIcon className="h-8 w-8 mr-3 text-indigo-600" />
+            <h1 className="text-3xl font-bold text-white flex items-center">
+              <BuildingOfficeIcon className="h-8 w-8 mr-3 text-white" />
               Gestion Multi-Sociétés
             </h1>
-            <p className="text-gray-600 mt-2">Configuration GROUPE → HOLDING → FILIALES → ÉTABLISSEMENTS</p>
+            <p className="text-[#F0F3F2] mt-2">Configuration GROUPE → HOLDING → FILIALES → ÉTABLISSEMENTS</p>
           </div>
           <div className="flex space-x-4">
             <select
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
             >
               <option value="tree">Vue Arbre</option>
               <option value="list">Vue Liste</option>
@@ -420,7 +420,7 @@ const MultiCompanyManager: React.FC = () => {
             </select>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              className="bg-[#B87333] hover:bg-[#6A8A82] text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
             >
               <PlusIcon className="h-5 w-5" />
               <span>Nouvelle Entité</span>
@@ -457,7 +457,7 @@ const MultiCompanyManager: React.FC = () => {
             color: 'orange'
           }
         ].map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div key={index} className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
@@ -476,8 +476,8 @@ const MultiCompanyManager: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Arbre des entités */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Structure Organisationnelle</h2>
+            <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-bold text-[#191919] mb-4">Structure Organisationnelle</h2>
               <div className="space-y-2">
                 {companies.map(company => renderCompanyTree(company))}
               </div>
@@ -493,8 +493,8 @@ const MultiCompanyManager: React.FC = () => {
               return (
                 <>
                   {/* Informations générales */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Informations Générales</h3>
+                  <div className="bg-[#ECECEC] rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-[#191919] mb-4">Informations Générales</h3>
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Code:</span>
@@ -526,8 +526,8 @@ const MultiCompanyManager: React.FC = () => {
                   </div>
 
                   {/* Configuration */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Configuration</h3>
+                  <div className="bg-[#ECECEC] rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-[#191919] mb-4">Configuration</h3>
                     <div className="space-y-3">
                       {[
                         { key: 'planComptablePartage', label: 'Plan comptable partagé' },
@@ -546,7 +546,7 @@ const MultiCompanyManager: React.FC = () => {
                               <div className="h-4 w-4 border border-gray-300 rounded-full"></div>
                             )}
                             <span className={`text-xs ${
-                              (company.config as any)[configItem.key] ? 'text-green-600' : 'text-gray-500'
+                              (company.config as any)[configItem.key] ? 'text-green-600' : 'text-gray-700'
                             }`}>
                               {(company.config as any)[configItem.key] ? 'Activé' : 'Désactivé'}
                             </span>
@@ -557,8 +557,8 @@ const MultiCompanyManager: React.FC = () => {
                   </div>
 
                   {/* Droits inter-sociétés */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <div className="bg-[#ECECEC] rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-[#191919] mb-4 flex items-center">
                       <ShieldCheckIcon className="h-5 w-5 mr-2 text-green-600" />
                       Droits Inter-Sociétés
                     </h3>
@@ -596,13 +596,13 @@ const MultiCompanyManager: React.FC = () => {
 
       {/* Vue Consolidation */}
       {viewMode === 'consolidation' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+            <h2 className="text-xl font-bold text-[#191919] flex items-center">
               <ArrowPathIcon className="h-6 w-6 mr-2 text-blue-600" />
               Règles de Consolidation
             </h2>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <button className="bg-[#B87333] hover:bg-[#6A8A82] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
               <PlusIcon className="h-5 w-5" />
               <span>Nouvelle Règle</span>
             </button>
@@ -612,22 +612,22 @@ const MultiCompanyManager: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Règle
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Source → Destination
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Comptes
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Statut
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -637,14 +637,14 @@ const MultiCompanyManager: React.FC = () => {
                   <tr key={rule.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{rule.name}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-700">
                         Coefficient: {rule.coefficient} • {rule.automatic ? 'Auto' : 'Manuel'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center space-x-2">
                         <span>{getCompanyName(companies, rule.fromCompany)}</span>
-                        <ArrowPathIcon className="h-4 w-4 text-gray-400" />
+                        <ArrowPathIcon className="h-4 w-4 text-gray-700" />
                         <span>{getCompanyName(companies, rule.toCompany)}</span>
                       </div>
                     </td>
@@ -660,7 +660,7 @@ const MultiCompanyManager: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {rule.accounts.slice(0, 2).join(', ')}
                       {rule.accounts.length > 2 && (
-                        <span className="text-gray-500"> +{rule.accounts.length - 2}</span>
+                        <span className="text-gray-700"> +{rule.accounts.length - 2}</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -672,10 +672,10 @@ const MultiCompanyManager: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex space-x-2 justify-center">
-                        <button className="text-indigo-600 hover:text-indigo-900">
+                        <button className="text-indigo-600 hover:text-indigo-900" aria-label="Modifier">
                           <PencilIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button className="text-red-600 hover:text-red-900" aria-label="Supprimer">
                           <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>

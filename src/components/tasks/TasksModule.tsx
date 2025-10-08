@@ -176,11 +176,11 @@ const TasksModule: React.FC = () => {
           >
             {task.status === 'done' ?
               <CheckCircle2 className="w-5 h-5 text-green-500" /> :
-              <Circle className="w-5 h-5 text-gray-400" />
+              <Circle className="w-5 h-5 text-gray-700" />
             }
           </button>
           <div className="flex-1">
-            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-400' : ''}`}>
+            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-700' : ''}`}>
               {task.title}
             </h4>
             {task.description && (
@@ -188,13 +188,13 @@ const TasksModule: React.FC = () => {
             )}
             <div className="flex items-center gap-4 mt-2">
               {task.dueDate && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <Calendar className="w-3 h-3" />
                   {new Date(task.dueDate).toLocaleDateString()}
                 </div>
               )}
               {task.assignee && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-700">
                   <User className="w-3 h-3" />
                   {task.assignee}
                 </div>
@@ -207,7 +207,7 @@ const TasksModule: React.FC = () => {
                       style={{ width: `${task.progress}%` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500">{task.progress}%</span>
+                  <span className="text-xs text-gray-700">{task.progress}%</span>
                 </div>
               )}
             </div>
@@ -225,7 +225,7 @@ const TasksModule: React.FC = () => {
         <div className="flex items-center gap-2">
           {getPriorityIcon(task.priority)}
           <button className="p-1 hover:bg-gray-100 rounded">
-            <MoreVertical className="w-4 h-4 text-gray-400" />
+            <MoreVertical className="w-4 h-4 text-gray-700" />
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@ const TasksModule: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Mes Tâches</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-700 mt-1">
               {tasks.length} tâches • {tasksByStatus['in-progress'].length} en cours
             </p>
           </div>
@@ -255,7 +255,7 @@ const TasksModule: React.FC = () => {
         {/* Filters */}
         <div className="flex items-center gap-4 mt-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
             <input
               type="text"
               placeholder="Rechercher une tâche..."

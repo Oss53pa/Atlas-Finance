@@ -266,7 +266,7 @@ const FinancialAnalysisPage: React.FC = () => {
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
                 selectedView === id
                   ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -355,7 +355,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="value" fill="#3b82f6" />
+                  <Bar dataKey="value" fill="#6A8A82" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -365,9 +365,9 @@ const FinancialAnalysisPage: React.FC = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Équilibre Financier</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
-                  { name: 'FRNG', value: financialData?.functionalBalance.workingCapitalFund || 0, fill: '#10b981' },
-                  { name: 'BFR', value: financialData?.functionalBalance.totalWorkingCapitalNeed || 0, fill: '#f59e0b' },
-                  { name: 'Trésorerie', value: financialData?.functionalBalance.netTreasury || 0, fill: '#3b82f6' }
+                  { name: 'FRNG', value: financialData?.functionalBalance.workingCapitalFund || 0, fill: '#6A8A82' },
+                  { name: 'BFR', value: financialData?.functionalBalance.totalWorkingCapitalNeed || 0, fill: '#B87333' },
+                  { name: 'Trésorerie', value: financialData?.functionalBalance.netTreasury || 0, fill: '#7A99AC' }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -392,7 +392,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <PolarGrid />
                   <PolarAngleAxis dataKey="category" />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  <Radar name="Performance" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                  <Radar name="Performance" dataKey="value" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.6} />
                 </RadarChart>
               </ResponsiveContainer>
               
@@ -405,7 +405,7 @@ const FinancialAnalysisPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-gray-900">{formatNumber(ratio.value)}{ratio.unit}</p>
-                      <p className="text-xs text-gray-500">Réf: {formatNumber(ratio.reference)}{ratio.unit}</p>
+                      <p className="text-xs text-gray-700">Réf: {formatNumber(ratio.reference)}{ratio.unit}</p>
                     </div>
                   </div>
                 )) || []}
@@ -452,7 +452,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="value" fill="#3b82f6" />
+                  <Bar dataKey="value" fill="#6A8A82" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -526,9 +526,9 @@ const FinancialAnalysisPage: React.FC = () => {
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar dataKey="inflows" fill="#10b981" name="Encaissements" />
-                <Bar dataKey="outflows" fill="#ef4444" name="Décaissements" />
-                <Line type="monotone" dataKey="cumulativeCash" stroke="#3b82f6" strokeWidth={3} name="Trésorerie cumulative" />
+                <Bar dataKey="inflows" fill="#6A8A82" name="Encaissements" />
+                <Bar dataKey="outflows" fill="#B85450" name="Décaissements" />
+                <Line type="monotone" dataKey="cumulativeCash" stroke="#7A99AC" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
