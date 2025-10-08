@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useParams, Link } from 'react-router-dom';
 
 interface FundCallDetails {
@@ -14,6 +15,7 @@ interface FundCallDetails {
 }
 
 export const SimpleFundCallDetails: React.FC = () => {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const [fundCall, setFundCall] = useState<FundCallDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -63,7 +65,7 @@ export const SimpleFundCallDetails: React.FC = () => {
       <div className="container-fluid">
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
           <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Chargement...</span>
+            <span className="visually-hidden">{t('common.loading')}</span>
           </div>
         </div>
       </div>
@@ -74,7 +76,7 @@ export const SimpleFundCallDetails: React.FC = () => {
     return (
       <div className="container-fluid">
         <div className="alert alert-danger">
-          <h4>Erreur</h4>
+          <h4>{t('common.error')}</h4>
           <p>Appel de fonds introuvable</p>
           <Link to="/admin/finance/cash-flow/fund-calls" className="btn btn-secondary">
             ← Retour à la liste

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Calculator, 
   FileText, 
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 const ComptableDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Données métriques style Kads Agency
@@ -70,7 +72,7 @@ const ComptableDashboard: React.FC = () => {
   const quickActions = [
     { label: 'Nouvelle écriture', icon: Plus, color: 'blue', path: '/accounting/entries' },
     { label: 'Lettrage auto', icon: CheckCircle, color: 'green', path: '/accounting/lettrage' },
-    { label: 'Balance', icon: BarChart3, color: 'purple', path: '/accounting/balance' },
+    { label: t('accounting.balance'), icon: BarChart3, color: 'purple', path: '/accounting/balance' },
     { label: 'États financiers', icon: PieChart, color: 'orange', path: '/financial-statements' },
   ];
 
@@ -82,28 +84,28 @@ const ComptableDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Espace Comptable</h1>
-            <p className="text-gray-600">Tableau de bord opérationnel</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Espace Comptable</h1>
+            <p className="text-[var(--color-text-primary)]">Tableau de bord opérationnel</p>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors">
+            <button className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[var(--color-primary-dark)] transition-colors">
               <Plus className="w-4 h-4" />
               <span>Nouvelle écriture</span>
             </button>
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <Calculator className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+              <Calculator className="w-5 h-5 text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
       </header>
 
       {/* Navigation par onglets */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-[var(--color-border)]">
         <div className="px-6">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
@@ -115,8 +117,8 @@ const ComptableDashboard: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id 
-                      ? 'border-blue-500 text-blue-600' 
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]' 
+                      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                     }
                   `}
                 >
@@ -138,13 +140,13 @@ const ComptableDashboard: React.FC = () => {
               {metrics.map((metric, index) => {
                 const IconComponent = metric.icon;
                 return (
-                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
                       <div className={`w-12 h-12 rounded-lg flex items-center justify-center bg-${metric.color}-100`}>
                         <IconComponent className={`w-6 h-6 text-${metric.color}-600`} />
                       </div>
                       <div className={`flex items-center space-x-1 text-sm ${
-                        metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                        metric.trend === 'up' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                       }`}>
                         {metric.trend === 'up' ? (
                           <ArrowUpRight className="w-4 h-4" />
@@ -155,9 +157,9 @@ const ComptableDashboard: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</h3>
-                      <p className="text-gray-600 text-sm mb-1">{metric.title}</p>
-                      <p className="text-gray-500 text-xs">{metric.description}</p>
+                      <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{metric.value}</h3>
+                      <p className="text-[var(--color-text-primary)] text-sm mb-1">{metric.title}</p>
+                      <p className="text-[var(--color-text-secondary)] text-xs">{metric.description}</p>
                     </div>
                   </div>
                 );
@@ -165,8 +167,8 @@ const ComptableDashboard: React.FC = () => {
             </div>
 
             {/* Actions rapides */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Actions rapides</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {quickActions.map((action, index) => {
                   const IconComponent = action.icon;
@@ -179,7 +181,7 @@ const ComptableDashboard: React.FC = () => {
                         <div className={`w-10 h-10 rounded-lg bg-${action.color}-100 flex items-center justify-center mx-auto mb-2 group-hover:bg-${action.color}-200 transition-colors`}>
                           <IconComponent className={`w-5 h-5 text-${action.color}-600`} />
                         </div>
-                        <span className="text-sm font-medium text-gray-700">{action.label}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{action.label}</span>
                       </div>
                     </button>
                   );
@@ -190,25 +192,25 @@ const ComptableDashboard: React.FC = () => {
         )}
 
         {activeTab === 'entries' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)]">
             {/* Header du tableau */}
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Écritures récentes</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Écritures récentes</h2>
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)]" />
                     <input
                       type="text"
                       placeholder="Rechercher..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="pl-10 pr-4 py-2 border border-[var(--color-border-dark)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                    <Filter className="w-4 h-4 text-gray-500" />
+                  <button className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Filtrer">
+                    <Filter className="w-4 h-4 text-[var(--color-text-secondary)]" />
                   </button>
-                  <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                    <Download className="w-4 h-4 text-gray-500" />
+                  <button className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Télécharger">
+                    <Download className="w-4 h-4 text-[var(--color-text-secondary)]" />
                   </button>
                 </div>
               </div>
@@ -217,45 +219,45 @@ const ComptableDashboard: React.FC = () => {
             {/* Tableau style Kads Agency */}
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Écriture</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Débit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Crédit</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">N° Écriture</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('common.date')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('accounting.debit')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('accounting.credit')}</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Statut</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {recentEntries.map((entry, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr key={index} className="hover:bg-[var(--color-background-secondary)]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text-primary)]">
                         {entry.id}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
                         {entry.date}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-[var(--color-text-primary)]">
                         {entry.description}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono">
                         {entry.debit !== '0.00' && (
-                          <span className="text-red-600">{entry.debit}€</span>
+                          <span className="text-[var(--color-error)]">{entry.debit}€</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono">
                         {entry.credit !== '0.00' && (
-                          <span className="text-green-600">{entry.credit}€</span>
+                          <span className="text-[var(--color-success)]">{entry.credit}€</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                           entry.status === 'validated' 
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]'
                             : entry.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'
+                            : 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                         }`}>
                           {entry.status === 'validated' ? 'Validé' : entry.status === 'pending' ? 'En attente' : 'Brouillon'}
                         </span>

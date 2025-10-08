@@ -19,7 +19,7 @@ export const useAuth = () => {
     onSuccess: (data) => {
       login(data);
       toast.success(`Welcome back, ${data.user.firstName}!`);
-      navigate('/dashboard');
+      // Don't navigate here - let the calling component handle navigation
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Login failed');
@@ -129,8 +129,8 @@ export const useAuth = () => {
     profile,
 
     // Actions
-    login: (credentials: LoginRequest) => loginMutation.mutate(credentials),
-    register: (userData: RegisterRequest) => registerMutation.mutate(userData),
+    login: (credentials: LoginRequest) => loginMutation.mutateAsync(credentials),
+    register: (userData: RegisterRequest) => registerMutation.mutateAsync(userData),
     logout: () => logoutMutation.mutate(),
     changePassword: (passwordData: ChangePasswordRequest) => changePasswordMutation.mutate(passwordData),
     updateProfile: (userData: Partial<User>) => updateProfileMutation.mutate(userData),

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
   Building,
@@ -125,6 +126,7 @@ interface PlanAmortissement {
 }
 
 const Immobilisations: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedImmobilisation, setSelectedImmobilisation] = useState<Immobilisation | null>(null);
   const [filterCategorie, setFilterCategorie] = useState<string>('toutes');
@@ -328,48 +330,48 @@ const Immobilisations: React.FC = () => {
 
   const getCategorieIcon = (categorie: string, sousCategorie: string) => {
     if (categorie === 'corporelle') {
-      if (sousCategorie.includes('Constructions')) return <Building className="w-5 h-5 text-blue-600" />;
-      if (sousCategorie.includes('transport')) return <Car className="w-5 h-5 text-green-600" />;
+      if (sousCategorie.includes('Constructions')) return <Building className="w-5 h-5 text-[var(--color-primary)]" />;
+      if (sousCategorie.includes('transport')) return <Car className="w-5 h-5 text-[var(--color-success)]" />;
       if (sousCategorie.includes('informatique')) return <Laptop className="w-5 h-5 text-purple-600" />;
-      return <Factory className="w-5 h-5 text-gray-600" />;
+      return <Factory className="w-5 h-5 text-[var(--color-text-primary)]" />;
     } else if (categorie === 'incorporelle') {
-      return <HardDrive className="w-5 h-5 text-orange-600" />;
+      return <HardDrive className="w-5 h-5 text-[var(--color-warning)]" />;
     } else {
-      return <PiggyBank className="w-5 h-5 text-yellow-600" />;
+      return <PiggyBank className="w-5 h-5 text-[var(--color-warning)]" />;
     }
   };
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
-      'actif': 'bg-green-100 text-green-800',
-      'totalement_amorti': 'bg-gray-100 text-gray-800',
-      'cede': 'bg-blue-100 text-blue-800',
-      'reforme': 'bg-red-100 text-red-800',
+      'actif': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'totalement_amorti': 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]',
+      'cede': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
+      'reforme': 'bg-[var(--color-error-lighter)] text-red-800',
       'sinistre': 'bg-purple-100 text-purple-800'
     };
-    return variants[statut] || 'bg-gray-100 text-gray-800';
+    return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getEtatPhysiqueBadge = (etat: string) => {
     const variants: Record<string, string> = {
-      'excellent': 'bg-green-100 text-green-800',
-      'bon': 'bg-blue-100 text-blue-800',
-      'moyen': 'bg-yellow-100 text-yellow-800',
-      'mauvais': 'bg-orange-100 text-orange-800',
-      'hors_service': 'bg-red-100 text-red-800'
+      'excellent': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'bon': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
+      'moyen': 'bg-[var(--color-warning-lighter)] text-yellow-800',
+      'mauvais': 'bg-[var(--color-warning-lighter)] text-orange-800',
+      'hors_service': 'bg-[var(--color-error-lighter)] text-red-800'
     };
-    return variants[etat] || 'bg-gray-100 text-gray-800';
+    return variants[etat] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getTypeMouvementIcon = (type: string) => {
     switch (type) {
-      case 'acquisition': return <ArrowUpRight className="w-4 h-4 text-green-600" />;
-      case 'cession': return <ArrowDownRight className="w-4 h-4 text-red-600" />;
-      case 'amortissement': return <TrendingDown className="w-4 h-4 text-blue-600" />;
+      case 'acquisition': return <ArrowUpRight className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'cession': return <ArrowDownRight className="w-4 h-4 text-[var(--color-error)]" />;
+      case 'amortissement': return <TrendingDown className="w-4 h-4 text-[var(--color-primary)]" />;
       case 'reevaluation': return <TrendingUp className="w-4 h-4 text-purple-600" />;
-      case 'transfert': return <RefreshCw className="w-4 h-4 text-orange-600" />;
-      case 'reforme': return <Trash2 className="w-4 h-4 text-red-600" />;
-      default: return <Activity className="w-4 h-4 text-gray-600" />;
+      case 'transfert': return <RefreshCw className="w-4 h-4 text-[var(--color-warning)]" />;
+      case 'reforme': return <Trash2 className="w-4 h-4 text-[var(--color-error)]" />;
+      default: return <Activity className="w-4 h-4 text-[var(--color-text-primary)]" />;
     }
   };
 
@@ -424,11 +426,11 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Valeur Brute Totale</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Valeur Brute Totale</p>
                 <p className="text-2xl font-bold">{(kpis.valeurBruteTotale / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-blue-600 mt-1">{kpis.nombreImmobilisations} immobilisations</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.nombreImmobilisations} immobilisations</p>
               </div>
-              <Building className="w-8 h-8 text-blue-500" />
+              <Building className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -437,11 +439,11 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Valeur Nette</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Valeur Nette</p>
                 <p className="text-2xl font-bold">{(kpis.valeurNetteTotale / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-green-600 mt-1">Après amortissements</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">Après amortissements</p>
               </div>
-              <Calculator className="w-8 h-8 text-green-500" />
+              <Calculator className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -450,7 +452,7 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Taux Amortissement</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Taux Amortissement</p>
                 <p className="text-2xl font-bold">{kpis.tauxAmortissementMoyen.toFixed(1)}%</p>
                 <Progress value={kpis.tauxAmortissementMoyen} className="mt-2" />
               </div>
@@ -463,9 +465,9 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Dotations Annuelles</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Dotations Annuelles</p>
                 <p className="text-2xl font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-gray-600 mt-1">Exercice 2024</p>
+                <p className="text-xs text-[var(--color-text-primary)] mt-1">Exercice 2024</p>
               </div>
               <Calendar className="w-8 h-8 text-purple-500" />
             </div>
@@ -512,43 +514,43 @@ const Immobilisations: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-primary-lightest)] rounded">
                     <div className="flex items-center gap-3">
-                      <Building className="w-5 h-5 text-blue-600" />
+                      <Building className="w-5 h-5 text-[var(--color-primary)]" />
                       <div>
                         <p className="font-medium">Immobilisations Corporelles</p>
-                        <p className="text-sm text-gray-600">3 éléments</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">3 éléments</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-blue-600">510M</p>
-                      <p className="text-sm text-gray-500">85% du total</p>
+                      <p className="text-xl font-bold text-[var(--color-primary)]">510M</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">85% du total</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-orange-50 rounded">
                     <div className="flex items-center gap-3">
-                      <HardDrive className="w-5 h-5 text-orange-600" />
+                      <HardDrive className="w-5 h-5 text-[var(--color-warning)]" />
                       <div>
                         <p className="font-medium">Immobilisations Incorporelles</p>
-                        <p className="text-sm text-gray-600">1 élément</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">1 élément</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-orange-600">85M</p>
-                      <p className="text-sm text-gray-500">14% du total</p>
+                      <p className="text-xl font-bold text-[var(--color-warning)]">85M</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">14% du total</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded">
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-warning-lightest)] rounded">
                     <div className="flex items-center gap-3">
-                      <PiggyBank className="w-5 h-5 text-yellow-600" />
+                      <PiggyBank className="w-5 h-5 text-[var(--color-warning)]" />
                       <div>
                         <p className="font-medium">Immobilisations Financières</p>
-                        <p className="text-sm text-gray-600">0 élément</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">0 élément</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-yellow-600">0M</p>
-                      <p className="text-sm text-gray-500">0% du total</p>
+                      <p className="text-xl font-bold text-[var(--color-warning)]">0M</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">0% du total</p>
                     </div>
                   </div>
                 </div>
@@ -562,18 +564,18 @@ const Immobilisations: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Progression globale</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Progression globale</span>
                     <span className="font-medium">{kpis.tauxAmortissementMoyen.toFixed(1)}%</span>
                   </div>
                   <Progress value={kpis.tauxAmortissementMoyen} className="h-3" />
 
                   <div className="grid grid-cols-2 gap-4 mt-4">
-                    <div className="text-center p-3 bg-gray-50 rounded">
-                      <p className="text-sm text-gray-600">Amortissements Cumulés</p>
+                    <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
+                      <p className="text-sm text-[var(--color-text-primary)]">Amortissements Cumulés</p>
                       <p className="text-2xl font-bold">{(kpis.amortissementsCumules / 1000000).toFixed(1)}M</p>
                     </div>
-                    <div className="text-center p-3 bg-gray-50 rounded">
-                      <p className="text-sm text-gray-600">Dotations 2024</p>
+                    <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
+                      <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
                       <p className="text-2xl font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M</p>
                     </div>
                   </div>
@@ -590,16 +592,16 @@ const Immobilisations: React.FC = () => {
               <div className="grid grid-cols-5 gap-4">
                 {[
                   { duree: '3 ans', nb: 1, categorie: 'Logiciels', color: 'bg-purple-500' },
-                  { duree: '4 ans', nb: 1, categorie: 'Informatique', color: 'bg-blue-500' },
-                  { duree: '5 ans', nb: 1, categorie: 'Véhicules', color: 'bg-green-500' },
-                  { duree: '10 ans', nb: 0, categorie: 'Mobilier', color: 'bg-yellow-500' },
-                  { duree: '25 ans', nb: 1, categorie: 'Bâtiments', color: 'bg-red-500' }
+                  { duree: '4 ans', nb: 1, categorie: 'Informatique', color: 'bg-[var(--color-primary)]' },
+                  { duree: '5 ans', nb: 1, categorie: 'Véhicules', color: 'bg-[var(--color-success)]' },
+                  { duree: '10 ans', nb: 0, categorie: 'Mobilier', color: 'bg-[var(--color-warning)]' },
+                  { duree: '25 ans', nb: 1, categorie: 'Bâtiments', color: 'bg-[var(--color-error)]' }
                 ].map((item, index) => (
                   <div key={index} className="text-center p-3 border rounded">
                     <div className={`w-full h-2 ${item.color} rounded mb-2`} />
                     <p className="font-medium">{item.duree}</p>
                     <p className="text-2xl font-bold">{item.nb}</p>
-                    <p className="text-xs text-gray-500">{item.categorie}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{item.categorie}</p>
                   </div>
                 ))}
               </div>
@@ -612,7 +614,7 @@ const Immobilisations: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
                   placeholder="Rechercher une immobilisation..."
@@ -644,11 +646,11 @@ const Immobilisations: React.FC = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nouvelle Immobilisation
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Exporter Registre
               </button>
@@ -658,33 +660,33 @@ const Immobilisations: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Immobilisation</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Catégorie</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Acquisition</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Valeur Brute</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Amort. Cumulés</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Valeur Nette</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">État</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Immobilisation</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Catégorie</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Acquisition</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Valeur Brute</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Amort. Cumulés</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Valeur Nette</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">État</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {immobilisationsFiltrees.map(immo => (
-                    <tr key={immo.id} className="border-t hover:bg-gray-50">
+                    <tr key={immo.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {getCategorieIcon(immo.categorie, immo.sousCategorie)}
                           <div>
                             <p className="font-medium">{immo.designation}</p>
-                            <p className="text-sm text-gray-500">{immo.code}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">{immo.code}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge className="bg-blue-100 text-blue-800 capitalize">
+                        <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] capitalize">
                           {immo.categorie}
                         </Badge>
                       </td>
@@ -694,10 +696,10 @@ const Immobilisations: React.FC = () => {
                       <td className="px-4 py-3 text-right font-medium">
                         {(immo.valeurBrute / 1000000).toFixed(1)}M
                       </td>
-                      <td className="px-4 py-3 text-right text-red-600">
+                      <td className="px-4 py-3 text-right text-[var(--color-error)]">
                         {(immo.amortissementsCumules / 1000000).toFixed(1)}M
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-green-600">
+                      <td className="px-4 py-3 text-right font-medium text-[var(--color-success)]">
                         {(immo.valeurNette / 1000000).toFixed(1)}M
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -712,14 +714,14 @@ const Immobilisations: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Edit className="w-4 h-4 text-blue-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Calculator className="w-4 h-4 text-green-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Calculator className="w-4 h-4 text-[var(--color-success)]" />
                           </button>
                         </div>
                       </td>
@@ -738,11 +740,11 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Méthode Linéaire</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Méthode Linéaire</p>
                     <p className="text-2xl font-bold">3</p>
-                    <p className="text-xs text-green-600 mt-1">75% des immobilisations</p>
+                    <p className="text-xs text-[var(--color-success)] mt-1">75% des immobilisations</p>
                   </div>
-                  <Calculator className="w-8 h-8 text-green-500" />
+                  <Calculator className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -750,11 +752,11 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Méthode Dégressive</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Méthode Dégressive</p>
                     <p className="text-2xl font-bold">1</p>
-                    <p className="text-xs text-blue-600 mt-1">25% des immobilisations</p>
+                    <p className="text-xs text-[var(--color-primary)] mt-1">25% des immobilisations</p>
                   </div>
-                  <TrendingDown className="w-8 h-8 text-blue-500" />
+                  <TrendingDown className="w-8 h-8 text-[var(--color-primary)]" />
                 </div>
               </CardContent>
             </Card>
@@ -762,11 +764,11 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Unité d'Œuvre</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Unité d'Œuvre</p>
                     <p className="text-2xl font-bold">0</p>
-                    <p className="text-xs text-gray-600 mt-1">0% des immobilisations</p>
+                    <p className="text-xs text-[var(--color-text-primary)] mt-1">0% des immobilisations</p>
                   </div>
-                  <Settings className="w-8 h-8 text-gray-500" />
+                  <Settings className="w-8 h-8 text-[var(--color-text-secondary)]" />
                 </div>
               </CardContent>
             </Card>
@@ -787,26 +789,26 @@ const Immobilisations: React.FC = () => {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">Valeur d'acquisition</p>
+                          <p className="text-[var(--color-text-primary)]">Valeur d'acquisition</p>
                           <p className="font-bold">{(logiciel.valeurAcquisition / 1000000).toFixed(1)}M FCFA</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Durée d'amortissement</p>
+                          <p className="text-[var(--color-text-primary)]">Durée d'amortissement</p>
                           <p className="font-bold">{logiciel.dureeAmortissement} ans</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Méthode</p>
+                          <p className="text-[var(--color-text-primary)]">Méthode</p>
                           <p className="font-bold capitalize">{logiciel.methodeAmortissement}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Taux annuel</p>
+                          <p className="text-[var(--color-text-primary)]">Taux annuel</p>
                           <p className="font-bold">{logiciel.tauxAmortissement}%</p>
                         </div>
                       </div>
 
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-[var(--color-background-secondary)]">
                             <tr>
                               <th className="px-2 py-2 text-left">Exercice</th>
                               <th className="px-2 py-2 text-right">Dotation</th>
@@ -844,13 +846,13 @@ const Immobilisations: React.FC = () => {
                       <div key={annee} className="flex items-center justify-between p-3 border rounded">
                         <div>
                           <p className="font-medium">Exercice {annee}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-[var(--color-text-primary)]">
                             {annee === '2025' ? 'Prévisionnel' : 'Réalisé'}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-xl font-bold">{dotation}M FCFA</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-[var(--color-text-secondary)]">
                             {annee === '2024' ? '4 immobilisations' : '3 immobilisations'}
                           </p>
                         </div>
@@ -878,10 +880,10 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Acquisitions 2024</p>
-                    <p className="text-2xl font-bold text-green-600">0</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Acquisitions 2024</p>
+                    <p className="text-2xl font-bold text-[var(--color-success)]">0</p>
                   </div>
-                  <ArrowUpRight className="w-6 h-6 text-green-500" />
+                  <ArrowUpRight className="w-6 h-6 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -889,10 +891,10 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Cessions 2024</p>
-                    <p className="text-2xl font-bold text-red-600">0</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Cessions 2024</p>
+                    <p className="text-2xl font-bold text-[var(--color-error)]">0</p>
                   </div>
-                  <ArrowDownRight className="w-6 h-6 text-red-500" />
+                  <ArrowDownRight className="w-6 h-6 text-[var(--color-error)]" />
                 </div>
               </CardContent>
             </Card>
@@ -900,10 +902,10 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Dotations 2024</p>
-                    <p className="text-2xl font-bold text-blue-600">4</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">4</p>
                   </div>
-                  <TrendingDown className="w-6 h-6 text-blue-500" />
+                  <TrendingDown className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
               </CardContent>
             </Card>
@@ -911,7 +913,7 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Réévaluations</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Réévaluations</p>
                     <p className="text-2xl font-bold text-purple-600">0</p>
                   </div>
                   <TrendingUp className="w-6 h-6 text-purple-500" />
@@ -926,20 +928,20 @@ const Immobilisations: React.FC = () => {
             </CardHeader>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Immobilisation</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Montant</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Référence</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Impact Comptable</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('common.date')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Type</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Immobilisation</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Montant</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Référence</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Impact Comptable</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mockMouvements.map(mouvement => (
-                    <tr key={mouvement.id} className="border-t hover:bg-gray-50">
+                    <tr key={mouvement.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         {new Date(mouvement.date).toLocaleDateString()}
                       </td>
@@ -952,7 +954,7 @@ const Immobilisations: React.FC = () => {
                       <td className="px-4 py-3">
                         <div>
                           <p className="font-medium">{mouvement.immobilisationCode}</p>
-                          <p className="text-sm text-gray-500">{mouvement.description}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{mouvement.description}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right font-medium">
@@ -966,8 +968,8 @@ const Immobilisations: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <button className="p-1 hover:bg-gray-100 rounded">
-                          <Eye className="w-4 h-4 text-gray-600" />
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                         </button>
                       </td>
                     </tr>
@@ -994,32 +996,32 @@ const Immobilisations: React.FC = () => {
                 </Alert>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-sm text-gray-500">Conformes</span>
+                      <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
+                      <span className="text-sm text-[var(--color-text-secondary)]">Conformes</span>
                     </div>
                     <p className="font-medium">Aucune Dépréciation</p>
-                    <p className="text-2xl font-bold text-green-600">4</p>
-                    <p className="text-sm text-gray-600">immobilisations testées</p>
+                    <p className="text-2xl font-bold text-[var(--color-success)]">4</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">immobilisations testées</p>
                   </div>
-                  <div className="p-4 bg-yellow-50 rounded-lg">
+                  <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                      <span className="text-sm text-gray-500">À surveiller</span>
+                      <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />
+                      <span className="text-sm text-[var(--color-text-secondary)]">À surveiller</span>
                     </div>
                     <p className="font-medium">Risque Modéré</p>
-                    <p className="text-2xl font-bold text-yellow-600">0</p>
-                    <p className="text-sm text-gray-600">immobilisations</p>
+                    <p className="text-2xl font-bold text-[var(--color-warning)]">0</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
                   </div>
-                  <div className="p-4 bg-red-50 rounded-lg">
+                  <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <XCircle className="w-5 h-5 text-red-600" />
-                      <span className="text-sm text-gray-500">Dépréciées</span>
+                      <XCircle className="w-5 h-5 text-[var(--color-error)]" />
+                      <span className="text-sm text-[var(--color-text-secondary)]">Dépréciées</span>
                     </div>
                     <p className="font-medium">Dépréciation Requise</p>
-                    <p className="text-2xl font-bold text-red-600">0</p>
-                    <p className="text-sm text-gray-600">immobilisations</p>
+                    <p className="text-2xl font-bold text-[var(--color-error)]">0</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
                   </div>
                 </div>
 
@@ -1033,12 +1035,12 @@ const Immobilisations: React.FC = () => {
                           <div className="flex justify-between items-start mb-3">
                             <div>
                               <p className="font-medium">{immo?.designation}</p>
-                              <p className="text-sm text-gray-500">Test du {new Date(test.dateTest).toLocaleDateString()}</p>
+                              <p className="text-sm text-[var(--color-text-secondary)]">Test du {new Date(test.dateTest).toLocaleDateString()}</p>
                             </div>
                             <Badge className={
-                              test.resultatTest === 'aucune_depreciation' ? 'bg-green-100 text-green-800' :
-                              test.resultatTest === 'depreciation_requise' ? 'bg-red-100 text-red-800' :
-                              'bg-blue-100 text-blue-800'
+                              test.resultatTest === 'aucune_depreciation' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                              test.resultatTest === 'depreciation_requise' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                              'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'
                             }>
                               {test.resultatTest === 'aucune_depreciation' ? 'Aucune dépréciation' :
                                test.resultatTest === 'depreciation_requise' ? 'Dépréciation requise' :
@@ -1048,24 +1050,24 @@ const Immobilisations: React.FC = () => {
 
                           <div className="grid grid-cols-4 gap-4 text-sm">
                             <div>
-                              <p className="text-gray-600">Valeur comptable</p>
+                              <p className="text-[var(--color-text-primary)]">Valeur comptable</p>
                               <p className="font-bold">{(test.valeurComptable / 1000000).toFixed(1)}M</p>
                             </div>
                             <div>
-                              <p className="text-gray-600">Valeur recouvrable</p>
+                              <p className="text-[var(--color-text-primary)]">Valeur recouvrable</p>
                               <p className="font-bold">{(test.valeurRecouvrable / 1000000).toFixed(1)}M</p>
                             </div>
                             <div>
-                              <p className="text-gray-600">Juste valeur</p>
+                              <p className="text-[var(--color-text-primary)]">Juste valeur</p>
                               <p className="font-bold">{(test.justeValeur / 1000000).toFixed(1)}M</p>
                             </div>
                             <div>
-                              <p className="text-gray-600">Prochain test</p>
+                              <p className="text-[var(--color-text-primary)]">Prochain test</p>
                               <p className="font-bold">{new Date(test.prochainTest).toLocaleDateString()}</p>
                             </div>
                           </div>
 
-                          <p className="text-sm text-gray-600 mt-3">{test.justification}</p>
+                          <p className="text-sm text-[var(--color-text-primary)] mt-3">{test.justification}</p>
                         </div>
                       );
                     })}
@@ -1081,7 +1083,7 @@ const Immobilisations: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-green-600" />
+                <Shield className="w-5 h-5 text-[var(--color-success)]" />
                 Contrôles de Conformité SYSCOHADA
               </CardTitle>
             </CardHeader>
@@ -1091,21 +1093,21 @@ const Immobilisations: React.FC = () => {
                   <div>
                     <h4 className="font-medium mb-3">Règles d'Amortissement</h4>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                         <span className="text-sm">Durées d'amortissement conformes</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                         <span className="text-sm">Méthodes autorisées utilisées</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                         <span className="text-sm">Calculs mathématiquement corrects</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                         <span className="text-sm">Cohérence des taux appliqués</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                     </div>
                   </div>
@@ -1113,59 +1115,59 @@ const Immobilisations: React.FC = () => {
                   <div>
                     <h4 className="font-medium mb-3">Documentation et Justification</h4>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                         <span className="text-sm">Pièces justificatives archivées</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                         <span className="text-sm">Plans d'amortissement documentés</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-yellow-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-warning-lightest)] rounded">
                         <span className="text-sm">Tests de dépréciation à jour</span>
-                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                        <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
                       </div>
-                      <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                         <span className="text-sm">Registre des immobilisations tenu</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="mt-6 p-4 bg-[var(--color-primary-lightest)] rounded-lg">
                   <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <Brain className="w-4 h-4 text-blue-600" />
+                    <Brain className="w-4 h-4 text-[var(--color-primary)]" />
                     Recommandations d'Amélioration
                   </h4>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
+                      <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full mt-2" />
                       <span>Planifier les tests de dépréciation annuels pour toutes les immobilisations de plus de 5 ans</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
+                      <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full mt-2" />
                       <span>Mettre en place une procédure automatisée de calcul des dotations aux amortissements</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
+                      <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full mt-2" />
                       <span>Réviser périodiquement les durées d'amortissement en fonction de l'évolution technologique</span>
                     </li>
                   </ul>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 mt-6">
-                  <div className="text-center p-4 bg-gray-50 rounded">
-                    <p className="text-2xl font-bold text-green-600">98%</p>
-                    <p className="text-sm text-gray-600">Taux de Conformité Global</p>
+                  <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
+                    <p className="text-2xl font-bold text-[var(--color-success)]">98%</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Taux de Conformité Global</p>
                   </div>
-                  <div className="text-center p-4 bg-gray-50 rounded">
-                    <p className="text-2xl font-bold text-blue-600">0</p>
-                    <p className="text-sm text-gray-600">Non-conformités Critiques</p>
+                  <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">0</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Non-conformités Critiques</p>
                   </div>
-                  <div className="text-center p-4 bg-gray-50 rounded">
-                    <p className="text-2xl font-bold text-yellow-600">1</p>
-                    <p className="text-sm text-gray-600">Points d'Amélioration</p>
+                  <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
+                    <p className="text-2xl font-bold text-[var(--color-warning)]">1</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Points d'Amélioration</p>
                   </div>
                 </div>
               </div>
@@ -1173,6 +1175,417 @@ const Immobilisations: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Amortissement Modal */}
+      {showAmortissementModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Calculator className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Calcul d'amortissement</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Calculer l'amortissement d'une immobilisation</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAmortissementModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <TrendingDown className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-purple-900">Amortissement comptable</p>
+                      <p className="text-sm text-purple-700 mt-1">
+                        Enregistrez la dépréciation annuelle de vos immobilisations
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Immobilisation <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option value="">Sélectionner une immobilisation</option>
+                    <option value="1">Bâtiment Principal - IMM-001</option>
+                    <option value="2">Véhicule Utilitaire - IMM-015</option>
+                    <option value="3">Matériel Informatique - IMM-089</option>
+                    <option value="4">Mobilier Bureau - IMM-125</option>
+                  </select>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background-secondary)]">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Informations de l'immobilisation</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Date d'acquisition:</p>
+                      <p className="font-semibold">15/01/2020</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Valeur d'origine:</p>
+                      <p className="font-semibold">50 000,00 €</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Durée d'amortissement:</p>
+                      <p className="font-semibold">10 ans</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Méthode:</p>
+                      <p className="font-semibold">Linéaire</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Exercice comptable <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                      <option value="2025">2025</option>
+                      <option value="2024">2024</option>
+                      <option value="2023">2023</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Date de clôture <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                  <h4 className="font-semibold text-sm text-purple-900 mb-3">Calcul de l'amortissement</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-primary)]">Dotation annuelle:</span>
+                      <span className="font-semibold">5 000,00 €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-primary)]">Dotation prorata (365 jours):</span>
+                      <span className="font-semibold">5 000,00 €</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-purple-200">
+                      <span className="text-purple-900 font-medium">Amortissements cumulés:</span>
+                      <span className="font-bold text-purple-900">25 000,00 €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-900 font-medium">Valeur nette comptable:</span>
+                      <span className="font-bold text-purple-900">25 000,00 €</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Méthode d'amortissement
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                      <input type="radio" name="methode-amort" value="lineaire" className="mr-3" defaultChecked />
+                      <div>
+                        <p className="font-medium text-sm">Linéaire</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Dotation constante</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                      <input type="radio" name="methode-amort" value="degressif" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Dégressif</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Dotation décroissante</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Compte amortissement <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm">
+                      <option value="">Sélectionner</option>
+                      <option value="2813">2813 - Amortissement bâtiments</option>
+                      <option value="2818">2818 - Amortissement matériel</option>
+                      <option value="2815">2815 - Amortissement mobilier</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Compte dotation <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm">
+                      <option value="">Sélectionner</option>
+                      <option value="6811">6811 - Dotation amortissement</option>
+                      <option value="6871">6871 - Dotation exceptionnelle</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Commentaires
+                  </label>
+                  <textarea
+                    rows={2}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Notes sur cet amortissement..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowAmortissementModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2">
+                <Calculator className="w-4 h-4" />
+                Enregistrer l'amortissement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cession Modal */}
+      {showCessionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--color-error-lighter)] rounded-lg flex items-center justify-center">
+                    <Archive className="w-5 h-5 text-[var(--color-error)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Cession d'immobilisation</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Enregistrer une sortie d'immobilisation</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCessionModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-[var(--color-error-lightest)] border border-[var(--color-error-light)] rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertCircle className="w-5 h-5 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-900">Sortie d'immobilisation</p>
+                      <p className="text-sm text-[var(--color-error-dark)] mt-1">
+                        Enregistrez la vente, la mise au rebut ou la destruction d'une immobilisation
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Immobilisation à céder <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Sélectionner</option>
+                    <option value="1">Véhicule Utilitaire - IMM-015</option>
+                    <option value="2">Matériel Ancien - IMM-045</option>
+                    <option value="3">Mobilier Bureau - IMM-088</option>
+                  </select>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background-secondary)]">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Valeurs comptables</h4>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Valeur d'origine:</p>
+                      <p className="font-semibold">30 000,00 €</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Amortissements:</p>
+                      <p className="font-semibold text-[var(--color-warning)]">18 000,00 €</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Valeur nette:</p>
+                      <p className="font-semibold text-[var(--color-primary)]">12 000,00 €</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Date de cession <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Type de cession <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="vente">Vente</option>
+                      <option value="rebut">Mise au rebut</option>
+                      <option value="don">Don</option>
+                      <option value="destruction">Destruction</option>
+                      <option value="vol">Vol / Perte</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Prix de cession (€)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="10000"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Acheteur / Bénéficiaire
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="Nom de l'acheteur"
+                    />
+                  </div>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Calcul du résultat de cession</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-primary)]">Prix de cession:</span>
+                      <span className="font-semibold">10 000,00 €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--color-text-primary)]">Valeur nette comptable:</span>
+                      <span className="font-semibold">12 000,00 €</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-[var(--color-border-dark)]">
+                      <span className="font-medium text-[var(--color-text-primary)]">Résultat de cession:</span>
+                      <span className="font-bold text-[var(--color-error)]">- 2 000,00 € (Moins-value)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Compte produit cession
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm">
+                      <option value="">Sélectionner</option>
+                      <option value="775">775 - Produits cession immo</option>
+                      <option value="771">771 - Produits exceptionnels</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Compte charge cession
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm">
+                      <option value="">Sélectionner</option>
+                      <option value="675">675 - Valeur comptable immo cédées</option>
+                      <option value="671">671 - Charges exceptionnelles</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Justificatif de cession
+                  </label>
+                  <div className="border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-6 text-center hover:border-[var(--color-error)] transition-colors cursor-pointer">
+                    <FileText className="w-8 h-8 text-[var(--color-text-secondary)] mx-auto mb-2" />
+                    <p className="text-sm text-[var(--color-text-primary)]">Charger le justificatif</p>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">Facture, certificat de destruction, PV...</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Observations
+                  </label>
+                  <textarea
+                    rows={2}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="Détails sur la cession..."
+                  />
+                </div>
+
+                <div className="bg-[var(--color-warning-lightest)] border border-yellow-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-900">Action définitive</p>
+                      <p className="text-sm text-[var(--color-warning-dark)] mt-1">
+                        La cession sortira définitivement l'immobilisation de votre actif
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowCessionModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-error)] hover:bg-[var(--color-error-dark)] rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Enregistrer la cession
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

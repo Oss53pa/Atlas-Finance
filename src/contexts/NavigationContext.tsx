@@ -29,6 +29,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setMobileSidebarOpen(false);
       } else {
         setMainSidebarOpen(true);
+        setSubSidebarOpen(true); // Réactiver la sidebar secondaire en mode desktop
         setMobileSidebarOpen(false);
       }
     };

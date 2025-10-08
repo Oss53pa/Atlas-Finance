@@ -151,18 +151,18 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
     >
       <div className="flex items-center space-x-3">
         {isFromHistory ? (
-          <ClockIcon className="h-4 w-4 text-gray-400" />
+          <ClockIcon className="h-4 w-4 text-gray-700" />
         ) : (
           <SparklesIcon className="h-4 w-4 text-blue-500" />
         )}
         <span className="text-gray-900">{suggestion}</span>
         {isFromHistory && (
-          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+          <span className="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
             Historique
           </span>
         )}
       </div>
-      <ArrowRightIcon className={`h-4 w-4 text-gray-300 group-hover:text-gray-500 ${
+      <ArrowRightIcon className={`h-4 w-4 text-gray-300 group-hover:text-gray-700 ${
         index === activeSuggestionIndex ? 'text-blue-500' : ''
       }`} />
     </div>
@@ -176,7 +176,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
           {isSearching ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
           ) : (
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-700" />
           )}
         </div>
 
@@ -203,7 +203,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
             className={`p-2 rounded-lg transition-colors ${
               isVoiceRecording
                 ? 'bg-red-100 text-red-600 animate-pulse'
-                : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
             }`}
             title="Recherche vocale"
           >
@@ -218,7 +218,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
                 setShowSuggestions(false);
                 inputRef.current?.focus();
               }}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50"
+              className="p-2 text-gray-700 hover:text-gray-600 rounded-lg hover:bg-gray-50"
               title="Effacer"
             >
               <XMarkIcon className="h-4 w-4" />
@@ -228,7 +228,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
       </div>
 
       {/* Raccourcis clavier */}
-      <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+      <div className="mt-2 flex items-center justify-between text-xs text-gray-700">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1">
             <CommandLineIcon className="h-3 w-3" />
@@ -256,7 +256,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
                   Suggestions Intelligentes
                 </span>
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-700">
                 {allSuggestions.length} suggestion(s)
               </div>
             </div>
@@ -270,19 +270,19 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
                 return renderSuggestionItem(suggestion, index, isFromHistory);
               })
             ) : value.length > 0 ? (
-              <div className="px-4 py-6 text-center text-gray-500">
+              <div className="px-4 py-6 text-center text-gray-700">
                 <MagnifyingGlassIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                 <p className="text-sm">Aucune suggestion disponible</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-700 mt-1">
                   Appuyez sur Entrée pour rechercher "{value}"
                 </p>
               </div>
             ) : (
-              <div className="px-4 py-6 text-center text-gray-500">
+              <div className="px-4 py-6 text-center text-gray-700">
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <h4 className="font-medium mb-2">Exemples de recherche :</h4>
-                    <ul className="space-y-1 text-gray-400">
+                    <ul className="space-y-1 text-gray-700">
                       <li>• 512000 (numéro de compte)</li>
                       <li>• banque &gt; 100000 (montant)</li>
                       <li>• janvier 2024 (période)</li>
@@ -290,7 +290,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Recherche avancée :</h4>
-                    <ul className="space-y-1 text-gray-400">
+                    <ul className="space-y-1 text-gray-700">
                       <li>• "facture client" (exact)</li>
                       <li>• virement OR chèque (OU)</li>
                       <li>• tag:urgent (par tag)</li>
@@ -302,7 +302,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
           </div>
 
           {/* Pied du panneau */}
-          <div className="px-4 py-2 border-t bg-gray-50 text-xs text-gray-500">
+          <div className="px-4 py-2 border-t bg-gray-50 text-xs text-gray-700">
             <div className="flex justify-between items-center">
               <span>💡 La recherche IA s'améliore avec vos habitudes</span>
               <div className="flex items-center space-x-2">
@@ -335,7 +335,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
                 <div className="text-sm font-medium text-gray-900 group-hover:text-blue-900">
                   {example.label}
                 </div>
-                <div className="text-xs text-gray-500 font-mono">
+                <div className="text-xs text-gray-700 font-mono">
                   {example.query}
                 </div>
               </div>

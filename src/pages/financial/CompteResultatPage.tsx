@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2, TrendingUp, BarChart3, Download, ArrowLeft, Home,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 const CompteResultatPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bilan');
   const [selectedDetail, setSelectedDetail] = useState<any>(null);
@@ -316,7 +318,7 @@ const CompteResultatPage: React.FC = () => {
             <div className="text-sm text-[#767676]">
               Exercice 2024 • Données mensualisées
             </div>
-            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[#767676]" />
             </button>
           </div>
@@ -369,7 +371,7 @@ const CompteResultatPage: React.FC = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">Libellé</th>
+                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
@@ -451,7 +453,7 @@ const CompteResultatPage: React.FC = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">Libellé</th>
+                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
@@ -635,7 +637,7 @@ const CompteResultatPage: React.FC = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">Libellé</th>
+                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
@@ -1289,8 +1291,7 @@ const CompteResultatPage: React.FC = () => {
               </div>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-              >
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors" aria-label="Fermer">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -1301,7 +1302,7 @@ const CompteResultatPage: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-[#767676]">Compte</p>
+                    <p className="text-sm text-[#767676]">{t('accounting.account')}</p>
                     <p className="font-bold text-[#191919]">{selectedDetail.accountCode}</p>
                   </div>
                   <div>
@@ -1323,7 +1324,7 @@ const CompteResultatPage: React.FC = () => {
                     <thead className="bg-gray-100 sticky top-0">
                       <tr>
                         <th className="text-left p-3 border-b border-[#E8E8E8]">Code</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Libellé</th>
+                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.label')}</th>
                         <th className="text-right p-3 border-b border-[#E8E8E8]">Montant</th>
                         <th className="text-right p-3 border-b border-[#E8E8E8]">%</th>
                         <th className="text-center p-3 border-b border-[#E8E8E8]">Actions</th>
@@ -1357,11 +1358,11 @@ const CompteResultatPage: React.FC = () => {
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-100 sticky top-0">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Date</th>
+                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('common.date')}</th>
                         <th className="text-left p-3 border-b border-[#E8E8E8]">Référence</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Libellé</th>
+                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.label')}</th>
                         <th className="text-left p-3 border-b border-[#E8E8E8]">Tiers</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Pièce</th>
+                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.piece')}</th>
                         <th className="text-right p-3 border-b border-[#E8E8E8]">Montant</th>
                       </tr>
                     </thead>
@@ -1406,9 +1407,9 @@ const CompteResultatPage: React.FC = () => {
                 >
                   Fermer
                 </button>
-                <button className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors flex items-center space-x-2">
+                <button className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors flex items-center space-x-2" aria-label="Télécharger">
                   <Download className="w-4 h-4" />
-                  <span>Exporter</span>
+                  <span>{t('common.export')}</span>
                 </button>
               </div>
             </div>

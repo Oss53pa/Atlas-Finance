@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 import { TbSquareMinusFilled, BsPlusSquareFill } from '../../../../../components/ui/Icons';
 
@@ -22,6 +23,7 @@ interface Invoice {
 }
 
 export const FundCallPreApprouve: React.FC = () => {
+  const { t } = useLanguage();
   const { fundCallG } = useFinanceContext();
 
   // Mock des données pré-approuvées
@@ -132,7 +134,7 @@ export const FundCallPreApprouve: React.FC = () => {
                     <h4>{new Intl.NumberFormat('fr-FR').format(totalPreApproved)} FCFA</h4>
                   </div>
                   <div className="col-md-3">
-                    <h6>Fournisseurs</h6>
+                    <h6>{t('navigation.suppliers')}</h6>
                     <h4>{Object.keys(groupedSelectedInvoices).length}</h4>
                   </div>
                   <div className="col-md-3">

@@ -1,14 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
+import { useLanguage } from '../../contexts/LanguageContext';
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
-import { 
+import {
   FileText, Download, Printer, Settings, Eye, Calendar, TrendingUp, TrendingDown,
   AlertTriangle, CheckCircle, BarChart3, PieChart as PieChartIcon, Activity,
   DollarSign, Building, CreditCard, Banknote, Target, Zap, Shield,
   Mail, FileSpreadsheet, RefreshCw, Filter, Search, ChevronDown
 } from 'lucide-react';
+import PrintableArea from '../ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 
 interface BilanData {
   actifImmobilise: {
@@ -95,12 +99,15 @@ interface AdvancedFinancialStatementsProps {
   defaultView?: 'dashboard' | 'bilan' | 'resultat' | 'flux' | 'ratios';
 }
 
-const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = ({ 
-  defaultView = 'dashboard' 
+const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = ({
+  defaultView = 'dashboard'
 }) => {
+  const { t } = useLanguage();
+
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'bilan' | 'resultat' | 'flux' | 'ratios'>(defaultView);
-  const [selectedPeriod, setSelectedPeriod] = useState('2025');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [showComparative, setShowComparative] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -114,6 +121,11 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
     includeGraphics: true,
     includeRatios: true,
     showComparison: true
+  });
+
+  const { printRef, handlePrint } = usePrintReport({
+    orientation: config.orientation,
+    title: 'États Financiers'
   });
 
   // Données simulées
@@ -224,6 +236,30 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <PrintableArea
+        ref={printRef}
+        orientation={config.orientation}
+        pageSize={config.format}
+        showPrintButton={false}
+        headerContent={
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold">États Financiers</h2>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-gray-600">Conforme {config.norme}</p>
+              <button
+                onClick={() => setShowPeriodModal(true)}
+                className="flex items-center gap-2 px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                <Calendar className="w-4 h-4" />
+                {dateRange.startDate && dateRange.endDate
+                  ? `${dateRange.startDate} - ${dateRange.endDate}`
+                  : 'Sélectionner une période'
+                }
+              </button>
+            </div>
+          </div>
+        }
+      >
       {/* En-tête principal */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -247,7 +283,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             </select>
             
             <select 
-              value={selectedPeriod}
+              value={dateRange.startDate || '2025'}
               onChange={(e) => setSelectedPeriod(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
@@ -284,7 +320,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
         <div className="flex space-x-1 mt-4">
           {[
             { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3 },
-            { id: 'bilan', label: 'Bilan', icon: Building },
+            { id: 'bilan', label: t('accounting.balanceSheet')}, icon: Building },
             { id: 'resultat', label: 'Compte de Résultat', icon: TrendingUp },
             { id: 'flux', label: 'Flux de Trésorerie', icon: Activity },
             { id: 'ratios', label: 'SIG & Ratios', icon: Target }
@@ -318,7 +354,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <p className="text-2xl font-bold text-[#6A8A82]">
                     {(compteResultatData.produits.chiffreAffaires / 1000000).toFixed(1)}M
                   </p>
-                  <p className="text-xs text-gray-500">XAF</p>
+                  <p className="text-xs text-gray-700">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
                   <DollarSign className="w-6 h-6 text-[#6A8A82]" />
@@ -333,7 +369,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <p className={`text-2xl font-bold ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {(sigData.resultatNet / 1000000).toFixed(1)}M
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-700">
                     {sigData.resultatNet >= 0 ? 'Bénéfice' : 'Perte'}
                   </p>
                 </div>
@@ -353,7 +389,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <p className={`text-2xl font-bold ${ratiosData.structure.autonomieFinanciere > 30 ? 'text-green-600' : 'text-orange-600'}`}>
                     {ratiosData.structure.autonomieFinanciere.toFixed(1)}%
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-700">
                     {ratiosData.structure.autonomieFinanciere > 30 ? 'Solide' : 'Fragile'}
                   </p>
                 </div>
@@ -370,7 +406,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <p className={`text-2xl font-bold ${ratiosData.liquidite.liquiditeGenerale > 1 ? 'text-green-600' : 'text-red-600'}`}>
                     {ratiosData.liquidite.liquiditeGenerale.toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-700">
                     {ratiosData.liquidite.liquiditeGenerale > 1 ? 'Correct' : 'Risqué'}
                   </p>
                 </div>
@@ -388,7 +424,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Structure du Bilan</h3>
-                <button className="p-2 text-gray-400 hover:text-gray-600">
+                <button className="p-2 text-gray-700 hover:text-gray-600" aria-label="Voir les détails">
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
@@ -539,7 +575,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Trésorerie</span>
+                  <span className="text-sm text-gray-600">{t('navigation.treasury')}</span>
                   <span className="text-sm font-medium text-[#6A8A82]">
                     {(bilanData.actifCirculant.disponibilites / 1000000).toFixed(1)}M
                   </span>
@@ -934,7 +970,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className={`text-lg ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {sigData.resultatNet >= 0 ? '📈 Bénéfice' : '📉 Perte'}
               </div>
-              <div className="text-sm text-gray-500 mt-2">
+              <div className="text-sm text-gray-700 mt-2">
                 Marge nette: {ratiosData.rentabilite.margeNette.toFixed(2)}%
               </div>
             </div>
@@ -1250,6 +1286,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
           </div>
         </div>
       )}
+      </PrintableArea>
 
       {/* Modal Aperçu Avant Impression */}
       {showPrintPreview && (
@@ -1283,7 +1320,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   </div>
                   <button 
                     onClick={() => setShowPrintPreview(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-700 hover:text-gray-600"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1333,12 +1370,12 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center mb-4">
                   <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <FileText className="w-8 h-8 text-gray-400" />
+                    <FileText className="w-8 h-8 text-gray-700" />
                   </div>
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">ÉTATS FINANCIERS</h1>
-                <p className="text-gray-600">Exercice {selectedPeriod} - Conforme {config.norme}</p>
-                <p className="text-gray-500 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')}</p>
+                <p className="text-gray-600">Exercice {dateRange.startDate || '2025'} - Conforme {config.norme}</p>
+                <p className="text-gray-700 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')}</p>
               </div>
 
               {/* Résumé des indicateurs */}
@@ -1364,7 +1401,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               </div>
 
               {/* Pied de page */}
-              <div className="mt-8 pt-4 border-t border-gray-300 flex justify-between items-center text-xs text-gray-500">
+              <div className="mt-8 pt-4 border-t border-gray-300 flex justify-between items-center text-xs text-gray-700">
                 <div>
                   <p>WiseBook ERP - États Financiers</p>
                   <p>Système conforme {config.norme}</p>
@@ -1392,8 +1429,11 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <FileSpreadsheet className="w-4 h-4 mr-2 inline" />
                   Exporter Excel
                 </button>
-                <button 
-                  onClick={() => window.print()}
+                <button
+                  onClick={() => {
+                    setShowPrintPreview(false);
+                    handlePrint();
+                  }}
                   className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
@@ -1404,6 +1444,16 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
           </div>
         </div>
       )}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

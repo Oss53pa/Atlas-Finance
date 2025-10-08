@@ -4,6 +4,7 @@
  * Conforme au cahier des charges - Technologies de pointe
  */
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +77,7 @@ interface IoTSensor {
 }
 
 const ModernAssetsManagement: React.FC = () => {
+  const { t } = useLanguage();
   // État principal
   const [assets, setAssets] = useState<Asset[]>([]);
   const [predictions, setPredictions] = useState<MaintenancePrediction[]>([]);
@@ -458,7 +460,7 @@ const ModernAssetsManagement: React.FC = () => {
                             <Zap className="h-4 w-4 text-blue-500 mt-0.5" />
                             <div>
                               <span className="font-medium">{rec.action}:</span> {rec.description}
-                              <span className="text-gray-500 ml-2">
+                              <span className="text-gray-700 ml-2">
                                 (Coût estimé: {formaterMontant(rec.estimated_cost)})
                               </span>
                             </div>
@@ -492,7 +494,7 @@ const ModernAssetsManagement: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Package className="h-12 w-12 text-gray-700 mx-auto mb-4" />
             <p className="text-gray-600">Aucun actif trouvé</p>
           </CardContent>
         </Card>
@@ -507,8 +509,8 @@ const ModernAssetsManagement: React.FC = () => {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="font-semibold text-lg text-gray-900">{asset.name}</h3>
-                  <p className="text-sm text-gray-500">{asset.asset_number}</p>
-                  <p className="text-xs text-gray-400">{asset.brand} {asset.model}</p>
+                  <p className="text-sm text-gray-700">{asset.asset_number}</p>
+                  <p className="text-xs text-gray-700">{asset.brand} {asset.model}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Badge className={getStatusColor(asset.status)}>
@@ -554,13 +556,13 @@ const ModernAssetsManagement: React.FC = () => {
               {/* Métriques */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-xs text-gray-500">Valeur Comptable</p>
+                  <p className="text-xs text-gray-700">Valeur Comptable</p>
                   <p className="font-semibold text-green-600">
                     {formaterMontant(asset.current_book_value)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Condition</p>
+                  <p className="text-xs text-gray-700">Condition</p>
                   <p className={`font-semibold ${getConditionColor(asset.condition)}`}>
                     {asset.condition_score}%
                   </p>
@@ -592,7 +594,7 @@ const ModernAssetsManagement: React.FC = () => {
                   </Button>
                 </div>
                 {asset.next_maintenance_prediction && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-700">
                     Maint: {new Date(asset.next_maintenance_prediction).toLocaleDateString('fr-FR')}
                   </p>
                 )}
@@ -704,7 +706,7 @@ const ModernAssetsManagement: React.FC = () => {
 
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="Statut" />
+                <SelectValue placeholder={t('common.status')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tous</SelectItem>
@@ -733,11 +735,11 @@ const ModernAssetsManagement: React.FC = () => {
       {/* Onglets principaux */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="dashboard">{t('dashboard.title')}</TabsTrigger>
           <TabsTrigger value="assets">Actifs</TabsTrigger>
-          <TabsTrigger value="depreciation">Amortissements</TabsTrigger>
+          <TabsTrigger value="depreciation">{t('assets.depreciation')}</TabsTrigger>
           <TabsTrigger value="iot">IoT Monitoring</TabsTrigger>
-          <TabsTrigger value="inventory">Inventaire</TabsTrigger>
+          <TabsTrigger value="inventory">{t('assets.inventory')}</TabsTrigger>
           <TabsTrigger value="wisefm">Wise FM</TabsTrigger>
         </TabsList>
 
@@ -756,9 +758,9 @@ const ModernAssetsManagement: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Cog className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <Cog className="h-12 w-12 mx-auto text-gray-700 mb-4" />
                 <p className="text-gray-600">Module amortissements en développement</p>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-gray-700 mt-2">
                   Multi-méthodes, simulation what-if, ajustements IA
                 </p>
               </div>
@@ -787,9 +789,9 @@ const ModernAssetsManagement: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Drone className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <Drone className="h-12 w-12 mx-auto text-gray-700 mb-4" />
                 <p className="text-gray-600">Module inventaire automatisé en développement</p>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-gray-700 mt-2">
                   Drones, RFID, Computer Vision, réconciliation IA
                 </p>
               </div>

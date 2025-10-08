@@ -12,6 +12,7 @@ import {
   MapPin,
   DollarSign
 } from 'lucide-react';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   BarChart,
   Bar,
@@ -70,27 +71,27 @@ const KPICard: React.FC<KPICardProps> = ({
   };
 
   const getTrendIcon = () => {
-    if (trend === 'up') return <TrendingUp className="w-4 h-4 text-green-600" />;
-    if (trend === 'down') return <TrendingDown className="w-4 h-4 text-red-600" />;
+    if (trend === 'up') return <TrendingUp className="w-4 h-4 text-[var(--color-success)]" />;
+    if (trend === 'down') return <TrendingDown className="w-4 h-4 text-[var(--color-error)]" />;
     return null;
   };
 
   const getTrendColor = () => {
-    if (trend === 'up') return 'text-green-600';
-    if (trend === 'down') return 'text-red-600';
-    return 'text-gray-600';
+    if (trend === 'up') return 'text-[var(--color-success)]';
+    if (trend === 'down') return 'text-[var(--color-error)]';
+    return 'text-[var(--color-text-primary)]';
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`p-3 rounded-full ${color}`}>
             <Icon className="w-6 h-6 text-white" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-[var(--color-text-primary)]">{title}</p>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
               {formatValue(value)}
             </p>
           </div>
@@ -111,7 +112,8 @@ const KPICard: React.FC<KPICardProps> = ({
 const InventoryDashboard: React.FC = () => {
   const [kpis, setKpis] = useState<InventoryKPIs>(mockInventoryKPIs);
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('30d');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [selectedValuationMethod, setSelectedValuationMethod] = useState<ValuationMethod>('FIFO');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -184,12 +186,12 @@ const InventoryDashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-[var(--color-background-secondary)] min-h-screen">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory Dashboard</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">Inventory Dashboard</h1>
+          <p className="text-[var(--color-text-primary)]">
             Real-time inventory analytics and key performance indicators
           </p>
         </div>
@@ -197,11 +199,11 @@ const InventoryDashboard: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-4 mt-4 lg:mt-0">
           {/* Location Filter */}
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gray-500" />
+            <MapPin className="w-4 h-4 text-[var(--color-text-secondary)]" />
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="border border-[var(--color-border-dark)] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
             >
               <option value="all">All Locations</option>
               {mockLocations.map((location) => (
@@ -213,27 +215,24 @@ const InventoryDashboard: React.FC = () => {
           </div>
 
           {/* Period Filter */}
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
-            >
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="1y">Last year</option>
-            </select>
-          </div>
+          <button
+            onClick={() => setShowPeriodModal(true)}
+            className="flex items-center gap-2 px-3 py-2 border border-[var(--color-border-dark)] rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+          >
+            <Calendar className="w-4 h-4 text-[var(--color-text-secondary)]" />
+            {dateRange.startDate && dateRange.endDate
+              ? `${dateRange.startDate} - ${dateRange.endDate}`
+              : 'Sélectionner une période'
+            }
+          </button>
 
           {/* Valuation Method */}
           <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-gray-500" />
+            <DollarSign className="w-4 h-4 text-[var(--color-text-secondary)]" />
             <select
               value={selectedValuationMethod}
               onChange={(e) => setSelectedValuationMethod(e.target.value as ValuationMethod)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="border border-[var(--color-border-dark)] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
             >
               <option value="FIFO">FIFO</option>
               <option value="LIFO">LIFO</option>
@@ -254,6 +253,16 @@ const InventoryDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <KPICard
@@ -270,7 +279,7 @@ const InventoryDashboard: React.FC = () => {
           value={kpis.averageTurnoverRatio}
           change={getKPITrend(kpis.averageTurnoverRatio, previousKpis.averageTurnoverRatio).change}
           icon={TrendingUp}
-          color="bg-green-600"
+          color="bg-[var(--color-success)]"
           trend={getKPITrend(kpis.averageTurnoverRatio, previousKpis.averageTurnoverRatio).trend}
         />
         <KPICard
@@ -278,7 +287,7 @@ const InventoryDashboard: React.FC = () => {
           value={kpis.averageDaysInInventory}
           change={getKPITrend(kpis.averageDaysInInventory, previousKpis.averageDaysInInventory).change}
           icon={Calendar}
-          color="bg-yellow-600"
+          color="bg-[var(--color-warning)]"
           trend={getKPITrend(kpis.averageDaysInInventory, previousKpis.averageDaysInInventory).trend}
         />
         <KPICard
@@ -294,36 +303,36 @@ const InventoryDashboard: React.FC = () => {
 
       {/* Alert Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="bg-[var(--color-error-lightest)] border border-[var(--color-error-light)] rounded-lg p-6">
           <div className="flex items-center gap-3 mb-3">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h3 className="font-semibold text-red-800">Stock Alerts</h3>
+            <AlertTriangle className="w-5 h-5 text-[var(--color-error)]" />
+            <h3 className="font-semibold text-[var(--color-error-darker)]">Stock Alerts</h3>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm text-red-700">Out of Stock</span>
-              <span className="text-sm font-medium text-red-800">{kpis.stockoutItems} items</span>
+              <span className="text-sm text-[var(--color-error-dark)]">Out of Stock</span>
+              <span className="text-sm font-medium text-[var(--color-error-darker)]">{kpis.stockoutItems} items</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-red-700">Low Stock</span>
-              <span className="text-sm font-medium text-red-800">{kpis.reorderSuggestions} items</span>
+              <span className="text-sm text-[var(--color-error-dark)]">Low Stock</span>
+              <span className="text-sm font-medium text-[var(--color-error-darker)]">{kpis.reorderSuggestions} items</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div className="bg-[var(--color-warning-lightest)] border border-[var(--color-warning-light)] rounded-lg p-6">
           <div className="flex items-center gap-3 mb-3">
-            <Package className="w-5 h-5 text-yellow-600" />
-            <h3 className="font-semibold text-yellow-800">Overstock Items</h3>
+            <Package className="w-5 h-5 text-[var(--color-warning)]" />
+            <h3 className="font-semibold text-[var(--color-warning-dark)]">Overstock Items</h3>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm text-yellow-700">Excess Inventory</span>
-              <span className="text-sm font-medium text-yellow-800">{kpis.overstockItems} items</span>
+              <span className="text-sm text-[var(--color-warning-dark)]">Excess Inventory</span>
+              <span className="text-sm font-medium text-[var(--color-warning-dark)]">{kpis.overstockItems} items</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-yellow-700">Dead Stock Value</span>
-              <span className="text-sm font-medium text-yellow-800">
+              <span className="text-sm text-[var(--color-warning-dark)]">Dead Stock Value</span>
+              <span className="text-sm font-medium text-[var(--color-warning-dark)]">
                 <CurrencyDisplay amount={kpis.deadStockValue} currency="USD" size="sm" />
               </span>
             </div>
@@ -351,9 +360,9 @@ const InventoryDashboard: React.FC = () => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Inventory Value Trend */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Inventory Value Trend</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Inventory Value Trend</h3>
             <ValuationMethodBadge method={selectedValuationMethod} />
           </div>
           <ResponsiveContainer width="100%" height={300}>
@@ -385,8 +394,8 @@ const InventoryDashboard: React.FC = () => {
         </div>
 
         {/* Turnover by Category */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Turnover by Category</h3>
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">Turnover by Category</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={turnoverByCategory}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -407,8 +416,8 @@ const InventoryDashboard: React.FC = () => {
       {/* Second Row Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Stock Levels by Location */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Stock Levels by Location</h3>
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">Stock Levels by Location</h3>
           <ResponsiveContainer width="100%" height={300}>
             <RechartsPieChart>
               <Pie
@@ -430,8 +439,8 @@ const InventoryDashboard: React.FC = () => {
         </div>
 
         {/* Aging Analysis */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Inventory Aging Analysis</h3>
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">Inventory Aging Analysis</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={agingAnalysis} layout="horizontal">
               <CartesianGrid strokeDasharray="3 3" />
@@ -445,8 +454,8 @@ const InventoryDashboard: React.FC = () => {
       </div>
 
       {/* Valuation Methods Comparison */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Valuation Methods Comparison</h3>
+      <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6 mb-8">
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">Valuation Methods Comparison</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={valuationComparison}>
@@ -459,19 +468,19 @@ const InventoryDashboard: React.FC = () => {
           </ResponsiveContainer>
 
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Impact Analysis</h4>
+            <h4 className="font-medium text-[var(--color-text-primary)]">Impact Analysis</h4>
             {valuationComparison.map((method, index) => {
               const difference = method.value - valuationComparison[0].value;
               const percentage = (difference / valuationComparison[0].value) * 100;
 
               return (
-                <div key={method.method} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={method.method} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
                   <span className="font-medium">{method.method}</span>
                   <div className="text-right">
                     <div className="font-semibold">
                       <CurrencyDisplay amount={method.value} currency="USD" size="sm" />
                     </div>
-                    <div className={`text-xs ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`text-xs ${difference >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                       {difference >= 0 ? '+' : ''}{percentage.toFixed(1)}%
                     </div>
                   </div>
@@ -483,8 +492,8 @@ const InventoryDashboard: React.FC = () => {
       </div>
 
       {/* ABC Analysis Summary */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">ABC Analysis Summary</h3>
+      <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">ABC Analysis Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-6 bg-[#6A8A82]/10 rounded-lg">
             <div className="text-2xl font-bold text-[#6A8A82] mb-2">
@@ -496,22 +505,22 @@ const InventoryDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-center p-6 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600 mb-2">
+          <div className="text-center p-6 bg-[var(--color-success-lightest)] rounded-lg">
+            <div className="text-2xl font-bold text-[var(--color-success)] mb-2">
               {mockABCAnalysis.summary.classB.items}
             </div>
-            <div className="text-sm text-green-800 font-medium mb-1">Class B Items</div>
-            <div className="text-xs text-green-600">
+            <div className="text-sm text-[var(--color-success-darker)] font-medium mb-1">Class B Items</div>
+            <div className="text-xs text-[var(--color-success)]">
               {mockABCAnalysis.summary.classB.valuePercentage}% of total value
             </div>
           </div>
 
-          <div className="text-center p-6 bg-yellow-50 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600 mb-2">
+          <div className="text-center p-6 bg-[var(--color-warning-lightest)] rounded-lg">
+            <div className="text-2xl font-bold text-[var(--color-warning)] mb-2">
               {mockABCAnalysis.summary.classC.items}
             </div>
-            <div className="text-sm text-yellow-800 font-medium mb-1">Class C Items</div>
-            <div className="text-xs text-yellow-600">
+            <div className="text-sm text-[var(--color-warning-dark)] font-medium mb-1">Class C Items</div>
+            <div className="text-xs text-[var(--color-warning)]">
               {mockABCAnalysis.summary.classC.valuePercentage}% of total value
             </div>
           </div>

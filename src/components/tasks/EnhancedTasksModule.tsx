@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import AdvancedTaskForm from './AdvancedTaskForm';
 import {
   Plus,
   CheckCircle2,
@@ -212,6 +214,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
   currentUserId = 'user1',
   currentUser = 'Marie Dupont'
 }) => {
+  const { t } = useLanguage();
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -405,12 +408,12 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'todo': 'bg-gray-100 text-gray-700',
-      'in-progress': 'bg-[#6A8A82]/10 text-[#6A8A82]',
-      'review': 'bg-yellow-100 text-yellow-700',
-      'done': 'bg-green-100 text-green-700',
-      'cancelled': 'bg-red-100 text-red-700',
-      'blocked': 'bg-orange-100 text-orange-700'
+      'todo': 'bg-secondary/20 text-secondary-foreground',
+      'in-progress': 'bg-wisebook-primary/20 text-wisebook-primary',
+      'review': 'bg-warning/20 text-warning-foreground',
+      'done': 'bg-success/20 text-success-foreground',
+      'cancelled': 'bg-destructive/20 text-destructive-foreground',
+      'blocked': 'bg-wisebook-secondary/20 text-wisebook-secondary'
     };
     return colors[status as keyof typeof colors] || colors.todo;
   };
@@ -418,13 +421,13 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return <ArrowUp className="w-4 h-4 text-red-500" />;
+        return <ArrowUp className="w-4 h-4 text-destructive" />;
       case 'high':
-        return <ArrowUp className="w-4 h-4 text-orange-500" />;
+        return <ArrowUp className="w-4 h-4 text-wisebook-secondary" />;
       case 'medium':
-        return <ArrowRight className="w-4 h-4 text-yellow-500" />;
+        return <ArrowRight className="w-4 h-4 text-warning" />;
       case 'low':
-        return <ArrowDown className="w-4 h-4 text-green-500" />;
+        return <ArrowDown className="w-4 h-4 text-success" />;
       default:
         return null;
     }
@@ -679,7 +682,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
   const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
     <div
-      className="bg-white rounded-lg p-4 mb-3 border border-gray-200 hover:shadow-lg transition-all cursor-pointer group"
+      className="bg-card rounded-lg p-4 mb-3 border hover:shadow-lg transition-all cursor-pointer group"
       onClick={() => {
         setSelectedTask(task);
         setShowTaskDetails(true);
@@ -695,26 +698,26 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
             className="mt-1 transition-transform hover:scale-110"
           >
             {task.status === 'done' ?
-              <CheckCircle2 className="w-5 h-5 text-green-500" /> :
+              <CheckCircle2 className="w-5 h-5 text-success" /> :
               task.status === 'blocked' ?
-              <AlertCircle className="w-5 h-5 text-orange-500" /> :
-              <Circle className="w-5 h-5 text-gray-400" />
+              <AlertCircle className="w-5 h-5 text-wisebook-secondary" /> :
+              <Circle className="w-5 h-5 text-muted-foreground" />
             }
           </button>
           <div className="flex-1">
-            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-gray-400' : ''}`}>
+            <h4 className={`font-medium ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
               {task.title}
             </h4>
             {task.description && (
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{task.description}</p>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
             )}
 
             <div className="flex flex-wrap items-center gap-3 mt-3">
               {task.dueDate && (
                 <div className={`flex items-center gap-1 text-xs ${
                   new Date(task.dueDate) < new Date() && task.status !== 'done'
-                    ? 'text-red-500'
-                    : 'text-gray-500'
+                    ? 'text-destructive'
+                    : 'text-muted-foreground'
                 }`}>
                   <Calendar className="w-3 h-3" />
                   {new Date(task.dueDate).toLocaleDateString()}
@@ -722,46 +725,46 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
               )}
 
               {task.assignee && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <User className="w-3 h-3" />
                   {task.assignee}
                 </div>
               )}
 
               {task.estimatedHours && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Timer className="w-3 h-3" />
                   {task.actualHours || 0}/{task.estimatedHours}h
                 </div>
               )}
 
               {task.budget && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <DollarSign className="w-3 h-3" />
                   {task.actualCost || 0}/{task.budget}
                 </div>
               )}
 
               {task.isRecurring && (
-                <Repeat className="w-3 h-3 text-blue-500" />
+                <Repeat className="w-3 h-3 text-wisebook-primary" />
               )}
 
               {task.attachments && task.attachments.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Paperclip className="w-3 h-3" />
                   {task.attachments.length}
                 </div>
               )}
 
               {task.comments && task.comments.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MessageSquare className="w-3 h-3" />
                   {task.comments.length}
                 </div>
               )}
 
               {task.subTasks && task.subTasks.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <CheckSquare className="w-3 h-3" />
                   {task.subTasks.filter(st => st.completed).length}/{task.subTasks.length}
                 </div>
@@ -770,13 +773,13 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
             {task.progress !== undefined && task.progress > 0 && (
               <div className="flex items-center gap-2 mt-3">
-                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#6A8A82] to-[#B87333] transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-wisebook-primary to-wisebook-secondary transition-all duration-500"
                     style={{ width: `${task.progress}%` }}
                   />
                 </div>
-                <span className="text-xs text-gray-600 font-medium">{task.progress}%</span>
+                <span className="text-xs text-muted-foreground font-medium">{task.progress}%</span>
               </div>
             )}
 
@@ -785,7 +788,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                 {task.tags.map(tag => (
                   <span
                     key={tag}
-                    className="px-2 py-0.5 bg-gray-100 text-xs rounded-full hover:bg-gray-200 transition-colors"
+                    className="px-2 py-0.5 bg-secondary text-xs rounded-full hover:bg-secondary/80 transition-colors"
                   >
                     {tag}
                   </span>
@@ -803,9 +806,9 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                 e.stopPropagation();
                 // Menu contextuel
               }}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 hover:bg-muted rounded transition-colors"
             >
-              <MoreVertical className="w-4 h-4 text-gray-400" />
+              <MoreVertical className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
         </div>
@@ -818,11 +821,11 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-card rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border shadow-lg">
           {/* Header */}
-          <div className="px-6 py-4 border-b flex items-center justify-between bg-gray-50">
+          <div className="px-6 py-4 border-b flex items-center justify-between bg-muted/50">
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-gray-900">Détails de la tâche</h2>
+              <h2 className="text-xl font-bold text-foreground">Détails de la tâche</h2>
               <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(selectedTask.status)}`}>
                 {selectedTask.status}
               </span>
@@ -833,9 +836,9 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
             </div>
             <button
               onClick={() => setShowTaskDetails(false)}
-              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
@@ -852,7 +855,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                     className="text-2xl font-bold w-full px-3 py-2 border rounded-lg mb-3"
                   />
                 ) : (
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{selectedTask.title}</h3>
+                  <h3 className="text-2xl font-bold text-foreground mb-3">{selectedTask.title}</h3>
                 )}
 
                 {editingTask ? (
@@ -863,17 +866,17 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                     rows={4}
                   />
                 ) : (
-                  <p className="text-gray-600">{selectedTask.description || 'Aucune description'}</p>
+                  <p className="text-muted-foreground">{selectedTask.description || 'Aucune description'}</p>
                 )}
               </div>
 
               {/* Informations */}
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Informations</h4>
+                  <h4 className="font-semibold text-foreground mb-3">Informations</h4>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Statut</span>
+                      <span className="text-sm text-muted-foreground">Statut</span>
                       <select
                         value={selectedTask.status}
                         onChange={(e) => {
@@ -904,51 +907,51 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                         className={`px-2 py-1 text-xs rounded-full border-0 font-medium ${getStatusColor(selectedTask.status)}`}
                         disabled={userRole === 'comptable' && selectedTask.assigneeId !== currentUserId}
                       >
-                        <option value="todo" className="text-gray-700">À faire</option>
-                        <option value="in-progress" className="text-blue-700">En cours</option>
-                        <option value="review" className="text-yellow-700">Révision</option>
-                        <option value="testing" className="text-purple-700">Test</option>
-                        <option value="done" className="text-green-700">Terminé</option>
-                        <option value="blocked" className="text-red-700">Bloqué</option>
+                        <option value="todo" className="text-muted-foreground">À faire</option>
+                        <option value="in-progress" className="text-wisebook-primary">{t('status.inProgress')}</option>
+                        <option value="review" className="text-warning">Révision</option>
+                        <option value="testing" className="text-info">Test</option>
+                        <option value="done" className="text-success">{t('status.completed')}</option>
+                        <option value="blocked" className="text-destructive">Bloqué</option>
                       </select>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Assigné à</span>
+                      <span className="text-sm text-muted-foreground">Assigné à</span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">{selectedTask.assignee}</span>
                         {(userRole === 'manager' || userRole === 'admin') && (
                           <button
                             onClick={() => setShowTransferModal(true)}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-muted rounded"
                             title="Transférer la tâche"
                           >
-                            <ArrowRightLeft className="w-3 h-3 text-gray-500" />
+                            <ArrowRightLeft className="w-3 h-3 text-muted-foreground" />
                           </button>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Équipe</span>
+                      <span className="text-sm text-muted-foreground">Équipe</span>
                       <span className="text-sm font-medium">{selectedTask.assigneeTeam || '-'}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Date de début</span>
+                      <span className="text-sm text-muted-foreground">Date de début</span>
                       <span className="text-sm font-medium">
                         {selectedTask.startDate ? new Date(selectedTask.startDate).toLocaleDateString() : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Date d'échéance</span>
+                      <span className="text-sm text-muted-foreground">Date d'échéance</span>
                       <span className="text-sm font-medium">
                         {selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString() : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Créé par</span>
+                      <span className="text-sm text-muted-foreground">Créé par</span>
                       <span className="text-sm font-medium">{selectedTask.createdBy || '-'}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Créé le</span>
+                      <span className="text-sm text-muted-foreground">Créé le</span>
                       <span className="text-sm font-medium">
                         {new Date(selectedTask.createdAt).toLocaleDateString()}
                       </span>
@@ -957,14 +960,14 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Métriques</h4>
+                  <h4 className="font-semibold text-foreground mb-3">Métriques</h4>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Progression</span>
+                      <span className="text-sm text-muted-foreground">Progression</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-gray-200 rounded-full">
+                        <div className="w-24 h-2 bg-muted rounded-full">
                           <div
-                            className="h-full bg-[#6A8A82] rounded-full"
+                            className="h-full bg-wisebook-primary rounded-full"
                             style={{ width: `${selectedTask.progress || 0}%` }}
                           />
                         </div>
@@ -972,23 +975,23 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Heures</span>
+                      <span className="text-sm text-muted-foreground">Heures</span>
                       <span className="text-sm font-medium">
                         {selectedTask.actualHours || 0}/{selectedTask.estimatedHours || 0}h
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Budget</span>
+                      <span className="text-sm text-muted-foreground">{t('navigation.budget')}</span>
                       <span className="text-sm font-medium">
                         {selectedTask.actualCost || 0}€/{selectedTask.budget || 0}€
                       </span>
                     </div>
                     {selectedTask.tags && selectedTask.tags.length > 0 && (
                       <div>
-                        <span className="text-sm text-gray-500">Tags</span>
+                        <span className="text-sm text-muted-foreground">Tags</span>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {selectedTask.tags.map(tag => (
-                            <span key={tag} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
+                            <span key={tag} className="px-2 py-1 bg-secondary text-xs rounded-full">
                               {tag}
                             </span>
                           ))}
@@ -1002,7 +1005,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
               {/* Checklist */}
               {selectedTask.checklist && selectedTask.checklist.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Checklist</h4>
+                  <h4 className="font-semibold text-foreground mb-3">Checklist</h4>
                   <div className="space-y-2">
                     {selectedTask.checklist.map(item => (
                       <div key={item.id} className="flex items-center gap-2">
@@ -1012,9 +1015,9 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                           onChange={() => {
                             // Mise à jour checklist
                           }}
-                          className="rounded border-gray-300 text-[#6A8A82] focus:ring-[#6A8A82]"
+                          className="rounded border-input text-wisebook-primary focus:ring-wisebook-primary"
                         />
-                        <span className={item.completed ? 'line-through text-gray-400' : ''}>
+                        <span className={item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>
                           {item.text}
                         </span>
                       </div>
@@ -1025,17 +1028,17 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
               {/* Commentaires */}
               <div className="mb-6">
-                <h4 className="font-semibold text-gray-900 mb-3">Commentaires</h4>
+                <h4 className="font-semibold text-foreground mb-3">Commentaires</h4>
                 <div className="space-y-3 mb-4">
                   {selectedTask.comments?.map(comment => (
-                    <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
+                    <div key={comment.id} className="bg-muted/50 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-medium">{comment.author}</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {new Date(comment.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700">{comment.text}</p>
+                      <p className="text-sm text-foreground">{comment.text}</p>
                     </div>
                   ))}
                 </div>
@@ -1046,11 +1049,11 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addComment()}
                     placeholder="Ajouter un commentaire..."
-                    className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]/50"
+                    className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-wisebook-primary/50"
                   />
                   <button
                     onClick={addComment}
-                    className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors"
+                    className="px-4 py-2 bg-wisebook-primary text-wisebook-light rounded-lg hover:bg-wisebook-primary-hover transition-colors"
                   >
                     <Send className="w-4 h-4" />
                   </button>
@@ -1059,29 +1062,28 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
               {/* Pièces jointes */}
               <div className="mb-6">
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <Paperclip className="w-4 h-4" />
                   Pièces jointes
                 </h4>
                 <div className="space-y-2 mb-4">
                   {selectedTask.attachments?.map((attachment, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-700">{attachment.name}</span>
-                        <span className="text-xs text-gray-500">({attachment.size})</span>
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{attachment.name}</span>
+                        <span className="text-xs text-muted-foreground">({attachment.size})</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
-                          className="p-1 hover:bg-gray-200 rounded transition-colors"
-                          title="Télécharger"
-                        >
-                          <Download className="w-4 h-4 text-gray-600" />
+                          className="p-1 hover:bg-muted rounded transition-colors"
+                          title={t('actions.download')} aria-label="Télécharger">
+                          <Download className="w-4 h-4 text-muted-foreground" />
                         </button>
                         {(userRole === 'manager' || userRole === 'admin' || selectedTask.assigneeId === currentUserId) && (
                           <button
-                            className="p-1 hover:bg-red-100 rounded transition-colors"
-                            title="Supprimer"
+                            className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                            title={t('common.delete')}
                             onClick={() => {
                               // Supprimer la pièce jointe
                               setTasks(prev => prev.map(t => {
@@ -1099,14 +1101,14 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                               });
                             }}
                           >
-                            <X className="w-4 h-4 text-red-600" />
+                            <X className="w-4 h-4 text-destructive" />
                           </button>
                         )}
                       </div>
                     </div>
                   ))}
                   {(!selectedTask.attachments || selectedTask.attachments.length === 0) && (
-                    <p className="text-sm text-gray-500">Aucune pièce jointe</p>
+                    <p className="text-sm text-muted-foreground">Aucune pièce jointe</p>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -1145,7 +1147,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                   />
                   <label
                     htmlFor="file-upload"
-                    className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors cursor-pointer flex items-center gap-2"
+                    className="px-4 py-2 bg-wisebook-secondary text-wisebook-light rounded-lg hover:bg-wisebook-secondary-hover transition-colors cursor-pointer flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     Ajouter des fichiers
@@ -1156,15 +1158,15 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
               {/* Historique */}
               {selectedTask.history && selectedTask.history.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Historique</h4>
+                  <h4 className="font-semibold text-foreground mb-3">Historique</h4>
                   <div className="space-y-2">
                     {selectedTask.history.map(entry => (
                       <div key={entry.id} className="flex items-start gap-3 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-gray-400 mt-1.5" />
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground mt-1.5" />
                         <div className="flex-1">
                           <span className="font-medium">{entry.user}</span>
-                          <span className="text-gray-500"> {entry.details}</span>
-                          <div className="text-xs text-gray-400 mt-0.5">
+                          <span className="text-muted-foreground"> {entry.details}</span>
+                          <div className="text-xs text-muted-foreground mt-0.5">
                             {new Date(entry.date).toLocaleString()}
                           </div>
                         </div>
@@ -1177,13 +1179,13 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
+          <div className="px-6 py-4 border-t bg-muted/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               {(userRole === 'manager' || userRole === 'admin') && (
                 <>
                   <button
                     onClick={() => setEditingTask(!editingTask)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
                   >
                     <Edit3 className="w-4 h-4" />
                     {editingTask ? 'Annuler' : 'Modifier'}
@@ -1195,7 +1197,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                         setTasks(prev => prev.map(t => t.id === selectedTask.id ? selectedTask : t));
                         setEditingTask(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-wisebook-primary text-wisebook-light rounded-lg hover:bg-wisebook-primary-hover transition-colors"
                     >
                       <Save className="w-4 h-4" />
                       Enregistrer
@@ -1203,14 +1205,14 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                   )}
                   <button
                     onClick={() => duplicateTask(selectedTask)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
                   >
                     <Copy className="w-4 h-4" />
                     Dupliquer
                   </button>
                   <button
                     onClick={() => deleteTask(selectedTask.id)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                     Supprimer
@@ -1220,7 +1222,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
             </div>
             <button
               onClick={() => setShowTaskDetails(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors"
             >
               Fermer
             </button>
@@ -1237,21 +1239,21 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="bg-card rounded-lg p-6 w-full max-w-md border shadow-lg">
           <h3 className="text-lg font-semibold mb-4">Transférer la tâche</h3>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Transférer de : <span className="font-bold">{selectedTask.assignee}</span>
             </label>
 
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Vers :
             </label>
             <select
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]/50"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-wisebook-primary/50"
             >
               <option value="">Sélectionner un utilisateur</option>
               {availableUsers
@@ -1270,7 +1272,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                 setShowTransferModal(false);
                 setSelectedUserId('');
               }}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
             >
               Annuler
             </button>
@@ -1283,7 +1285,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                 }
               }}
               disabled={!selectedUserId}
-              className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-wisebook-primary text-wisebook-light rounded-lg hover:bg-wisebook-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Transférer
             </button>
@@ -1353,15 +1355,15 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       {Object.entries(tasksByGroup).map(([group, groupTasks]) => (
         <div
           key={group}
-          className={`bg-gray-50 rounded-lg p-4 min-h-[400px] transition-all ${
-            dragOverStatus === group ? 'bg-[#6A8A82]/10 ring-2 ring-[#6A8A82]' : ''
+          className={`bg-muted/50 rounded-lg p-4 min-h-[400px] transition-all ${
+            dragOverStatus === group ? 'bg-wisebook-primary/10 ring-2 ring-wisebook-primary' : ''
           }`}
           onDragOver={(e) => groupBy === 'status' && handleDragOver(e, group)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => groupBy === 'status' && handleDrop(e, group)}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-700 capitalize flex items-center gap-2">
+            <h3 className="font-semibold text-foreground capitalize flex items-center gap-2">
               {groupBy === 'status' && group === 'in-progress' && <Clock className="w-4 h-4" />}
               {groupBy === 'status' && group === 'done' && <CheckCircle2 className="w-4 h-4" />}
               {groupBy === 'status' && group === 'blocked' && <AlertCircle className="w-4 h-4" />}
@@ -1391,24 +1393,24 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
   );
 
   const ListView = () => (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-card rounded-lg shadow border">
       <table className="w-full">
         <thead>
-          <tr className="border-b bg-gray-50">
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Titre</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Priorité</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Assigné</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Échéance</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Progrès</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+          <tr className="border-b bg-muted/50">
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Statut</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Titre</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Priorité</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Assigné</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Échéance</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Progrès</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y">
           {filteredTasks.map(task => (
             <tr
               key={task.id}
-              className="hover:bg-gray-50 cursor-pointer"
+              className="hover:bg-muted/50 cursor-pointer"
               onClick={() => {
                 setSelectedTask(task);
                 setShowTaskDetails(true);
@@ -1425,7 +1427,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                   {task.tags && (
                     <div className="flex gap-1 mt-1">
                       {task.tags.map(tag => (
-                        <span key={tag} className="text-xs text-gray-500">#{tag}</span>
+                        <span key={tag} className="text-xs text-muted-foreground">#{tag}</span>
                       ))}
                     </div>
                   )}
@@ -1446,9 +1448,9 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
               <td className="px-4 py-3">
                 {task.progress !== undefined ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-gray-200 rounded-full">
+                    <div className="w-20 h-2 bg-muted rounded-full">
                       <div
-                        className="h-full bg-[#6A8A82] rounded-full"
+                        className="h-full bg-wisebook-primary rounded-full"
                         style={{ width: `${task.progress}%` }}
                       />
                     </div>
@@ -1461,7 +1463,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  className="p-1 hover:bg-gray-100 rounded"
+                  className="p-1 hover:bg-muted rounded"
                 >
                   <MoreVertical className="w-4 h-4" />
                 </button>
@@ -1474,23 +1476,23 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
   );
 
   return (
-    <div className="h-full bg-gray-50 flex flex-col">
+    <div className="h-full bg-background flex flex-col">
       {/* Header avec onglets */}
-      <div className="bg-white border-b">
+      <div className="bg-card border-b">
         <div className="px-6 pt-4">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 {userRole === 'manager' ? 'Gestion des Tâches - Équipe' : 'Mes Tâches'}
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {statistics.total} tâches • {statistics.inProgress} en cours • {statistics.overdue} en retard
               </p>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowStatistics(!showStatistics)}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-muted-foreground bg-muted rounded-lg hover:bg-muted/80 transition-colors"
               >
                 <BarChart3 className="w-4 h-4" />
                 Statistiques
@@ -1498,7 +1500,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
               {(userRole === 'manager' || userRole === 'admin') && (
                 <button
                   onClick={() => setShowAssignModal(!showAssignModal)}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-muted-foreground bg-muted rounded-lg hover:bg-muted/80 transition-colors"
                 >
                   <UserPlus className="w-4 h-4" />
                   Assigner
@@ -1506,7 +1508,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
               )}
               <button
                 onClick={() => setShowNewTask(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-wisebook-secondary text-wisebook-light rounded-lg hover:bg-wisebook-secondary-hover transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Nouvelle tâche
@@ -1516,18 +1518,18 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
         </div>
 
         {/* Barre d'outils */}
-        <div className="px-6 py-3 bg-gray-50 border-t">
+        <div className="px-6 py-3 bg-muted/50 border-t">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Recherche */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Rechercher..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50 w-64"
+                  className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-wisebook-secondary/50 w-64"
                 />
               </div>
 
@@ -1539,8 +1541,8 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
                     onClick={() => setFilter(status)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       filter === status
-                        ? 'bg-[#B87333] text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-100 border'
+                        ? 'bg-wisebook-secondary text-wisebook-light'
+                        : 'bg-card text-muted-foreground hover:bg-muted border'
                     }`}
                   >
                     {status === 'all' ? 'Toutes' :
@@ -1555,16 +1557,16 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
             <div className="flex items-center gap-3">
               {/* Mode d'affichage */}
-              <div className="flex bg-white border rounded-lg">
+              <div className="flex bg-card border rounded-lg">
                 <button
                   onClick={() => setViewMode('kanban')}
-                  className={`p-2 ${viewMode === 'kanban' ? 'bg-[#B87333] text-white' : 'text-gray-600'} rounded-l-lg transition-colors`}
+                  className={`p-2 ${viewMode === 'kanban' ? 'bg-wisebook-secondary text-wisebook-light' : 'text-muted-foreground'} rounded-l-lg transition-colors`}
                 >
                   <Kanban className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-[#B87333] text-white' : 'text-gray-600'} rounded-r-lg transition-colors`}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-wisebook-secondary text-wisebook-light' : 'text-muted-foreground'} rounded-r-lg transition-colors`}
                 >
                   <List className="w-4 h-4" />
                 </button>
@@ -1576,39 +1578,39 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
       {/* Zone de statistiques (si visible) */}
       {showStatistics && (
-        <div className="bg-white border-b px-6 py-4">
+        <div className="bg-card border-b px-6 py-4">
           <div className="grid grid-cols-8 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{statistics.total}</div>
-              <div className="text-xs text-gray-500">Total</div>
+              <div className="text-2xl font-bold text-foreground">{statistics.total}</div>
+              <div className="text-xs text-muted-foreground">Total</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{statistics.completed}</div>
-              <div className="text-xs text-gray-500">Terminées</div>
+              <div className="text-2xl font-bold text-success">{statistics.completed}</div>
+              <div className="text-xs text-muted-foreground">Terminées</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#6A8A82]">{statistics.inProgress}</div>
-              <div className="text-xs text-gray-500">En cours</div>
+              <div className="text-2xl font-bold text-wisebook-primary">{statistics.inProgress}</div>
+              <div className="text-xs text-muted-foreground">{t('status.inProgress')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{statistics.overdue}</div>
-              <div className="text-xs text-gray-500">En retard</div>
+              <div className="text-2xl font-bold text-destructive">{statistics.overdue}</div>
+              <div className="text-xs text-muted-foreground">En retard</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{statistics.highPriority}</div>
-              <div className="text-xs text-gray-500">Prioritaires</div>
+              <div className="text-2xl font-bold text-wisebook-secondary">{statistics.highPriority}</div>
+              <div className="text-xs text-muted-foreground">Prioritaires</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{statistics.completionRate}%</div>
-              <div className="text-xs text-gray-500">Complété</div>
+              <div className="text-2xl font-bold text-info">{statistics.completionRate}%</div>
+              <div className="text-xs text-muted-foreground">Complété</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{statistics.totalHours}h</div>
-              <div className="text-xs text-gray-500">Heures</div>
+              <div className="text-2xl font-bold text-wisebook-primary">{statistics.totalHours}h</div>
+              <div className="text-xs text-muted-foreground">Heures</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#B87333]">{statistics.avgProgress}%</div>
-              <div className="text-xs text-gray-500">Progrès moy.</div>
+              <div className="text-2xl font-bold text-wisebook-secondary">{statistics.avgProgress}%</div>
+              <div className="text-xs text-muted-foreground">Progrès moy.</div>
             </div>
           </div>
         </div>
@@ -1624,127 +1626,42 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       {showTaskDetails && <TaskDetailsModal />}
       <TransferModal />
 
-      {/* Modal Nouvelle Tâche */}
-      {showNewTask && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Créer une nouvelle tâche</h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Titre *
-                </label>
-                <input
-                  type="text"
-                  value={newTask.title}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
-                  placeholder="Entrez le titre de la tâche"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={newTask.description}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
-                  rows={3}
-                  placeholder="Description détaillée de la tâche"
-                />
-              </div>
-
-              {(userRole === 'manager' || userRole === 'admin') && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Assigner à
-                  </label>
-                  <select
-                    value={newTask.assigneeId}
-                    onChange={(e) => {
-                      const user = availableUsers.find(u => u.id === e.target.value);
-                      if (user) {
-                        setNewTask(prev => ({
-                          ...prev,
-                          assigneeId: user.id,
-                          assignee: user.name,
-                          assigneeTeam: user.team
-                        }));
-                      }
-                    }}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
-                  >
-                    <option value="">Sélectionner un utilisateur</option>
-                    {availableUsers.map(user => (
-                      <option key={user.id} value={user.id}>
-                        {user.name} - {user.role} ({user.team})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Priorité
-                  </label>
-                  <select
-                    value={newTask.priority}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as any }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
-                  >
-                    <option value="low">Faible</option>
-                    <option value="medium">Moyenne</option>
-                    <option value="high">Haute</option>
-                    <option value="urgent">Urgente</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date d'échéance
-                  </label>
-                  <input
-                    type="date"
-                    onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: new Date(e.target.value) }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowNewTask(false);
-                  setNewTask({
-                    title: '',
-                    description: '',
-                    priority: 'medium',
-                    status: 'todo',
-                    tags: [],
-                    subTasks: [],
-                    checklist: []
-                  });
-                }}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={addTask}
-                className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
-              >
-                Créer la tâche
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Nouveau Formulaire de Tâche Avancé */}
+      <AdvancedTaskForm
+        isOpen={showNewTask}
+        onClose={() => setShowNewTask(false)}
+        onSubmit={(data) => {
+          const newTaskData = {
+            id: String(Math.max(...tasks.map(t => Number(t.id))) + 1),
+            title: data.title,
+            description: data.description,
+            status: data.status,
+            priority: data.priority,
+            assignee: data.assignedTo?.name || currentUser,
+            assigneeId: data.assignedTo?.id || currentUserId,
+            assigneeTeam: data.team?.name || 'Comptabilité',
+            dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+            createdAt: new Date(),
+            author: currentUser,
+            authorId: currentUserId,
+            progress: data.progress,
+            estimatedHours: data.estimatedHours,
+            actualHours: data.actualHours,
+            budget: data.budget,
+            actualCost: data.actualCost,
+            tags: data.tags,
+            attachments: data.attachments.map(f => f.name),
+            contributors: data.contributors.map(c => c.name),
+            isRecurrent: data.isRecurrent,
+            recurrencePattern: data.recurrencePattern,
+          };
+          setTasks(prev => [...prev, newTaskData]);
+          setShowNewTask(false);
+          // Notification de succès
+          alert('Tâche créée avec succès!');
+        }}
+        mode="create"
+      />
     </div>
   );
 };

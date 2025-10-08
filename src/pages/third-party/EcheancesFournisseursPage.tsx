@@ -313,7 +313,7 @@ const EcheancesFournisseursPage: React.FC = () => {
                             }
                           </span>
                         </div>
-                        <div className="mt-2 text-sm text-gray-500">
+                        <div className="mt-2 text-sm text-gray-700">
                           Conditions: {payment.paymentTerms}
                         </div>
                       </div>
@@ -325,7 +325,7 @@ const EcheancesFournisseursPage: React.FC = () => {
                           <div className="text-sm font-medium text-green-600">
                             -{Math.round(payment.amount * payment.discountRate / 100).toLocaleString()} XOF
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-700">
                             si payé avant {payment.discountDeadline.toLocaleDateString()}
                           </div>
                         </div>

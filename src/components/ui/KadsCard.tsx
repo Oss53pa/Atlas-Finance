@@ -47,7 +47,7 @@ const KadsCard: React.FC<KadsCardProps> = ({
   return (
     <div 
       className={`
-        bg-white rounded-xl p-6 shadow-sm border border-gray-200 
+        bg-white rounded-xl p-6 shadow-sm border border-[#D5D0CD] 
         hover:shadow-lg transition-all duration-300 group
         ${onClick ? 'cursor-pointer hover:scale-105' : ''}
         ${className}
@@ -76,16 +76,16 @@ const KadsCard: React.FC<KadsCardProps> = ({
       </div>
       
       <div className="space-y-2">
-        <h3 className="text-3xl font-bold text-gray-900">{value}</h3>
-        <p className="text-gray-600 font-medium">{title}</p>
+        <h3 className="text-3xl font-bold text-[#353A3B]">{value}</h3>
+        <p className="text-[#353A3B] opacity-80 font-medium">{title}</p>
         {description && (
-          <p className="text-gray-500 text-sm">{description}</p>
+          <p className="text-[#353A3B] opacity-60 text-sm">{description}</p>
         )}
         
         {target && (
           <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-gray-400">Objectif: {target}</span>
-            <div className="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
+            <span className="text-xs text-[#353A3B] opacity-50">Objectif: {target}</span>
+            <div className="w-16 h-1 bg-[#D5D0CD] bg-opacity-50 rounded-full overflow-hidden">
               <div className={`h-full bg-${color}-500 rounded-full`} style={{width: '75%'}}></div>
             </div>
           </div>

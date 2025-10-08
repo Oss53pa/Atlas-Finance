@@ -190,15 +190,15 @@ const AIInsights: React.FC = () => {
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 80) return 'bg-green-100 text-green-700';
-    if (confidence >= 60) return 'bg-yellow-100 text-yellow-700';
+    if (confidence >= 60) return 'bg-amber-100 text-amber-700';
     return 'bg-red-100 text-red-700';
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical': return 'bg-red-50 border-red-200';
-      case 'warning': return 'bg-yellow-50 border-yellow-200';
-      case 'info': return 'bg-blue-50 border-blue-200';
+      case 'warning': return 'bg-amber-50 border-amber-200';
+      case 'info': return 'bg-[#F0F5F4] border-[#D1DDD9]';
       default: return 'bg-gray-50 border-gray-200';
     }
   };
@@ -256,7 +256,7 @@ const AIInsights: React.FC = () => {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="font-semibold text-gray-900">{prediction.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{prediction.description}</p>
+                <p className="text-sm text-gray-900 mt-1">{prediction.description}</p>
               </div>
               <Bot className="w-5 h-5 text-[#6A8A82]" />
             </div>
@@ -268,13 +268,13 @@ const AIInsights: React.FC = () => {
                     ? `${prediction.value.toLocaleString()} DH`
                     : `${prediction.value} unités`}
                 </span>
-                <span className="text-sm text-gray-500">{prediction.timeframe}</span>
+                <span className="text-sm text-gray-600">{prediction.timeframe}</span>
               </div>
             </div>
 
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Confiance</span>
+                <span className="text-gray-900">Confiance</span>
                 <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", getConfidenceColor(prediction.confidence))}>
                   {prediction.confidence}%
                 </span>
@@ -283,8 +283,8 @@ const AIInsights: React.FC = () => {
                 <div
                   className={cn(
                     "h-2 rounded-full",
-                    prediction.confidence >= 80 ? "bg-green-500" :
-                    prediction.confidence >= 60 ? "bg-yellow-500" : "bg-red-500"
+                    prediction.confidence >= 80 ? "bg-[#10B981]" :
+                    prediction.confidence >= 60 ? "bg-[#F59E0B]" : "bg-[#EF4444]"
                   )}
                   style={{ width: `${prediction.confidence}%` }}
                 />
@@ -292,7 +292,7 @@ const AIInsights: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Facteurs clés:</p>
+              <p className="text-sm font-medium text-gray-900 mb-2">Facteurs clés:</p>
               <div className="flex flex-wrap gap-1">
                 {prediction.factors.map((factor, i) => (
                   <span key={i} className="px-2 py-1 bg-gray-100 text-xs rounded">
@@ -400,8 +400,8 @@ const AIInsights: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-green-600" />}
-                    {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-red-600" />}
+                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-[#10B981]" />}
+                    {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-[#EF4444]" />}
                     {insight.category === 'optimization' && <Zap className="w-5 h-5 text-[#6A8A82]" />}
                     {insight.category === 'trend' && <Activity className="w-5 h-5 text-[#B87333]" />}
                     <h4 className="font-medium text-gray-900">{insight.title}</h4>
@@ -409,19 +409,19 @@ const AIInsights: React.FC = () => {
                   <span className={cn(
                     "px-2 py-0.5 text-xs rounded-full font-medium",
                     insight.priority === 'urgent' && "bg-red-100 text-red-700",
-                    insight.priority === 'high' && "bg-orange-100 text-orange-700",
-                    insight.priority === 'medium' && "bg-yellow-100 text-yellow-700",
+                    insight.priority === 'high' && "bg-amber-100 text-amber-700",
+                    insight.priority === 'medium' && "bg-amber-100 text-amber-700",
                     insight.priority === 'low' && "bg-green-100 text-green-700"
                   )}>
                     {insight.priority}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{insight.description}</p>
+                <p className="text-sm text-gray-900 mb-2">{insight.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-900">
                     {insight.potentialGain > 0 ? '+' : ''}{insight.potentialGain.toLocaleString()} DH
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-600">
                     Confiance: {insight.confidence}%
                   </span>
                 </div>
@@ -441,12 +441,12 @@ const AIInsights: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 mb-1">{insight.title}</h4>
-                    <p className="text-sm text-gray-600 mb-2">{insight.description}</p>
+                    <p className="text-sm text-gray-900 mb-2">{insight.description}</p>
                     <div className="space-y-2">
                       {insight.actionableSteps.map((step, i) => (
                         <div key={i} className="flex items-start gap-2">
                           <ChevronRight className="w-4 h-4 text-[#6A8A82] mt-0.5" />
-                          <span className="text-sm text-gray-700">{step}</span>
+                          <span className="text-sm text-gray-900">{step}</span>
                         </div>
                       ))}
                     </div>
@@ -503,42 +503,42 @@ const AIInsights: React.FC = () => {
               <Target className="w-6 h-6 text-[#6A8A82]" />
             </div>
             <div className="text-2xl font-bold text-gray-900">94.2%</div>
-            <div className="text-sm text-gray-600">Précision Prédictions</div>
+            <div className="text-sm text-gray-900">Précision Prédictions</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-green-100 to-green-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-green-200 rounded-lg flex items-center justify-center mb-2">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 mx-auto bg-[#D1FAE5] rounded-lg flex items-center justify-center mb-2">
+              <CheckCircle className="w-6 h-6 text-[#10B981]" />
             </div>
             <div className="text-2xl font-bold text-gray-900">98.1%</div>
-            <div className="text-sm text-gray-600">Disponibilité Système</div>
+            <div className="text-sm text-gray-900">Disponibilité Système</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-[#B87333]/10 to-[#B87333]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#B87333]/20 rounded-lg flex items-center justify-center mb-2">
               <Clock className="w-6 h-6 text-[#B87333]" />
             </div>
             <div className="text-2xl font-bold text-gray-900">1.2s</div>
-            <div className="text-sm text-gray-600">Temps de Réponse</div>
+            <div className="text-sm text-gray-900">Temps de Réponse</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-blue-200 rounded-lg flex items-center justify-center mb-2">
-              <Activity className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 mx-auto bg-[#D1DDD9] rounded-lg flex items-center justify-center mb-2">
+              <Activity className="w-6 h-6 text-[#78998F]" />
             </div>
             <div className="text-2xl font-bold text-gray-900">24/7</div>
-            <div className="text-sm text-gray-600">Surveillance Active</div>
+            <div className="text-sm text-gray-900">Surveillance Active</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-purple-200 rounded-lg flex items-center justify-center mb-2">
-              <Shield className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 mx-auto bg-[#DBEAFE] rounded-lg flex items-center justify-center mb-2">
+              <Shield className="w-6 h-6 text-[#3B82F6]" />
             </div>
             <div className="text-2xl font-bold text-gray-900">100%</div>
-            <div className="text-sm text-gray-600">Sécurité Données</div>
+            <div className="text-sm text-gray-900">Sécurité Données</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-orange-100 to-orange-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-orange-200 rounded-lg flex items-center justify-center mb-2">
-              <Cpu className="w-6 h-6 text-orange-600" />
+            <div className="w-12 h-12 mx-auto bg-amber-200 rounded-lg flex items-center justify-center mb-2">
+              <Cpu className="w-6 h-6 text-[#F59E0B]" />
             </div>
             <div className="text-2xl font-bold text-gray-900">85%</div>
-            <div className="text-sm text-gray-600">Efficacité CPU</div>
+            <div className="text-sm text-gray-900">Efficacité CPU</div>
           </div>
         </div>
       </div>
@@ -551,7 +551,7 @@ const AIInsights: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">IA Insights & Analyses Prédictives</h1>
-          <p className="text-gray-600 mt-2">Intelligence artificielle avancée pour la prise de décision stratégique</p>
+          <p className="text-gray-900 mt-2">Intelligence artificielle avancée pour la prise de décision stratégique</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -582,8 +582,7 @@ const AIInsights: React.FC = () => {
               "p-2 rounded-lg border hover:bg-gray-50 transition-all",
               refreshing && "animate-spin"
             )}
-            disabled={refreshing}
-          >
+            disabled={refreshing} aria-label="Actualiser">
             <RefreshCw className="w-5 h-5" />
           </button>
 
@@ -608,7 +607,7 @@ const AIInsights: React.FC = () => {
                     "flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                     activeTab === tab.id
                       ? "border-[#6A8A82] text-[#6A8A82]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-400"
                   )}
                 >
                   <Icon className="w-5 h-5" />

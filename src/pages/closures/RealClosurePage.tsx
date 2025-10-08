@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Calculator,
   Database,
@@ -42,6 +43,7 @@ interface TrialBalance {
 }
 
 const RealClosurePage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>('');
   const [closureResult, setClosureResult] = useState<ClosureResult | null>(null);
   const [trialBalance, setTrialBalance] = useState<TrialBalance[]>([]);
@@ -246,17 +248,17 @@ const RealClosurePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       {/* En-tête */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                <Calculator className="h-8 w-8 mr-3 text-blue-600" />
+              <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center">
+                <Calculator className="h-8 w-8 mr-3 text-[var(--color-primary)]" />
                 Clôture Comptable Réelle
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-[var(--color-text-primary)]">
                 Génération automatique d'écritures comptables selon SYSCOHADA
               </p>
             </div>
@@ -273,8 +275,7 @@ const RealClosurePage: React.FC = () => {
               <button
                 onClick={startRealClosure}
                 disabled={isClosing || !selectedFiscalYear}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-              >
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2" aria-label="Actualiser">
                 {isClosing ? (
                   <RefreshCw className="h-4 w-4 animate-spin" />
                 ) : (
@@ -290,7 +291,7 @@ const RealClosurePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Sélection exercice */}
         <div className="bg-white rounded-lg border p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Sélection de l'Exercice</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Sélection de l'Exercice</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {fiscalYears.map((fy) => (
               <button
@@ -298,22 +299,22 @@ const RealClosurePage: React.FC = () => {
                 onClick={() => setSelectedFiscalYear(fy.id)}
                 className={`p-4 rounded-lg border text-left transition-all ${
                   selectedFiscalYear === fy.id
-                    ? 'border-blue-500 bg-blue-50'
+                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-lightest)]'
                     : fy.is_closed
-                    ? 'border-gray-200 bg-gray-50 opacity-75'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    ? 'border-[var(--color-border)] bg-[var(--color-background-secondary)] opacity-75'
+                    : 'border-[var(--color-border)] hover:border-blue-300 hover:bg-[var(--color-primary-lightest)]'
                 }`}
                 disabled={fy.is_closed}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">{fy.name}</span>
+                  <span className="font-medium text-[var(--color-text-primary)]">{fy.name}</span>
                   {fy.is_closed ? (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">Clôturé</span>
+                    <span className="px-2 py-1 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] text-xs rounded">Clôturé</span>
                   ) : (
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Ouvert</span>
+                    <span className="px-2 py-1 bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] text-xs rounded">Ouvert</span>
                   )}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-sm text-[var(--color-text-primary)] mt-1">
                   {fy.start_date} → {fy.end_date}
                 </div>
               </button>
@@ -323,18 +324,18 @@ const RealClosurePage: React.FC = () => {
 
         {/* Progression de clôture */}
         {isClosing && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+          <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-blue-900">Clôture en Cours</h3>
-              <div className="flex items-center space-x-2 text-blue-700">
+              <h3 className="text-lg font-semibold text-[var(--color-primary-darker)]">Clôture en Cours</h3>
+              <div className="flex items-center space-x-2 text-[var(--color-primary-dark)]">
                 <RefreshCw className="h-4 w-4 animate-spin" />
                 <span>Traitement automatique...</span>
               </div>
             </div>
-            <div className="text-blue-800 font-medium">{currentStep}</div>
-            <div className="mt-3 bg-blue-200 rounded-full h-2">
+            <div className="text-[var(--color-primary-darker)] font-medium">{currentStep}</div>
+            <div className="mt-3 bg-[var(--color-primary-light)] rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                className="bg-[var(--color-primary)] h-2 rounded-full transition-all duration-500"
                 style={{ width: `${closureResult ? (closureResult.steps_completed.length / 5) * 100 : 0}%` }}
               ></div>
             </div>
@@ -346,7 +347,7 @@ const RealClosurePage: React.FC = () => {
           <div className="space-y-6">
             {/* Résumé global */}
             <div className={`rounded-lg border p-6 ${
-              closureResult.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+              closureResult.success ? 'border-[var(--color-success-light)] bg-[var(--color-success-lightest)]' : 'border-[var(--color-error-light)] bg-[var(--color-error-lightest)]'
             }`}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`text-lg font-semibold flex items-center ${
@@ -360,7 +361,7 @@ const RealClosurePage: React.FC = () => {
                   {closureResult.success ? 'Clôture Réussie' : 'Erreur de Clôture'}
                 </h3>
                 <div className="text-right">
-                  <div className={`text-sm ${closureResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                  <div className={`text-sm ${closureResult.success ? 'text-[var(--color-success-dark)]' : 'text-[var(--color-error-dark)]'}`}>
                     {new Date(closureResult.closure_date).toLocaleString('fr-FR')}
                   </div>
                 </div>
@@ -371,7 +372,7 @@ const RealClosurePage: React.FC = () => {
                   <div className={`text-2xl font-bold ${closureResult.success ? 'text-green-900' : 'text-red-900'}`}>
                     {closureResult.total_entries_created}
                   </div>
-                  <div className={`text-sm ${closureResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                  <div className={`text-sm ${closureResult.success ? 'text-[var(--color-success-dark)]' : 'text-[var(--color-error-dark)]'}`}>
                     Écritures générées
                   </div>
                 </div>
@@ -379,7 +380,7 @@ const RealClosurePage: React.FC = () => {
                   <div className={`text-2xl font-bold ${closureResult.success ? 'text-green-900' : 'text-red-900'}`}>
                     {closureResult.steps_completed.length}/5
                   </div>
-                  <div className={`text-sm ${closureResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                  <div className={`text-sm ${closureResult.success ? 'text-[var(--color-success-dark)]' : 'text-[var(--color-error-dark)]'}`}>
                     Étapes terminées
                   </div>
                 </div>
@@ -387,7 +388,7 @@ const RealClosurePage: React.FC = () => {
                   <div className={`text-2xl font-bold ${closureResult.syscohada_compliant ? 'text-green-900' : 'text-yellow-900'}`}>
                     {closureResult.syscohada_compliant ? '✓' : '⚠'}
                   </div>
-                  <div className={`text-sm ${closureResult.syscohada_compliant ? 'text-green-700' : 'text-yellow-700'}`}>
+                  <div className={`text-sm ${closureResult.syscohada_compliant ? 'text-[var(--color-success-dark)]' : 'text-[var(--color-warning-dark)]'}`}>
                     SYSCOHADA
                   </div>
                 </div>
@@ -396,30 +397,30 @@ const RealClosurePage: React.FC = () => {
 
             {/* Détail des étapes */}
             <div className="bg-white rounded-lg border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Détail des Opérations Comptables</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Détail des Opérations Comptables</h3>
               <div className="space-y-3">
                 {closureResult.steps_completed.map((step, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-[var(--color-background-secondary)] rounded-lg">
                     <div className="flex items-center space-x-3">
                       {step.status === 'completed' ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-5 w-5 text-[var(--color-success)]" />
                       ) : step.status === 'error' ? (
-                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                        <AlertTriangle className="h-5 w-5 text-[var(--color-error)]" />
                       ) : (
-                        <Clock className="h-5 w-5 text-blue-500" />
+                        <Clock className="h-5 w-5 text-[var(--color-primary)]" />
                       )}
                       <div>
-                        <div className="font-medium text-gray-900">{step.step}</div>
+                        <div className="font-medium text-[var(--color-text-primary)]">{step.step}</div>
                         {step.result && (
-                          <div className="text-sm text-gray-600">{step.result}</div>
+                          <div className="text-sm text-[var(--color-text-primary)]">{step.result}</div>
                         )}
                         {step.error && (
-                          <div className="text-sm text-red-600">{step.error}</div>
+                          <div className="text-sm text-[var(--color-error)]">{step.error}</div>
                         )}
                       </div>
                     </div>
 
-                    <button className="p-2 text-gray-400 hover:text-blue-600" title="Voir écritures">
+                    <button className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]" title="Voir écritures" aria-label="Voir les détails">
                       <Eye className="h-4 w-4" />
                     </button>
                   </div>
@@ -429,33 +430,33 @@ const RealClosurePage: React.FC = () => {
 
             {/* Actions post-clôture */}
             <div className="bg-white rounded-lg border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions Post-Clôture</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Actions Post-Clôture</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <button className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 text-center">
-                  <FileText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <div className="font-medium text-gray-900">États Financiers</div>
-                  <div className="text-sm text-gray-600">Générer Bilan & CR</div>
+                <button className="p-4 border border-[var(--color-border)] rounded-lg hover:border-blue-300 hover:bg-[var(--color-primary-lightest)] text-center">
+                  <FileText className="h-8 w-8 text-[var(--color-primary)] mx-auto mb-2" />
+                  <div className="font-medium text-[var(--color-text-primary)]">États Financiers</div>
+                  <div className="text-sm text-[var(--color-text-primary)]">Générer Bilan & CR</div>
                 </button>
 
-                <button className="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 text-center">
-                  <Database className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <div className="font-medium text-gray-900">Journal de Clôture</div>
-                  <div className="text-sm text-gray-600">Consulter écritures</div>
+                <button className="p-4 border border-[var(--color-border)] rounded-lg hover:border-green-300 hover:bg-[var(--color-success-lightest)] text-center">
+                  <Database className="h-8 w-8 text-[var(--color-success)] mx-auto mb-2" />
+                  <div className="font-medium text-[var(--color-text-primary)]">Journal de Clôture</div>
+                  <div className="text-sm text-[var(--color-text-primary)]">Consulter écritures</div>
                 </button>
 
-                <button className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 text-center">
+                <button className="p-4 border border-[var(--color-border)] rounded-lg hover:border-purple-300 hover:bg-purple-50 text-center">
                   <Download className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <div className="font-medium text-gray-900">Export FEC</div>
-                  <div className="text-sm text-gray-600">Fichier d'écritures</div>
+                  <div className="font-medium text-[var(--color-text-primary)]">Export FEC</div>
+                  <div className="text-sm text-[var(--color-text-primary)]">Fichier d'écritures</div>
                 </button>
 
                 <button
                   onClick={generateTrialBalance}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 text-center"
+                  className="p-4 border border-[var(--color-border)] rounded-lg hover:border-orange-300 hover:bg-orange-50 text-center"
                 >
-                  <Calculator className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                  <div className="font-medium text-gray-900">Balance Générale</div>
-                  <div className="text-sm text-gray-600">Voir soldes</div>
+                  <Calculator className="h-8 w-8 text-[var(--color-warning)] mx-auto mb-2" />
+                  <div className="font-medium text-[var(--color-text-primary)]">Balance Générale</div>
+                  <div className="text-sm text-[var(--color-text-primary)]">Voir soldes</div>
                 </button>
               </div>
             </div>
@@ -466,10 +467,10 @@ const RealClosurePage: React.FC = () => {
         {showBalance && trialBalance.length > 0 && (
           <div className="bg-white rounded-lg border p-6 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Balance Générale Post-Clôture</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Balance Générale Post-Clôture</h3>
               <button
                 onClick={() => setShowBalance(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               >
                 ×
               </button>
@@ -477,49 +478,49 @@ const RealClosurePage: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Compte</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Libellé</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Débit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Crédit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Solde Débiteur</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Solde Créditeur</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase">{t('accounting.account')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase">{t('accounting.label')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Total Débit</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Total Crédit</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Solde Débiteur</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Solde Créditeur</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {trialBalance.map((account, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900">
+                    <tr key={index} className="hover:bg-[var(--color-background-secondary)]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-[var(--color-text-primary)]">
                         {account.account_number}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-[var(--color-text-primary)]">
                         {account.account_name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-[var(--color-text-primary)]">
                         {parseFloat(account.total_debit) > 0 ? formatAmount(account.total_debit) : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono text-[var(--color-text-primary)]">
                         {parseFloat(account.total_credit) > 0 ? formatAmount(account.total_credit) : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono font-medium text-blue-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono font-medium text-[var(--color-primary)]">
                         {parseFloat(account.debit_balance) > 0 ? formatAmount(account.debit_balance) : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono font-medium text-green-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-mono font-medium text-[var(--color-success)]">
                         {parseFloat(account.credit_balance) > 0 ? formatAmount(account.credit_balance) : '-'}
                       </td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-gray-100">
+                <tfoot className="bg-[var(--color-background-hover)]">
                   <tr>
-                    <td colSpan={4} className="px-6 py-4 text-right font-semibold text-gray-900">
+                    <td colSpan={4} className="px-6 py-4 text-right font-semibold text-[var(--color-text-primary)]">
                       TOTAUX:
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-blue-600">
+                    <td className="px-6 py-4 text-right font-bold text-[var(--color-primary)]">
                       {formatAmount(trialBalance.reduce((sum, acc) => sum + parseFloat(acc.debit_balance), 0).toString())}
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-green-600">
+                    <td className="px-6 py-4 text-right font-bold text-[var(--color-success)]">
                       {formatAmount(trialBalance.reduce((sum, acc) => sum + parseFloat(acc.credit_balance), 0).toString())}
                     </td>
                   </tr>
@@ -530,28 +531,28 @@ const RealClosurePage: React.FC = () => {
         )}
 
         {/* Informations SYSCOHADA */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">Conformité SYSCOHADA</h3>
+        <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-6 mt-6">
+          <h3 className="text-lg font-semibold text-[var(--color-primary-darker)] mb-4">Conformité SYSCOHADA</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Provisions (Art. 45)</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Provisions (Art. 45)</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• &gt; 6 mois : 50% provision</li>
                 <li>• &gt; 12 mois : 100% provision</li>
                 <li>• Justification documentée</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Amortissements (Art. 42)</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Amortissements (Art. 42)</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Matériel informatique : 3 ans</li>
                 <li>• Matériel bureau : 5 ans</li>
                 <li>• Constructions : 5-20 ans</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Régularisations (Art. 58)</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Régularisations (Art. 58)</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Charges à payer identifiées</li>
                 <li>• Produits à recevoir justifiés</li>
                 <li>• Cut-off strict 31/12</li>

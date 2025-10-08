@@ -167,7 +167,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
       case 'metric':
         return renderMetricWidget();
       default:
-        return <p className="text-gray-500 text-center">Type de widget non supporté</p>;
+        return <p className="text-gray-700 text-center">Type de widget non supporté</p>;
     }
   };
 
@@ -270,7 +270,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
                 }`}>
                   {ratio.value}
                 </span>
-                <p className="text-xs text-gray-500">vs {ratio.benchmark}</p>
+                <p className="text-xs text-gray-700">vs {ratio.benchmark}</p>
               </div>
             </div>
           ))}
@@ -360,7 +360,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
         </div>
         
         {/* Footer avec métadonnées */}
-        <div className="px-3 py-1 border-t bg-gray-50 text-xs text-gray-500 flex items-center justify-between">
+        <div className="px-3 py-1 border-t bg-gray-50 text-xs text-gray-700 flex items-center justify-between">
           <span>
             Maj: {formatDate(new Date(), 'HH:mm')}
           </span>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronRight, Filter, Search, Download } from 'lucide-react';
 
@@ -116,7 +117,7 @@ export function ResponsiveTable<T extends Record<string, any>>({
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             {searchable && (
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-700" />
                 <input
                   type="text"
                   placeholder="Rechercher..."
@@ -216,7 +217,7 @@ export function ResponsiveTable<T extends Record<string, any>>({
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           {searchable && (
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher..."
@@ -292,13 +293,13 @@ export function ResponsiveTable<T extends Record<string, any>>({
                 <td colSpan={columns.length + (expandable ? 1 : 0)} className="px-4 py-8 text-center">
                   <div className="flex justify-center items-center space-x-2">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span>Chargement...</span>
+                    <span>{t('common.loading')}</span>
                   </div>
                 </td>
               </tr>
             ) : sortedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + (expandable ? 1 : 0)} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={columns.length + (expandable ? 1 : 0)} className="px-4 py-8 text-center text-gray-700">
                   Aucune donnée disponible
                 </td>
               </tr>

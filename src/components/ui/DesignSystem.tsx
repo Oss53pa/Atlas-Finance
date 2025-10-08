@@ -43,33 +43,34 @@ export const designTokens = {
       700: '#15803d',  // Vert très foncé
     },
     warning: {
-      50: '#fffbf0',   // Orange très clair inspiré des captures
-      100: '#fef3c7',  // Orange clair
-      200: '#fde68a',  // Orange moyen clair  
-      300: '#fcd34d',  // Orange moyen
-      400: '#f59e0b',  // Orange vif
-      500: '#f0b429',  // Orange principal (même que primary)
-      600: '#e89611',  // Orange foncé
+      50: '#FFF8F0',
+      100: '#FEF3E6',
+      200: '#FDE7CC',
+      300: '#FCDBB3',
+      400: '#FBCF99',
+      500: '#B87333',
+      600: '#A66629',
+      700: '#8B5522',
     },
     error: {
-      50: '#fef2f2',   // Rouge très clair
-      100: '#fee2e2',  // Rouge clair
-      200: '#fecaca',  // Rouge moyen clair
-      300: '#fca5a5',  // Rouge moyen
-      400: '#f87171',  // Rouge vif
-      500: '#ef4444',  // Rouge principal
-      600: '#dc2626',  // Rouge foncé
+      50: '#FEF2F2',
+      100: '#FCE7E7',
+      200: '#F9CFCF',
+      300: '#F6B7B7',
+      400: '#F39F9F',
+      500: '#B85450',
+      600: '#A64C48',
+      700: '#8B403D',
     },
-    // Nouvelle palette pour les graphiques colorés
     chart: {
-      yellow: '#f4c842',
-      orange: '#e89611', 
-      blue: '#3b82f6',
-      green: '#22c55e',
-      purple: '#8b5cf6',
-      pink: '#ec4899',
-      cyan: '#06b6d4',
-      indigo: '#6366f1',
+      primary: '#6A8A82',
+      secondary: '#B87333',
+      tertiary: '#7A99AC',
+      success: '#6A8A82',
+      warning: '#B87333',
+      error: '#B85450',
+      info: '#7A99AC',
+      neutral: '#767676',
     }
   },
   spacing: {
@@ -178,31 +179,31 @@ export const KPICard: React.FC<KPICardProps> = ({
   const colorVariants = {
     primary: {
       bg: 'bg-white/90',
-      icon: 'bg-blue-100 text-blue-600',
-      text: 'text-neutral-800',
-      accent: 'text-blue-600',
-      border: 'border-neutral-200/40'
+      icon: 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      text: 'text-[#191919]',
+      accent: 'text-[#6A8A82]',
+      border: 'border-[#D9D9D9]/40'
     },
     success: {
       bg: 'bg-white/90',
-      icon: 'bg-green-100 text-green-600',
-      text: 'text-neutral-800',
-      accent: 'text-green-600',
-      border: 'border-neutral-200/40'
+      icon: 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      text: 'text-[#191919]',
+      accent: 'text-[#6A8A82]',
+      border: 'border-[#D9D9D9]/40'
     },
     warning: {
       bg: 'bg-white/90',
-      icon: 'bg-amber-100 text-amber-600',
-      text: 'text-neutral-800',
-      accent: 'text-amber-600',
-      border: 'border-neutral-200/40'
+      icon: 'bg-[#B87333]/10 text-[#B87333]',
+      text: 'text-[#191919]',
+      accent: 'text-[#B87333]',
+      border: 'border-[#D9D9D9]/40'
     },
     error: {
       bg: 'bg-white/90',
-      icon: 'bg-red-100 text-red-600',
-      text: 'text-neutral-800',
-      accent: 'text-red-600',
-      border: 'border-neutral-200/40'
+      icon: 'bg-[#B85450]/10 text-[#B85450]',
+      text: 'text-[#191919]',
+      accent: 'text-[#B85450]',
+      border: 'border-[#D9D9D9]/40'
     },
     neutral: {
       bg: 'bg-white/90',
@@ -255,7 +256,7 @@ export const KPICard: React.FC<KPICardProps> = ({
             {trend && (
               <div className={`
                 inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-                ${trend.isPositive ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}
+                ${trend.isPositive ? 'bg-[#6A8A82]/10 text-[#6A8A82]' : 'bg-[#B85450]/10 text-[#B85450]'}
               `}>
                 {trend.value}
               </div>
@@ -307,7 +308,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-8 ${className}`}>
     <div className="flex items-center space-x-4">
       {Icon && (
-        <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
+        <div className="p-3 bg-gradient-to-br from-[#6A8A82] to-[#5A7A72] rounded-2xl shadow-lg">
           <Icon className="h-8 w-8 text-white" />
         </div>
       )}
@@ -347,10 +348,10 @@ export const ElegantButton: React.FC<ElegantButtonProps> = ({
   className = ''
 }) => {
   const variants = {
-    primary: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800',
-    secondary: 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 shadow-sm',
-    outline: 'border-2 border-neutral-200 text-neutral-700 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50/50',
-    ghost: 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+    primary: 'bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] text-white shadow-lg hover:shadow-xl hover:from-[#5A7A72] hover:to-[#4A6A62]',
+    secondary: 'bg-[#ECECEC] text-[#191919] hover:bg-[#D9D9D9] shadow-sm',
+    outline: 'border-2 border-[#D9D9D9] text-[#444444] hover:border-[#6A8A82] hover:text-[#6A8A82] hover:bg-[#6A8A82]/5',
+    ghost: 'text-[#767676] hover:text-[#191919] hover:bg-[#ECECEC]'
   };
 
   const sizes = {

@@ -56,7 +56,7 @@ const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(currentPage - 1)}
         disabled={!canGoPrevious}
         className={cn(
-          "flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700",
+          "flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700",
           !canGoPrevious && "opacity-50 cursor-not-allowed"
         )}
       >
@@ -68,7 +68,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {getVisiblePages().map((page, index) => (
           <React.Fragment key={index}>
             {page === '...' ? (
-              <span className="px-3 py-2 text-sm font-medium text-gray-500">
+              <span className="px-3 py-2 text-sm font-medium text-gray-700">
                 ...
               </span>
             ) : (
@@ -78,7 +78,7 @@ const Pagination: React.FC<PaginationProps> = ({
                   "px-3 py-2 text-sm font-medium rounded-md",
                   page === currentPage
                     ? "bg-indigo-600 text-white"
-                    : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+                    : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700"
                 )}
               >
                 {page}
@@ -92,7 +92,7 @@ const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(currentPage + 1)}
         disabled={!canGoNext}
         className={cn(
-          "flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700",
+          "flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700",
           !canGoNext && "opacity-50 cursor-not-allowed"
         )}
       >

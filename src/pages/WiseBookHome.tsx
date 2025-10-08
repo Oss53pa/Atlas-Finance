@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 
 const WiseBookHome: React.FC = () => {
+  const { t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
@@ -35,13 +37,13 @@ const WiseBookHome: React.FC = () => {
         <nav className="p-4 space-y-2">
           {[
             { icon: '📊', label: 'Dashboard Executive', href: '/executive' },
-            { icon: '📝', label: 'Comptabilité', href: '/accounting' },
+            { icon: '📝', label: t('accounting.title'), href: '/accounting' },
             { icon: '👥', label: 'Clients Avancé', href: '/customers-advanced', badge: 3 },
-            { icon: '🚛', label: 'Fournisseurs', href: '/suppliers-advanced' },
-            { icon: '💰', label: 'Trésorerie', href: '/treasury-advanced', badge: 1 },
+            { icon: '🚛', label: t('navigation.suppliers'), href: '/suppliers-advanced' },
+            { icon: '💰', label: t('navigation.treasury'), href: '/treasury-advanced', badge: 1 },
             { icon: '📈', label: 'Analyse Financière', href: '/financial-analysis-advanced' },
-            { icon: '🏢', label: 'Immobilisations', href: '/assets' },
-            { icon: '💼', label: 'Budget', href: '/budgeting' },
+            { icon: '🏢', label: t('navigation.assets'), href: '/assets' },
+            { icon: '💼', label: t('navigation.budget'), href: '/budgeting' },
           ].map((item, index) => (
             <Link
               key={index}
@@ -75,7 +77,7 @@ const WiseBookHome: React.FC = () => {
               <p className="text-gray-600 mt-1">Interface moderne sans scroll • {new Date().toLocaleDateString('fr-FR')}</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-400 hover:text-gray-600">
+              <button className="relative p-2 text-gray-700 hover:text-gray-600">
                 🔔
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
               </button>
@@ -103,12 +105,12 @@ const WiseBookHome: React.FC = () => {
                   { title: 'Dettes', value: '1.68M', change: 'DPO: 38j', color: 'bg-purple-500' }
                 ].map((kpi, i) => (
                   <div key={i} className="bg-white rounded-lg shadow-sm border-l-4 border-l-gray-200 p-4" 
-                       style={{ borderLeftColor: kpi.color.replace('bg-', '').replace('-500', '') === 'emerald' ? '#10b981' : 
-                                                    kpi.color.replace('bg-', '').replace('-500', '') === 'blue' ? '#3b82f6' :
-                                                    kpi.color.replace('bg-', '').replace('-500', '') === 'amber' ? '#f59e0b' : '#a855f7' }}>
+                       style={{ borderLeftColor: kpi.color.replace('bg-', '').replace('-500', '') === 'emerald' ? '#6A8A82' :
+                                                    kpi.color.replace('bg-', '').replace('-500', '') === 'blue' ? '#7A99AC' :
+                                                    kpi.color.replace('bg-', '').replace('-500', '') === 'amber' ? '#B87333' : '#7A99AC' }}>
                     <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
                     <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
-                    <p className="text-sm text-gray-500">{kpi.change}</p>
+                    <p className="text-sm text-gray-700">{kpi.change}</p>
                   </div>
                 ))}
               </div>
@@ -151,7 +153,7 @@ const WiseBookHome: React.FC = () => {
                     { type: '💸 Paiement exécuté', desc: 'Virement fournisseur XYZ', amount: '-420K', time: '1h' },
                     { type: '🤖 Lettrage IA', desc: '47 lignes rapprochées (98%)', amount: null, time: '2h' },
                     { type: '⚠️ Alerte DSO', desc: 'Client DEF > 50 jours', amount: '125K', time: '3h' },
-                    { type: '📊 TAFIRE généré', desc: 'États financiers Q3', amount: null, time: 'Hier' }
+                    { type: '📊 TAFIRE généré', desc: 'États financiers Q3', amount: null, time: t('time.yesterday') }
                   ].map((activity, i) => (
                     <div key={i} className="p-3 rounded-lg hover:bg-gray-50 border border-gray-100">
                       <div className="flex justify-between items-start">
@@ -165,7 +167,7 @@ const WiseBookHome: React.FC = () => {
                               {activity.amount}
                             </p>
                           )}
-                          <p className="text-xs text-gray-400">{activity.time}</p>
+                          <p className="text-xs text-gray-700">{activity.time}</p>
                         </div>
                       </div>
                     </div>

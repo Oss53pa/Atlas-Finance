@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   Sparkles as SparklesIcon,
   Lightbulb as LightBulbIcon,
@@ -73,6 +75,9 @@ interface TemplateSuggestion {
 }
 
 const IntelligentEntryAssistant: React.FC = () => {
+  const { t } = useLanguage();
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [assistantMode, setAssistantMode] = useState<'GUIDED' | 'SMART' | 'EXPERT'>('SMART');
   const [currentContext, setCurrentContext] = useState<any>({});
   const [suggestions, setSuggestions] = useState<IntelligentSuggestion[]>([]);
@@ -667,8 +672,8 @@ const IntelligentEntryAssistant: React.FC = () => {
                         />
                       ))
                     ) : (
-                      <div className="text-center text-gray-500 py-4">
-                        <LightBulbIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <div className="text-center text-gray-700 py-4">
+                        <LightBulbIcon className="h-8 w-8 mx-auto mb-2 text-gray-700" />
                         <p className="text-sm">Commencez la saisie pour obtenir des suggestions</p>
                       </div>
                     )}
@@ -731,7 +736,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                             <Badge className="bg-green-100 text-green-800">
                               {template.matchScore}% match
                             </Badge>
-                            <p className="text-xs text-gray-500 mt-1">{template.usage} utilisations</p>
+                            <p className="text-xs text-gray-700 mt-1">{template.usage} utilisations</p>
                           </div>
                         </div>
                       </div>
@@ -743,6 +748,14 @@ const IntelligentEntryAssistant: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };
@@ -774,7 +787,7 @@ const IntelligentEntryLine: React.FC<{
               entry.confidence > 80 ? 'bg-green-400' :
               entry.confidence > 60 ? 'bg-yellow-400' : 'bg-red-400'
             }`}></div>
-            <span className="text-xs text-gray-500">{entry.confidence}% confiance</span>
+            <span className="text-xs text-gray-700">{entry.confidence}% confiance</span>
           </div>
         </div>
         
@@ -851,7 +864,7 @@ const IntelligentEntryLine: React.FC<{
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Débit</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1">{t('accounting.debit')}</label>
           <Controller
             name={`entries.${index}.debitAmount`}
             control={control}
@@ -869,7 +882,7 @@ const IntelligentEntryLine: React.FC<{
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Crédit</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1">{t('accounting.credit')}</label>
           <Controller
             name={`entries.${index}.creditAmount`}
             control={control}
@@ -1022,7 +1035,7 @@ const SuggestionCard: React.FC<{
               suggestion.confidence > 80 ? 'bg-green-400' :
               suggestion.confidence > 60 ? 'bg-yellow-400' : 'bg-red-400'
             }`}></div>
-            <span className="text-xs text-gray-500">{suggestion.confidence}%</span>
+            <span className="text-xs text-gray-700">{suggestion.confidence}%</span>
           </div>
           
           <div className="flex items-center space-x-1">

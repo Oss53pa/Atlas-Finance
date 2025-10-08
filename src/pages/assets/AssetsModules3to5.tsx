@@ -1,5 +1,6 @@
 // Modules 3-5: Amortissements IA, Cycle de Vie, Inventaire Auto
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Brain, Calculator, Activity, Calendar, Camera, QrCode,
   Smartphone, CheckCircle, AlertTriangle, MapPin, Plus,
@@ -353,7 +354,7 @@ export const renderAmortissementsIA = () => (
                 <td className="py-3 px-4">
                   <div>
                     <p className="text-sm font-medium">Serveur Dell R740</p>
-                    <p className="text-xs text-gray-500">MAT-2021-001</p>
+                    <p className="text-xs text-gray-700">MAT-2021-001</p>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-center">
@@ -374,11 +375,11 @@ export const renderAmortissementsIA = () => (
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Voir détails">
-                      <Eye className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Voir détails" aria-label="Voir les détails">
+                      <Eye className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="Simuler">
-                      <Calculator className="w-4 h-4 text-gray-500" />
+                      <Calculator className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
                       <Brain className="w-4 h-4 text-purple-500" />
@@ -390,7 +391,7 @@ export const renderAmortissementsIA = () => (
                 <td className="py-3 px-4">
                   <div>
                     <p className="text-sm font-medium">Toyota Hilux</p>
-                    <p className="text-xs text-gray-500">VEH-2022-003</p>
+                    <p className="text-xs text-gray-700">VEH-2022-003</p>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-center">
@@ -411,11 +412,11 @@ export const renderAmortissementsIA = () => (
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Voir détails">
-                      <Eye className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Voir détails" aria-label="Voir les détails">
+                      <Eye className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="Simuler">
-                      <Calculator className="w-4 h-4 text-gray-500" />
+                      <Calculator className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
                       <Brain className="w-4 h-4 text-purple-500" />
@@ -427,7 +428,7 @@ export const renderAmortissementsIA = () => (
                 <td className="py-3 px-4">
                   <div>
                     <p className="text-sm font-medium">Machine CNC</p>
-                    <p className="text-xs text-gray-500">MAT-2019-045</p>
+                    <p className="text-xs text-gray-700">MAT-2019-045</p>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-center">
@@ -448,11 +449,11 @@ export const renderAmortissementsIA = () => (
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Voir détails">
-                      <Eye className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Voir détails" aria-label="Voir les détails">
+                      <Eye className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="Simuler">
-                      <Calculator className="w-4 h-4 text-gray-500" />
+                      <Calculator className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
                       <Brain className="w-4 h-4 text-purple-500" />
@@ -750,7 +751,7 @@ export const renderCycleVie = () => (
                 <td className="py-3 px-4">
                   <div>
                     <p className="text-sm font-medium">Serveur Dell R740</p>
-                    <p className="text-xs text-gray-500">MAT-2021-001</p>
+                    <p className="text-xs text-gray-700">MAT-2021-001</p>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-center">
@@ -776,11 +777,11 @@ export const renderCycleVie = () => (
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Détails cycle">
-                      <Eye className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Détails cycle" aria-label="Voir les détails">
+                      <Eye className="w-4 h-4 text-gray-700" />
                     </button>
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Planifier">
-                      <Calendar className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Planifier" aria-label="Calendrier">
+                      <Calendar className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
                       <Brain className="w-4 h-4 text-purple-500" />
@@ -792,7 +793,7 @@ export const renderCycleVie = () => (
                 <td className="py-3 px-4">
                   <div>
                     <p className="text-sm font-medium">Machine CNC</p>
-                    <p className="text-xs text-gray-500">MAT-2019-045</p>
+                    <p className="text-xs text-gray-700">MAT-2019-045</p>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-center">
@@ -818,11 +819,11 @@ export const renderCycleVie = () => (
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Détails cycle">
-                      <Eye className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Détails cycle" aria-label="Voir les détails">
+                      <Eye className="w-4 h-4 text-gray-700" />
                     </button>
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Planifier">
-                      <Calendar className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Planifier" aria-label="Calendrier">
+                      <Calendar className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
                       <Brain className="w-4 h-4 text-purple-500" />
@@ -834,7 +835,7 @@ export const renderCycleVie = () => (
                 <td className="py-3 px-4">
                   <div>
                     <p className="text-sm font-medium">Toyota Hilux</p>
-                    <p className="text-xs text-gray-500">VEH-2022-003</p>
+                    <p className="text-xs text-gray-700">VEH-2022-003</p>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-center">
@@ -860,11 +861,11 @@ export const renderCycleVie = () => (
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Détails cycle">
-                      <Eye className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Détails cycle" aria-label="Voir les détails">
+                      <Eye className="w-4 h-4 text-gray-700" />
                     </button>
-                    <button className="p-1 hover:bg-gray-100 rounded" title="Planifier">
-                      <Calendar className="w-4 h-4 text-gray-500" />
+                    <button className="p-1 hover:bg-gray-100 rounded" title="Planifier" aria-label="Calendrier">
+                      <Calendar className="w-4 h-4 text-gray-700" />
                     </button>
                     <button className="p-1 hover:bg-gray-100 rounded" title="IA Recommandations">
                       <Brain className="w-4 h-4 text-purple-500" />
@@ -961,7 +962,7 @@ export const renderInventaireAuto = () => {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-green-600">En cours</span>
+                    <span className="text-sm text-green-600">{t('status.inProgress')}</span>
                   </div>
                   <ModernButton variant="outline" size="sm">
                     <Settings className="w-4 h-4 mr-1" />
@@ -992,7 +993,7 @@ export const renderInventaireAuto = () => {
                         <div className="flex items-center justify-between mb-3">
                           <div>
                             <p className="font-medium text-gray-900">{zone.zone}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-700">
                               {zone.verified}/{zone.total} actifs • {zone.anomalies} anomalies
                             </p>
                           </div>
@@ -1020,7 +1021,7 @@ export const renderInventaireAuto = () => {
                             style={{ width: `${(zone.verified / zone.total) * 100}%` }}
                           />
                         </div>
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-gray-700 mt-1">
                           <span>{Math.round((zone.verified / zone.total) * 100)}% complété</span>
                           <span>MAJ: il y a {Math.floor(Math.random() * 60)} min</span>
                         </div>
@@ -1209,28 +1210,28 @@ export const renderInventaireAuto = () => {
                                anomaly.severity === 'medium' ? 'Moyenne' : 'Faible'}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-500 font-mono">{anomaly.code}</p>
+                          <p className="text-sm text-gray-700 font-mono">{anomaly.code}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-500">Assigné à</p>
+                        <p className="text-sm text-gray-700">Assigné à</p>
                         <p className="text-sm font-medium text-gray-900">{anomaly.assignee}</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Attendu:</p>
+                        <p className="text-xs text-gray-700 mb-1">Attendu:</p>
                         <p className="text-sm text-gray-900">{anomaly.expected}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Constaté:</p>
+                        <p className="text-xs text-gray-700 mb-1">Constaté:</p>
                         <p className="text-sm text-gray-900">{anomaly.found}</p>
                       </div>
                     </div>
 
                     <div className="mb-3">
-                      <p className="text-xs text-gray-500 mb-1">Notes:</p>
+                      <p className="text-xs text-gray-700 mb-1">Notes:</p>
                       <p className="text-sm text-gray-700">{anomaly.notes}</p>
                     </div>
 
@@ -1324,16 +1325,16 @@ export const renderInventaireAuto = () => {
                         </div>
                         <div>
                           <p className="text-sm font-medium">{scan.asset}</p>
-                          <p className="text-xs text-gray-500 font-mono">{scan.code}</p>
+                          <p className="text-xs text-gray-700 font-mono">{scan.code}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <MapPin className="w-3 h-3 text-gray-400" />
-                            <span className="text-xs text-gray-500">{scan.location}</span>
+                            <MapPin className="w-3 h-3 text-gray-700" />
+                            <span className="text-xs text-gray-700">{scan.location}</span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-500">Il y a {scan.time}</p>
-                        <p className="text-xs text-gray-400 font-mono">{scan.gps}</p>
+                        <p className="text-xs text-gray-700">Il y a {scan.time}</p>
+                        <p className="text-xs text-gray-700 font-mono">{scan.gps}</p>
                         <div className="mt-1">
                           <button className="text-xs text-blue-600 hover:underline">Détails</button>
                         </div>
@@ -1360,9 +1361,9 @@ export const renderInventaireAuto = () => {
               <div>
                 <h4 className="text-lg font-semibold mb-4">Importer Données d'Inventaire</h4>
                 <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-400 transition-colors cursor-pointer">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Upload className="w-12 h-12 text-gray-700 mx-auto mb-4" />
                   <p className="text-lg font-medium text-gray-900 mb-2">Glisser-déposer ou cliquer</p>
-                  <p className="text-sm text-gray-500 mb-4">Formats supportés: Excel (.xlsx), CSV (.csv)</p>
+                  <p className="text-sm text-gray-700 mb-4">Formats supportés: Excel (.xlsx), CSV (.csv)</p>
                   <ModernButton variant="primary" size="sm">
                     <Upload className="w-4 h-4 mr-2" />
                     Sélectionner Fichier
@@ -1402,7 +1403,7 @@ export const renderInventaireAuto = () => {
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <p className="font-medium text-gray-900">{import_record.file}</p>
-                          <p className="text-xs text-gray-500">{import_record.date}</p>
+                          <p className="text-xs text-gray-700">{import_record.date}</p>
                         </div>
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           import_record.status === 'completed' ? 'bg-green-100 text-green-700' :
@@ -1415,15 +1416,15 @@ export const renderInventaireAuto = () => {
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                          <span className="text-gray-500">Total:</span>
+                          <span className="text-gray-700">Total:</span>
                           <span className="font-medium text-gray-900"> {import_record.records}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Succès:</span>
+                          <span className="text-gray-700">Succès:</span>
                           <span className="font-medium text-green-600"> {import_record.success}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Erreurs:</span>
+                          <span className="text-gray-700">Erreurs:</span>
                           <span className="font-medium text-red-600"> {import_record.errors}</span>
                         </div>
                       </div>
@@ -1549,6 +1550,7 @@ interface AssetsModules3to5Props {
 }
 
 export const AssetsModules3to5: React.FC<AssetsModules3to5Props> = ({ activeModule = 3 }) => {
+  const { t } = useLanguage();
   if (activeModule === 3) {
     return renderAmortissementsIA();
   } else if (activeModule === 4) {

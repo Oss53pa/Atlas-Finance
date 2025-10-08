@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users, Plus, Search, Filter, Download, Eye, Edit, Trash2,
   ArrowLeft, Phone, Mail, MapPin, Calendar, DollarSign,
   Target, TrendingUp, Activity, AlertTriangle, CheckCircle,
   Star, Heart, Award, Clock, CreditCard, FileText,
   BarChart3, PieChart, MessageSquare, User, Building,
-  Handshake, Globe, Share2, Zap, Shield, Package
+  Handshake, Globe, Share2, Zap, Shield, Package, X
 } from 'lucide-react';
+import {
+  LoadingSpinner
+} from '../../components/ui';
+import { tiersService, createPartenaireSchema } from '../../services/modules/tiers.service';
+import { z } from 'zod';
+import { toast } from 'react-hot-toast';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer,
@@ -87,6 +95,7 @@ interface PartenaireAnalytics {
 }
 
 const PartenairesModule: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('reseau');
   const [searchTerm, setSearchTerm] = useState('');
@@ -94,6 +103,96 @@ const PartenairesModule: React.FC = () => {
   const [filterNiveau, setFilterNiveau] = useState('tous');
   const [selectedPartenaire, setSelectedPartenaire] = useState<Partenaire | null>(null);
   const [showPartenaireModal, setShowPartenaireModal] = useState(false);
+  const [formData, setFormData] = useState({
+    type: 'client' as 'client' | 'fournisseur' | 'client_fournisseur',
+    raison_sociale: '',
+    forme_juridique: '',
+    siren: '',
+    siret: '',
+    tva_intracommunautaire: '',
+    adresse: '',
+    ville: '',
+    code_postal: '',
+    pays: 'France',
+    telephone: '',
+    email: '',
+    contact_principal: '',
+    conditions_paiement: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  // Create partenaire mutation
+  const createMutation = useMutation({
+    mutationFn: tiersService.createPartenaire,
+    onSuccess: () => {
+      toast.success('Partenaire créé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['partenaires'] });
+      setShowPartenaireModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de la création');
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      type: 'client',
+      raison_sociale: '',
+      forme_juridique: '',
+      siren: '',
+      siret: '',
+      tva_intracommunautaire: '',
+      adresse: '',
+      ville: '',
+      code_postal: '',
+      pays: 'France',
+      telephone: '',
+      email: '',
+      contact_principal: '',
+      conditions_paiement: '',
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      const validatedData = createPartenaireSchema.parse(formData);
+      await createMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la création');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Mock Partenaires Data
   const mockPartenaires: Partenaire[] = [
@@ -409,7 +508,7 @@ const PartenairesModule: React.FC = () => {
 
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2 bg-gray-50 rounded-lg px-3 py-2">
-              <Search className="w-4 h-4 text-gray-400" />
+              <Search className="w-4 h-4 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher un partenaire..."
@@ -439,9 +538,9 @@ const PartenairesModule: React.FC = () => {
               ))}
             </select>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
-              <span className="text-sm font-semibold">Exporter</span>
+              <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
 
             <button
@@ -735,6 +834,300 @@ const PartenairesModule: React.FC = () => {
             <button className="px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
               Voir les certifications
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Partenaire Modal */}
+      {showPartenaireModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-100 text-green-600 p-2 rounded-lg">
+                  <Handshake className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Nouveau Partenaire</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPartenaireModal(false);
+                  resetForm();
+                }}
+                className="text-gray-700 hover:text-gray-700"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-green-900 mb-1">Ajout d&apos;un Partenaire</h4>
+                      <p className="text-sm text-green-800">Enregistrez un nouveau partenaire dans votre écosystème de distribution et collaboration.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Basic Information */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations de Base</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Raison sociale *</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Ex: CEMAC TECH SOLUTIONS"
+                        value={formData.raison_sociale}
+                        onChange={(e) => handleInputChange('raison_sociale', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.raison_sociale && (
+                        <p className="mt-1 text-sm text-red-600">{errors.raison_sociale}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                      <select
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        value={formData.type}
+                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="client">Client</option>
+                        <option value="fournisseur">Fournisseur</option>
+                        <option value="client_fournisseur">Client & Fournisseur</option>
+                      </select>
+                      {errors.type && (
+                        <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Forme juridique</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Ex: SARL, SA, SAS..."
+                        value={formData.forme_juridique}
+                        onChange={(e) => handleInputChange('forme_juridique', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.forme_juridique && (
+                        <p className="mt-1 text-sm text-red-600">{errors.forme_juridique}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">SIREN (9 chiffres)</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="123456789"
+                        value={formData.siren}
+                        onChange={(e) => handleInputChange('siren', e.target.value)}
+                        disabled={isSubmitting}
+                        maxLength={9}
+                      />
+                      {errors.siren && (
+                        <p className="mt-1 text-sm text-red-600">{errors.siren}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">SIRET (14 chiffres)</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="12345678901234"
+                        value={formData.siret}
+                        onChange={(e) => handleInputChange('siret', e.target.value)}
+                        disabled={isSubmitting}
+                        maxLength={14}
+                      />
+                      {errors.siret && (
+                        <p className="mt-1 text-sm text-red-600">{errors.siret}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">TVA intracommunautaire</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="FR12345678901"
+                        value={formData.tva_intracommunautaire}
+                        onChange={(e) => handleInputChange('tva_intracommunautaire', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.tva_intracommunautaire && (
+                        <p className="mt-1 text-sm text-red-600">{errors.tva_intracommunautaire}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Adresse */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Adresse</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Adresse complète"
+                        value={formData.adresse}
+                        onChange={(e) => handleInputChange('adresse', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.adresse && (
+                        <p className="mt-1 text-sm text-red-600">{errors.adresse}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Ville"
+                        value={formData.ville}
+                        onChange={(e) => handleInputChange('ville', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.ville && (
+                        <p className="mt-1 text-sm text-red-600">{errors.ville}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Code postal *</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Code postal"
+                        value={formData.code_postal}
+                        onChange={(e) => handleInputChange('code_postal', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.code_postal && (
+                        <p className="mt-1 text-sm text-red-600">{errors.code_postal}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Pays"
+                        value={formData.pays}
+                        onChange={(e) => handleInputChange('pays', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.pays && (
+                        <p className="mt-1 text-sm text-red-600">{errors.pays}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                      <input
+                        type="tel"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="+237 6 XX XX XX XX"
+                        value={formData.telephone}
+                        onChange={(e) => handleInputChange('telephone', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.telephone && (
+                        <p className="mt-1 text-sm text-red-600">{errors.telephone}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="contact@partenaire.com"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.email && (
+                        <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact et Conditions */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Contact et Conditions</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Contact principal</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Nom du contact principal"
+                        value={formData.contact_principal}
+                        onChange={(e) => handleInputChange('contact_principal', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.contact_principal && (
+                        <p className="mt-1 text-sm text-red-600">{errors.contact_principal}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Conditions de paiement</label>
+                      <textarea
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        rows={3}
+                        placeholder="Conditions de paiement..."
+                        value={formData.conditions_paiement}
+                        onChange={(e) => handleInputChange('conditions_paiement', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.conditions_paiement && (
+                        <p className="mt-1 text-sm text-red-600">{errors.conditions_paiement}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowPartenaireModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>Création...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>{t('actions.create')}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

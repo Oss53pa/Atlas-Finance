@@ -345,7 +345,7 @@ const MultiExerciseImportManager: React.FC = () => {
                       </div>
                       <div className="mt-2">
                         <div className="text-sm font-medium text-gray-900">{step.name}</div>
-                        <div className="text-xs text-gray-500">{step.description}</div>
+                        <div className="text-xs text-gray-700">{step.description}</div>
                       </div>
                     </div>
                   ))}
@@ -546,16 +546,16 @@ const MultiExerciseImportManager: React.FC = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                             Champ source
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                             Champ SYSCOHADA
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                             Transformation
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                             Aperçu
                           </th>
                         </tr>
@@ -578,7 +578,7 @@ const MultiExerciseImportManager: React.FC = () => {
                               <option>Remplacer</option>
                             </select>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                             401000 → 401000
                           </td>
                         </tr>
@@ -674,10 +674,10 @@ const MultiExerciseImportManager: React.FC = () => {
                         </div>
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center">
-                            <ClockIcon className="h-5 w-5 text-gray-400 mr-2" />
+                            <ClockIcon className="h-5 w-5 text-gray-700 mr-2" />
                             <span className="text-sm text-gray-600">Fichier tiers en attente</span>
                           </div>
-                          <span className="text-sm text-gray-500">0 / 150</span>
+                          <span className="text-sm text-gray-700">0 / 150</span>
                         </div>
                       </div>
 
@@ -703,7 +703,7 @@ const MultiExerciseImportManager: React.FC = () => {
                   disabled={currentStep === 1}
                   className={`px-6 py-2 rounded-lg transition-colors ${
                     currentStep === 1
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      ? 'bg-gray-200 text-gray-700 cursor-not-allowed'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
@@ -724,7 +724,7 @@ const MultiExerciseImportManager: React.FC = () => {
                   className={`px-6 py-2 rounded-lg transition-colors ${
                     ((currentStep === 1 && !selectedSource) ||
                     (currentStep === 2 && selectedExercises.length === 0))
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      ? 'bg-gray-200 text-gray-700 cursor-not-allowed'
                       : currentStep === 5
                       ? 'bg-green-600 text-white hover:bg-green-700'
                       : 'bg-indigo-600 text-white hover:bg-indigo-700'
@@ -743,22 +743,22 @@ const MultiExerciseImportManager: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Session
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Source
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Exercices
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Statut
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Progression
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -769,15 +769,15 @@ const MultiExerciseImportManager: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{session.name}</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-gray-700">
                               {session.startDate?.toLocaleString()}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {session.sourceSystem}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {session.exercises.join(', ')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -806,7 +806,7 @@ const MultiExerciseImportManager: React.FC = () => {
                             <span className="text-xs text-gray-600">{session.progress}%</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           <button className="text-indigo-600 hover:text-indigo-900">
                             Détails
                           </button>
@@ -876,19 +876,19 @@ const MultiExerciseImportManager: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Nom de la règle
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Système source
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Type de données
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Dernière utilisation
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -898,13 +898,13 @@ const MultiExerciseImportManager: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         Sage 100 Standard
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         Sage
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         Plan comptable
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         15/10/2024
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">

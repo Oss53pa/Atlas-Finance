@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   Link,
   CheckCircle,
@@ -68,6 +69,8 @@ interface LettrageStats {
 }
 
 const LettrageAutomatiquePage: React.FC = () => {
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [stats, setStats] = useState<LettrageStats>({
     totalUnmatched: 0,
     autoMatched: 0,
@@ -347,7 +350,7 @@ const LettrageAutomatiquePage: React.FC = () => {
                           Confiance: {match.confidence}%
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">{match.description}</p>
+                      <p className="text-sm text-gray-700 mt-1">{match.description}</p>
                     </div>
                   </div>
 
@@ -366,7 +369,7 @@ const LettrageAutomatiquePage: React.FC = () => {
 
           {matches.length === 0 && (
             <div className="text-center py-12">
-              <Link className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <Link className="h-12 w-12 text-gray-700 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Aucune suggestion disponible
               </h3>
@@ -377,6 +380,14 @@ const LettrageAutomatiquePage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

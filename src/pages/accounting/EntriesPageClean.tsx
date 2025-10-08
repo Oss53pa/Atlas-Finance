@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   FileText, Plus, BarChart3, CheckCircle, Clock, ArrowLeft, Home,
   Calendar, DollarSign, Edit, Eye, Search, Filter, Download
 } from 'lucide-react';
-import ComprehensiveJournalEntry from '../../components/accounting/ComprehensiveJournalEntry';
+import JournalEntryModal from '../../components/accounting/JournalEntryModal';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 
 const EntriesPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('saisie');
+  const [showJournalModal, setShowJournalModal] = useState(false);
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
 
   // Onglets Écritures
   const tabs = [
@@ -94,7 +100,17 @@ const EntriesPage: React.FC = () => {
         <div className="p-6">
           {/* ONGLET 1 : SAISIE */}
           {activeTab === 'saisie' && (
-            <ComprehensiveJournalEntry />
+            <div className="text-center py-12">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Nouvelle Écriture Comptable</h3>
+              <p className="text-gray-600 mb-6">Utilisez le bouton ci-dessous pour créer une nouvelle écriture</p>
+              <button
+                onClick={() => setShowJournalModal(true)}
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Nouvelle Écriture
+              </button>
+            </div>
           )}
 
           {/* ONGLET 2 : CONSULTATION */}
@@ -112,7 +128,7 @@ const EntriesPage: React.FC = () => {
                   </div>
                   <input type="date" className="px-3 py-2 border border-[#D9D9D9] rounded-lg" />
                   <input type="date" className="px-3 py-2 border border-[#D9D9D9] rounded-lg" />
-                  <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+                  <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Filtrer">
                     <Filter className="w-4 h-4 text-[#767676]" />
                   </button>
                 </div>
@@ -124,12 +140,12 @@ const EntriesPage: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">Date</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">Journal</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">{t('common.date')}</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">{t('accounting.journal')}</th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">N° Pièce</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">Libellé</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-[#444444]">Débit</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-[#444444]">Crédit</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">{t('accounting.label')}</th>
+                        <th className="px-4 py-3 text-right text-sm font-medium text-[#444444]">{t('accounting.debit')}</th>
+                        <th className="px-4 py-3 text-right text-sm font-medium text-[#444444]">{t('accounting.credit')}</th>
                         <th className="px-4 py-3 text-center text-sm font-medium text-[#444444]">Statut</th>
                         <th className="px-4 py-3 text-center text-sm font-medium text-[#444444]">Actions</th>
                       </tr>
@@ -144,11 +160,11 @@ const EntriesPage: React.FC = () => {
                         <td className="px-4 py-3 text-sm text-right font-mono">250,000</td>
                         <td className="px-4 py-3 text-sm text-right font-mono">250,000</td>
                         <td className="px-4 py-3 text-center">
-                          <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Validé</span>
+                          <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">{t('accounting.validated')}</span>
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            <button className="text-blue-500 hover:text-blue-700">
+                            <button className="text-blue-500 hover:text-blue-700" aria-label="Voir les détails">
                               <Eye className="w-4 h-4" />
                             </button>
                             <button className="text-green-500 hover:text-green-700">
@@ -177,7 +193,26 @@ const EntriesPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal de saisie d'écriture */}
+      <JournalEntryModal
+        isOpen={showJournalModal}
+        onClose={() => setShowJournalModal(false)}
+      />
     </div>
+  
+
+  {/* Modal de sélection de période */}
+
+  <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
+
+  </div>
+
   );
 };
 

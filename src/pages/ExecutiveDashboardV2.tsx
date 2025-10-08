@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { 
   TrendingUp, TrendingDown, DollarSign, Users, ArrowUpRight, ArrowDownRight, 
   Calendar, Download, Filter, RefreshCw, Activity, Target, AlertCircle, AlertTriangle,
@@ -34,6 +35,7 @@ ChartJS.register(
 );
 
 const ExecutiveDashboardV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState('month');
   const [loading, setLoading] = useState(false);
@@ -71,7 +73,7 @@ const ExecutiveDashboardV2: React.FC = () => {
       path: '/accounting/sig'
     },
     {
-      title: 'Trésorerie',
+      title: t('navigation.treasury'),
       value: '€890K',
       change: '+12.8%',
       trend: 'up' as const,
@@ -94,7 +96,7 @@ const ExecutiveDashboardV2: React.FC = () => {
         fill: true,
         tension: 0.4,
         pointBackgroundColor: '#B87333',
-        pointBorderColor: '#ffffff',
+        pointBorderColor: "var(--color-background-primary)",
         pointBorderWidth: 2,
       }
     ]
@@ -106,7 +108,7 @@ const ExecutiveDashboardV2: React.FC = () => {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#ffffff',
+        backgroundColor: "var(--color-background-primary)",
         titleColor: '#191919',
         bodyColor: '#444444',
         borderColor: '#E8E8E8',
@@ -133,8 +135,8 @@ const ExecutiveDashboardV2: React.FC = () => {
       <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
         <div className="flex items-center space-x-4">
           <button 
-            onClick={() => navigate('/')}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4 text-[#444444]" />
             <span className="text-sm font-semibold text-[#444444]">Workspaces</span>
@@ -157,7 +159,7 @@ const ExecutiveDashboardV2: React.FC = () => {
             <option value="quarter">Ce trimestre</option>
             <option value="year">Cette année</option>
           </select>
-          <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+          <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
             <RefreshCw className="w-4 h-4 text-[#767676]" />
           </button>
           <button className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors">
@@ -172,10 +174,19 @@ const ExecutiveDashboardV2: React.FC = () => {
         {executiveKPIs.map((kpi, index) => {
           const IconComponent = kpi.icon;
           return (
-            <div 
-              key={index} 
+            <div
+              key={index}
+              role="button"
+              tabIndex={0}
               className="bg-white rounded-lg p-4 border border-[#E8E8E8] hover:shadow-lg transition-all cursor-pointer group"
               onClick={() => navigate(kpi.path)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(kpi.path);
+                }
+              }}
+              aria-label={`${kpi.label}: ${kpi.value}`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div 
@@ -186,7 +197,7 @@ const ExecutiveDashboardV2: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className={`text-xs font-medium flex items-center space-x-1 ${
-                    kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    kpi.trend === 'up' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                   }`}>
                     {kpi.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                     <span>{kpi.change}</span>
@@ -212,13 +223,13 @@ const ExecutiveDashboardV2: React.FC = () => {
           <div className="text-center p-4 rounded-lg bg-gradient-to-br from-[#B87333]/10 to-[#A86323]/20">
             <h4 className="font-semibold text-[#B87333] mb-2">Chiffre d'Affaires</h4>
             <p className="text-3xl font-bold text-[#191919] mb-1">2.45M€</p>
-            <p className="text-sm text-green-600">+15.3% vs mois précédent</p>
+            <p className="text-sm text-[var(--color-success)]">+15.3% vs mois précédent</p>
           </div>
           
           <div className="text-center p-4 rounded-lg bg-gradient-to-br from-[#6A8A82]/10 to-[#5A7A72]/20">
             <h4 className="font-semibold text-[#6A8A82] mb-2">Résultat Net</h4>
             <p className="text-3xl font-bold text-[#191919] mb-1">535K€</p>
-            <p className="text-sm text-green-600">Marge: 21.8%</p>
+            <p className="text-sm text-[var(--color-success)]">Marge: 21.8%</p>
           </div>
           
           <div className="text-center p-4 rounded-lg bg-gradient-to-br from-[#7A99AC]/10 to-[#6A89AC]/20">
@@ -269,7 +280,7 @@ const ExecutiveDashboardV2: React.FC = () => {
                   <span className="text-[#444444]">{perf.label}</span>
                   <span className="font-medium text-[#191919]">{perf.current} / {perf.target}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-[var(--color-border)] rounded-full h-2">
                   <div 
                     className="h-2 rounded-full transition-all duration-500"
                     style={{

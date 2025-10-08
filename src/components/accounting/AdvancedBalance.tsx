@@ -1,16 +1,21 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
+import ExportMenu from '../shared/ExportMenu';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, ComposedChart, Area, AreaChart
 } from 'recharts';
 import {
-  TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Eye, Download,
+  TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Eye,
   Printer, Settings, Filter, Search, Calendar, BarChart3, PieChart as PieChartIcon,
   FileText, Users, Building, CreditCard, AlertCircle, RefreshCw, Save,
   ChevronDown, ChevronRight, Grid3X3, Columns, ZoomIn, Mail, FileSpreadsheet
 } from 'lucide-react';
 import './AdvancedBalance.css';
 import Balance from './Balance';
+import PrintableArea from '../ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
 
 interface BalanceData {
   compte: string;
@@ -35,9 +40,11 @@ interface ChartData {
 }
 
 const AdvancedBalance: React.FC = () => {
+  const { t } = useLanguage();
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'generale' | 'analytique'>('dashboard');
-  const [selectedPeriod, setSelectedPeriod] = useState('2025');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2025-01-01', end: '2025-12-31' });
   const [filteredData, setFilteredData] = useState<BalanceData[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
@@ -74,6 +81,11 @@ const AdvancedBalance: React.FC = () => {
     includeCharts: true,
     includeDetails: true,
     showLogos: true
+  });
+
+  const { printRef, handlePrint } = usePrintReport({
+    orientation: printConfig.orientation,
+    fileName: 'balance-avancee.pdf'
   });
 
   // Données simulées
@@ -117,22 +129,48 @@ const AdvancedBalance: React.FC = () => {
   const COLORS = ['#6A8A82', '#B87333', '#E8B4B8', '#A8C8EC', '#D4B5D4', '#FFD93D'];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F0F3F2]">
+      <PrintableArea
+        ref={printRef}
+        orientation={printConfig.orientation}
+        pageSize={printConfig.format}
+        showPrintButton={false}
+        headerContent={
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold">Balance Avancée</h2>
+            <p className="text-sm text-gray-600">Conforme SYSCOHADA - {selectedPeriod}</p>
+          </div>
+        }
+      >
       {/* En-tête principal */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <BarChart3 className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Balance Avancée</h1>
-              <p className="text-sm text-gray-600">Tableau de bord interactif - Conforme SYSCOHADA</p>
+              <h1 className="text-2xl font-bold text-[#191919]">Balance Avancée</h1>
+              <p className="text-sm text-[#191919]/70">Tableau de bord interactif - Conforme SYSCOHADA</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-3">
-            <button 
+            {/* Bouton de sélection de période */}
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="px-3 py-2 border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82] text-left flex items-center space-x-2 hover:bg-gray-50"
+            >
+              <Calendar className="w-4 h-4 text-[#6A8A82]" />
+              <span className="text-sm">
+                {dateRange.start && dateRange.end
+                  ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                  : 'Période'
+                }
+              </span>
+            </button>
+
+            <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#6A8A82] text-white border-[#6A8A82]' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#6A8A82] text-[#F0F3F2] border-[#6A8A82]' : 'bg-[#F0F3F2] text-[#191919]/70 border-[#ECECEC] hover:bg-[#ECECEC]'}`}
             >
               <Filter className="w-4 h-4 mr-2 inline" />
               Filtres
@@ -140,7 +178,7 @@ const AdvancedBalance: React.FC = () => {
             
             <button 
               onClick={() => setShowConfig(!showConfig)}
-              className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 bg-[#F0F3F2] text-[#191919]/70 border border-[#ECECEC] rounded-lg hover:bg-[#ECECEC] transition-colors"
             >
               <Settings className="w-4 h-4 mr-2 inline" />
               Configuration
@@ -148,16 +186,28 @@ const AdvancedBalance: React.FC = () => {
             
             <button 
               onClick={() => setShowPrintPreview(true)}
-              className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 bg-[#F0F3F2] text-[#191919]/70 border border-[#ECECEC] rounded-lg hover:bg-[#ECECEC] transition-colors"
             >
               <Printer className="w-4 h-4 mr-2 inline" />
               Aperçu
             </button>
             
-            <button className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A66B2A] transition-colors">
-              <Download className="w-4 h-4 mr-2 inline" />
-              Exporter
-            </button>
+            <ExportMenu
+              data={filteredData}
+              filename="balance-avancee"
+              columns={[
+                { key: 'compte', label: 'Compte' },
+                { key: 'libelle', label: 'Libellé' },
+                { key: 'debitPrecedent', label: 'Débit Précédent' },
+                { key: 'creditPrecedent', label: 'Crédit Précédent' },
+                { key: 'debitMouvement', label: 'Débit Mouvement' },
+                { key: 'creditMouvement', label: 'Crédit Mouvement' },
+                { key: 'debitSolde', label: 'Débit Solde' },
+                { key: 'creditSolde', label: 'Crédit Solde' },
+                { key: 'type', label: 'Type' }
+              ]}
+              buttonText="Exporter"
+            />
           </div>
         </div>
         
@@ -173,8 +223,8 @@ const AdvancedBalance: React.FC = () => {
               onClick={() => setActiveView(view.id as any)}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeView === view.id 
-                  ? 'bg-[#6A8A82] text-white' 
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[#6A8A82] text-[#F0F3F2]'
+                  : 'text-[#191919]/70 hover:bg-[#ECECEC]'
               }`}
             >
               <view.icon className="w-4 h-4 mr-2 inline" />
@@ -186,28 +236,28 @@ const AdvancedBalance: React.FC = () => {
 
       {/* Filtres avancés (collapsible) */}
       {showFilters && (
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Date début</label>
               <input 
                 type="date" 
                 value={filters.dateDebut}
                 onChange={(e) => setFilters({...filters, dateDebut: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Date fin</label>
               <input 
                 type="date" 
                 value={filters.dateFin}
                 onChange={(e) => setFilters({...filters, dateFin: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Compte (Min)</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Compte (Min)</label>
               <input 
                 type="text" 
                 placeholder="101000"
@@ -217,7 +267,7 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Compte (Max)</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Compte (Max)</label>
               <input 
                 type="text" 
                 placeholder="899999"
@@ -227,9 +277,9 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Recherche libellé</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Recherche libellé</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#191919]/50" />
                 <input
                   type="text"
                   placeholder="Compte ou libellé..."
@@ -240,11 +290,11 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Centre de coût</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Centre de coût</label>
               <select
                 value={filters.centreCout}
                 onChange={(e) => setFilters({...filters, centreCout: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               >
                 <option value="">Tous</option>
                 <option value="CC001">CC001 - Commercial</option>
@@ -264,7 +314,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setFilters({...filters, showZeroBalance: e.target.checked})}
                   className="rounded border-gray-300 text-[#6A8A82] focus:ring-[#6A8A82]"
                 />
-                <span className="text-sm text-gray-700">Afficher soldes nuls</span>
+                <span className="text-sm text-[#191919]/70">Afficher soldes nuls</span>
               </label>
             </div>
             <div className="flex items-center">
@@ -275,7 +325,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setFilters({...filters, onlyMovement: e.target.checked})}
                   className="rounded border-gray-300 text-[#6A8A82] focus:ring-[#6A8A82]"
                 />
-                <span className="text-sm text-gray-700">Avec mouvements seulement</span>
+                <span className="text-sm text-[#191919]/70">Avec mouvements seulement</span>
               </label>
             </div>
             <div className="flex items-center">
@@ -286,7 +336,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setFilters({...filters, onlyUnbalanced: e.target.checked})}
                   className="rounded border-gray-300 text-[#6A8A82] focus:ring-[#6A8A82]"
                 />
-                <span className="text-sm text-gray-700">Déséquilibrés seulement</span>
+                <span className="text-sm text-[#191919]/70">Déséquilibrés seulement</span>
               </label>
             </div>
             <div className="col-span-3 flex items-center justify-end space-x-3">
@@ -306,7 +356,7 @@ const AdvancedBalance: React.FC = () => {
                   onlyUnbalanced: false,
                   showZeroBalance: false
                 })}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-[#ECECEC] text-[#191919]/70 rounded-md hover:bg-[#ECECEC] transition-colors"
               >
                 Réinitialiser
               </button>
@@ -325,12 +375,12 @@ const AdvancedBalance: React.FC = () => {
           
           {/* Indicateurs clés */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Débit</p>
+                  <p className="text-sm font-medium text-[#191919]/70">Total Débit</p>
                   <p className="text-2xl font-bold text-blue-600">{(indicators.totalDebit / 1000000).toFixed(1)}M</p>
-                  <p className="text-xs text-gray-500">XAF</p>
+                  <p className="text-xs text-[#191919]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -338,12 +388,12 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Crédit</p>
+                  <p className="text-sm font-medium text-[#191919]/70">Total Crédit</p>
                   <p className="text-2xl font-bold text-green-600">{(indicators.totalCredit / 1000000).toFixed(1)}M</p>
-                  <p className="text-xs text-gray-500">XAF</p>
+                  <p className="text-xs text-[#191919]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <TrendingDown className="w-6 h-6 text-green-600" />
@@ -351,14 +401,14 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Taux d'Équilibre</p>
+                  <p className="text-sm font-medium text-[#191919]/70">Taux d'Équilibre</p>
                   <p className={`text-2xl font-bold ${indicators.tauxEquilibre > 98 ? 'text-green-600' : 'text-orange-600'}`}>
                     {indicators.tauxEquilibre.toFixed(1)}%
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-700">
                     {indicators.equilibre === 0 ? 'Parfait' : `Écart: ${(indicators.equilibre / 1000).toFixed(0)}K`}
                   </p>
                 </div>
@@ -371,12 +421,12 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Comptes Actifs</p>
+                  <p className="text-sm font-medium text-[#191919]/70">Comptes Actifs</p>
                   <p className="text-2xl font-bold text-[#6A8A82]">{mockBalanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
-                  <p className="text-xs text-gray-500">sur {mockBalanceData.length} total</p>
+                  <p className="text-xs text-gray-700">sur {mockBalanceData.length} total</p>
                 </div>
                 <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
                   <Building className="w-6 h-6 text-[#6A8A82]" />
@@ -389,16 +439,16 @@ const AdvancedBalance: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Évolution par période */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Évolution par Période</h3>
+                <h3 className="text-lg font-semibold text-[#191919]">Évolution par Période</h3>
                 <div className="flex items-center space-x-2">
-                  <select className="px-3 py-1 border border-gray-300 rounded text-sm">
+                  <select className="px-3 py-1 border border-[#ECECEC] rounded text-sm">
                     <option>Mensuelle</option>
                     <option>Trimestrielle</option>
                     <option>Annuelle</option>
                   </select>
-                  <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <button className="p-2 text-[#191919]/50 hover:text-[#191919]/70">
                     <ZoomIn className="w-4 h-4" />
                   </button>
                 </div>
@@ -419,10 +469,10 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Répartition par type */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Répartition par Type</h3>
-                <button className="p-2 text-gray-400 hover:text-gray-600">
+                <h3 className="text-lg font-semibold text-[#191919]">Répartition par Type</h3>
+                <button className="p-2 text-gray-700 hover:text-gray-600" aria-label="Voir les détails">
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
@@ -455,15 +505,15 @@ const AdvancedBalance: React.FC = () => {
           </div>
 
           {/* Top comptes mouvementés */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-[#ECECEC]">
+            <div className="p-6 border-b border-[#ECECEC]">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Top 10 - Comptes les Plus Mouvementés</h3>
+                <h3 className="text-lg font-semibold text-[#191919]">Top 10 - Comptes les Plus Mouvementés</h3>
                 <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                  <button className="px-3 py-1 text-sm border border-[#ECECEC] rounded hover:bg-[#ECECEC]">
                     Débit
                   </button>
-                  <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                  <button className="px-3 py-1 text-sm border border-[#ECECEC] rounded hover:bg-[#ECECEC]">
                     Crédit
                   </button>
                   <button className="px-3 py-1 text-sm bg-[#6A8A82] text-white rounded">
@@ -475,34 +525,34 @@ const AdvancedBalance: React.FC = () => {
             
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[#6A8A82]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rang</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compte</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Libellé</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Mouvement Débit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Mouvement Crédit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Mouvement</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#F0F3F2] uppercase tracking-wider">Rang</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#F0F3F2] uppercase tracking-wider">{t('accounting.account')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#F0F3F2] uppercase tracking-wider">{t('accounting.label')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#F0F3F2] uppercase tracking-wider">Mouvement Débit</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#F0F3F2] uppercase tracking-wider">Mouvement Crédit</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#F0F3F2] uppercase tracking-wider">Total Mouvement</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-[#F0F3F2] uppercase tracking-wider">Statut</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#F0F3F2] divide-y divide-[#ECECEC]">
                   {mockBalanceData
                     .sort((a, b) => (b.debitMouvement + b.creditMouvement) - (a.debitMouvement + a.creditMouvement))
                     .slice(0, 10)
                     .map((item, index) => (
-                      <tr key={item.compte} className="hover:bg-gray-50">
+                      <tr key={item.compte} className="hover:bg-[#ECECEC]">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                              index < 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
+                              index < 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-[#ECECEC] text-[#191919]/70'
                             }`}>
                               {index + 1}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{item.compte}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.libelle}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-[#191919]">{item.compte}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#191919]">{item.libelle}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-blue-600">
                           {item.debitMouvement.toLocaleString()}
                         </td>
@@ -533,23 +583,23 @@ const AdvancedBalance: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* Comptes non lettrés */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-gray-900">Comptes Non Lettrés</h4>
+                <h4 className="text-md font-semibold text-[#191919]">Comptes Non Lettrés</h4>
                 <AlertCircle className="w-5 h-5 text-orange-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Clients (411xxx)</span>
+                  <span className="text-sm text-[#191919]/70">Clients (411xxx)</span>
                   <span className="text-sm font-medium text-orange-600">3 comptes</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Fournisseurs (401xxx)</span>
+                  <span className="text-sm text-[#191919]/70">Fournisseurs (401xxx)</span>
                   <span className="text-sm font-medium text-orange-600">2 comptes</span>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-900">Total non lettré</span>
+                    <span className="text-sm font-medium text-[#191919]">Total non lettré</span>
                     <span className="text-sm font-bold text-orange-600">3.2M XAF</span>
                   </div>
                 </div>
@@ -557,23 +607,23 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Variations significatives */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-gray-900">Variations Importantes</h4>
+                <h4 className="text-md font-semibold text-[#191919]">Variations Importantes</h4>
                 <TrendingUp className="w-5 h-5 text-blue-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-sm font-medium text-gray-900">607000</span>
-                    <p className="text-xs text-gray-500">Achats marchandises</p>
+                    <span className="text-sm font-medium text-[#191919]">607000</span>
+                    <p className="text-xs text-[#191919]/50">Achats marchandises</p>
                   </div>
                   <span className="text-sm font-medium text-red-600">+56%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-sm font-medium text-gray-900">241000</span>
-                    <p className="text-xs text-gray-500">Matériel industriel</p>
+                    <span className="text-sm font-medium text-[#191919]">241000</span>
+                    <p className="text-xs text-[#191919]/50">Matériel industriel</p>
                   </div>
                   <span className="text-sm font-medium text-green-600">+16%</span>
                 </div>
@@ -581,22 +631,22 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Taux de rapprochement */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-gray-900">Taux de Rapprochement</h4>
+                <h4 className="text-md font-semibold text-[#191919]">Taux de Rapprochement</h4>
                 <CheckCircle className="w-5 h-5 text-green-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Rappr. bancaire</span>
+                  <span className="text-sm text-[#191919]/70">Rappr. bancaire</span>
                   <span className="text-sm font-medium text-green-600">98%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Lettrage clients</span>
+                  <span className="text-sm text-[#191919]/70">Lettrage clients</span>
                   <span className="text-sm font-medium text-orange-600">87%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Lettrage fournisseurs</span>
+                  <span className="text-sm text-[#191919]/70">Lettrage fournisseurs</span>
                   <span className="text-sm font-medium text-green-600">94%</span>
                 </div>
               </div>
@@ -616,8 +666,8 @@ const AdvancedBalance: React.FC = () => {
           
           {/* Graphique par centre de coût */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Répartition par Centre de Coût</h3>
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
+              <h3 className="text-lg font-semibold text-[#191919] mb-6">Répartition par Centre de Coût</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
                   { centre: 'CC001 - Commercial', budget: 15000000, reel: 16200000, ecart: 1200000 },
@@ -629,14 +679,14 @@ const AdvancedBalance: React.FC = () => {
                   <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
                   <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
                   <Legend />
-                  <Bar dataKey="budget" fill="#B87333" name="Budget" />
+                  <Bar dataKey="budget" fill="#B87333" name={t('navigation.budget')} />
                   <Bar dataKey="reel" fill="#6A8A82" name="Réel" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Évolution des Écarts</h3>
+            <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
+              <h3 className="text-lg font-semibold text-[#191919] mb-6">Évolution des Écarts</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={[
                   { mois: 'Jan', commercial: 200000, production: -500000, admin: 100000 },
@@ -662,20 +712,20 @@ const AdvancedBalance: React.FC = () => {
           {/* Tableau analytique détaillé */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h4 className="text-md font-semibold text-gray-900">Balance Analytique Détaillée</h4>
+              <h4 className="text-md font-semibold text-[#191919]">Balance Analytique Détaillée</h4>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-purple-50">
+                <thead className="bg-[#6A8A82]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Centre</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Projet</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Budget Initial</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Réalisé</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Écart €</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Écart %</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#F0F3F2] uppercase">Centre</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#F0F3F2] uppercase">Projet</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#F0F3F2] uppercase">Budget Initial</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#F0F3F2] uppercase">Réalisé</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#F0F3F2] uppercase">Écart €</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Écart %</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase">Statut</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -726,13 +776,13 @@ const AdvancedBalance: React.FC = () => {
       {/* Modal Configuration des Colonnes */}
       {showConfig && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-[#F0F3F2] rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b border-[#ECECEC]">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Configuration des Colonnes</h3>
-                <button 
+                <h3 className="text-lg font-semibold text-[#191919]">Configuration des Colonnes</h3>
+                <button
                   onClick={() => setShowConfig(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-[#191919]/50 hover:text-[#191919]/70"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -743,7 +793,7 @@ const AdvancedBalance: React.FC = () => {
             
             <div className="p-6 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#191919] mb-2">
                   Nombre total de colonnes ({columnConfig.totalColumns})
                 </label>
                 <input 
@@ -754,7 +804,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setColumnConfig({...columnConfig, totalColumns: parseInt(e.target.value)})}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-[#191919]/50 mt-1">
                   <span>4 (Minimal)</span>
                   <span>8 (Recommandé)</span>
                   <span>12 (Complet)</span>
@@ -762,7 +812,7 @@ const AdvancedBalance: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="text-md font-medium text-gray-900 mb-4">Colonnes disponibles</h4>
+                <h4 className="text-md font-medium text-[#191919] mb-4">Colonnes disponibles</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { id: 'debitPrecedent', label: 'Débit Précédent' },
@@ -798,10 +848,10 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
             
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button 
+            <div className="p-6 border-t border-[#ECECEC] flex justify-end space-x-3">
+              <button
                 onClick={() => setShowConfig(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-[#191919]/70 border border-[#ECECEC] rounded-lg hover:bg-[#ECECEC]"
               >
                 Annuler
               </button>
@@ -823,28 +873,28 @@ const AdvancedBalance: React.FC = () => {
       {/* Modal Aperçu Avant Impression */}
       {showPrintPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#F0F3F2] rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Aperçu Avant Impression</h3>
+                <h3 className="text-lg font-semibold text-[#191919]">Aperçu Avant Impression</h3>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-gray-600">Format:</label>
+                    <label className="text-sm text-[#191919]/70">Format:</label>
                     <select 
                       value={printConfig.format}
                       onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as any})}
-                      className="px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="px-2 py-1 border border-[#ECECEC] rounded text-sm"
                     >
                       <option value="A4">A4</option>
                       <option value="A3">A3</option>
                     </select>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-gray-600">Orientation:</label>
+                    <label className="text-sm text-[#191919]/70">Orientation:</label>
                     <select 
                       value={printConfig.orientation}
                       onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as any})}
-                      className="px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="px-2 py-1 border border-[#ECECEC] rounded text-sm"
                     >
                       <option value="portrait">Portrait</option>
                       <option value="landscape">Paysage</option>
@@ -852,7 +902,7 @@ const AdvancedBalance: React.FC = () => {
                   </div>
                   <button 
                     onClick={() => setShowPrintPreview(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-[#191919]/50 hover:text-[#191919]/70"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -863,7 +913,7 @@ const AdvancedBalance: React.FC = () => {
             </div>
             
             {/* Options d'impression */}
-            <div className="p-4 bg-gray-50 border-b border-gray-200">
+            <div className="p-4 bg-[#ECECEC] border-b border-[#ECECEC]">
               <div className="flex items-center space-x-6">
                 <label className="flex items-center">
                   <input 
@@ -896,40 +946,40 @@ const AdvancedBalance: React.FC = () => {
             </div>
 
             {/* Prévisualisation */}
-            <div className={`p-8 bg-white ${printConfig.format === 'A3' ? 'text-sm' : 'text-xs'} ${printConfig.orientation === 'landscape' ? 'landscape-preview' : 'portrait-preview'}`}>
+            <div className={`p-8 bg-[#F0F3F2] ${printConfig.format === 'A3' ? 'text-sm' : 'text-xs'} ${printConfig.orientation === 'landscape' ? 'landscape-preview' : 'portrait-preview'}`}>
               
               {/* En-tête du rapport */}
               <div className="text-center mb-6">
                 {printConfig.showLogos && (
                   <div className="flex items-center justify-center mb-4">
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <Building className="w-8 h-8 text-gray-400" />
+                    <div className="w-16 h-16 bg-[#ECECEC] rounded-lg flex items-center justify-center">
+                      <Building className="w-8 h-8 text-[#191919]/50" />
                     </div>
                   </div>
                 )}
-                <h1 className="text-xl font-bold text-gray-900">BALANCE GÉNÉRALE</h1>
-                <p className="text-gray-600">Période du {filters.dateDebut} au {filters.dateFin}</p>
-                <p className="text-gray-500 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')} - Conforme SYSCOHADA</p>
+                <h1 className="text-xl font-bold text-[#191919]">BALANCE GÉNÉRALE</h1>
+                <p className="text-[#191919]/70">Période du {filters.dateDebut} au {filters.dateFin}</p>
+                <p className="text-[#191919]/50 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')} - Conforme SYSCOHADA</p>
               </div>
 
               {/* Résumé des indicateurs */}
-              <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded">
+              <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-[#ECECEC] rounded">
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">Total Débit</div>
+                  <div className="text-xs text-[#191919]/70">Total Débit</div>
                   <div className="font-bold text-blue-600">{(indicators.totalDebit / 1000000).toFixed(1)}M XAF</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">Total Crédit</div>
+                  <div className="text-xs text-[#191919]/70">Total Crédit</div>
                   <div className="font-bold text-green-600">{(indicators.totalCredit / 1000000).toFixed(1)}M XAF</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">Équilibre</div>
+                  <div className="text-xs text-[#191919]/70">Équilibre</div>
                   <div className={`font-bold ${indicators.equilibre === 0 ? 'text-green-600' : 'text-orange-600'}`}>
                     {indicators.equilibre === 0 ? 'Parfait' : `Écart: ${(indicators.equilibre / 1000).toFixed(0)}K`}
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">Comptes Actifs</div>
+                  <div className="text-xs text-[#191919]/70">Comptes Actifs</div>
                   <div className="font-bold text-[#6A8A82]">
                     {mockBalanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}
                   </div>
@@ -937,21 +987,21 @@ const AdvancedBalance: React.FC = () => {
               </div>
 
               {/* Tableau principal */}
-              <table className="w-full border border-gray-300">
+              <table className="w-full border border-[#ECECEC]">
                 <thead>
-                  <tr className="bg-gray-100 border-b border-gray-300">
-                    <th className="border-r border-gray-300 px-2 py-1 text-left font-medium">Compte</th>
-                    <th className="border-r border-gray-300 px-2 py-1 text-left font-medium">Libellé</th>
-                    <th className="border-r border-gray-300 px-2 py-1 text-right font-medium">Solde Débit</th>
-                    <th className="px-2 py-1 text-right font-medium">Solde Crédit</th>
+                  <tr className="bg-[#6A8A82] border-b border-[#ECECEC]">
+                    <th className="border-r border-[#ECECEC] px-2 py-1 text-left font-medium text-[#F0F3F2]">{t('accounting.account')}</th>
+                    <th className="border-r border-[#ECECEC] px-2 py-1 text-left font-medium text-[#F0F3F2]">{t('accounting.label')}</th>
+                    <th className="border-r border-[#ECECEC] px-2 py-1 text-right font-medium text-[#F0F3F2]">Solde Débit</th>
+                    <th className="px-2 py-1 text-right font-medium text-[#F0F3F2]">Solde Crédit</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mockBalanceData.slice(0, 15).map((item) => (
-                    <tr key={item.compte} className="border-b border-gray-200">
-                      <td className="border-r border-gray-200 px-2 py-1 font-mono">{item.compte}</td>
-                      <td className="border-r border-gray-200 px-2 py-1">{item.libelle}</td>
-                      <td className="border-r border-gray-200 px-2 py-1 text-right font-mono">
+                    <tr key={item.compte} className="border-b border-[#ECECEC]">
+                      <td className="border-r border-[#ECECEC] px-2 py-1 font-mono">{item.compte}</td>
+                      <td className="border-r border-[#ECECEC] px-2 py-1">{item.libelle}</td>
+                      <td className="border-r border-[#ECECEC] px-2 py-1 text-right font-mono">
                         {item.debitSolde > 0 ? item.debitSolde.toLocaleString() : '-'}
                       </td>
                       <td className="px-2 py-1 text-right font-mono">
@@ -960,13 +1010,13 @@ const AdvancedBalance: React.FC = () => {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-gray-100 border-t-2 border-gray-400">
+                <tfoot className="bg-[#6A8A82] border-t-2 border-[#ECECEC]">
                   <tr>
-                    <td colSpan={2} className="px-2 py-2 font-bold">TOTAUX</td>
-                    <td className="px-2 py-2 text-right font-mono font-bold border-r border-gray-300">
+                    <td colSpan={2} className="px-2 py-2 font-bold text-[#F0F3F2]">TOTAUX</td>
+                    <td className="px-2 py-2 text-right font-mono font-bold border-r border-[#ECECEC] text-[#F0F3F2]">
                       {indicators.totalDebit.toLocaleString()}
                     </td>
-                    <td className="px-2 py-2 text-right font-mono font-bold">
+                    <td className="px-2 py-2 text-right font-mono font-bold text-[#F0F3F2]">
                       {indicators.totalCredit.toLocaleString()}
                     </td>
                   </tr>
@@ -974,7 +1024,7 @@ const AdvancedBalance: React.FC = () => {
               </table>
 
               {/* Pied de page */}
-              <div className="mt-8 pt-4 border-t border-gray-300 flex justify-between items-center text-xs text-gray-500">
+              <div className="mt-8 pt-4 border-t border-[#ECECEC] flex justify-between items-center text-xs text-[#191919]/50">
                 <div>
                   <p>WiseBook ERP - Balance Générale</p>
                   <p>Système conforme SYSCOHADA</p>
@@ -986,10 +1036,10 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
             
-            <div className="p-6 border-t border-gray-200 flex justify-between">
-              <button 
+            <div className="p-6 border-t border-[#ECECEC] flex justify-between">
+              <button
                 onClick={() => setShowPrintPreview(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-[#191919]/70 border border-[#ECECEC] rounded-lg hover:bg-[#ECECEC]"
               >
                 Fermer
               </button>
@@ -1002,8 +1052,8 @@ const AdvancedBalance: React.FC = () => {
                   <FileSpreadsheet className="w-4 h-4 mr-2 inline" />
                   Exporter Excel
                 </button>
-                <button 
-                  onClick={() => window.print()}
+                <button
+                  onClick={handlePrint}
                   className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
@@ -1014,7 +1064,16 @@ const AdvancedBalance: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </PrintableArea>
+
+    {/* Modal de sélection de période */}
+    <PeriodSelectorModal
+      isOpen={showPeriodModal}
+      onClose={() => setShowPeriodModal(false)}
+      onApply={(range) => setDateRange(range)}
+      initialDateRange={dateRange}
+    />
+  </div>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Shield, Users, Key, Lock, Activity, AlertTriangle, CheckCircle,
@@ -7,12 +8,13 @@ import {
 } from 'lucide-react';
 
 const SecurityModuleV2: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Onglets sécurité
   const tabs = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: Shield },
+    { id: 'dashboard', label: t('dashboard.title'), icon: Shield },
     { id: 'users', label: 'Utilisateurs', icon: Users, badge: '24' },
     { id: 'roles', label: 'Rôles & Permissions', icon: Key },
     { id: 'sessions', label: 'Sessions', icon: Activity },
@@ -261,11 +263,11 @@ const SecurityModuleV2: React.FC = () => {
                   <h3 className="font-semibold text-[#191919]">📋 Audit Trail</h3>
                   <div className="flex items-center space-x-2">
                     <select className="px-3 py-2 border border-[#D9D9D9] rounded-lg text-sm">
-                      <option>Aujourd'hui</option>
+                      <option>{t('common.today')}</option>
                       <option>Cette semaine</option>
                       <option>Ce mois</option>
                     </select>
-                    <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
+                    <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Télécharger">
                       <Download className="w-4 h-4 text-[#767676]" />
                     </button>
                   </div>

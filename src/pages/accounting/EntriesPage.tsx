@@ -1,12 +1,32 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText, Plus, BarChart3, CheckCircle, Clock, ArrowLeft, Home,
-  Calendar, DollarSign, Edit, Eye, Search, Filter, Download, FileType, ChevronDown, X
+  Calendar, DollarSign, Edit, Eye, Search, Filter, Download, FileType, ChevronDown, X, Printer
 } from 'lucide-react';
-import TabbedJournalEntry from '../../components/accounting/TabbedJournalEntry';
+import JournalEntryModal from '../../components/accounting/JournalEntryModal';
+import DataTable, { Column } from '../../components/ui/DataTable';
+import SearchableDropdown from '../../components/ui/SearchableDropdown';
+import PrintableArea from '../../components/ui/PrintableArea';
+import { usePrintReport } from '../../hooks/usePrint';
+
+interface EcritureBrouillard {
+  id: string;
+  numero: string;
+  journal: string;
+  date: string;
+  source: 'Manuel' | 'API';
+  libelle: string;
+  debit: number;
+  credit: number;
+  equilibre: boolean;
+  statut: string;
+  type: string;
+}
 
 const EntriesPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('brouillard');
   const [showEntryModal, setShowEntryModal] = useState(false);
@@ -18,9 +38,249 @@ const EntriesPage: React.FC = () => {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
 
+  // Hook d'impression pour les brouillards
+  const { printRef, handlePrint, isPrinting, PrintWrapper } = usePrintReport({
+    title: `Brouillard des Écritures - ${new Date().toLocaleDateString('fr-FR')}`,
+    orientation: 'landscape',
+    showHeaders: true,
+    showFooters: true
+  });
+
+  // Données des écritures pour DataTable
+  const ecrituresData: EcritureBrouillard[] = [
+    // Écritures manuelles équilibrées
+    {
+      id: 'manual-0',
+      numero: 'AC001',
+      journal: 'AC',
+      date: '10/09/2025',
+      source: 'Manuel',
+      libelle: 'Achat fournitures bureau',
+      debit: 150000,
+      credit: 150000,
+      equilibre: true,
+      statut: 'Brouillon',
+      type: 'achats'
+    },
+    {
+      id: 'manual-1',
+      numero: 'AC002',
+      journal: 'AC',
+      date: '10/09/2025',
+      source: 'Manuel',
+      libelle: 'Achat fournitures bureau',
+      debit: 150000,
+      credit: 150000,
+      equilibre: true,
+      statut: 'Brouillon',
+      type: 'achats'
+    },
+    // Écritures automatiques via API
+    {
+      id: 'auto-0',
+      numero: 'VT004',
+      journal: 'VT',
+      date: '10/09/2025',
+      source: 'API',
+      libelle: 'Vente marchandises CLIENT D',
+      debit: 250000,
+      credit: 210000,
+      equilibre: true,
+      statut: 'Brouillon',
+      type: 'ventes'
+    },
+    {
+      id: 'auto-1',
+      numero: 'VT005',
+      journal: 'VT',
+      date: '10/09/2025',
+      source: 'API',
+      libelle: 'Vente marchandises CLIENT E',
+      debit: 250000,
+      credit: 210000,
+      equilibre: true,
+      statut: 'Brouillon',
+      type: 'ventes'
+    },
+    {
+      id: 'auto-2',
+      numero: 'VT006',
+      journal: 'VT',
+      date: '10/09/2025',
+      source: 'API',
+      libelle: 'Vente marchandises CLIENT F',
+      debit: 250000,
+      credit: 210000,
+      equilibre: true,
+      statut: 'Brouillon',
+      type: 'ventes'
+    },
+    // Écriture déséquilibrée
+    {
+      id: 'od-001',
+      numero: 'OD001',
+      journal: 'OD',
+      date: '09/09/2025',
+      source: 'Manuel',
+      libelle: 'Régularisation charges (à corriger)',
+      debit: 120000,
+      credit: 100000,
+      equilibre: false,
+      statut: 'Brouillon',
+      type: 'operations'
+    }
+  ];
+
+  // Configuration des colonnes pour DataTable
+  const ecrituresColumns: Column<EcritureBrouillard>[] = [
+    {
+      key: 'date',
+      label: t('common.date'),
+      sortable: true,
+      filterable: true,
+      filterType: 'date',
+      width: '100px',
+      render: (item) => (
+        <span className="text-sm text-[var(--color-text-primary)]">{item.date}</span>
+      )
+    },
+    {
+      key: 'source',
+      label: 'Source',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: 'Manuel', label: 'Manuel' },
+        { value: 'API', label: 'API' }
+      ],
+      width: '100px',
+      render: (item) => (
+        <span className={`px-2 py-1 text-xs rounded-full flex items-center w-fit ${
+          item.source === 'Manuel'
+            ? 'bg-[var(--color-info-light)] text-[var(--color-info)]'
+            : 'bg-[var(--color-success-light)] text-[var(--color-success)]'
+        }`}>
+          {item.source === 'Manuel' ? <Edit className="w-3 h-3 mr-1" /> : <BarChart3 className="w-3 h-3 mr-1" />}
+          {item.source}
+        </span>
+      )
+    },
+    {
+      key: 'journal',
+      label: t('accounting.journal'),
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: 'VT', label: 'VT' },
+        { value: 'AC', label: 'AC' },
+        { value: 'BQ', label: 'BQ' },
+        { value: 'CA', label: 'CA' },
+        { value: 'OD', label: 'OD' }
+      ],
+      width: '80px',
+      align: 'center',
+      render: (item) => (
+        <span className="text-sm font-mono text-[#B87333] font-semibold">{item.journal}</span>
+      )
+    },
+    {
+      key: 'numero',
+      label: 'N° Pièce',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '100px',
+      render: (item) => (
+        <span className="text-sm font-mono text-[var(--color-text-primary)]">{item.numero}</span>
+      )
+    },
+    {
+      key: 'libelle',
+      label: t('accounting.label'),
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '250px',
+      render: (item) => (
+        <span className="text-sm text-[var(--color-text-primary)]">{item.libelle}</span>
+      )
+    },
+    {
+      key: 'debit',
+      label: t('accounting.debit'),
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      width: '120px',
+      align: 'right',
+      render: (item) => (
+        <span className="text-sm font-mono text-[var(--color-error)]">
+          {item.debit.toLocaleString()}
+        </span>
+      )
+    },
+    {
+      key: 'credit',
+      label: t('accounting.credit'),
+      sortable: true,
+      filterable: true,
+      filterType: 'number',
+      width: '120px',
+      align: 'right',
+      render: (item) => (
+        <span className="text-sm font-mono text-[var(--color-success)]">
+          {item.credit.toLocaleString()}
+        </span>
+      )
+    },
+    {
+      key: 'equilibre',
+      label: 'Équilibre',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: 'true', label: 'Équilibrée' },
+        { value: 'false', label: 'Déséquilibrée' }
+      ],
+      width: '120px',
+      align: 'center',
+      render: (item) => (
+        <span className={`px-2 py-1 text-xs rounded-full ${
+          item.equilibre
+            ? 'bg-[var(--color-success-light)] text-[var(--color-success)]'
+            : 'bg-[var(--color-error-light)] text-[var(--color-error)]'
+        }`}>
+          {item.equilibre ? <CheckCircle className="w-3 h-3 inline mr-1" /> : <X className="w-3 h-3 inline mr-1" />}
+          {item.equilibre ? 'OK' : 'Déséq.'}
+        </span>
+      )
+    },
+    {
+      key: 'statut',
+      label: t('common.status'),
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: [
+        { value: t('accounting.draft'), label: t('accounting.draft') },
+        { value: t('accounting.validated'), label: t('accounting.validated') }
+      ],
+      width: '100px',
+      align: 'center',
+      render: (item) => (
+        <span className="px-2 py-1 text-xs bg-[var(--color-warning-light)] text-[var(--color-warning)] rounded-full">
+          {item.statut}
+        </span>
+      )
+    }
+  ];
+
   // Onglet unique Brouillard
   const tabs = [
-    { id: 'brouillard', label: 'Brouillard', icon: FileText, badge: '8' },
+    { id: 'brouillard', label: t('accounting.draft'), icon: FileText, badge: '8' },
   ];
 
   // Modèles de saisie
@@ -100,7 +360,7 @@ const EntriesPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">
+            <div className="flex items-center space-x-2 bg-[var(--color-warning-light)] text-[var(--color-warning)] px-3 py-1 rounded-full text-sm">
               <Clock className="w-4 h-4" />
               <span>8 en attente</span>
             </div>
@@ -124,15 +384,15 @@ const EntriesPage: React.FC = () => {
               </button>
 
               {showTemplateDropdown && (
-                <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                  <div className="p-3 border-b border-gray-200">
-                    <h4 className="font-medium text-gray-800">Modèles disponibles</h4>
+                <div className="absolute top-full right-0 mt-2 w-64 bg-[var(--color-surface)] rounded-lg shadow-xl border border-[var(--color-border)] z-50">
+                  <div className="p-3 border-b border-[var(--color-border)]">
+                    <h4 className="font-medium text-[var(--color-text-primary)]">Modèles disponibles</h4>
                   </div>
                   {modelesSaisie.map((modele) => (
-                    <div key={modele.id} className="p-3 hover:bg-gray-50 border-b border-gray-100">
+                    <div key={modele.id} className="p-3 hover:bg-[var(--color-surface-hover)] border-b border-[var(--color-border-light)]">
                       <div className="flex items-center justify-between">
                         <span className="text-sm">{modele.nom}</span>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">{modele.journal}</span>
+                        <span className="px-2 py-1 bg-[var(--color-info-light)] text-[var(--color-info)] text-xs rounded">{modele.journal}</span>
                       </div>
                     </div>
                   ))}
@@ -172,7 +432,7 @@ const EntriesPage: React.FC = () => {
                   <IconComponent className="w-4 h-4" />
                   <span>{tab.label}</span>
                   {tab.badge && (
-                    <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full">
+                    <span className="ml-2 px-2 py-1 text-xs bg-[var(--color-error-light)] text-[var(--color-error)] rounded-full">
                       {tab.badge}
                     </span>
                   )}
@@ -188,278 +448,98 @@ const EntriesPage: React.FC = () => {
           {/* ONGLET BROUILLARD avec validation intégrée */}
           {activeTab === 'brouillard' && (
             <div className="space-y-4">
-              {/* Barre de recherche et actions */}
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className="relative flex-1 max-w-md">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#767676]" />
-                      <input
-                        type="text"
-                        placeholder="Rechercher des écritures..."
-                        className="w-full pl-10 pr-4 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]/20"
-                      />
+              <PrintableArea
+                documentTitle={`Brouillard des Écritures - ${new Date().toLocaleDateString('fr-FR')}`}
+                orientation="landscape"
+                showPrintButton={false}
+                headerContent={
+                  <div className="text-center mb-4">
+                    <h1 className="text-xl font-bold">Brouillard des Écritures Comptables</h1>
+                    <p className="text-sm text-[var(--color-text-secondary)]">
+                      Généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')}
+                    </p>
+                  </div>
+                }
+                footerContent={
+                  <div className="text-center text-xs text-[var(--color-text-tertiary)]">
+                    WiseBook - Logiciel de Comptabilité
+                  </div>
+                }
+              >
+                {/* Statistiques d'impression */}
+                <div className="print-only mb-4 flex justify-center space-x-6">
+                  <div className="text-center">
+                    <span className="text-sm font-medium">Total écritures:</span>
+                    <span className="ml-2 font-bold">{ecrituresData.length}</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-sm font-medium">Équilibrées:</span>
+                    <span className="ml-2 font-bold text-[var(--color-success)]">
+                      {ecrituresData.filter(e => e.equilibre).length}
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-sm font-medium">En attente:</span>
+                    <span className="ml-2 font-bold text-[var(--color-error)]">
+                      {ecrituresData.filter(e => !e.equilibre).length}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Liste des écritures avec DataTable */}
+                <DataTable
+                  columns={ecrituresColumns}
+                  data={ecrituresData}
+                  pageSize={10}
+                  searchable={true}
+                  exportable={true}
+                  refreshable={true}
+                  printable={true}
+                  onPrint={handlePrint}
+                  selectable={false}
+                  actions={(item) => (
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => handleViewEntry({
+                          id: item.id,
+                          numero: item.numero,
+                          journal: item.journal,
+                          date: item.date,
+                          libelle: item.libelle,
+                          debit: item.debit,
+                          credit: item.credit,
+                          type: item.type
+                        })}
+                        className="p-1 hover:bg-[var(--color-info-light)] rounded transition-colors"
+                        title="Voir les détails"
+                      >
+                        <Eye className="w-4 h-4 text-[var(--color-info)]" />
+                      </button>
+                      <button
+                        onClick={() => handleEditEntry({
+                          id: item.id,
+                          numero: item.numero,
+                          journal: item.journal,
+                          date: item.date,
+                          libelle: item.libelle,
+                          debit: item.debit,
+                          credit: item.credit,
+                          type: item.type
+                        })}
+                        className={`p-1 hover:bg-[var(--color-warning-light)] rounded transition-colors ${
+                          item.equilibre ? 'text-[var(--color-text-secondary)]' : 'text-[var(--color-warning)]'
+                        }`}
+                        title={item.equilibre ? "Modifier l'écriture" : "Corriger l'écriture"}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
                     </div>
-                    <input type="date" className="px-3 py-2 border border-[#D9D9D9] rounded-lg" />
-                    <input type="date" className="px-3 py-2 border border-[#D9D9D9] rounded-lg" />
-                    <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50">
-                      <Filter className="w-4 h-4 text-[#767676]" />
-                    </button>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={handleSelectAll}
-                      className="px-3 py-2 text-sm border border-[#D9D9D9] rounded-lg hover:bg-gray-50"
-                    >
-                      {selectedEntries.length === 5 ? 'Tout désélectionner' : 'Tout sélectionner'}
-                    </button>
-                    <button
-                      onClick={handleValidateSelection}
-                      disabled={selectedEntries.length === 0}
-                      className={`px-3 py-2 text-sm rounded-lg flex items-center space-x-1 ${
-                        selectedEntries.length > 0
-                          ? 'bg-green-600 text-white hover:bg-green-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      <span>Valider la sélection ({selectedEntries.length})</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+                  )}
+                  emptyMessage="Aucune écriture en brouillard"
+                  className="bg-white rounded-lg border border-[#E8E8E8] data-table"
+                />
+              </PrintableArea>
 
-              {/* Liste des écritures */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8]">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 w-10">
-                          <input
-                            type="checkbox"
-                            className="rounded border-[#D9D9D9]"
-                            checked={selectedEntries.length === 5}
-                            onChange={handleSelectAll}
-                          />
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">Date</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">Source</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">Journal</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">N° Pièce</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-[#444444]">Libellé</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-[#444444]">Débit</th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-[#444444]">Crédit</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-[#444444]">Équilibre</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-[#444444]">Statut</th>
-                        <th className="px-4 py-3 text-center text-sm font-medium text-[#444444]">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {/* Écritures saisies manuellement équilibrées */}
-                      {[1, 2].map((_, index) => {
-                        const entryId = `manual-${index}`;
-                        const entry = {
-                          id: entryId,
-                          numero: `AC${(index + 1).toString().padStart(3, '0')}`,
-                          journal: 'AC',
-                          date: '10/09/2025',
-                          libelle: 'Achat fournitures bureau',
-                          debit: 150000,
-                          credit: 150000,
-                          type: 'achats'
-                        };
-                        return (
-                        <tr key={entryId} className="hover:bg-gray-50">
-                          <td className="px-4 py-3">
-                            <input
-                              type="checkbox"
-                              className="rounded border-[#D9D9D9]"
-                              checked={selectedEntries.includes(entryId)}
-                              onChange={() => handleToggleEntry(entryId)}
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-sm text-[#444444]">10/09/2025</td>
-                          <td className="px-4 py-3">
-                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full flex items-center w-fit">
-                              <Edit className="w-3 h-3 mr-1" />
-                              Manuel
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm font-mono text-[#B87333]">AC</td>
-                          <td className="px-4 py-3 text-sm font-mono text-[#444444]">AC{(index + 1).toString().padStart(3, '0')}</td>
-                          <td className="px-4 py-3 text-sm text-[#444444]">Achat fournitures bureau</td>
-                          <td className="px-4 py-3 text-sm text-right font-mono text-red-600">150,000</td>
-                          <td className="px-4 py-3 text-sm text-right font-mono text-green-600">150,000</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
-                              <CheckCircle className="w-3 h-3 inline mr-1" />
-                              OK
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                              Brouillard
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center justify-center space-x-1">
-                              <button
-                                className="p-1 hover:bg-gray-100 rounded"
-                                title="Voir"
-                                onClick={() => handleViewEntry(entry)}
-                              >
-                                <Eye className="w-4 h-4 text-[#767676]" />
-                              </button>
-                              <button
-                                className="p-1 hover:bg-gray-100 rounded"
-                                title="Modifier"
-                                onClick={() => handleEditEntry(entry)}
-                              >
-                                <Edit className="w-4 h-4 text-[#767676]" />
-                              </button>
-                              <button
-                                className="p-1 hover:bg-green-100 rounded"
-                                title="Valider"
-                                onClick={() => handleValidateEntry(entryId)}
-                              >
-                                <CheckCircle className="w-4 h-4 text-green-600" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        );
-                      })}
-
-                      {/* Écritures automatiques via API */}
-                      {[3, 4, 5].map((_, index) => {
-                        const entryId = `auto-${index - 3}`;
-                        const entry = {
-                          id: entryId,
-                          numero: `VT${(index + 1).toString().padStart(3, '0')}`,
-                          journal: 'VT',
-                          date: '10/09/2025',
-                          libelle: `Vente marchandises CLIENT ${String.fromCharCode(65 + index)}`,
-                          debit: 250000,
-                          credit: 210000,
-                          type: 'ventes'
-                        };
-                        return (
-                        <tr key={entryId} className="hover:bg-gray-50 bg-green-50/30">
-                          <td className="px-4 py-3">
-                            <input
-                              type="checkbox"
-                              className="rounded border-[#D9D9D9]"
-                              checked={selectedEntries.includes(entryId)}
-                              onChange={() => handleToggleEntry(entryId)}
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-sm text-[#444444]">10/09/2025</td>
-                          <td className="px-4 py-3">
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full flex items-center w-fit">
-                              <BarChart3 className="w-3 h-3 mr-1" />
-                              API
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm font-mono text-[#B87333]">VT</td>
-                          <td className="px-4 py-3 text-sm font-mono text-[#444444]">VT{(index + 1).toString().padStart(3, '0')}</td>
-                          <td className="px-4 py-3 text-sm text-[#444444]">Vente marchandises CLIENT {String.fromCharCode(65 + index)}</td>
-                          <td className="px-4 py-3 text-sm text-right font-mono text-red-600">250,000</td>
-                          <td className="px-4 py-3 text-sm text-right font-mono text-green-600">210,000</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
-                              <CheckCircle className="w-3 h-3 inline mr-1" />
-                              OK
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                              Brouillard
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center justify-center space-x-1">
-                              <button
-                                className="p-1 hover:bg-gray-100 rounded"
-                                title="Voir"
-                                onClick={() => handleViewEntry(entry)}
-                              >
-                                <Eye className="w-4 h-4 text-[#767676]" />
-                              </button>
-                              <button
-                                className="p-1 hover:bg-gray-100 rounded"
-                                title="Modifier"
-                                onClick={() => handleEditEntry(entry)}
-                              >
-                                <Edit className="w-4 h-4 text-[#767676]" />
-                              </button>
-                              <button
-                                className="p-1 hover:bg-green-100 rounded"
-                                title="Valider"
-                                onClick={() => handleValidateEntry(entryId)}
-                              >
-                                <CheckCircle className="w-4 h-4 text-green-600" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                        );
-                      })}
-
-                      {/* Écriture déséquilibrée */}
-                      <tr className="hover:bg-gray-50 bg-red-50/30">
-                        <td className="px-4 py-3">
-                          <input type="checkbox" className="rounded border-[#D9D9D9]" disabled />
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">09/09/2025</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full flex items-center w-fit">
-                            <Edit className="w-3 h-3 mr-1" />
-                            Manuel
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm font-mono text-[#B87333]">OD</td>
-                        <td className="px-4 py-3 text-sm font-mono text-[#444444]">OD001</td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">Régularisation charges (à corriger)</td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-red-600">120,000</td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-green-600">100,000</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">
-                            <X className="w-3 h-3 inline mr-1" />
-                            Déséq.
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                            Brouillard
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 hover:bg-gray-100 rounded" title="Voir">
-                              <Eye className="w-4 h-4 text-[#767676]" />
-                            </button>
-                            <button
-                              className="p-1 hover:bg-orange-100 rounded"
-                              title="Corriger"
-                              onClick={() => handleEditEntry({
-                                id: 'od-001',
-                                numero: 'OD001',
-                                journal: 'OD',
-                                date: '09/09/2025',
-                                libelle: 'Régularisation charges (à corriger)',
-                                type: 'operations'
-                              })}
-                            >
-                              <Edit className="w-4 h-4 text-orange-600" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
           )}
         </div>
@@ -476,20 +556,18 @@ const EntriesPage: React.FC = () => {
       </button>
 
       {/* Modal de nouvelle écriture */}
-      <TabbedJournalEntry
+      <JournalEntryModal
         isOpen={showEntryModal}
         onClose={() => setShowEntryModal(false)}
       />
 
       {/* Modal d'édition d'écriture */}
-      <TabbedJournalEntry
+      <JournalEntryModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
           setEditingEntry(null);
         }}
-        mode="edit"
-        editData={editingEntry}
       />
 
       {/* Modal de détails d'écriture */}
@@ -510,9 +588,9 @@ const EntriesPage: React.FC = () => {
                     </h2>
                     <button
                       onClick={() => setShowDetailsModal(false)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
                     >
-                      <X className="w-5 h-5 text-gray-500" />
+                      <X className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                     </button>
                   </div>
                 </div>
@@ -547,13 +625,13 @@ const EntriesPage: React.FC = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-[#444444]">Débit:</span>
-                          <span className="text-sm font-medium text-red-600">
+                          <span className="text-sm font-medium text-[var(--color-error)]">
                             {selectedEntry.debit?.toLocaleString()} FCFA
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-[#444444]">Crédit:</span>
-                          <span className="text-sm font-medium text-green-600">
+                          <span className="text-sm font-medium text-[var(--color-success)]">
                             {selectedEntry.credit?.toLocaleString()} FCFA
                           </span>
                         </div>
@@ -561,12 +639,12 @@ const EntriesPage: React.FC = () => {
                           <div className="flex justify-between">
                             <span className="text-sm font-medium text-[#444444]">État:</span>
                             {selectedEntry.debit === selectedEntry.credit ? (
-                              <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                              <span className="px-2 py-1 text-xs bg-[var(--color-success-light)] text-[var(--color-success)] rounded-full">
                                 <CheckCircle className="w-3 h-3 inline mr-1" />
                                 Équilibrée
                               </span>
                             ) : (
-                              <span className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">
+                              <span className="px-2 py-1 text-xs bg-[var(--color-error-light)] text-[var(--color-error)] rounded-full">
                                 <X className="w-3 h-3 inline mr-1" />
                                 Déséquilibrée
                               </span>
@@ -582,26 +660,26 @@ const EntriesPage: React.FC = () => {
                     <h3 className="text-sm font-medium text-[#767676] mb-3">Lignes d'écriture</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-[var(--color-surface-hover)]">
                           <tr>
-                            <th className="px-4 py-2 text-left text-sm font-medium text-[#444444]">Compte</th>
-                            <th className="px-4 py-2 text-left text-sm font-medium text-[#444444]">Libellé</th>
-                            <th className="px-4 py-2 text-right text-sm font-medium text-[#444444]">Débit</th>
-                            <th className="px-4 py-2 text-right text-sm font-medium text-[#444444]">Crédit</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-[#444444]">{t('accounting.account')}</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-[#444444]">{t('accounting.label')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-medium text-[#444444]">{t('accounting.debit')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-medium text-[#444444]">{t('accounting.credit')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
                           <tr>
                             <td className="px-4 py-2 text-sm">411000</td>
-                            <td className="px-4 py-2 text-sm">Clients</td>
-                            <td className="px-4 py-2 text-sm text-right text-red-600">150,000</td>
+                            <td className="px-4 py-2 text-sm">{t('navigation.clients')}</td>
+                            <td className="px-4 py-2 text-sm text-right text-[var(--color-error)]">150,000</td>
                             <td className="px-4 py-2 text-sm text-right">-</td>
                           </tr>
                           <tr>
                             <td className="px-4 py-2 text-sm">707000</td>
                             <td className="px-4 py-2 text-sm">Ventes de marchandises</td>
                             <td className="px-4 py-2 text-sm text-right">-</td>
-                            <td className="px-4 py-2 text-sm text-right text-green-600">150,000</td>
+                            <td className="px-4 py-2 text-sm text-right text-[var(--color-success)]">150,000</td>
                           </tr>
                         </tbody>
                       </table>
@@ -616,15 +694,15 @@ const EntriesPage: React.FC = () => {
                       setShowDetailsModal(false);
                       handleEditEntry(selectedEntry);
                     }}
-                    className="px-4 py-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50 flex items-center space-x-2"
+                    className="px-4 py-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-surface-hover)] flex items-center space-x-2"
                   >
                     <Edit className="w-4 h-4" />
-                    <span>Modifier</span>
+                    <span>{t('common.edit')}</span>
                   </button>
                   <div className="flex space-x-3">
                     <button
                       onClick={() => setShowDetailsModal(false)}
-                      className="px-4 py-2 text-[#444444] border border-[#D9D9D9] rounded-lg hover:bg-gray-50"
+                      className="px-4 py-2 text-[#444444] border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-surface-hover)]"
                     >
                       Fermer
                     </button>
@@ -633,10 +711,10 @@ const EntriesPage: React.FC = () => {
                         handleValidateEntry(selectedEntry.id);
                         setShowDetailsModal(false);
                       }}
-                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                      className="px-6 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] flex items-center space-x-2"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      <span>Valider</span>
+                      <span>{t('actions.validate')}</span>
                     </button>
                   </div>
                 </div>
@@ -662,9 +740,9 @@ const EntriesPage: React.FC = () => {
                     <h2 className="text-xl font-bold text-[#191919]">Créer un modèle de saisie</h2>
                     <button
                       onClick={() => setShowTemplateModal(false)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
                     >
-                      <X className="w-5 h-5 text-gray-500" />
+                      <X className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                     </button>
                   </div>
                 </div>
@@ -693,14 +771,20 @@ const EntriesPage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-[#444444] mb-2">Journal par défaut *</label>
-                    <select className="w-full px-3 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]/20">
-                      <option value="">Sélectionnez un journal</option>
-                      <option value="AC">AC - Achats</option>
-                      <option value="VE">VE - Ventes</option>
-                      <option value="BQ">BQ - Banque</option>
-                      <option value="CA">CA - Caisse</option>
-                      <option value="OD">OD - Opérations Diverses</option>
-                    </select>
+                    <SearchableDropdown
+                      options={[
+                        { value: 'AC', label: 'AC - Achats' },
+                        { value: 'VE', label: 'VE - Ventes' },
+                        { value: 'BQ', label: 'BQ - Banque' },
+                        { value: 'CA', label: 'CA - Caisse' },
+                        { value: 'OD', label: 'OD - Opérations Diverses' }
+                      ]}
+                      value=""
+                      onChange={() => {}}
+                      placeholder="Sélectionnez un journal"
+                      searchPlaceholder="Rechercher un journal..."
+                      clearable
+                    />
                   </div>
 
                   <div>
@@ -712,14 +796,14 @@ const EntriesPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="border rounded-lg p-4 bg-[var(--color-surface-hover)]">
                     <h3 className="text-sm font-medium text-[#444444] mb-3">Lignes d'écriture par défaut</h3>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <input type="text" placeholder="Compte" className="w-24 px-2 py-1 border rounded text-sm" />
-                        <input type="text" placeholder="Libellé" className="flex-1 px-2 py-1 border rounded text-sm" />
-                        <input type="text" placeholder="Débit" className="w-24 px-2 py-1 border rounded text-sm" />
-                        <input type="text" placeholder="Crédit" className="w-24 px-2 py-1 border rounded text-sm" />
+                        <input type="text" placeholder={t('accounting.account')} className="w-24 px-2 py-1 border rounded text-sm" />
+                        <input type="text" placeholder={t('accounting.label')} className="flex-1 px-2 py-1 border rounded text-sm" />
+                        <input type="text" placeholder={t('accounting.debit')} className="w-24 px-2 py-1 border rounded text-sm" />
+                        <input type="text" placeholder={t('accounting.credit')} className="w-24 px-2 py-1 border rounded text-sm" />
                       </div>
                     </div>
                     <button className="mt-3 text-sm text-[#6A8A82] hover:text-[#5A7A72] flex items-center space-x-1">
@@ -730,7 +814,7 @@ const EntriesPage: React.FC = () => {
 
                   <div>
                     <label className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded border-[#D9D9D9]" />
+                      <input type="checkbox" className="rounded border-[var(--color-border)]" />
                       <span className="text-sm text-[#444444]">Activer ce modèle</span>
                     </label>
                   </div>
@@ -740,7 +824,7 @@ const EntriesPage: React.FC = () => {
                 <div className="p-6 border-t border-[#E8E8E8] flex justify-end space-x-3">
                   <button
                     onClick={() => setShowTemplateModal(false)}
-                    className="px-4 py-2 text-[#444444] border border-[#D9D9D9] rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-[#444444] border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-surface-hover)]"
                   >
                     Annuler
                   </button>

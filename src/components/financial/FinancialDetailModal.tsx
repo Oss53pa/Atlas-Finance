@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { X, Eye, Download, Filter, ChevronRight, ArrowUpRight } from 'lucide-react';
 
 interface FinancialItem {
@@ -39,6 +40,7 @@ interface ModalProps {
 }
 
 const FinancialDetailModal: React.FC<ModalProps> = ({
+  const { t } = useLanguage();
   isOpen,
   onClose,
   title,
@@ -72,10 +74,10 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-700">Sous-comptes détaillés</h4>
         <div className="flex space-x-2">
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+          <button className="p-2 text-gray-700 hover:text-gray-700 hover:bg-gray-100 rounded" aria-label="Filtrer">
             <Filter className="w-4 h-4" />
           </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+          <button className="p-2 text-gray-700 hover:text-gray-700 hover:bg-gray-100 rounded" aria-label="Télécharger">
             <Download className="w-4 h-4" />
           </button>
         </div>
@@ -87,7 +89,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-left p-3 font-semibold text-gray-700">Code</th>
-                <th className="text-left p-3 font-semibold text-gray-700">Libellé</th>
+                <th className="text-left p-3 font-semibold text-gray-700">{t('accounting.label')}</th>
                 <th className="text-right p-3 font-semibold text-gray-700">Montant</th>
                 <th className="text-center p-3 font-semibold text-gray-700">Actions</th>
               </tr>
@@ -103,8 +105,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
                   <td className="p-3 text-center">
                     <button
                       className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                      title="Voir les détails"
-                    >
+                      title="Voir les détails" aria-label="Voir les détails">
                       <Eye className="w-4 h-4" />
                     </button>
                   </td>
@@ -114,7 +115,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
           </table>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-700">
           <p>Aucun sous-compte disponible pour {code}</p>
         </div>
       )}
@@ -126,10 +127,10 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-700">Transactions détaillées</h4>
         <div className="flex space-x-2">
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+          <button className="p-2 text-gray-700 hover:text-gray-700 hover:bg-gray-100 rounded" aria-label="Filtrer">
             <Filter className="w-4 h-4" />
           </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+          <button className="p-2 text-gray-700 hover:text-gray-700 hover:bg-gray-100 rounded" aria-label="Télécharger">
             <Download className="w-4 h-4" />
           </button>
         </div>
@@ -140,13 +141,13 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left p-3 font-semibold text-gray-700">Date</th>
-                <th className="text-left p-3 font-semibold text-gray-700">Pièce</th>
+                <th className="text-left p-3 font-semibold text-gray-700">{t('common.date')}</th>
+                <th className="text-left p-3 font-semibold text-gray-700">{t('accounting.piece')}</th>
                 <th className="text-left p-3 font-semibold text-gray-700">Tiers</th>
-                <th className="text-left p-3 font-semibold text-gray-700">Libellé</th>
-                <th className="text-right p-3 font-semibold text-gray-700">Débit</th>
-                <th className="text-right p-3 font-semibold text-gray-700">Crédit</th>
-                <th className="text-right p-3 font-semibold text-gray-700">Solde</th>
+                <th className="text-left p-3 font-semibold text-gray-700">{t('accounting.label')}</th>
+                <th className="text-right p-3 font-semibold text-gray-700">{t('accounting.debit')}</th>
+                <th className="text-right p-3 font-semibold text-gray-700">{t('accounting.credit')}</th>
+                <th className="text-right p-3 font-semibold text-gray-700">{t('accounting.balance')}</th>
               </tr>
             </thead>
             <tbody>
@@ -171,7 +172,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
           </table>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-700">
           <p>Aucune transaction disponible pour {code}</p>
         </div>
       )}
@@ -182,7 +183,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-700">Analyse comparative</h4>
-        <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+        <button className="p-2 text-gray-700 hover:text-gray-700 hover:bg-gray-100 rounded" aria-label="Télécharger">
           <Download className="w-4 h-4" />
         </button>
       </div>
@@ -238,10 +239,10 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-700">Détails de composition</h4>
         <div className="flex space-x-2">
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+          <button className="p-2 text-gray-700 hover:text-gray-700 hover:bg-gray-100 rounded" aria-label="Filtrer">
             <Filter className="w-4 h-4" />
           </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+          <button className="p-2 text-gray-700 hover:text-gray-700 hover:bg-gray-100 rounded" aria-label="Télécharger">
             <Download className="w-4 h-4" />
           </button>
         </div>
@@ -252,7 +253,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
           {data.details.map((item, index) => (
             <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
               <div className="flex items-center space-x-3">
-                <span className="text-xs font-mono text-gray-500 bg-white px-2 py-1 rounded">
+                <span className="text-xs font-mono text-gray-700 bg-white px-2 py-1 rounded">
                   {item.code}
                 </span>
                 <span className="text-sm text-gray-700">{item.libelle}</span>
@@ -261,7 +262,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
                 <span className="text-sm font-semibold text-gray-900">
                   {formatCurrency(item.montant)}
                 </span>
-                <button className="p-1 text-gray-400 hover:text-gray-600 hover:bg-white rounded">
+                <button className="p-1 text-gray-700 hover:text-gray-600 hover:bg-white rounded" aria-label="Suivant">
                   <ChevronRight className="w-3 h-3" />
                 </button>
               </div>
@@ -269,7 +270,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-700">
           <p>Aucun détail disponible pour {code}</p>
         </div>
       )}
@@ -313,8 +314,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+            className="p-2 text-gray-700 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -326,7 +326,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
 
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-700">
             Dernière mise à jour: {new Date().toLocaleDateString('fr-FR')}
           </div>
           <div className="flex space-x-2">

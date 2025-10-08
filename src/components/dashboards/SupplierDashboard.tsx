@@ -3,7 +3,9 @@
  * Optimisation des paiements et gestion des dettes selon spécifications 3.0
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   Truck,
   CreditCard,
@@ -62,7 +64,6 @@ interface SupplierDashboardProps {
 }
 
 interface DashboardFilters {
-  period: string;
   supplierType: string;
   paymentStatus: string;
   performanceLevel: string;
@@ -89,12 +90,18 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
   companyId,
   fiscalYearId
 }) => {
+  const { t } = useLanguage();
   // États du dashboard
   const [filters, setFilters] = useState<DashboardFilters>({
-    period: 'current_month',
     supplierType: 'all',
     paymentStatus: 'all',
     performanceLevel: 'all'
+  });
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    period: 'month' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
   });
 
   const [selectedView, setSelectedView] = useState<'overview' | 'payments' | 'performance' | 'optimization'>('overview');
@@ -102,20 +109,20 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
   // Queries principales
   const { data: kpiData, isLoading: kpiLoading, refetch: refetchKPIs } = useQuery({
-    queryKey: ['supplier-kpis', companyId, fiscalYearId, filters],
-    queryFn: () => supplierService.getKPIData({ companyId, fiscalYearId, filters }),
+    queryKey: ['supplier-kpis', companyId, fiscalYearId, filters, dateRange],
+    queryFn: () => supplierService.getKPIData({ companyId, fiscalYearId, filters, dateRange }),
     refetchInterval: autoRefresh ? 300000 : false, // 5 minutes
   });
 
   const { data: paymentOptimization, isLoading: paymentLoading } = useQuery({
-    queryKey: ['payment-optimization', companyId, filters],
-    queryFn: () => supplierService.getPaymentOptimization({ companyId, filters }),
+    queryKey: ['payment-optimization', companyId, filters, dateRange],
+    queryFn: () => supplierService.getPaymentOptimization({ companyId, filters, dateRange }),
     refetchInterval: autoRefresh ? 300000 : false,
   });
 
   const { data: supplierAnalytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['supplier-analytics', companyId, filters],
-    queryFn: () => supplierService.getSupplierAnalytics({ companyId, filters }),
+    queryKey: ['supplier-analytics', companyId, filters, dateRange],
+    queryFn: () => supplierService.getSupplierAnalytics({ companyId, filters, dateRange }),
   });
 
   const { data: performanceData, isLoading: performanceLoading } = useQuery({
@@ -200,10 +207,10 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
       {/* Header avec contrôles */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
             Dashboard Comptabilité Fournisseur
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-[var(--color-text-primary)] mt-1">
             Optimisation des paiements et gestion des dettes
           </p>
         </div>
@@ -213,7 +220,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={autoRefresh ? 'bg-green-50 border-green-200' : ''}
+            className={autoRefresh ? 'bg-[var(--color-success-lightest)] border-[var(--color-success-light)]' : ''}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
             {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
@@ -242,17 +249,22 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
       <Card>
         <CardContent className="p-4">
           <div className="grid gap-4 md:grid-cols-4">
-            <Select value={filters.period} onValueChange={(value) => handleFilterChange('period', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Période" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="current_month">Mois en cours</SelectItem>
-                <SelectItem value="current_quarter">Trimestre</SelectItem>
-                <SelectItem value="current_year">Année</SelectItem>
-                <SelectItem value="last_12_months">12 mois</SelectItem>
-              </SelectContent>
-            </Select>
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Calendar className="w-4 h-4 text-gray-700" />
+              <span>
+                {dateRange.period === 'custom'
+                  ? `${dateRange.startDate} - ${dateRange.endDate}`
+                  : dateRange.period === 'day' ? 'Aujourd\'hui'
+                  : dateRange.period === 'week' ? 'Cette semaine'
+                  : dateRange.period === 'month' ? 'Ce mois'
+                  : dateRange.period === 'quarter' ? 'Ce trimestre'
+                  : 'Cette année'
+                }
+              </span>
+            </button>
 
             <Select value={filters.supplierType} onValueChange={(value) => handleFilterChange('supplierType', value)}>
               <SelectTrigger>
@@ -272,7 +284,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous statuts</SelectItem>
-                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="pending">{t('status.pending')}</SelectItem>
                 <SelectItem value="approved">Approuvé</SelectItem>
                 <SelectItem value="paid">Payé</SelectItem>
                 <SelectItem value="overdue">En retard</SelectItem>
@@ -323,18 +335,18 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                             <Icon className={`h-6 w-6 text-${kpi.color}-600`} />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
-                            <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
+                            <p className="text-sm font-medium text-[var(--color-text-primary)]">{kpi.title}</p>
+                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{kpi.value}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className={`flex items-center ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className={`flex items-center ${isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                             <TrendIcon className="h-4 w-4 mr-1" />
                             <span className="text-sm font-medium">
                               {Math.abs(kpi.change)}%
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">vs période préc.</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-1">vs période préc.</p>
                         </div>
                       </div>
                     </CardContent>
@@ -360,29 +372,29 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 ) : (
                   <div className="space-y-3">
                     {paymentOptimization?.upcomingPayments?.map((payment, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-[var(--color-background-secondary)]">
                         <div className="flex items-center space-x-3">
                           <Badge className={`
-                            ${payment.urgency === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                              payment.urgency === 'DUE_TODAY' ? 'bg-orange-100 text-orange-800' :
-                              payment.urgency === 'DUE_SOON' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-blue-100 text-blue-800'}
+                            ${payment.urgency === 'OVERDUE' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]' :
+                              payment.urgency === 'DUE_TODAY' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]' :
+                              payment.urgency === 'DUE_SOON' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                              'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'}
                           `}>
                             {payment.urgency}
                           </Badge>
                           <div>
                             <p className="font-medium">{payment.supplierName}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-[var(--color-text-secondary)]">
                               {payment.invoiceCount} facture(s) • Échéance: {formatDate(payment.dueDate)}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-purple-600">
+                          <p className="font-bold text-[var(--color-info)]">
                             {formatCurrency(payment.amount)}
                           </p>
                           {payment.discountAmount > 0 && (
-                            <p className="text-sm text-green-600">
+                            <p className="text-sm text-[var(--color-success)]">
                               Escompte: -{formatCurrency(payment.discountAmount)}
                             </p>
                           )}
@@ -410,8 +422,8 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     data={supplierAnalytics?.purchaseTrends || []}
                     xAxisKey="month"
                     lines={[
-                      { key: 'totalCost', name: 'Coût total', color: '#8B5CF6' },
-                      { key: 'savedAmount', name: 'Économies', color: '#10B981' }
+                      { key: 'totalCost', name: 'Coût total', color: "var(--color-info)" },
+                      { key: 'savedAmount', name: 'Économies', color: "var(--color-success)" }
                     ]}
                     height={300}
                   />
@@ -451,20 +463,20 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 <div className="space-y-4">
                   {/* Résumé des économies possibles */}
                   <div className="grid gap-4 md:grid-cols-3 mb-6">
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <p className="text-sm font-medium text-green-800">Économies Potentielles</p>
+                    <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg border border-[var(--color-success-light)]">
+                      <p className="text-sm font-medium text-[var(--color-success-darker)]">Économies Potentielles</p>
                       <p className="text-xl font-bold text-green-900">
                         {formatCurrency(paymentOptimization?.totalPotentialSavings || 0)}
                       </p>
                     </div>
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <p className="text-sm font-medium text-blue-800">Montant à Payer</p>
-                      <p className="text-xl font-bold text-blue-900">
+                    <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg border border-[var(--color-primary-light)]">
+                      <p className="text-sm font-medium text-[var(--color-primary-darker)]">Montant à Payer</p>
+                      <p className="text-xl font-bold text-[var(--color-primary-darker)]">
                         {formatCurrency(paymentOptimization?.totalPaymentAmount || 0)}
                       </p>
                     </div>
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                      <p className="text-sm font-medium text-purple-800">ROI Optimisation</p>
+                    <div className="bg-[var(--color-info-lightest)] p-4 rounded-lg border border-purple-200">
+                      <p className="text-sm font-medium text-[var(--color-info-darker)]">ROI Optimisation</p>
                       <p className="text-xl font-bold text-purple-900">
                         {formatPercent(paymentOptimization?.optimizationROI || 0)}
                       </p>
@@ -476,31 +488,31 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     {paymentOptimization?.smartProposals?.map((proposal, index) => (
                       <div key={index} className={`
                         p-4 border rounded-lg 
-                        ${proposal.priority === 'HIGH' ? 'border-green-300 bg-green-50' :
-                          proposal.priority === 'MEDIUM' ? 'border-blue-300 bg-blue-50' :
-                          'border-gray-300 bg-gray-50'}
+                        ${proposal.priority === 'HIGH' ? 'border-green-300 bg-[var(--color-success-lightest)]' :
+                          proposal.priority === 'MEDIUM' ? 'border-blue-300 bg-[var(--color-primary-lightest)]' :
+                          'border-[var(--color-border-dark)] bg-[var(--color-background-secondary)]'}
                       `}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <Badge className={`
-                              ${proposal.type === 'EARLY_PAYMENT' ? 'bg-green-100 text-green-800' :
-                                proposal.type === 'GROUPED_PAYMENT' ? 'bg-blue-100 text-blue-800' :
-                                'bg-purple-100 text-purple-800'}
+                              ${proposal.type === 'EARLY_PAYMENT' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                                proposal.type === 'GROUPED_PAYMENT' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                                'bg-[var(--color-info-lighter)] text-[var(--color-info-darker)]'}
                             `}>
                               {proposal.type === 'EARLY_PAYMENT' ? 'Escompte' :
                                proposal.type === 'GROUPED_PAYMENT' ? 'Groupé' : 'Optimisé'}
                             </Badge>
                             <div>
                               <p className="font-medium">{proposal.supplierName}</p>
-                              <p className="text-sm text-gray-600">{proposal.optimization}</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">{proposal.optimization}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-purple-600">
+                            <p className="font-bold text-[var(--color-info)]">
                               {formatCurrency(proposal.totalAmount)}
                             </p>
                             {proposal.discountAmount && (
-                              <p className="text-sm text-green-600 font-medium">
+                              <p className="text-sm text-[var(--color-success)] font-medium">
                                 Économie: {formatCurrency(proposal.discountAmount)}
                               </p>
                             )}
@@ -510,7 +522,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                               </Button>
                               <Button 
                                 size="sm"
-                                className="bg-green-600 hover:bg-green-700 text-white"
+                                className="bg-[var(--color-success)] hover:bg-[var(--color-success-dark)] text-white"
                                 onClick={() => handleExecutePayment(proposal.id)}
                               >
                                 <CheckCircle className="h-3 w-3 mr-1" />
@@ -540,9 +552,9 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 data={paymentOptimization?.cashFlowSimulation || []}
                 xAxisKey="date"
                 lines={[
-                  { key: 'plannedOutflow', name: 'Sorties planifiées', color: '#EF4444' },
-                  { key: 'optimizedOutflow', name: 'Sorties optimisées', color: '#10B981' },
-                  { key: 'cashPosition', name: 'Position trésorerie', color: '#3B82F6' }
+                  { key: 'plannedOutflow', name: 'Sorties planifiées', color: "var(--color-error)" },
+                  { key: 'optimizedOutflow', name: 'Sorties optimisées', color: "var(--color-success)" },
+                  { key: 'cashPosition', name: 'Position trésorerie', color: "var(--color-primary)" }
                 ]}
                 height={300}
               />
@@ -579,19 +591,19 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 <div className="space-y-6">
                   {/* Top Performers */}
                   <div>
-                    <h4 className="font-medium text-green-800 mb-3 flex items-center">
+                    <h4 className="font-medium text-[var(--color-success-darker)] mb-3 flex items-center">
                       <Award className="h-4 w-4 mr-2" />
                       Top Performers
                     </h4>
                     <div className="space-y-2">
                       {performanceData?.topPerformers?.map((supplier, index) => (
-                        <div key={supplier.code} className="flex items-center justify-between p-2 bg-green-50 rounded">
+                        <div key={supplier.code} className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
                           <span className="font-medium">{supplier.name}</span>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm font-bold text-green-700">
+                            <span className="text-sm font-bold text-[var(--color-success-dark)]">
                               {supplier.score}/100
                             </span>
-                            <Badge className="bg-green-100 text-green-800">A</Badge>
+                            <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">A</Badge>
                           </div>
                         </div>
                       ))}
@@ -600,19 +612,19 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
                   {/* Attention Requise */}
                   <div>
-                    <h4 className="font-medium text-red-800 mb-3 flex items-center">
+                    <h4 className="font-medium text-[var(--color-error-darker)] mb-3 flex items-center">
                       <AlertCircle className="h-4 w-4 mr-2" />
                       Attention Requise
                     </h4>
                     <div className="space-y-2">
                       {performanceData?.requiresAttention?.map((supplier, index) => (
-                        <div key={supplier.code} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                        <div key={supplier.code} className="flex items-center justify-between p-2 bg-[var(--color-error-lightest)] rounded">
                           <span className="font-medium">{supplier.name}</span>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm font-bold text-red-700">
+                            <span className="text-sm font-bold text-[var(--color-error-dark)]">
                               {supplier.score}/100
                             </span>
-                            <Badge className="bg-red-100 text-red-800">
+                            <Badge className="bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]">
                               {supplier.rating}
                             </Badge>
                           </div>
@@ -636,34 +648,34 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-[var(--color-primary)]">
                     {formatPercent(kpiData?.conformityRate || 0)}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Factures Conformes</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">Factures Conformes</p>
                   <Progress value={kpiData?.conformityRate || 0} className="mt-2" />
                 </div>
                 
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-[var(--color-success)]">
                     {kpiData?.processingTime || 0}h
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Délai Moyen</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">Délai Moyen</p>
                   <Progress value={Math.min(100, (24 - kpiData?.processingTime) / 24 * 100)} className="mt-2" />
                 </div>
                 
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-2xl font-bold text-[var(--color-info)]">
                     {formatPercent(kpiData?.automationRate || 0)}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Automatisation</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">Automatisation</p>
                   <Progress value={kpiData?.automationRate || 0} className="mt-2" />
                 </div>
                 
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-indigo-600">
+                  <div className="text-2xl font-bold text-[var(--color-info)]">
                     {formatPercent(kpiData?.contractCompliance || 0)}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Respect Contrats</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">Respect Contrats</p>
                   <Progress value={kpiData?.contractCompliance || 0} className="mt-2" />
                 </div>
               </div>
@@ -714,13 +726,13 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                         </TableCell>
                         <TableCell>
                           <span className={`
-                            ${opportunity.daysUntilDue <= 3 ? 'text-red-600' :
-                              opportunity.daysUntilDue <= 7 ? 'text-yellow-600' :
-                              'text-green-600'}
+                            ${opportunity.daysUntilDue <= 3 ? 'text-[var(--color-error)]' :
+                              opportunity.daysUntilDue <= 7 ? 'text-[var(--color-warning)]' :
+                              'text-[var(--color-success)]'}
                           `}>
                             {formatDate(opportunity.dueDate)}
                           </span>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-[var(--color-text-secondary)]">
                             {opportunity.daysUntilDue}j restants
                           </p>
                         </TableCell>
@@ -728,17 +740,17 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                           {formatCurrency(opportunity.amount)}
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-blue-100 text-blue-800">
+                          <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">
                             {opportunity.discountRate}%
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-bold text-green-600">
+                        <TableCell className="font-bold text-[var(--color-success)]">
                           {formatCurrency(opportunity.potentialSavings)}
                         </TableCell>
                         <TableCell>
                           <Badge className={`
-                            ${opportunity.recommendation === 'PAY_EARLY' ? 'bg-green-100 text-green-800' :
-                              'bg-yellow-100 text-yellow-800'}
+                            ${opportunity.recommendation === 'PAY_EARLY' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                              'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'}
                           `}>
                             {opportunity.recommendation === 'PAY_EARLY' ? 'Payer maintenant' : 'Évaluer'}
                           </Badge>
@@ -750,7 +762,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                             </Button>
                             <Button 
                               size="sm" 
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              className="bg-[var(--color-success)] hover:bg-[var(--color-success-dark)] text-white"
                               disabled={opportunity.recommendation !== 'PAY_EARLY'}
                             >
                               <Zap className="h-3 w-3" />
@@ -780,24 +792,24 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     data={supplierAnalytics?.concentrationData || []}
                     xAxisKey="supplierName"
                     bars={[
-                      { key: 'percentage', name: 'Part des achats (%)', color: '#8B5CF6' }
+                      { key: 'percentage', name: 'Part des achats (%)', color: "var(--color-info)" }
                     ]}
                     height={250}
                   />
                 </div>
                 <div className="space-y-4">
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-yellow-800 mb-2">Analyse de Risque</h4>
-                    <ul className="text-sm text-yellow-700 space-y-1">
+                  <div className="p-4 bg-[var(--color-warning-lightest)] border border-[var(--color-warning-light)] rounded-lg">
+                    <h4 className="font-medium text-[var(--color-warning-dark)] mb-2">Analyse de Risque</h4>
+                    <ul className="text-sm text-[var(--color-warning-dark)] space-y-1">
                       <li>• Top 3: {formatPercent(supplierAnalytics?.top3Concentration || 0)} des achats</li>
                       <li>• Top 10: {formatPercent(supplierAnalytics?.top10Concentration || 0)} des achats</li>
                       <li>• Niveau de risque: {supplierAnalytics?.concentrationRisk || 'Modéré'}</li>
                     </ul>
                   </div>
                   
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-medium text-blue-800 mb-2">Recommandations</h4>
-                    <ul className="text-sm text-blue-700 space-y-1">
+                  <div className="p-4 bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg">
+                    <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Recommandations</h4>
+                    <ul className="text-sm text-[var(--color-primary-dark)] space-y-1">
                       {supplierAnalytics?.recommendations?.map((rec, index) => (
                         <li key={index}>• {rec}</li>
                       ))}
@@ -814,9 +826,9 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
       {(kpiData?.alerts?.contractExpiringSoon > 0 || 
         kpiData?.alerts?.blockedSuppliers > 0 ||
         kpiData?.alerts?.overdueEvaluations > 0) && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-[var(--color-warning-light)] bg-[var(--color-warning-lightest)]">
           <CardHeader>
-            <CardTitle className="flex items-center text-orange-800">
+            <CardTitle className="flex items-center text-[var(--color-warning-darker)]">
               <AlertCircle className="h-5 w-5 mr-2" />
               Alertes Système
             </CardTitle>
@@ -824,27 +836,27 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
               {kpiData.alerts.contractExpiringSoon > 0 && (
-                <div className="flex items-center justify-between p-3 bg-white border border-orange-200 rounded">
+                <div className="flex items-center justify-between p-3 bg-white border border-[var(--color-warning-light)] rounded">
                   <span className="text-sm">Contrats expirant</span>
-                  <Badge className="bg-orange-100 text-orange-800">
+                  <Badge className="bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]">
                     {kpiData.alerts.contractExpiringSoon}
                   </Badge>
                 </div>
               )}
               
               {kpiData.alerts.blockedSuppliers > 0 && (
-                <div className="flex items-center justify-between p-3 bg-white border border-red-200 rounded">
+                <div className="flex items-center justify-between p-3 bg-white border border-[var(--color-error-light)] rounded">
                   <span className="text-sm">Fournisseurs bloqués</span>
-                  <Badge className="bg-red-100 text-red-800">
+                  <Badge className="bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]">
                     {kpiData.alerts.blockedSuppliers}
                   </Badge>
                 </div>
               )}
               
               {kpiData.alerts.overdueEvaluations > 0 && (
-                <div className="flex items-center justify-between p-3 bg-white border border-yellow-200 rounded">
+                <div className="flex items-center justify-between p-3 bg-white border border-[var(--color-warning-light)] rounded">
                   <span className="text-sm">Évaluations en retard</span>
-                  <Badge className="bg-yellow-100 text-yellow-800">
+                  <Badge className="bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]">
                     {kpiData.alerts.overdueEvaluations}
                   </Badge>
                 </div>
@@ -855,7 +867,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
       )}
 
       {/* Footer statistiques */}
-      <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+      <div className="flex items-center justify-between text-sm text-[var(--color-text-secondary)] pt-4 border-t">
         <div className="flex items-center space-x-4">
           <span>Dernière maj: {formatDate(new Date())}</span>
           <span>•</span>
@@ -865,7 +877,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
           {autoRefresh && (
             <>
               <span>•</span>
-              <span className="text-green-600">Mise à jour auto</span>
+              <span className="text-[var(--color-success)]">Mise à jour auto</span>
             </>
           )}
         </div>
@@ -874,6 +886,17 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
           <span>Système opérationnel</span>
         </div>
       </div>
+
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        currentRange={dateRange}
+        onPeriodChange={(newRange) => {
+          setDateRange(newRange);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

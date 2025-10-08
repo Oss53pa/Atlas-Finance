@@ -19,6 +19,7 @@ import {
   CheckCircle,
   AlertTriangle
 } from 'lucide-react';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   BarChart,
   Bar,
@@ -66,9 +67,9 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
   isGenerating
 }) => {
   const [showParams, setShowParams] = useState(false);
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [params, setParams] = useState({
-    dateFrom: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    dateTo: new Date().toISOString().split('T')[0],
     locations: [] as string[],
     categories: [] as string[],
     valuationMethod: 'FIFO' as ValuationMethod,
@@ -86,7 +87,12 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
   ];
 
   const handleGenerate = () => {
-    onGenerate(reportType, params);
+    const reportParams = {
+      ...params,
+      dateFrom: dateRange.startDate,
+      dateTo: dateRange.endDate
+    };
+    onGenerate(reportType, reportParams);
     setShowParams(false);
   };
 
@@ -111,8 +117,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] disabled:opacity-50 transition-colors text-sm"
-            >
+              className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] disabled:opacity-50 transition-colors text-sm" aria-label="Télécharger">
               {isGenerating ? (
                 <LoadingSpinner size="sm" />
               ) : (
@@ -124,29 +129,28 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
 
           {showParams && (
             <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    From Date
-                  </label>
-                  <input
-                    type="date"
-                    value={params.dateFrom}
-                    onChange={(e) => setParams({ ...params, dateFrom: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    To Date
-                  </label>
-                  <input
-                    type="date"
-                    value={params.dateTo}
-                    onChange={(e) => setParams({ ...params, dateTo: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  />
-                </div>
+              <PeriodSelectorModal
+                isOpen={showPeriodModal}
+                onClose={() => setShowPeriodModal(false)}
+                onPeriodSelect={(period) => {
+                  setDateRange(period);
+                  setShowPeriodModal(false);
+                }}
+              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Période de rapport
+                </label>
+                <button
+                  onClick={() => setShowPeriodModal(true)}
+                  className="w-full flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                >
+                  <Calendar className="w-4 h-4 text-gray-700" />
+                  {dateRange.startDate && dateRange.endDate
+                    ? `${dateRange.startDate} - ${dateRange.endDate}`
+                    : 'Sélectionner une période'
+                  }
+                </button>
               </div>
 
               <div>
@@ -696,7 +700,7 @@ const InventoryReports: React.FC = () => {
                 <tr key={report.id} className="hover:bg-gray-50">
                   <td className="py-4 px-6">
                     <div className="font-medium text-gray-900">{report.name}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-700">
                       {report.parameters.dateRange?.from} to {report.parameters.dateRange?.to}
                     </div>
                   </td>
@@ -721,15 +725,14 @@ const InventoryReports: React.FC = () => {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setSelectedReport(report)}
-                        className="p-1 text-gray-400 hover:text-[#6A8A82]"
+                        className="p-1 text-gray-700 hover:text-[#6A8A82]"
                         title="View Report"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
-                        className="p-1 text-gray-400 hover:text-green-600"
-                        title="Download Report"
-                      >
+                        className="p-1 text-gray-700 hover:text-green-600"
+                        title="Download Report" aria-label="Télécharger">
                         <Download className="w-4 h-4" />
                       </button>
                     </div>
@@ -738,7 +741,7 @@ const InventoryReports: React.FC = () => {
               ))}
               {generatedReports.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 px-6 text-center text-gray-500">
+                  <td colSpan={6} className="py-8 px-6 text-center text-gray-700">
                     No reports generated yet. Generate your first report above.
                   </td>
                 </tr>

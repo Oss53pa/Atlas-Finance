@@ -50,6 +50,7 @@ const useLoading = () => ({
 });
 
 export const FundCallExpense: React.FC = () => {
+  const { t } = useLanguage();
   const { center, financialYear } = useCenter();
   const { language } = useLanguage();
   const { loggedUser } = useSession();
@@ -310,7 +311,7 @@ export const FundCallExpense: React.FC = () => {
             <div className="col-md-3">
               <div className="card bg-warning text-dark">
                 <div className="card-body text-center">
-                  <h6>En attente</h6>
+                  <h6>{t('status.pending')}</h6>
                   <h4>{new Intl.NumberFormat('fr-FR').format((fundCallG.amount_requested || 0) - amountPreApproved)} FCFA</h4>
                 </div>
               </div>

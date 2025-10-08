@@ -46,8 +46,8 @@ const DoubleSidebarLayout: React.FC = () => {
                   </button>
                 )}
                 <nav className="flex items-center space-x-2 text-sm">
-                  <span className="text-gray-500">WiseBook</span>
-                  <span className="text-gray-400">/</span>
+                  <span className="text-gray-700">WiseBook</span>
+                  <span className="text-gray-700">/</span>
                   <span className="text-gray-900 font-medium">
                     {location.pathname.split('/').filter(Boolean).join(' / ') || 'Dashboard'}
                   </span>
@@ -63,11 +63,11 @@ const DoubleSidebarLayout: React.FC = () => {
                     placeholder="Rechercher..."
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48 lg:w-64"
                   />
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-700" />
                 </div>
                 
                 {/* Bouton recherche mobile */}
-                <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors sm:hidden">
+                <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors sm:hidden" aria-label="Rechercher">
                   <Search className="h-5 w-5 text-gray-600" />
                 </button>
                 
@@ -81,10 +81,10 @@ const DoubleSidebarLayout: React.FC = () => {
                 <div className="flex items-center space-x-3 border-l pl-2 sm:pl-4">
                   <div className="text-right hidden sm:block">
                     <p className="text-sm font-medium text-gray-900">Admin User</p>
-                    <p className="text-xs text-gray-500">Administrateur</p>
+                    <p className="text-xs text-gray-700">Administrateur</p>
                   </div>
                   <div className="relative group">
-                    <button className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Utilisateur">
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <User className="h-4 w-4 text-white" />
                       </div>

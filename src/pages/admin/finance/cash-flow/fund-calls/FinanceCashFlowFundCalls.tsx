@@ -99,6 +99,7 @@ interface CustomSelectorOption {
 const TOTAL_ROWS = 21;
 
 export const FinanceCashFlowFundCalls: React.FC = () => {
+  const { t } = useLanguage();
     const [afficherDeuxiemeTableau, setAfficherDeuxiemeTableau] = useState<boolean>(false);
     const sweetAlertRef = useRef<SweetAlertRef>(null);
     const { language } = useLanguage() as UseLanguageReturn;
@@ -233,7 +234,7 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
                                                     <table className="table">
                                                         <thead className="table-dark thead_">
                                                             <tr>
-                                                                <th className='text-center' scope="col">Date</th>
+                                                                <th className='text-center' scope="col">{t('common.date')}</th>
                                                                 <th className='text-center' scope="col">Référence</th>
                                                                 <th className='text-center' scope="col">Statut</th>
                                                                 <th className='text-center' scope="col">Banque départ</th>
@@ -261,7 +262,7 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
                                                                                     {fundCall.id && (
                                                                                         fundCall.is_mark_as_pre_approved ?
                                                                                         <FaLock color='green' title="Approuvé" /> :
-                                                                                        <FaLockOpen color='purple' title="En attente" />
+                                                                                        <FaLockOpen color='purple' title={t('status.pending')} />
                                                                                     )}
                                                                                 </td>
                                                                                 <td className='text-center'>

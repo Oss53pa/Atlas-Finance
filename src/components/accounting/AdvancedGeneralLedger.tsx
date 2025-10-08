@@ -1,16 +1,20 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
+import ExportMenu from '../shared/ExportMenu';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 import {
-  FileText, Search, Filter, Download, Printer, Settings, Eye, Calendar,
+  FileText, Search, Filter, Printer, Settings, Eye, Calendar,
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, BarChart3,
   ChevronDown, ChevronRight, Grid3X3, Columns, ZoomIn, Mail, FileSpreadsheet,
   ArrowUpDown, RefreshCw, Save, BookOpen, Book, Users, Building, Hash,
   Mic, Sparkles, Clock, Star, MessageSquare, Share, Brain, Zap,
   Target, Activity, Award, Layers, GitBranch, Database, List, Calculator
 } from 'lucide-react';
+import PrintableArea from '../ui/PrintableArea';
 import './AdvancedBalance.css';
 
 interface LedgerEntry {
@@ -38,12 +42,14 @@ interface AccountData {
 }
 
 const AdvancedGeneralLedger: React.FC = () => {
+  const { t } = useLanguage();
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger'>('intelligent');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
-  const [dateRange, setDateRange] = useState({ debut: '2025-01-01', fin: '2025-12-31' });
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2025-01-01', end: '2025-12-31' });
 
   // États pour les modales
   const [showExportModal, setShowExportModal] = useState(false);
@@ -59,6 +65,10 @@ const AdvancedGeneralLedger: React.FC = () => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareLink, setShareLink] = useState('');
+  const [showAISettingsModal, setShowAISettingsModal] = useState(false);
+  const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
+  const [showJoinWorkspaceModal, setShowJoinWorkspaceModal] = useState(false);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string>('');
 
   // Nouvelles fonctionnalités intelligentes
   const [searchQuery, setSearchQuery] = useState('');
@@ -179,22 +189,41 @@ const AdvancedGeneralLedger: React.FC = () => {
   const COLORS = ['#6A8A82', '#B87333', '#E8B4B8', '#A8C8EC', '#D4B5D4', '#FFD93D'];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <PrintableArea
+      documentTitle="Grand Livre Général"
+      orientation="landscape"
+      showPrintButton={false}
+    >
+      <div className="min-h-screen bg-[#F0F3F2] print-area">
       {/* En-tête principal */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <BookOpen className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Grand Livre Avancé</h1>
-              <p className="text-sm text-gray-600">Consultation détaillée - Conforme SYSCOHADA</p>
+              <h1 className="text-2xl font-bold text-[#191919]">Grand Livre Avancé</h1>
+              <p className="text-sm text-[#191919]/70">Consultation détaillée - Conforme SYSCOHADA</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-3">
-            <button 
+            {/* Bouton de sélection de période */}
+            <button
+              onClick={() => setShowPeriodModal(true)}
+              className="px-3 py-2 border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82] text-left flex items-center space-x-2 hover:bg-gray-50"
+            >
+              <Calendar className="w-4 h-4 text-[#6A8A82]" />
+              <span className="text-sm">
+                {dateRange.start && dateRange.end
+                  ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                  : 'Période'
+                }
+              </span>
+            </button>
+
+            <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#6A8A82] text-white border-[#6A8A82]' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#6A8A82] text-[#F0F3F2] border-[#6A8A82]' : 'bg-[#F0F3F2] text-[#191919]/70 border-[#ECECEC] hover:bg-[#ECECEC]'}`}
             >
               <Filter className="w-4 h-4 mr-2 inline" />
               Filtres
@@ -202,18 +231,26 @@ const AdvancedGeneralLedger: React.FC = () => {
             
             <button 
               onClick={() => setShowPrintPreview(true)}
-              className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 bg-[#F0F3F2] text-[#191919]/70 border border-[#ECECEC] rounded-lg hover:bg-[#ECECEC] transition-colors"
             >
               <Printer className="w-4 h-4 mr-2 inline" />
               Aperçu
             </button>
             
-            <button
-              onClick={() => setShowExportModal(true)}
-              className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A66B2A] transition-colors">
-              <Download className="w-4 h-4 mr-2 inline" />
-              Exporter
-            </button>
+            <ExportMenu
+              data={mockAccountsData}
+              filename="grand-livre-general"
+              columns={[
+                { key: 'compte', label: 'Compte' },
+                { key: 'libelle', label: 'Libellé' },
+                { key: 'soldeOuverture', label: 'Solde Ouverture' },
+                { key: 'totalDebit', label: 'Total Débit' },
+                { key: 'totalCredit', label: 'Total Crédit' },
+                { key: 'soldeFermeture', label: 'Solde Fermeture' },
+                { key: 'nombreEcritures', label: 'Nombre Écritures' }
+              ]}
+              buttonText="Exporter"
+            />
           </div>
         </div>
         
@@ -223,7 +260,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             { id: 'intelligent', label: 'Recherche Intelligente', icon: Sparkles, badge: 'Nouveau', color: 'bg-purple-600' },
             { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3, color: 'bg-[#6A8A82]' },
             { id: 'accounts', label: 'Comptes Détaillés', icon: Hash, color: 'bg-blue-600' },
-            { id: 'general-ledger', label: 'Grand Livre', icon: BookOpen, color: 'bg-green-600' },
+            { id: 'general-ledger', label: t('accounting.generalLedger'), icon: BookOpen, color: 'bg-green-600' },
             { id: 'analysis', label: 'Analyse IA', icon: Brain, badge: 'IA', color: 'bg-indigo-600' },
             { id: 'collaboration', label: 'Collaboration', icon: Users, badge: 'Beta', color: 'bg-orange-600' }
           ].map((view) => (
@@ -252,32 +289,32 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Filtres avancés */}
       {showFilters && (
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Date début</label>
               <input 
                 type="date" 
                 value={filters.dateDebut}
                 onChange={(e) => setFilters({...filters, dateDebut: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">Date fin</label>
               <input 
                 type="date" 
                 value={filters.dateFin}
                 onChange={(e) => setFilters({...filters, dateFin: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Compte</label>
+              <label className="block text-sm font-medium text-[#191919] mb-1">{t('accounting.account')}</label>
               <select 
                 value={selectedAccount}
                 onChange={(e) => setSelectedAccount(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               >
                 <option value="">Tous les comptes</option>
                 {mockAccountsData.map((acc) => (
@@ -304,7 +341,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 placeholder="Client, Fournisseur..."
                 value={filters.tiers}
                 onChange={(e) => setFilters({...filters, tiers: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               />
             </div>
             <div className="flex items-end">
@@ -328,7 +365,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
                 Recherche Intelligente Nouvelle Génération
               </h3>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className="flex items-center space-x-2 text-sm text-gray-700">
                 <Zap className="w-4 h-4 text-green-500" />
                 <span>Performance: &lt; 1s pour 10M+ écritures</span>
               </div>
@@ -340,7 +377,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 {isSearching ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
                 ) : (
-                  <Search className="h-5 w-5 text-gray-400" />
+                  <Search className="h-5 w-5 text-gray-700" />
                 )}
               </div>
 
@@ -355,7 +392,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
               <div className="absolute inset-y-0 right-0 flex items-center pr-4 space-x-2">
                 <button
-                  className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  className="p-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                   title="Recherche vocale"
                 >
                   <Mic className="h-5 w-5" />
@@ -363,7 +400,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <button
                   onClick={() => setShowAIAnalysis(!showAIAnalysis)}
                   className={`p-2 rounded-lg transition-colors ${
-                    showAIAnalysis ? 'bg-purple-100 text-purple-600' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'
+                    showAIAnalysis ? 'bg-purple-100 text-purple-600' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'
                   }`}
                   title="Analyse IA"
                 >
@@ -374,7 +411,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             {/* Suggestions et raccourcis */}
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="text-sm text-gray-500 mr-2">Recherches rapides:</span>
+              <span className="text-sm text-gray-700 mr-2">Recherches rapides:</span>
               {['512000 banque', 'virement > 500000', 'janvier 2024', 'client important'].map((suggestion, index) => (
                 <button
                   key={index}
@@ -464,7 +501,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <h4 className="text-lg font-semibold text-gray-900">Résultats Intelligents</h4>
                   {searchQuery && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <div className="flex items-center space-x-2 text-sm text-gray-700">
                       <span>Recherche:</span>
                       <code className="bg-gray-100 px-2 py-1 rounded font-mono">{searchQuery}</code>
                     </div>
@@ -472,7 +509,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <div className="flex items-center space-x-2 text-sm text-gray-700">
                     <Clock className="h-4 w-4 text-green-500" />
                     <span className="text-green-600 font-medium">{responseTime}ms</span>
                   </div>
@@ -491,13 +528,23 @@ const AdvancedGeneralLedger: React.FC = () => {
                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     title="Exporter les résultats"
                   >
-                    <Download className="h-4 w-4" />
+                    <ExportMenu
+                      data={mockAccountsData}
+                      filename="compte-detail"
+                      columns={[
+                        { key: 'compte', label: 'Compte' },
+                        { key: 'libelle', label: 'Libellé' },
+                        { key: 'soldeFermeture', label: 'Solde' }
+                      ]}
+                      buttonText=""
+                      iconOnly={true}
+                      buttonVariant="icon"
+                    />
                   </button>
 
                   <button
                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    title="Partager"
-                  >
+                    title="Partager" aria-label="Partager">
                     <Share className="h-4 w-4" />
                   </button>
                 </div>
@@ -521,28 +568,29 @@ const AdvancedGeneralLedger: React.FC = () => {
             </div>
 
             {/* Table des résultats avec fonctionnalités avancées */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            {viewMode === 'table' && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       <div className="flex items-center space-x-1">
-                        <span>Date</span>
+                        <span>{t('common.date')}</span>
                         <ArrowUpDown className="h-3 w-3 cursor-pointer hover:text-gray-700" />
                       </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       <div className="flex items-center space-x-1">
-                        <span>Compte</span>
+                        <span>{t('accounting.account')}</span>
                         <Filter className="h-3 w-3 cursor-pointer hover:text-gray-700" />
                       </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Libellé</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Débit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Crédit</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Journal</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">IA</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.label')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.debit')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.credit')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.journal')}</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">IA</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -603,7 +651,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <div className={`w-2 h-2 rounded-full bg-${entry.compte[0] === '5' ? 'blue' : entry.compte[0] === '4' ? 'purple' : 'red'}-500`}></div>
                           <span className="text-sm font-mono font-medium text-gray-900">{entry.compte}</span>
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">{entry.libelle}</div>
+                        <div className="text-xs text-gray-700 mt-1">{entry.libelle}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">{entry.description}</div>
@@ -619,14 +667,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                         {entry.debit > 0 ? (
                           <span className="text-green-600 font-mono font-medium">{entry.debit.toLocaleString()}</span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-gray-700">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                         {entry.credit > 0 ? (
                           <span className="text-red-600 font-mono font-medium">{entry.credit.toLocaleString()}</span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-gray-700">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -655,16 +703,65 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex justify-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1 text-gray-400 hover:text-blue-600" title="Voir détails">
+                          <button
+                            onClick={() => {
+                              setSelectedEntry({
+                                id: entry.id,
+                                date: entry.date,
+                                piece: entry.piece,
+                                libelle: entry.description,
+                                debit: entry.debit,
+                                credit: entry.credit,
+                                solde: entry.debit - entry.credit
+                              });
+                              setShowDetailModal(true);
+                            }}
+                            className="p-1 text-gray-700 hover:text-blue-600"
+                            title="Voir détails"
+                          >
                             <Eye className="h-4 w-4" />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-orange-600" title="Annoter">
+                          <button
+                            onClick={() => {
+                              setSelectedEntry({
+                                id: entry.id,
+                                date: entry.date,
+                                piece: entry.piece,
+                                libelle: entry.description,
+                                debit: entry.debit,
+                                credit: entry.credit,
+                                solde: entry.debit - entry.credit
+                              });
+                              setShowAnnotationModal(true);
+                            }}
+                            className="p-1 text-gray-700 hover:text-orange-600"
+                            title="Annoter"
+                          >
                             <MessageSquare className="h-4 w-4" />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-yellow-600" title="Marquer favoris">
-                            <Star className="h-4 w-4" />
+                          <button
+                            onClick={() => {
+                              const newFavorites = new Set(favorites);
+                              if (newFavorites.has(entry.id)) {
+                                newFavorites.delete(entry.id);
+                              } else {
+                                newFavorites.add(entry.id);
+                              }
+                              setFavorites(newFavorites);
+                            }}
+                            className={`p-1 ${favorites.has(entry.id) ? 'text-yellow-500' : 'text-gray-700'} hover:text-yellow-600`}
+                            title="Marquer favoris"
+                          >
+                            <Star className="h-4 w-4" fill={favorites.has(entry.id) ? 'currentColor' : 'none'} />
                           </button>
-                          <button className="p-1 text-gray-400 hover:text-green-600" title="Partager">
+                          <button
+                            onClick={() => {
+                              setShareLink(`/accounting/entry/${entry.id}`);
+                              setShowShareModal(true);
+                            }}
+                            className="p-1 text-gray-700 hover:text-green-600"
+                            title="Partager"
+                          >
                             <Share className="h-4 w-4" />
                           </button>
                         </div>
@@ -672,29 +769,257 @@ const AdvancedGeneralLedger: React.FC = () => {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+                </table>
 
-            {/* Pagination intelligente */}
-            <div className="px-6 py-4 border-t bg-gray-50">
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-500">
-                  Affichage de 1 à 50 sur 1,247 résultats
-                  <span className="ml-2 text-purple-600 font-medium">• Recherche optimisée IA</span>
+                {/* Pagination intelligente */}
+                <div className="px-6 py-4 border-t bg-gray-50">
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-700">
+                      Affichage de 1 à 50 sur 1,247 résultats
+                      <span className="ml-2 text-purple-600 font-medium">• Recherche optimisée IA</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => console.log('Page précédente')}
+                        disabled
+                        className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ← Précédent
+                      </button>
+                      <span className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded font-medium">1</span>
+                      <span className="px-2 py-1 text-sm text-gray-700">...</span>
+                      <span className="px-2 py-1 text-sm text-gray-700">25</span>
+                      <button
+                        onClick={() => console.log('Page suivante')}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                      >
+                        Suivant →
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                    ← Précédent
-                  </button>
-                  <span className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded font-medium">1</span>
-                  <span className="px-2 py-1 text-sm text-gray-400">...</span>
-                  <span className="px-2 py-1 text-sm text-gray-400">25</span>
-                  <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                    Suivant →
+              </div>
+            )}
+
+            {/* Vue Chronologique */}
+            {viewMode === 'timeline' && (
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                    Vue Chronologique - Janvier 2025
+                  </h3>
+                  <div className="flex space-x-2">
+                    <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                      Mois
+                    </button>
+                    <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                      Semaine
+                    </button>
+                    <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded">
+                      Jour
+                    </button>
+                  </div>
+                </div>
+
+                {/* Timeline par jour */}
+                <div className="space-y-6">
+                  {[
+                    { date: '15 Janvier 2025', entries: 3, total: 1375000 },
+                    { date: '14 Janvier 2025', entries: 2, total: 750000 },
+                    { date: '13 Janvier 2025', entries: 5, total: 2100000 }
+                  ].map((day, dayIndex) => (
+                    <div key={dayIndex} className="border-l-4 border-blue-500 pl-6 relative">
+                      <div className="absolute -left-3 top-0 w-6 h-6 bg-blue-500 rounded-full border-4 border-white"></div>
+
+                      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-gray-900">{day.date}</h4>
+                          <div className="flex items-center space-x-4 text-sm">
+                            <span className="text-gray-600">{day.entries} écritures</span>
+                            <span className="font-medium text-gray-900">{day.total.toLocaleString()} XOF</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          {[
+                            { time: '14:30', compte: '512000', libelle: 'Virement fournisseur', montant: 500000, type: 'debit' },
+                            { time: '10:15', compte: '401100', libelle: 'Facture fournisseur', montant: 125000, type: 'credit' }
+                          ].slice(0, day.entries > 2 ? 2 : day.entries).map((entry, entryIndex) => (
+                            <div key={entryIndex} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                              <div className="flex items-center space-x-3">
+                                <span className="text-xs text-gray-700 font-mono">{entry.time}</span>
+                                <span className="text-sm font-mono text-gray-700">{entry.compte}</span>
+                                <span className="text-sm text-gray-600">{entry.libelle}</span>
+                              </div>
+                              <span className={`text-sm font-semibold ${entry.type === 'debit' ? 'text-green-600' : 'text-red-600'}`}>
+                                {entry.montant.toLocaleString()} XOF
+                              </span>
+                            </div>
+                          ))}
+                          {day.entries > 2 && (
+                            <button className="text-sm text-blue-600 hover:underline">
+                              Voir les {day.entries - 2} autres écritures
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-center pt-4">
+                  <button className="px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50">
+                    Charger plus de dates
                   </button>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Vue Hiérarchique */}
+            {viewMode === 'hierarchy' && (
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <GitBranch className="h-5 w-5 mr-2 text-purple-600" />
+                    Vue Hiérarchique - Plan Comptable
+                  </h3>
+                  <div className="flex space-x-2">
+                    <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                      Tout réduire
+                    </button>
+                    <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                      Tout développer
+                    </button>
+                  </div>
+                </div>
+
+                {/* Arborescence des comptes */}
+                <div className="space-y-2">
+                  {[
+                    {
+                      classe: 'Classe 4 - Comptes de Tiers',
+                      color: 'purple',
+                      comptes: [
+                        { numero: '401', libelle: t('navigation.suppliers'), solde: -2500000, sousComptes: [
+                          { numero: '401100', libelle: 'Fournisseurs - Factures non parvenues', solde: -125000 },
+                          { numero: '401200', libelle: 'Fournisseurs - Factures à recevoir', solde: -875000 }
+                        ]},
+                        { numero: '411', libelle: t('navigation.clients'), solde: 1800000, sousComptes: [
+                          { numero: '411100', libelle: 'Clients - Ordinaires', solde: 1500000 },
+                          { numero: '411200', libelle: 'Clients - Créances douteuses', solde: 300000 }
+                        ]}
+                      ]
+                    },
+                    {
+                      classe: 'Classe 5 - Comptes Financiers',
+                      color: 'blue',
+                      comptes: [
+                        { numero: '512', libelle: 'Banques', solde: 5500000, sousComptes: [
+                          { numero: '512000', libelle: 'Banque Principale BCEAO', solde: 4000000 },
+                          { numero: '512100', libelle: 'Banque Secondaire', solde: 1500000 }
+                        ]},
+                        { numero: '531', libelle: 'Caisse', solde: 450000, sousComptes: [] }
+                      ]
+                    },
+                    {
+                      classe: 'Classe 6 - Comptes de Charges',
+                      color: 'red',
+                      comptes: [
+                        { numero: '607', libelle: 'Achats de marchandises', solde: 750000, sousComptes: [
+                          { numero: '607000', libelle: 'Achats de marchandises', solde: 750000 }
+                        ]},
+                        { numero: '641', libelle: 'Rémunérations du personnel', solde: 3200000, sousComptes: [] }
+                      ]
+                    }
+                  ].map((classe, classeIndex) => (
+                    <div key={classeIndex} className="border border-gray-200 rounded-lg">
+                      <div
+                        className={`bg-${classe.color}-50 border-l-4 border-${classe.color}-500 p-3 cursor-pointer hover:bg-${classe.color}-100`}
+                        onClick={() => {
+                          const newExpanded = new Set(expandedAccounts);
+                          if (newExpanded.has(`classe-${classeIndex}`)) {
+                            newExpanded.delete(`classe-${classeIndex}`);
+                          } else {
+                            newExpanded.add(`classe-${classeIndex}`);
+                          }
+                          setExpandedAccounts(newExpanded);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {expandedAccounts.has(`classe-${classeIndex}`) ? (
+                              <ChevronDown className="h-4 w-4 text-gray-600" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-gray-600" />
+                            )}
+                            <span className="font-semibold text-gray-900">{classe.classe}</span>
+                          </div>
+                          <span className="text-sm text-gray-600">{classe.comptes.length} comptes</span>
+                        </div>
+                      </div>
+
+                      {expandedAccounts.has(`classe-${classeIndex}`) && (
+                        <div className="p-3 space-y-2">
+                          {classe.comptes.map((compte, compteIndex) => (
+                            <div key={compteIndex} className="border-l-2 border-gray-300 pl-4">
+                              <div
+                                className="p-2 hover:bg-gray-50 rounded cursor-pointer"
+                                onClick={() => {
+                                  const newExpanded = new Set(expandedAccounts);
+                                  const key = `compte-${classeIndex}-${compteIndex}`;
+                                  if (newExpanded.has(key)) {
+                                    newExpanded.delete(key);
+                                  } else {
+                                    newExpanded.add(key);
+                                  }
+                                  setExpandedAccounts(newExpanded);
+                                }}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    {compte.sousComptes.length > 0 && (
+                                      expandedAccounts.has(`compte-${classeIndex}-${compteIndex}`) ? (
+                                        <ChevronDown className="h-3 w-3 text-gray-700" />
+                                      ) : (
+                                        <ChevronRight className="h-3 w-3 text-gray-700" />
+                                      )
+                                    )}
+                                    <span className="font-mono text-sm font-medium text-gray-700">{compte.numero}</span>
+                                    <span className="text-sm text-gray-600">{compte.libelle}</span>
+                                  </div>
+                                  <span className={`text-sm font-semibold ${compte.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {compte.solde.toLocaleString()} XOF
+                                  </span>
+                                </div>
+                              </div>
+
+                              {expandedAccounts.has(`compte-${classeIndex}-${compteIndex}`) && compte.sousComptes.length > 0 && (
+                                <div className="ml-4 mt-2 space-y-1">
+                                  {compte.sousComptes.map((sousCompte, sousCompteIndex) => (
+                                    <div key={sousCompteIndex} className="p-2 bg-gray-50 rounded text-sm">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                          <span className="font-mono text-xs text-gray-600">{sousCompte.numero}</span>
+                                          <span className="text-xs text-gray-600">{sousCompte.libelle}</span>
+                                        </div>
+                                        <span className={`text-xs font-semibold ${sousCompte.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                          {sousCompte.solde.toLocaleString()} XOF
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Panneau d'analyse IA (si activé) */}
@@ -772,10 +1097,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <div className="text-sm text-gray-900">
                           <span className="font-medium">Jean Dupont</span> a commenté l'écriture 512000
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-gray-700 mt-1">
                           "Virement important à vérifier avec la direction"
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">Il y a 5 minutes</div>
+                        <div className="text-xs text-gray-700 mt-1">Il y a 5 minutes</div>
                       </div>
                     </div>
 
@@ -787,7 +1112,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <div className="text-sm text-gray-900">
                           <span className="font-medium">Marie Leblanc</span> a validé l'écriture 401100
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">Il y a 12 minutes</div>
+                        <div className="text-xs text-gray-700 mt-1">Il y a 12 minutes</div>
                       </div>
                     </div>
                   </div>
@@ -827,7 +1152,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Comptes</p>
                   <p className="text-2xl font-bold text-[#6A8A82]">{indicators.totalComptes}</p>
-                  <p className="text-xs text-gray-500">Plan comptable</p>
+                  <p className="text-xs text-gray-700">{t('accounting.chartOfAccounts')}</p>
                 </div>
                 <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
                   <Hash className="w-6 h-6 text-[#6A8A82]" />
@@ -840,7 +1165,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Comptes Actifs</p>
                   <p className="text-2xl font-bold text-blue-600">{indicators.comptesActifs}</p>
-                  <p className="text-xs text-gray-500">Avec mouvements</p>
+                  <p className="text-xs text-gray-700">Avec mouvements</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -853,7 +1178,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Écritures</p>
                   <p className="text-2xl font-bold text-green-600">{indicators.totalEcritures}</p>
-                  <p className="text-xs text-gray-500">Période actuelle</p>
+                  <p className="text-xs text-gray-700">Période actuelle</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-6 h-6 text-green-600" />
@@ -866,7 +1191,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Moy. Écritures</p>
                   <p className="text-2xl font-bold text-orange-600">{indicators.moyenneEcritures.toFixed(0)}</p>
-                  <p className="text-xs text-gray-500">Par compte actif</p>
+                  <p className="text-xs text-gray-700">Par compte actif</p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                   <BarChart3 className="w-6 h-6 text-orange-600" />
@@ -888,7 +1213,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <option>12 derniers mois</option>
                     <option>Année complète</option>
                   </select>
-                  <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <button className="p-2 text-gray-700 hover:text-gray-600">
                     <ZoomIn className="w-4 h-4" />
                   </button>
                 </div>
@@ -910,7 +1235,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Top Comptes Actifs</h3>
-                <button className="p-2 text-gray-400 hover:text-gray-600">
+                <button className="p-2 text-gray-700 hover:text-gray-600" aria-label="Voir les détails">
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
@@ -928,12 +1253,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-mono text-sm font-medium text-gray-900">{account.compte}</div>
-                          <div className="text-xs text-gray-500">{account.libelle.substring(0, 25)}...</div>
+                          <div className="text-xs text-gray-700">{account.libelle.substring(0, 25)}...</div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-gray-900">{account.nombreEcritures}</div>
-                        <div className="text-xs text-gray-500">écritures</div>
+                        <div className="text-xs text-gray-700">écritures</div>
                       </div>
                     </div>
                   ))}
@@ -978,14 +1303,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="text-sm font-medium text-gray-900">512100</span>
-                    <p className="text-xs text-gray-500">Banque BNP</p>
+                    <p className="text-xs text-gray-700">Banque BNP</p>
                   </div>
                   <span className="text-sm font-medium text-blue-600">89 mvts</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="text-sm font-medium text-gray-900">607000</span>
-                    <p className="text-xs text-gray-500">Achats</p>
+                    <p className="text-xs text-gray-700">Achats</p>
                   </div>
                   <span className="text-sm font-medium text-green-600">45 mvts</span>
                 </div>
@@ -1061,7 +1386,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <div className="text-2xl font-bold text-[#6A8A82]">
                             {(account.soldeFermeture / 1000000).toFixed(1)}M XAF
                           </div>
-                          <div className="text-sm text-gray-500">Solde actuel</div>
+                          <div className="text-sm text-gray-700">Solde actuel</div>
                         </div>
                       </div>
                       
@@ -1097,14 +1422,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Pièce</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Libellé</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Débit</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Crédit</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Solde</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Centre</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('common.date')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">N° Pièce</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.label')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.debit')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.credit')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.balance')}</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Centre</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -1130,7 +1455,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 {entry.centreCout || '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-center">
-                                <button className="text-blue-600 hover:text-blue-900" title="Voir détail">
+                                <button className="text-blue-600 hover:text-blue-900" title="Voir détail" aria-label="Voir les détails">
                                   <Eye className="w-4 h-4" />
                                 </button>
                               </td>
@@ -1426,12 +1751,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                             <table className="w-full text-sm">
                             <thead className="bg-gray-50">
                               <tr>
-                                <th className="px-4 py-3 text-left font-semibold text-gray-700">Compte</th>
-                                <th className="px-4 py-3 text-left font-semibold text-gray-700">Libellé</th>
+                                <th className="px-4 py-3 text-left font-semibold text-gray-700">{t('accounting.account')}</th>
+                                <th className="px-4 py-3 text-left font-semibold text-gray-700">{t('accounting.label')}</th>
                                 <th className="px-4 py-3 text-left font-semibold text-gray-700">Classe</th>
                                 <th className="px-4 py-3 text-right font-semibold text-gray-700">Total Débit</th>
                                 <th className="px-4 py-3 text-right font-semibold text-gray-700">Total Crédit</th>
-                                <th className="px-4 py-3 text-right font-semibold text-gray-700">Solde</th>
+                                <th className="px-4 py-3 text-right font-semibold text-gray-700">{t('accounting.balance')}</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1478,8 +1803,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   <button
                                     onClick={toggleExpand}
                                     className="p-1 hover:bg-white/20 rounded transition-colors"
-                                    title={isExpanded ? "Rétracter" : "Étendre"}
-                                  >
+                                    title={isExpanded ? "Rétracter" : "Étendre"} aria-label="Ouvrir le menu">
                                     {isExpanded ? (
                                       <ChevronDown className="w-5 h-5" />
                                     ) : (
@@ -1519,15 +1843,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 <table className="w-full text-sm">
                                   <thead className="bg-gray-50">
                                     <tr>
-                                      <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">Date</th>
+                                      <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('common.date')}</th>
                                       <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">N° Pièce</th>
-                                      <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">Libellé</th>
-                                      <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Journal</th>
+                                      <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.label')}</th>
+                                      <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('accounting.journal')}</th>
                                       <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">Contrepartie</th>
-                                      <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Lettrage</th>
-                                      <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Débit</th>
-                                      <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Crédit</th>
-                                      <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde</th>
+                                      <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('thirdParty.reconciliation')}</th>
+                                      <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.debit')}</th>
+                                      <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.credit')}</th>
+                                      <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.balance')}</th>
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -1550,7 +1874,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                               {mouvement.lettrage}
                                             </span>
                                           ) : (
-                                            <span className="text-gray-400">-</span>
+                                            <span className="text-gray-700">-</span>
                                           )}
                                         </td>
                                         <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">
@@ -1739,15 +2063,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <table className="w-full text-sm">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">Date</th>
+                              <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('common.date')}</th>
                               <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">N° Pièce</th>
-                              <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">Libellé</th>
-                              <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Journal</th>
+                              <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.label')}</th>
+                              <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('accounting.journal')}</th>
                               <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">Contrepartie</th>
-                              <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Lettrage</th>
-                              <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Débit</th>
-                              <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Crédit</th>
-                              <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde</th>
+                              <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('thirdParty.reconciliation')}</th>
+                              <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.debit')}</th>
+                              <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.credit')}</th>
+                              <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.balance')}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1770,7 +2094,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                       {mouvement.lettrage}
                                     </span>
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-gray-700">-</span>
                                   )}
                                 </td>
                                 <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">
@@ -1819,16 +2143,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                           onClick={() => {}}
                         >
                           <div className="flex items-center space-x-3">
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <ChevronRight className="w-4 h-4 text-gray-700" />
                             <div className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold">4</div>
                             <div>
                               <div className="font-semibold text-gray-900">Comptes de tiers</div>
-                              <div className="text-sm text-gray-500">3 comptes actifs</div>
+                              <div className="text-sm text-gray-700">3 comptes actifs</div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-gray-900">2 200 000 FCFA</div>
-                            <div className="text-sm text-gray-500">Solde total</div>
+                            <div className="text-sm text-gray-700">Solde total</div>
                           </div>
                         </div>
 
@@ -1839,12 +2163,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                               <div className="text-sm font-mono text-blue-700 font-bold">411</div>
                               <div>
                                 <div className="text-sm font-medium">Clients et comptes rattachés</div>
-                                <div className="text-xs text-gray-500">1 compte</div>
+                                <div className="text-xs text-gray-700">1 compte</div>
                               </div>
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-semibold">2 200 000</div>
-                              <div className="text-xs text-gray-500">D</div>
+                              <div className="text-xs text-gray-700">D</div>
                             </div>
                           </div>
 
@@ -1870,16 +2194,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                           onClick={() => {}}
                         >
                           <div className="flex items-center space-x-3">
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <ChevronRight className="w-4 h-4 text-gray-700" />
                             <div className="w-8 h-8 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold">5</div>
                             <div>
                               <div className="font-semibold text-gray-900">Comptes de trésorerie</div>
-                              <div className="text-sm text-gray-500">1 compte actif</div>
+                              <div className="text-sm text-gray-700">1 compte actif</div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-gray-900">18 500 000 FCFA</div>
-                            <div className="text-sm text-gray-500">Solde total</div>
+                            <div className="text-sm text-gray-700">Solde total</div>
                           </div>
                         </div>
 
@@ -1890,12 +2214,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                               <div className="text-sm font-mono text-green-700 font-bold">512</div>
                               <div>
                                 <div className="text-sm font-medium">Banques</div>
-                                <div className="text-xs text-gray-500">1 compte</div>
+                                <div className="text-xs text-gray-700">1 compte</div>
                               </div>
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-semibold">18 500 000</div>
-                              <div className="text-xs text-gray-500">D</div>
+                              <div className="text-xs text-gray-700">D</div>
                             </div>
                           </div>
 
@@ -1921,16 +2245,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                           onClick={() => {}}
                         >
                           <div className="flex items-center space-x-3">
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <ChevronRight className="w-4 h-4 text-gray-700" />
                             <div className="w-8 h-8 bg-red-100 text-red-700 rounded-full flex items-center justify-center text-sm font-bold">6</div>
                             <div>
                               <div className="font-semibold text-gray-900">Comptes de charges</div>
-                              <div className="text-sm text-gray-500">1 compte actif</div>
+                              <div className="text-sm text-gray-700">1 compte actif</div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-gray-900">12 000 000 FCFA</div>
-                            <div className="text-sm text-gray-500">Solde total</div>
+                            <div className="text-sm text-gray-700">Solde total</div>
                           </div>
                         </div>
 
@@ -1941,12 +2265,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                               <div className="text-sm font-mono text-red-700 font-bold">601</div>
                               <div>
                                 <div className="text-sm font-medium">Achats de marchandises</div>
-                                <div className="text-xs text-gray-500">1 compte</div>
+                                <div className="text-xs text-gray-700">1 compte</div>
                               </div>
                             </div>
                             <div className="text-right">
                               <div className="text-sm font-semibold">12 000 000</div>
-                              <div className="text-xs text-gray-500">D</div>
+                              <div className="text-xs text-gray-700">D</div>
                             </div>
                           </div>
 
@@ -1976,13 +2300,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">Compte</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">Libellé</th>
+                        <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.account')}</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.label')}</th>
                         <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">Classe</th>
                         <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Journal Principal</th>
                         <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Débit</th>
                         <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Crédit</th>
-                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde</th>
+                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.balance')}</th>
                         <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Mvts</th>
                         <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Lettré</th>
                         <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">Actions</th>
@@ -2007,10 +2331,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </td>
                         <td className="px-3 py-2 text-center">
                           <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails">
+                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails" aria-label="Voir les détails">
                               <Eye className="w-3 h-3" />
                             </button>
-                            <button className="p-1 text-orange-600 hover:text-orange-900" title="Imprimer">
+                            <button className="p-1 text-orange-600 hover:text-orange-900" title={t('common.print')} aria-label="Imprimer">
                               <Printer className="w-3 h-3" />
                             </button>
                           </div>
@@ -2035,10 +2359,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </td>
                         <td className="px-3 py-2 text-center">
                           <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails">
+                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails" aria-label="Voir les détails">
                               <Eye className="w-3 h-3" />
                             </button>
-                            <button className="p-1 text-orange-600 hover:text-orange-900" title="Imprimer">
+                            <button className="p-1 text-orange-600 hover:text-orange-900" title={t('common.print')} aria-label="Imprimer">
                               <Printer className="w-3 h-3" />
                             </button>
                           </div>
@@ -2063,10 +2387,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </td>
                         <td className="px-3 py-2 text-center">
                           <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails">
+                            <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir détails" aria-label="Voir les détails">
                               <Eye className="w-3 h-3" />
                             </button>
-                            <button className="p-1 text-orange-600 hover:text-orange-900" title="Imprimer">
+                            <button className="p-1 text-orange-600 hover:text-orange-900" title={t('common.print')} aria-label="Imprimer">
                               <Printer className="w-3 h-3" />
                             </button>
                           </div>
@@ -2141,7 +2465,11 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <span className="px-3 py-1 bg-indigo-200 text-indigo-800 text-sm rounded-full font-medium">
                   🤖 Modèles actifs: 5
                 </span>
-                <button className="p-2 bg-white border border-indigo-300 rounded-lg hover:bg-indigo-50">
+                <button
+                  onClick={() => setShowAISettingsModal(true)}
+                  className="p-2 bg-white border border-indigo-300 rounded-lg hover:bg-indigo-50"
+                  title="Paramètres IA"
+                >
                   <Settings className="h-4 w-4 text-indigo-600" />
                 </button>
               </div>
@@ -2213,7 +2541,11 @@ const AdvancedGeneralLedger: React.FC = () => {
                         Confiance: 87% • Détecté il y a 5 min
                       </div>
                     </div>
-                    <button className="text-orange-600 hover:text-orange-800">
+                    <button
+                      onClick={() => console.log('Voir anomalie critique')}
+                      className="text-orange-600 hover:text-orange-800"
+                      title="Voir détails"
+                    >
                       <Eye className="h-4 w-4" />
                     </button>
                   </div>
@@ -2233,7 +2565,11 @@ const AdvancedGeneralLedger: React.FC = () => {
                         Confiance: 76% • Tendance identifiée
                       </div>
                     </div>
-                    <button className="text-yellow-600 hover:text-yellow-800">
+                    <button
+                      onClick={() => console.log('Voir pattern temporel')}
+                      className="text-yellow-600 hover:text-yellow-800"
+                      title="Voir détails"
+                    >
                       <Eye className="h-4 w-4" />
                     </button>
                   </div>
@@ -2390,7 +2726,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <Users className="w-6 h-6 mr-3 text-orange-500" />
                 Espaces de Travail Collaboratifs
               </h3>
-              <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2">
+              <button
+                onClick={() => setShowNewWorkspaceModal(true)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2"
+              >
                 <Building className="w-4 h-4" />
                 <span>Nouvel Espace</span>
               </button>
@@ -2426,13 +2765,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <div className={`w-3 h-3 rounded-full ${workspace.color}`}></div>
                       <h4 className="font-medium text-gray-900">{workspace.name}</h4>
                     </div>
-                    <span className="text-xs text-gray-500">{workspace.members} membres</span>
+                    <span className="text-xs text-gray-700">{workspace.members} membres</span>
                   </div>
 
                   <div className="text-sm text-gray-600 mb-3">{workspace.activity}</div>
 
                   <div className="space-y-1">
-                    <div className="text-xs text-gray-500 mb-1">Recherches fréquentes:</div>
+                    <div className="text-xs text-gray-700 mb-1">Recherches fréquentes:</div>
                     {workspace.searches.map((search, searchIndex) => (
                       <div key={searchIndex} className="text-xs bg-gray-100 px-2 py-1 rounded">
                         {search}
@@ -2440,7 +2779,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                     ))}
                   </div>
 
-                  <button className="mt-3 w-full py-2 text-sm text-orange-600 border border-orange-300 rounded hover:bg-orange-50">
+                  <button
+                    onClick={() => {
+                      setSelectedWorkspace(workspace.name);
+                      setShowJoinWorkspaceModal(true);
+                    }}
+                    className="mt-3 w-full py-2 text-sm text-orange-600 border border-orange-300 rounded hover:bg-orange-50"
+                  >
                     Rejoindre l'espace
                   </button>
                 </div>
@@ -2459,7 +2804,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               {[
                 { status: "À réviser", count: 7, color: "bg-yellow-100 text-yellow-800", entries: ["607000 - Montant élevé", "401200 - Nouveau tiers"] },
                 { status: "En cours", count: 3, color: "bg-blue-100 text-blue-800", entries: ["512000 - Virement validé", "701000 - Vente confirmée"] },
-                { status: "Validé", count: 89, color: "bg-green-100 text-green-800", entries: ["Écritures mensuelles", "Rapprochements OK"] },
+                { status: {t('accounting.validated')}, count: 89, color: "bg-green-100 text-green-800", entries: ["Écritures mensuelles", "Rapprochements OK"] },
                 { status: "Archivé", count: 1205, color: "bg-gray-100 text-gray-800", entries: ["Exercices précédents", "Données historiques"] }
               ].map((column, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4">
@@ -2479,7 +2824,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </div>
 
                   {column.count > column.entries.length && (
-                    <div className="text-xs text-gray-500 mt-2 text-center">
+                    <div className="text-xs text-gray-700 mt-2 text-center">
                       +{column.count - column.entries.length} autres...
                     </div>
                   )}
@@ -2530,12 +2875,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-mono text-sm font-medium text-gray-900">{account.compte}</div>
-                          <div className="text-xs text-gray-500">{account.libelle}</div>
+                          <div className="text-xs text-gray-700">{account.libelle}</div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-gray-900">{account.nombreEcritures}</div>
-                        <div className="text-xs text-gray-500">écritures</div>
+                        <div className="text-xs text-gray-700">écritures</div>
                       </div>
                     </div>
                   ))}
@@ -2557,14 +2902,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-mono text-sm font-medium text-gray-900">{account.compte}</div>
-                          <div className="text-xs text-gray-500">{account.libelle}</div>
+                          <div className="text-xs text-gray-700">{account.libelle}</div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className={`font-bold ${account.soldeFermeture >= 0 ? 'text-blue-600' : 'text-green-600'}`}>
                           {(Math.abs(account.soldeFermeture) / 1000000).toFixed(1)}M
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-700">
                           {account.soldeFermeture >= 0 ? 'Débiteur' : 'Créditeur'}
                         </div>
                       </div>
@@ -2608,7 +2953,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </div>
                   <button 
                     onClick={() => setShowPrintPreview(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-700 hover:text-gray-600"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2682,12 +3027,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <table className="w-full border-2 border-gray-800 mb-4">
                           <thead>
                             <tr className="bg-gray-800 text-white">
-                              <th className="border-r border-gray-600 px-3 py-2 text-left font-semibold">Date</th>
+                              <th className="border-r border-gray-600 px-3 py-2 text-left font-semibold">{t('common.date')}</th>
                               <th className="border-r border-gray-600 px-3 py-2 text-left font-semibold">Reference</th>
                               <th className="border-r border-gray-600 px-3 py-2 text-left font-semibold">Description</th>
                               <th className="border-r border-gray-600 px-3 py-2 text-right font-semibold">Debit</th>
                               <th className="border-r border-gray-600 px-3 py-2 text-right font-semibold">Credit</th>
-                              <th className="px-3 py-2 text-right font-semibold">Balance</th>
+                              <th className="px-3 py-2 text-right font-semibold">{t('accounting.balance')}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -2764,7 +3109,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <tr className="bg-gray-800 text-white">
                         <th className="border-r border-gray-600 px-3 py-2 text-left font-semibold">Account</th>
                         <th className="border-r border-gray-600 px-3 py-2 text-left font-semibold">Description</th>
-                        <th className="border-r border-gray-600 px-3 py-2 text-center font-semibold">Entries</th>
+                        <th className="border-r border-gray-600 px-3 py-2 text-center font-semibold">{t('navigation.entries')}</th>
                         <th className="border-r border-gray-600 px-3 py-2 text-right font-semibold">Total Debit</th>
                         <th className="border-r border-gray-600 px-3 py-2 text-right font-semibold">Total Credit</th>
                         <th className="px-3 py-2 text-right font-semibold">Final Balance</th>
@@ -2848,7 +3193,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </div>
 
                 {/* Bottom bar */}
-                <div className="mt-6 pt-3 border-t border-gray-400 flex justify-between items-center text-xs text-gray-500">
+                <div className="mt-6 pt-3 border-t border-gray-400 flex justify-between items-center text-xs text-gray-700">
                   <div>
                     <p className="font-semibold">WiseBook Enterprise ERP System</p>
                     <p>Version 2.0 | Licensed to: WiseBook Corporation</p>
@@ -2899,8 +3244,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <FileSpreadsheet className="w-4 h-4 mr-2 inline" />
                   Exporter Excel
                 </button>
-                <button 
-                  onClick={() => window.print()}
+                <button
+                  onClick={() => {
+                    document.body.classList.add('printing', 'print-landscape');
+                    window.print();
+                    setTimeout(() => {
+                      document.body.classList.remove('printing', 'print-landscape');
+                    }, 1000);
+                  }}
                   className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
@@ -2985,17 +3336,19 @@ const AdvancedGeneralLedger: React.FC = () => {
               >
                 Annuler
               </button>
-              <button
-                onClick={() => {
-                  console.log('Export en', exportFormat);
-                  setShowExportModal(false);
-                  alert(`Export en ${exportFormat} lancé avec succès!`);
-                }}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
-              >
-                <Download className="w-4 h-4 mr-2 inline" />
-                Exporter
-              </button>
+              <ExportMenu
+                data={mockAccountsData}
+                filename="grand-livre-export"
+                columns={[
+                  { key: 'compte', label: 'Compte' },
+                  { key: 'libelle', label: 'Libellé' },
+                  { key: 'soldeOuverture', label: 'Solde Ouverture' },
+                  { key: 'totalDebit', label: 'Total Débit' },
+                  { key: 'totalCredit', label: 'Total Crédit' },
+                  { key: 'soldeFermeture', label: 'Solde Fermeture' }
+                ]}
+                buttonText="Exporter"
+              />
             </div>
           </div>
         </div>
@@ -3093,45 +3446,45 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-500">Date</label>
+                <label className="block text-sm font-medium text-gray-700">{t('common.date')}</label>
                 <p className="text-gray-900">{selectedEntry.date}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">N° Pièce</label>
+                <label className="block text-sm font-medium text-gray-700">N° Pièce</label>
                 <p className="text-gray-900 font-mono">{selectedEntry.piece}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Libellé</label>
+                <label className="block text-sm font-medium text-gray-700">{t('accounting.label')}</label>
                 <p className="text-gray-900">{selectedEntry.libelle}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Centre de coût</label>
+                <label className="block text-sm font-medium text-gray-700">Centre de coût</label>
                 <p className="text-gray-900">{selectedEntry.centreCout || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Débit</label>
+                <label className="block text-sm font-medium text-gray-700">{t('accounting.debit')}</label>
                 <p className="text-green-600 font-semibold">
                   {selectedEntry.debit.toLocaleString()}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Crédit</label>
+                <label className="block text-sm font-medium text-gray-700">{t('accounting.credit')}</label>
                 <p className="text-red-600 font-semibold">
                   {selectedEntry.credit.toLocaleString()}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Tiers</label>
+                <label className="block text-sm font-medium text-gray-700">Tiers</label>
                 <p className="text-gray-900">{selectedEntry.tiers || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Référence externe</label>
+                <label className="block text-sm font-medium text-gray-700">Référence externe</label>
                 <p className="text-gray-900">{selectedEntry.referenceExterne || '-'}</p>
               </div>
             </div>
 
             <div className="border-t pt-4">
-              <label className="block text-sm font-medium text-gray-500 mb-2">Solde après écriture</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Solde après écriture</label>
               <p className="text-2xl font-bold text-gray-900">
                 {selectedEntry.solde.toLocaleString()}
               </p>
@@ -3147,7 +3500,11 @@ const AdvancedGeneralLedger: React.FC = () => {
               <button
                 onClick={() => {
                   console.log('Imprimer détails');
+                  document.body.classList.add('printing', 'print-landscape');
                   window.print();
+                  setTimeout(() => {
+                    document.body.classList.remove('printing', 'print-landscape');
+                  }, 1000);
                 }}
                 className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
               >
@@ -3272,7 +3629,204 @@ const AdvancedGeneralLedger: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Modal Paramètres IA */}
+      {showAISettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+              <Settings className="w-5 h-5 mr-2 text-indigo-600" />
+              Paramètres Intelligence Artificielle
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Détection d'anomalies automatique</span>
+                  <input type="checkbox" defaultChecked className="rounded" />
+                </label>
+              </div>
+              <div>
+                <label className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Analyse prédictive</span>
+                  <input type="checkbox" defaultChecked className="rounded" />
+                </label>
+              </div>
+              <div>
+                <label className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Suggestions automatiques</span>
+                  <input type="checkbox" defaultChecked className="rounded" />
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Seuil de confiance minimum
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  defaultValue="85"
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-700">
+                  <span>0%</span>
+                  <span>85%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowAISettingsModal(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  setShowAISettingsModal(false);
+                  alert('Paramètres IA enregistrés');
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Nouvel Espace */}
+      {showNewWorkspaceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              Créer un Nouvel Espace de Travail
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nom de l'espace
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Équipe Audit"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Description de l'espace..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Membres (emails séparés par des virgules)
+                </label>
+                <input
+                  type="text"
+                  placeholder="email1@example.com, email2@example.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowNewWorkspaceModal(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  setShowNewWorkspaceModal(false);
+                  alert('Espace de travail créé avec succès!');
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Créer l'espace
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Rejoindre Espace */}
+      {showJoinWorkspaceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              Rejoindre l'espace: {selectedWorkspace}
+            </h3>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  Vous êtes sur le point de rejoindre l'espace <strong>{selectedWorkspace}</strong>.
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Vous aurez accès aux recherches partagées, annotations et analyses collaboratives de cet espace.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rôle dans l'espace
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                  <option>Membre</option>
+                  <option>Contributeur</option>
+                  <option>Administrateur</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="flex items-center">
+                  <input type="checkbox" defaultChecked className="rounded mr-2" />
+                  <span className="text-sm text-gray-700">Recevoir les notifications de cet espace</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowJoinWorkspaceModal(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  setShowJoinWorkspaceModal(false);
+                  alert(`Vous avez rejoint l'espace: ${selectedWorkspace}`);
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+              >
+                Rejoindre
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </PrintableArea>
+
+    {/* Modal de sélection de période */}
+    <PeriodSelectorModal
+      isOpen={showPeriodModal}
+      onClose={() => setShowPeriodModal(false)}
+      onApply={(range) => setDateRange(range)}
+      initialDateRange={dateRange}
+    />
   );
 };
 

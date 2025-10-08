@@ -4,6 +4,7 @@
  * Conforme au cahier des charges - Standard international
  */
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,7 @@ interface CashForecast {
 }
 
 const TreasuryDashboardEnterprise: React.FC = () => {
+  const { t } = useLanguage();
   // État principal
   const [kpis, setKpis] = useState<TreasuryKPIs | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -196,32 +198,32 @@ const TreasuryDashboardEnterprise: React.FC = () => {
 
   const getRiskColor = (riskLevel: string) => {
     const colors = {
-      'FAIBLE': 'text-green-600',
-      'MODERE': 'text-yellow-600',
-      'ELEVE': 'text-orange-600',
-      'CRITIQUE': 'text-red-600',
+      'FAIBLE': 'text-[var(--color-success)]',
+      'MODERE': 'text-[var(--color-warning)]',
+      'ELEVE': 'text-[var(--color-warning)]',
+      'CRITIQUE': 'text-[var(--color-error)]',
     };
-    return colors[riskLevel as keyof typeof colors] || 'text-gray-600';
+    return colors[riskLevel as keyof typeof colors] || 'text-[var(--color-text-primary)]';
   };
 
   const getRiskBadgeColor = (riskLevel: string) => {
     const colors = {
-      'FAIBLE': 'bg-green-100 text-green-800',
-      'MODERE': 'bg-yellow-100 text-yellow-800',
-      'ELEVE': 'bg-orange-100 text-orange-800',
-      'CRITIQUE': 'bg-red-100 text-red-800',
+      'FAIBLE': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'MODERE': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
+      'ELEVE': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]',
+      'CRITIQUE': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]',
     };
-    return colors[riskLevel as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[riskLevel as keyof typeof colors] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'CRITICAL':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+        return <AlertTriangle className="h-4 w-4 text-[var(--color-error)]" />;
       case 'WARNING':
         return <Clock className="h-4 w-4 text-orange-500" />;
       case 'ERROR':
-        return <Shield className="h-4 w-4 text-red-500" />;
+        return <Shield className="h-4 w-4 text-[var(--color-error)]" />;
       default:
         return <Bell className="h-4 w-4 text-[#6A8A82]" />;
     }
@@ -238,11 +240,11 @@ const TreasuryDashboardEnterprise: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-600">ALL ACCOUNTS BALANCE</p>
-                <p className={`text-4xl font-bold ${kpis.all_accounts_balance < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                <p className="text-sm text-[var(--color-text-primary)]">ALL ACCOUNTS BALANCE</p>
+                <p className={`text-4xl font-bold ${kpis.all_accounts_balance < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
                   {formaterMontant(kpis.all_accounts_balance, kpis.currency)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">
                   RIB masqué: {kpis.rib_masque}
                 </p>
               </div>
@@ -251,7 +253,7 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                   {kpis.risk_level}
                 </Badge>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">Score Risque</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Score Risque</p>
                   <p className="text-sm font-bold">{kpis.liquidity_risk_score}/100</p>
                 </div>
               </div>
@@ -259,16 +261,16 @@ const TreasuryDashboardEnterprise: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-xs text-gray-500">Opening</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">Opening</p>
                 <p className="font-semibold">{formaterMontant(kpis.opening, kpis.currency)}</p>
               </div>
               <div>
-                <p className="text-xs text-green-600">Cash In</p>
-                <p className="font-semibold text-green-600">{formaterMontant(kpis.cash_in, kpis.currency)}</p>
+                <p className="text-xs text-[var(--color-success)]">Cash In</p>
+                <p className="font-semibold text-[var(--color-success)]">{formaterMontant(kpis.cash_in, kpis.currency)}</p>
               </div>
               <div>
-                <p className="text-xs text-red-600">Cash Out</p>
-                <p className="font-semibold text-red-600">{formaterMontant(kpis.cash_out, kpis.currency)}</p>
+                <p className="text-xs text-[var(--color-error)]">Cash Out</p>
+                <p className="font-semibold text-[var(--color-error)]">{formaterMontant(kpis.cash_out, kpis.currency)}</p>
               </div>
             </div>
           </CardContent>
@@ -279,7 +281,7 @@ const TreasuryDashboardEnterprise: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Incoming</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Incoming</p>
                 <p className="text-2xl font-bold text-[#6A8A82]">
                   {formaterMontant(kpis.incoming, kpis.currency)}
                 </p>
@@ -287,7 +289,7 @@ const TreasuryDashboardEnterprise: React.FC = () => {
               <ArrowDownRight className="h-8 w-8 text-[#6A8A82]" />
             </div>
             <div className="mt-4">
-              <p className="text-xs text-gray-500">7 prochains jours</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">7 prochains jours</p>
             </div>
           </CardContent>
         </Card>
@@ -296,15 +298,15 @@ const TreasuryDashboardEnterprise: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Outcoming</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-sm text-[var(--color-text-primary)]">Outcoming</p>
+                <p className="text-2xl font-bold text-[var(--color-warning)]">
                   {formaterMontant(kpis.outcoming, kpis.currency)}
                 </p>
               </div>
               <ArrowUpRight className="h-8 w-8 text-orange-500" />
             </div>
             <div className="mt-4">
-              <p className="text-xs text-gray-500">7 prochains jours</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">7 prochains jours</p>
             </div>
           </CardContent>
         </Card>
@@ -327,13 +329,13 @@ const TreasuryDashboardEnterprise: React.FC = () => {
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Position prévisionnelle (7 jours)</p>
-              <p className={`text-3xl font-bold ${kpis.landing_forecast < 0 ? 'text-red-600' : 'text-green-600'}`}>
+              <p className="text-sm text-[var(--color-text-primary)]">Position prévisionnelle (7 jours)</p>
+              <p className={`text-3xl font-bold ${kpis.landing_forecast < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
                 {formaterMontant(kpis.landing_forecast, kpis.currency)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Couverture</p>
+              <p className="text-sm text-[var(--color-text-primary)]">Couverture</p>
               <p className="text-lg font-semibold">{kpis.days_coverage} jours</p>
               <Progress
                 value={Math.min(kpis.days_coverage / 30 * 100, 100)}
@@ -352,8 +354,8 @@ const TreasuryDashboardEnterprise: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Aucun compte bancaire configuré</p>
+            <Building className="h-12 w-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+            <p className="text-[var(--color-text-primary)]">Aucun compte bancaire configuré</p>
           </CardContent>
         </Card>
       );
@@ -369,46 +371,46 @@ const TreasuryDashboardEnterprise: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 text-sm">
+            <table className="w-full border-collapse border border-[var(--color-border-dark)] text-sm">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="border border-gray-300 p-3 text-left">Account #</th>
-                  <th className="border border-gray-300 p-3 text-left">Description</th>
-                  <th className="border border-gray-300 p-3 text-left">IBAN</th>
-                  <th className="border border-gray-300 p-3 text-left">Banque</th>
-                  <th className="border border-gray-300 p-3 text-right">Balance</th>
-                  <th className="border border-gray-300 p-3 text-right">Découvert</th>
-                  <th className="border border-gray-300 p-3 text-center">Statut</th>
+                <tr className="bg-[var(--color-background-secondary)]">
+                  <th className="border border-[var(--color-border-dark)] p-3 text-left">Account #</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-left">Description</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-left">IBAN</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-left">Banque</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-right">{t('accounting.balance')}</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-right">Découvert</th>
+                  <th className="border border-[var(--color-border-dark)] p-3 text-center">Statut</th>
                 </tr>
               </thead>
               <tbody>
                 {bankAccounts.map((account, index) => (
-                  <tr key={account.account_number} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="border border-gray-300 p-3 font-mono">
+                  <tr key={account.account_number} className={index % 2 === 0 ? 'bg-white' : 'bg-[var(--color-background-secondary)]'}>
+                    <td className="border border-[var(--color-border-dark)] p-3 font-mono">
                       {account.account_number}
                     </td>
-                    <td className="border border-gray-300 p-3">
+                    <td className="border border-[var(--color-border-dark)] p-3">
                       {account.description}
                     </td>
-                    <td className="border border-gray-300 p-3 font-mono text-xs">
+                    <td className="border border-[var(--color-border-dark)] p-3 font-mono text-xs">
                       {account.iban_masked}
                     </td>
-                    <td className="border border-gray-300 p-3">
+                    <td className="border border-[var(--color-border-dark)] p-3">
                       {account.bank_name}
                     </td>
-                    <td className="border border-gray-300 p-3 text-right font-mono">
-                      <span className={account.current_balance < 0 ? 'text-red-600 font-bold' : 'text-green-600'}>
+                    <td className="border border-[var(--color-border-dark)] p-3 text-right font-mono">
+                      <span className={account.current_balance < 0 ? 'text-[var(--color-error)] font-bold' : 'text-[var(--color-success)]'}>
                         {formaterMontant(account.current_balance, account.currency)}
                       </span>
                     </td>
-                    <td className="border border-gray-300 p-3 text-right font-mono text-gray-600">
+                    <td className="border border-[var(--color-border-dark)] p-3 text-right font-mono text-[var(--color-text-primary)]">
                       {formaterMontant(account.overdraft_limit, account.currency)}
                     </td>
-                    <td className="border border-gray-300 p-3 text-center">
+                    <td className="border border-[var(--color-border-dark)] p-3 text-center">
                       <Badge className={
-                        account.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                        account.status === 'SUSPENDED' ? 'bg-orange-100 text-orange-800' :
-                        'bg-red-100 text-red-800'
+                        account.status === 'ACTIVE' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                        account.status === 'SUSPENDED' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]' :
+                        'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'
                       }>
                         {account.status}
                       </Badge>
@@ -439,25 +441,25 @@ const TreasuryDashboardEnterprise: React.FC = () => {
         <CardContent>
           {alerts.length === 0 ? (
             <div className="text-center py-8">
-              <Shield className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <p className="text-green-600 font-medium">Aucune alerte active</p>
-              <p className="text-sm text-gray-500">Situation de trésorerie normale</p>
+              <Shield className="h-12 w-12 text-[var(--color-success)] mx-auto mb-4" />
+              <p className="text-[var(--color-success)] font-medium">Aucune alerte active</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">Situation de trésorerie normale</p>
             </div>
           ) : (
             <div className="space-y-4">
               {/* Alertes critiques */}
               {alertesCritiques.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-red-700 mb-3">Alertes Critiques ({alertesCritiques.length})</h4>
+                  <h4 className="font-semibold text-[var(--color-error-dark)] mb-3">Alertes Critiques ({alertesCritiques.length})</h4>
                   <div className="space-y-2">
                     {alertesCritiques.map((alerte) => (
-                      <div key={alerte.id} className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div key={alerte.id} className="flex items-start gap-3 p-3 bg-[var(--color-error-lightest)] border border-[var(--color-error-light)] rounded-lg">
                         {getSeverityIcon(alerte.severity)}
                         <div className="flex-1">
                           <p className="font-medium text-red-900">{alerte.title}</p>
-                          <p className="text-sm text-red-700">{alerte.message}</p>
+                          <p className="text-sm text-[var(--color-error-dark)]">{alerte.message}</p>
                           {alerte.account && (
-                            <p className="text-xs text-red-600 mt-1">Compte: {alerte.account}</p>
+                            <p className="text-xs text-[var(--color-error)] mt-1">Compte: {alerte.account}</p>
                           )}
                         </div>
                         <Button size="sm" variant="outline">
@@ -472,14 +474,14 @@ const TreasuryDashboardEnterprise: React.FC = () => {
               {/* Alertes warning */}
               {alertesWarning.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-orange-700 mb-3">Avertissements ({alertesWarning.length})</h4>
+                  <h4 className="font-semibold text-[var(--color-warning-dark)] mb-3">Avertissements ({alertesWarning.length})</h4>
                   <div className="space-y-2">
                     {alertesWarning.slice(0, 3).map((alerte) => (
-                      <div key={alerte.id} className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <div key={alerte.id} className="flex items-start gap-3 p-3 bg-[var(--color-warning-lightest)] border border-[var(--color-warning-light)] rounded-lg">
                         {getSeverityIcon(alerte.severity)}
                         <div className="flex-1">
                           <p className="font-medium text-orange-900">{alerte.title}</p>
-                          <p className="text-sm text-orange-700">{alerte.message}</p>
+                          <p className="text-sm text-[var(--color-warning-dark)]">{alerte.message}</p>
                         </div>
                       </div>
                     ))}
@@ -499,8 +501,8 @@ const TreasuryDashboardEnterprise: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Prévisions en cours de génération...</p>
+            <BarChart3 className="h-12 w-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+            <p className="text-[var(--color-text-primary)]">Prévisions en cours de génération...</p>
           </CardContent>
         </Card>
       );
@@ -516,40 +518,40 @@ const TreasuryDashboardEnterprise: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 text-sm">
+            <table className="w-full border-collapse border border-[var(--color-border-dark)] text-sm">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="border border-gray-300 p-2 text-center">Semaine</th>
-                  <th className="border border-gray-300 p-2 text-right">Début</th>
-                  <th className="border border-gray-300 p-2 text-right">Encaiss.</th>
-                  <th className="border border-gray-300 p-2 text-right">Décaiss.</th>
-                  <th className="border border-gray-300 p-2 text-right">Fin</th>
-                  <th className="border border-gray-300 p-2 text-center">Confiance</th>
+                <tr className="bg-[var(--color-background-secondary)]">
+                  <th className="border border-[var(--color-border-dark)] p-2 text-center">Semaine</th>
+                  <th className="border border-[var(--color-border-dark)] p-2 text-right">Début</th>
+                  <th className="border border-[var(--color-border-dark)] p-2 text-right">Encaiss.</th>
+                  <th className="border border-[var(--color-border-dark)] p-2 text-right">Décaiss.</th>
+                  <th className="border border-[var(--color-border-dark)] p-2 text-right">Fin</th>
+                  <th className="border border-[var(--color-border-dark)] p-2 text-center">Confiance</th>
                 </tr>
               </thead>
               <tbody>
                 {forecasts.slice(0, 8).map((forecast, index) => {
                   const scenario = forecast.scenarios.REALISTE;
                   return (
-                    <tr key={forecast.semaine} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="border border-gray-300 p-2 text-center font-semibold">
+                    <tr key={forecast.semaine} className={index % 2 === 0 ? 'bg-white' : 'bg-[var(--color-background-secondary)]'}>
+                      <td className="border border-[var(--color-border-dark)] p-2 text-center font-semibold">
                         S{forecast.semaine}
                       </td>
-                      <td className="border border-gray-300 p-2 text-right font-mono">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono">
                         {formaterMontant(scenario.balance_fin - scenario.entrees + scenario.sorties, kpis?.currency || 'XOF')}
                       </td>
-                      <td className="border border-gray-300 p-2 text-right font-mono text-green-600">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono text-[var(--color-success)]">
                         +{formaterMontant(scenario.entrees, kpis?.currency || 'XOF')}
                       </td>
-                      <td className="border border-gray-300 p-2 text-right font-mono text-red-600">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono text-[var(--color-error)]">
                         -{formaterMontant(scenario.sorties, kpis?.currency || 'XOF')}
                       </td>
-                      <td className="border border-gray-300 p-2 text-right font-mono font-bold">
-                        <span className={scenario.balance_fin < 0 ? 'text-red-600' : 'text-green-600'}>
+                      <td className="border border-[var(--color-border-dark)] p-2 text-right font-mono font-bold">
+                        <span className={scenario.balance_fin < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}>
                           {formaterMontant(scenario.balance_fin, kpis?.currency || 'XOF')}
                         </span>
                       </td>
-                      <td className="border border-gray-300 p-2 text-center">
+                      <td className="border border-[var(--color-border-dark)] p-2 text-center">
                         <Progress value={forecast.confidence_level} className="w-12 h-2" />
                         <span className="text-xs">{forecast.confidence_level}%</span>
                       </td>
@@ -619,8 +621,8 @@ const TreasuryDashboardEnterprise: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Current Working Capital */}
         <div>
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">💼 Current Working Capital</h2>
+          <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-4 mb-4">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">💼 Current Working Capital</h2>
 
             {/* Liste avec deux colonnes */}
             <div className="space-y-4">
@@ -636,20 +638,20 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Cash</span>
-                      <span className="font-semibold text-green-600">
+                      <span className="text-[var(--color-text-primary)] ml-4">Cash</span>
+                      <span className="font-semibold text-[var(--color-success)]">
                         {new Intl.NumberFormat('fr-FR').format(115400365)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Account receivable</span>
+                      <span className="text-[var(--color-text-primary)] ml-4">Account receivable</span>
                       <span className="font-semibold text-[#6A8A82]">
                         {new Intl.NumberFormat('fr-FR').format(255317374)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Pre-paid expense</span>
-                      <span className="font-semibold text-gray-600">0</span>
+                      <span className="text-[var(--color-text-primary)] ml-4">Pre-paid expense</span>
+                      <span className="font-semibold text-[var(--color-text-primary)]">0</span>
                     </div>
                   </div>
                 </div>
@@ -657,40 +659,40 @@ const TreasuryDashboardEnterprise: React.FC = () => {
 
               {/* Current Liabilities */}
               <div>
-                <h3 className="text-lg font-medium text-red-800 mb-4">📉 Current Liabilities</h3>
-                <div className="bg-red-50 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-[var(--color-error-darker)] mb-4">📉 Current Liabilities</h3>
+                <div className="bg-[var(--color-error-lightest)] rounded-lg p-4">
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b border-red-200">
-                      <span className="text-red-700 font-medium">Current liabilities</span>
-                      <span className="text-xl font-bold text-red-600">
+                    <div className="flex justify-between items-center py-2 border-b border-[var(--color-error-light)]">
+                      <span className="text-[var(--color-error-dark)] font-medium">Current liabilities</span>
+                      <span className="text-xl font-bold text-[var(--color-error)]">
                         {new Intl.NumberFormat('fr-FR').format(189651677)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Account payable</span>
-                      <span className="font-semibold text-red-600">
+                      <span className="text-[var(--color-text-primary)] ml-4">Account payable</span>
+                      <span className="font-semibold text-[var(--color-error)]">
                         {new Intl.NumberFormat('fr-FR').format(73940491)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Credit card debt</span>
-                      <span className="font-semibold text-red-600">
+                      <span className="text-[var(--color-text-primary)] ml-4">Credit card debt</span>
+                      <span className="font-semibold text-[var(--color-error)]">
                         {new Intl.NumberFormat('fr-FR').format(38721)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Bank operating credit</span>
-                      <span className="font-semibold text-red-600">
+                      <span className="text-[var(--color-text-primary)] ml-4">Bank operating credit</span>
+                      <span className="font-semibold text-[var(--color-error)]">
                         {new Intl.NumberFormat('fr-FR').format(115672465)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Accrued expenses</span>
-                      <span className="font-semibold text-gray-600">0</span>
+                      <span className="text-[var(--color-text-primary)] ml-4">Accrued expenses</span>
+                      <span className="font-semibold text-[var(--color-text-primary)]">0</span>
                     </div>
                     <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-700 ml-4">Taxes payable</span>
-                      <span className="font-semibold text-gray-600">0</span>
+                      <span className="text-[var(--color-text-primary)] ml-4">Taxes payable</span>
+                      <span className="font-semibold text-[var(--color-text-primary)]">0</span>
                     </div>
                   </div>
                 </div>
@@ -698,10 +700,10 @@ const TreasuryDashboardEnterprise: React.FC = () => {
 
               {/* Working Capital & Current Ratio */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                <div className="bg-[var(--color-success-lightest)] rounded-lg p-4 border-l-4 border-[var(--color-success)]">
                   <div className="flex justify-between items-center">
-                    <span className="text-green-800 font-medium">💰 Working Capital</span>
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-[var(--color-success-darker)] font-medium">💰 Working Capital</span>
+                    <span className="text-2xl font-bold text-[var(--color-success)]">
                       {new Intl.NumberFormat('fr-FR').format(181066062)}
                     </span>
                   </div>
@@ -722,8 +724,8 @@ const TreasuryDashboardEnterprise: React.FC = () => {
           {/* Days Outstanding - Côte à côte */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Days Payable Outstanding */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-              <h3 className="text-lg font-semibold text-orange-800 mb-4">📉 Days Payable Outstanding</h3>
+            <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-4">
+              <h3 className="text-lg font-semibold text-[var(--color-warning-darker)] mb-4">📉 Days Payable Outstanding</h3>
 
               {/* Semi-Circle Gauge Modern */}
               <div className="mb-4 text-center">
@@ -760,8 +762,8 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                   {/* Center Content */}
                   <div className="absolute inset-0 flex items-center justify-center mt-1">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600 mb-1">40%</div>
-                      <div className="text-xs text-gray-600 font-medium">40 jours</div>
+                      <div className="text-2xl font-bold text-[var(--color-warning)] mb-1">40%</div>
+                      <div className="text-xs text-[var(--color-text-primary)] font-medium">40 jours</div>
                     </div>
                   </div>
                 </div>
@@ -769,29 +771,29 @@ const TreasuryDashboardEnterprise: React.FC = () => {
 
               {/* Répartition des dettes */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-800 mb-3">Répartition des dettes :</h4>
+                <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Répartition des dettes :</h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-gray-600">- de 30j</span>
-                    <span className="font-semibold text-green-600">
+                    <span className="text-[var(--color-text-primary)]">- de 30j</span>
+                    <span className="font-semibold text-[var(--color-success)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(45200000)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-gray-600">31-60j</span>
-                    <span className="font-semibold text-yellow-600">
+                    <span className="text-[var(--color-text-primary)]">31-60j</span>
+                    <span className="font-semibold text-[var(--color-warning)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(28750000)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-gray-600">61-90j</span>
-                    <span className="font-semibold text-orange-600">
+                    <span className="text-[var(--color-text-primary)]">61-90j</span>
+                    <span className="font-semibold text-[var(--color-warning)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(15200000)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-t pt-2">
-                    <span className="text-gray-600">+90j</span>
-                    <span className="font-semibold text-red-600">
+                    <span className="text-[var(--color-text-primary)]">+90j</span>
+                    <span className="font-semibold text-[var(--color-error)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(4500000)}
                     </span>
                   </div>
@@ -800,7 +802,7 @@ const TreasuryDashboardEnterprise: React.FC = () => {
             </div>
 
             {/* Days Sales Outstanding */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-4">
               <h3 className="text-lg font-semibold text-[#6A8A82] mb-4">📈 Days Sales Outstanding</h3>
 
               {/* Semi-Circle Gauge Modern */}
@@ -839,7 +841,7 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                   <div className="absolute inset-0 flex items-center justify-center mt-1">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-[#6A8A82] mb-1">40%</div>
-                      <div className="text-xs text-gray-600 font-medium">40 jours</div>
+                      <div className="text-xs text-[var(--color-text-primary)] font-medium">40 jours</div>
                     </div>
                   </div>
                 </div>
@@ -847,29 +849,29 @@ const TreasuryDashboardEnterprise: React.FC = () => {
 
               {/* Répartition des créances */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-800 mb-3">Répartition des créances :</h4>
+                <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Répartition des créances :</h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-gray-600">- de 30j</span>
-                    <span className="font-semibold text-green-600">
+                    <span className="text-[var(--color-text-primary)]">- de 30j</span>
+                    <span className="font-semibold text-[var(--color-success)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(145200000)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-gray-600">31-60j</span>
-                    <span className="font-semibold text-yellow-600">
+                    <span className="text-[var(--color-text-primary)]">31-60j</span>
+                    <span className="font-semibold text-[var(--color-warning)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(65800000)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-gray-600">61-90j</span>
-                    <span className="font-semibold text-orange-600">
+                    <span className="text-[var(--color-text-primary)]">61-90j</span>
+                    <span className="font-semibold text-[var(--color-warning)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(32100000)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-t pt-2">
-                    <span className="text-gray-600">+90j</span>
-                    <span className="font-semibold text-red-600">
+                    <span className="text-[var(--color-text-primary)]">+90j</span>
+                    <span className="font-semibold text-[var(--color-error)]">
                       {new Intl.NumberFormat('fr-FR', { notation: 'compact', compactDisplay: 'short' }).format(12200000)}
                     </span>
                   </div>
@@ -879,29 +881,29 @@ const TreasuryDashboardEnterprise: React.FC = () => {
           </div>
 
           {/* Cash Conversion Cycle */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">🔄 Cash Conversion Cycle</h3>
+          <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">🔄 Cash Conversion Cycle</h3>
 
             {/* Métriques principales */}
             <div className="grid grid-cols-3 gap-2 mb-6">
               <div className="text-center p-3 bg-[#6A8A82]/5 rounded-lg">
                 <div className="text-lg font-bold text-[#6A8A82]">8</div>
-                <div className="text-xs text-gray-600">DSO</div>
+                <div className="text-xs text-[var(--color-text-primary)]">DSO</div>
               </div>
-              <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <div className="text-lg font-bold text-orange-600">10</div>
-                <div className="text-xs text-gray-600">DPO</div>
+              <div className="text-center p-3 bg-[var(--color-warning-lightest)] rounded-lg">
+                <div className="text-lg font-bold text-[var(--color-warning)]">10</div>
+                <div className="text-xs text-[var(--color-text-primary)]">DPO</div>
               </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <div className="text-lg font-bold text-green-600">18</div>
-                <div className="text-xs text-gray-600">CCC</div>
+              <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded-lg">
+                <div className="text-lg font-bold text-[var(--color-success)]">18</div>
+                <div className="text-xs text-[var(--color-text-primary)]">CCC</div>
               </div>
             </div>
 
             {/* Histogramme mensuel */}
             <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-800 mb-3">Évolution mensuelle :</h4>
-              <div className="flex items-end justify-between h-24 bg-gray-50 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Évolution mensuelle :</h4>
+              <div className="flex items-end justify-between h-24 bg-[var(--color-background-secondary)] rounded-lg p-3">
                 {[
                   { mois: 'Jan', valeur: 22, couleur: '#EF4444' },
                   { mois: 'Fév', valeur: 19, couleur: '#F97316' },
@@ -919,19 +921,19 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                         minHeight: '8px'
                       }}
                     ></div>
-                    <div className="text-xs text-gray-600 mt-1">{data.mois}</div>
-                    <div className="text-xs font-medium text-gray-800">{data.valeur}</div>
+                    <div className="text-xs text-[var(--color-text-primary)] mt-1">{data.mois}</div>
+                    <div className="text-xs font-medium text-[var(--color-text-primary)]">{data.valeur}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Tendance */}
-            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
-              <span className="text-sm font-medium text-green-800">Tendance actuelle</span>
+            <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded-lg border-l-4 border-[var(--color-success)]">
+              <span className="text-sm font-medium text-[var(--color-success-darker)]">Tendance actuelle</span>
               <div className="flex items-center space-x-2">
-                <TrendingDown className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-bold text-green-600">-4 jours vs mois dernier</span>
+                <TrendingDown className="w-4 h-4 text-[var(--color-success)]" />
+                <span className="text-sm font-bold text-[var(--color-success)]">-4 jours vs mois dernier</span>
               </div>
             </div>
           </div>
@@ -942,8 +944,8 @@ const TreasuryDashboardEnterprise: React.FC = () => {
       {/* Second Row - Trends & Cash Ratios */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Trends */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-          <h3 className="text-base font-semibold text-gray-900 mb-3">📈 Trends</h3>
+        <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-4">
+          <h3 className="text-base font-semibold text-[var(--color-text-primary)] mb-3">📈 Trends</h3>
 
           {/* Cash Ratios avec jauges et sparklines */}
           <div className="mb-4">
@@ -985,13 +987,13 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-600 font-medium">Quick Ratio</div>
+                  <div className="text-xs text-[var(--color-text-primary)] font-medium">Quick Ratio</div>
                 </div>
 
                 {/* Sparkline droite - Style MUI */}
                 <div className="flex-1">
                   <div className="flex flex-col">
-                    <div className="text-xs text-gray-500 mb-1 font-medium">Quick Ratio - 6 derniers mois</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mb-1 font-medium">Quick Ratio - 6 derniers mois</div>
                     <div className="border-b-2 border-[#B87333]/20 pb-1">
                       <div className="h-10 flex-1">
                         <svg width="100%" height="40" viewBox="0 0 150 40" className="overflow-visible">
@@ -1067,13 +1069,13 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-600 font-medium">Current Ratio</div>
+                  <div className="text-xs text-[var(--color-text-primary)] font-medium">Current Ratio</div>
                 </div>
 
                 {/* Sparkline droite - Style MUI */}
                 <div className="flex-1">
                   <div className="flex flex-col">
-                    <div className="text-xs text-gray-500 mb-1 font-medium">Current Ratio - 6 derniers mois</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mb-1 font-medium">Current Ratio - 6 derniers mois</div>
                     <div className="border-b-2 border-cyan-200 pb-1">
                       <div className="h-10 flex-1">
                         <svg width="100%" height="40" viewBox="0 0 150 40" className="overflow-visible">
@@ -1117,21 +1119,21 @@ const TreasuryDashboardEnterprise: React.FC = () => {
 
           {/* Total Cash Section - Horizontal */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="text-center p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
-              <div className="text-sm text-gray-700 mb-1">Total Cash</div>
-              <div className="text-lg font-bold text-red-600">
+            <div className="text-center p-3 bg-[var(--color-error-lightest)] rounded-lg border-l-4 border-[var(--color-error)]">
+              <div className="text-sm text-[var(--color-text-primary)] mb-1">Total Cash</div>
+              <div className="text-lg font-bold text-[var(--color-error)]">
                 {new Intl.NumberFormat('fr-FR').format(-95214202)}
               </div>
             </div>
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-sm text-gray-700 mb-1">Cash In</div>
-              <div className="text-lg font-bold text-green-600">
+            <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded-lg">
+              <div className="text-sm text-[var(--color-text-primary)] mb-1">Cash In</div>
+              <div className="text-lg font-bold text-[var(--color-success)]">
                 {new Intl.NumberFormat('fr-FR').format(179400537)}
               </div>
             </div>
-            <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-sm text-gray-700 mb-1">Cash Out</div>
-              <div className="text-lg font-bold text-red-600">
+            <div className="text-center p-3 bg-[var(--color-error-lightest)] rounded-lg">
+              <div className="text-sm text-[var(--color-text-primary)] mb-1">Cash Out</div>
+              <div className="text-lg font-bold text-[var(--color-error)]">
                 {new Intl.NumberFormat('fr-FR').format(274614739)}
               </div>
             </div>
@@ -1139,19 +1141,19 @@ const TreasuryDashboardEnterprise: React.FC = () => {
         </div>
 
         {/* Cash Balance Summary */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">💰 Cash Balance</h3>
+        <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">💰 Cash Balance</h3>
           <div className="text-center mb-4">
-            <div className="text-4xl font-bold text-red-600 mb-2">
+            <div className="text-4xl font-bold text-[var(--color-error)] mb-2">
               {new Intl.NumberFormat('fr-FR').format(-95214202)}
             </div>
-            <div className="text-sm text-gray-600">Position de trésorerie actuelle</div>
+            <div className="text-sm text-[var(--color-text-primary)]">Position de trésorerie actuelle</div>
           </div>
 
           {/* Histogramme mensuel */}
           <div>
-            <h4 className="text-sm font-medium text-gray-800 mb-3">Évolution mensuelle :</h4>
-            <div className="flex items-end justify-between h-24 bg-gray-50 rounded-lg p-2">
+            <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Évolution mensuelle :</h4>
+            <div className="flex items-end justify-between h-24 bg-[var(--color-background-secondary)] rounded-lg p-2">
               {[
                 { mois: 'Jan', solde: -85194202, couleur: '#EF4444' },
                 { mois: 'Fév', solde: -88456789, couleur: '#EF4444' },
@@ -1189,7 +1191,7 @@ const TreasuryDashboardEnterprise: React.FC = () => {
                         Solde: {new Intl.NumberFormat('fr-FR').format(data.solde)}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-600 mt-1 font-medium">{data.mois}</div>
+                    <div className="text-xs text-[var(--color-text-primary)] mt-1 font-medium">{data.mois}</div>
                   </div>
                 );
               })}
@@ -1198,16 +1200,16 @@ const TreasuryDashboardEnterprise: React.FC = () => {
             {/* Légende */}
             <div className="mt-3 flex justify-center space-x-4 text-xs">
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span className="text-gray-600">Déficit critique</span>
+                <div className="w-3 h-3 bg-[var(--color-error)] rounded"></div>
+                <span className="text-[var(--color-text-primary)]">Déficit critique</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                <span className="text-gray-600">Amélioration</span>
+                <div className="w-3 h-3 bg-[var(--color-warning)] rounded"></div>
+                <span className="text-[var(--color-text-primary)]">Amélioration</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span className="text-gray-600">Prévision positive</span>
+                <div className="w-3 h-3 bg-[var(--color-success)] rounded"></div>
+                <span className="text-[var(--color-text-primary)]">Prévision positive</span>
               </div>
             </div>
           </div>
@@ -1215,9 +1217,9 @@ const TreasuryDashboardEnterprise: React.FC = () => {
       </div>
 
       {/* Actions */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-6">
         <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-[var(--color-text-primary)]">
             Rapport généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')}
           </div>
           <div className="flex space-x-3">

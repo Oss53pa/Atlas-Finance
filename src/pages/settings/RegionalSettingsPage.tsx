@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Globe,
   MapPin,
@@ -83,6 +84,7 @@ interface TaxRate {
 }
 
 const RegionalSettingsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('countries');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('all');
@@ -266,7 +268,7 @@ const RegionalSettingsPage: React.FC = () => {
           <TabsTrigger value="countries">Pays</TabsTrigger>
           <TabsTrigger value="currencies">Devises</TabsTrigger>
           <TabsTrigger value="taxes">Taxes & TVA</TabsTrigger>
-          <TabsTrigger value="accounting">Comptabilité</TabsTrigger>
+          <TabsTrigger value="accounting">{t('accounting.title')}</TabsTrigger>
         </TabsList>
 
         {/* Countries Tab */}
@@ -280,7 +282,7 @@ const RegionalSettingsPage: React.FC = () => {
                 </CardTitle>
                 <div className="flex space-x-2">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 h-4 w-4" />
                     <Input
                       placeholder="Rechercher un pays..."
                       value={searchTerm}
@@ -500,7 +502,7 @@ const RegionalSettingsPage: React.FC = () => {
                         {tax.deductible ? (
                           <Check className="h-4 w-4 text-green-600" />
                         ) : (
-                          <X className="h-4 w-4 text-gray-400" />
+                          <X className="h-4 w-4 text-gray-700" />
                         )}
                       </TableCell>
                       <TableCell>

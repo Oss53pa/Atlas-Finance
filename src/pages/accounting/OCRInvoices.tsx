@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   ScanLine, Upload, FileText, Check, X, AlertTriangle,
   Download, Eye, Edit, Trash2, Filter, Search, Calendar,
@@ -118,6 +119,7 @@ interface OCRSettings {
 }
 
 const OCRInvoices: React.FC = () => {
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<ScannedInvoice | null>(null);
@@ -421,15 +423,15 @@ const OCRInvoices: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      'uploading': 'text-gray-500 bg-gray-100',
+      'uploading': 'text-gray-700 bg-gray-100',
       'processing': 'text-blue-600 bg-blue-100',
       'review': 'text-yellow-600 bg-yellow-100',
       'validated': 'text-green-600 bg-green-100',
       'rejected': 'text-red-600 bg-red-100',
       'error': 'text-red-600 bg-red-100',
-      'archived': 'text-gray-500 bg-gray-100'
+      'archived': 'text-gray-700 bg-gray-100'
     };
-    return colors[status] || 'text-gray-500 bg-gray-100';
+    return colors[status] || 'text-gray-700 bg-gray-100';
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -548,7 +550,7 @@ const OCRInvoices: React.FC = () => {
                 <Clock className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">En attente</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('status.pending')}</p>
                 <p className="text-lg font-semibold text-[var(--color-text-primary)]">{stats.pending}</p>
               </div>
             </div>

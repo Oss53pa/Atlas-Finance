@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Calculator, 
@@ -26,6 +27,7 @@ interface UserRole {
 }
 
 const PremiumLandingPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
@@ -276,7 +278,7 @@ const PremiumLandingPage: React.FC = () => {
             </div>
             <span className="text-xl font-bold">WiseBook ERP v3.0</span>
           </div>
-          <p className="text-gray-400">
+          <p className="text-gray-700">
             © 2025 Praedium Tech. Plateforme comptable professionnelle SYSCOHADA.
           </p>
         </div>

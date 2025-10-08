@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Link, useLocation } from 'react-router-dom';
 import { useNavigation } from '../../contexts/NavigationContext';
 import {
@@ -60,14 +61,14 @@ interface Module {
 }
 
 const DoubleSidebar: React.FC = () => {
+  const { t } = useLanguage();
   const location = useLocation();
-  const [selectedModule, setSelectedModule] = useState<string | null>(null);
-  const { 
-    isMobile, 
-    mainSidebarOpen, 
-    subSidebarOpen, 
+  const {
+    isMobile,
+    mainSidebarOpen,
+    subSidebarOpen,
     mobileSidebarOpen,
-    setMainSidebarOpen, 
+    setMainSidebarOpen,
     setSubSidebarOpen,
     setMobileSidebarOpen
   } = useNavigation();
@@ -75,7 +76,7 @@ const DoubleSidebar: React.FC = () => {
   const modules: Module[] = [
     {
       icon: LayoutDashboard,
-      label: 'Dashboard',
+      label: t('dashboard.title'),
       href: '/dashboard',
       color: 'from-blue-500 to-blue-600',
       subModules: [
@@ -86,17 +87,17 @@ const DoubleSidebar: React.FC = () => {
     },
     {
       icon: Calculator,
-      label: 'Comptabilité',
+      label: t('accounting.title'),
       href: '/accounting',
       color: 'from-emerald-500 to-emerald-600',
       subModules: [
-        { icon: Book, label: 'Tableau de bord', href: '/accounting' },
-        { icon: FileText, label: 'Journaux', href: '/accounting/journals' },
+        { icon: Book, label: t('dashboard.title'), href: '/accounting' },
+        { icon: FileText, label: t('navigation.journals'), href: '/accounting/journals' },
         { icon: Receipt, label: 'Écritures', href: '/accounting/entries' },
         { icon: TrendingUp, label: '🧠 Saisie Intelligente', href: '/accounting/entries-advanced' },
-        { icon: CalcIcon, label: 'Balance', href: '/accounting/balance' },
+        { icon: CalcIcon, label: t('accounting.balance'), href: '/accounting/balance' },
         { icon: FileBarChart, label: 'Grand Livre', href: '/accounting/general-ledger' },
-        { icon: ArrowUpDown, label: 'Lettrage', href: '/accounting/lettrage' },
+        { icon: ArrowUpDown, label: t('thirdParty.matching'), href: '/accounting/lettrage' },
         { icon: BarChart3, label: '📊 États SYSCOHADA', href: '/financial-statements' },
         { icon: PieChart, label: '📊 Ratios Financiers', href: '/accounting/ratios' },
         { icon: CheckSquare, label: '🔒 Clôtures Périodiques', href: '/closures' }
@@ -108,18 +109,18 @@ const DoubleSidebar: React.FC = () => {
       href: '/third-party',
       color: 'from-purple-500 to-purple-600',
       subModules: [
-        { icon: UserPlus, label: 'Tableau de bord', href: '/third-party' },
-        { icon: Building2, label: 'Clients', href: '/customers-advanced', badge: 3 },
+        { icon: UserPlus, label: t('dashboard.title'), href: '/third-party' },
+        { icon: Building2, label: t('thirdParty.customers'), href: '/customers-advanced', badge: 3 },
         { icon: TrendingUp, label: '💰 Recouvrement Intelligent', href: '/customers/recovery' },
         { icon: CheckSquare, label: '🔗 Lettrage Clients', href: '/customers/lettrage' },
-        { icon: Briefcase, label: 'Fournisseurs', href: '/suppliers-advanced' },
+        { icon: Briefcase, label: t('thirdParty.suppliers'), href: '/suppliers-advanced' },
         { icon: DollarSign, label: '⏰ Échéances Fournisseurs', href: '/suppliers/payments' },
         { icon: Contact, label: 'Contacts', href: '/third-party/contacts' }
       ]
     },
     {
       icon: DollarSign,
-      label: 'Trésorerie',
+      label: t('treasury.title'),
       href: '/treasury/position',
       color: 'from-green-500 to-green-600',
       subModules: [
@@ -134,11 +135,11 @@ const DoubleSidebar: React.FC = () => {
     },
     {
       icon: Building,
-      label: 'Immobilisations',
+      label: t('assets.title'),
       href: '/assets',
       color: 'from-orange-500 to-orange-600',
       subModules: [
-        { icon: Package, label: 'Tableau de bord', href: '/assets' },
+        { icon: Package, label: t('dashboard.title'), href: '/assets' },
         { icon: Building, label: '🏭 Gestion Patrimoine', href: '/assets/fixed-assets' },
         { icon: TrendingDown, label: '📉 Amortissements Multi-Méthodes', href: '/assets/depreciation' },
         { icon: Calculator, label: 'Cycle de Vie Complet', href: '/assets/lifecycle' },
@@ -151,20 +152,20 @@ const DoubleSidebar: React.FC = () => {
       href: '/analytics',
       color: 'from-indigo-500 to-indigo-600',
       subModules: [
-        { icon: PieChart, label: 'Tableau de bord', href: '/analytics' },
-        { icon: Layers, label: 'Axes analytiques', href: '/analytics/axes' },
+        { icon: PieChart, label: t('dashboard.title'), href: '/analytics' },
+        { icon: Layers, label: t('settings.analyticalAxes'), href: '/analytics/axes' },
         { icon: MapPin, label: 'Centres de coûts', href: '/analytics/cost-centers' }
       ]
     },
     {
       icon: Target,
-      label: 'Budget',
+      label: t('budget.title'),
       href: '/budgeting',
       color: 'from-pink-500 to-pink-600',
       subModules: [
-        { icon: Target, label: 'Tableau de bord', href: '/budgeting' },
+        { icon: Target, label: t('dashboard.title'), href: '/budgeting' },
         { icon: ClipboardList, label: 'Budgets', href: '/budgeting/budgets' },
-        { icon: FileCheck, label: 'Contrôle budgétaire', href: '/budgeting/control' }
+        { icon: FileCheck, label: t('budget.control'), href: '/budgeting/control' }
       ]
     },
     {
@@ -173,7 +174,7 @@ const DoubleSidebar: React.FC = () => {
       href: '/taxation',
       color: 'from-red-500 to-red-600',
       subModules: [
-        { icon: FileText, label: 'Tableau de bord', href: '/taxation' },
+        { icon: FileText, label: t('dashboard.title'), href: '/taxation' },
         { icon: FileCheck, label: '📋 Télédéclarations', href: '/taxation/declarations' },
         { icon: Calendar, label: 'Échéances Fiscales', href: '/taxation/deadlines' },
         { icon: Calculator, label: 'Calculs Automatiques', href: '/taxation/calculations' },
@@ -186,18 +187,18 @@ const DoubleSidebar: React.FC = () => {
       href: '/reporting',
       color: 'from-cyan-500 to-cyan-600',
       subModules: [
-        { icon: BarChart3, label: 'Tableau de bord', href: '/reporting' },
-        { icon: FileBarChart, label: 'Rapports', href: '/reporting/reports' },
+        { icon: BarChart3, label: t('dashboard.title'), href: '/reporting' },
+        { icon: FileBarChart, label: t('reports.title'), href: '/reporting/reports' },
         { icon: LayoutDashboard, label: 'Dashboards', href: '/reporting/dashboards' }
       ]
     },
     {
       icon: Shield,
-      label: 'Sécurité',
+      label: t('settings.security'),
       href: '/security',
       color: 'from-gray-500 to-gray-600',
       subModules: [
-        { icon: Shield, label: 'Tableau de bord', href: '/security' },
+        { icon: Shield, label: t('dashboard.title'), href: '/security' },
         { icon: UserCheck, label: 'Utilisateurs', href: '/security/users' },
         { icon: ShieldCheck, label: 'Rôles', href: '/security/roles' },
         { icon: Key, label: 'Permissions', href: '/security/permissions' }
@@ -205,7 +206,7 @@ const DoubleSidebar: React.FC = () => {
     },
     {
       icon: Settings,
-      label: 'Paramètres',
+      label: t('settings.title'),
       href: '/parameters',
       color: 'from-slate-500 to-slate-600',
       subModules: [
@@ -216,7 +217,7 @@ const DoubleSidebar: React.FC = () => {
         { icon: DollarSign, label: 'TVA et Taxes', href: '/config/vat-taxes' },
         { icon: Users, label: 'Codification Tiers', href: '/config/third-party-codes' },
         { icon: Target, label: 'Axes Analytiques', href: '/config/analytical-axes' },
-        { icon: FileText, label: 'Import/Export', href: '/config/import-export' },
+        { icon: FileText, label: t('settings.importExport'), href: '/config/import-export' },
         { icon: Shield, label: 'Profils Sécurité', href: '/config/security-profiles' }
       ]
     }
@@ -233,9 +234,16 @@ const DoubleSidebar: React.FC = () => {
   };
 
   const activeModule = getActiveModule();
-  const currentSubModules = selectedModule 
-    ? modules.find(m => m.label === selectedModule)?.subModules 
-    : activeModule?.subModules;
+  const currentSubModules = activeModule?.subModules;
+
+  // Gérer automatiquement l'ouverture de la sidebar secondaire selon le module actif
+  useEffect(() => {
+    if (!isMobile && activeModule && activeModule.subModules && activeModule.subModules.length > 0) {
+      setSubSidebarOpen(true);
+    } else if (!isMobile && activeModule && (!activeModule.subModules || activeModule.subModules.length === 0)) {
+      setSubSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile, activeModule, setSubSidebarOpen]);
 
   return (
     <>
@@ -248,7 +256,18 @@ const DoubleSidebar: React.FC = () => {
         {/* Header */}
         <div className="p-4 border-b border-slate-700">
           <div className="flex items-center justify-between">
-            {mainSidebarOpen && (
+            {mainSidebarOpen && !isMobile && (
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">W</span>
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold">WiseBook ERP</h1>
+                  <p className="text-xs text-slate-400">SYSCOHADA</p>
+                </div>
+              </div>
+            )}
+            {isMobile && mobileSidebarOpen && (
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">W</span>
@@ -268,6 +287,7 @@ const DoubleSidebar: React.FC = () => {
                 }
               }}
               className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              title={mainSidebarOpen ? "Réduire" : "Étendre"}
             >
               {(isMobile ? mobileSidebarOpen : mainSidebarOpen) ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -286,11 +306,9 @@ const DoubleSidebar: React.FC = () => {
                 <Link
                   to={module.href}
                   onClick={() => {
-                    if (hasSubModules) {
-                      setSelectedModule(module.label);
+                    if (hasSubModules && !isMobile) {
                       setSubSidebarOpen(true);
                     } else {
-                      setSelectedModule(null);
                       setSubSidebarOpen(false);
                     }
                     if (isMobile) {
@@ -299,8 +317,8 @@ const DoubleSidebar: React.FC = () => {
                   }}
                   className={`
                     flex items-center justify-between p-3 rounded-lg transition-all duration-200
-                    ${isActive 
-                      ? 'bg-gradient-to-r ' + module.color + ' text-white shadow-lg' 
+                    ${isActive
+                      ? 'bg-gradient-to-r ' + module.color + ' text-white shadow-lg'
                       : 'hover:bg-slate-800 text-slate-300 hover:text-white'
                     }
                   `}
@@ -334,7 +352,7 @@ const DoubleSidebar: React.FC = () => {
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-gray-800">
-                {activeModule?.label || selectedModule}
+                {activeModule?.label}
               </h2>
               <button
                 onClick={() => setSubSidebarOpen(false)}

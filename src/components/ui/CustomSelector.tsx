@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface CustomSelectorOption {
   id: number;
@@ -16,6 +17,7 @@ interface CustomSelectorProps {
 }
 
 export const CustomSelector: React.FC<CustomSelectorProps> = ({
+  const { t } = useLanguage();
   optionsInitial,
   className = '',
   onSelect,
@@ -43,7 +45,7 @@ export const CustomSelector: React.FC<CustomSelectorProps> = ({
   if (loading) {
     return (
       <div className={`form-select ${className}`} style={{ opacity: 0.7 }}>
-        <span>Chargement...</span>
+        <span>{t('common.loading')}</span>
       </div>
     );
   }

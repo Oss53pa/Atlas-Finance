@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   TrendingUp, AlertTriangle, CheckCircle, DollarSign, Clock,
   FileText, Activity, PieChart, BarChart3, Calendar,
@@ -8,8 +10,10 @@ import {
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const JournalDashboard: React.FC = () => {
+  const { t } = useLanguage();
   // États
-  const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [activeSubTab, setActiveSubTab] = useState('operations');
 
   // Sous-onglets
@@ -105,7 +109,7 @@ const JournalDashboard: React.FC = () => {
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="px-4 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
           >
-            <option value="today">Aujourd'hui</option>
+            <option value="today">{t('common.today')}</option>
             <option value="week">Cette semaine</option>
             <option value="month">Ce mois</option>
             <option value="year">Cette année</option>
@@ -185,7 +189,7 @@ const JournalDashboard: React.FC = () => {
                 <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Balance</p>
+                      <p className="text-sm text-[#767676]">{t('accounting.balance')}</p>
                       <p className={`text-xl font-bold mt-1 ${todaySummary.isBalanced ? 'text-green-600' : 'text-red-600'}`}>
                         {todaySummary.isBalanced ? 'Équilibrée' : 'Déséquilibrée'}
                       </p>
@@ -201,7 +205,7 @@ const JournalDashboard: React.FC = () => {
                 <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">En attente</p>
+                      <p className="text-sm text-[#767676]">{t('status.pending')}</p>
                       <p className="text-2xl font-bold text-orange-600 mt-1">{todaySummary.pendingValidation}</p>
                     </div>
                     <Clock className="w-8 h-8 text-orange-500" />
@@ -374,9 +378,9 @@ const JournalDashboard: React.FC = () => {
                     <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
                     <Tooltip formatter={(value: number) => formatAmount(value)} />
                     <Legend />
-                    <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#10B981" fill="#10B981" fillOpacity={0.6} name="Encaissements" />
-                    <Area type="monotone" dataKey="decaissements" stackId="2" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} name="Décaissements" />
-                    <Line type="monotone" dataKey="solde" stroke="#6A8A82" strokeWidth={2} name="Solde" />
+                    <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#10B981" fill="#10B981" fillOpacity={0.6} name={t('treasury.receipts')} />
+                    <Area type="monotone" dataKey="decaissements" stackId="2" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} name={t('treasury.payments')} />
+                    <Line type="monotone" dataKey="solde" stroke="#6A8A82" strokeWidth={2} name={t('accounting.balance')} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -471,6 +475,17 @@ const JournalDashboard: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+    {/* Modal de sélection de période */}
+    <PeriodSelectorModal
+      isOpen={showPeriodModal}
+      onClose={() => setShowPeriodModal(false)}
+      onApply={(range) => setDateRange(range)}
+      initialDateRange={dateRange}
+    />
+  </div>
   );
 };
 

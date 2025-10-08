@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Users,
@@ -42,7 +43,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { analyticsService } from '../../services/analytics.service';
+import { analyticsService, createCentreSchema } from '../../services/modules/analytics.service';
+import { z } from 'zod';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
@@ -55,6 +57,7 @@ interface CostCentersFilters {
 }
 
 const CostCentersPage: React.FC = () => {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<CostCentersFilters>({
     search: '',
     axe: '',
@@ -65,8 +68,35 @@ const CostCentersPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [selectedCenter, setSelectedCenter] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [formData, setFormData] = useState({
+    code: '',
+    libelle: '',
+    axe_id: '',
+    type: 'operationnel' as 'operationnel' | 'support' | 'structure' | 'projet',
+    responsable: '',
+    budget_annuel: 0,
+    suivi_budget: false,
+    parent_id: '',
+    actif: true,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const queryClient = useQueryClient();
+
+  // Create centre mutation
+  const createMutation = useMutation({
+    mutationFn: analyticsService.createCentre,
+    onSuccess: () => {
+      toast.success('Centre de coût créé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['centres-analytiques'] });
+      setShowCreateModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de la création');
+    },
+  });
 
   // Fetch cost centers
   const { data: centersData, isLoading } = useQuery({
@@ -119,6 +149,62 @@ const CostCentersPage: React.FC = () => {
       responsable: ''
     });
     setPage(1);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      code: '',
+      libelle: '',
+      axe_id: '',
+      type: 'operationnel',
+      responsable: '',
+      budget_annuel: 0,
+      suivi_budget: false,
+      parent_id: '',
+      actif: true,
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Validate with Zod
+      const validatedData = createCentreSchema.parse(formData);
+
+      // Submit to backend
+      await createMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de la création');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getTypeColor = (type: string) => {
@@ -185,11 +271,11 @@ const CostCentersPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-tuatara flex items-center">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
               <Users className="mr-3 h-7 w-7" />
               Centres de Coûts
             </h1>
-            <p className="mt-2 text-rolling-stone">
+            <p className="mt-2 text-[var(--color-text-secondary)]">
               Gestion des centres de coûts et d'analyse de performance
             </p>
           </div>
@@ -203,7 +289,7 @@ const CostCentersPage: React.FC = () => {
               Importer
             </Button>
             <Button 
-              className="bg-tuatara hover:bg-rolling-stone text-swirl"
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -291,7 +377,7 @@ const CostCentersPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Rechercher un centre..."
                 value={filters.search}
@@ -341,7 +427,7 @@ const CostCentersPage: React.FC = () => {
             </Select>
 
             <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <User className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Responsable"
                 value={filters.responsable}
@@ -386,7 +472,7 @@ const CostCentersPage: React.FC = () => {
                       <TableHead>Axe</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Responsable</TableHead>
-                      <TableHead className="text-right">Budget</TableHead>
+                      <TableHead className="text-right">{t('navigation.budget')}</TableHead>
                       <TableHead className="text-right">Coûts Réels</TableHead>
                       <TableHead className="text-right">Écart</TableHead>
                       <TableHead>Performance</TableHead>
@@ -407,8 +493,8 @@ const CostCentersPage: React.FC = () => {
                               )}
                             </div>
                             <div>
-                              <p className="font-medium text-tuatara">{center.libelle}</p>
-                              <p className="text-sm text-rolling-stone font-mono">
+                              <p className="font-medium text-[var(--color-text-primary)]">{center.libelle}</p>
+                              <p className="text-sm text-[var(--color-text-secondary)] font-mono">
                                 {center.code}
                               </p>
                             </div>
@@ -417,7 +503,7 @@ const CostCentersPage: React.FC = () => {
                         <TableCell>
                           <div>
                             <p className="font-medium text-sm">{center.nom_axe}</p>
-                            <p className="text-xs text-gray-500">{center.code_axe}</p>
+                            <p className="text-xs text-gray-700">{center.code_axe}</p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -434,7 +520,7 @@ const CostCentersPage: React.FC = () => {
                               <div>
                                 <p className="text-sm font-medium">{center.responsable}</p>
                                 {center.email_responsable && (
-                                  <p className="text-xs text-gray-500">{center.email_responsable}</p>
+                                  <p className="text-xs text-gray-700">{center.email_responsable}</p>
                                 )}
                               </div>
                             </div>
@@ -561,15 +647,15 @@ const CostCentersPage: React.FC = () => {
 
               {(!centersData?.results || centersData.results.length === 0) && (
                 <div className="text-center py-12">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Users className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun centre de coût trouvé</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     {filters.search || filters.axe || filters.type || filters.statut || filters.responsable
                       ? 'Aucun centre ne correspond aux critères de recherche.'
                       : 'Commencez par créer votre premier centre de coût.'}
                   </p>
                   <Button 
-                    className="bg-tuatara hover:bg-rolling-stone text-swirl"
+                    className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -581,6 +667,289 @@ const CostCentersPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Create/Edit Cost Center Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
+                  <Target className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Nouveau Centre de Coûts
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  resetForm();
+                }}
+                className="text-gray-700 hover:text-gray-700"
+                disabled={isSubmitting}
+              >
+                <Plus className="w-6 h-6 rotate-45" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info */}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-purple-900 mb-1">Centres de Coûts</h4>
+                      <p className="text-sm text-purple-800">
+                        Les centres de coûts permettent de répartir et suivre les dépenses par département, projet ou activité.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Identification */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Identification</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Code <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="CC001"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        value={formData.code}
+                        onChange={(e) => handleInputChange('code', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.code && (
+                        <p className="mt-1 text-sm text-red-600">{errors.code}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        value={formData.type}
+                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="">Sélectionner un type</option>
+                        <option value="operationnel">Opérationnel</option>
+                        <option value="support">Support</option>
+                        <option value="structure">Structure</option>
+                        <option value="projet">Projet</option>
+                      </select>
+                      {errors.type && (
+                        <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Libellé <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nom du centre de coûts"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      value={formData.libelle}
+                      onChange={(e) => handleInputChange('libelle', e.target.value)}
+                      disabled={isSubmitting}
+                    />
+                    {errors.libelle && (
+                      <p className="mt-1 text-sm text-red-600">{errors.libelle}</p>
+                    )}
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Axe analytique <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      value={formData.axe_id}
+                      onChange={(e) => handleInputChange('axe_id', e.target.value)}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">Sélectionner un axe</option>
+                      {axes?.results?.map((axe) => (
+                        <option key={axe.id} value={axe.id}>
+                          {axe.libelle}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.axe_id && (
+                      <p className="mt-1 text-sm text-red-600">{errors.axe_id}</p>
+                    )}
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Description du centre de coûts..."
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Responsabilité */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Responsabilité</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Responsable
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Nom du responsable"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        value={formData.responsable}
+                        onChange={(e) => handleInputChange('responsable', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.responsable && (
+                        <p className="mt-1 text-sm text-red-600">{errors.responsable}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email du responsable
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="responsable@company.com"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Budget */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('navigation.budget')}</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Budget annuel (XAF)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        value={formData.budget_annuel}
+                        onChange={(e) => handleInputChange('budget_annuel', parseFloat(e.target.value) || 0)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.budget_annuel && (
+                        <p className="mt-1 text-sm text-red-600">{errors.budget_annuel}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Statut <span className="text-red-500">*</span>
+                      </label>
+                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="actif">Actif</option>
+                        <option value="inactif">Inactif</option>
+                        <option value="archive">Archivé</option>
+                        <option value="ferme">Fermé</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Options */}
+                <div>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">Options</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="suivi_budget"
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        checked={formData.suivi_budget}
+                        onChange={(e) => handleInputChange('suivi_budget', e.target.checked)}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="suivi_budget" className="ml-2 text-sm text-gray-700">
+                        Activer le suivi budgétaire et alertes de dépassement
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="imputation"
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <label htmlFor="imputation" className="ml-2 text-sm text-gray-700">
+                        Imputation automatique des écritures comptables
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="reporting"
+                        defaultChecked
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <label htmlFor="reporting" className="ml-2 text-sm text-gray-700">
+                        Inclure dans les rapports analytiques
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>Création...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Créer le centre</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

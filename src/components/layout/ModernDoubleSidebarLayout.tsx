@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, startTransition, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import {
@@ -12,10 +13,11 @@ import {
   MessageSquare, Smartphone, Workflow, RefreshCw, Wifi,
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
-  Video, Calendar, Folder
+  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import ModernButton from '../ui/ModernButton';
+import LanguageSelector from '../ui/LanguageSelector';
 
 interface MenuItem {
   id: string;
@@ -37,6 +39,7 @@ interface Notification {
 }
 
 const ModernDoubleSidebarLayout: React.FC = () => {
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, themeType, setTheme } = useTheme();
@@ -45,6 +48,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState('dashboard');
+  const lastClickTime = useRef(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -95,7 +99,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   }, []);
 
   // Modules principaux restructurés selon les standards ERP
-  const primaryMenuItems: MenuItem[] = [
+  const primaryMenuItems: MenuItem[] = useMemo(() => [
     {
       id: 'dashboard',
       label: 'Tableau de Bord',
@@ -105,7 +109,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     },
     {
       id: 'accounting',
-      label: 'Comptabilité Générale',
+      label: t('accounting.title'),
       icon: <Calculator className="w-5 h-5" />,
       badge: '3',
       ariaLabel: 'Accéder à la comptabilité générale'
@@ -118,7 +122,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     },
     {
       id: 'treasury',
-      label: 'Trésorerie',
+      label: t('navigation.treasury'),
       icon: <PiggyBank className="w-5 h-5" />,
       ariaLabel: 'Gérer la trésorerie et les flux financiers'
     },
@@ -130,7 +134,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     },
     {
       id: 'assets',
-      label: 'Immobilisations',
+      label: t('navigation.assets'),
       icon: <Package className="w-5 h-5" />,
       ariaLabel: 'Gérer les immobilisations'
     },
@@ -148,14 +152,14 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     },
     {
       id: 'settings',
-      label: 'Paramètres',
+      label: t('navigation.settings'),
       icon: <Settings className="w-5 h-5" />,
       ariaLabel: 'Configurer les paramètres'
     }
-  ];
+  ], [t]);
 
   // Sous-menus restructurés et enrichis
-  const secondaryMenuItems: Record<string, MenuItem[]> = {
+  const secondaryMenuItems: Record<string, MenuItem[]> = useMemo(() => ({
     dashboard: [
       { id: 'global-view', label: 'Vue Globale', path: '/dashboard', icon: <Eye className="w-4 h-4" /> },
       { id: 'executive-view', label: 'Vue Executive', path: '/executive', icon: <TrendingUp className="w-4 h-4" /> },
@@ -166,18 +170,18 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     ],
     accounting: [
       { id: 'entries', label: 'Écritures & Saisie', path: '/accounting/entries', icon: <FileText className="w-4 h-4" />, badge: '3' },
-      { id: 'journals', label: 'Journaux', path: '/accounting/journals', icon: <BookOpen className="w-4 h-4" /> },
+      { id: 'journals', label: t('navigation.journals'), path: '/accounting/journals', icon: <BookOpen className="w-4 h-4" /> },
       { id: 'general-ledger', label: 'Grand Livre', path: '/accounting/general-ledger', icon: <Database className="w-4 h-4" /> },
-      { id: 'lettrage', label: 'Lettrage', path: '/accounting/lettrage', icon: <Link className="w-4 h-4" /> },
-      { id: 'balance', label: 'Balance', path: '/accounting/balance', icon: <CheckCircle className="w-4 h-4" /> },
+      { id: 'lettrage', label: t('thirdParty.reconciliation'), path: '/accounting/lettrage', icon: <Link className="w-4 h-4" /> },
+      { id: 'balance', label: t('accounting.balance'), path: '/accounting/balance', icon: <CheckCircle className="w-4 h-4" /> },
       { id: 'chart-accounts', label: 'Plan Comptable', path: '/accounting/chart-of-accounts', icon: <FolderOpen className="w-4 h-4" /> },
       { id: 'ocr-scanning', label: 'OCR Factures', path: '/accounting/ocr', icon: <ScanLine className="w-4 h-4" /> },
       { id: 'electronic-signature', label: 'Signature Électronique', path: '/accounting/signature', icon: <Signature className="w-4 h-4" /> }
     ],
     tiers: [
-      { id: 'crm-clients', label: 'Clients', path: '/tiers/clients', icon: <UserCheck className="w-4 h-4" /> },
-      { id: 'suppliers', label: 'Fournisseurs', path: '/tiers/fournisseurs', icon: <Briefcase className="w-4 h-4" /> },
-      { id: 'recouvrement', label: 'Recouvrement', path: '/tiers/recouvrement', icon: <Receipt className="w-4 h-4" /> },
+      { id: 'crm-clients', label: t('navigation.clients'), path: '/tiers/clients', icon: <UserCheck className="w-4 h-4" /> },
+      { id: 'suppliers', label: t('navigation.suppliers'), path: '/tiers/fournisseurs', icon: <Briefcase className="w-4 h-4" /> },
+      { id: 'recouvrement', label: t('thirdParty.collection'), path: '/tiers/recouvrement', icon: <Receipt className="w-4 h-4" /> },
       { id: 'global-lettrage', label: 'Lettrage Global', path: '/tiers/lettrage', icon: <RefreshCw className="w-4 h-4" /> },
       { id: 'contacts', label: 'Contacts', path: '/tiers/contacts', icon: <Users className="w-4 h-4" /> }
     ],
@@ -201,9 +205,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'summary', label: 'Synthèse', path: '/assets/summary', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'registry', label: 'Registre des Biens', path: '/assets/registry', icon: <Package className="w-4 h-4" /> },
       { id: 'depreciation', label: 'Amortissements', path: '/assets/depreciation', icon: <Clock className="w-4 h-4" /> },
+      { id: 'transactions', label: 'Transactions', path: '/assets/transactions', icon: <ArrowLeftRight className="w-4 h-4" /> },
+      { id: 'categories', label: 'Catégories', path: '/assets/categories', icon: <Tag className="w-4 h-4" /> },
+      { id: 'classes', label: 'Classes', path: '/assets/classes', icon: <Layers className="w-4 h-4" /> },
+      { id: 'journal', label: t('accounting.journal'), path: '/assets/journal', icon: <Book className="w-4 h-4" /> },
       { id: 'disposals', label: 'Cessions', path: '/assets/disposals', icon: <FileCheck className="w-4 h-4" /> },
-      { id: 'inventory', label: 'Inventaire', path: '/assets/inventory', icon: <Archive className="w-4 h-4" /> },
-      { id: 'maintenance', label: 'Maintenance', path: '/assets/maintenance', icon: <Settings className="w-4 h-4" /> }
+      { id: 'inventory', label: 'Inventaire', path: '/assets/inventory', icon: <Archive className="w-4 h-4" /> }
     ],
     closures: [
       { id: 'periodic', label: '🔥 Clôture Périodique SYSCOHADA', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
@@ -226,17 +233,17 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'backup', label: 'Sauvegardes', path: '/settings/backup', icon: <Save className="w-4 h-4" /> },
       { id: 'api', label: 'API & Intégrations', path: '/settings/api', icon: <Globe className="w-4 h-4" /> },
       { id: 'mobile', label: 'App Mobile', path: '/settings/mobile', icon: <Smartphone className="w-4 h-4" /> },
-      { id: 'offline', label: 'Mode Hors Ligne', path: '/settings/offline', icon: <Wifi className="w-4 h-4" /> }
+      { id: 'offline', label: 'Mode Hors Ligne', path: '/settings/offline', icon: <Wifi className="w-4 h-4" /> },
+      { id: 'ia', label: 'Configuration IA', path: '/settings/ia', icon: <Brain className="w-4 h-4" /> },
+      { id: 'track-change', label: 'Suivi des Modifications', path: '/settings/track-change', icon: <History className="w-4 h-4" /> }
     ]
-  };
+  }), [t]);
 
-  // Détection automatique du module actif basé sur l'URL
   useEffect(() => {
     const path = location.pathname;
     const moduleMatch = path.match(/^\/([^/]+)/);
     if (moduleMatch) {
       const moduleId = moduleMatch[1];
-      // Mapping des routes vers les IDs de modules
       const routeMapping: Record<string, string> = {
         'dashboard': 'dashboard',
         'accounting': 'accounting',
@@ -257,22 +264,49 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'settings': 'settings',
         'parameters': 'settings'
       };
-      setSelectedModule(routeMapping[moduleId] || 'dashboard');
+      const newModule = routeMapping[moduleId] || 'dashboard';
+      setSelectedModule(prev => prev !== newModule ? newModule : prev);
     }
-  }, [location]);
+  }, [location.pathname]);
 
-  const handleThemeChange = (type: 'elegant' | 'fintech' | 'minimalist') => {
+  const handleThemeChange = useCallback((type: 'elegant' | 'fintech' | 'minimalist') => {
     setTheme(type);
     setShowThemeMenu(false);
-  };
+  }, [setTheme]);
 
-  const isActive = (path: string) => location.pathname === path;
-  const isModuleActive = (moduleId: string) => selectedModule === moduleId;
+  const handlePrimaryClick = useCallback((item: MenuItem) => {
+    const now = Date.now();
+    if (now - lastClickTime.current < 100) return;
+    lastClickTime.current = now;
+
+    startTransition(() => {
+      if (item.path) {
+        navigate(item.path);
+      } else {
+        setSelectedModule(item.id);
+      }
+    });
+  }, [navigate]);
+
+  const handleSecondaryClick = useCallback((path: string | undefined) => {
+    if (!path) return;
+    const now = Date.now();
+    if (now - lastClickTime.current < 100) return;
+    lastClickTime.current = now;
+
+    startTransition(() => {
+      navigate(path);
+    });
+  }, [navigate]);
+
+  const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
+  const isModuleActive = useCallback((moduleId: string) => selectedModule === moduleId, [selectedModule]);
 
   // Breadcrumbs
   const getBreadcrumbs = () => {
     const paths = location.pathname.split('/').filter(Boolean);
-    const breadcrumbs = [{ label: 'Accueil', path: '/' }];
+    // Rediriger vers le workspace approprié (comptable par défaut)
+    const breadcrumbs = [{ label: 'Accueil', path: '/dashboard/comptable' }];
 
     paths.forEach((path, index) => {
       const fullPath = '/' + paths.slice(0, index + 1).join('/');
@@ -327,6 +361,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             )}
           </div>
           <button
+            type="button"
             onClick={() => setPrimaryCollapsed(!primaryCollapsed)}
             className="text-[var(--color-sidebar-text-secondary)] hover:text-[var(--color-sidebar-text)] transition-colors"
             aria-label={primaryCollapsed ? 'Développer le menu' : 'Réduire le menu'}
@@ -347,14 +382,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         >
           {primaryMenuItems.map((item) => (
             <button
+              type="button"
               key={item.id}
-              onClick={() => {
-                if (item.path) {
-                  navigate(item.path);
-                } else {
-                  setSelectedModule(item.id);
-                }
-              }}
+              onClick={() => handlePrimaryClick(item)}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 transition-all duration-200',
                 'hover:bg-[var(--color-sidebar-hover)] relative group',
@@ -420,6 +450,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           {/* Toggle button when collapsed */}
           {secondaryCollapsed && (
             <button
+              type="button"
               onClick={() => setSecondaryCollapsed(false)}
               className="hidden lg:flex items-center justify-center w-12 h-full bg-[var(--color-background)] border-r border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors"
               aria-label="Ouvrir le sous-menu"
@@ -441,6 +472,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 {primaryMenuItems.find(item => item.id === selectedModule)?.label}
               </h2>
               <button
+                type="button"
                 onClick={() => setSecondaryCollapsed(!secondaryCollapsed)}
                 className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] flex-shrink-0"
                 aria-label={secondaryCollapsed ? 'Développer le sous-menu' : 'Réduire le sous-menu'}
@@ -459,8 +491,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           >
             {secondaryMenuItems[selectedModule]?.map((item) => (
               <button
+                type="button"
                 key={item.id}
-                onClick={() => item.path && navigate(item.path)}
+                onClick={() => handleSecondaryClick(item.path)}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-2.5 transition-all duration-200',
                   'hover:bg-[var(--color-surface-hover)]',
@@ -515,10 +548,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-white font-bold text-lg">WiseBook</h1>
-                  <p className="text-gray-400 text-xs">ERP Next-Gen</p>
+                  <p className="text-gray-700 text-xs">ERP Next-Gen</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-[var(--color-sidebar-text-secondary)]"
                 aria-label="Fermer le menu"
@@ -530,12 +564,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               {primaryMenuItems.map((item) => (
                 <div key={item.id}>
                   <button
+                    type="button"
                     onClick={() => {
+                      handlePrimaryClick(item);
                       if (item.path) {
-                        navigate(item.path);
                         setMobileMenuOpen(false);
-                      } else {
-                        setSelectedModule(item.id);
                       }
                     }}
                     className={cn(
@@ -570,12 +603,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                     <div className="bg-[var(--color-sidebar-submenu-bg)] py-2">
                       {secondaryMenuItems[item.id].map((subItem) => (
                         <button
+                          type="button"
                           key={subItem.id}
                           onClick={() => {
-                            if (subItem.path) {
-                              navigate(subItem.path);
-                              setMobileMenuOpen(false);
-                            }
+                            handleSecondaryClick(subItem.path);
+                            setMobileMenuOpen(false);
                           }}
                           className={cn(
                             'w-full flex items-center gap-3 pl-12 pr-4 py-2 text-sm',
@@ -609,6 +641,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         >
           <div className="flex items-center gap-4 flex-1">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden text-[var(--color-text-primary)]"
               aria-label="Ouvrir le menu mobile"
@@ -625,6 +658,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 <React.Fragment key={crumb.path}>
                   {index > 0 && <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />}
                   <button
+                    type="button"
                     onClick={() => navigate(crumb.path)}
                     className={cn(
                       'hover:text-[var(--color-primary)]',
@@ -658,6 +692,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             {/* Theme Selector */}
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setShowThemeMenu(!showThemeMenu)}
                 className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
                 title="Changer le thème"
@@ -677,6 +712,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       Thèmes disponibles
                     </p>
                     <button
+                      type="button"
                       onClick={() => handleThemeChange('elegant')}
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors',
@@ -691,6 +727,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       </div>
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleThemeChange('fintech')}
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors',
@@ -705,6 +742,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       </div>
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleThemeChange('minimalist')}
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors',
@@ -729,9 +767,13 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               <span className="text-sm font-medium text-[var(--color-text-primary)]">FCFA</span>
             </div>
 
+            {/* Language Selector */}
+            <LanguageSelector />
+
             {/* Notifications */}
             <div className="relative">
               <button
+                type="button"
                 className="relative p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
                 onClick={() => setShowNotifications(!showNotifications)}
                 aria-label={`Notifications ${notifications.filter(n => !n.read).length > 0 ? `(${notifications.filter(n => !n.read).length} non lues)` : ''}`}
@@ -788,6 +830,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             {/* User Menu */}
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
                 aria-label="Menu utilisateur"
@@ -805,6 +848,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 >
                   <div className="p-2">
                     <button
+                      type="button"
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                       role="menuitem"
                     >
@@ -820,9 +864,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       role="menuitem"
                     >
                       <Settings className="w-4 h-4" />
-                      <span className="text-sm">Paramètres</span>
+                      <span className="text-sm">{t('navigation.settings')}</span>
                     </button>
                     <button
+                      type="button"
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                       role="menuitem"
                     >

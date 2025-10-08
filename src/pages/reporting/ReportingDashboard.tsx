@@ -116,7 +116,7 @@ const ReportingDashboard: React.FC = () => {
       case 'financial': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
       case 'analytical': return 'bg-[#B87333]/10 text-[#B87333]';
       case 'management': return 'bg-emerald-100 text-emerald-700';
-      default: return 'bg-orange-100 text-orange-700';
+      default: return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
     }
   };
 
@@ -298,7 +298,7 @@ const ReportingDashboard: React.FC = () => {
                     </span>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                       report.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                      report.status === 'draft' ? 'bg-yellow-100 text-yellow-700' : 'bg-neutral-100 text-neutral-700'
+                      report.status === 'draft' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' : 'bg-neutral-100 text-neutral-700'
                     }`}>
                       {report.status === 'active' ? 'Actif' :
                        report.status === 'draft' ? 'Brouillon' : 'Archivé'}
@@ -429,8 +429,8 @@ const ReportingDashboard: React.FC = () => {
                 transition={{ delay: 0.4 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-orange-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <ClockIcon className="h-6 w-6 text-orange-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-warning-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <ClockIcon className="h-6 w-6 text-[var(--color-warning)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Planification</h3>
                 <p className="text-sm text-neutral-600">Rapports automatiques</p>

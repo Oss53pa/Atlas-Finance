@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   TrendingUp,
   Clock,
@@ -78,6 +79,7 @@ interface RadiationCreance {
 }
 
 const RecouvrementDashboard: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('creances');
   const [creances, setCreances] = useState<CreanceClient[]>([
     {
@@ -230,18 +232,18 @@ const RecouvrementDashboard: React.FC = () => {
 
   const getStatutColor = (statut: string) => {
     switch (statut) {
-      case 'en_cours': return 'bg-blue-100 text-blue-800';
-      case 'en_retard': return 'bg-yellow-100 text-yellow-800';
-      case 'critique': return 'bg-red-100 text-red-800';
-      case 'recouvre': return 'bg-green-100 text-green-800';
-      case 'actif': return 'bg-blue-100 text-blue-800';
-      case 'suspendu': return 'bg-orange-100 text-orange-800';
-      case 'cloture': return 'bg-gray-100 text-gray-800';
-      case 'juridique': return 'bg-purple-100 text-purple-800';
-      case 'approuvee': return 'bg-green-100 text-green-800';
-      case 'en_attente': return 'bg-yellow-100 text-yellow-800';
-      case 'rejetee': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'en_cours': return 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]';
+      case 'en_retard': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
+      case 'critique': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]';
+      case 'recouvre': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]';
+      case 'actif': return 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]';
+      case 'suspendu': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]';
+      case 'cloture': return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
+      case 'juridique': return 'bg-[var(--color-info-lighter)] text-[var(--color-info-darker)]';
+      case 'approuvee': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]';
+      case 'en_attente': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]';
+      case 'rejetee': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
   };
 
@@ -289,13 +291,13 @@ const RecouvrementDashboard: React.FC = () => {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Recouvrement</h1>
-        <p className="text-gray-600 mt-2">Gestion et suivi du recouvrement des créances clients</p>
+        <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">{t('thirdParty.collection')}</h1>
+        <p className="text-[var(--color-text-primary)] mt-2">Gestion et suivi du recouvrement des créances clients</p>
       </div>
 
       {/* Onglets */}
       <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-[var(--color-border)]">
           <nav className="flex space-x-8 px-6">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -306,8 +308,8 @@ const RecouvrementDashboard: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border-dark)]'
                     }
                   `}
                 >
@@ -327,64 +329,64 @@ const RecouvrementDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <DollarSign className="w-10 h-10 text-blue-500" />
-                <span className="text-sm font-medium text-blue-600">Total</span>
+                <DollarSign className="w-10 h-10 text-[var(--color-primary)]" />
+                <span className="text-sm font-medium text-[var(--color-primary)]">Total</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {stats.totalCreances.toLocaleString()} DH
               </p>
-              <p className="text-sm text-gray-600 mt-1">Créances totales</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Créances totales</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <CheckCircle className="w-10 h-10 text-green-500" />
-                <span className="text-sm font-medium text-green-600">
+                <CheckCircle className="w-10 h-10 text-[var(--color-success)]" />
+                <span className="text-sm font-medium text-[var(--color-success)]">
                   {stats.tauxRecouvrement}%
                 </span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {stats.totalRecouvre.toLocaleString()} DH
               </p>
-              <p className="text-sm text-gray-600 mt-1">Montant recouvré</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant recouvré</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <Clock className="w-10 h-10 text-orange-500" />
-                <span className="text-sm font-medium text-orange-600">
+                <span className="text-sm font-medium text-[var(--color-warning)]">
                   {stats.creancesEnRetard}
                 </span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {stats.totalRestant.toLocaleString()} DH
               </p>
-              <p className="text-sm text-gray-600 mt-1">Montant restant</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant restant</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <AlertCircle className="w-10 h-10 text-red-500" />
-                <span className="text-sm font-medium text-red-600">
+                <AlertCircle className="w-10 h-10 text-[var(--color-error)]" />
+                <span className="text-sm font-medium text-[var(--color-error)]">
                   {stats.creancesCritiques}
                 </span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {stats.creancesCritiques}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Créances critiques</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Créances critiques</p>
             </div>
           </div>
 
           {/* Table des créances */}
           <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-900">Créances clients</h2>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Créances clients</h2>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
                     <input
                       type="text"
                       placeholder="Rechercher..."
@@ -400,13 +402,13 @@ const RecouvrementDashboard: React.FC = () => {
                     className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="tous">Tous les statuts</option>
-                    <option value="en_cours">En cours</option>
+                    <option value="en_cours">{t('status.inProgress')}</option>
                     <option value="en_retard">En retard</option>
                     <option value="critique">Critique</option>
                     <option value="recouvre">Recouvré</option>
                   </select>
 
-                  <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                     <Download className="w-4 h-4" />
                     Exporter
                   </button>
@@ -417,51 +419,51 @@ const RecouvrementDashboard: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Client
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Montants
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Échéance
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Contacts
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredCreances.map((creance) => (
-                    <tr key={creance.id} className="hover:bg-gray-50">
+                    <tr key={creance.id} className="hover:bg-[var(--color-background-secondary)]">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-[var(--color-text-primary)]">
                             {creance.clientName}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-[var(--color-text-secondary)]">
                             {creance.clientCode}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-[var(--color-text-primary)]">
                             {creance.montantRestant.toLocaleString()} DH
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-[var(--color-text-secondary)]">
                             sur {creance.montantTotal.toLocaleString()} DH
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                          <div className="w-full bg-[var(--color-border)] rounded-full h-1.5 mt-1">
                             <div
-                              className="bg-blue-600 h-1.5 rounded-full"
+                              className="bg-[var(--color-primary)] h-1.5 rounded-full"
                               style={{ width: `${(creance.montantPaye / creance.montantTotal) * 100}%` }}
                             />
                           </div>
@@ -469,11 +471,11 @@ const RecouvrementDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-[var(--color-text-primary)]">
                             {new Date(creance.dateEcheance).toLocaleDateString()}
                           </div>
                           {creance.jourRetard > 0 && (
-                            <div className="text-sm text-red-600 font-medium">
+                            <div className="text-sm text-[var(--color-error)] font-medium">
                               {creance.jourRetard} jours de retard
                             </div>
                           )}
@@ -484,7 +486,7 @@ const RecouvrementDashboard: React.FC = () => {
                           {getStatutLabel(creance.statut)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
                         <div>
                           <div>Dernier: {new Date(creance.dernierContact).toLocaleDateString()}</div>
                           <div>Prochain: {creance.prochainContact === '-' ? '-' : new Date(creance.prochainContact).toLocaleDateString()}</div>
@@ -492,13 +494,13 @@ const RecouvrementDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
-                          <button className="text-blue-600 hover:text-blue-900">
+                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]">
                             <Phone className="w-4 h-4" />
                           </button>
-                          <button className="text-blue-600 hover:text-blue-900">
+                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]">
                             <Mail className="w-4 h-4" />
                           </button>
-                          <button className="text-blue-600 hover:text-blue-900">
+                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]">
                             <FileText className="w-4 h-4" />
                           </button>
                         </div>
@@ -512,41 +514,41 @@ const RecouvrementDashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Prochaines relances</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Prochaines relances</h3>
               <div className="space-y-3">
                 {creances.filter(c => c.prochainContact !== '-').slice(0, 5).map((creance) => (
-                  <div key={creance.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={creance.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-gray-400" />
+                      <Calendar className="w-5 h-5 text-[var(--color-text-secondary)]" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{creance.clientName}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium text-[var(--color-text-primary)]">{creance.clientName}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">
                           {new Date(creance.prochainContact).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Actions rapides</h3>
               <div className="grid grid-cols-2 gap-3">
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100">
+                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[var(--color-primary-lightest)] text-[var(--color-primary-dark)] rounded-lg hover:bg-[var(--color-primary-lighter)]">
                   <Phone className="w-5 h-5" />
                   <span className="text-sm font-medium">Appeler client</span>
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100">
+                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[var(--color-success-lightest)] text-[var(--color-success-dark)] rounded-lg hover:bg-[var(--color-success-lighter)]">
                   <Mail className="w-5 h-5" />
                   <span className="text-sm font-medium">Envoyer relance</span>
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100">
+                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[var(--color-info-lightest)] text-[var(--color-info-dark)] rounded-lg hover:bg-[var(--color-info-lighter)]">
                   <FileText className="w-5 h-5" />
                   <span className="text-sm font-medium">Générer rapport</span>
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100">
+                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-[var(--color-warning-lightest)] text-[var(--color-warning-dark)] rounded-lg hover:bg-[var(--color-warning-lighter)]">
                   <Users className="w-5 h-5" />
                   <span className="text-sm font-medium">Plan d'action</span>
                 </button>
@@ -563,63 +565,63 @@ const RecouvrementDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <Briefcase className="w-8 h-8 text-blue-500" />
-                <span className="text-sm font-medium text-blue-600">Total</span>
+                <Briefcase className="w-8 h-8 text-[var(--color-primary)]" />
+                <span className="text-sm font-medium text-[var(--color-primary)]">Total</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Dossiers actifs</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Dossiers actifs</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <Scale className="w-8 h-8 text-purple-500" />
-                <span className="text-sm font-medium text-purple-600">Judiciaire</span>
+                <span className="text-sm font-medium text-[var(--color-info)]">Judiciaire</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.filter(d => d.typeRecouvrement === 'judiciaire').length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">En procédure judiciaire</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">En procédure judiciaire</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <DollarSign className="w-8 h-8 text-green-500" />
-                <span className="text-sm font-medium text-green-600">Montant</span>
+                <DollarSign className="w-8 h-8 text-[var(--color-success)]" />
+                <span className="text-sm font-medium text-[var(--color-success)]">Montant</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.reduce((sum, d) => sum + d.montantTotal, 0).toLocaleString()} DH
               </p>
-              <p className="text-sm text-gray-600 mt-1">Total en recouvrement</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Total en recouvrement</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <AlertTriangle className="w-8 h-8 text-orange-500" />
-                <span className="text-sm font-medium text-orange-600">Suspendus</span>
+                <span className="text-sm font-medium text-[var(--color-warning)]">Suspendus</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.filter(d => d.statut === 'suspendu').length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Dossiers suspendus</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Dossiers suspendus</p>
             </div>
           </div>
 
           {/* Actions rapides */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Gestion des dossiers</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion des dossiers</h3>
               <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                   <PlusCircle className="w-4 h-4" />
                   Nouveau dossier
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]">
                   <FileSignature className="w-4 h-4" />
                   Assigner dossiers
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]">
                   <Download className="w-4 h-4" />
                   Exporter
                 </button>
@@ -629,9 +631,9 @@ const RecouvrementDashboard: React.FC = () => {
 
           {/* Table des dossiers */}
           <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Dossiers en cours</h2>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Dossiers en cours</h2>
                 <div className="flex items-center gap-3">
                   <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>Tous les types</option>
@@ -652,60 +654,60 @@ const RecouvrementDashboard: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr className="border-b border-gray-200">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <thead className="bg-[var(--color-background-secondary)]">
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Référence
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Client
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Montants
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Responsable
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Prochaine étape
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {dossiersRecouvrement.map((dossier) => (
-                    <tr key={dossier.id} className="hover:bg-gray-50">
+                    <tr key={dossier.id} className="hover:bg-[var(--color-background-secondary)]">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-[var(--color-text-primary)]">
                           {dossier.numeroRef}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-[var(--color-text-secondary)]">
                           {new Date(dossier.dateOuverture).toLocaleDateString()}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Building className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-900">{dossier.client}</span>
+                          <Building className="w-4 h-4 text-[var(--color-text-secondary)] mr-2" />
+                          <span className="text-sm text-[var(--color-text-primary)]">{dossier.client}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-[var(--color-text-primary)]">
                             {dossier.montantTotal.toLocaleString()} DH
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[var(--color-text-secondary)]">
                             Principal: {dossier.montantPrincipal.toLocaleString()} DH
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[var(--color-text-secondary)]">
                             Intérêts + Frais: {(dossier.interets + dossier.frais).toLocaleString()} DH
                           </div>
                         </div>
@@ -717,7 +719,7 @@ const RecouvrementDashboard: React.FC = () => {
                           ) : dossier.typeRecouvrement === 'huissier' ? (
                             <Shield className="w-4 h-4 text-orange-500 mr-1" />
                           ) : (
-                            <Users className="w-4 h-4 text-blue-500 mr-1" />
+                            <Users className="w-4 h-4 text-[var(--color-primary)] mr-1" />
                           )}
                           <span className="text-sm capitalize">{dossier.typeRecouvrement}</span>
                         </div>
@@ -729,25 +731,25 @@ const RecouvrementDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <UserCheck className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-900">{dossier.responsable}</span>
+                          <UserCheck className="w-4 h-4 text-[var(--color-text-secondary)] mr-2" />
+                          <span className="text-sm text-[var(--color-text-primary)]">{dossier.responsable}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
-                          <div className="font-medium text-gray-900">{dossier.prochainEtape}</div>
-                          <div className="text-xs text-gray-500 mt-1">{dossier.derniereAction}</div>
+                          <div className="font-medium text-[var(--color-text-primary)]">{dossier.prochainEtape}</div>
+                          <div className="text-xs text-[var(--color-text-secondary)] mt-1">{dossier.derniereAction}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
-                          <button className="text-blue-600 hover:text-blue-900" title="Voir détails">
+                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]" title="Voir détails" aria-label="Voir les détails">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="text-green-600 hover:text-green-900" title="Modifier">
+                          <button className="text-[var(--color-success)] hover:text-green-900" title={t('common.edit')}>
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="text-orange-600 hover:text-orange-900" title="Historique">
+                          <button className="text-[var(--color-warning)] hover:text-orange-900" title="Historique">
                             <Clock className="w-4 h-4" />
                           </button>
                         </div>
@@ -762,22 +764,22 @@ const RecouvrementDashboard: React.FC = () => {
           {/* Statistiques par type */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Par type de recouvrement</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Par type de recouvrement</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Amiable</span>
+                  <span className="text-sm text-[var(--color-text-primary)]">Amiable</span>
                   <span className="text-sm font-medium">
                     {dossiersRecouvrement.filter(d => d.typeRecouvrement === 'amiable').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Judiciaire</span>
+                  <span className="text-sm text-[var(--color-text-primary)]">Judiciaire</span>
                   <span className="text-sm font-medium">
                     {dossiersRecouvrement.filter(d => d.typeRecouvrement === 'judiciaire').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Huissier</span>
+                  <span className="text-sm text-[var(--color-text-primary)]">Huissier</span>
                   <span className="text-sm font-medium">
                     {dossiersRecouvrement.filter(d => d.typeRecouvrement === 'huissier').length}
                   </span>
@@ -786,23 +788,23 @@ const RecouvrementDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Par statut</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Par statut</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Actifs</span>
-                  <span className="text-sm font-medium text-blue-600">
+                  <span className="text-sm text-[var(--color-text-primary)]">Actifs</span>
+                  <span className="text-sm font-medium text-[var(--color-primary)]">
                     {dossiersRecouvrement.filter(d => d.statut === 'actif').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Juridiques</span>
-                  <span className="text-sm font-medium text-purple-600">
+                  <span className="text-sm text-[var(--color-text-primary)]">Juridiques</span>
+                  <span className="text-sm font-medium text-[var(--color-info)]">
                     {dossiersRecouvrement.filter(d => d.statut === 'juridique').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Suspendus</span>
-                  <span className="text-sm font-medium text-orange-600">
+                  <span className="text-sm text-[var(--color-text-primary)]">Suspendus</span>
+                  <span className="text-sm font-medium text-[var(--color-warning)]">
                     {dossiersRecouvrement.filter(d => d.statut === 'suspendu').length}
                   </span>
                 </div>
@@ -810,23 +812,23 @@ const RecouvrementDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions du jour</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Actions du jour</h3>
               <div className="space-y-2">
-                <button className="w-full text-left p-3 bg-blue-50 rounded-lg hover:bg-blue-100">
+                <button className="w-full text-left p-3 bg-[var(--color-primary-lightest)] rounded-lg hover:bg-[var(--color-primary-lighter)]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-blue-700">3 Appels à passer</span>
-                    <Phone className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-medium text-[var(--color-primary-dark)]">3 Appels à passer</span>
+                    <Phone className="w-4 h-4 text-[var(--color-primary)]" />
                   </div>
                 </button>
-                <button className="w-full text-left p-3 bg-green-50 rounded-lg hover:bg-green-100">
+                <button className="w-full text-left p-3 bg-[var(--color-success-lightest)] rounded-lg hover:bg-[var(--color-success-lighter)]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-green-700">2 Relances à envoyer</span>
-                    <Mail className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium text-[var(--color-success-dark)]">2 Relances à envoyer</span>
+                    <Mail className="w-4 h-4 text-[var(--color-success)]" />
                   </div>
                 </button>
-                <button className="w-full text-left p-3 bg-purple-50 rounded-lg hover:bg-purple-100">
+                <button className="w-full text-left p-3 bg-[var(--color-info-lightest)] rounded-lg hover:bg-[var(--color-info-lighter)]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-purple-700">1 Audience prévue</span>
+                    <span className="text-sm font-medium text-[var(--color-info-dark)]">1 Audience prévue</span>
                     <Gavel className="w-4 h-4 text-purple-500" />
                   </div>
                 </button>
@@ -843,59 +845,59 @@ const RecouvrementDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <Archive className="w-8 h-8 text-gray-500" />
-                <span className="text-sm font-medium text-gray-600">Total</span>
+                <Archive className="w-8 h-8 text-[var(--color-text-secondary)]" />
+                <span className="text-sm font-medium text-[var(--color-text-primary)]">Total</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {radiations.length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Demandes de radiation</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Demandes de radiation</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <XCircle className="w-8 h-8 text-red-500" />
-                <span className="text-sm font-medium text-red-600">Radié</span>
+                <XCircle className="w-8 h-8 text-[var(--color-error)]" />
+                <span className="text-sm font-medium text-[var(--color-error)]">Radié</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {radiations.reduce((sum, r) => sum + r.montantRadie, 0).toLocaleString()} DH
               </p>
-              <p className="text-sm text-gray-600 mt-1">Montant total radié</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant total radié</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <CheckSquare className="w-8 h-8 text-green-500" />
-                <span className="text-sm font-medium text-green-600">Approuvées</span>
+                <CheckSquare className="w-8 h-8 text-[var(--color-success)]" />
+                <span className="text-sm font-medium text-[var(--color-success)]">Approuvées</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {radiations.filter(r => r.statut === 'approuvee').length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Radiations approuvées</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">Radiations approuvées</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <Clock className="w-8 h-8 text-yellow-500" />
-                <span className="text-sm font-medium text-yellow-600">En attente</span>
+                <span className="text-sm font-medium text-[var(--color-warning)]">{t('status.pending')}</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {radiations.filter(r => r.statut === 'en_attente').length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">En attente d'approbation</p>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">En attente d'approbation</p>
             </div>
           </div>
 
           {/* Actions et filtres */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Gestion des radiations</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion des radiations</h3>
               <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)]">
                   <PlusCircle className="w-4 h-4" />
                   Nouvelle demande de radiation
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]">
                   <FileText className="w-4 h-4" />
                   Rapport des radiations
                 </button>
@@ -905,9 +907,9 @@ const RecouvrementDashboard: React.FC = () => {
 
           {/* Table des radiations */}
           <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Demandes de radiation</h2>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Demandes de radiation</h2>
                 <div className="flex items-center gap-3">
                   <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>Tous les motifs</option>
@@ -918,7 +920,7 @@ const RecouvrementDashboard: React.FC = () => {
                   </select>
                   <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>Tous les statuts</option>
-                    <option>En attente</option>
+                    <option>{t('status.pending')}</option>
                     <option>Approuvée</option>
                     <option>Rejetée</option>
                   </select>
@@ -928,70 +930,70 @@ const RecouvrementDashboard: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr className="border-b border-gray-200">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <thead className="bg-[var(--color-background-secondary)]">
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       N° Créance
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Client
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Montants
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Dates
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Motif
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Approbateur
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {radiations.map((radiation) => (
-                    <tr key={radiation.id} className="hover:bg-gray-50">
+                    <tr key={radiation.id} className="hover:bg-[var(--color-background-secondary)]">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-[var(--color-text-primary)]">
                           {radiation.numeroCreance}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{radiation.client}</div>
+                        <div className="text-sm text-[var(--color-text-primary)]">{radiation.client}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-red-600">
+                          <div className="text-sm font-medium text-[var(--color-error)]">
                             -{radiation.montantRadie.toLocaleString()} DH
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[var(--color-text-secondary)]">
                             Original: {radiation.montantOriginal.toLocaleString()} DH
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-[var(--color-text-primary)]">
                             Radié: {new Date(radiation.dateRadiation).toLocaleDateString()}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[var(--color-text-secondary)]">
                             Créé: {new Date(radiation.dateCreance).toLocaleDateString()}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          {radiation.motifRadiation === 'faillite' && <AlertTriangle className="w-4 h-4 text-red-500 mr-2" />}
+                          {radiation.motifRadiation === 'faillite' && <AlertTriangle className="w-4 h-4 text-[var(--color-error)] mr-2" />}
                           {radiation.motifRadiation === 'prescription' && <Clock className="w-4 h-4 text-orange-500 mr-2" />}
-                          {radiation.motifRadiation === 'accord' && <Users className="w-4 h-4 text-green-500 mr-2" />}
+                          {radiation.motifRadiation === 'accord' && <Users className="w-4 h-4 text-[var(--color-success)] mr-2" />}
                           <span className="text-sm">{getMotifLabel(radiation.motifRadiation)}</span>
                         </div>
                       </td>
@@ -1001,24 +1003,24 @@ const RecouvrementDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{radiation.approbateur}</div>
+                        <div className="text-sm text-[var(--color-text-primary)]">{radiation.approbateur}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
-                          <button className="text-blue-600 hover:text-blue-900" title="Voir détails">
+                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]" title="Voir détails" aria-label="Voir les détails">
                             <Eye className="w-4 h-4" />
                           </button>
                           {radiation.statut === 'en_attente' && (
                             <>
-                              <button className="text-green-600 hover:text-green-900" title="Approuver">
+                              <button className="text-[var(--color-success)] hover:text-green-900" title="Approuver" aria-label="Valider">
                                 <CheckCircle className="w-4 h-4" />
                               </button>
-                              <button className="text-red-600 hover:text-red-900" title="Rejeter">
+                              <button className="text-[var(--color-error)] hover:text-red-900" title="Rejeter" aria-label="Fermer">
                                 <XCircle className="w-4 h-4" />
                               </button>
                             </>
                           )}
-                          <button className="text-gray-600 hover:text-gray-900" title="Documents">
+                          <button className="text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]" title="Documents">
                             <FileText className="w-4 h-4" />
                           </button>
                         </div>
@@ -1033,12 +1035,12 @@ const RecouvrementDashboard: React.FC = () => {
           {/* Statistiques et informations complémentaires */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Répartition par motif</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Répartition par motif</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">Faillite</span>
+                    <div className="w-3 h-3 bg-[var(--color-error)] rounded-full mr-2"></div>
+                    <span className="text-sm text-[var(--color-text-primary)]">Faillite</span>
                   </div>
                   <span className="text-sm font-medium">
                     {radiations.filter(r => r.motifRadiation === 'faillite').length} ({((radiations.filter(r => r.motifRadiation === 'faillite').length / radiations.length) * 100).toFixed(0)}%)
@@ -1046,8 +1048,8 @@ const RecouvrementDashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">Prescription</span>
+                    <div className="w-3 h-3 bg-[var(--color-warning)] rounded-full mr-2"></div>
+                    <span className="text-sm text-[var(--color-text-primary)]">Prescription</span>
                   </div>
                   <span className="text-sm font-medium">
                     {radiations.filter(r => r.motifRadiation === 'prescription').length} ({((radiations.filter(r => r.motifRadiation === 'prescription').length / radiations.length) * 100).toFixed(0)}%)
@@ -1055,8 +1057,8 @@ const RecouvrementDashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">Accord amiable</span>
+                    <div className="w-3 h-3 bg-[var(--color-success)] rounded-full mr-2"></div>
+                    <span className="text-sm text-[var(--color-text-primary)]">Accord amiable</span>
                   </div>
                   <span className="text-sm font-medium">
                     {radiations.filter(r => r.motifRadiation === 'accord').length} ({((radiations.filter(r => r.motifRadiation === 'accord').length / radiations.length) * 100).toFixed(0)}%)
@@ -1065,7 +1067,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">Irrécupérable</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Irrécupérable</span>
                   </div>
                   <span className="text-sm font-medium">
                     {radiations.filter(r => r.motifRadiation === 'irrecuperable').length} ({((radiations.filter(r => r.motifRadiation === 'irrecuperable').length / radiations.length) * 100).toFixed(0)}%)
@@ -1075,42 +1077,42 @@ const RecouvrementDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Processus de radiation</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Processus de radiation</h3>
               <div className="space-y-3">
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-semibold text-blue-600">1</span>
+                  <div className="flex-shrink-0 w-8 h-8 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-[var(--color-primary)]">1</span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Demande initiale</p>
-                    <p className="text-xs text-gray-500">Soumission du dossier avec justificatifs</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Demande initiale</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">Soumission du dossier avec justificatifs</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-semibold text-yellow-600">2</span>
+                  <div className="flex-shrink-0 w-8 h-8 bg-[var(--color-warning-lighter)] rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-[var(--color-warning)]">2</span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Vérification</p>
-                    <p className="text-xs text-gray-500">Contrôle des documents et validation juridique</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Vérification</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">Contrôle des documents et validation juridique</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-semibold text-purple-600">3</span>
+                  <div className="flex-shrink-0 w-8 h-8 bg-[var(--color-info-lighter)] rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-[var(--color-info)]">3</span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Approbation</p>
-                    <p className="text-xs text-gray-500">Validation par la direction selon les seuils</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Approbation</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">Validation par la direction selon les seuils</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-semibold text-green-600">4</span>
+                  <div className="flex-shrink-0 w-8 h-8 bg-[var(--color-success-lighter)] rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-[var(--color-success)]">4</span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Comptabilisation</p>
-                    <p className="text-xs text-gray-500">Passage en perte et archivage</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Comptabilisation</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">Passage en perte et archivage</p>
                   </div>
                 </div>
               </div>

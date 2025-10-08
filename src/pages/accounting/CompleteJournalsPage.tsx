@@ -1,5 +1,10 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { accountingService } from '../../services/modules/accounting.service';
+import { toast } from 'react-hot-toast';
 import IntelligentEntryForm from '../../components/accounting/IntelligentEntryForm';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   BookOpen, Plus, Search, Filter, Edit, Trash2, Eye,
   Download, Upload, Calendar, FileText, BarChart3,
@@ -7,6 +12,7 @@ import {
   AlertCircle, CheckCircle, Lock, Unlock, X, Save,
   ChevronRight, Settings, Info, TrendingUp, TrendingDown
 } from 'lucide-react';
+import { LoadingSpinner } from '../../components/ui';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -68,6 +74,9 @@ interface JournalEntry {
 }
 
 const CompleteJournalsPage: React.FC = () => {
+  const { t } = useLanguage();
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [selectedJournal, setSelectedJournal] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'closed' | 'locked'>('all');
@@ -77,6 +86,36 @@ const CompleteJournalsPage: React.FC = () => {
   const [editingJournal, setEditingJournal] = useState<Journal | null>(null);
   const [selectedJournalDetails, setSelectedJournalDetails] = useState<Journal | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+
+  const queryClient = useQueryClient();
+
+  // Query pour récupérer les détails du journal
+  const { data: journalDetails, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ['journal-details', selectedJournalDetails?.id],
+    queryFn: () => selectedJournalDetails?.id ? accountingService.getJournalDetails(selectedJournalDetails.id) : null,
+    enabled: !!selectedJournalDetails?.id && showDetailsModal,
+  });
+
+  // Query pour récupérer les écritures du journal
+  const { data: journalEntries: realJournalEntries = [], isLoading: isLoadingEntries } = useQuery({
+    queryKey: ['journal-entries', selectedJournalDetails?.code],
+    queryFn: () => selectedJournalDetails?.code ? accountingService.getJournalEntries(selectedJournalDetails.code) : [],
+    enabled: !!selectedJournalDetails?.code && showDetailsModal,
+  });
+
+  // Mutation pour rafraîchir les données
+  const refreshMutation = useMutation({
+    mutationFn: () => accountingService.getJournals(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journaux'] });
+      queryClient.invalidateQueries({ queryKey: ['journal-details'] });
+      queryClient.invalidateQueries({ queryKey: ['journal-entries'] });
+      toast.success('Données actualisées');
+    },
+    onError: () => {
+      toast.error('Erreur lors de l\'actualisation');
+    },
+  });
 
   // Journaux SYSCOHADA
   const [journals] = useState<Journal[]>([
@@ -367,6 +406,10 @@ const CompleteJournalsPage: React.FC = () => {
     setShowDetailsModal(true);
   };
 
+  const handleCloseModal = () => {
+    setShowDetailsModal(false);
+  };
+
   const handleNewEntry = (journal: Journal) => {
     setSelectedJournalDetails(journal);
     setShowEntryModal(true); // On utilise le formulaire intelligent maintenant
@@ -426,7 +469,7 @@ const CompleteJournalsPage: React.FC = () => {
             <div className="text-2xl font-bold text-[var(--color-text-primary)]">
               {stats.totalJournals}
             </div>
-            <div className="text-sm text-[var(--color-text-secondary)]">Journaux</div>
+            <div className="text-sm text-[var(--color-text-secondary)]">{t('navigation.journals')}</div>
           </div>
 
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -454,7 +497,7 @@ const CompleteJournalsPage: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <TrendingUp className="w-5 h-5 text-orange-500" />
-              <span className="text-xs text-orange-600">Débit</span>
+              <span className="text-xs text-orange-600">{t('accounting.debit')}</span>
             </div>
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {formatCurrency(stats.totalDebit)}
@@ -465,7 +508,7 @@ const CompleteJournalsPage: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <TrendingDown className="w-5 h-5 text-purple-500" />
-              <span className="text-xs text-purple-600">Crédit</span>
+              <span className="text-xs text-purple-600">{t('accounting.credit')}</span>
             </div>
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {formatCurrency(stats.totalCredit)}
@@ -483,7 +526,7 @@ const CompleteJournalsPage: React.FC = () => {
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {formatCurrency(Math.abs(stats.balance))}
             </div>
-            <div className="text-sm text-[var(--color-text-secondary)]">Solde</div>
+            <div className="text-sm text-[var(--color-text-secondary)]">{t('accounting.balance')}</div>
           </div>
         </div>
 
@@ -526,7 +569,7 @@ const CompleteJournalsPage: React.FC = () => {
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
           >
-            <option value="day">Aujourd'hui</option>
+            <option value="day">{t('common.today')}</option>
             <option value="week">Cette semaine</option>
             <option value="month">Ce mois</option>
             <option value="quarter">Ce trimestre</option>
@@ -578,13 +621,13 @@ const CompleteJournalsPage: React.FC = () => {
               <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
-                    <div className="text-xs text-[var(--color-text-secondary)]">Débit</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{t('accounting.debit')}</div>
                     <div className="font-semibold text-green-600">
                       {formatCurrency(journal.solde_debiteur)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-[var(--color-text-secondary)]">Crédit</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{t('accounting.credit')}</div>
                     <div className="font-semibold text-red-600">
                       {formatCurrency(journal.solde_crediteur)}
                     </div>
@@ -686,12 +729,12 @@ const CompleteJournalsPage: React.FC = () => {
             <thead>
               <tr className="border-b border-[var(--color-border)]">
                 <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">N°</th>
-                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Date</th>
-                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Journal</th>
-                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Libellé</th>
-                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">Compte</th>
-                <th className="text-right p-4 font-medium text-[var(--color-text-secondary)]">Débit</th>
-                <th className="text-right p-4 font-medium text-[var(--color-text-secondary)]">Crédit</th>
+                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">{t('common.date')}</th>
+                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">{t('accounting.journal')}</th>
+                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">{t('accounting.label')}</th>
+                <th className="text-left p-4 font-medium text-[var(--color-text-secondary)]">{t('accounting.account')}</th>
+                <th className="text-right p-4 font-medium text-[var(--color-text-secondary)]">{t('accounting.debit')}</th>
+                <th className="text-right p-4 font-medium text-[var(--color-text-secondary)]">{t('accounting.credit')}</th>
                 <th className="text-center p-4 font-medium text-[var(--color-text-secondary)]">Statut</th>
               </tr>
             </thead>
@@ -717,13 +760,13 @@ const CompleteJournalsPage: React.FC = () => {
                   </td>
                   <td className="p-4 text-center">
                     {entry.status === 'validated' && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Validé</span>
+                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">{t('accounting.validated')}</span>
                     )}
                     {entry.status === 'posted' && (
                       <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">Comptabilisé</span>
                     )}
                     {entry.status === 'draft' && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">Brouillon</span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">{t('accounting.draft')}</span>
                     )}
                   </td>
                 </tr>
@@ -887,7 +930,250 @@ const CompleteJournalsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedJournalDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className={`${selectedJournalDetails.color} p-2 rounded-lg`}>
+                  {selectedJournalDetails.icon}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Détails du Journal: {selectedJournalDetails.code}
+                  </h2>
+                  <p className="text-sm text-gray-600">{selectedJournalDetails.libelle}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => refreshMutation.mutate()}
+                  disabled={refreshMutation.isPending}
+                  className="text-gray-700 hover:text-gray-600 transition-colors mr-2"
+                  title="Actualiser les données"
+                >
+                  {refreshMutation.isPending ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    <RefreshCw className="w-5 h-5" />
+                  )}
+                </button>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-700 hover:text-gray-700" aria-label="Fermer">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {isLoadingDetails || isLoadingEntries ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner size="lg" text="Chargement des détails..." />
+                </div>
+              ) : (
+              {/* Journal Information */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Informations générales</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Code:</span>
+                      <span className="text-sm font-medium">{selectedJournalDetails.code}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Type:</span>
+                      <span className="text-sm font-medium">{selectedJournalDetails.type}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Statut:</span>
+                      <span className={`text-sm font-medium ${
+                        selectedJournalDetails.status === 'active' ? 'text-green-600' :
+                        selectedJournalDetails.status === 'locked' ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {selectedJournalDetails.status === 'active' ? 'Actif' :
+                         selectedJournalDetails.status === 'locked' ? 'Verrouillé' : 'Clôturé'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Période d'ouverture:</span>
+                      <span className="text-sm font-medium">
+                        {new Date(selectedJournalDetails.periode_ouverture).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Dernière écriture:</span>
+                      <span className="text-sm font-medium">
+                        {new Date(selectedJournalDetails.last_entry_date).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Statistiques</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Nombre d'écritures:</span>
+                      <span className="text-sm font-medium">{journalDetails?.total_ecritures || selectedJournalDetails.nb_ecritures}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Dernier numéro:</span>
+                      <span className="text-sm font-medium">{journalDetails?.dernier_numero || selectedJournalDetails.dernier_numero}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Solde débiteur:</span>
+                      <span className="text-sm font-medium text-green-600">
+                        {(journalDetails?.total_debit || selectedJournalDetails.solde_debiteur).toLocaleString('fr-FR')} XAF
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Solde créditeur:</span>
+                      <span className="text-sm font-medium text-blue-600">
+                        {(journalDetails?.total_credit || selectedJournalDetails.solde_crediteur).toLocaleString('fr-FR')} XAF
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-t pt-2">
+                      <span className="text-sm font-medium text-gray-700">Solde net:</span>
+                      <span className="text-sm font-bold">
+                        {((journalDetails?.total_debit || selectedJournalDetails.solde_debiteur) - (journalDetails?.total_credit || selectedJournalDetails.solde_crediteur)).toLocaleString('fr-FR')} XAF
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-2">
+                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">Description</h4>
+                    <p className="text-sm text-blue-800">{selectedJournalDetails.description}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Entries */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Écritures récentes</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">N°</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('common.date')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.label')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Référence</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.account')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Tiers</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{t('accounting.debit')}</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{t('accounting.credit')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {(realJournalEntries.length > 0 ? realJournalEntries : journalEntries.filter(entry => entry.journalCode === selectedJournalDetails.code))
+                        .slice(0, 10)
+                        .map((entry) => (
+                          <tr key={entry.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm text-gray-900">{entry.numero}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              {new Date(entry.date).toLocaleDateString('fr-FR')}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900">{entry.libelle}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{entry.reference}</td>
+                            <td className="px-4 py-3 text-sm font-mono text-gray-900">{entry.compte}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{entry.tiers || '-'}</td>
+                            <td className="px-4 py-3 text-sm text-right text-green-600">
+                              {(entry.debit || entry.montant_debit || 0) > 0 ? (entry.debit || entry.montant_debit || 0).toLocaleString('fr-FR') : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right text-blue-600">
+                              {(entry.credit || entry.montant_credit || 0) > 0 ? (entry.credit || entry.montant_credit || 0).toLocaleString('fr-FR') : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                entry.status === 'posted' ? 'bg-green-100 text-green-800' :
+                                entry.status === 'validated' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {(entry.status || entry.statut) === 'posted' || (entry.status || entry.statut) === 'comptabilise' ? 'Comptabilisé' :
+                                 (entry.status || entry.statut) === 'validated' || (entry.status || entry.statut) === 'valide' ? 'Validé' : 'Brouillon'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                  {(realJournalEntries.length === 0 && journalEntries.filter(entry => entry.journalCode === selectedJournalDetails.code).length === 0) && (
+                    <div className="text-center py-8 text-gray-700">
+                      Aucune écriture trouvée pour ce journal
+                    </div>
+                  )}
+                </div>
+              </div>
+              )}
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-between items-center">
+              <button
+                onClick={() => refreshMutation.mutate()}
+                disabled={refreshMutation.isPending}
+                className="px-4 py-2 text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              >
+                {refreshMutation.isPending ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
+                <span>{t('common.refresh')}</span>
+              </button>
+
+              <div className="text-sm text-gray-600">
+                Affichant les 10 écritures les plus récentes
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    handleNewEntry(selectedJournalDetails);
+                    setShowDetailsModal(false);
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Nouvelle écriture</span>
+                </button>
+                <button
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  
+
+  {/* Modal de sélection de période */}
+
+  <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
+
+  </div>
+
   );
 };
 

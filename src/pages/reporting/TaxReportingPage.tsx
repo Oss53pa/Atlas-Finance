@@ -166,15 +166,15 @@ const TaxReportingPage: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'payee':
-        return 'bg-green-100 text-green-800';
+        return 'bg-var(--color-green-light) text-var(--color-green-dark)';
       case 'en_cours':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-var(--color-blue-light) text-var(--color-blue-dark)';
       case 'planifiee':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-var(--color-gray-light) text-var(--color-gray-dark)';
       case 'en_retard':
-        return 'bg-red-100 text-red-800';
+        return 'bg-var(--color-red-light) text-var(--color-red-dark)';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-var(--color-gray-light) text-var(--color-gray-dark)';
     }
   };
 
@@ -199,15 +199,15 @@ const TaxReportingPage: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="border-b border-gray-200 pb-3"
+        className="border-b border-var(--color-border) pb-3"
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Receipt className="mr-3 h-7 w-7 text-blue-600" />
+            <h1 className="text-2xl font-bold text-var(--color-text-primary) flex items-center">
+              <Receipt className="mr-3 h-7 w-7 text-var(--color-blue-primary)" />
               Reporting Fiscal
             </h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-var(--color-text-secondary)">
               Tableaux de bord et rapports fiscaux - TVA, IRPP, IS et autres taxes
             </p>
           </div>
@@ -227,7 +227,7 @@ const TaxReportingPage: React.FC = () => {
               <Upload className="mr-2 h-4 w-4" />
               Importer
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-var(--color-blue-primary) hover:bg-var(--color-blue-dark)">
               <Download className="mr-2 h-4 w-4" />
               Exporter
             </Button>
@@ -246,20 +246,20 @@ const TaxReportingPage: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">TVA à Payer</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-var(--color-text-secondary)">TVA à Payer</p>
+                  <p className="text-2xl font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.tvaAPayer)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     Collectée: {formatCurrency(taxStats.tvaCollectee)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-700">
                     Déductible: {formatCurrency(taxStats.tvaDeductible)}
                   </p>
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.tva > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                    taxStats.variation.tva > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
                     {taxStats.variation.tva > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
@@ -268,7 +268,7 @@ const TaxReportingPage: React.FC = () => {
                     )}
                     {Math.abs(taxStats.variation.tva)}%
                   </div>
-                  <CreditCard className="h-8 w-8 text-blue-600 mt-2" />
+                  <CreditCard className="h-8 w-8 text-var(--color-blue-primary) mt-2" />
                 </div>
               </div>
             </CardContent>
@@ -284,17 +284,17 @@ const TaxReportingPage: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">IRPP</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-var(--color-text-secondary)">IRPP</p>
+                  <p className="text-2xl font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.irpp)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     Impôt sur le revenu
                   </p>
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.irpp > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                    taxStats.variation.irpp > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
                     {taxStats.variation.irpp > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
@@ -319,17 +319,17 @@ const TaxReportingPage: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">IS</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-var(--color-text-secondary)">IS</p>
+                  <p className="text-2xl font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.is)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     Impôt sur les sociétés
                   </p>
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.is > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                    taxStats.variation.is > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
                     {taxStats.variation.is > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
@@ -338,7 +338,7 @@ const TaxReportingPage: React.FC = () => {
                     )}
                     {Math.abs(taxStats.variation.is)}%
                   </div>
-                  <Building className="h-8 w-8 text-green-600 mt-2" />
+                  <Building className="h-8 w-8 text-var(--color-green-primary) mt-2" />
                 </div>
               </div>
             </CardContent>
@@ -354,17 +354,17 @@ const TaxReportingPage: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Taxes</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-var(--color-text-secondary)">Total Taxes</p>
+                  <p className="text-2xl font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.totalTaxes)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     Toutes taxes confondues
                   </p>
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    taxStats.variation.global > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                    taxStats.variation.global > 0 ? 'bg-var(--color-red-light) text-var(--color-red-dark)' : 'bg-var(--color-green-light) text-green-800'
                   }`}>
                     {taxStats.variation.global > 0 ? (
                       <TrendingUp className="mr-1 h-3 w-3" />
@@ -373,7 +373,7 @@ const TaxReportingPage: React.FC = () => {
                     )}
                     {Math.abs(taxStats.variation.global)}%
                   </div>
-                  <DollarSign className="h-8 w-8 text-orange-600 mt-2" />
+                  <DollarSign className="h-8 w-8 text-var(--color-orange-primary) mt-2" />
                 </div>
               </div>
             </CardContent>
@@ -409,14 +409,14 @@ const TaxReportingPage: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">TVA Collectée</span>
+                        <span className="text-sm text-var(--color-text-secondary)">TVA Collectée</span>
                         <span className="text-sm font-medium">{formatCurrency(taxStats.tvaCollectee)}</span>
                       </div>
                       <Progress value={75} className="h-2" />
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">TVA Déductible</span>
+                        <span className="text-sm text-var(--color-text-secondary)">TVA Déductible</span>
                         <span className="text-sm font-medium">{formatCurrency(taxStats.tvaDeductible)}</span>
                       </div>
                       <Progress value={55} className="h-2" />
@@ -424,9 +424,9 @@ const TaxReportingPage: React.FC = () => {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">TVA à Payer</span>
-                        <span className="text-sm font-bold text-blue-600">{formatCurrency(taxStats.tvaAPayer)}</span>
+                        <span className="text-sm font-bold text-var(--color-blue-primary)">{formatCurrency(taxStats.tvaAPayer)}</span>
                       </div>
-                      <Progress value={30} className="h-2 bg-blue-100" />
+                      <Progress value={30} className="h-2 bg-var(--color-blue-light)" />
                     </div>
                   </div>
                 </CardContent>
@@ -444,33 +444,33 @@ const TaxReportingPage: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
                       <div className="flex items-center">
-                        <AlertCircle className="h-4 w-4 text-red-600 mr-2" />
+                        <AlertCircle className="h-4 w-4 text-var(--color-red-primary) mr-2" />
                         <div>
                           <p className="text-sm font-medium">TVA Janvier</p>
-                          <p className="text-xs text-gray-600">15 Février 2024</p>
+                          <p className="text-xs text-var(--color-text-secondary)">15 Février 2024</p>
                         </div>
                       </div>
                       <Badge variant="destructive">5 jours</Badge>
                     </div>
                     <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
                       <div className="flex items-center">
-                        <AlertCircle className="h-4 w-4 text-orange-600 mr-2" />
+                        <AlertCircle className="h-4 w-4 text-var(--color-orange-primary) mr-2" />
                         <div>
                           <p className="text-sm font-medium">IRPP T4</p>
-                          <p className="text-xs text-gray-600">20 Février 2024</p>
+                          <p className="text-xs text-var(--color-text-secondary)">20 Février 2024</p>
                         </div>
                       </div>
-                      <Badge className="bg-orange-100 text-orange-800">10 jours</Badge>
+                      <Badge className="bg-var(--color-orange-light) text-orange-800">10 jours</Badge>
                     </div>
-                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between p-2 bg-var(--color-blue-light) rounded-lg">
                       <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-blue-600 mr-2" />
+                        <Calendar className="h-4 w-4 text-var(--color-blue-primary) mr-2" />
                         <div>
                           <p className="text-sm font-medium">IS Annuel</p>
-                          <p className="text-xs text-gray-600">15 Mars 2024</p>
+                          <p className="text-xs text-var(--color-text-secondary)">15 Mars 2024</p>
                         </div>
                       </div>
-                      <Badge className="bg-blue-100 text-blue-800">33 jours</Badge>
+                      <Badge className="bg-var(--color-blue-light) text-var(--color-blue-dark)">33 jours</Badge>
                     </div>
                   </div>
                 </CardContent>
@@ -488,24 +488,24 @@ const TaxReportingPage: React.FC = () => {
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">38%</div>
-                    <div className="text-sm text-gray-600">TVA</div>
-                    <div className="text-xs text-gray-500">{formatCurrency(taxStats.tvaAPayer)}</div>
+                    <div className="text-2xl font-bold text-var(--color-blue-primary)">38%</div>
+                    <div className="text-sm text-var(--color-text-secondary)">TVA</div>
+                    <div className="text-xs text-gray-700">{formatCurrency(taxStats.tvaAPayer)}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">25%</div>
-                    <div className="text-sm text-gray-600">IRPP</div>
-                    <div className="text-xs text-gray-500">{formatCurrency(taxStats.irpp)}</div>
+                    <div className="text-sm text-var(--color-text-secondary)">IRPP</div>
+                    <div className="text-xs text-gray-700">{formatCurrency(taxStats.irpp)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">36%</div>
-                    <div className="text-sm text-gray-600">IS</div>
-                    <div className="text-xs text-gray-500">{formatCurrency(taxStats.is)}</div>
+                    <div className="text-2xl font-bold text-var(--color-green-primary)">36%</div>
+                    <div className="text-sm text-var(--color-text-secondary)">IS</div>
+                    <div className="text-xs text-gray-700">{formatCurrency(taxStats.is)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">1%</div>
-                    <div className="text-sm text-gray-600">Autres</div>
-                    <div className="text-xs text-gray-500">{formatCurrency(500000)}</div>
+                    <div className="text-2xl font-bold text-var(--color-orange-primary)">1%</div>
+                    <div className="text-sm text-var(--color-text-secondary)">Autres</div>
+                    <div className="text-xs text-gray-700">{formatCurrency(500000)}</div>
                   </div>
                 </div>
               </CardContent>
@@ -564,9 +564,9 @@ const TaxReportingPage: React.FC = () => {
                         <TableCell>
                           {declaration.datePaiement || (
                             declaration.statut === 'en_retard' ? (
-                              <span className="text-red-600 text-sm">En retard</span>
+                              <span className="text-var(--color-red-primary) text-sm">En retard</span>
                             ) : (
-                              <span className="text-gray-400 text-sm">-</span>
+                              <span className="text-var(--color-text-muted) text-sm">-</span>
                             )
                           )}
                         </TableCell>
@@ -610,10 +610,10 @@ const TaxReportingPage: React.FC = () => {
                     <div key={report.id} className="border rounded-lg p-4 hover:bg-gray-50">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          <FileText className="h-5 w-5 text-gray-400 mr-3" />
+                          <FileText className="h-5 w-5 text-var(--color-text-muted) mr-3" />
                           <div>
                             <h4 className="font-medium">{report.name}</h4>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-var(--color-text-secondary)">
                               {report.type} • {report.format} • {report.size}
                             </p>
                           </div>
@@ -649,20 +649,20 @@ const TaxReportingPage: React.FC = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Charge fiscale moyenne</span>
+                      <span className="text-sm text-var(--color-text-secondary)">Charge fiscale moyenne</span>
                       <span className="font-semibold">28.5%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Taux effectif d'imposition</span>
+                      <span className="text-sm text-var(--color-text-secondary)">Taux effectif d'imposition</span>
                       <span className="font-semibold">24.3%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Crédit de TVA</span>
-                      <span className="font-semibold text-green-600">{formatCurrency(3250000)}</span>
+                      <span className="text-sm text-var(--color-text-secondary)">Crédit de TVA</span>
+                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(3250000)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Économies fiscales</span>
-                      <span className="font-semibold text-green-600">{formatCurrency(5750000)}</span>
+                      <span className="text-sm text-var(--color-text-secondary)">Économies fiscales</span>
+                      <span className="font-semibold text-var(--color-green-primary)">{formatCurrency(5750000)}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -677,34 +677,34 @@ const TaxReportingPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="p-3 bg-green-50 rounded-lg">
+                    <div className="p-3 bg-var(--color-green-light) rounded-lg">
                       <div className="flex items-center">
-                        <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                        <CheckCircle className="h-4 w-4 text-var(--color-green-primary) mr-2" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">Déductions maximisées</p>
-                          <p className="text-xs text-gray-600">+15% vs année précédente</p>
+                          <p className="text-xs text-var(--color-text-secondary)">+15% vs année précédente</p>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                        <ChevronRight className="h-4 w-4 text-var(--color-text-muted)" />
                       </div>
                     </div>
-                    <div className="p-3 bg-blue-50 rounded-lg">
+                    <div className="p-3 bg-var(--color-blue-light) rounded-lg">
                       <div className="flex items-center">
-                        <Activity className="h-4 w-4 text-blue-600 mr-2" />
+                        <Activity className="h-4 w-4 text-var(--color-blue-primary) mr-2" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">Crédits d'impôt utilisés</p>
-                          <p className="text-xs text-gray-600">85% du potentiel</p>
+                          <p className="text-xs text-var(--color-text-secondary)">85% du potentiel</p>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                        <ChevronRight className="h-4 w-4 text-var(--color-text-muted)" />
                       </div>
                     </div>
                     <div className="p-3 bg-orange-50 rounded-lg">
                       <div className="flex items-center">
-                        <AlertCircle className="h-4 w-4 text-orange-600 mr-2" />
+                        <AlertCircle className="h-4 w-4 text-var(--color-orange-primary) mr-2" />
                         <div className="flex-1">
                           <p className="text-sm font-medium">Opportunités identifiées</p>
-                          <p className="text-xs text-gray-600">3 nouvelles déductions possibles</p>
+                          <p className="text-xs text-var(--color-text-secondary)">3 nouvelles déductions possibles</p>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                        <ChevronRight className="h-4 w-4 text-var(--color-text-muted)" />
                       </div>
                     </div>
                   </div>

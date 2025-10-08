@@ -4,6 +4,7 @@
  * Section 4.1 - Module Liste Clients avec fonctionnalités avancées
  */
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,6 +69,7 @@ interface DashboardStats {
 }
 
 const ModernClientDashboard: React.FC = () => {
+  const { t } = useLanguage();
   // État principal
   const [clients, setClients] = useState<Client[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -165,21 +167,21 @@ const ModernClientDashboard: React.FC = () => {
   // Formatage des données
   const getBadgeColor = (notation: string) => {
     const colors = {
-      'A+': 'bg-green-100 text-green-800',
-      'A': 'bg-green-100 text-green-700',
-      'B+': 'bg-blue-100 text-blue-800',
-      'B': 'bg-blue-100 text-blue-700',
-      'C': 'bg-yellow-100 text-yellow-800',
-      'D': 'bg-orange-100 text-orange-800',
-      'E': 'bg-red-100 text-red-800',
+      'A+': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'A': 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]',
+      'B+': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
+      'B': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]',
+      'C': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
+      'D': 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]',
+      'E': 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]',
     };
-    return colors[notation as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[notation as keyof typeof colors] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getRiskColor = (score: number) => {
-    if (score <= 30) return 'text-green-600';
-    if (score <= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score <= 30) return 'text-[var(--color-success)]';
+    if (score <= 60) return 'text-[var(--color-warning)]';
+    return 'text-[var(--color-error)]';
   };
 
   // Rendu des statistiques principales
@@ -192,13 +194,13 @@ const ModernClientDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Clients</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.total_clients}</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Total Clients</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">{stats.total_clients}</p>
               </div>
-              <Users className="h-8 w-8 text-blue-500" />
+              <Users className="h-8 w-8 text-[var(--color-primary)]" />
             </div>
             <div className="mt-4">
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-[var(--color-success)]">
                 +{stats.nouveaux_ce_mois} ce mois
               </p>
             </div>
@@ -209,10 +211,10 @@ const ModernClientDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Clients Actifs</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.clients_actifs}</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Clients Actifs</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">{stats.clients_actifs}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <CheckCircle className="h-8 w-8 text-[var(--color-success)]" />
             </div>
             <div className="mt-4">
               <Progress
@@ -227,13 +229,13 @@ const ModernClientDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Prospects</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.prospects}</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Prospects</p>
+                <p className="text-3xl font-bold text-[var(--color-text-primary)]">{stats.prospects}</p>
               </div>
               <Target className="h-8 w-8 text-purple-500" />
             </div>
             <div className="mt-4">
-              <p className="text-sm text-purple-600">
+              <p className="text-sm text-[var(--color-info)]">
                 Conversion en cours
               </p>
             </div>
@@ -244,7 +246,7 @@ const ModernClientDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Score Risque Moyen</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Score Risque Moyen</p>
                 <p className={`text-3xl font-bold ${getRiskColor(stats.score_risque_moyen)}`}>
                   {Math.round(stats.score_risque_moyen)}
                 </p>
@@ -345,12 +347,12 @@ const ModernClientDashboard: React.FC = () => {
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-gray-900 mb-1">
+            <h3 className="font-semibold text-lg text-[var(--color-text-primary)] mb-1">
               {client.raison_sociale}
             </h3>
-            <p className="text-sm text-gray-500">{client.code_client}</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">{client.code_client}</p>
             {client.nom_commercial && (
-              <p className="text-sm text-blue-600 italic">{client.nom_commercial}</p>
+              <p className="text-sm text-[var(--color-primary)] italic">{client.nom_commercial}</p>
             )}
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -358,7 +360,7 @@ const ModernClientDashboard: React.FC = () => {
               {client.notation_interne}
             </Badge>
             {client.is_prospect && (
-              <Badge variant="outline" className="text-purple-600 border-purple-200">
+              <Badge variant="outline" className="text-[var(--color-info)] border-purple-200">
                 Prospect
               </Badge>
             )}
@@ -367,7 +369,7 @@ const ModernClientDashboard: React.FC = () => {
 
         {/* Informations principales */}
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
             <Building2 className="h-4 w-4" />
             <span>{client.forme_juridique}</span>
             {client.numero_siret && (
@@ -376,7 +378,7 @@ const ModernClientDashboard: React.FC = () => {
           </div>
 
           {client.contact_principal && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
               <Phone className="h-4 w-4" />
               <span>{client.contact_principal.nom_complet}</span>
               <span className="text-xs">• {client.contact_principal.fonction}</span>
@@ -384,14 +386,14 @@ const ModernClientDashboard: React.FC = () => {
           )}
 
           {client.contact_principal?.email_principal && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
               <Mail className="h-4 w-4" />
               <span>{client.contact_principal.email_principal}</span>
             </div>
           )}
 
           {client.adresse_principale && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
               <MapPin className="h-4 w-4" />
               <span>{client.adresse_principale.ville} ({client.adresse_principale.code_postal})</span>
             </div>
@@ -401,7 +403,7 @@ const ModernClientDashboard: React.FC = () => {
         {/* Score de risque */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-medium text-gray-600">Score Risque</span>
+            <span className="text-sm font-medium text-[var(--color-text-primary)]">Score Risque</span>
             <span className={`text-sm font-bold ${getRiskColor(client.score_risque)}`}>
               {client.score_risque}/100
             </span>
@@ -422,7 +424,7 @@ const ModernClientDashboard: React.FC = () => {
               <Phone className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-[var(--color-text-secondary)]">
             Créé le {new Date(client.created_at).toLocaleDateString('fr-FR')}
           </p>
         </div>
@@ -435,8 +437,8 @@ const ModernClientDashboard: React.FC = () => {
     if (loading) {
       return (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement des clients...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
+          <p className="mt-4 text-[var(--color-text-primary)]">Chargement des clients...</p>
         </div>
       );
     }
@@ -445,8 +447,8 @@ const ModernClientDashboard: React.FC = () => {
       return (
         <Card>
           <CardContent className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Aucun client trouvé</p>
+            <Users className="h-12 w-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
+            <p className="text-[var(--color-text-primary)] mb-4">Aucun client trouvé</p>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Ajouter un client
@@ -484,9 +486,9 @@ const ModernClientDashboard: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{count}</span>
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div className="w-20 bg-[var(--color-border)] rounded-full h-2">
                       <div
-                        className="bg-blue-600 h-2 rounded-full"
+                        className="bg-[var(--color-primary)] h-2 rounded-full"
                         style={{ width: `${(count / stats.total_clients) * 100}%` }}
                       ></div>
                     </div>
@@ -506,7 +508,7 @@ const ModernClientDashboard: React.FC = () => {
               {stats.top_villes.map((ville, index) => (
                 <div key={ville.ville} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center justify-center font-semibold">
+                    <span className="w-6 h-6 bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] rounded-full text-xs flex items-center justify-center font-semibold">
                       {index + 1}
                     </span>
                     <span className="font-medium">{ville.ville}</span>
@@ -526,10 +528,10 @@ const ModernClientDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
             Module Clients & CRM
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-[var(--color-text-primary)] mt-2">
             Gestion complète de la relation client - WiseBook v2.0
           </p>
         </div>
@@ -567,7 +569,7 @@ const ModernClientDashboard: React.FC = () => {
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="clients">Liste Clients</TabsTrigger>
           <TabsTrigger value="analytics">Analyses</TabsTrigger>
-          <TabsTrigger value="settings">Paramètres</TabsTrigger>
+          <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
@@ -590,7 +592,7 @@ const ModernClientDashboard: React.FC = () => {
               <CardTitle>Paramètres Module CRM</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-[var(--color-text-primary)]">
                 Configuration des paramètres de gestion clients en cours de développement...
               </p>
             </CardContent>

@@ -254,7 +254,7 @@ const RatiosDashboard: React.FC = () => {
   if (!ratiosData) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">Aucune donnée de ratios disponible</p>
+        <p className="text-gray-700">Aucune donnée de ratios disponible</p>
       </div>
     );
   }
@@ -391,7 +391,7 @@ const RatiosDashboard: React.FC = () => {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">{ratio.libelle}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{ratio.category}</p>
+                  <p className="text-xs text-gray-700 mt-1">{ratio.category}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   {getPerformanceIcon(ratio)}
@@ -410,7 +410,7 @@ const RatiosDashboard: React.FC = () => {
                   <span className="text-2xl font-bold text-gray-900">
                     {formatNumber(ratio.valeur, ratio.unite === 'jours' ? 0 : 1)}
                   </span>
-                  <span className="text-sm text-gray-500">{ratio.unite}</span>
+                  <span className="text-sm text-gray-700">{ratio.unite}</span>
                 </div>
 
                 <div className="flex justify-between text-sm">
@@ -455,7 +455,7 @@ const RatiosDashboard: React.FC = () => {
                 </div>
 
                 <div className="pt-2">
-                  <details className="text-xs text-gray-500">
+                  <details className="text-xs text-gray-700">
                     <summary className="cursor-pointer hover:text-gray-700">Formule</summary>
                     <p className="mt-1 font-mono">{ratio.formule}</p>
                   </details>
@@ -479,8 +479,8 @@ const RatiosDashboard: React.FC = () => {
                 <Radar
                   name="Score"
                   dataKey="score"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
+                  stroke="#6A8A82"
+                  fill="#6A8A82"
                   fillOpacity={0.3}
                   strokeWidth={2}
                 />
@@ -509,7 +509,7 @@ const RatiosDashboard: React.FC = () => {
                       style={{ width: `${score}%` }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-xs text-gray-700">
                     <span>Critique</span>
                     <span>Excellent</span>
                   </div>
@@ -540,9 +540,9 @@ const RatiosDashboard: React.FC = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="current" stroke="#3b82f6" strokeWidth={2} name="Actuel" />
-              <Line type="monotone" dataKey="previous" stroke="#10b981" strokeWidth={2} name="Précédent" />
-              <Line type="monotone" dataKey="reference" stroke="#f59e0b" strokeWidth={1} strokeDasharray="5 5" name="Référence" />
+              <Line type="monotone" dataKey="current" stroke="#6A8A82" strokeWidth={2} name="Actuel" />
+              <Line type="monotone" dataKey="previous" stroke="#7A99AC" strokeWidth={2} name="Précédent" />
+              <Line type="monotone" dataKey="reference" stroke="#B87333" strokeWidth={1} strokeDasharray="5 5" name="Référence" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -557,12 +557,12 @@ const RatiosDashboard: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ratio</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Valeur</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Évolution</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Benchmark</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Ratio</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Valeur</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Référence</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Évolution</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Benchmark</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -571,7 +571,7 @@ const RatiosDashboard: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">{ratio.libelle}</div>
-                      <div className="text-xs text-gray-500">{ratio.category}</div>
+                      <div className="text-xs text-gray-700">{ratio.category}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -594,7 +594,7 @@ const RatiosDashboard: React.FC = () => {
                         {formatNumber(Math.abs(ratio.variationRelative))}%
                       </span>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-gray-700">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -606,7 +606,7 @@ const RatiosDashboard: React.FC = () => {
                         )}
                       </div>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-gray-700">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">

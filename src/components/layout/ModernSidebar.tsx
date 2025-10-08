@@ -3,6 +3,7 @@
  * Navigation extensible avec modules et sous-modules
  */
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -31,6 +32,7 @@ interface SidebarProps {
 }
 
 const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
+  const { t } = useLanguage();
   // *** MODIFICATION FORCÉE POUR RECHARGEMENT *** 
   const [expandedItems, setExpandedItems] = useState<string[]>(['accounting', 'treasury', 'parameters']);
   const location = useLocation();
@@ -46,16 +48,16 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     },
     {
       id: 'accounting',
-      label: 'Comptabilité',
+      label: t('navigation.accounting'),
       icon: FileText,
       children: [
         { id: 'entries', label: 'Saisie d\'écritures', path: '/accounting/entries' },
         { id: 'entries-intelligent', label: '🧠 Saisie Intelligente', path: '/accounting/entries-advanced' },
         { id: 'balance', label: 'Balance générale', path: '/accounting/balance' },
-        { id: 'general-ledger', label: 'Grand livre', path: '/accounting/general-ledger' },
-        { id: 'lettrage', label: 'Lettrage', path: '/accounting/lettrage' },
+        { id: 'general-ledger', label: t('accounting.generalLedger'), path: '/accounting/general-ledger' },
+        { id: 'lettrage', label: t('thirdParty.reconciliation'), path: '/accounting/lettrage' },
         { id: 'syscohada-states', label: '📊 États SYSCOHADA', path: '/financial-statements' },
-        { id: 'journals', label: 'Journaux', path: '/accounting/journals' },
+        { id: 'journals', label: t('navigation.journals'), path: '/accounting/journals' },
         { id: 'financial-statements', label: 'États Financiers', path: '/accounting/financial-statements' },
         { id: 'sig', label: 'SIG & Ratios', path: '/accounting/sig' },
         { id: 'chart-advanced', label: 'Plan Comptable Avancé', path: '/accounting/chart-advanced' },
@@ -63,19 +65,19 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     },
     {
       id: 'customers',
-      label: 'Clients',
+      label: t('navigation.clients'),
       icon: Users,
       path: '/customers-advanced',
       badge: 3, // Alertes clients
       children: [
         { id: 'customer-list', label: 'Liste clients', path: '/customers' },
         { id: 'aging', label: 'Balance âgée', path: '/customers/aging' },
-        { id: 'collection', label: 'Recouvrement', path: '/customers/collection' },
+        { id: 'collection', label: t('thirdParty.collection'), path: '/customers/collection' },
       ]
     },
     {
       id: 'suppliers',
-      label: 'Fournisseurs', 
+      label: t('navigation.suppliers'), 
       icon: Truck,
       path: '/suppliers-advanced',
       children: [
@@ -86,7 +88,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     },
     {
       id: 'treasury',
-      label: 'Trésorerie',
+      label: t('navigation.treasury'),
       icon: Banknote,
       path: '/treasury/position',
       badge: 1, // Alerte trésorerie
@@ -122,10 +124,10 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     },
     {
       id: 'assets',
-      label: 'Immobilisations',
+      label: t('navigation.assets'),
       icon: Building2,
       children: [
-        { id: 'fixed-assets', label: 'Immobilisations', path: '/assets/fixed-assets' },
+        { id: 'fixed-assets', label: t('navigation.assets'), path: '/assets/fixed-assets' },
         { id: 'depreciation', label: 'Amortissements', path: '/assets/depreciation' },
         { id: 'inventory', label: 'Inventaire', path: '/assets/inventory' },
       ]
@@ -143,7 +145,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     },
     {
       id: 'budgeting',
-      label: 'Budget',
+      label: t('navigation.budget'),
       icon: Calculator,
       children: [
         { id: 'budget-creation', label: 'Élaboration', path: '/budgeting/creation' },
@@ -163,7 +165,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
     },
     {
       id: 'parameters',
-      label: 'Paramètres',
+      label: t('navigation.settings'),
       icon: Settings,
       children: [
         { id: 'config-center', label: '🏗️ Centre de Configuration', path: '/config' },
@@ -215,8 +217,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
         
         <button
           onClick={onToggle}
-          className="p-2 rounded-lg hover:bg-slate-700 transition-colors"
-        >
+          className="p-2 rounded-lg hover:bg-slate-700 transition-colors" aria-label="Précédent">
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
@@ -312,7 +313,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
               <p className="text-sm font-medium text-white">Admin</p>
               <p className="text-xs text-slate-400">Administrateur</p>
             </div>
-            <button className="p-1 rounded hover:bg-slate-700">
+            <button className="p-1 rounded hover:bg-slate-700" aria-label="Paramètres">
               <Settings className="h-4 w-4 text-slate-400" />
             </button>
           </div>

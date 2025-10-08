@@ -3,6 +3,7 @@
  * Menu adaptatif avec notifications et raccourcis contextuels
  */
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -61,6 +62,7 @@ interface NavItem {
 }
 
 const WiseBookNavigation: React.FC<NavigationProps> = ({
+  const { t } = useLanguage();
   companyId,
   currentUser,
   className = ''
@@ -97,7 +99,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
     },
     {
       id: 'accounting',
-      label: 'Comptabilité',
+      label: t('accounting.title'),
       icon: FileText,
       href: '/accounting',
       module: 'accounting',
@@ -112,7 +114,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
         },
         {
           id: 'journals',
-          label: 'Journaux',
+          label: t('navigation.journals'),
           icon: FileText,
           href: '/accounting/journals', 
           module: 'accounting'
@@ -126,7 +128,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
         },
         {
           id: 'balance',
-          label: 'Balance',
+          label: t('accounting.balance'),
           icon: Calculator,
           href: '/accounting/balance',
           module: 'accounting',
@@ -156,7 +158,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
         },
         {
           id: 'lettrage',
-          label: 'Lettrage',
+          label: t('thirdParty.reconciliation'),
           icon: FileText,
           href: '/accounting/lettrage',
           module: 'accounting'
@@ -209,7 +211,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
     },
     {
       id: 'customers',
-      label: 'Clients',
+      label: t('navigation.clients'),
       icon: Users,
       href: '/customers',
       module: 'customers',
@@ -238,7 +240,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
         },
         {
           id: 'collection-management',
-          label: 'Recouvrement',
+          label: t('thirdParty.collection'),
           icon: TrendingUp,
           href: '/customers/collection',
           module: 'customers'
@@ -247,7 +249,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
     },
     {
       id: 'suppliers',
-      label: 'Fournisseurs',
+      label: t('navigation.suppliers'),
       icon: Truck,
       href: '/suppliers',
       module: 'suppliers',
@@ -285,7 +287,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
     },
     {
       id: 'treasury',
-      label: 'Trésorerie',
+      label: t('navigation.treasury'),
       icon: DollarSign,
       href: '/treasury',
       module: 'treasury',
@@ -353,7 +355,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
     },
     {
       id: 'budgeting',
-      label: 'Budget',
+      label: t('navigation.budget'),
       icon: Calculator,
       href: '/budgeting',
       module: 'budgeting',
@@ -453,7 +455,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
             <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
               WiseBook
             </h2>
-            <p className="text-xs text-gray-500">ERP Comptable SYSCOHADA</p>
+            <p className="text-xs text-gray-700">ERP Comptable SYSCOHADA</p>
           </div>
         </div>
       </div>
@@ -461,7 +463,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
       {/* Recherche intelligente */}
       <div className="p-4 border-b border-gray-200">
         <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
           <Input
             placeholder="Rechercher module, fonction..."
             value={searchQuery}
@@ -499,7 +501,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
                   }}
                 >
                   <div className="flex items-center space-x-3">
-                    <Icon className={`h-5 w-5 ${isItemActive ? 'text-white' : 'text-gray-500'}`} />
+                    <Icon className={`h-5 w-5 ${isItemActive ? 'text-white' : 'text-gray-700'}`} />
                     <span className="font-medium text-sm">{item.label}</span>
                   </div>
                   
@@ -521,7 +523,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
                     {/* Icône expansion */}
                     {hasChildren && (
                       <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
-                        <ChevronRight className={`h-4 w-4 ${isItemActive ? 'text-white' : 'text-gray-400'}`} />
+                        <ChevronRight className={`h-4 w-4 ${isItemActive ? 'text-white' : 'text-gray-700'}`} />
                       </div>
                     )}
                   </div>
@@ -546,7 +548,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
                           onClick={() => handleNavigation(child.href)}
                         >
                           <div className="flex items-center space-x-3">
-                            <ChildIcon className={`h-4 w-4 ${isChildActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                            <ChildIcon className={`h-4 w-4 ${isChildActive ? 'text-blue-600' : 'text-gray-700'}`} />
                             <span className="text-sm">{child.label}</span>
                           </div>
                           
@@ -625,7 +627,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
           {recentActivities?.slice(0, 3).map((activity, index) => (
             <div key={index} className="text-xs text-gray-600 p-2 bg-white rounded border">
               <p className="font-medium">{activity.description}</p>
-              <p className="text-gray-500">{formatDate(activity.timestamp, 'HH:mm')}</p>
+              <p className="text-gray-700">{formatDate(activity.timestamp, 'HH:mm')}</p>
             </div>
           ))}
         </div>
@@ -643,7 +645,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
             <p className="text-sm font-medium text-gray-900">
               {currentUser?.firstName} {currentUser?.lastName}
             </p>
-            <p className="text-xs text-gray-500">{currentUser?.role}</p>
+            <p className="text-xs text-gray-700">{currentUser?.role}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout';
 import { 
@@ -22,13 +23,14 @@ import {
 } from 'lucide-react';
 
 const ComptableWorkspaceV2: React.FC = () => {
+  const { t } = useLanguage();
   const [activeModule, setActiveModule] = useState('dashboard');
   const navigate = useNavigate();
 
   // Liens directs vers WiseBook
   const wiseBookLinks = [
     { id: 'entries', label: 'Saisie d\'écritures', icon: FileText, badge: '5', path: '/accounting/entries' },
-    { id: 'journals', label: 'Journaux', icon: BookOpen, path: '/accounting/journals' },
+    { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
     { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
     { id: 'balance', label: 'Balance générale', icon: PieChart, path: '/accounting/balance' },
     { id: 'statements', label: 'États financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
@@ -135,7 +137,7 @@ const ComptableWorkspaceV2: React.FC = () => {
       notifications={5}
     >
       <div className="p-6">
-        <div className="text-center text-gray-500">
+        <div className="text-center text-gray-700">
           <Calculator className="h-16 w-16 mx-auto mb-4 text-gray-300" />
           <p>Sélectionnez un module dans la barre latérale pour commencer</p>
           <p className="text-sm mt-2">Ou utilisez le bouton "WiseBook Complet" pour accéder à tous les modules</p>

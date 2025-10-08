@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { CreditCard, Banknote, TrendingUp, RefreshCw } from 'lucide-react';
 
 const BankMovementsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('movements');
   const [showOperationsModal, setShowOperationsModal] = useState(false);
   const [selectedOperations, setSelectedOperations] = useState(null);
@@ -12,7 +14,7 @@ const BankMovementsPage: React.FC = () => {
 
   const bankingTabs = [
     { id: 'movements', label: 'Mouvements', icon: CreditCard },
-    { id: 'journal', label: 'Journal', icon: Banknote },
+    { id: 'journal', label: t('accounting.journal'), icon: Banknote },
     { id: 'banking_sums_up', label: 'Banking Sums-up', icon: TrendingUp },
   ];
 
@@ -115,11 +117,11 @@ const BankMovementsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-tuatara">💰 Mouvements Bancaires</h1>
-            <p className="text-sm text-rolling-stone">Gestion des flux de trésorerie</p>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">💰 Mouvements Bancaires</h1>
+            <p className="text-sm text-[var(--color-text-secondary)]">Gestion des flux de trésorerie</p>
           </div>
           <div className="flex items-center space-x-3">
-            <div className="text-xs text-rolling-stone">
+            <div className="text-xs text-[var(--color-text-secondary)]">
               Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
             </div>
             <div className="flex items-center space-x-2">
@@ -135,10 +137,9 @@ const BankMovementsPage: React.FC = () => {
               </button>
               <button
                 onClick={manualRefresh}
-                className="flex items-center space-x-1 text-xs px-2 py-1 bg-tuatara text-white rounded hover:bg-tuatara/80 transition-colors"
-              >
+                className="flex items-center space-x-1 text-xs px-2 py-1 bg-[var(--color-primary)] text-white rounded hover:bg-[var(--color-primary)]/80 transition-colors" aria-label="Actualiser">
                 <RefreshCw className="w-3 h-3" />
-                <span>Actualiser</span>
+                <span>{t('common.refresh')}</span>
               </button>
             </div>
           </div>
@@ -156,8 +157,8 @@ const BankMovementsPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 py-3 px-2 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === tab.id
-                    ? 'border-tuatara text-tuatara'
-                    : 'border-transparent text-rolling-stone hover:text-tuatara'
+                    ? 'border-[var(--color-primary)] text-[var(--color-text-primary)]'
+                    : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                 }`}
               >
                 <IconComponent className="w-4 h-4" />
@@ -235,7 +236,7 @@ const BankMovementsPage: React.FC = () => {
                               <td className="px-3 py-3 text-sm">{transaction.collDate}</td>
                               <td className="px-3 py-3 text-sm">{transaction.payDate}</td>
                               <td className="px-3 py-3 text-sm font-medium">{transaction.ref}</td>
-                              <td className="px-3 py-3 text-sm text-rolling-stone">{transaction.account}</td>
+                              <td className="px-3 py-3 text-sm text-[var(--color-text-secondary)]">{transaction.account}</td>
                               <td className="px-3 py-3 text-sm">{transaction.description}</td>
                               <td className="px-3 py-3 text-right text-red-600 font-medium">{transaction.debit}</td>
                               <td className="px-3 py-3 text-right text-green-600 font-medium">{transaction.credit}</td>
@@ -494,8 +495,8 @@ const BankMovementsPage: React.FC = () => {
       {/* Journal */}
       {activeTab === 'journal' && (
         <div className="text-center py-12">
-          <h3 className="text-lg font-semibold text-tuatara mb-2">💵 Journal Bancaire</h3>
-          <p className="text-rolling-stone">Contenu du journal bancaire à développer</p>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">💵 Journal Bancaire</h3>
+          <p className="text-[var(--color-text-secondary)]">Contenu du journal bancaire à développer</p>
         </div>
       )}
 
@@ -504,7 +505,7 @@ const BankMovementsPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-tuatara">📈 Banking Sums Up</h2>
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">📈 Banking Sums Up</h2>
               <select className="px-3 py-1 border border-gray-300 rounded text-sm">
                 <option>[Tous les comptes]</option>
               </select>
@@ -512,16 +513,16 @@ const BankMovementsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-lg font-semibold text-tuatara mb-4">📅 Daily for selected month</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">📅 Daily for selected month</h3>
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Day</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Opening</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cash in</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cash out</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Closing</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Day</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Opening</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Cash in</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Cash out</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Closing</th>
                       </tr>
                     </thead>
                   </table>
@@ -560,7 +561,7 @@ const BankMovementsPage: React.FC = () => {
                                   {new Intl.NumberFormat('fr-FR').format(cashOut)}
                                 </button>
                               </td>
-                              <td className="px-4 py-3 text-right font-bold text-tuatara">
+                              <td className="px-4 py-3 text-right font-bold text-[var(--color-text-primary)]">
                                 {new Intl.NumberFormat('fr-FR').format(closing)}
                               </td>
                             </tr>
@@ -573,16 +574,16 @@ const BankMovementsPage: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-tuatara mb-4">📊 Monthly for financial year</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">📊 Monthly for financial year</h3>
                 <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Month</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Opening</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cash in</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cash out</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Closing</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Month</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Opening</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Cash in</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Cash out</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Closing</th>
                       </tr>
                     </thead>
                   </table>
@@ -606,7 +607,7 @@ const BankMovementsPage: React.FC = () => {
                         ].map((row, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-3 font-medium">{row.month}</td>
-                            <td className="px-4 py-3 text-right text-tuatara font-medium">
+                            <td className="px-4 py-3 text-right text-[var(--color-text-primary)] font-medium">
                               {new Intl.NumberFormat('fr-FR').format(row.opening)}
                             </td>
                             <td className="px-4 py-3 text-right text-green-600 font-medium">
@@ -627,7 +628,7 @@ const BankMovementsPage: React.FC = () => {
                                 {new Intl.NumberFormat('fr-FR').format(row.cashOut)}
                               </button>
                             </td>
-                            <td className="px-4 py-3 text-right font-bold text-tuatara">
+                            <td className="px-4 py-3 text-right font-bold text-[var(--color-text-primary)]">
                               {new Intl.NumberFormat('fr-FR').format(row.closing)}
                             </td>
                           </tr>
@@ -647,12 +648,12 @@ const BankMovementsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-tuatara">
+              <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
                 📋 Détail des Opérations - {selectedOperations.date}
               </h3>
               <button
                 onClick={() => setShowOperationsModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-700 hover:text-gray-600 text-xl"
               >
                 ✕
               </button>
@@ -660,8 +661,8 @@ const BankMovementsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-[#6A8A82]/5 border border-[#6A8A82]/20 rounded-lg p-3 text-center">
-                <div className="text-sm text-rolling-stone">Opening</div>
-                <div className="font-bold text-tuatara">
+                <div className="text-sm text-[var(--color-text-secondary)]">Opening</div>
+                <div className="font-bold text-[var(--color-text-primary)]">
                   {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.opening)}
                 </div>
               </div>
@@ -678,8 +679,8 @@ const BankMovementsPage: React.FC = () => {
                 </div>
               </div>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                <div className="text-sm text-rolling-stone">Closing</div>
-                <div className="font-bold text-tuatara">
+                <div className="text-sm text-[var(--color-text-secondary)]">Closing</div>
+                <div className="font-bold text-[var(--color-text-primary)]">
                   {new Intl.NumberFormat('fr-FR').format(selectedOperations.data.closing)}
                 </div>
               </div>
@@ -687,23 +688,23 @@ const BankMovementsPage: React.FC = () => {
 
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
               <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <h4 className="font-medium text-tuatara">📊 Opérations de la période</h4>
+                <h4 className="font-medium text-[var(--color-text-primary)]">📊 Opérations de la période</h4>
               </div>
 
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Heure</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiers</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sens</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Heure</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Référence</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Tiers</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Sens</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-rolling-stone">
+                    <td colSpan={6} className="px-4 py-8 text-center text-[var(--color-text-secondary)]">
                       Détail des opérations pour {selectedOperations.date}
                       <br />
                       <span className="text-sm">Fonctionnalité à connecter avec les données réelles</span>

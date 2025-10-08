@@ -311,7 +311,7 @@ const MultiCompanyPage: React.FC = () => {
           </button>
         )}
         
-        <Building2 className="h-5 w-5 mr-3 text-gray-500" />
+        <Building2 className="h-5 w-5 mr-3 text-gray-700" />
         
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -507,7 +507,7 @@ const MultiCompanyPage: React.FC = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="text-center py-8">
-                  <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <Users className="h-12 w-12 mx-auto text-gray-700 mb-4" />
                   <p className="text-gray-600">Gestion des utilisateurs en cours de développement</p>
                 </div>
               </CardContent>
@@ -682,7 +682,7 @@ const MultiCompanyPage: React.FC = () => {
           {viewMode === 'tree' && !selectedCompany && (
             <Card>
               <CardContent className="p-12 text-center">
-                <Building2 className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <Building2 className="h-16 w-16 mx-auto text-gray-700 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Sélectionnez une société
                 </h3>
@@ -696,7 +696,7 @@ const MultiCompanyPage: React.FC = () => {
           {viewMode === 'list' && (
             <Card>
               <CardContent className="p-6 text-center">
-                <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <FileText className="h-16 w-16 mx-auto text-gray-700 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Vue Liste
                 </h3>

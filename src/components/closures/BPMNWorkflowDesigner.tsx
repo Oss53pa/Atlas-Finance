@@ -271,7 +271,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                 }`}
               >
                 <div className="font-medium text-gray-900 text-sm">{template.name}</div>
-                <div className="text-xs text-gray-500 mt-1">{template.description}</div>
+                <div className="text-xs text-gray-700 mt-1">{template.description}</div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-blue-600">{template.estimatedDuration}</span>
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
@@ -370,7 +370,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
               >
                 <Settings className="h-4 w-4" />
               </button>
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label="Voir les détails">
                 <Eye className="h-4 w-4" />
               </button>
               <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
@@ -441,7 +441,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900">Propriétés</h3>
             <button
               onClick={() => setShowProperties(false)}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="p-1 text-gray-700 hover:text-gray-600"
             >
               ×
             </button>
@@ -632,7 +632,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">SYSCOHADA:</span>
-                      <span className={node.properties.syscohada ? 'text-green-600' : 'text-gray-400'}>
+                      <span className={node.properties.syscohada ? 'text-green-600' : 'text-gray-700'}>
                         {node.properties.syscohada ? 'Conforme' : 'N/A'}
                       </span>
                     </div>

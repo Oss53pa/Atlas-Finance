@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -40,6 +42,7 @@ interface Role {
 }
 
 const RolesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedModule, setSelectedModule] = useState<string>('all');
@@ -271,19 +274,29 @@ const RolesPage: React.FC = () => {
     duplicateRoleMutation.mutate(role.id);
   };
 
-  const handleDelete = (role: Role) => {
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; role: Role | null }>({
+    isOpen: false,
+    role: null
+  });
+
+  const handleDeleteClick = (role: Role) => {
     if (role.isSystemRole) {
       alert('Les rôles système ne peuvent pas être supprimés.');
       return;
     }
-    
+
     if (role.usersCount > 0) {
       alert(`Ce rôle ne peut pas être supprimé car il est assigné à ${role.usersCount} utilisateur(s).`);
       return;
     }
-    
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${role.name}" ?`)) {
-      deleteRoleMutation.mutate(role.id);
+
+    setDeleteConfirm({ isOpen: true, role });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirm.role) {
+      deleteRoleMutation.mutate(deleteConfirm.role.id);
+      setDeleteConfirm({ isOpen: false, role: null });
     }
   };
 
@@ -372,7 +385,7 @@ const RolesPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher un rôle..."
@@ -418,9 +431,9 @@ const RolesPage: React.FC = () => {
                 <option value="all">Tous les modules</option>
                 <option value="Système">Système</option>
                 <option value="Finance">Finance</option>
-                <option value="Comptabilité">Comptabilité</option>
+                <option value="Comptabilité">{t('accounting.title')}</option>
                 <option value="Commercial">Commercial</option>
-                <option value="Budget">Budget</option>
+                <option value="Budget">{t('navigation.budget')}</option>
                 <option value="Reporting">Reporting</option>
               </select>
             </div>
@@ -465,8 +478,8 @@ const RolesPage: React.FC = () => {
           ))
         ) : filteredRoles.length === 0 ? (
           <div className="col-span-full text-center py-12">
-            <KeyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Aucun rôle trouvé</p>
+            <KeyIcon className="h-12 w-12 text-gray-700 mx-auto mb-4" />
+            <p className="text-gray-700">Aucun rôle trouvé</p>
           </div>
         ) : (
           filteredRoles.map((role) => (
@@ -474,12 +487,12 @@ const RolesPage: React.FC = () => {
               {/* En-tête de la carte */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <div className="flex-shrink-0 text-gray-400">
+                  <div className="flex-shrink-0 text-gray-700">
                     {getCategoryIcon(role.category)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-medium text-gray-900 truncate">{role.name}</h3>
-                    <p className="text-sm text-gray-500">{role.code}</p>
+                    <p className="text-sm text-gray-700">{role.code}</p>
                   </div>
                 </div>
                 <div className="flex space-x-1 ml-2">
@@ -503,11 +516,11 @@ const RolesPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-indigo-600">{role.permissions.length}</div>
-                  <div className="text-xs text-gray-500">Permissions</div>
+                  <div className="text-xs text-gray-700">Permissions</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">{role.usersCount}</div>
-                  <div className="text-xs text-gray-500">Utilisateurs</div>
+                  <div className="text-xs text-gray-700">Utilisateurs</div>
                 </div>
               </div>
 
@@ -529,7 +542,7 @@ const RolesPage: React.FC = () => {
               </div>
 
               {/* Informations de création */}
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+              <div className="flex items-center justify-between text-sm text-gray-700 mb-4">
                 <div>Créé par {role.createdBy}</div>
                 <div>{new Date(role.lastModified).toLocaleDateString('fr-FR')}</div>
               </div>
@@ -552,7 +565,7 @@ const RolesPage: React.FC = () => {
                       setSelectedRole(role);
                       setShowViewModal(true);
                     }}
-                    className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
+                    className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
                     title="Voir les détails"
                   >
                     <EyeIcon className="h-4 w-4" />
@@ -563,8 +576,8 @@ const RolesPage: React.FC = () => {
                       setSelectedRole(role);
                       setShowEditModal(true);
                     }}
-                    className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
-                    title="Modifier"
+                    className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                    title={t('common.edit')}
                     disabled={role.isSystemRole}
                   >
                     <PencilIcon className="h-4 w-4" />
@@ -572,7 +585,7 @@ const RolesPage: React.FC = () => {
 
                   <button
                     onClick={() => handleDuplicate(role)}
-                    className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                    className="p-2 text-gray-700 hover:text-green-600 transition-colors"
                     title="Dupliquer"
                     disabled={duplicateRoleMutation.isPending}
                   >
@@ -580,9 +593,9 @@ const RolesPage: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(role)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                    title="Supprimer"
+                    onClick={() => handleDeleteClick(role)}
+                    className="p-2 text-gray-700 hover:text-red-600 transition-colors"
+                    title={t('common.delete')}
                     disabled={role.isSystemRole || role.usersCount > 0 || deleteRoleMutation.isPending}
                   >
                     <TrashIcon className="h-4 w-4" />
@@ -594,6 +607,491 @@ const RolesPage: React.FC = () => {
         )}
       </div>
 
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+              <h2 className="text-xl font-semibold text-gray-900">Nouveau Rôle</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-700 hover:text-gray-700"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du rôle <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Directeur Financier"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="DIR_FIN"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Description détaillée du rôle et de ses responsabilités..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Catégorie <span className="text-red-500">*</span>
+                </label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                  <option value="operational">Opérationnel</option>
+                  <option value="management">Management</option>
+                  <option value="admin">Administration</option>
+                  <option value="readonly">Lecture seule</option>
+                </select>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900 mb-3">Permissions par Module</h3>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <label className="flex items-start space-x-3">
+                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Système</div>
+                        <div className="mt-2 ml-6 space-y-2">
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Gestion Utilisateurs</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Configuration Système</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Accès Complet</span>
+                          </label>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <label className="flex items-start space-x-3">
+                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Finance</div>
+                        <div className="mt-2 ml-6 space-y-2">
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Lecture Finance</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Écriture Finance</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Gestion Trésorerie</span>
+                          </label>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <label className="flex items-start space-x-3">
+                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{t('accounting.title')}</div>
+                        <div className="mt-2 ml-6 space-y-2">
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Lecture Comptabilité</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Saisie Écritures</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Gestion Journaux</span>
+                          </label>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <label className="flex items-start space-x-3">
+                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Commercial</div>
+                        <div className="mt-2 ml-6 space-y-2">
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Lecture Commercial</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Écriture Commercial</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Gestion Clients</span>
+                          </label>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  Sélectionnez les modules et permissions appropriés pour ce rôle. Les utilisateurs assignés à ce rôle hériteront de ces permissions.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                Créer le rôle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showViewModal && selectedRole && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+              <h2 className="text-xl font-semibold text-gray-900">Détails du Rôle</h2>
+              <button
+                onClick={() => {
+                  setShowViewModal(false);
+                  setSelectedRole(null);
+                }}
+                className="text-gray-700 hover:text-gray-700"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="h-16 w-16 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    {getCategoryIcon(selectedRole.category)}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">{selectedRole.name}</h3>
+                    <p className="text-gray-700 mt-1">{selectedRole.code}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${getCategoryColor(selectedRole.category)}`}>
+                    {selectedRole.category === 'admin' ? 'Admin' :
+                     selectedRole.category === 'management' ? 'Management' :
+                     selectedRole.category === 'operational' ? 'Opérationnel' : 'Lecture'}
+                  </span>
+                  {selectedRole.isSystemRole && (
+                    <span className="px-3 py-1 text-sm font-medium rounded-full bg-orange-100 text-orange-800">
+                      Système
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Description</h4>
+                <p className="text-gray-700">{selectedRole.description}</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-indigo-50 rounded-lg">
+                  <div className="text-3xl font-bold text-indigo-600">{selectedRole.permissions.length}</div>
+                  <div className="text-sm text-gray-600 mt-1">Permissions</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-3xl font-bold text-green-600">{selectedRole.usersCount}</div>
+                  <div className="text-sm text-gray-600 mt-1">Utilisateurs</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-3xl font-bold text-purple-600">
+                    {Object.keys(getPermissionsByModule(selectedRole.permissions)).length}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">Modules</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Permissions par Module</h4>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {Object.entries(getPermissionsByModule(selectedRole.permissions)).map(([module, modulePermissions]) => (
+                    <div key={module} className="border border-gray-200 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 mb-2">{module}</h5>
+                      <div className="space-y-2">
+                        {modulePermissions.map((permission) => (
+                          <div key={permission.id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
+                            <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-900">{permission.name}</div>
+                              <div className="text-xs text-gray-700">{permission.description}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div>
+                    <span className="font-medium">Créé par:</span> {selectedRole.createdBy}
+                  </div>
+                  <div>
+                    <span className="font-medium">Créé le:</span> {new Date(selectedRole.createdAt).toLocaleDateString('fr-FR')}
+                  </div>
+                  <div className="col-span-2">
+                    <span className="font-medium">Dernière modification:</span> {new Date(selectedRole.lastModified).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+              </div>
+
+              {selectedRole.isSystemRole && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <p className="text-sm text-orange-800 font-medium">
+                    Ce rôle est un rôle système et ne peut pas être modifié ou supprimé.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-between sticky bottom-0">
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => handleDuplicate(selectedRole)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                >
+                  <DocumentDuplicateIcon className="h-4 w-4" />
+                  <span>Dupliquer</span>
+                </button>
+              </div>
+              <div className="flex space-x-3">
+                {!selectedRole.isSystemRole && (
+                  <button
+                    onClick={() => {
+                      setShowViewModal(false);
+                      setShowEditModal(true);
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors flex items-center space-x-2"
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                    <span>{t('common.edit')}</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setSelectedRole(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && selectedRole && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+              <h2 className="text-xl font-semibold text-gray-900">Modifier le Rôle</h2>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedRole(null);
+                }}
+                className="text-gray-700 hover:text-gray-700"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du rôle <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={selectedRole.name}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    disabled={selectedRole.isSystemRole}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Code <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={selectedRole.code}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    disabled={selectedRole.isSystemRole}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  defaultValue={selectedRole.description}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Catégorie <span className="text-red-500">*</span>
+                </label>
+                <select
+                  defaultValue={selectedRole.category}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  disabled={selectedRole.isSystemRole}
+                >
+                  <option value="operational">Opérationnel</option>
+                  <option value="management">Management</option>
+                  <option value="admin">Administration</option>
+                  <option value="readonly">Lecture seule</option>
+                </select>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900 mb-3">Permissions par Module</h3>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <label className="flex items-start space-x-3">
+                      <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Système</div>
+                        <div className="mt-2 ml-6 space-y-2">
+                          <label className="flex items-center">
+                            <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Gestion Utilisateurs</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Configuration Système</span>
+                          </label>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <label className="flex items-start space-x-3">
+                      <input type="checkbox" defaultChecked className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Finance</div>
+                        <div className="mt-2 ml-6 space-y-2">
+                          <label className="flex items-center">
+                            <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Lecture Finance</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" defaultChecked className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Écriture Finance</span>
+                          </label>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <label className="flex items-start space-x-3">
+                      <input type="checkbox" className="mt-1 rounded text-indigo-600 focus:ring-indigo-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{t('accounting.title')}</div>
+                        <div className="mt-2 ml-6 space-y-2">
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Lecture Comptabilité</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500 mr-2" />
+                            <span className="text-sm text-gray-700">Saisie Écritures</span>
+                          </label>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {selectedRole.usersCount > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800">
+                    Attention: Ce rôle est assigné à {selectedRole.usersCount} utilisateur(s). Les modifications affecteront leurs permissions.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedRole(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal des permissions */}
       {showPermissionsModal && selectedRole && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -604,7 +1102,7 @@ const RolesPage: React.FC = () => {
               </h3>
               <button
                 onClick={() => setShowPermissionsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-700 hover:text-gray-600"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -620,7 +1118,7 @@ const RolesPage: React.FC = () => {
                         <CheckIcon className="h-4 w-4 text-green-500" />
                         <div className="flex-1">
                           <div className="text-sm font-medium text-gray-900">{permission.name}</div>
-                          <div className="text-xs text-gray-500">{permission.description}</div>
+                          <div className="text-xs text-gray-700">{permission.description}</div>
                         </div>
                       </div>
                     ))}
@@ -675,6 +1173,19 @@ const RolesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, role: null })}
+        onConfirm={handleConfirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer le rôle "${deleteConfirm.role?.name}" ? Cette action est irréversible.`}
+        variant="danger"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        confirmLoading={deleteRoleMutation.isPending}
+      />
     </div>
   );
 };

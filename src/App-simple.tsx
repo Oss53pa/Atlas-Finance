@@ -1,6 +1,8 @@
 import React from 'react'
+import { useLanguage } from 'contexts/LanguageContext';
 
 function App() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -66,12 +68,12 @@ function App() {
             },
             {
               icon: "💰",
-              title: "Trésorerie",
+              title: t('navigation.treasury'),
               description: "Suivi en temps réel des flux, rapprochements bancaires automatiques"
             },
             {
               icon: "🏗️",
-              title: "Immobilisations",
+              title: t('navigation.assets'),
               description: "Gestion du patrimoine avec calculs d'amortissements automatiques"
             },
             {
@@ -127,7 +129,7 @@ function App() {
       <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="mb-2">© 2025 WiseBook ERP v3.0.0</p>
-          <p className="text-gray-400">Système de Gestion Intégrée pour l'Afrique</p>
+          <p className="text-gray-700">Système de Gestion Intégrée pour l'Afrique</p>
         </div>
       </footer>
     </div>

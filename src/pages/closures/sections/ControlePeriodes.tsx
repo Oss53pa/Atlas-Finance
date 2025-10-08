@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import {
   Calendar, Lock, Unlock, AlertTriangle, CheckCircle,
   Clock, Info, Shield, XCircle, AlertCircle, PlayCircle,
@@ -50,6 +51,7 @@ interface RegleCloture {
 }
 
 const ControlePeriodes: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedPeriode, setSelectedPeriode] = useState<string>('2025-01');
   const [showClotureModal, setShowClotureModal] = useState(false);
   const [showForceClotureModal, setShowForceClotureModal] = useState(false);
@@ -295,23 +297,23 @@ const ControlePeriodes: React.FC = () => {
 
   const getStatutIcon = (statut: string) => {
     switch (statut) {
-      case 'ouverte': return <PlayCircle className="w-4 h-4 text-green-500" />;
+      case 'ouverte': return <PlayCircle className="w-4 h-4 text-[var(--color-success)]" />;
       case 'en_cloture': return <PauseCircle className="w-4 h-4 text-yellow-500" />;
-      case 'fermee': return <StopCircle className="w-4 h-4 text-blue-500" />;
-      case 'verrouillee': return <Lock className="w-4 h-4 text-red-500" />;
-      case 'archivee': return <Archive className="w-4 h-4 text-gray-500" />;
-      default: return <Clock className="w-4 h-4 text-gray-400" />;
+      case 'fermee': return <StopCircle className="w-4 h-4 text-[var(--color-primary)]" />;
+      case 'verrouillee': return <Lock className="w-4 h-4 text-[var(--color-error)]" />;
+      case 'archivee': return <Archive className="w-4 h-4 text-[var(--color-text-secondary)]" />;
+      default: return <Clock className="w-4 h-4 text-[var(--color-text-secondary)]" />;
     }
   };
 
   const getStatutColor = (statut: string) => {
     switch (statut) {
-      case 'ouverte': return 'bg-green-100 text-green-700 border-green-200';
-      case 'en_cloture': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'fermee': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'verrouillee': return 'bg-red-100 text-red-700 border-red-200';
-      case 'archivee': return 'bg-gray-100 text-gray-700 border-gray-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'ouverte': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] border-[var(--color-success-light)]';
+      case 'en_cloture': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)] border-yellow-200';
+      case 'fermee': return 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] border-[var(--color-primary-light)]';
+      case 'verrouillee': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] border-[var(--color-error-light)]';
+      case 'archivee': return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)] border-[var(--color-border)]';
+      default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)] border-[var(--color-border)]';
     }
   };
 
@@ -333,58 +335,58 @@ const ControlePeriodes: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2">
               <History className="w-4 h-4" />
               <span>Historique</span>
             </button>
-            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-gray-50 flex items-center space-x-2">
+            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2" aria-label="Paramètres">
               <Settings className="w-4 h-4" />
-              <span>Paramètres</span>
+              <span>{t('navigation.settings')}</span>
             </button>
           </div>
         </div>
 
         {/* Statistiques */}
         <div className="grid grid-cols-6 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-[var(--color-background-secondary)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Total</span>
-              <Calendar className="w-4 h-4 text-gray-500" />
+              <span className="text-sm text-[var(--color-text-primary)]">Total</span>
+              <Calendar className="w-4 h-4 text-[var(--color-text-secondary)]" />
             </div>
             <p className="text-2xl font-bold">{stats.totalPeriodes}</p>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
+          <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-green-700">Ouvertes</span>
-              <PlayCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-[var(--color-success-dark)]">Ouvertes</span>
+              <PlayCircle className="w-4 h-4 text-[var(--color-success)]" />
             </div>
-            <p className="text-2xl font-bold text-green-800">{stats.ouvertes}</p>
+            <p className="text-2xl font-bold text-[var(--color-success-darker)]">{stats.ouvertes}</p>
           </div>
-          <div className="p-4 bg-yellow-50 rounded-lg">
+          <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-yellow-700">En clôture</span>
-              <PauseCircle className="w-4 h-4 text-yellow-600" />
+              <span className="text-sm text-[var(--color-warning-dark)]">En clôture</span>
+              <PauseCircle className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
             <p className="text-2xl font-bold text-yellow-800">{stats.enCloture}</p>
           </div>
-          <div className="p-4 bg-blue-50 rounded-lg">
+          <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-blue-700">Fermées</span>
-              <StopCircle className="w-4 h-4 text-blue-600" />
+              <span className="text-sm text-[var(--color-primary-dark)]">Fermées</span>
+              <StopCircle className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
-            <p className="text-2xl font-bold text-blue-800">{stats.fermees}</p>
+            <p className="text-2xl font-bold text-[var(--color-primary-darker)]">{stats.fermees}</p>
           </div>
-          <div className="p-4 bg-red-50 rounded-lg">
+          <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-red-700">Verrouillées</span>
-              <Lock className="w-4 h-4 text-red-600" />
+              <span className="text-sm text-[var(--color-error-dark)]">Verrouillées</span>
+              <Lock className="w-4 h-4 text-[var(--color-error)]" />
             </div>
             <p className="text-2xl font-bold text-red-800">{stats.verrouillees}</p>
           </div>
           <div className="p-4 bg-orange-50 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-orange-700">Retards</span>
-              <AlertTriangle className="w-4 h-4 text-orange-600" />
+              <span className="text-sm text-[var(--color-warning-dark)]">Retards</span>
+              <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
             <p className="text-2xl font-bold text-orange-800">{stats.retards}</p>
           </div>
@@ -408,7 +410,7 @@ const ControlePeriodes: React.FC = () => {
                     <button
                       key={periode.id}
                       onClick={() => setSelectedPeriode(periode.periode)}
-                      className={`w-full text-left p-3 hover:bg-gray-50 border-l-4 transition-colors ${
+                      className={`w-full text-left p-3 hover:bg-[var(--color-background-secondary)] border-l-4 transition-colors ${
                         selectedPeriode === periode.periode
                           ? 'bg-[#6A8A82]/10 border-[#6A8A82]'
                           : 'border-transparent'
@@ -495,7 +497,7 @@ const ControlePeriodes: React.FC = () => {
                       {Object.entries(selectedPeriodeData.validations).map(([key, value]) => (
                         <div key={key} className="flex items-center space-x-2">
                           {value ? (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
+                            <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                           ) : (
                             <XCircle className="w-4 h-4 text-gray-300" />
                           )}
@@ -513,11 +515,11 @@ const ControlePeriodes: React.FC = () => {
                         <div key={etape.id} className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             {etape.statut === 'complete' ? (
-                              <CheckSquare className="w-4 h-4 text-green-500" />
+                              <CheckSquare className="w-4 h-4 text-[var(--color-success)]" />
                             ) : etape.statut === 'en_cours' ? (
                               <Clock className="w-4 h-4 text-yellow-500" />
                             ) : etape.statut === 'bloque' ? (
-                              <XCircle className="w-4 h-4 text-red-500" />
+                              <XCircle className="w-4 h-4 text-[var(--color-error)]" />
                             ) : (
                               <Square className="w-4 h-4 text-gray-300" />
                             )}
@@ -545,23 +547,23 @@ const ControlePeriodes: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   {clotureCheck.canClose ? (
-                    <Alert className="border-green-200 bg-green-50">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <AlertDescription className="text-green-800">
+                    <Alert className="border-[var(--color-success-light)] bg-[var(--color-success-lightest)]">
+                      <CheckCircle className="h-4 w-4 text-[var(--color-success)]" />
+                      <AlertDescription className="text-[var(--color-success-darker)]">
                         Cette période peut être clôturée. Toutes les conditions sont remplies.
                       </AlertDescription>
                     </Alert>
                   ) : (
                     <div className="space-y-3">
-                      <Alert className="border-red-200 bg-red-50">
-                        <Ban className="h-4 w-4 text-red-600" />
+                      <Alert className="border-[var(--color-error-light)] bg-[var(--color-error-lightest)]">
+                        <Ban className="h-4 w-4 text-[var(--color-error)]" />
                         <AlertDescription className="text-red-800">
                           Cette période ne peut pas être clôturée pour les raisons suivantes :
                         </AlertDescription>
                       </Alert>
                       <div className="space-y-2">
                         {clotureCheck.reasons.map((reason, index) => (
-                          <div key={index} className="flex items-start space-x-2 p-2 bg-gray-50 rounded">
+                          <div key={index} className="flex items-start space-x-2 p-2 bg-[var(--color-background-secondary)] rounded">
                             <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5" />
                             <span className="text-sm">{reason}</span>
                           </div>
@@ -580,7 +582,7 @@ const ControlePeriodes: React.FC = () => {
                           className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
                             clotureCheck.canClose
                               ? 'bg-[#6A8A82] text-white hover:bg-[#5a7a72]'
-                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : 'bg-[var(--color-border)] text-[var(--color-text-secondary)] cursor-not-allowed'
                           }`}
                         >
                           <Lock className="w-4 h-4" />
@@ -589,7 +591,7 @@ const ControlePeriodes: React.FC = () => {
                         {!clotureCheck.canClose && (
                           <button
                             onClick={() => setShowForceClotureModal(true)}
-                            className="px-4 py-2 border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 flex items-center space-x-2"
+                            className="px-4 py-2 border border-orange-300 text-[var(--color-warning)] rounded-lg hover:bg-orange-50 flex items-center space-x-2"
                           >
                             <AlertTriangle className="w-4 h-4" />
                             <span>Forcer la clôture</span>
@@ -598,13 +600,13 @@ const ControlePeriodes: React.FC = () => {
                       </>
                     )}
                     {selectedPeriodeData.statut === 'fermee' && canReopenPeriod(selectedPeriodeData) && (
-                      <button className="px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center space-x-2">
+                      <button className="px-4 py-2 border border-blue-300 text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary-lightest)] flex items-center space-x-2">
                         <Unlock className="w-4 h-4" />
                         <span>Rouvrir la période</span>
                       </button>
                     )}
                     {selectedPeriodeData.statut === 'verrouillee' && (
-                      <div className="flex items-center space-x-2 text-red-600">
+                      <div className="flex items-center space-x-2 text-[var(--color-error)]">
                         <Lock className="w-4 h-4" />
                         <span className="text-sm">Période verrouillée définitivement</span>
                       </div>
@@ -630,19 +632,19 @@ const ControlePeriodes: React.FC = () => {
                     key={regle.id}
                     className={`p-3 rounded-lg border ${
                       regle.type === 'blocage'
-                        ? 'border-red-200 bg-red-50'
+                        ? 'border-[var(--color-error-light)] bg-[var(--color-error-lightest)]'
                         : regle.type === 'avertissement'
-                        ? 'border-yellow-200 bg-yellow-50'
-                        : 'border-blue-200 bg-blue-50'
+                        ? 'border-yellow-200 bg-[var(--color-warning-lightest)]'
+                        : 'border-[var(--color-primary-light)] bg-[var(--color-primary-lightest)]'
                     }`}
                   >
                     <div className="flex items-start space-x-2">
                       {regle.type === 'blocage' ? (
-                        <Ban className="w-4 h-4 text-red-500 mt-0.5" />
+                        <Ban className="w-4 h-4 text-[var(--color-error)] mt-0.5" />
                       ) : regle.type === 'avertissement' ? (
                         <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5" />
                       ) : (
-                        <Info className="w-4 h-4 text-blue-500 mt-0.5" />
+                        <Info className="w-4 h-4 text-[var(--color-primary)] mt-0.5" />
                       )}
                       <div>
                         <p className="font-medium text-sm">{regle.nom}</p>
@@ -656,6 +658,299 @@ const ControlePeriodes: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Cloture Modal */}
+      {showClotureModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-lg flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-[var(--color-primary)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Clôturer la période</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Procédure de clôture comptable</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowClotureModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Info className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-primary-darker)]">Clôture de période</p>
+                      <p className="text-sm text-[var(--color-primary-dark)] mt-1">
+                        La clôture empêchera toute modification des écritures de cette période
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Période à clôturer <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="2025-01">Janvier 2025</option>
+                    <option value="2024-12">Décembre 2024</option>
+                    <option value="2024-11">Novembre 2024</option>
+                  </select>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4 space-y-3">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Validations obligatoires</h4>
+
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation comptable</span>
+                    </div>
+                    <Badge variant="success">{t('accounting.validated')}</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation fiscale</span>
+                    </div>
+                    <Badge variant="success">{t('accounting.validated')}</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-warning-lightest)] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-[var(--color-warning)]" />
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation audit</span>
+                    </div>
+                    <Badge variant="warning">{t('status.pending')}</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation direction</span>
+                    </div>
+                    <Badge variant="success">{t('accounting.validated')}</Badge>
+                  </div>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Progression des étapes</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-[var(--color-text-primary)]">Étapes complétées</span>
+                        <span className="font-medium">8/10 (80%)</span>
+                      </div>
+                      <Progress value={80} className="h-2" />
+                    </div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">
+                      <p>✓ Saisie des écritures</p>
+                      <p>✓ Lettrage des comptes</p>
+                      <p>✓ Rapprochements bancaires</p>
+                      <p className="text-[var(--color-warning)]">⏳ Contrôles de cohérence (90%)</p>
+                      <p className="text-[var(--color-warning)]">⏳ Validation des provisions (50%)</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Commentaire de clôture
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Notes ou remarques sur cette clôture..."
+                  />
+                </div>
+
+                <div className="flex items-start gap-2 p-3 bg-[var(--color-background-secondary)] rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="confirm-cloture"
+                    className="w-4 h-4 text-[var(--color-primary)] border-[var(--color-border-dark)] rounded focus:ring-blue-500 mt-0.5"
+                  />
+                  <label htmlFor="confirm-cloture" className="text-sm text-[var(--color-text-primary)] cursor-pointer">
+                    Je confirme avoir vérifié tous les contrôles et souhaite procéder à la clôture de cette période
+                  </label>
+                </div>
+
+                <div className="bg-[var(--color-warning-lightest)] border border-yellow-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-900">Attention</p>
+                      <p className="text-sm text-[var(--color-warning-dark)] mt-1">
+                        La clôture peut être annulée uniquement par un administrateur
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowClotureModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] rounded-lg transition-colors flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Clôturer la période
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Force Cloture Modal */}
+      {showForceClotureModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--color-error-lighter)] rounded-lg flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 text-[var(--color-error)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Clôture forcée</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Clôture sans validation complète</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowForceClotureModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-[var(--color-error-lightest)] border border-[var(--color-error-light)] rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-900">Action administrative sensible</p>
+                      <p className="text-sm text-[var(--color-error-dark)] mt-1">
+                        La clôture forcée permet de clôturer malgré des validations incomplètes. Cette action est tracée et auditable.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Période à clôturer <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="2025-01">Janvier 2025</option>
+                    <option value="2024-12">Décembre 2024</option>
+                  </select>
+                </div>
+
+                <div className="border border-[var(--color-error-light)] rounded-lg p-4 bg-[var(--color-error-lightest)]">
+                  <h4 className="font-semibold text-sm text-red-900 mb-3 flex items-center gap-2">
+                    <XCircle className="w-4 h-4" />
+                    Blocages identifiés
+                  </h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[var(--color-error)]">•</span>
+                      <span className="text-red-800">Validation audit non complétée</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[var(--color-error)]">•</span>
+                      <span className="text-red-800">2 étapes obligatoires en attente</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[var(--color-error)]">•</span>
+                      <span className="text-red-800">Provisions non validées (50% complété)</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Mot de passe administrateur <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="Entrez votre mot de passe"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Justification <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="Expliquez pourquoi cette clôture forcée est nécessaire. Cette justification sera enregistrée dans l'historique d'audit."
+                  />
+                </div>
+
+                <div className="flex items-start gap-2 p-3 bg-[var(--color-background-secondary)] rounded-lg border border-[var(--color-border-dark)]">
+                  <input
+                    type="checkbox"
+                    id="confirm-force"
+                    className="w-4 h-4 text-[var(--color-error)] border-[var(--color-border-dark)] rounded focus:ring-red-500 mt-0.5"
+                  />
+                  <label htmlFor="confirm-force" className="text-sm text-[var(--color-text-primary)] cursor-pointer">
+                    Je comprends les risques et assume la responsabilité de cette clôture forcée
+                  </label>
+                </div>
+
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Shield className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-orange-900">Traçabilité</p>
+                      <p className="text-sm text-[var(--color-warning-dark)] mt-1">
+                        Cette action sera enregistrée avec: horodatage, utilisateur, adresse IP et justification
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowForceClotureModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-error)] hover:bg-[var(--color-error-dark)] rounded-lg transition-colors flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Forcer la clôture
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

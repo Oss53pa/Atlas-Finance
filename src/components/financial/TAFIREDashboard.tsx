@@ -182,9 +182,9 @@ const TAFIREDashboard: React.FC = () => {
   };
 
   const getFlowColor = (value: number): string => {
-    if (value > 0) return '#10b981'; // Green
-    if (value < 0) return '#ef4444'; // Red
-    return '#6b7280'; // Gray
+    if (value > 0) return '#6A8A82';
+    if (value < 0) return '#B85450';
+    return '#767676';
   };
 
   const getFlowIcon = (value: number) => {
@@ -204,7 +204,7 @@ const TAFIREDashboard: React.FC = () => {
   if (!tafireData) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">Aucune donnée TAFIRE disponible</p>
+        <p className="text-gray-700">Aucune donnée TAFIRE disponible</p>
       </div>
     );
   }
@@ -351,7 +351,7 @@ const TAFIREDashboard: React.FC = () => {
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Bar dataKey="value" fill={(entry) => getFlowColor(entry.value)} />
-                <Line type="monotone" dataKey="cumulative" stroke="#3b82f6" strokeWidth={3} name="Trésorerie cumulative" />
+                <Line type="monotone" dataKey="cumulative" stroke="#7A99AC" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>

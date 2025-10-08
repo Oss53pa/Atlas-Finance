@@ -43,15 +43,15 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50"
         onClick={handleBackdropClick}
       />
-      
+
       {/* Dialog container */}
-      <div className="relative z-50 w-full max-w-lg mx-4">
+      <div className="relative z-[10000] w-full max-w-lg mx-4">
         {children}
       </div>
     </div>

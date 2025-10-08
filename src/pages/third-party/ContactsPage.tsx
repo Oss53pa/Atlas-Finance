@@ -44,6 +44,7 @@ import {
 import { thirdPartyService } from '../../services/thirdparty.service';
 import { formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+import { CreateContactModal, EditContactModal, ContactDetailModal } from '../../features/contacts/components';
 
 interface ContactsFilters {
   search: string;
@@ -64,6 +65,8 @@ const ContactsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -102,6 +105,20 @@ const ContactsPage: React.FC = () => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce contact ?')) {
       deleteContactMutation.mutate(contactId);
     }
+  };
+
+  const handleViewDetails = (contact: any) => {
+    setSelectedContact(contact);
+    setShowDetailModal(true);
+  };
+
+  const handleEditContact = (contact: any) => {
+    setSelectedContact(contact);
+    setShowEditModal(true);
+  };
+
+  const handleRefreshData = () => {
+    queryClient.invalidateQueries({ queryKey: ['contacts'] });
   };
 
   const handleFilterChange = (key: keyof ContactsFilters, value: string) => {
@@ -170,11 +187,11 @@ const ContactsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-tuatara flex items-center">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
               <Contact className="mr-3 h-7 w-7" />
               Contacts
             </h1>
-            <p className="mt-2 text-rolling-stone">
+            <p className="mt-2 text-[var(--color-text-secondary)]">
               Gestion des contacts clients, fournisseurs et partenaires
             </p>
           </div>
@@ -188,7 +205,7 @@ const ContactsPage: React.FC = () => {
               Importer
             </Button>
             <Button 
-              className="bg-tuatara hover:bg-rolling-stone text-swirl"
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -276,7 +293,7 @@ const ContactsPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Rechercher un contact..."
                 value={filters.search}
@@ -328,7 +345,7 @@ const ContactsPage: React.FC = () => {
             </Select>
 
             <div className="relative">
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Ville"
                 value={filters.ville}
@@ -388,11 +405,11 @@ const ContactsPage: React.FC = () => {
                               <User className="h-4 w-4 text-blue-600" />
                             </div>
                             <div>
-                              <p className="font-medium text-tuatara">
+                              <p className="font-medium text-[var(--color-text-primary)]">
                                 {contact.prenom} {contact.nom}
                               </p>
                               {contact.titre && (
-                                <p className="text-sm text-rolling-stone">{contact.titre}</p>
+                                <p className="text-sm text-[var(--color-text-secondary)]">{contact.titre}</p>
                               )}
                             </div>
                           </div>
@@ -404,13 +421,13 @@ const ContactsPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Building className="h-4 w-4 text-gray-400" />
+                            <Building className="h-4 w-4 text-gray-700" />
                             <div>
                               <p className="font-medium text-gray-900">
                                 {contact.entreprise_nom}
                               </p>
                               {contact.service && (
-                                <p className="text-sm text-gray-500">{contact.service}</p>
+                                <p className="text-sm text-gray-700">{contact.service}</p>
                               )}
                             </div>
                           </div>
@@ -424,19 +441,19 @@ const ContactsPage: React.FC = () => {
                           <div className="space-y-1">
                             {contact.telephone && (
                               <div className="flex items-center text-sm">
-                                <Phone className="h-3 w-3 text-gray-400 mr-1" />
+                                <Phone className="h-3 w-3 text-gray-700 mr-1" />
                                 {contact.telephone}
                               </div>
                             )}
                             {contact.telephone_mobile && (
                               <div className="flex items-center text-sm">
-                                <Phone className="h-3 w-3 text-gray-400 mr-1" />
+                                <Phone className="h-3 w-3 text-gray-700 mr-1" />
                                 {contact.telephone_mobile}
                               </div>
                             )}
                             {contact.email && (
                               <div className="flex items-center text-sm">
-                                <Mail className="h-3 w-3 text-gray-400 mr-1" />
+                                <Mail className="h-3 w-3 text-gray-700 mr-1" />
                                 {contact.email}
                               </div>
                             )}
@@ -444,11 +461,11 @@ const ContactsPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center text-sm">
-                            <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                            <MapPin className="h-4 w-4 text-gray-700 mr-2" />
                             <div>
                               <p>{contact.ville}</p>
                               {contact.pays && (
-                                <p className="text-xs text-gray-500">{contact.pays}</p>
+                                <p className="text-xs text-gray-700">{contact.pays}</p>
                               )}
                             </div>
                           </div>
@@ -456,18 +473,18 @@ const ContactsPage: React.FC = () => {
                         <TableCell>
                           {contact.dernier_contact ? (
                             <div className="flex items-center text-sm">
-                              <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                              <Calendar className="h-4 w-4 text-gray-700 mr-2" />
                               <div>
                                 <p className="font-medium">
                                   {formatDate(contact.dernier_contact)}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-700">
                                   {contact.type_dernier_contact}
                                 </p>
                               </div>
                             </div>
                           ) : (
-                            <span className="text-gray-400 text-sm">Jamais</span>
+                            <span className="text-gray-700 text-sm">Jamais</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -475,7 +492,7 @@ const ContactsPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setSelectedContact(contact)}
+                              onClick={() => handleViewDetails(contact)}
                               aria-label="Voir les détails"
                             >
                               <Eye className="h-4 w-4" />
@@ -483,13 +500,16 @@ const ContactsPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => window.location.href = `mailto:${contact.email}`}
                               aria-label="Contacter"
+                              title="Envoyer un email"
                             >
                               <MessageCircle className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEditContact(contact)}
                               aria-label="Modifier"
                             >
                               <Edit className="h-4 w-4" />
@@ -524,15 +544,15 @@ const ContactsPage: React.FC = () => {
 
               {(!contactsData?.results || contactsData.results.length === 0) && (
                 <div className="text-center py-12">
-                  <Contact className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Contact className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun contact trouvé</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     {filters.search || filters.type_tiers || filters.entreprise || filters.fonction || filters.ville
                       ? 'Aucun contact ne correspond aux critères de recherche.'
                       : 'Commencez par créer votre premier contact.'}
                   </p>
                   <Button 
-                    className="bg-tuatara hover:bg-rolling-stone text-swirl"
+                    className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -544,6 +564,29 @@ const ContactsPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <CreateContactModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleRefreshData}
+      />
+
+      <EditContactModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        contact={selectedContact}
+        onSuccess={handleRefreshData}
+      />
+
+      <ContactDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        contact={selectedContact}
+        onEdit={() => {
+          setShowDetailModal(false);
+          setShowEditModal(true);
+        }}
+      />
     </div>
   );
 };

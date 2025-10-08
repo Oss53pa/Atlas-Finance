@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, Users, FileText, DollarSign, Clock, CheckCircle,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 const ModernDashboardPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   return (
@@ -16,8 +18,8 @@ const ModernDashboardPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button 
-              onClick={() => navigate('/')}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
               <span className="text-sm font-semibold text-[#444444]">Workspaces</span>
@@ -94,7 +96,7 @@ const ModernDashboardPage: React.FC = () => {
                   >
                     <IconComponent className="w-6 h-6" style={{color: kpi.color}} />
                   </div>
-                  <span className="text-xs font-medium text-green-600">{kpi.evolution}</span>
+                  <span className="text-xs font-medium text-[var(--color-success)]">{kpi.evolution}</span>
                 </div>
                 <h3 className="text-2xl font-bold text-[#191919] mb-1">{kpi.valeur}</h3>
                 <p className="text-sm font-medium text-[#444444] mb-1">{kpi.titre}</p>
@@ -111,12 +113,12 @@ const ModernDashboardPage: React.FC = () => {
             <h3 className="font-semibold text-[#191919] mb-4">📈 Activité Récente</h3>
             <div className="space-y-3">
               {[
-                { module: 'Comptabilité', action: '47 écritures saisies', temps: '2h', color: '#6A8A82' },
-                { module: 'Trésorerie', action: 'Position mise à jour', temps: '1h', color: '#B87333' },
-                { module: 'Clients', action: '3 nouveaux clients', temps: '3h', color: '#7A99AC' },
+                { module: t('navigation.accounting'), action: '47 écritures saisies', temps: '2h', color: '#6A8A82' },
+                { module: t('navigation.treasury'), action: 'Position mise à jour', temps: '1h', color: '#B87333' },
+                { module: t('navigation.clients'), action: '3 nouveaux clients', temps: '3h', color: '#7A99AC' },
                 { module: 'États', action: 'Balance générée', temps: '4h', color: '#6A8A82' }
               ].map((activite, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-background-secondary)]">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{backgroundColor: activite.color}}></div>
                     <div>
@@ -134,18 +136,18 @@ const ModernDashboardPage: React.FC = () => {
             <h3 className="font-semibold text-[#191919] mb-4">🎯 Tâches Prioritaires</h3>
             <div className="space-y-2">
               {[
-                { tache: 'Valider 8 écritures en attente', module: 'Comptabilité', priorite: 'haute', path: '/accounting/entries' },
-                { tache: 'Finaliser clôture septembre', module: 'Clôtures', priorite: 'haute', path: '/closures' },
-                { tache: 'Relancer 12 clients en retard', module: 'Clients', priorite: 'moyenne', path: '/customers/recovery' },
-                { tache: 'Mettre à jour prévisions', module: 'Trésorerie', priorite: 'basse', path: '/treasury/cash-flow' }
+                { tache: 'Valider 8 écritures en attente', module: t('navigation.accounting'), priorite: 'haute', path: '/accounting/entries' },
+                { tache: 'Finaliser clôture septembre', module: t('closures.title'), priorite: 'haute', path: '/closures' },
+                { tache: 'Relancer 12 clients en retard', module: t('navigation.clients'), priorite: 'moyenne', path: '/customers/recovery' },
+                { tache: 'Mettre à jour prévisions', module: t('navigation.treasury'), priorite: 'basse', path: '/treasury/cash-flow' }
               ].map((tache, index) => (
                 <button 
                   key={index}
                   onClick={() => navigate(tache.path)}
                   className={`w-full p-3 text-left rounded-lg border-l-4 hover:shadow-md transition-all ${
-                    tache.priorite === 'haute' ? 'bg-red-50 border-red-400' :
-                    tache.priorite === 'moyenne' ? 'bg-yellow-50 border-yellow-400' :
-                    'bg-blue-50 border-blue-400'
+                    tache.priorite === 'haute' ? 'bg-[var(--color-error-lightest)] border-red-400' :
+                    tache.priorite === 'moyenne' ? 'bg-[var(--color-warning-lightest)] border-yellow-400' :
+                    'bg-[var(--color-primary-lightest)] border-blue-400'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -154,9 +156,9 @@ const ModernDashboardPage: React.FC = () => {
                       <p className="text-xs text-[#767676]">{tache.module}</p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      tache.priorite === 'haute' ? 'bg-red-100 text-red-700' :
-                      tache.priorite === 'moyenne' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-blue-100 text-blue-700'
+                      tache.priorite === 'haute' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]' :
+                      tache.priorite === 'moyenne' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                      'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]'
                     }`}>
                       {tache.priorite}
                     </span>

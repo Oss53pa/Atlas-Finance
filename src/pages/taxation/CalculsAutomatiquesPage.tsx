@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -72,6 +73,7 @@ interface CalculationRule {
 }
 
 const CalculsAutomatiquesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState<string>(
     new Date().toISOString().slice(0, 7)
   );
@@ -379,7 +381,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
                   Période
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                   <Input
                     type="month"
                     value={selectedPeriod}
@@ -452,12 +454,12 @@ const CalculsAutomatiquesPage: React.FC = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Type</TableHead>
-                          <TableHead>Libellé</TableHead>
+                          <TableHead>{t('accounting.label')}</TableHead>
                           <TableHead className="text-right">Base de Calcul</TableHead>
                           <TableHead className="text-right">Taux</TableHead>
                           <TableHead className="text-right">Montant</TableHead>
                           <TableHead>Statut</TableHead>
-                          <TableHead>Compte</TableHead>
+                          <TableHead>{t('accounting.account')}</TableHead>
                           <TableHead className="text-center">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -472,7 +474,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
                             <TableCell>
                               <div>
                                 <p className="font-medium text-gray-900">{calculation.libelle}</p>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-gray-700">
                                   Période: {calculation.periode}
                                 </p>
                               </div>
@@ -558,7 +560,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
                                 ))}
                               </div>
                             </div>
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className="text-xs text-gray-700 mt-2">
                               Dernière modification: {formatDate(rule.derniere_maj)}
                             </p>
                           </div>
@@ -586,9 +588,9 @@ const CalculsAutomatiquesPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <FileText className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Historique des Calculs</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     L'historique détaillé des calculs fiscaux sera affiché ici.
                   </p>
                   <Button variant="outline">

@@ -9,7 +9,7 @@ import {
   Brain, Wifi, Smartphone, Cloud, Zap, Users, Shield,
   Database, Cpu, Radio, Monitor, Globe, Link
 } from 'lucide-react';
-import { CompleteAssetsModulesSimple as CompleteAssetsModulesDetailed } from './CompleteAssetsModulesSimple';
+import AssetsRegistry from './AssetsRegistry';
 import { AssetsModules3to5 } from './AssetsModules3to5';
 import { AssetsModules6to9 } from './AssetsModules6to9';
 import { ModernCard, CardHeader, CardBody, StatCard } from '../../components/ui/ModernCard';
@@ -53,8 +53,8 @@ const CompleteAssetsModule: React.FC = () => {
 
       {/* Content - 9 modules complets */}
       <div>
-        {activeTab === 'synthese' && <CompleteAssetsModulesDetailed activeModule={1} />}
-        {activeTab === 'registre' && <CompleteAssetsModulesDetailed activeModule={2} />}
+        {activeTab === 'synthese' && <AssetsRegistry />}
+        {activeTab === 'registre' && <AssetsRegistry />}
         {activeTab === 'amortissements-ia' && <AssetsModules3to5 activeModule={3} />}
         {activeTab === 'cycle-vie' && <AssetsModules3to5 activeModule={4} />}
         {activeTab === 'inventaire-auto' && <AssetsModules3to5 activeModule={5} />}

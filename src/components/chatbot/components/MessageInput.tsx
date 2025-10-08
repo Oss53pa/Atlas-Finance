@@ -73,7 +73,7 @@ export const MessageInput = forwardRef<HTMLInputElement, MessageInputProps>(({
           {/* Compteur de caractères */}
           {value.length > maxLength * 0.8 && (
             <div className="message-input__counter">
-              <span className={value.length >= maxLength ? 'text-red-500' : 'text-gray-500'}>
+              <span className={value.length >= maxLength ? 'text-red-500' : 'text-gray-700'}>
                 {value.length}/{maxLength}
               </span>
             </div>

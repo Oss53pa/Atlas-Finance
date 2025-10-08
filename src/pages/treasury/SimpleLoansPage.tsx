@@ -187,28 +187,28 @@ const SimpleLoansPage: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Emprunt
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Banque
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Capital Initial
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Taux
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Mensualité
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Solde Restant
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Statut
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -221,7 +221,7 @@ const SimpleLoansPage: React.FC = () => {
                         {getTypeIcon(loan.type)}
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">{loan.reference}</div>
-                          <div className="text-sm text-gray-500">{loan.type}</div>
+                          <div className="text-sm text-gray-700">{loan.type}</div>
                         </div>
                       </div>
                     </td>
@@ -254,10 +254,10 @@ const SimpleLoansPage: React.FC = () => {
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-[#6A8A82] hover:text-[#6A8A82]/80">
+                        <button className="text-[#6A8A82] hover:text-[#6A8A82]/80" aria-label="Modifier">
                           <PencilIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button className="text-red-600 hover:text-red-900" aria-label="Supprimer">
                           <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
@@ -274,8 +274,8 @@ const SimpleLoansPage: React.FC = () => {
       {viewMode === 'schedule' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Échéancier des Emprunts</h2>
-          <div className="text-center text-gray-500 py-12">
-            <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <div className="text-center text-gray-700 py-12">
+            <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-gray-700" />
             <p>Sélectionnez un emprunt pour voir son échéancier détaillé</p>
           </div>
         </div>
@@ -285,8 +285,8 @@ const SimpleLoansPage: React.FC = () => {
       {viewMode === 'analytics' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Analytics des Emprunts</h2>
-          <div className="text-center text-gray-500 py-12">
-            <CalculatorIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <div className="text-center text-gray-700 py-12">
+            <CalculatorIcon className="h-12 w-12 mx-auto mb-4 text-gray-700" />
             <p>Analyses et projections financières des emprunts</p>
           </div>
         </div>

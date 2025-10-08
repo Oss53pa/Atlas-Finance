@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -115,11 +116,25 @@ interface DataMapping {
 }
 
 const ImportExportPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedFormat, setSelectedFormat] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('templates');
+
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showBrowseFilesModal, setShowBrowseFilesModal] = useState(false);
+  const [showExecuteModal, setShowExecuteModal] = useState(false);
+  const [showMappingModal, setShowMappingModal] = useState(false);
+  const [showExecutionDetailsModal, setShowExecutionDetailsModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ImportExportTemplate | null>(null);
+  const [selectedExecution, setSelectedExecution] = useState<ExecutionHistory | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   // Mock data for templates
   const mockTemplates: ImportExportTemplate[] = [
@@ -390,23 +405,90 @@ const ImportExportPage: React.FC = () => {
   };
 
   const handleCreateTemplate = () => {
-    toast.success('Création d\'un nouveau modèle...');
+    setShowCreateModal(true);
   };
 
   const handleEditTemplate = (templateId: string) => {
-    toast.info(`Édition du modèle ${templateId}`);
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setSelectedTemplate(template);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleViewTemplate = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setSelectedTemplate(template);
+      setShowViewModal(true);
+    }
   };
 
   const handleDeleteTemplate = (templateId: string) => {
-    toast.error(`Suppression du modèle ${templateId}`);
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce modèle ?')) {
+      toast.success('Modèle supprimé avec succès');
+    }
   };
 
   const handleExecuteTemplate = (templateId: string) => {
-    toast.success(`Exécution du modèle ${templateId} lancée...`);
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setSelectedTemplate(template);
+      setShowExecuteModal(true);
+    }
+  };
+
+  const handleScheduleTemplate = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setSelectedTemplate(template);
+      setShowScheduleModal(true);
+    }
+  };
+
+  const handleBrowseFiles = () => {
+    setShowBrowseFilesModal(true);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      toast.success(`Fichier "${file.name}" sélectionné`);
+    }
   };
 
   const handleStopExecution = (executionId: string) => {
-    toast.warning(`Arrêt de l'exécution ${executionId}`);
+    if (confirm('Êtes-vous sûr de vouloir arrêter cette exécution ?')) {
+      toast.warning('Exécution arrêtée');
+    }
+  };
+
+  const handleDuplicateTemplate = (templateId: string) => {
+    toast.success('Modèle dupliqué avec succès');
+  };
+
+  const handleExportMaintenance = () => {
+    toast.success('Export de maintenance lancé...');
+  };
+
+  const handleViewExecution = (executionId: string) => {
+    const execution = executions.find(e => e.id === executionId);
+    if (execution) {
+      setSelectedExecution(execution);
+      setShowExecutionDetailsModal(true);
+    }
+  };
+
+  const handleDownloadLog = (executionId: string) => {
+    toast.success('Téléchargement du fichier de log...');
+  };
+
+  const handleDownloadFile = (executionId: string) => {
+    const execution = executions.find(e => e.id === executionId);
+    if (execution) {
+      toast.success(`Téléchargement de ${execution.file_name}...`);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -422,6 +504,7 @@ const ImportExportPage: React.FC = () => {
   const totalExecutions = templates.reduce((sum, t) => sum + t.execution_count, 0);
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <motion.div
@@ -441,7 +524,15 @@ const ImportExportPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleBrowseFiles}>
+              <Upload className="mr-2 h-4 w-4" />
+              Parcourir les fichiers
+            </Button>
+            <Button variant="outline" onClick={handleExportMaintenance}>
+              <Download className="mr-2 h-4 w-4" />
+              Export Maintenance
+            </Button>
+            <Button variant="outline" onClick={() => setActiveTab('executions')}>
               <History className="mr-2 h-4 w-4" />
               Historique
             </Button>
@@ -552,7 +643,7 @@ const ImportExportPage: React.FC = () => {
             <TabsTrigger value="templates">Modèles</TabsTrigger>
             <TabsTrigger value="executions">Exécutions</TabsTrigger>
             <TabsTrigger value="mapping">Correspondances</TabsTrigger>
-            <TabsTrigger value="settings">Paramètres</TabsTrigger>
+            <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4">
@@ -561,7 +652,7 @@ const ImportExportPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-5">
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
                       placeholder="Rechercher un modèle..."
                       value={searchTerm}
@@ -602,7 +693,7 @@ const ImportExportPage: React.FC = () => {
                       <SelectItem value="all">Tous les statuts</SelectItem>
                       <SelectItem value="active">Actif</SelectItem>
                       <SelectItem value="inactive">Inactif</SelectItem>
-                      <SelectItem value="draft">Brouillon</SelectItem>
+                      <SelectItem value="draft">{t('accounting.draft')}</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -654,7 +745,7 @@ const ImportExportPage: React.FC = () => {
                                 </div>
                                 <div>
                                   <p className="font-semibold text-gray-900">{template.name}</p>
-                                  <p className="text-sm text-gray-500">{template.description}</p>
+                                  <p className="text-sm text-gray-700">{template.description}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -681,7 +772,7 @@ const ImportExportPage: React.FC = () => {
                                   {template.frequency}
                                 </Badge>
                                 {template.next_execution && (
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-gray-700">
                                     Prochaine: {formatDate(template.next_execution)}
                                   </p>
                                 )}
@@ -692,7 +783,7 @@ const ImportExportPage: React.FC = () => {
                                 <p className="font-medium">{template.execution_count} exécutions</p>
                                 <div className="flex items-center space-x-2 mt-1">
                                   <Progress value={template.success_rate} className="w-12 h-2" />
-                                  <span className="text-xs text-gray-500">{template.success_rate}%</span>
+                                  <span className="text-xs text-gray-700">{template.success_rate}%</span>
                                 </div>
                               </div>
                             </TableCell>
@@ -709,25 +800,40 @@ const ImportExportPage: React.FC = () => {
                                   size="sm"
                                   onClick={() => handleExecuteTemplate(template.id)}
                                   className="text-green-600 hover:text-green-700"
+                                  title="Lancer l'import"
                                 >
                                   <Play className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={() => handleScheduleTemplate(template.id)}
+                                  className="text-blue-600 hover:text-blue-700"
+                                  title="Planifier"
+                                >
+                                  <Calendar className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => handleEditTemplate(template.id)}
+                                  title="Modifier"
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={() => handleViewTemplate(template.id)}
+                                  title="Voir les détails"
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={() => handleDuplicateTemplate(template.id)}
+                                  title="Dupliquer"
                                 >
                                   <Copy className="h-4 w-4" />
                                 </Button>
@@ -736,6 +842,7 @@ const ImportExportPage: React.FC = () => {
                                   size="sm"
                                   onClick={() => handleDeleteTemplate(template.id)}
                                   className="text-red-600 hover:text-red-700"
+                                  title="Supprimer"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -799,14 +906,14 @@ const ImportExportPage: React.FC = () => {
                           <TableCell>
                             <div className="text-sm">
                               <p className="font-medium">{execution.file_name}</p>
-                              <p className="text-gray-500">{formatFileSize(execution.file_size)}</p>
+                              <p className="text-gray-700">{formatFileSize(execution.file_size)}</p>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
                               <p className="font-medium">{formatDate(execution.start_time)}</p>
                               {execution.end_time && (
-                                <p className="text-gray-500">{formatDate(execution.end_time)}</p>
+                                <p className="text-gray-700">{formatDate(execution.end_time)}</p>
                               )}
                             </div>
                           </TableCell>
@@ -834,12 +941,32 @@ const ImportExportPage: React.FC = () => {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center space-x-1">
-                              <Button variant="ghost" size="sm">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewExecution(execution.id)}
+                                title="Voir les détails"
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDownloadFile(execution.id)}
+                                title="Télécharger le fichier"
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
                               {execution.log_file && (
-                                <Button variant="ghost" size="sm">
-                                  <Download className="h-4 w-4" />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadLog(execution.id)}
+                                  title="Télécharger le log"
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <FileText className="h-4 w-4" />
                                 </Button>
                               )}
                               {execution.status === 'running' && (
@@ -848,6 +975,7 @@ const ImportExportPage: React.FC = () => {
                                   size="sm"
                                   onClick={() => handleStopExecution(execution.id)}
                                   className="text-red-600 hover:text-red-700"
+                                  title="Arrêter l'exécution"
                                 >
                                   <Square className="h-4 w-4" />
                                 </Button>
@@ -870,9 +998,9 @@ const ImportExportPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <Target className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <Target className="h-16 w-16 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Configuration des Correspondances</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     Définissez les correspondances entre les champs sources et destination pour vos imports/exports
                   </p>
                   <Button variant="outline">
@@ -961,6 +1089,576 @@ const ImportExportPage: React.FC = () => {
         </Tabs>
       </motion.div>
     </div>
+
+    {/* Create Template Modal */}
+    {showCreateModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Nouveau Modèle d'Import/Export</h2>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nom du modèle</label>
+              <Input placeholder="Ex: Import Plan Comptable" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <Input placeholder="Description du modèle" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="import">Import</SelectItem>
+                    <SelectItem value="export">Export</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="csv">CSV</SelectItem>
+                    <SelectItem value="excel">Excel</SelectItem>
+                    <SelectItem value="json">JSON</SelectItem>
+                    <SelectItem value="xml">XML</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type de données</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="accounts">Comptes</SelectItem>
+                    <SelectItem value="transactions">Transactions</SelectItem>
+                    <SelectItem value="thirds">Tiers</SelectItem>
+                    <SelectItem value="budget">Budget</SelectItem>
+                    <SelectItem value="analytics">Analytique</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fréquence</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manuel</SelectItem>
+                    <SelectItem value="daily">Quotidien</SelectItem>
+                    <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                    <SelectItem value="monthly">Mensuel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>Annuler</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              toast.success('Modèle créé avec succès');
+              setShowCreateModal(false);
+            }}>
+              <Save className="mr-2 h-4 w-4" />
+              Créer le modèle
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Execute Template Modal */}
+    {showExecuteModal && selectedTemplate && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-xl w-full m-4">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Lancer l'import/export</h2>
+              <button onClick={() => setShowExecuteModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="font-medium text-gray-900">{selectedTemplate.name}</p>
+              <p className="text-sm text-gray-600">{selectedTemplate.description}</p>
+            </div>
+            {selectedTemplate.type === 'import' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fichier à importer</label>
+                <input
+                  type="file"
+                  onChange={handleFileUpload}
+                  className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadedFile && (
+                  <p className="mt-2 text-sm text-green-600">✓ {uploadedFile.name}</p>
+                )}
+              </div>
+            )}
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" defaultChecked className="form-checkbox" />
+                <span className="text-sm text-gray-700">Validation automatique</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" defaultChecked className="form-checkbox" />
+                <span className="text-sm text-gray-700">Créer un rapport détaillé</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" className="form-checkbox" />
+                <span className="text-sm text-gray-700">Envoyer une notification par email</span>
+              </label>
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setShowExecuteModal(false)}>Annuler</Button>
+            <Button className="bg-green-600 hover:bg-green-700" onClick={() => {
+              toast.success('Exécution lancée avec succès');
+              setShowExecuteModal(false);
+            }}>
+              <Play className="mr-2 h-4 w-4" />
+              Lancer maintenant
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Schedule Template Modal */}
+    {showScheduleModal && selectedTemplate && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-xl w-full m-4">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Planifier l'exécution</h2>
+              <button onClick={() => setShowScheduleModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="font-medium text-gray-900">{selectedTemplate.name}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Fréquence</label>
+              <Select defaultValue={selectedTemplate.frequency}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manuel</SelectItem>
+                  <SelectItem value="daily">Quotidien</SelectItem>
+                  <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                  <SelectItem value="monthly">Mensuel</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date de début</label>
+                <Input type="date" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Heure</label>
+                <Input type="time" defaultValue="00:00" />
+              </div>
+            </div>
+            <div>
+              <label className="flex items-center space-x-2">
+                <input type="checkbox" className="form-checkbox" />
+                <span className="text-sm text-gray-700">Activer les notifications</span>
+              </label>
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setShowScheduleModal(false)}>Annuler</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              toast.success('Planification enregistrée');
+              setShowScheduleModal(false);
+            }}>
+              <Calendar className="mr-2 h-4 w-4" />
+              Planifier
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Browse Files Modal */}
+    {showBrowseFilesModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto m-4">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Parcourir les fichiers</h2>
+              <button onClick={() => setShowBrowseFilesModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <Upload className="h-12 w-12 text-gray-700 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">Glissez-déposez vos fichiers ici ou</p>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <label htmlFor="file-upload">
+                <Button variant="outline" className="cursor-pointer" onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('file-upload')?.click();
+                }}>
+                  Sélectionner des fichiers
+                </Button>
+              </label>
+            </div>
+            <div className="mt-6">
+              <h3 className="font-medium text-gray-900 mb-3">Fichiers récents</h3>
+              <div className="space-y-2">
+                {['plan_comptable_2024.xlsx', 'ecritures_janvier.csv', 'budget_2024.xlsx'].map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-medium text-gray-900">{file}</span>
+                    </div>
+                    <Button variant="ghost" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-200 flex justify-end">
+            <Button onClick={() => setShowBrowseFilesModal(false)}>Fermer</Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* View Template Modal */}
+    {showViewModal && selectedTemplate && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Détails du modèle</h2>
+              <button onClick={() => setShowViewModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Informations générales</h3>
+              <dl className="grid grid-cols-2 gap-4">
+                <div>
+                  <dt className="text-sm text-gray-600">Nom</dt>
+                  <dd className="font-medium text-gray-900">{selectedTemplate.name}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-gray-600">Type</dt>
+                  <dd className="font-medium text-gray-900 capitalize">{selectedTemplate.type}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-gray-600">Format</dt>
+                  <dd className="font-medium text-gray-900 uppercase">{selectedTemplate.format}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-gray-600">Fréquence</dt>
+                  <dd className="font-medium text-gray-900">{selectedTemplate.frequency}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-gray-600">Statut</dt>
+                  <dd className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedTemplate.status)}`}>
+                    {selectedTemplate.status}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-gray-600">Dernière exécution</dt>
+                  <dd className="font-medium text-gray-900">{formatDate(selectedTemplate.last_execution)}</dd>
+                </div>
+              </dl>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Performance</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-600">Exécutions totales</p>
+                  <p className="text-2xl font-bold text-blue-700">{selectedTemplate.execution_count}</p>
+                </div>
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-600">Taux de succès</p>
+                  <p className="text-2xl font-bold text-green-700">{selectedTemplate.success_rate}%</p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">Règles de validation</h3>
+              <ul className="space-y-1">
+                {selectedTemplate.validation_rules.map((rule, idx) => (
+                  <li key={idx} className="flex items-center space-x-2 text-sm text-gray-700">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setShowViewModal(false)}>Fermer</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              setShowViewModal(false);
+              setShowEditModal(true);
+            }}>
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Edit Template Modal */}
+    {showEditModal && selectedTemplate && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Modifier le modèle</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nom du modèle</label>
+              <Input defaultValue={selectedTemplate.name} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <Input defaultValue={selectedTemplate.description} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <Select defaultValue={selectedTemplate.status}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Actif</SelectItem>
+                    <SelectItem value="inactive">Inactif</SelectItem>
+                    <SelectItem value="draft">Brouillon</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fréquence</label>
+                <Select defaultValue={selectedTemplate.frequency}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manuel</SelectItem>
+                    <SelectItem value="daily">Quotidien</SelectItem>
+                    <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                    <SelectItem value="monthly">Mensuel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              toast.success('Modèle mis à jour avec succès');
+              setShowEditModal(false);
+            }}>
+              <Save className="mr-2 h-4 w-4" />
+              Enregistrer
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Execution Details Modal */}
+    {showExecutionDetailsModal && selectedExecution && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Détails de l'exécution</h2>
+              <button onClick={() => setShowExecutionDetailsModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-6">
+            {/* Status Banner */}
+            <div className={`p-4 rounded-lg ${
+              selectedExecution.status === 'completed' ? 'bg-green-50 border border-green-200' :
+              selectedExecution.status === 'failed' ? 'bg-red-50 border border-red-200' :
+              selectedExecution.status === 'running' ? 'bg-blue-50 border border-blue-200' :
+              'bg-gray-50 border border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedExecution.status)}`}>
+                    {getStatusIcon(selectedExecution.status)}
+                    <span className="ml-2 capitalize">{selectedExecution.status}</span>
+                  </div>
+                  <span className="font-semibold text-gray-900">{selectedExecution.template_name}</span>
+                </div>
+                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(selectedExecution.type)}`}>
+                  {getTypeIcon(selectedExecution.type)}
+                  <span className="ml-1 capitalize">{selectedExecution.type}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* File Information */}
+            <div>
+              <h3 className="font-medium text-gray-900 mb-3">Informations du fichier</h3>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Nom du fichier</span>
+                  <span className="font-medium text-gray-900">{selectedExecution.file_name}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Taille</span>
+                  <span className="font-medium text-gray-900">{formatFileSize(selectedExecution.file_size)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Timing Information */}
+            <div>
+              <h3 className="font-medium text-gray-900 mb-3">Chronologie</h3>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Début</span>
+                  <span className="font-medium text-gray-900">{formatDate(selectedExecution.start_time)}</span>
+                </div>
+                {selectedExecution.end_time && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Fin</span>
+                      <span className="font-medium text-gray-900">{formatDate(selectedExecution.end_time)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Durée</span>
+                      <span className="font-medium text-gray-900">
+                        {Math.round((new Date(selectedExecution.end_time).getTime() - new Date(selectedExecution.start_time).getTime()) / 60000)} min
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Processing Statistics */}
+            <div>
+              <h3 className="font-medium text-gray-900 mb-3">Statistiques de traitement</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                  <p className="text-sm text-gray-600 mb-1">Traités</p>
+                  <p className="text-2xl font-bold text-blue-700">{selectedExecution.records_processed}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                  <p className="text-sm text-gray-600 mb-1">Réussis</p>
+                  <p className="text-2xl font-bold text-green-700">{selectedExecution.records_successful}</p>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg text-center">
+                  <p className="text-sm text-gray-600 mb-1">Échoués</p>
+                  <p className="text-2xl font-bold text-red-700">{selectedExecution.records_failed}</p>
+                </div>
+              </div>
+              {selectedExecution.records_processed > 0 && (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-gray-600">Taux de réussite</span>
+                    <span className="font-medium text-gray-900">
+                      {((selectedExecution.records_successful / selectedExecution.records_processed) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <Progress
+                    value={(selectedExecution.records_successful / selectedExecution.records_processed) * 100}
+                    className="h-2"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Error Message */}
+            {selectedExecution.error_message && (
+              <div>
+                <h3 className="font-medium text-gray-900 mb-3">Message d'erreur</h3>
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+                    <p className="text-sm text-red-800">{selectedExecution.error_message}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => handleDownloadFile(selectedExecution.id)}
+                className="flex-1"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Télécharger le fichier
+              </Button>
+              {selectedExecution.log_file && (
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownloadLog(selectedExecution.id)}
+                  className="flex-1"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Télécharger le log
+                </Button>
+              )}
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-200 flex justify-end">
+            <Button onClick={() => setShowExecutionDetailsModal(false)}>Fermer</Button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

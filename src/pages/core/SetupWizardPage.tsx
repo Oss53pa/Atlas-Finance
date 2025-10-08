@@ -3,6 +3,7 @@
  * Paramétrage complet selon EXP-PAR-001 à EXP-PAR-010
  */
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import {
@@ -139,6 +140,7 @@ const FORMES_JURIDIQUES = [
 ];
 
 const SetupWizardPage: React.FC = () => {
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   
@@ -736,7 +738,7 @@ const SetupWizardPage: React.FC = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Immobilisations</CardTitle>
+            <CardTitle className="text-lg">{t('navigation.assets')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-2">
@@ -869,7 +871,7 @@ const SetupWizardPage: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-2">Configuration en cours...</h3>
                 <p className="text-gray-600 mb-4">Création de votre environnement comptable</p>
                 <Progress value={75} className="w-full" />
-                <p className="text-sm text-gray-500 mt-2">Cette opération peut prendre quelques minutes</p>
+                <p className="text-sm text-gray-700 mt-2">Cette opération peut prendre quelques minutes</p>
               </div>
             </CardContent>
           </Card>
@@ -912,15 +914,15 @@ const SetupWizardPage: React.FC = () => {
                         ? 'bg-blue-600 border-blue-600 text-white' 
                         : isCompleted
                         ? 'bg-green-600 border-green-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-400'
+                        : 'bg-white border-gray-300 text-gray-700'
                     }`}>
                       <Icon className="h-6 w-6" />
                     </div>
                     <div className="mt-2">
-                      <p className={`text-sm font-medium ${isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+                      <p className={`text-sm font-medium ${isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-700'}`}>
                         {step.label}
                       </p>
-                      <p className="text-xs text-gray-500 max-w-24 mt-1">
+                      <p className="text-xs text-gray-700 max-w-24 mt-1">
                         {step.description}
                       </p>
                     </div>

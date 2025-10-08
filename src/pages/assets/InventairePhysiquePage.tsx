@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -50,7 +51,15 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-  Progress
+  Progress,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  Label,
+  Textarea
 } from '../../components/ui';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
@@ -116,12 +125,20 @@ interface TeamMember {
 }
 
 const InventairePhysiquePage: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedSession, setSelectedSession] = useState<string>('current');
   const [selectedZone, setSelectedZone] = useState<string>('toutes');
   const [selectedStatus, setSelectedStatus] = useState<string>('tous');
   const [isScanning, setIsScanning] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('inventory');
+
+  // États pour les modales
+  const [showNewSessionModal, setShowNewSessionModal] = useState(false);
+  const [showItemDetailModal, setShowItemDetailModal] = useState(false);
+  const [showEditItemModal, setShowEditItemModal] = useState(false);
+  const [showQrCodeModal, setShowQrCodeModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   // Mock inventory sessions
   const mockSessions: InventorySession[] = [
@@ -461,13 +478,13 @@ const InventairePhysiquePage: React.FC = () => {
   const getStatusColor = (statut: string) => {
     switch (statut) {
       case 'compte':
-        return 'text-green-600 bg-green-100';
+        return 'text-[#6A8A82] bg-[#6A8A82]/10';
       case 'en_cours':
-        return 'text-orange-600 bg-orange-100';
+        return 'text-[#B87333] bg-[#B87333]/10';
       case 'ecart':
         return 'text-red-600 bg-red-100';
       case 'valide':
-        return 'text-blue-600 bg-blue-100';
+        return 'text-[#7A99AC] bg-[#7A99AC]/10';
       case 'non_compte':
         return 'text-gray-600 bg-gray-100';
       default:
@@ -495,11 +512,11 @@ const InventairePhysiquePage: React.FC = () => {
   const getPhysicalStateColor = (etat: string) => {
     switch (etat) {
       case 'excellent':
-        return 'text-green-600 bg-green-100';
+        return 'text-[#6A8A82] bg-[#6A8A82]/10';
       case 'bon':
-        return 'text-blue-600 bg-blue-100';
+        return 'text-[#7A99AC] bg-[#7A99AC]/10';
       case 'moyen':
-        return 'text-orange-600 bg-orange-100';
+        return 'text-[#B87333] bg-[#B87333]/10';
       case 'mauvais':
         return 'text-red-600 bg-red-100';
       case 'hors_service':
@@ -511,20 +528,20 @@ const InventairePhysiquePage: React.FC = () => {
 
   const getDiscrepancyTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      'manquant': 'bg-red-100 text-red-800',
-      'excedent': 'bg-blue-100 text-blue-800',
-      'localisation': 'bg-orange-100 text-orange-800',
-      'etat': 'bg-purple-100 text-purple-800',
-      'valeur': 'bg-yellow-100 text-yellow-800'
+      'manquant': 'bg-red-50 text-red-700',
+      'excedent': 'bg-[#7A99AC]/10 text-[#7A99AC]',
+      'localisation': 'bg-[#B87333]/10 text-[#B87333]',
+      'etat': 'bg-[#B87333]/10 text-[#B87333]',
+      'valeur': 'bg-[#E8D5C4]/20 text-[#B87333]'
     };
     return colors[type] || 'bg-gray-100 text-gray-800';
   };
 
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
-      'responsable': 'bg-purple-100 text-purple-800',
-      'compteur': 'bg-blue-100 text-blue-800',
-      'verificateur': 'bg-green-100 text-green-800'
+      'responsable': 'bg-[#B87333]/10 text-[#B87333]',
+      'compteur': 'bg-[#7A99AC]/10 text-[#7A99AC]',
+      'verificateur': 'bg-[#6A8A82]/10 text-[#6A8A82]'
     };
     return colors[role] || 'bg-gray-100 text-gray-800';
   };
@@ -537,6 +554,26 @@ const InventairePhysiquePage: React.FC = () => {
       setIsScanning(false);
       toast.success('Article scanné et comptabilisé!');
     }, 3000);
+  };
+
+  // Handlers pour les boutons d'action
+  const handleNewSession = () => {
+    setShowNewSessionModal(true);
+  };
+
+  const handleViewItem = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setShowItemDetailModal(true);
+  };
+
+  const handleEditItem = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setShowEditItemModal(true);
+  };
+
+  const handleQrCode = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setShowQrCodeModal(true);
   };
 
   const currentSession = sessions.find(s => s.id === selectedSession) || sessions[0];
@@ -557,7 +594,7 @@ const InventairePhysiquePage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900 flex items-center">
-              <ClipboardList className="mr-2 h-6 w-6 text-blue-600" />
+              <ClipboardList className="mr-2 h-6 w-6 text-[#6A8A82]" />
               Inventaire Physique
             </h1>
             <p className="mt-1 text-sm text-gray-600">
@@ -568,7 +605,7 @@ const InventairePhysiquePage: React.FC = () => {
             <Button
               onClick={handleStartScanning}
               disabled={isScanning}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-[#6A8A82] hover:bg-[#5A7A72]"
             >
               {isScanning ? (
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -577,7 +614,10 @@ const InventairePhysiquePage: React.FC = () => {
               )}
               {isScanning ? 'Scan en cours...' : 'Scanner'}
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleNewSession}
+              className="bg-[#6A8A82] hover:bg-[#5A7A72] text-white"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Nouvelle Session
             </Button>
@@ -596,15 +636,15 @@ const InventairePhysiquePage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-[#6A8A82]/5 border-[#6A8A82]/20">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-blue-900">{currentSession.nom}</h2>
-                  <p className="text-xs text-blue-700">
+                  <h2 className="text-base font-semibold text-[#2C3E2F]">{currentSession.nom}</h2>
+                  <p className="text-xs text-[#6A8A82]">
                     Du {formatDate(currentSession.date_debut)} au {formatDate(currentSession.date_fin_prevue)}
                   </p>
-                  <p className="text-xs text-blue-600">
+                  <p className="text-xs text-[#6A8A82]">
                     Responsable: {currentSession.responsable} | Périmètre: {currentSession.perimetre}
                   </p>
                 </div>
@@ -635,7 +675,7 @@ const InventairePhysiquePage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-3">
               <div className="flex items-center space-x-3">
-                <div className="p-1 bg-blue-100 rounded">
+                <div className="p-1 bg-[#7A99AC]/10 rounded">
                   <Package className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
@@ -657,7 +697,7 @@ const InventairePhysiquePage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-3">
               <div className="flex items-center space-x-3">
-                <div className="p-1 bg-green-100 rounded">
+                <div className="p-1 bg-[#6A8A82]/10 rounded">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </div>
                 <div>
@@ -677,7 +717,7 @@ const InventairePhysiquePage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-3">
               <div className="flex items-center space-x-3">
-                <div className="p-1 bg-red-100 rounded">
+                <div className="p-1 bg-red-50 rounded">
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                 </div>
                 <div>
@@ -697,7 +737,7 @@ const InventairePhysiquePage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-3">
               <div className="flex items-center space-x-3">
-                <div className="p-1 bg-purple-100 rounded">
+                <div className="p-1 bg-[#B87333]/10 rounded">
                   <Target className="h-4 w-4 text-purple-600" />
                 </div>
                 <div>
@@ -774,10 +814,10 @@ const InventairePhysiquePage: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="tous">Tous statuts</SelectItem>
                     <SelectItem value="non_compte">Non compté</SelectItem>
-                    <SelectItem value="en_cours">En cours</SelectItem>
+                    <SelectItem value="en_cours">{t('status.inProgress')}</SelectItem>
                     <SelectItem value="compte">Compté</SelectItem>
                     <SelectItem value="ecart">Écart</SelectItem>
-                    <SelectItem value="valide">Validé</SelectItem>
+                    <SelectItem value="valide">{t('accounting.validated')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -787,7 +827,7 @@ const InventairePhysiquePage: React.FC = () => {
                   Recherche
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                   <Input 
                     placeholder="N° inventaire, nom..." 
                     className="pl-10"
@@ -799,7 +839,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <Button 
                   onClick={handleStartScanning}
                   disabled={isScanning}
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-[#6A8A82] hover:bg-[#5A7A72]"
                 >
                   <QrCode className="mr-2 h-4 w-4" />
                   Scanner QR/Code-barres
@@ -830,7 +870,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <CardTitle className="flex items-center justify-between text-base">
                   <span>Articles à Compter</span>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                    <Badge variant="outline" className="bg-[#7A99AC]/10 text-[#7A99AC]">
                       {inventoryItems.length} articles
                     </Badge>
                     <Badge variant={inventoryItems.filter(i => i.statut_comptage === 'compte').length > 0 ? 'default' : 'secondary'}>
@@ -847,7 +887,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="flex flex-wrap gap-2 items-center mb-2">
                   <div className="flex-1 min-w-[200px]">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 h-4 w-4" />
                       <Input
                         placeholder="Rechercher par N° inventaire, nom..."
                         className="pl-10 h-8"
@@ -900,7 +940,7 @@ const InventairePhysiquePage: React.FC = () => {
                           <TableHead className="text-xs font-medium py-1">État</TableHead>
                           <TableHead className="text-xs font-medium text-right py-1">VNC</TableHead>
                           <TableHead className="text-xs font-medium py-1">Compteur</TableHead>
-                          <TableHead className="text-xs font-medium py-1">Date</TableHead>
+                          <TableHead className="text-xs font-medium py-1">{t('common.date')}</TableHead>
                           <TableHead className="text-xs font-medium text-center py-1">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -909,12 +949,12 @@ const InventairePhysiquePage: React.FC = () => {
                           <TableRow key={item.id} className="h-10 hover:bg-gray-50">
                             <TableCell className="py-1">
                               <div className="flex items-center space-x-2">
-                                <div className="p-0.5 bg-blue-100 rounded">
+                                <div className="p-0.5 bg-[#7A99AC]/10 rounded">
                                   <Package className="h-3 w-3 text-blue-600" />
                                 </div>
                                 <div>
                                   <p className="font-medium text-gray-900 text-xs">{item.nom}</p>
-                                  <p className="text-xs text-gray-500 font-mono">{item.numero_inventaire}</p>
+                                  <p className="text-xs text-gray-700 font-mono">{item.numero_inventaire}</p>
                                 </div>
                               </div>
                             </TableCell>
@@ -955,7 +995,7 @@ const InventairePhysiquePage: React.FC = () => {
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right py-2">
-                              <span className="font-semibold text-green-700 text-xs">
+                              <span className="font-semibold text-[#6A8A82] text-xs">
                                 {formatCurrency(item.valeur_nette_comptable)}
                               </span>
                             </TableCell>
@@ -975,14 +1015,32 @@ const InventairePhysiquePage: React.FC = () => {
                             </TableCell>
                             <TableCell className="text-center py-2">
                               <div className="flex justify-center space-x-1">
-                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
-                                  <Eye className="h-3 w-3" />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0 hover:bg-gray-100"
+                                  onClick={() => handleViewItem(item)}
+                                  title="Voir les détails"
+                                >
+                                  <Eye className="h-3 w-3 text-gray-600" />
                                 </Button>
-                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
-                                  <Edit className="h-3 w-3" />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0 hover:bg-gray-100"
+                                  onClick={() => handleEditItem(item)}
+                                  title="Modifier"
+                                >
+                                  <Edit className="h-3 w-3 text-gray-600" />
                                 </Button>
-                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
-                                  <QrCode className="h-3 w-3" />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0 hover:bg-gray-100"
+                                  onClick={() => handleQrCode(item)}
+                                  title="Code QR"
+                                >
+                                  <QrCode className="h-3 w-3 text-gray-600" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -995,7 +1053,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                 {/* Pagination info compacte */}
                 <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-700">
                     Affichage de 1-{Math.min(15, inventoryItems.length)} sur {inventoryItems.length} articles
                   </span>
                   <div className="flex space-x-1">
@@ -1047,7 +1105,7 @@ const InventairePhysiquePage: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tous</SelectItem>
-                      <SelectItem value="en_cours">En cours</SelectItem>
+                      <SelectItem value="en_cours">{t('status.inProgress')}</SelectItem>
                       <SelectItem value="resolu">Résolu</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1064,7 +1122,7 @@ const InventairePhysiquePage: React.FC = () => {
                       <div key={discrepancy.id} className="border rounded-lg p-2 hover:bg-gray-50">
                         <div className="flex items-start justify-between mb-1">
                           <div className="flex items-center space-x-2">
-                            <div className="p-1 bg-red-100 rounded">
+                            <div className="p-1 bg-red-50 rounded">
                               <AlertTriangle className="h-4 w-4 text-red-600" />
                             </div>
                             <div>
@@ -1089,21 +1147,21 @@ const InventairePhysiquePage: React.FC = () => {
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-1">
                           <div>
-                            <p className="text-gray-500">N° Inventaire</p>
+                            <p className="text-gray-700">N° Inventaire</p>
                             <p className="font-mono text-xs">{item?.numero_inventaire}</p>
                           </div>
                           <div>
-                            <p className="text-gray-500">Impact Financier</p>
+                            <p className="text-gray-700">Impact Financier</p>
                             <p className={`font-semibold text-xs ${discrepancy.impact_financier > 0 ? 'text-red-700' : 'text-gray-700'}`}>
                               {discrepancy.impact_financier > 0 ? formatCurrency(discrepancy.impact_financier) : 'Aucun'}
                             </p>
                           </div>
                           <div>
-                            <p className="text-gray-500">Responsable</p>
+                            <p className="text-gray-700">Responsable</p>
                             <p className="font-medium text-xs">{discrepancy.responsable_resolution || 'Non assigné'}</p>
                           </div>
                           <div>
-                            <p className="text-gray-500">Date Résolution</p>
+                            <p className="text-gray-700">Date Résolution</p>
                             <p className="font-medium text-xs">
                               {discrepancy.date_resolution ? formatDate(discrepancy.date_resolution) : 'En attente'}
                             </p>
@@ -1111,7 +1169,7 @@ const InventairePhysiquePage: React.FC = () => {
                         </div>
 
                         {discrepancy.action_corrective && (
-                          <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
+                          <div className="bg-[#6A8A82]/5 border border-[#6A8A82]/20 rounded p-2 mb-2">
                             <p className="text-xs text-green-800">
                               <strong>Action:</strong> {discrepancy.action_corrective}
                             </p>
@@ -1124,7 +1182,7 @@ const InventairePhysiquePage: React.FC = () => {
                             Détails
                           </Button>
                           {discrepancy.statut_resolution !== 'resolu' && (
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                            <Button size="sm" className="bg-[#7A99AC] hover:bg-[#6A8A92]">
                               <Edit className="mr-2 h-4 w-4" />
                               Résoudre
                             </Button>
@@ -1147,7 +1205,7 @@ const InventairePhysiquePage: React.FC = () => {
                     Équipes d'Inventaire
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                    <Badge variant="secondary" className="bg-[#B87333]/10 text-[#B87333]">
                       {teamMembers.length} membres
                     </Badge>
                     <Badge variant="default">
@@ -1185,7 +1243,7 @@ const InventairePhysiquePage: React.FC = () => {
                     <div key={member.id} className="border rounded-lg p-2 hover:bg-gray-50">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center space-x-2">
-                          <div className="p-0.5 bg-purple-100 rounded">
+                          <div className="p-0.5 bg-[#B87333]/10 rounded">
                             <Users className="h-3 w-3 text-purple-600" />
                           </div>
                           <div>
@@ -1205,15 +1263,15 @@ const InventairePhysiquePage: React.FC = () => {
 
                       <div className="grid grid-cols-3 gap-2 mb-2 text-xs">
                         <div className="text-center">
-                          <p className="text-gray-500">Zone</p>
+                          <p className="text-gray-700">Zone</p>
                           <p className="font-medium">{member.zone_affectee}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-gray-500">Assignés</p>
+                          <p className="text-gray-700">Assignés</p>
                           <p className="font-medium">{member.nb_items_assignes}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-gray-500">Comptés</p>
+                          <p className="text-gray-700">Comptés</p>
                           <p className="font-medium text-green-700">{member.nb_items_comptes}</p>
                         </div>
                       </div>
@@ -1240,7 +1298,7 @@ const InventairePhysiquePage: React.FC = () => {
                     Rapports d'Inventaire
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="default" className="bg-green-50 text-green-700">
+                    <Badge variant="default" className="bg-[#6A8A82]/10 text-[#6A8A82]">
                       5 rapports disponibles
                     </Badge>
                   </div>
@@ -1280,7 +1338,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-blue-100 rounded">
+                      <div className="p-1 bg-[#7A99AC]/10 rounded">
                         <BarChart3 className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
@@ -1289,7 +1347,7 @@ const InventairePhysiquePage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500">Complété à</span>
+                      <span className="text-xs text-gray-700">Complété à</span>
                       <span className="text-sm font-bold text-blue-700">67.5%</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1300,7 +1358,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-red-100 rounded">
+                      <div className="p-1 bg-red-50 rounded">
                         <AlertTriangle className="h-4 w-4 text-red-600" />
                       </div>
                       <div>
@@ -1309,7 +1367,7 @@ const InventairePhysiquePage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500">Total écarts</span>
+                      <span className="text-xs text-gray-700">Total écarts</span>
                       <span className="text-sm font-bold text-red-700">{discrepancies.length}</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1320,7 +1378,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-purple-100 rounded">
+                      <div className="p-1 bg-[#B87333]/10 rounded">
                         <Users className="h-4 w-4 text-purple-600" />
                       </div>
                       <div>
@@ -1329,7 +1387,7 @@ const InventairePhysiquePage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500">Membres actifs</span>
+                      <span className="text-xs text-gray-700">Membres actifs</span>
                       <span className="text-sm font-bold text-purple-700">{teamMembers.length}</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1340,7 +1398,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-green-100 rounded">
+                      <div className="p-1 bg-[#6A8A82]/10 rounded">
                         <Target className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
@@ -1349,7 +1407,7 @@ const InventairePhysiquePage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500">Valeur contrôlée</span>
+                      <span className="text-xs text-gray-700">Valeur contrôlée</span>
                       <span className="text-sm font-bold text-green-700">25,3M XAF</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1360,7 +1418,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-yellow-100 rounded">
+                      <div className="p-1 bg-[#E8D5C4]/20 rounded">
                         <Calendar className="h-4 w-4 text-yellow-600" />
                       </div>
                       <div>
@@ -1369,8 +1427,8 @@ const InventairePhysiquePage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500">Dernière mise à jour</span>
-                      <span className="text-sm font-bold text-yellow-700">Aujourd'hui</span>
+                      <span className="text-xs text-gray-700">Dernière mise à jour</span>
+                      <span className="text-sm font-bold text-yellow-700">{t('common.today')}</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
                       <Download className="mr-1 h-3 w-3" />
@@ -1417,6 +1475,319 @@ const InventairePhysiquePage: React.FC = () => {
           </div>
         </motion.div>
       )}
+
+      {/* Modal Nouvelle Session */}
+      <Dialog open={showNewSessionModal} onOpenChange={setShowNewSessionModal}>
+        <DialogContent className="max-w-2xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-[#2C3E2F]">
+              <ClipboardList className="mr-2 h-5 w-5 text-[#6A8A82]" />
+              Nouvelle Session d'Inventaire
+            </DialogTitle>
+            <DialogDescription>
+              Créez une nouvelle session d'inventaire physique pour vérifier vos immobilisations.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="session-name">Nom de la session</Label>
+                <Input id="session-name" placeholder="Ex: Inventaire Q1 2024" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="session-type">Type d'inventaire</Label>
+                <Select defaultValue="complet">
+                  <SelectTrigger id="session-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="complet">Complet</SelectItem>
+                    <SelectItem value="partiel">Partiel</SelectItem>
+                    <SelectItem value="cyclique">Cyclique</SelectItem>
+                    <SelectItem value="surprise">Surprise</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="start-date">Date de début</Label>
+                <Input id="start-date" type="date" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end-date">Date de fin prévue</Label>
+                <Input id="end-date" type="date" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="locations">Sites concernés</Label>
+              <Select>
+                <SelectTrigger id="locations">
+                  <SelectValue placeholder="Sélectionnez les sites" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les sites</SelectItem>
+                  <SelectItem value="siege">Siège social</SelectItem>
+                  <SelectItem value="entrepot">Entrepôt principal</SelectItem>
+                  <SelectItem value="usine">Usine</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Objectifs et particularités de cette session..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewSessionModal(false)}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-[#6A8A82] hover:bg-[#5A7A72]"
+              onClick={() => {
+                toast.success('Session d\'inventaire créée avec succès');
+                setShowNewSessionModal(false);
+              }}
+            >
+              Créer la session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Détails Article */}
+      <Dialog open={showItemDetailModal} onOpenChange={setShowItemDetailModal}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-[#2C3E2F]">
+              <Eye className="mr-2 h-5 w-5 text-[#6A8A82]" />
+              Détails de l'Immobilisation
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-700">Code article</p>
+                    <p className="font-semibold text-[#2C3E2F]">{selectedItem.code}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">Désignation</p>
+                    <p className="font-semibold text-[#2C3E2F]">{selectedItem.designation}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">Catégorie</p>
+                    <p className="font-semibold text-[#6A8A82]">{selectedItem.categorie}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">Localisation</p>
+                    <p className="font-semibold">{selectedItem.localisation}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-700">Valeur nette comptable</p>
+                    <p className="font-semibold text-[#6A8A82] text-lg">
+                      {formatCurrency(selectedItem.valeur_nette_comptable)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">État physique</p>
+                    <Badge
+                      className={selectedItem.etat_physique === 'excellent' ? 'bg-[#6A8A82]/10 text-[#6A8A82]' :
+                               selectedItem.etat_physique === 'bon' ? 'bg-[#7A99AC]/10 text-[#7A99AC]' :
+                               'bg-[#B87333]/10 text-[#B87333]'}
+                    >
+                      {selectedItem.etat_physique}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">Statut de comptage</p>
+                    <Badge
+                      variant={selectedItem.statut_comptage === 'compte' ? 'default' : 'secondary'}
+                    >
+                      {selectedItem.statut_comptage === 'compte' ? 'Compté' : 'Non compté'}
+                    </Badge>
+                  </div>
+                  {selectedItem.date_comptage && (
+                    <div>
+                      <p className="text-sm text-gray-700">Date de comptage</p>
+                      <p className="font-semibold">{formatDate(selectedItem.date_comptage)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {selectedItem.ecart && (
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-3 text-red-600">Écart détecté</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-700">Type d'écart</p>
+                      <Badge variant="destructive">{selectedItem.ecart.type}</Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-700">Valeur de l'écart</p>
+                      <p className="font-semibold text-red-600">
+                        {formatCurrency(selectedItem.ecart.valeur)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-700">Description</p>
+                      <p className="text-sm">{selectedItem.ecart.description}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedItem.compteur && (
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-2 text-[#2C3E2F]">Compteur responsable</h3>
+                  <p className="text-[#6A8A82]">{selectedItem.compteur}</p>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowItemDetailModal(false)}>
+              Fermer
+            </Button>
+            <Button
+              className="bg-[#7A99AC] hover:bg-[#6A8A92]"
+              onClick={() => {
+                setShowItemDetailModal(false);
+                setShowEditItemModal(true);
+              }}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Modification Article */}
+      <Dialog open={showEditItemModal} onOpenChange={setShowEditItemModal}>
+        <DialogContent className="max-w-2xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-[#2C3E2F]">
+              <Edit className="mr-2 h-5 w-5 text-[#6A8A82]" />
+              Modifier l'Immobilisation
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-etat">État physique</Label>
+                  <Select defaultValue={selectedItem.etat_physique}>
+                    <SelectTrigger id="edit-etat">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="bon">Bon</SelectItem>
+                      <SelectItem value="moyen">Moyen</SelectItem>
+                      <SelectItem value="mauvais">Mauvais</SelectItem>
+                      <SelectItem value="hs">Hors service</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-localisation">Localisation</Label>
+                  <Input
+                    id="edit-localisation"
+                    defaultValue={selectedItem.localisation}
+                    placeholder="Ex: Bureau 201, Étage 2"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-statut">Statut de comptage</Label>
+                <Select defaultValue={selectedItem.statut_comptage}>
+                  <SelectTrigger id="edit-statut">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="non_compte">Non compté</SelectItem>
+                    <SelectItem value="compte">Compté</SelectItem>
+                    <SelectItem value="ecart">Écart</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-notes">Notes / Observations</Label>
+                <Textarea
+                  id="edit-notes"
+                  placeholder="Ajoutez vos observations..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditItemModal(false)}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-[#6A8A82] hover:bg-[#5A7A72]"
+              onClick={() => {
+                toast.success('Immobilisation modifiée avec succès');
+                setShowEditItemModal(false);
+              }}
+            >
+              Enregistrer les modifications
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal QR Code */}
+      <Dialog open={showQrCodeModal} onOpenChange={setShowQrCodeModal}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-[#2C3E2F]">
+              <QrCode className="mr-2 h-5 w-5 text-[#6A8A82]" />
+              Code QR de l'Immobilisation
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-700 mb-2">Code article</p>
+                <p className="font-bold text-lg text-[#2C3E2F]">{selectedItem.code}</p>
+              </div>
+              <div className="bg-white p-8 rounded-lg border-2 border-[#6A8A82]/20">
+                <div className="aspect-square bg-gray-100 rounded flex items-center justify-center">
+                  <QrCode className="h-32 w-32 text-[#6A8A82]" />
+                </div>
+              </div>
+              <div className="text-center text-sm text-gray-600">
+                <p>{selectedItem.designation}</p>
+                <p className="text-xs mt-1">{selectedItem.localisation}</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowQrCodeModal(false)}>
+              Fermer
+            </Button>
+            <Button className="bg-[#6A8A82] hover:bg-[#5A7A72]">
+              <Download className="mr-2 h-4 w-4" />
+              Télécharger
+            </Button>
+            <Button className="bg-[#7A99AC] hover:bg-[#6A8A92]">
+              <Camera className="mr-2 h-4 w-4" />
+              Imprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

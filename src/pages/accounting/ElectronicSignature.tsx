@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   Signature, FileText, CheckCircle, Clock, XCircle,
   Send, Download, Upload, Eye, Edit, Trash2,
@@ -59,6 +61,9 @@ interface SignatureTemplate {
 }
 
 const ElectronicSignature: React.FC = () => {
+  const { t } = useLanguage();
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
@@ -370,7 +375,7 @@ const ElectronicSignature: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Total Documents</span>
-            <FileText className="w-5 h-5 text-gray-400" />
+            <FileText className="w-5 h-5 text-gray-700" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
         </div>
@@ -385,7 +390,7 @@ const ElectronicSignature: React.FC = () => {
 
         <div className="bg-yellow-50 rounded-lg shadow p-4 border border-yellow-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-yellow-700">En attente</span>
+            <span className="text-sm font-medium text-yellow-700">{t('status.pending')}</span>
             <Clock className="w-5 h-5 text-yellow-500" />
           </div>
           <p className="text-2xl font-bold text-yellow-700">{stats.pending}</p>
@@ -394,7 +399,7 @@ const ElectronicSignature: React.FC = () => {
         <div className="bg-gray-50 rounded-lg shadow p-4 border border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">Brouillons</span>
-            <Edit className="w-5 h-5 text-gray-500" />
+            <Edit className="w-5 h-5 text-gray-700" />
           </div>
           <p className="text-2xl font-bold text-gray-700">{stats.draft}</p>
         </div>
@@ -429,7 +434,7 @@ const ElectronicSignature: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-700" />
             <input
               type="text"
               placeholder="Rechercher un document..."
@@ -502,7 +507,7 @@ const ElectronicSignature: React.FC = () => {
                     {/* Signatories */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
-                        <Users className="w-4 h-4 text-gray-400" />
+                        <Users className="w-4 h-4 text-gray-700" />
                         <span className="text-gray-600">
                           Signatures: {document.completedSignatures}/{document.totalSignatures}
                         </span>
@@ -572,8 +577,7 @@ const ElectronicSignature: React.FC = () => {
                   )}
                   <button
                     className="p-2 hover:bg-gray-100 rounded-lg"
-                    title="Télécharger"
-                  >
+                    title={t('actions.download')} aria-label="Télécharger">
                     <Download className="w-5 h-5 text-gray-600" />
                   </button>
                 </div>
@@ -590,13 +594,13 @@ const ElectronicSignature: React.FC = () => {
                   <div className="mt-3 space-y-2">
                     {document.auditTrail.map((entry) => (
                       <div key={entry.id} className="flex items-start gap-3 text-sm">
-                        <Clock className="w-4 h-4 text-gray-400 mt-0.5" />
+                        <Clock className="w-4 h-4 text-gray-700 mt-0.5" />
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-gray-900">{entry.action}</span>
-                            <span className="text-gray-500">par {entry.user}</span>
+                            <span className="text-gray-700">par {entry.user}</span>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-700">
                             {new Date(entry.timestamp).toLocaleString()} - IP: {entry.ipAddress}
                             {entry.details && ` - ${entry.details}`}
                           </div>
@@ -698,7 +702,7 @@ const ElectronicSignature: React.FC = () => {
 
               {signatureMethod === 'upload' && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Upload className="w-12 h-12 text-gray-700 mx-auto mb-4" />
                   <p className="text-gray-600">Cliquez pour télécharger une image de votre signature</p>
                   <input type="file" accept="image/*" className="hidden" />
                 </div>
@@ -744,6 +748,14 @@ const ElectronicSignature: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

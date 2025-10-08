@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Calculator, Search, Plus, X, Check, AlertCircle, 
+import { useLanguage } from '../../contexts/LanguageContext';
+import {
+  Calculator, Search, Plus, X, Check, AlertCircle,
   TrendingUp, TrendingDown, FileText, User, Calendar,
   Building, CreditCard, Package, Receipt, DollarSign,
   Percent, Hash, Clock, ChevronDown, Info, Zap,
   RefreshCw, Copy, Save, Send, AlertTriangle, CheckCircle
 } from 'lucide-react';
+import SearchableDropdown from '../ui/SearchableDropdown';
+import { TVAValidator, TVAValidationResult } from '../../utils/tvaValidation';
 
 // Types
 interface JournalType {
@@ -70,6 +73,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
   companyId,
   exerciceId
 }) => {
+  const { t } = useLanguage();
   // États principaux
   const [lignes, setLignes] = useState<LigneEcriture[]>([]);
   const [modeSaisie, setModeSaisie] = useState<'standard' | 'rapide' | 'expert'>('rapide');
@@ -97,6 +101,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
   const [suggestions, setSuggestions] = useState<SuggestionCompte[]>([]);
   const [historiqueComptes, setHistoriqueComptes] = useState<SuggestionCompte[]>([]);
   const [modelesPreferes, setModelesPreferes] = useState<any[]>([]);
+  const [tvaValidation, setTvaValidation] = useState<TVAValidationResult | null>(null);
 
   // Configurations par type de journal
   const configurationsJournal = {
@@ -370,35 +375,45 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
     setSuggestions(suggestionsFiltered);
   }, [journalType?.code, configurationsJournal]);
 
-  // Validation intelligente
+  // Validation intelligente avec TVAValidator
   const validerEcriture = useCallback(() => {
     const totalDebit = lignes.reduce((sum, l) => sum + l.debit, 0);
     const totalCredit = lignes.reduce((sum, l) => sum + l.credit, 0);
     const equilibre = Math.abs(totalDebit - totalCredit) < 0.01;
-    
+
     const erreurs: string[] = [];
-    
+
     if (!equilibre) {
       erreurs.push(`Écriture non équilibrée: Débit ${totalDebit.toFixed(2)} ≠ Crédit ${totalCredit.toFixed(2)}`);
     }
-    
+
     // Validations spécifiques par journal
     const config = journalType?.code ? configurationsJournal[journalType.code] : {};
-    
-    if (config.validations.includes('piece_obligatoire') && !saisieRapide.piece) {
+
+    if (config.validations?.includes('piece_obligatoire') && !saisieRapide.piece) {
       erreurs.push('Numéro de pièce obligatoire');
     }
-    
-    if (config.validations.includes('tva_coherente')) {
-      const ligneTVA = lignes.find(l => l.compte.startsWith('445'));
-      if (ligneTVA && ligneTVA.tva) {
-        const tvaCalculee = ligneTVA.tva.montantHT * (ligneTVA.tva.taux / 100);
-        if (Math.abs(tvaCalculee - ligneTVA.tva.montantTVA) > 0.01) {
-          erreurs.push('Calcul de TVA incohérent');
-        }
+
+    // Validation TVA avec l'utilitaire TVAValidator
+    if (lignes.length > 0) {
+      const lignesTVA = lignes.map(l => ({
+        compte: l.compte,
+        libelle: l.libelle,
+        debit: l.debit,
+        credit: l.credit,
+        montantHT: l.tva?.montantHT,
+        montantTVA: l.tva?.montantTVA,
+        tauxTVA: l.tva?.taux
+      }));
+
+      const validation = TVAValidator.validateEcritureTVA(lignesTVA);
+      setTvaValidation(validation);
+
+      if (!validation.isValid) {
+        erreurs.push(...validation.errors);
       }
     }
-    
+
     return { valide: erreurs.length === 0, erreurs };
   }, [lignes, journalType?.code, configurationsJournal, saisieRapide.piece]);
 
@@ -478,7 +493,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
                   placeholder="Rechercher ou saisir..."
                   className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
               </div>
               
               {/* Liste de suggestions */}
@@ -495,7 +510,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
                     >
                       <div>
                         <div className="font-medium text-sm">{suggestion.code}</div>
-                        <div className="text-xs text-gray-500">{suggestion.libelle}</div>
+                        <div className="text-xs text-gray-700">{suggestion.libelle}</div>
                       </div>
                       {suggestion.solde && (
                         <div className={`text-sm font-medium ${suggestion.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -521,24 +536,24 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
                   className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   step="0.01"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700">€</span>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Taux TVA
-              </label>
-              <select
-                value={saisieRapide.tauxTVA}
-                onChange={(e) => setSaisieRapide(prev => ({ ...prev, tauxTVA: parseFloat(e.target.value) }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={0}>0% - Exonéré</option>
-                <option value={5.5}>5.5% - Taux réduit</option>
-                <option value={10}>10% - Taux intermédiaire</option>
-                <option value={19.25}>19.25% - Taux normal</option>
-              </select>
+              <SearchableDropdown
+                label="Taux TVA"
+                options={[
+                  { value: '0', label: '0% - Exonéré' },
+                  { value: '5.5', label: '5.5% - Taux réduit' },
+                  { value: '10', label: '10% - Taux intermédiaire' },
+                  { value: '19.25', label: '19.25% - Taux normal' }
+                ]}
+                value={saisieRapide.tauxTVA.toString()}
+                onChange={(value) => setSaisieRapide(prev => ({ ...prev, tauxTVA: parseFloat(value) }))}
+                placeholder="Sélectionner un taux TVA"
+                className="w-full"
+              />
             </div>
             
             <div>
@@ -562,7 +577,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
                   className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-bold"
                   step="0.01"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700">€</span>
               </div>
             </div>
             
@@ -600,15 +615,15 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
           <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200">
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div className="text-center">
-                <p className="text-gray-500">HT</p>
+                <p className="text-gray-700">HT</p>
                 <p className="text-xl font-bold">{saisieRapide.montantHT.toFixed(2)} €</p>
               </div>
               <div className="text-center">
-                <p className="text-gray-500">TVA ({saisieRapide.tauxTVA}%)</p>
+                <p className="text-gray-700">TVA ({saisieRapide.tauxTVA}%)</p>
                 <p className="text-xl font-bold text-blue-600">{saisieRapide.montantTVA.toFixed(2)} €</p>
               </div>
               <div className="text-center">
-                <p className="text-gray-500">TTC</p>
+                <p className="text-gray-700">TTC</p>
                 <p className="text-xl font-bold text-green-600">{saisieRapide.montantTTC.toFixed(2)} €</p>
               </div>
             </div>
@@ -663,11 +678,11 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Compte</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Libellé</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">{t('accounting.account')}</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">{t('accounting.label')}</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Tiers</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Débit</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Crédit</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase">{t('accounting.debit')}</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase">{t('accounting.credit')}</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Actions</th>
               </tr>
             </thead>
@@ -792,6 +807,46 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
                 Écriture non équilibrée: Écart de {Math.abs(totalDebit - totalCredit).toFixed(2)} €
               </span>
             </div>
+          </div>
+        )}
+
+        {/* Validation TVA */}
+        {tvaValidation && (
+          <div className="p-4 border-t border-gray-200">
+            {tvaValidation.errors.length > 0 && (
+              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <p className="font-semibold text-red-700">Erreurs TVA:</p>
+                </div>
+                <ul className="list-disc list-inside space-y-1 ml-7">
+                  {tvaValidation.errors.map((error, i) => (
+                    <li key={i} className="text-sm text-red-600">{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {tvaValidation.warnings.length > 0 && (
+              <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                  <p className="font-semibold text-yellow-700">Avertissements TVA:</p>
+                </div>
+                <ul className="list-disc list-inside space-y-1 ml-7">
+                  {tvaValidation.warnings.map((warning, i) => (
+                    <li key={i} className="text-sm text-yellow-600">{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {tvaValidation.isValid && tvaValidation.errors.length === 0 && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="text-green-700 font-medium">✅ Validation TVA conforme SYSCOHADA</span>
+              </div>
+            )}
           </div>
         )}
       </div>

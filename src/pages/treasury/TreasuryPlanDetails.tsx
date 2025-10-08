@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const TreasuryPlanDetails: React.FC = () => {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('planification');
@@ -191,12 +193,12 @@ const TreasuryPlanDetails: React.FC = () => {
           <div>
             <button
               onClick={() => navigate('/treasury/cash-flow')}
-              className="text-sm text-gray-600 hover:text-tuatara mb-2"
+              className="text-sm text-gray-600 hover:text-[var(--color-text-primary)] mb-2"
             >
               ← Retour aux Plans de Trésorerie
             </button>
-            <h1 className="text-2xl font-bold text-tuatara">📋 {planData.name}</h1>
-            <p className="text-sm text-rolling-stone">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">📋 {planData.name}</h1>
+            <p className="text-sm text-[var(--color-text-secondary)]">
               Auteur: {planData.author} • Période: {planData.period}
             </p>
           </div>
@@ -218,8 +220,8 @@ const TreasuryPlanDetails: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-tuatara text-tuatara'
-                  : 'border-transparent text-rolling-stone hover:text-tuatara'
+                  ? 'border-[var(--color-primary)] text-[var(--color-text-primary)]'
+                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
             >
               {tab.label}
@@ -233,7 +235,7 @@ const TreasuryPlanDetails: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-tuatara">📅 Planification des Flux de trésorerie</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📅 Planification des Flux de trésorerie</h3>
               <p className="text-sm text-gray-600 mt-1">
                 Données des factures échues extraites du Grand Livre comptable
               </p>
@@ -243,13 +245,13 @@ const TreasuryPlanDetails: React.FC = () => {
               {/* Table 1: Prévision des Encaissements */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-semibold text-tuatara">📈 Prévision des Encaissements (Factures échues)</h4>
+                  <h4 className="text-lg font-semibold text-[var(--color-text-primary)]">📈 Prévision des Encaissements (Factures échues)</h4>
                   <button
                     onClick={() => openTransactionModal('encaissement')}
                     className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-1"
                   >
                     <span>+</span>
-                    <span>Ajouter</span>
+                    <span>{t('common.add')}</span>
                   </button>
                 </div>
 
@@ -257,12 +259,12 @@ const TreasuryPlanDetails: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-green-50">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Journal</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('common.date')}</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.journal')}</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° Piece</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Tiers</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Ref Facture</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Libellé</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.label')}</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">Pointage</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">Scenario</th>
@@ -301,7 +303,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       ))}
                       {/* Ligne total */}
                       <tr className="bg-green-50 border-t-2 border-green-300">
-                        <td colSpan={6} className="px-3 py-2 font-bold text-tuatara">Total</td>
+                        <td colSpan={6} className="px-3 py-2 font-bold text-[var(--color-text-primary)]">Total</td>
                         <td className="px-3 py-2 text-right font-bold text-green-600"></td>
                         <td colSpan={3}></td>
                       </tr>
@@ -314,13 +316,13 @@ const TreasuryPlanDetails: React.FC = () => {
               {/* Table 2: Prévision des Décaissements */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-semibold text-tuatara">📉 Prévision des décaissements (Factures échues)</h4>
+                  <h4 className="text-lg font-semibold text-[var(--color-text-primary)]">📉 Prévision des décaissements (Factures échues)</h4>
                   <button
                     onClick={() => openTransactionModal('decaissement')}
                     className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1"
                   >
                     <span>+</span>
-                    <span>Ajouter</span>
+                    <span>{t('common.add')}</span>
                   </button>
                 </div>
 
@@ -328,12 +330,12 @@ const TreasuryPlanDetails: React.FC = () => {
                   <table className="w-full">
                     <thead className="bg-red-50">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Journal</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('common.date')}</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.journal')}</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° Piece</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Tiers</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Ref Facture</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Libellé</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.label')}</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">Pointage</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">Priorité</th>
@@ -372,7 +374,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       ))}
                       {/* Ligne total */}
                       <tr className="bg-red-50 border-t-2 border-red-300">
-                        <td colSpan={6} className="px-3 py-2 font-bold text-tuatara">Total</td>
+                        <td colSpan={6} className="px-3 py-2 font-bold text-[var(--color-text-primary)]">Total</td>
                         <td className="px-3 py-2 text-right font-bold text-red-600"></td>
                         <td colSpan={3}></td>
                       </tr>
@@ -392,7 +394,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#B87333]/10 to-[#7A99AC]/10">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-tuatara">📊 Prévision de Trésorerie Globale</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Prévision de Trésorerie Globale</h3>
                 <div>
                   <label className="block text-xs text-[#444444] mb-1">Scénario de prévision :</label>
                   <select
@@ -412,9 +414,9 @@ const TreasuryPlanDetails: React.FC = () => {
             <div className="p-6">
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <table className="w-full">
-                  <thead className="bg-tuatara/10">
+                  <thead className="bg-[var(--color-primary)]/10">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r">Libellé</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r">{t('accounting.label')}</th>
                       <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant (CFA)</th>
                     </tr>
                   </thead>
@@ -466,13 +468,37 @@ const TreasuryPlanDetails: React.FC = () => {
                           </tr>
                           {expandedVentes && (
                             <>
-                              <tr className="bg-green-100 hover:bg-green-150 cursor-pointer" onClick={() => openDetailModal('produits_locaux')}>
+                              <tr
+                                role="button"
+                                tabIndex={0}
+                                className="bg-green-100 hover:bg-green-150 cursor-pointer"
+                                onClick={() => openDetailModal('produits_locaux')}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openDetailModal('produits_locaux');
+                                  }
+                                }}
+                                aria-label="Voir détails produits locaux"
+                              >
                                 <td className="px-4 py-1 text-xs text-green-600 border-r pl-16 hover:underline">- Produits locaux</td>
                                 <td className={`px-4 py-1 text-right text-xs ${getSelectedScenarioData().color}`}>
                                   {new Intl.NumberFormat('fr-FR').format(getForecastValue(24500000))}
                                 </td>
                               </tr>
-                              <tr className="bg-green-100 hover:bg-green-150 cursor-pointer" onClick={() => openDetailModal('produits_importes')}>
+                              <tr
+                                role="button"
+                                tabIndex={0}
+                                className="bg-green-100 hover:bg-green-150 cursor-pointer"
+                                onClick={() => openDetailModal('produits_importes')}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openDetailModal('produits_importes');
+                                  }
+                                }}
+                                aria-label="Voir détails produits importés"
+                              >
                                 <td className="px-4 py-1 text-xs text-green-600 border-r pl-16 hover:underline">- Produits importés</td>
                                 <td className={`px-4 py-1 text-right text-xs ${getSelectedScenarioData().color}`}>
                                   {new Intl.NumberFormat('fr-FR').format(getForecastValue(11900000))}
@@ -578,7 +604,19 @@ const TreasuryPlanDetails: React.FC = () => {
                           </tr>
                           {expandedAchats && (
                             <>
-                              <tr className="bg-red-100 hover:bg-red-150 cursor-pointer" onClick={() => openDetailModal('matieres_premieres')}>
+                              <tr
+                                role="button"
+                                tabIndex={0}
+                                className="bg-red-100 hover:bg-red-150 cursor-pointer"
+                                onClick={() => openDetailModal('matieres_premieres')}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openDetailModal('matieres_premieres');
+                                  }
+                                }}
+                                aria-label="Voir détails matières premières"
+                              >
                                 <td className="px-4 py-1 text-xs text-red-600 border-r pl-16 hover:underline">- Matières premières</td>
                                 <td className="px-4 py-1 text-right text-xs">18,200,000</td>
                               </tr>
@@ -602,7 +640,19 @@ const TreasuryPlanDetails: React.FC = () => {
                           </tr>
                           {expandedPersonnel && (
                             <>
-                              <tr className="bg-red-100 hover:bg-red-150 cursor-pointer" onClick={() => openDetailModal('salaires')}>
+                              <tr
+                                role="button"
+                                tabIndex={0}
+                                className="bg-red-100 hover:bg-red-150 cursor-pointer"
+                                onClick={() => openDetailModal('salaires')}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openDetailModal('salaires');
+                                  }
+                                }}
+                                aria-label="Voir détails salaires et appointements"
+                              >
                                 <td className="px-4 py-1 text-xs text-red-600 border-r pl-16 hover:underline">- Salaires et appointements</td>
                                 <td className="px-4 py-1 text-right text-xs">7,500,000</td>
                               </tr>
@@ -674,8 +724,8 @@ const TreasuryPlanDetails: React.FC = () => {
                       </tr>
 
                       {/* Position finale */}
-                      <tr className="bg-tuatara/10 border-t-2 border-tuatara">
-                        <td className="px-4 py-3 font-bold text-tuatara border-r">
+                      <tr className="bg-[var(--color-primary)]/10 border-t-2 border-[var(--color-primary)]">
+                        <td className="px-4 py-3 font-bold text-[var(--color-text-primary)] border-r">
                           Position de trésorerie (fin de période)
                           <span className="text-xs px-2 py-1 rounded-full bg-[#B87333]/20 text-[#B87333] font-medium ml-2">
                             {getSelectedScenarioData().name.replace(/📈|📊|📉/, '').trim()}
@@ -701,7 +751,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#B87333]/10 to-[#7A99AC]/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <h3 className="text-lg font-semibold text-tuatara">📊 Rapport Prévisions de Trésorerie - Tous Scénarios</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Rapport Prévisions de Trésorerie - Tous Scénarios</h3>
                 <div className="flex items-center space-x-4 flex-wrap">
                   {/* Filtre par type */}
                   <div>
@@ -738,7 +788,7 @@ const TreasuryPlanDetails: React.FC = () => {
                   </div>
 
                   <div className="flex items-end">
-                    <button className="px-4 py-1 bg-tuatara text-white rounded text-sm hover:bg-tuatara/80 transition-colors">
+                    <button className="px-4 py-1 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary)]/80 transition-colors">
                       🔍 Filtrer
                     </button>
                   </div>
@@ -749,7 +799,7 @@ const TreasuryPlanDetails: React.FC = () => {
             {/* Comparaison des scénarios */}
             <div className="p-6">
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-tuatara mb-4">📈 Comparaison des Scénarios</h4>
+                <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">📈 Comparaison des Scénarios</h4>
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-50">
@@ -792,8 +842,8 @@ const TreasuryPlanDetails: React.FC = () => {
                           {new Intl.NumberFormat('fr-FR').format(Math.round(45590000 * 1.3) - Math.round(45590000 * 0.7))}
                         </td>
                       </tr>
-                      <tr className="hover:bg-gray-50 bg-tuatara/5">
-                        <td className="px-4 py-3 text-sm font-bold text-tuatara">Position de Trésorerie</td>
+                      <tr className="hover:bg-gray-50 bg-[var(--color-primary)]/5">
+                        <td className="px-4 py-3 text-sm font-bold text-[var(--color-text-primary)]">Position de Trésorerie</td>
                         <td className="px-4 py-3 text-center text-sm text-green-600 font-bold">
                           {new Intl.NumberFormat('fr-FR').format(-95194202 + Math.round(57450000 * 1.3) - Math.round(45590000 * 1.3))}
                         </td>
@@ -803,7 +853,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <td className="px-4 py-3 text-center text-sm text-red-600 font-bold">
                           {new Intl.NumberFormat('fr-FR').format(-95194202 + Math.round(57450000 * 0.7) - Math.round(45590000 * 0.7))}
                         </td>
-                        <td className="px-4 py-3 text-center text-sm font-bold text-tuatara">
+                        <td className="px-4 py-3 text-center text-sm font-bold text-[var(--color-text-primary)]">
                           {new Intl.NumberFormat('fr-FR').format(
                             (-95194202 + Math.round(57450000 * 1.3) - Math.round(45590000 * 1.3)) -
                             (-95194202 + Math.round(57450000 * 0.7) - Math.round(45590000 * 0.7))
@@ -817,7 +867,7 @@ const TreasuryPlanDetails: React.FC = () => {
 
               {/* Tableaux détaillés par scénario */}
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-tuatara mb-4">💼 Rapport Détaillé par Scénario</h4>
+                <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">💼 Rapport Détaillé par Scénario</h4>
 
                 {/* Scénario Optimiste - Tableau détaillé */}
                 <div className="mb-8">
@@ -1164,7 +1214,7 @@ const TreasuryPlanDetails: React.FC = () => {
                   <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                     📄 Export PDF
                   </button>
-                  <button className="px-4 py-2 bg-tuatara text-white rounded-lg hover:bg-tuatara/80 transition-colors">
+                  <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors">
                     📧 Envoyer par email
                   </button>
                 </div>
@@ -1180,7 +1230,7 @@ const TreasuryPlanDetails: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-[#B87333]/10 to-[#7A99AC]/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <h3 className="text-lg font-semibold text-tuatara">📊 Analyse des Écarts</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">📊 Analyse des Écarts</h3>
                 <div className="flex items-center space-x-4 flex-wrap">
                   {/* Filtre par type */}
                   <div>
@@ -1217,7 +1267,7 @@ const TreasuryPlanDetails: React.FC = () => {
                   </div>
 
                   <div className="flex items-end">
-                    <button className="px-4 py-1 bg-tuatara text-white rounded text-sm hover:bg-tuatara/80 transition-colors">
+                    <button className="px-4 py-1 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary)]/80 transition-colors">
                       🔍 Filtrer
                     </button>
                   </div>
@@ -1238,7 +1288,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       Période: {new Date(dateDebut).toLocaleDateString('fr-FR')} - {new Date(dateFin).toLocaleDateString('fr-FR')}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-700">
                     Analyse mise à jour automatiquement
                   </div>
                 </div>
@@ -1287,7 +1337,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° Pièce</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Tiers</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Ref Facture</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Libellé</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.label')}</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant Prévisionnel</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant Réel</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Écart</th>
@@ -1378,7 +1428,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° Pièce</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Tiers</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Ref Facture</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">Libellé</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">{t('accounting.label')}</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant Prévisionnel</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant Réel</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">Écart</th>
@@ -1432,8 +1482,8 @@ const TreasuryPlanDetails: React.FC = () => {
               </div>
 
               {/* Synthèse des écarts */}
-              <div className="mt-6 p-4 bg-tuatara/10 rounded-lg">
-                <h4 className="font-semibold text-tuatara mb-3">💰 Synthèse des Écarts</h4>
+              <div className="mt-6 p-4 bg-[var(--color-primary)]/10 rounded-lg">
+                <h4 className="font-semibold text-[var(--color-text-primary)] mb-3">💰 Synthèse des Écarts</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-3 bg-green-50 rounded border">
                     <div className="text-lg font-bold text-green-600">
@@ -1472,12 +1522,12 @@ const TreasuryPlanDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-tuatara">
+              <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
                 📋 Transaction - {transactionType === 'encaissement' ? 'Encaissement' : 'Décaissement'}
               </h3>
               <button
                 onClick={() => setShowTransactionModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-700 hover:text-gray-600 text-xl"
               >
                 ✕
               </button>
@@ -1491,11 +1541,11 @@ const TreasuryPlanDetails: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Journal</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('accounting.journal')}</label>
                     <input
                       type="text"
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder="Ex: VTE, ACH, BQ"
                     />
                   </div>
@@ -1504,7 +1554,7 @@ const TreasuryPlanDetails: React.FC = () => {
                     <input
                       type="text"
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder="Ex: P001, FAC001"
                     />
                   </div>
@@ -1516,7 +1566,7 @@ const TreasuryPlanDetails: React.FC = () => {
                     <input
                       type="text"
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder="Nom du client/fournisseur"
                     />
                   </div>
@@ -1525,7 +1575,7 @@ const TreasuryPlanDetails: React.FC = () => {
                     <input
                       type="text"
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder="Référence de la facture"
                     />
                   </div>
@@ -1542,7 +1592,7 @@ const TreasuryPlanDetails: React.FC = () => {
                         setSelectedSubCategory('');
                       }}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                     >
                       <option value="">Sélectionner une catégorie</option>
                       {Object.entries(transactionType === 'encaissement' ? encaissementCategories : decaissementCategories).map(([key, category]) => (
@@ -1557,7 +1607,7 @@ const TreasuryPlanDetails: React.FC = () => {
                       onChange={(e) => setSelectedSubCategory(e.target.value)}
                       required
                       disabled={!selectedCategory}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] disabled:bg-gray-100"
                     >
                       <option value="">Sélectionner une sous-catégorie</option>
                       {selectedCategory && Object.entries(
@@ -1570,11 +1620,11 @@ const TreasuryPlanDetails: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Libellé</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('accounting.label')}</label>
                   <input
                     type="text"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                     placeholder="Description de la transaction"
                   />
                 </div>
@@ -1586,7 +1636,7 @@ const TreasuryPlanDetails: React.FC = () => {
                     required
                     min="0"
                     step="1000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tuatara focus:border-tuatara"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                     placeholder="Montant en CFA"
                   />
                 </div>
@@ -1621,12 +1671,12 @@ const TreasuryPlanDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-tuatara">
+              <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
                 📋 {detailModalData.title}
               </h3>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-700 hover:text-gray-600 text-xl"
               >
                 ✕
               </button>
@@ -1636,7 +1686,7 @@ const TreasuryPlanDetails: React.FC = () => {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-tuatara">{detailModalData.invoices.length}</div>
+                  <div className="text-2xl font-bold text-[var(--color-text-primary)]">{detailModalData.invoices.length}</div>
                   <div className="text-sm text-gray-600">
                     {detailModalData.type === 'client' ? 'Factures clients' : 'Factures fournisseurs'}
                   </div>
@@ -1712,7 +1762,7 @@ const TreasuryPlanDetails: React.FC = () => {
                             // Redirection vers le grand livre avec filtre par numéro de facture
                             navigate(`/accounting/general-ledger?search=${invoice.numero}`);
                           }}
-                          className="text-tuatara hover:text-tuatara/70 text-sm transition-colors hover:underline"
+                          className="text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/70 text-sm transition-colors hover:underline"
                         >
                           📄 Voir
                         </button>
@@ -1735,7 +1785,7 @@ const TreasuryPlanDetails: React.FC = () => {
                 >
                   Fermer
                 </button>
-                <button className="px-4 py-2 bg-tuatara text-white rounded-lg hover:bg-tuatara/80 transition-colors">
+                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors">
                   📊 Exporter Excel
                 </button>
               </div>

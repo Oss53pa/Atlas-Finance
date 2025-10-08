@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -11,6 +12,7 @@ const Spinner: React.FC<SpinnerProps> = ({
   color = 'primary',
   className = ''
 }) => {
+  const { t } = useLanguage();
   const sizeClass = {
     sm: 'spinner-border-sm',
     md: '',
@@ -23,7 +25,7 @@ const Spinner: React.FC<SpinnerProps> = ({
       role="status"
       aria-label="Chargement..."
     >
-      <span className="visually-hidden">Chargement...</span>
+      <span className="visually-hidden">{t('common.loading')}</span>
     </div>
   );
 };

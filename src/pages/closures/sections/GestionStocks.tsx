@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -122,6 +123,7 @@ interface ProvisionStock {
 }
 
 const GestionStocks: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [filterCategorie, setFilterCategorie] = useState<string>('toutes');
@@ -358,11 +360,11 @@ const GestionStocks: React.FC = () => {
 
   const getStatutStockBadge = (article: Article) => {
     if (article.stockPhysique <= article.stockMinimum) {
-      return 'bg-red-100 text-red-800';
+      return 'bg-[var(--color-error-lighter)] text-red-800';
     } else if (article.stockPhysique <= article.stockSecurite) {
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-[var(--color-warning-lighter)] text-yellow-800';
     } else {
-      return 'bg-green-100 text-green-800';
+      return 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]';
     }
   };
 
@@ -378,12 +380,12 @@ const GestionStocks: React.FC = () => {
 
   const getTypeMouvementIcon = (type: string) => {
     switch (type) {
-      case 'entree': return <ArrowUpRight className="w-4 h-4 text-green-600" />;
-      case 'sortie': return <ArrowDownRight className="w-4 h-4 text-red-600" />;
-      case 'transfert': return <RefreshCw className="w-4 h-4 text-blue-600" />;
-      case 'ajustement': return <Edit className="w-4 h-4 text-orange-600" />;
+      case 'entree': return <ArrowUpRight className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'sortie': return <ArrowDownRight className="w-4 h-4 text-[var(--color-error)]" />;
+      case 'transfert': return <RefreshCw className="w-4 h-4 text-[var(--color-primary)]" />;
+      case 'ajustement': return <Edit className="w-4 h-4 text-[var(--color-warning)]" />;
       case 'inventaire': return <CheckCircle className="w-4 h-4 text-purple-600" />;
-      default: return <Activity className="w-4 h-4 text-gray-600" />;
+      default: return <Activity className="w-4 h-4 text-[var(--color-text-primary)]" />;
     }
   };
 
@@ -395,11 +397,11 @@ const GestionStocks: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Valeur Stock Total</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Valeur Stock Total</p>
                 <p className="text-2xl font-bold">{(kpis.valeurTotaleStock / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-green-600 mt-1">+5% vs mois dernier</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">+5% vs mois dernier</p>
               </div>
-              <Warehouse className="w-8 h-8 text-blue-500" />
+              <Warehouse className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -408,11 +410,11 @@ const GestionStocks: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Articles Critiques</p>
-                <p className="text-2xl font-bold text-red-600">{kpis.nbArticlesCritiques}</p>
-                <p className="text-xs text-gray-500 mt-1">Réapprovisionnement urgent</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Articles Critiques</p>
+                <p className="text-2xl font-bold text-[var(--color-error)]">{kpis.nbArticlesCritiques}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">Réapprovisionnement urgent</p>
               </div>
-              <AlertTriangle className="w-8 h-8 text-red-500" />
+              <AlertTriangle className="w-8 h-8 text-[var(--color-error)]" />
             </div>
           </CardContent>
         </Card>
@@ -421,11 +423,11 @@ const GestionStocks: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Rotation Moyenne</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Rotation Moyenne</p>
                 <p className="text-2xl font-bold">{kpis.rotationMoyenne.toFixed(1)}x</p>
                 <Progress value={kpis.rotationMoyenne * 10} className="mt-2" />
               </div>
-              <RefreshCw className="w-8 h-8 text-green-500" />
+              <RefreshCw className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -434,9 +436,9 @@ const GestionStocks: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Taux Couverture</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Taux Couverture</p>
                 <p className="text-2xl font-bold">{kpis.tauxCouverture.toFixed(1)}%</p>
-                <p className="text-xs text-green-600 mt-1">Objectif: 95%</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">Objectif: 95%</p>
               </div>
               <Target className="w-8 h-8 text-purple-500" />
             </div>
@@ -479,12 +481,12 @@ const GestionStocks: React.FC = () => {
                     return (
                       <div key={categorie} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded-full ${['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'][index]}`} />
+                          <div className={`w-4 h-4 rounded-full ${['bg-[var(--color-primary)]', 'bg-[var(--color-success)]', 'bg-[var(--color-warning)]', 'bg-purple-500'][index]}`} />
                           <span className="font-medium">{categorie}</span>
                         </div>
                         <div className="text-right">
                           <p className="font-bold">{valeur}M FCFA</p>
-                          <p className="text-sm text-gray-500">{pourcentage}%</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{pourcentage}%</p>
                         </div>
                       </div>
                     );
@@ -499,34 +501,34 @@ const GestionStocks: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <div>
                       <p className="font-medium">Rotation Rapide (&gt;10x)</p>
-                      <p className="text-sm text-gray-600">Articles consommables</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Articles consommables</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-green-600">12</p>
-                      <p className="text-sm text-gray-500">articles</p>
+                      <p className="text-2xl font-bold text-[var(--color-success)]">12</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">articles</p>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-warning-lightest)] rounded">
                     <div>
                       <p className="font-medium">Rotation Normale (2-10x)</p>
-                      <p className="text-sm text-gray-600">Équipements standards</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Équipements standards</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-yellow-600">25</p>
-                      <p className="text-sm text-gray-500">articles</p>
+                      <p className="text-2xl font-bold text-[var(--color-warning)]">25</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">articles</p>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded">
+                  <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <div>
                       <p className="font-medium">Rotation Lente (&lt;2x)</p>
-                      <p className="text-sm text-gray-600">Immobilisations</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('navigation.assets')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-red-600">8</p>
-                      <p className="text-sm text-gray-500">articles</p>
+                      <p className="text-2xl font-bold text-[var(--color-error)]">8</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">articles</p>
                     </div>
                   </div>
                 </div>
@@ -544,11 +546,11 @@ const GestionStocks: React.FC = () => {
                   const valeurs = [22.5, 23.8, 24.2, 25.1, 24.8, 25.5];
                   return (
                     <div key={mois} className="text-center p-3 border rounded">
-                      <p className="text-sm text-gray-600">{mois}</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{mois}</p>
                       <p className="text-xl font-bold">{valeurs[index]}M</p>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div className="w-full bg-[var(--color-border)] rounded-full h-2 mt-2">
                         <div
-                          className="bg-blue-600 h-2 rounded-full"
+                          className="bg-[var(--color-primary)] h-2 rounded-full"
                           style={{ width: `${(valeurs[index] / 30) * 100}%` }}
                         />
                       </div>
@@ -565,7 +567,7 @@ const GestionStocks: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
                   placeholder="Rechercher un article..."
@@ -596,11 +598,11 @@ const GestionStocks: React.FC = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nouvel Article
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Exporter
               </button>
@@ -610,29 +612,29 @@ const GestionStocks: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Article</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Catégorie</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Stock Physique</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Stock Mini</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Valeur</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Rotation</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Article</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Catégorie</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Stock Physique</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Stock Mini</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Valeur</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Rotation</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {articlesFiltres.map(article => (
-                    <tr key={article.id} className="border-t hover:bg-gray-50">
+                    <tr key={article.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div>
                           <p className="font-medium">{article.designation}</p>
-                          <p className="text-sm text-gray-500">{article.code}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{article.code}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge className="bg-blue-100 text-blue-800">
+                        <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">
                           {article.categorie}
                         </Badge>
                       </td>
@@ -651,18 +653,18 @@ const GestionStocks: React.FC = () => {
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={article.rotationStock > 5 ? 'text-green-600 font-medium' :
-                          article.rotationStock > 2 ? 'text-yellow-600' : 'text-red-600'}>
+                        <span className={article.rotationStock > 5 ? 'text-[var(--color-success)] font-medium' :
+                          article.rotationStock > 2 ? 'text-[var(--color-warning)]' : 'text-[var(--color-error)]'}>
                           {article.rotationStock.toFixed(1)}x
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Edit className="w-4 h-4 text-blue-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
                       </td>
@@ -681,10 +683,10 @@ const GestionStocks: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Entrées du Jour</p>
-                    <p className="text-2xl font-bold text-green-600">3</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Entrées du Jour</p>
+                    <p className="text-2xl font-bold text-[var(--color-success)]">3</p>
                   </div>
-                  <ArrowUpRight className="w-6 h-6 text-green-500" />
+                  <ArrowUpRight className="w-6 h-6 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -692,10 +694,10 @@ const GestionStocks: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Sorties du Jour</p>
-                    <p className="text-2xl font-bold text-red-600">8</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Sorties du Jour</p>
+                    <p className="text-2xl font-bold text-[var(--color-error)]">8</p>
                   </div>
-                  <ArrowDownRight className="w-6 h-6 text-red-500" />
+                  <ArrowDownRight className="w-6 h-6 text-[var(--color-error)]" />
                 </div>
               </CardContent>
             </Card>
@@ -703,8 +705,8 @@ const GestionStocks: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Ajustements</p>
-                    <p className="text-2xl font-bold text-orange-600">2</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Ajustements</p>
+                    <p className="text-2xl font-bold text-[var(--color-warning)]">2</p>
                   </div>
                   <Edit className="w-6 h-6 text-orange-500" />
                 </div>
@@ -714,10 +716,10 @@ const GestionStocks: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">En Attente</p>
-                    <p className="text-2xl font-bold text-blue-600">1</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">En Attente</p>
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">1</p>
                   </div>
-                  <Clock className="w-6 h-6 text-blue-500" />
+                  <Clock className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
               </CardContent>
             </Card>
@@ -729,21 +731,21 @@ const GestionStocks: React.FC = () => {
             </CardHeader>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Article</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Quantité</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Valeur</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Référence</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('common.date')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Type</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Article</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Quantité</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Valeur</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Référence</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mockMouvements.map(mouvement => (
-                    <tr key={mouvement.id} className="border-t hover:bg-gray-50">
+                    <tr key={mouvement.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         {new Date(mouvement.dateOperation).toLocaleDateString()}
                       </td>
@@ -756,25 +758,25 @@ const GestionStocks: React.FC = () => {
                       <td className="px-4 py-3">
                         <div>
                           <p className="font-medium">{mouvement.articleCode}</p>
-                          <p className="text-sm text-gray-500">{mouvement.articleDesignation}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{mouvement.articleDesignation}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right font-medium">
-                        <span className={mouvement.quantite > 0 ? 'text-green-600' : 'text-red-600'}>
+                        <span className={mouvement.quantite > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}>
                           {mouvement.quantite > 0 ? '+' : ''}{mouvement.quantite}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right font-medium">
-                        <span className={mouvement.valeurTotale > 0 ? 'text-green-600' : 'text-red-600'}>
+                        <span className={mouvement.valeurTotale > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}>
                           {(mouvement.valeurTotale / 1000000).toFixed(2)}M
                         </span>
                       </td>
                       <td className="px-4 py-3">{mouvement.reference}</td>
                       <td className="px-4 py-3 text-center">
                         <Badge className={
-                          mouvement.statut === 'valide' ? 'bg-green-100 text-green-800' :
-                          mouvement.statut === 'en_attente' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                          mouvement.statut === 'valide' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          mouvement.statut === 'en_attente' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
+                          'bg-[var(--color-error-lighter)] text-red-800'
                         }>
                           {mouvement.statut === 'valide' ? 'Validé' :
                            mouvement.statut === 'en_attente' ? 'En attente' : 'Annulé'}
@@ -782,12 +784,12 @@ const GestionStocks: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
                           {mouvement.statut === 'en_attente' && (
-                            <button className="p-1 hover:bg-gray-100 rounded">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Valider">
+                              <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                             </button>
                           )}
                         </div>
@@ -818,11 +820,11 @@ const GestionStocks: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Inventaire en Cours</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Inventaire en Cours</p>
                     <p className="text-2xl font-bold">1</p>
-                    <p className="text-xs text-blue-600 mt-1">45% complété</p>
+                    <p className="text-xs text-[var(--color-primary)] mt-1">45% complété</p>
                   </div>
-                  <Activity className="w-8 h-8 text-blue-500" />
+                  <Activity className="w-8 h-8 text-[var(--color-primary)]" />
                 </div>
               </CardContent>
             </Card>
@@ -830,11 +832,11 @@ const GestionStocks: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Écart Moyen</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Écart Moyen</p>
                     <p className="text-2xl font-bold">-1.2%</p>
-                    <p className="text-xs text-green-600 mt-1">Dans la norme</p>
+                    <p className="text-xs text-[var(--color-success)] mt-1">Dans la norme</p>
                   </div>
-                  <Calculator className="w-8 h-8 text-green-500" />
+                  <Calculator className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -842,9 +844,9 @@ const GestionStocks: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Dernier Inventaire</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Dernier Inventaire</p>
                     <p className="text-2xl font-bold">5j</p>
-                    <p className="text-xs text-gray-600 mt-1">INV-2024-12</p>
+                    <p className="text-xs text-[var(--color-text-primary)] mt-1">INV-2024-12</p>
                   </div>
                   <Calendar className="w-8 h-8 text-purple-500" />
                 </div>
@@ -858,21 +860,21 @@ const GestionStocks: React.FC = () => {
             </CardHeader>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Numéro</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Période</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Responsable</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Articles</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Écart</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Numéro</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Type</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Période</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Responsable</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Articles</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Écart</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mockInventaires.map(inventaire => (
-                    <tr key={inventaire.id} className="border-t hover:bg-gray-50">
+                    <tr key={inventaire.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3 font-medium">{inventaire.numero}</td>
                       <td className="px-4 py-3">
                         <Badge className="bg-purple-100 text-purple-800 capitalize">
@@ -883,7 +885,7 @@ const GestionStocks: React.FC = () => {
                         <div>
                           <p>{new Date(inventaire.dateDebut).toLocaleDateString()}</p>
                           {inventaire.dateFin && (
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-[var(--color-text-secondary)]">
                               → {new Date(inventaire.dateFin).toLocaleDateString()}
                             </p>
                           )}
@@ -893,23 +895,23 @@ const GestionStocks: React.FC = () => {
                       <td className="px-4 py-3 text-right">
                         <div>
                           <p className="font-medium">{inventaire.nbArticlesComptes}</p>
-                          <p className="text-sm text-gray-500">/ {inventaire.nbArticles}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">/ {inventaire.nbArticles}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div>
-                          <p className={`font-medium ${inventaire.ecartValeur < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          <p className={`font-medium ${inventaire.ecartValeur < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
                             {(inventaire.ecartValeur / 1000000).toFixed(2)}M
                           </p>
-                          <p className="text-sm text-gray-500">{inventaire.pourcentageEcart}%</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{inventaire.pourcentageEcart}%</p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <Badge className={
-                          inventaire.statut === 'valide' ? 'bg-green-100 text-green-800' :
-                          inventaire.statut === 'termine' ? 'bg-blue-100 text-blue-800' :
-                          inventaire.statut === 'en_cours' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                          inventaire.statut === 'valide' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          inventaire.statut === 'termine' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                          inventaire.statut === 'en_cours' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
+                          'bg-[var(--color-error-lighter)] text-red-800'
                         }>
                           {inventaire.statut === 'valide' ? 'Validé' :
                            inventaire.statut === 'termine' ? 'Terminé' :
@@ -917,8 +919,8 @@ const GestionStocks: React.FC = () => {
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <button className="p-1 hover:bg-gray-100 rounded">
-                          <Eye className="w-4 h-4 text-gray-600" />
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                         </button>
                       </td>
                     </tr>
@@ -941,26 +943,26 @@ const GestionStocks: React.FC = () => {
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium">FIFO</h4>
-                      <Badge className="bg-blue-100 text-blue-800">65%</Badge>
+                      <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">65%</Badge>
                     </div>
-                    <p className="text-sm text-gray-600">Premier Entré, Premier Sorti</p>
-                    <p className="text-2xl font-bold text-blue-600">16.5M FCFA</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Premier Entré, Premier Sorti</p>
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">16.5M FCFA</p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium">CMUP</h4>
-                      <Badge className="bg-green-100 text-green-800">30%</Badge>
+                      <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">30%</Badge>
                     </div>
-                    <p className="text-sm text-gray-600">Coût Moyen Unitaire Pondéré</p>
-                    <p className="text-2xl font-bold text-green-600">7.6M FCFA</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Coût Moyen Unitaire Pondéré</p>
+                    <p className="text-2xl font-bold text-[var(--color-success)]">7.6M FCFA</p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium">LIFO</h4>
-                      <Badge className="bg-orange-100 text-orange-800">5%</Badge>
+                      <Badge className="bg-[var(--color-warning-lighter)] text-orange-800">5%</Badge>
                     </div>
-                    <p className="text-sm text-gray-600">Dernier Entré, Premier Sorti</p>
-                    <p className="text-2xl font-bold text-orange-600">1.4M FCFA</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Dernier Entré, Premier Sorti</p>
+                    <p className="text-2xl font-bold text-[var(--color-warning)]">1.4M FCFA</p>
                   </div>
                 </div>
               </CardContent>
@@ -982,20 +984,20 @@ const GestionStocks: React.FC = () => {
                     <div className="flex justify-between items-center p-3 bg-orange-50 rounded">
                       <div>
                         <p className="font-medium">Obsolescence</p>
-                        <p className="text-sm text-gray-600">8 articles concernés</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">8 articles concernés</p>
                       </div>
-                      <p className="text-xl font-bold text-orange-600">540K</p>
+                      <p className="text-xl font-bold text-[var(--color-warning)]">540K</p>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-red-50 rounded">
+                    <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                       <div>
                         <p className="font-medium">Dépréciation</p>
-                        <p className="text-sm text-gray-600">3 articles concernés</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">3 articles concernés</p>
                       </div>
-                      <p className="text-xl font-bold text-red-600">275K</p>
+                      <p className="text-xl font-bold text-[var(--color-error)]">275K</p>
                     </div>
                   </div>
                   <button
-                    className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                    className="w-full px-4 py-2 bg-[var(--color-warning)] text-white rounded-lg hover:bg-orange-700"
                     onClick={() => setShowProvisionModal(true)}
                   >
                     Comptabiliser Provisions
@@ -1010,27 +1012,27 @@ const GestionStocks: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg">
                     <h4 className="font-medium mb-2">Conformité SYSCOHADA</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm">Valorisation stocks</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Provisions obligatoires</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Documentation</span>
-                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                        <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
                       </div>
                     </div>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Économies Fiscales</h4>
-                    <p className="text-2xl font-bold text-green-600">245K FCFA</p>
-                    <p className="text-sm text-gray-600">Provisions déductibles</p>
+                    <p className="text-2xl font-bold text-[var(--color-success)]">245K FCFA</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Provisions déductibles</p>
                   </div>
                 </div>
               </CardContent>
@@ -1059,20 +1061,20 @@ const GestionStocks: React.FC = () => {
                           <div className="flex justify-between items-center mb-2">
                             <p className="font-medium">{article?.designation}</p>
                             <Badge className={
-                              prevision.tendance === 'hausse' ? 'bg-green-100 text-green-800' :
-                              prevision.tendance === 'baisse' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
+                              prevision.tendance === 'hausse' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                              prevision.tendance === 'baisse' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                              'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                             }>
                               {prevision.tendance}
                             </Badge>
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-sm text-gray-600">Demande prévue</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">Demande prévue</p>
                               <p className="text-xl font-bold">{prevision.demandePrevue}</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-600">Fiabilité</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">Fiabilité</p>
                               <div className="flex items-center gap-2">
                                 <Progress value={prevision.fiabilite} className="flex-1" />
                                 <span className="text-sm font-medium">{prevision.fiabilite}%</span>
@@ -1119,15 +1121,15 @@ const GestionStocks: React.FC = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span>Commandes automatiques activées</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Alertes stock critique</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Rapport hebdomadaire</span>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                     </div>
                   </div>
@@ -1142,29 +1144,29 @@ const GestionStocks: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg">
+                <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                    <Badge className="bg-green-100 text-green-800">+15%</Badge>
+                    <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />
+                    <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">+15%</Badge>
                   </div>
                   <p className="font-medium">Bureautique</p>
-                  <p className="text-sm text-gray-600">Forte demande prévue</p>
+                  <p className="text-sm text-[var(--color-text-primary)]">Forte demande prévue</p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <Activity className="w-5 h-5 text-blue-600" />
-                    <Badge className="bg-blue-100 text-blue-800">Stable</Badge>
+                    <Activity className="w-5 h-5 text-[var(--color-primary)]" />
+                    <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">Stable</Badge>
                   </div>
                   <p className="font-medium">Informatique</p>
-                  <p className="text-sm text-gray-600">Demande stable</p>
+                  <p className="text-sm text-[var(--color-text-primary)]">Demande stable</p>
                 </div>
-                <div className="p-4 bg-yellow-50 rounded-lg">
+                <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <TrendingDown className="w-5 h-5 text-yellow-600" />
-                    <Badge className="bg-yellow-100 text-yellow-800">-5%</Badge>
+                    <TrendingDown className="w-5 h-5 text-[var(--color-warning)]" />
+                    <Badge className="bg-[var(--color-warning-lighter)] text-yellow-800">-5%</Badge>
                   </div>
                   <p className="font-medium">Mobilier</p>
-                  <p className="text-sm text-gray-600">Baisse saisonnière</p>
+                  <p className="text-sm text-[var(--color-text-primary)]">Baisse saisonnière</p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
@@ -1172,13 +1174,390 @@ const GestionStocks: React.FC = () => {
                     <Badge className="bg-purple-100 text-purple-800">95%</Badge>
                   </div>
                   <p className="font-medium">Précision IA</p>
-                  <p className="text-sm text-gray-600">Modèle fiable</p>
+                  <p className="text-sm text-[var(--color-text-primary)]">Modèle fiable</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Inventaire Modal */}
+      {showInventaireModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-lg flex items-center justify-center">
+                    <Package className="w-5 h-5 text-[var(--color-primary)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvel inventaire</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Démarrer un inventaire des stocks</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowInventaireModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Warehouse className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-primary-darker)]">Inventaire physique</p>
+                      <p className="text-sm text-[var(--color-primary-dark)] mt-1">
+                        Enregistrez un comptage physique des stocks pour ajuster les écarts
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Date d'inventaire <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Type d'inventaire <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="total">Inventaire total</option>
+                      <option value="partiel">Inventaire partiel</option>
+                      <option value="tournant">Inventaire tournant</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Entrepôt / Site <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Sélectionner un site</option>
+                    <option value="principal">Entrepôt Principal</option>
+                    <option value="secondaire">Entrepôt Secondaire</option>
+                    <option value="magasin1">Magasin 1</option>
+                    <option value="magasin2">Magasin 2</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Catégorie de produits
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Toutes les catégories</option>
+                      <option value="matieres">Matières premières</option>
+                      <option value="produits">Produits finis</option>
+                      <option value="encours">En-cours</option>
+                      <option value="marchandises">Marchandises</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Responsable <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="Marie Kouam">Marie Kouam</option>
+                      <option value="Jean Dupont">Jean Dupont</option>
+                      <option value="Sophie Martin">Sophie Martin</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Méthode de comptage</h4>
+                  <div className="space-y-2">
+                    <label className="flex items-start gap-2 p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+                      <input type="radio" name="methode" value="manuel" className="mt-0.5" defaultChecked />
+                      <div>
+                        <p className="font-medium text-sm">Comptage manuel</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Saisie manuelle des quantités</p>
+                      </div>
+                    </label>
+                    <label className="flex items-start gap-2 p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+                      <input type="radio" name="methode" value="scanner" className="mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm">Scanner codes-barres</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Scan avec lecteur de codes-barres</p>
+                      </div>
+                    </label>
+                    <label className="flex items-start gap-2 p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+                      <input type="radio" name="methode" value="import" className="mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm">Import fichier</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Importer depuis Excel/CSV</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Commentaires ou observations sur cet inventaire..."
+                  />
+                </div>
+
+                <div className="flex items-start gap-2 p-3 bg-[var(--color-warning-lightest)] border border-yellow-200 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-yellow-800">
+                    L'inventaire bloquera temporairement les mouvements de stock sur le site sélectionné
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowInventaireModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Démarrer l'inventaire
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Provision Modal */}
+      {showProvisionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5 text-[var(--color-warning)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvelle provision</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Enregistrer une dépréciation de stock</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowProvisionModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertCircle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-orange-900">Provision pour dépréciation</p>
+                      <p className="text-sm text-[var(--color-warning-dark)] mt-1">
+                        Provisionner la perte de valeur des stocks obsolètes, endommagés ou à rotation lente
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Date de provision <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Type de provision <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="obsolescence">Obsolescence</option>
+                      <option value="deterioration">Détérioration</option>
+                      <option value="rotation">Rotation lente</option>
+                      <option value="peremption">Péremption</option>
+                      <option value="depreciation">Dépréciation marché</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Produit / Catégorie <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    <option value="">Sélectionner un produit</option>
+                    <option value="produit1">Produit A - REF001</option>
+                    <option value="produit2">Produit B - REF002</option>
+                    <option value="categorie1">Catégorie: Matières premières</option>
+                    <option value="categorie2">Catégorie: Produits finis</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Valeur comptable (€)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="10000"
+                      step="0.01"
+                      disabled
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Valeur estimée (€) <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="7000"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Montant provision (€)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 bg-[var(--color-background-hover)] font-mono font-semibold text-[var(--color-warning)]"
+                      value="3000"
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Taux de dépréciation (%)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="30"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Compte comptable <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono text-sm">
+                      <option value="">Sélectionner</option>
+                      <option value="6817">6817 - Dotation provisions stocks</option>
+                      <option value="3917">3917 - Provision dépréciation stocks</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Méthode d'évaluation
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
+                      <input type="radio" name="methode-eval" value="individuelle" className="mr-3" defaultChecked />
+                      <div>
+                        <p className="font-medium text-sm">Individuelle</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Par produit</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
+                      <input type="radio" name="methode-eval" value="globale" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Globale</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Par catégorie</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Justification <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Expliquez les raisons de cette provision (obsolescence technique, changement de normes, baisse du marché...)"
+                  />
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background-secondary)]">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-2">Impact financier</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Résultat:</p>
+                      <p className="font-semibold text-[var(--color-error)]">- 3 000,00 €</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Valeur nette stocks:</p>
+                      <p className="font-semibold">7 000,00 €</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowProvisionModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-warning)] hover:bg-orange-700 rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Enregistrer la provision
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

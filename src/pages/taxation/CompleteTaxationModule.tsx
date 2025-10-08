@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { 
+import { useLanguage } from '../../contexts/LanguageContext';
+import {
   FileText, Calculator, Calendar, AlertTriangle, CheckCircle,
   TrendingUp, Download, Upload, Clock, DollarSign, Receipt,
   Building, Users, CreditCard, PieChart, BarChart3, Filter,
@@ -9,6 +10,7 @@ import {
 import { ModernCard, CardHeader, CardBody, StatCard } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 
 // Types
 interface TaxDeclaration {
@@ -63,8 +65,10 @@ interface TaxPayment {
 }
 
 const CompleteTaxationModule: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedPeriod, setSelectedPeriod] = useState('2024');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [showDeclarationModal, setShowDeclarationModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedDeclaration, setSelectedDeclaration] = useState<TaxDeclaration | null>(null);
@@ -402,7 +406,7 @@ const CompleteTaxationModule: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-medium text-sm">{item.impot}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-700">
                       {item.periodicite} • Échéance: {new Date(item.prochaine).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
@@ -438,7 +442,7 @@ const CompleteTaxationModule: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 w-5 h-5" />
             <input
               type="text"
               placeholder="Rechercher une déclaration..."
@@ -454,7 +458,7 @@ const CompleteTaxationModule: React.FC = () => {
           </select>
           <select className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm">
             <option value="all">Tous les statuts</option>
-            <option value="en-cours">En cours</option>
+            <option value="en-cours">{t('status.inProgress')}</option>
             <option value="validee">Validée</option>
             <option value="payee">Payée</option>
             <option value="retard">En retard</option>
@@ -517,19 +521,19 @@ const CompleteTaxationModule: React.FC = () => {
                           <span className="text-xs">{declaration.fichiers.length}</span>
                         </button>
                       ) : (
-                        <span className="text-gray-400 text-xs">-</span>
+                        <span className="text-gray-700 text-xs">-</span>
                       )}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-center gap-1">
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir">
-                          <Eye className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir" aria-label="Voir les détails">
+                          <Eye className="w-4 h-4 text-gray-700" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Modifier">
-                          <Edit className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title={t('common.edit')}>
+                          <Edit className="w-4 h-4 text-gray-700" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Télécharger">
-                          <Download className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title={t('actions.download')} aria-label="Télécharger">
+                          <Download className="w-4 h-4 text-gray-700" />
                         </button>
                       </div>
                     </td>
@@ -604,7 +608,7 @@ const CompleteTaxationModule: React.FC = () => {
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="font-medium text-sm">{formulaire.code}</p>
-                    <p className="text-xs text-gray-500">{formulaire.libelle}</p>
+                    <p className="text-xs text-gray-700">{formulaire.libelle}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
@@ -621,7 +625,7 @@ const CompleteTaxationModule: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-3">
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex items-center justify-between text-xs text-gray-700 mb-1">
                     <span>Progression</span>
                     <span>{formulaire.progression}%</span>
                   </div>
@@ -651,7 +655,7 @@ const CompleteTaxationModule: React.FC = () => {
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Total payé ce mois</p>
+              <p className="text-xs text-gray-700">Total payé ce mois</p>
               <p className="text-xl font-bold mt-1">€52,500</p>
             </div>
             <CreditCard className="w-8 h-8 text-green-500" />
@@ -660,7 +664,7 @@ const CompleteTaxationModule: React.FC = () => {
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">En attente</p>
+              <p className="text-xs text-gray-700">{t('status.pending')}</p>
               <p className="text-xl font-bold mt-1">€15,000</p>
             </div>
             <Clock className="w-8 h-8 text-yellow-500" />
@@ -669,7 +673,7 @@ const CompleteTaxationModule: React.FC = () => {
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Prochain paiement</p>
+              <p className="text-xs text-gray-700">Prochain paiement</p>
               <p className="text-xl font-bold mt-1">€26,000</p>
             </div>
             <Calendar className="w-8 h-8 text-blue-500" />
@@ -678,7 +682,7 @@ const CompleteTaxationModule: React.FC = () => {
         <ModernCard className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500">Économies réalisées</p>
+              <p className="text-xs text-gray-700">Économies réalisées</p>
               <p className="text-xl font-bold mt-1">€3,200</p>
             </div>
             <TrendingUp className="w-8 h-8 text-purple-500" />
@@ -703,7 +707,7 @@ const CompleteTaxationModule: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Date</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">{t('common.date')}</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Impôt</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Période</th>
                   <th className="text-right py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Montant</th>
@@ -733,11 +737,11 @@ const CompleteTaxationModule: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-center gap-1">
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir">
-                          <Eye className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Voir" aria-label="Voir les détails">
+                          <Eye className="w-4 h-4 text-gray-700" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Télécharger reçu">
-                          <Download className="w-4 h-4 text-gray-500" />
+                        <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Télécharger reçu" aria-label="Télécharger">
+                          <Download className="w-4 h-4 text-gray-700" />
                         </button>
                       </div>
                     </td>
@@ -765,7 +769,7 @@ const CompleteTaxationModule: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <select
-            value={selectedPeriod}
+            value={dateRange.startDate || '2024'
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)]"
           >
@@ -784,12 +788,12 @@ const CompleteTaxationModule: React.FC = () => {
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8">
           {[
-            { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3 },
+            { id: 'dashboard', label: t('dashboard.title'), icon: BarChart3 },
             { id: 'declarations', label: 'Déclarations', icon: FileText },
             { id: 'liasse', label: 'Liasse fiscale', icon: Archive },
             { id: 'payments', label: 'Paiements', icon: CreditCard },
             { id: 'schedule', label: 'Échéancier', icon: Calendar },
-            { id: 'settings', label: 'Paramètres', icon: Settings }
+            { id: 'settings', label: t('navigation.settings'), icon: Settings }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -797,7 +801,7 @@ const CompleteTaxationModule: React.FC = () => {
               className={`flex items-center gap-2 py-4 px-1 border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-700 hover:text-gray-700'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -816,6 +820,413 @@ const CompleteTaxationModule: React.FC = () => {
         {activeTab === 'schedule' && <div>Échéancier fiscal détaillé en cours de développement...</div>}
         {activeTab === 'settings' && <div>Paramètres fiscaux en cours de développement...</div>}
       </div>
+
+      {/* Declaration Modal */}
+      {showDeclarationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Nouvelle déclaration fiscale
+                    </h3>
+                    <p className="text-sm text-gray-700">Créer une nouvelle déclaration d'impôt</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDeclarationModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">Information importante</p>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Assurez-vous que tous les montants et informations sont corrects avant de soumettre la déclaration.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Type d'impôt <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner un type</option>
+                      <option value="TVA">TVA - Taxe sur la Valeur Ajoutée</option>
+                      <option value="IS">IS - Impôt sur les Sociétés</option>
+                      <option value="IRPP">IRPP - Impôt sur le Revenu</option>
+                      <option value="TSS">TSS - Taxe de Services Spéciaux</option>
+                      <option value="PATENTE">Patente</option>
+                      <option value="CF">Contribution Foncière</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Périodicité <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="mensuelle">Mensuelle</option>
+                      <option value="trimestrielle">Trimestrielle</option>
+                      <option value="annuelle">Annuelle</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Période concernée <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="ex: Janvier 2024, Q1 2024"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date d'échéance <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Montant dû (€) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Référence
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="TVA-2024-01"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mode de déclaration
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                      <input type="radio" name="mode" value="online" className="mr-3" defaultChecked />
+                      <div>
+                        <p className="font-medium text-sm">En ligne</p>
+                        <p className="text-xs text-gray-700">Télédéclaration</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                      <input type="radio" name="mode" value="paper" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Papier</p>
+                        <p className="text-xs text-gray-700">Format physique</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Documents justificatifs
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                    <Upload className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Cliquez pour charger ou glissez vos fichiers ici</p>
+                    <p className="text-xs text-gray-700 mt-1">PDF, Excel, Word (max 10 Mo)</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes et commentaires
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Informations complémentaires..."
+                  />
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-900">Rappel de conformité</p>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        Les déclarations fiscales doivent être transmises avant la date d'échéance pour éviter les pénalités.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeclarationModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 rounded-lg transition-colors">
+                Enregistrer brouillon
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
+                <Send className="w-4 h-4" />
+                Créer et soumettre
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Enregistrer un paiement
+                    </h3>
+                    <p className="text-sm text-gray-700">Ajouter un nouveau paiement d'impôt</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-green-900">Traçabilité des paiements</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        Enregistrez vos paiements pour un suivi précis de vos obligations fiscales.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Type d'impôt <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="TVA">TVA</option>
+                      <option value="IS">IS</option>
+                      <option value="IRPP">IRPP</option>
+                      <option value="TSS">TSS</option>
+                      <option value="PATENTE">Patente</option>
+                      <option value="CF">Contribution Foncière</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Période concernée <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="ex: Janvier 2024"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date de paiement <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Montant payé (€) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mode de paiement <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="payment-mode" value="virement" className="mr-3" defaultChecked />
+                      <div>
+                        <p className="font-medium text-sm">Virement bancaire</p>
+                        <p className="text-xs text-gray-700">Transfert électronique</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="payment-mode" value="cheque" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Chèque</p>
+                        <p className="text-xs text-gray-700">Paiement par chèque</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="payment-mode" value="prelevement" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Prélèvement</p>
+                        <p className="text-xs text-gray-700">Automatique</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                      <input type="radio" name="payment-mode" value="especes" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Espèces</p>
+                        <p className="text-xs text-gray-700">Paiement cash</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Référence de paiement <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+                      placeholder="VIR-2024-0001"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Statut
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="confirme">Confirmé</option>
+                      <option value="en-attente">{t('status.pending')}</option>
+                      <option value="rejete">Rejeté</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Justificatif de paiement
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-500 transition-colors cursor-pointer">
+                    <Receipt className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Charger le reçu ou justificatif</p>
+                    <p className="text-xs text-gray-700 mt-1">PDF, image (max 5 Mo)</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={2}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Informations complémentaires sur le paiement..."
+                  />
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <input type="checkbox" className="mt-1" id="link-declaration" />
+                  <label htmlFor="link-declaration" className="text-sm text-blue-900 cursor-pointer">
+                    Lier ce paiement à une déclaration existante
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Enregistrer le paiement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

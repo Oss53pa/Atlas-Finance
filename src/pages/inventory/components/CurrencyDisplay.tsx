@@ -73,17 +73,17 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
     <span className={`inline-flex items-center gap-1 ${getSizeClasses()} ${colorClass} ${className}`}>
       {isNegative && <span>-</span>}
       {showSymbol && IconComponent && (
-        <IconComponent className={`${getIconSize()} text-gray-500`} />
+        <IconComponent className={`${getIconSize()} text-gray-700`} />
       )}
       {showSymbol && !IconComponent && (
-        <span className="text-gray-500">{config.symbol}</span>
+        <span className="text-gray-700">{config.symbol}</span>
       )}
       <span className="font-mono">
         {!showSymbol && config.symbol !== currency && config.symbol}
         {formatAmount(absAmount)}
       </span>
       {showCode && (
-        <span className="text-gray-500 text-xs ml-1">
+        <span className="text-gray-700 text-xs ml-1">
           {currency}
         </span>
       )}

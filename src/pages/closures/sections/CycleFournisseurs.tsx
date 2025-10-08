@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
   Building,
@@ -104,6 +105,7 @@ interface Paiement {
 }
 
 const CycleFournisseurs: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedFournisseur, setSelectedFournisseur] = useState<Fournisseur | null>(null);
   const [filterStatut, setFilterStatut] = useState<string>('tous');
@@ -280,13 +282,13 @@ const CycleFournisseurs: React.FC = () => {
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
-      'brouillon': 'bg-gray-100 text-gray-800',
-      'validee': 'bg-blue-100 text-blue-800',
-      'approuvee': 'bg-green-100 text-green-800',
+      'brouillon': 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]',
+      'validee': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
+      'approuvee': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
       'payee': 'bg-purple-100 text-purple-800',
-      'litige': 'bg-red-100 text-red-800'
+      'litige': 'bg-[var(--color-error-lighter)] text-red-800'
     };
-    return variants[statut] || 'bg-gray-100 text-gray-800';
+    return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getWorkflowStep = (workflow: any) => {
@@ -306,11 +308,11 @@ const CycleFournisseurs: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Dettes</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Total Dettes</p>
                 <p className="text-2xl font-bold">{(kpis.totalDettes / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-red-600 mt-1">+8% vs mois dernier</p>
+                <p className="text-xs text-[var(--color-error)] mt-1">+8% vs mois dernier</p>
               </div>
-              <DollarSign className="w-8 h-8 text-red-500" />
+              <DollarSign className="w-8 h-8 text-[var(--color-error)]" />
             </div>
           </CardContent>
         </Card>
@@ -319,9 +321,9 @@ const CycleFournisseurs: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Dettes Échues</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Dettes Échues</p>
                 <p className="text-2xl font-bold">{(kpis.totalEchu / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-orange-600 mt-1">À régler en priorité</p>
+                <p className="text-xs text-[var(--color-warning)] mt-1">À régler en priorité</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-orange-500" />
             </div>
@@ -332,11 +334,11 @@ const CycleFournisseurs: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Commandes en cours</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Commandes en cours</p>
                 <p className="text-2xl font-bold">{kpis.commandesEnCours}</p>
-                <p className="text-xs text-blue-600 mt-1">En attente livraison</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">En attente livraison</p>
               </div>
-              <Package className="w-8 h-8 text-blue-500" />
+              <Package className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -345,11 +347,11 @@ const CycleFournisseurs: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Fournisseurs Actifs</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Fournisseurs Actifs</p>
                 <p className="text-2xl font-bold">{kpis.nombreFournisseursActifs}</p>
-                <p className="text-xs text-green-600 mt-1">Contrats valides</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">Contrats valides</p>
               </div>
-              <Building className="w-8 h-8 text-green-500" />
+              <Building className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -384,29 +386,29 @@ const CycleFournisseurs: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-5 gap-4">
-                  <div className="text-center p-3 bg-red-50 rounded">
-                    <p className="text-sm text-gray-600">En retard</p>
-                    <p className="text-xl font-bold text-red-600">12.5M</p>
+                  <div className="text-center p-3 bg-[var(--color-error-lightest)] rounded">
+                    <p className="text-sm text-[var(--color-text-primary)]">En retard</p>
+                    <p className="text-xl font-bold text-[var(--color-error)]">12.5M</p>
                     <p className="text-xs">3 factures</p>
                   </div>
                   <div className="text-center p-3 bg-orange-50 rounded">
-                    <p className="text-sm text-gray-600">Cette semaine</p>
-                    <p className="text-xl font-bold text-orange-600">25.8M</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Cette semaine</p>
+                    <p className="text-xl font-bold text-[var(--color-warning)]">25.8M</p>
                     <p className="text-xs">7 factures</p>
                   </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded">
-                    <p className="text-sm text-gray-600">Semaine prochaine</p>
-                    <p className="text-xl font-bold text-yellow-600">18.3M</p>
+                  <div className="text-center p-3 bg-[var(--color-warning-lightest)] rounded">
+                    <p className="text-sm text-[var(--color-text-primary)]">Semaine prochaine</p>
+                    <p className="text-xl font-bold text-[var(--color-warning)]">18.3M</p>
                     <p className="text-xs">5 factures</p>
                   </div>
-                  <div className="text-center p-3 bg-blue-50 rounded">
-                    <p className="text-sm text-gray-600">Ce mois</p>
-                    <p className="text-xl font-bold text-blue-600">45.2M</p>
+                  <div className="text-center p-3 bg-[var(--color-primary-lightest)] rounded">
+                    <p className="text-sm text-[var(--color-text-primary)]">Ce mois</p>
+                    <p className="text-xl font-bold text-[var(--color-primary)]">45.2M</p>
                     <p className="text-xs">12 factures</p>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded">
-                    <p className="text-sm text-gray-600">Plus tard</p>
-                    <p className="text-xl font-bold text-green-600">28.9M</p>
+                  <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
+                    <p className="text-sm text-[var(--color-text-primary)]">Plus tard</p>
+                    <p className="text-xl font-bold text-[var(--color-success)]">28.9M</p>
                     <p className="text-xs">8 factures</p>
                   </div>
                 </div>
@@ -421,14 +423,14 @@ const CycleFournisseurs: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {mockFournisseurs.map(fournisseur => (
-                  <div key={fournisseur.id} className="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
+                  <div key={fournisseur.id} className="flex items-center justify-between p-3 border rounded hover:bg-[var(--color-background-secondary)]">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                         <Building className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
                         <p className="font-medium">{fournisseur.nom}</p>
-                        <p className="text-sm text-gray-500">{fournisseur.categorie} • {fournisseur.pays}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{fournisseur.categorie} • {fournisseur.pays}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -438,7 +440,7 @@ const CycleFournisseurs: React.FC = () => {
                           <div
                             key={i}
                             className={`w-2 h-2 rounded-full ${
-                              i < Math.floor(fournisseur.evaluation) ? 'bg-yellow-400' : 'bg-gray-200'
+                              i < Math.floor(fournisseur.evaluation) ? 'bg-yellow-400' : 'bg-[var(--color-border)]'
                             }`}
                           />
                         ))}
@@ -456,7 +458,7 @@ const CycleFournisseurs: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
                   placeholder="Rechercher..."
@@ -471,7 +473,7 @@ const CycleFournisseurs: React.FC = () => {
                 onChange={(e) => setFilterStatut(e.target.value)}
               >
                 <option value="tous">Tous les statuts</option>
-                <option value="brouillon">Brouillon</option>
+                <option value="brouillon">{t('accounting.draft')}</option>
                 <option value="validee">Validée</option>
                 <option value="approuvee">Approuvée</option>
                 <option value="payee">Payée</option>
@@ -479,11 +481,11 @@ const CycleFournisseurs: React.FC = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Upload className="w-4 h-4" />
                 Importer
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Receipt className="w-4 h-4" />
                 Nouvelle Facture
               </button>
@@ -493,40 +495,40 @@ const CycleFournisseurs: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Fournisseur</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">N° Facture</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Échéance</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Montant TTC</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Solde</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Workflow</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Fournisseur</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">N° Facture</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Échéance</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Montant TTC</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">{t('accounting.balance')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Workflow</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {facturesFiltrees.map(facture => (
-                    <tr key={facture.id} className="border-t hover:bg-gray-50">
+                    <tr key={facture.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <p className="font-medium">{facture.fournisseurNom}</p>
                       </td>
                       <td className="px-4 py-3">
                         <p>{facture.numeroFacture}</p>
                         {facture.numeroBonCommande && (
-                          <p className="text-xs text-gray-500">BC: {facture.numeroBonCommande}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">BC: {facture.numeroBonCommande}</p>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <p>{new Date(facture.dateEcheance).toLocaleDateString()}</p>
                         {new Date(facture.dateEcheance) < new Date() && (
-                          <p className="text-xs text-red-600">En retard</p>
+                          <p className="text-xs text-[var(--color-error)]">En retard</p>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right font-medium">
                         {(facture.montantTTC / 1000000).toFixed(2)}M
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-red-600">
+                      <td className="px-4 py-3 text-right font-medium text-[var(--color-error)]">
                         {(facture.solde / 1000000).toFixed(2)}M
                       </td>
                       <td className="px-4 py-3">
@@ -542,8 +544,8 @@ const CycleFournisseurs: React.FC = () => {
                               key={step.key}
                               className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                                 facture.workflow[step.key as keyof typeof facture.workflow]
-                                  ? 'bg-green-100 text-green-600'
-                                  : 'bg-gray-100 text-gray-400'
+                                  ? 'bg-[var(--color-success-lighter)] text-[var(--color-success)]'
+                                  : 'bg-[var(--color-background-hover)] text-[var(--color-text-secondary)]'
                               }`}
                             >
                               {step.label}
@@ -558,11 +560,11 @@ const CycleFournisseurs: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <CheckCircle className="w-4 h-4 text-green-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Valider">
+                            <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                           </button>
                         </div>
                       </td>
@@ -579,7 +581,7 @@ const CycleFournisseurs: React.FC = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Bons de Commande</CardTitle>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Package className="w-4 h-4" />
                 Nouvelle Commande
               </button>
@@ -587,31 +589,31 @@ const CycleFournisseurs: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {mockBonsCommande.map(commande => (
-                  <div key={commande.id} className="p-4 border rounded-lg hover:bg-gray-50">
+                  <div key={commande.id} className="p-4 border rounded-lg hover:bg-[var(--color-background-secondary)]">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-medium">{commande.numero}</p>
-                        <p className="text-sm text-gray-600">{commande.fournisseurNom}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{commande.fournisseurNom}</p>
                       </div>
                       <Badge className={
-                        commande.statut === 'confirme' ? 'bg-green-100 text-green-800' :
-                        commande.statut === 'envoye' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
+                        commande.statut === 'confirme' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                        commande.statut === 'envoye' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                        'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                       }>
                         {commande.statut}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-3 gap-4 mt-3">
                       <div>
-                        <p className="text-xs text-gray-500">Date commande</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Date commande</p>
                         <p className="text-sm">{new Date(commande.dateCommande).toLocaleDateString()}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">Livraison prévue</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Livraison prévue</p>
                         <p className="text-sm">{new Date(commande.dateLivraisonPrevue).toLocaleDateString()}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">Montant</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Montant</p>
                         <p className="text-sm font-medium">{(commande.montantTotal / 1000000).toFixed(1)}M FCFA</p>
                       </div>
                     </div>
@@ -654,16 +656,16 @@ const CycleFournisseurs: React.FC = () => {
                       {mockFactures
                         .filter(f => f.solde > 0)
                         .map(facture => (
-                          <div key={facture.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                          <div key={facture.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded">
                             <div>
                               <p className="font-medium">{facture.fournisseurNom}</p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-[var(--color-text-primary)]">
                                 Échéance: {new Date(facture.dateEcheance).toLocaleDateString()}
                               </p>
                             </div>
                             <div className="text-right">
                               <p className="font-bold">{(facture.solde / 1000000).toFixed(1)}M</p>
-                              <button className="text-xs text-blue-600 hover:underline">
+                              <button className="text-xs text-[var(--color-primary)] hover:underline">
                                 Planifier
                               </button>
                             </div>
@@ -677,20 +679,20 @@ const CycleFournisseurs: React.FC = () => {
                     <div className="space-y-3">
                       <div className="p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
-                          <CreditCard className="w-5 h-5 text-blue-500" />
+                          <CreditCard className="w-5 h-5 text-[var(--color-primary)]" />
                           <div className="flex-1">
                             <p className="font-medium">Virement bancaire</p>
-                            <p className="text-sm text-gray-600">Délai: 1-2 jours</p>
+                            <p className="text-sm text-[var(--color-text-primary)]">Délai: 1-2 jours</p>
                           </div>
-                          <Badge className="bg-green-100 text-green-800">Recommandé</Badge>
+                          <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">Recommandé</Badge>
                         </div>
                       </div>
                       <div className="p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-gray-500" />
+                          <FileText className="w-5 h-5 text-[var(--color-text-secondary)]" />
                           <div className="flex-1">
                             <p className="font-medium">Chèque</p>
-                            <p className="text-sm text-gray-600">Délai: 3-5 jours</p>
+                            <p className="text-sm text-[var(--color-text-primary)]">Délai: 3-5 jours</p>
                           </div>
                         </div>
                       </div>
@@ -726,7 +728,7 @@ const CycleFournisseurs: React.FC = () => {
                         <p className="text-sm font-medium">{item.step}</p>
                       </div>
                       {index < 4 && (
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                        <ChevronRight className="w-5 h-5 text-[var(--color-text-secondary)]" />
                       )}
                     </React.Fragment>
                   ))}
@@ -739,11 +741,11 @@ const CycleFournisseurs: React.FC = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-sm">Validation</span>
-                          <Badge className="bg-yellow-100">3</Badge>
+                          <Badge className="bg-[var(--color-warning-lighter)]">3</Badge>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm">Approbation</span>
-                          <Badge className="bg-orange-100">5</Badge>
+                          <Badge className="bg-[var(--color-warning-lighter)]">5</Badge>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm">Comptabilisation</span>
@@ -763,11 +765,11 @@ const CycleFournisseurs: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm">Taux d'approbation</span>
-                          <span className="font-medium text-green-600">94%</span>
+                          <span className="font-medium text-[var(--color-success)]">94%</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm">Litiges en cours</span>
-                          <span className="font-medium text-red-600">2</span>
+                          <span className="font-medium text-[var(--color-error)]">2</span>
                         </div>
                       </div>
                     </CardContent>
@@ -798,7 +800,7 @@ const CycleFournisseurs: React.FC = () => {
                               <div
                                 key={i}
                                 className={`w-3 h-3 rounded-full ${
-                                  i < Math.floor(fournisseur.evaluation) ? 'bg-yellow-400' : 'bg-gray-200'
+                                  i < Math.floor(fournisseur.evaluation) ? 'bg-yellow-400' : 'bg-[var(--color-border)]'
                                 }`}
                               />
                             ))}
@@ -806,15 +808,15 @@ const CycleFournisseurs: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-xs">
                           <div>
-                            <p className="text-gray-500">Délai livraison</p>
+                            <p className="text-[var(--color-text-secondary)]">Délai livraison</p>
                             <p className="font-medium">{fournisseur.delaiLivraison}j</p>
                           </div>
                           <div>
-                            <p className="text-gray-500">Volume/an</p>
+                            <p className="text-[var(--color-text-secondary)]">Volume/an</p>
                             <p className="font-medium">{(fournisseur.volumeAchats / 1000000).toFixed(0)}M</p>
                           </div>
                           <div>
-                            <p className="text-gray-500">Conditions</p>
+                            <p className="text-[var(--color-text-secondary)]">Conditions</p>
                             <p className="font-medium">{fournisseur.delaiPaiement}j</p>
                           </div>
                         </div>

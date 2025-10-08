@@ -3,6 +3,7 @@
  * Interface complète avec workflow de validation selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   CreditCard,
@@ -107,6 +108,7 @@ interface FundCall {
 }
 
 const FundCallsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [viewMode, setViewMode] = useState<'payables' | 'fund-calls' | 'workflow'>('payables');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [proposedPayments, setProposedPayments] = useState<PayableItem[]>([]);
@@ -311,7 +313,7 @@ const FundCallsPage: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'BROUILLON':
-        return <Badge className="bg-gray-100 text-gray-800">Brouillon</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">{t('accounting.draft')}</Badge>;
       case 'SOUMIS':
         return <Badge className="bg-[#6A8A82]/10 text-[#6A8A82]">Soumis</Badge>;
       case 'APPROUVE':
@@ -337,7 +339,7 @@ const FundCallsPage: React.FC = () => {
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(totalOutstanding)}
                 </p>
-                <p className="text-sm text-gray-500">{payables?.length} factures</p>
+                <p className="text-sm text-gray-700">{payables?.length} factures</p>
               </div>
               <CreditCard className="h-8 w-8 text-red-600" />
             </div>
@@ -352,7 +354,7 @@ const FundCallsPage: React.FC = () => {
                 <p className="text-2xl font-bold text-[#6A8A82]">
                   {formatCurrency(selectedAmount)}
                 </p>
-                <p className="text-sm text-gray-500">{proposedPayments.length} éléments</p>
+                <p className="text-sm text-gray-700">{proposedPayments.length} éléments</p>
               </div>
               <ArrowDownToLine className="h-8 w-8 text-[#6A8A82]" />
             </div>
@@ -367,7 +369,7 @@ const FundCallsPage: React.FC = () => {
                 <p className="text-2xl font-bold text-orange-600">
                   {payables?.filter(p => p.arrearsAging > 0).length || 0}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-700">
                   {formatCurrency(payables?.filter(p => p.arrearsAging > 0)
                     .reduce((sum, p) => sum + p.outstanding, 0) || 0)}
                 </p>
@@ -385,7 +387,7 @@ const FundCallsPage: React.FC = () => {
                 <p className="text-2xl font-bold text-red-600">
                   {payables?.filter(p => p.priority === 'CRITICAL').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">Paiement urgent</p>
+                <p className="text-sm text-gray-700">Paiement urgent</p>
               </div>
               <AlertCircle className="h-8 w-8 text-red-600" />
             </div>
@@ -399,7 +401,7 @@ const FundCallsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-700" />
                 <Input
                   placeholder="Rechercher fournisseur ou facture..."
                   className="pl-10 w-80"
@@ -466,7 +468,7 @@ const FundCallsPage: React.FC = () => {
                   <TableHead>Référence</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Montant Dû</TableHead>
-                  <TableHead className="text-right">Solde</TableHead>
+                  <TableHead className="text-right">{t('accounting.balance')}</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead className="text-right">Retard (jours)</TableHead>
                   <TableHead>Priorité</TableHead>
@@ -505,7 +507,7 @@ const FundCallsPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <div className="font-medium">{item.vendor}</div>
-                          <div className="text-sm text-gray-500">{item.vendorCode}</div>
+                          <div className="text-sm text-gray-700">{item.vendorCode}</div>
                         </TableCell>
                         <TableCell>{item.documentDate.toLocaleDateString('fr-FR')}</TableCell>
                         <TableCell className="font-mono text-sm">{item.documentNumber}</TableCell>
@@ -576,11 +578,11 @@ const FundCallsPage: React.FC = () => {
                   <TableRow key={item.id}>
                     <TableCell>
                       <div className="font-medium">{item.vendor}</div>
-                      <div className="text-sm text-gray-500">{item.vendorCode}</div>
+                      <div className="text-sm text-gray-700">{item.vendorCode}</div>
                     </TableCell>
                     <TableCell>
                       <div className="font-mono text-sm">{item.documentNumber}</div>
-                      <div className="text-xs text-gray-500">{item.documentDate.toLocaleDateString('fr-FR')}</div>
+                      <div className="text-xs text-gray-700">{item.documentDate.toLocaleDateString('fr-FR')}</div>
                     </TableCell>
                     <TableCell className="max-w-48 truncate">{item.description}</TableCell>
                     <TableCell className="text-right font-mono font-semibold">
@@ -645,7 +647,7 @@ const FundCallsPage: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Référence</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>{t('common.date')}</TableHead>
               <TableHead>Demandeur</TableHead>
               <TableHead className="text-right">Montant</TableHead>
               <TableHead>Statut</TableHead>
@@ -659,12 +661,12 @@ const FundCallsPage: React.FC = () => {
               <TableRow key={fundCall.id} className="hover:bg-slate-50">
                 <TableCell>
                   <div className="font-mono font-medium">{fundCall.reference}</div>
-                  <div className="text-sm text-gray-500">{fundCall.items.length} éléments</div>
+                  <div className="text-sm text-gray-700">{fundCall.items.length} éléments</div>
                 </TableCell>
                 <TableCell>{fundCall.date.toLocaleDateString('fr-FR')}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-500" />
+                    <User className="h-4 w-4 text-gray-700" />
                     {fundCall.requestedBy}
                   </div>
                 </TableCell>
@@ -821,7 +823,7 @@ const FundCallsPage: React.FC = () => {
                     <div className={`rounded-full p-2 border-2 ${
                       stage.status === 'completed' ? 'bg-green-600 border-green-600 text-white' :
                       stage.status === 'pending' ? 'bg-blue-600 border-blue-600 text-white' :
-                      'bg-white border-gray-300 text-gray-400'
+                      'bg-white border-gray-300 text-gray-700'
                     }`}>
                       <Icon className="h-4 w-4" />
                     </div>

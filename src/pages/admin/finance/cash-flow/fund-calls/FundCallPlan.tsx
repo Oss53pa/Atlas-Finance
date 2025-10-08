@@ -46,6 +46,7 @@ const useLoading = () => ({
 });
 
 export const FundCallPlan: React.FC = () => {
+  const { t } = useLanguage();
   const { center, financialYear } = useCenter();
   const { language } = useLanguage();
   const { id_fund_call } = useParams<RouteParams>();
@@ -358,7 +359,7 @@ export const FundCallPlan: React.FC = () => {
             <div className="col-md-3">
               <div className="card bg-light">
                 <div className="card-body text-center">
-                  <h6>Fournisseurs</h6>
+                  <h6>{t('navigation.suppliers')}</h6>
                   <h4 className="text-info">{Object.keys(groupedSelectedInvoices).length}</h4>
                 </div>
               </div>

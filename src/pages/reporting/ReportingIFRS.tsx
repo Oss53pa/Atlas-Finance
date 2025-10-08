@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -87,6 +88,7 @@ interface ReportModal {
 }
 
 const ReportingIFRS: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -499,7 +501,7 @@ const ReportingIFRS: React.FC = () => {
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
                   >
                     <option value="all">Tous les statuts</option>
-                    <option value="draft">Brouillon</option>
+                    <option value="draft">{t('accounting.draft')}</option>
                     <option value="review">En révision</option>
                     <option value="approved">Approuvé</option>
                     <option value="published">Publié</option>
@@ -599,7 +601,7 @@ const ReportingIFRS: React.FC = () => {
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
-                              <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors">
+                              <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Télécharger">
                                 <Download className="h-4 w-4" />
                               </button>
                             </div>

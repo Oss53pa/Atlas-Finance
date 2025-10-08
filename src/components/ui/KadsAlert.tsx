@@ -45,10 +45,10 @@ const KadsAlert: React.FC<KadsAlertProps> = ({
       icon: AlertTriangle
     },
     info: {
-      bgClass: 'bg-blue-50 border-blue-400',
-      iconClass: 'text-blue-600',
-      textClass: 'text-blue-700',
-      actionClass: 'text-blue-700 hover:text-blue-800',
+      bgClass: 'bg-[#6A8A82]/10 border-[#6A8A82]/40',
+      iconClass: 'text-[#6A8A82]',
+      textClass: 'text-[#6A8A82]',
+      actionClass: 'text-[#6A8A82] hover:text-[#5A7A72]',
       icon: Info
     }
   };
@@ -70,7 +70,7 @@ const KadsAlert: React.FC<KadsAlertProps> = ({
                 {title}
               </h3>
               {time && (
-                <span className="text-xs text-gray-400 flex items-center space-x-1">
+                <span className="text-xs text-gray-700 flex items-center space-x-1">
                   <Clock className="w-3 h-3" />
                   <span>Il y a {time}</span>
                 </span>
@@ -95,8 +95,7 @@ const KadsAlert: React.FC<KadsAlertProps> = ({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className={`${config.iconClass} hover:opacity-75 transition-opacity ml-3`}
-          >
+            className={`${config.iconClass} hover:opacity-75 transition-opacity ml-3`} aria-label="Fermer">
             <X className="w-4 h-4" />
           </button>
         )}

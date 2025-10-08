@@ -108,7 +108,7 @@ const EmailTemplate: React.FC = () => {
           <p className="text-sm">
             © 2025 WiseBook ERP - Praedium Tech
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-700">
             Système conforme SYSCOHADA | Sécurisé et auditable
           </p>
         </div>

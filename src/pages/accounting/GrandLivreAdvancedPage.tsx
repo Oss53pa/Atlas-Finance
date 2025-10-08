@@ -11,7 +11,6 @@ import {
   ShareIcon,
   StarIcon,
   ClockIcon,
-  TreeIcon,
   ViewColumnsIcon,
   TableCellsIcon,
   AdjustmentsHorizontalIcon,
@@ -286,28 +285,28 @@ const GrandLivreAdvancedPage: React.FC = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Compte
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Libellé
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Débit
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Crédit
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Journal
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Référence
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -344,40 +343,54 @@ const GrandLivreAdvancedPage: React.FC = () => {
                   {parseFloat(entry.debit_amount) > 0 ? (
                     <span className="text-green-600 font-medium">{formatAmount(entry.debit_amount)}</span>
                   ) : (
-                    <span className="text-gray-400">-</span>
+                    <span className="text-gray-700">-</span>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                   {parseFloat(entry.credit_amount) > 0 ? (
                     <span className="text-red-600 font-medium">{formatAmount(entry.credit_amount)}</span>
                   ) : (
-                    <span className="text-gray-400">-</span>
+                    <span className="text-gray-700">-</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
                     {entry.journal_code}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   {entry.document_reference}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <div className="flex justify-center space-x-1">
                     <button
-                      className="p-1 text-gray-400 hover:text-blue-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedEntry(entry);
+                      }}
+                      className="p-1 text-gray-700 hover:text-blue-600"
                       title="Voir détails"
                     >
                       <EyeIcon className="h-4 w-4" />
                     </button>
                     <button
-                      className="p-1 text-gray-400 hover:text-yellow-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAnnotations(true);
+                        setSelectedEntry(entry);
+                      }}
+                      className="p-1 text-gray-700 hover:text-yellow-600"
                       title="Annoter"
                     >
                       <ChatBubbleLeftEllipsisIcon className="h-4 w-4" />
                     </button>
                     <button
-                      className="p-1 text-gray-400 hover:text-green-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(`${entry.account_number} - ${entry.account_label}`);
+                        alert('Copié dans le presse-papiers');
+                      }}
+                      className="p-1 text-gray-700 hover:text-green-600"
                       title="Partager"
                     >
                       <ShareIcon className="h-4 w-4" />
@@ -393,15 +406,22 @@ const GrandLivreAdvancedPage: React.FC = () => {
       {/* Pagination */}
       <div className="px-6 py-3 border-t bg-gray-50">
         <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-700">
             Affichage de 1 à {Math.min(50, searchResults!.total_count)} sur {searchResults!.total_count} résultats
           </div>
           <div className="flex space-x-2">
-            <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+            <button
+              onClick={() => console.log('Page précédente')}
+              disabled
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Précédent
             </button>
             <span className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded">1</span>
-            <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+            <button
+              onClick={() => console.log('Page suivante')}
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
               Suivant
             </button>
           </div>
@@ -489,7 +509,7 @@ const GrandLivreAdvancedPage: React.FC = () => {
             {[
               { mode: 'table', icon: TableCellsIcon, label: 'Tableau' },
               { mode: 'timeline', icon: ClockIcon, label: 'Chronologique' },
-              { mode: 'hierarchy', icon: TreeIcon, label: 'Hiérarchique' },
+              { mode: 'hierarchy', icon: ChartBarIcon, label: 'Hiérarchique' },
               { mode: 'analytics', icon: ChartBarIcon, label: 'Analytique' },
               { mode: 'kanban', icon: ViewColumnsIcon, label: 'Kanban' },
               { mode: 'heatmap', icon: AdjustmentsHorizontalIcon, label: 'Heatmap' }
@@ -511,7 +531,7 @@ const GrandLivreAdvancedPage: React.FC = () => {
           </div>
 
           {searchResults && (
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
+            <div className="flex items-center space-x-4 text-sm text-gray-700">
               <div className="flex items-center space-x-1">
                 <ClockIcon className="h-4 w-4" />
                 <span>{lastSearchTime}ms</span>
@@ -555,7 +575,7 @@ const GrandLivreAdvancedPage: React.FC = () => {
               <div className="bg-white rounded-lg border p-12 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">Recherche en cours...</p>
-                <p className="text-xs text-gray-400 mt-1">Analyse intelligente des {searchQuery ? '2,500,000+' : '0'} écritures</p>
+                <p className="text-xs text-gray-700 mt-1">Analyse intelligente des {searchQuery ? '2,500,000+' : '0'} écritures</p>
               </div>
             ) : searchResults ? (
               renderSearchResults()
@@ -566,7 +586,7 @@ const GrandLivreAdvancedPage: React.FC = () => {
                 <p className="text-gray-600 mb-6">
                   Recherchez dans plus de 2,5 millions d'écritures avec une performance sub-seconde
                 </p>
-                <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-sm text-gray-500">
+                <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-sm text-gray-700">
                   <div className="flex items-center space-x-2">
                     <MagnifyingGlassIcon className="h-4 w-4 text-blue-500" />
                     <span>Recherche intelligente</span>

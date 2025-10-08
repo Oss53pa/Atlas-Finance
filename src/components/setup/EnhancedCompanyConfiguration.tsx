@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { toast } from 'react-hot-toast';
 import {
   BuildingOfficeIcon,
   PhotoIcon,
@@ -23,26 +24,26 @@ import {
 } from '@heroicons/react/24/outline';
 
 const companySchema = z.object({
-  // Informations juridiques
-  raisonSociale: z.string().min(2, 'Raison sociale obligatoire'),
+  // Informations juridiques - Seuls les champs essentiels sont obligatoires
+  raisonSociale: z.string().min(2, 'Raison sociale obligatoire').optional().or(z.literal('')),
   nomCommercial: z.string().optional(),
-  formeJuridique: z.enum(['SA', 'SARL', 'SAS', 'EI', 'GIE', 'COOP', 'ASSOC', 'SNC', 'SCS', 'GCV', 'SEP']),
-  capital: z.number().min(0, 'Capital obligatoire'),
-  dateCreation: z.string().min(1, 'Date de création obligatoire'),
+  formeJuridique: z.enum(['SA', 'SARL', 'SAS', 'EI', 'GIE', 'COOP', 'ASSOC', 'SNC', 'SCS', 'GCV', 'SEP']).optional(),
+  capital: z.number().min(0).optional(),
+  dateCreation: z.string().optional(),
 
   // Identifiants légaux
-  rccm: z.string().min(1, 'RCCM obligatoire'),
-  nif: z.string().min(1, 'NIF obligatoire'),
+  rccm: z.string().optional(),
+  nif: z.string().optional(),
   numeroContribuable: z.string().optional(),
   cnps: z.string().optional(),
   patente: z.string().optional(),
 
   // Localisation
-  pays: z.string().min(1, 'Pays obligatoire'),
+  pays: z.string().optional(),
   region: z.string().optional(),
-  ville: z.string().min(2, 'Ville obligatoire'),
+  ville: z.string().optional(),
   quartier: z.string().optional(),
-  adresse: z.string().min(5, 'Adresse obligatoire'),
+  adresse: z.string().optional(),
   boitePostale: z.string().optional(),
   codePostal: z.string().optional(),
   coordonneesGPS: z.object({
@@ -51,12 +52,12 @@ const companySchema = z.object({
   }).optional(),
 
   // Contacts
-  telephone1: z.string().min(8, 'Téléphone principal obligatoire'),
+  telephone1: z.string().optional(),
   telephone2: z.string().optional(),
   mobile: z.string().optional(),
   fax: z.string().optional(),
-  email: z.string().email('Email invalide'),
-  emailComptabilite: z.string().email().optional(),
+  email: z.string().email('Email invalide').optional().or(z.literal('')),
+  emailComptabilite: z.string().email().optional().or(z.literal('')),
   siteWeb: z.string().url().optional().or(z.literal('')),
 
   // Réseaux sociaux
@@ -65,10 +66,10 @@ const companySchema = z.object({
   twitter: z.string().optional(),
 
   // Données économiques
-  secteurActivite: z.string().min(1, 'Secteur obligatoire'),
-  activitePrincipale: z.string().min(5, 'Description activité obligatoire'),
-  effectif: z.number().min(1, 'Effectif obligatoire'),
-  chiffreAffaires: z.number().min(0, 'CA obligatoire'),
+  secteurActivite: z.string().optional(),
+  activitePrincipale: z.string().optional(),
+  effectif: z.number().min(0).optional(),
+  chiffreAffaires: z.number().min(0).optional(),
 
   // Identité visuelle
   logo: z.any().optional(),
@@ -248,28 +249,40 @@ const EnhancedCompanyConfiguration: React.FC = () => {
 
   const onSubmit = (data: CompanyFormData) => {
     console.log('Configuration entreprise:', data);
-    alert('Configuration enregistrée avec succès !');
+    toast.success('Configuration enregistrée avec succès !', {
+      duration: 4000,
+      position: 'top-right',
+    });
+  };
+
+  const onError = (errors: any) => {
+    console.error('Erreurs de validation:', errors);
+    const firstError = Object.values(errors)[0] as any;
+    toast.error(firstError?.message || 'Veuillez corriger les erreurs du formulaire', {
+      duration: 4000,
+      position: 'top-right',
+    });
   };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* En-tête */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
+      <div className="bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)] mb-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-              <BuildingOfficeIcon className="h-8 w-8 mr-3 text-indigo-600" />
+            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center">
+              <BuildingOfficeIcon className="h-8 w-8 mr-3 text-[var(--color-primary)]" />
               Configuration de l'Entreprise
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-[var(--color-text-secondary)] mt-2">
               Configuration complète avec support multi-pays et identité visuelle
             </p>
           </div>
           {selectedCountry && africanCountries[selectedCountry as keyof typeof africanCountries] && (
             <div className="text-right">
-              <div className="text-sm text-gray-500">Pays sélectionné</div>
-              <div className="text-lg font-semibold text-indigo-600">{selectedCountry}</div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-[var(--color-text-tertiary)]">Pays sélectionné</div>
+              <div className="text-lg font-semibold text-[var(--color-primary)]">{selectedCountry}</div>
+              <div className="text-sm text-[var(--color-text-secondary)]">
                 Devise: {africanCountries[selectedCountry as keyof typeof africanCountries].devise}
                 ({africanCountries[selectedCountry as keyof typeof africanCountries].zone})
               </div>
@@ -279,16 +292,16 @@ const EnhancedCompanyConfiguration: React.FC = () => {
       </div>
 
       {/* Onglets */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div className="flex flex-wrap border-b border-gray-200">
+      <div className="bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)] mb-6">
+        <div className="flex flex-wrap border-b border-[var(--color-border)]">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
             >
               <tab.icon className="h-5 w-5 mr-2" />
@@ -297,13 +310,13 @@ const EnhancedCompanyConfiguration: React.FC = () => {
           ))}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="p-6">
           {/* Tab: Informations Juridiques */}
           {activeTab === 'juridique' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Raison sociale *
                   </label>
                   <Controller
@@ -314,17 +327,17 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="text"
                         placeholder="WISEBOOK SARL"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.raisonSociale && (
-                    <p className="text-red-600 text-sm mt-1">{errors.raisonSociale.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.raisonSociale.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Nom commercial
                   </label>
                   <Controller
@@ -335,14 +348,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="text"
                         placeholder="WiseBook Pro"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Forme juridique *
                   </label>
                   <Controller
@@ -351,7 +364,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                     render={({ field }) => (
                       <select
                         {...field}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       >
                         <option value="SARL">SARL - Société à Responsabilité Limitée</option>
                         <option value="SA">SA - Société Anonyme</option>
@@ -370,7 +383,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Capital social *
                   </label>
                   <Controller
@@ -383,17 +396,17 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         min="0"
                         placeholder="1000000"
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.capital && (
-                    <p className="text-red-600 text-sm mt-1">{errors.capital.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.capital.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Date de création *
                   </label>
                   <Controller
@@ -403,17 +416,17 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="date"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.dateCreation && (
-                    <p className="text-red-600 text-sm mt-1">{errors.dateCreation.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.dateCreation.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Type d'entreprise
                   </label>
                   <Controller
@@ -422,7 +435,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                     render={({ field }) => (
                       <select
                         {...field}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       >
                         <option value="TPE">TPE - Très Petite Entreprise</option>
                         <option value="PME">PME - Petite et Moyenne Entreprise</option>
@@ -435,15 +448,15 @@ const EnhancedCompanyConfiguration: React.FC = () => {
               </div>
 
               {/* Identifiants légaux */}
-              <div className="bg-blue-50 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+              <div className="bg-[var(--color-info-light)] rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-[var(--color-info)] mb-4 flex items-center">
                   <IdentificationIcon className="h-5 w-5 mr-2" />
                   Identifiants Légaux
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      RCCM * <span className="text-xs text-gray-500">(Registre du Commerce)</span>
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                      RCCM * <span className="text-xs text-[var(--color-text-tertiary)]">(Registre du Commerce)</span>
                     </label>
                     <Controller
                       name="rccm"
@@ -453,18 +466,18 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="RC/YAE/2024/B/1234"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
                     {errors.rccm && (
-                      <p className="text-red-600 text-sm mt-1">{errors.rccm.message}</p>
+                      <p className="text-[var(--color-error)] text-sm mt-1">{errors.rccm.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      NIF * <span className="text-xs text-gray-500">(Numéro d'Identification Fiscale)</span>
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                      NIF * <span className="text-xs text-[var(--color-text-tertiary)]">(Numéro d'Identification Fiscale)</span>
                     </label>
                     <Controller
                       name="nif"
@@ -474,17 +487,17 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="M051234567890"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
                     {errors.nif && (
-                      <p className="text-red-600 text-sm mt-1">{errors.nif.message}</p>
+                      <p className="text-[var(--color-error)] text-sm mt-1">{errors.nif.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                       Numéro contribuable
                     </label>
                     <Controller
@@ -495,15 +508,15 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="P051234567890C"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      CNPS <span className="text-xs text-gray-500">(Caisse Nationale de Prévoyance Sociale)</span>
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                      CNPS <span className="text-xs text-[var(--color-text-tertiary)]">(Caisse Nationale de Prévoyance Sociale)</span>
                     </label>
                     <Controller
                       name="cnps"
@@ -513,14 +526,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="123456789"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                       Patente
                     </label>
                     <Controller
@@ -531,7 +544,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="PAT2024/1234"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
@@ -546,8 +559,8 @@ const EnhancedCompanyConfiguration: React.FC = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pays * <span className="text-xs text-gray-500">(54 pays africains)</span>
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                    Pays * <span className="text-xs text-[var(--color-text-tertiary)]">(54 pays africains)</span>
                   </label>
                   <Controller
                     name="pays"
@@ -559,7 +572,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           field.onChange(e);
                           setSelectedCountry(e.target.value);
                         }}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       >
                         <optgroup label="Zone CEMAC (XAF)">
                           {Object.entries(africanCountries)
@@ -619,12 +632,12 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                     )}
                   />
                   {errors.pays && (
-                    <p className="text-red-600 text-sm mt-1">{errors.pays.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.pays.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Région/Province
                   </label>
                   <Controller
@@ -635,14 +648,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="text"
                         placeholder="Centre"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Ville *
                   </label>
                   <Controller
@@ -653,17 +666,17 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="text"
                         placeholder="Yaoundé"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.ville && (
-                    <p className="text-red-600 text-sm mt-1">{errors.ville.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.ville.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Quartier
                   </label>
                   <Controller
@@ -674,14 +687,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="text"
                         placeholder="Bastos"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Adresse complète *
                   </label>
                   <Controller
@@ -692,17 +705,17 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         rows={3}
                         placeholder="Rue, Numéro, Repères..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.adresse && (
-                    <p className="text-red-600 text-sm mt-1">{errors.adresse.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.adresse.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Boîte postale
                   </label>
                   <Controller
@@ -713,14 +726,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="text"
                         placeholder="BP 1234"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Code postal
                   </label>
                   <Controller
@@ -731,7 +744,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="text"
                         placeholder="00237"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
@@ -745,11 +758,11 @@ const EnhancedCompanyConfiguration: React.FC = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Téléphone principal *
                   </label>
                   <div className="flex">
-                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-tertiary)] text-sm">
                       {selectedCountry && africanCountries[selectedCountry as keyof typeof africanCountries]?.indicatif}
                     </span>
                     <Controller
@@ -760,22 +773,22 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="tel"
                           placeholder="6XX XX XX XX"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         />
                       )}
                     />
                   </div>
                   {errors.telephone1 && (
-                    <p className="text-red-600 text-sm mt-1">{errors.telephone1.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.telephone1.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Téléphone secondaire
                   </label>
                   <div className="flex">
-                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-tertiary)] text-sm">
                       {selectedCountry && africanCountries[selectedCountry as keyof typeof africanCountries]?.indicatif}
                     </span>
                     <Controller
@@ -786,7 +799,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="tel"
                           placeholder="6XX XX XX XX"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         />
                       )}
                     />
@@ -794,11 +807,11 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Mobile
                   </label>
                   <div className="flex">
-                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-tertiary)] text-sm">
                       {selectedCountry && africanCountries[selectedCountry as keyof typeof africanCountries]?.indicatif}
                     </span>
                     <Controller
@@ -809,7 +822,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="tel"
                           placeholder="6XX XX XX XX"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         />
                       )}
                     />
@@ -817,7 +830,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Fax
                   </label>
                   <Controller
@@ -828,14 +841,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="tel"
                         placeholder="+237 2XX XX XX XX"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Email principal *
                   </label>
                   <Controller
@@ -846,17 +859,17 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="email"
                         placeholder="contact@wisebook.cm"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.email && (
-                    <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.email.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Email comptabilité
                   </label>
                   <Controller
@@ -867,14 +880,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="email"
                         placeholder="comptabilite@wisebook.cm"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Site web
                   </label>
                   <Controller
@@ -885,7 +898,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         {...field}
                         type="url"
                         placeholder="https://www.wisebook.cm"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
@@ -893,11 +906,11 @@ const EnhancedCompanyConfiguration: React.FC = () => {
               </div>
 
               {/* Réseaux sociaux */}
-              <div className="bg-blue-50 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-blue-900 mb-4">Réseaux Sociaux</h3>
+              <div className="bg-[var(--color-info-light)] rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-[var(--color-info)] mb-4">Réseaux Sociaux</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                       Facebook
                     </label>
                     <Controller
@@ -908,14 +921,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="facebook.com/wisebook"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                       LinkedIn
                     </label>
                     <Controller
@@ -926,14 +939,14 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="linkedin.com/company/wisebook"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                       Twitter
                     </label>
                     <Controller
@@ -944,7 +957,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="@wisebook"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
                     />
@@ -959,7 +972,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Secteur d'activité *
                   </label>
                   <Controller
@@ -968,7 +981,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                     render={({ field }) => (
                       <select
                         {...field}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       >
                         <option value="">Sélectionner un secteur</option>
                         <option value="AGRICULTURE">Agriculture, sylviculture et pêche</option>
@@ -993,12 +1006,12 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                     )}
                   />
                   {errors.secteurActivite && (
-                    <p className="text-red-600 text-sm mt-1">{errors.secteurActivite.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.secteurActivite.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Effectif *
                   </label>
                   <Controller
@@ -1011,19 +1024,19 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         min="1"
                         placeholder="10"
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.effectif && (
-                    <p className="text-red-600 text-sm mt-1">{errors.effectif.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.effectif.message}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                     Chiffre d'affaires annuel *
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-[var(--color-text-tertiary)] ml-2">
                       ({selectedCountry && africanCountries[selectedCountry as keyof typeof africanCountries]?.devise})
                     </span>
                   </label>
@@ -1038,18 +1051,18 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         step="1000000"
                         placeholder="50000000"
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
                   />
                   {errors.chiffreAffaires && (
-                    <p className="text-red-600 text-sm mt-1">{errors.chiffreAffaires.message}</p>
+                    <p className="text-[var(--color-error)] text-sm mt-1">{errors.chiffreAffaires.message}</p>
                   )}
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                   Description de l'activité principale *
                 </label>
                 <Controller
@@ -1060,12 +1073,12 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       {...field}
                       rows={4}
                       placeholder="Décrivez votre activité principale..."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                     />
                   )}
                 />
                 {errors.activitePrincipale && (
-                  <p className="text-red-600 text-sm mt-1">{errors.activitePrincipale.message}</p>
+                  <p className="text-[var(--color-error)] text-sm mt-1">{errors.activitePrincipale.message}</p>
                 )}
               </div>
             </div>
@@ -1077,8 +1090,8 @@ const EnhancedCompanyConfiguration: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Logo */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Logo de l'entreprise</h3>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Logo de l'entreprise</h3>
+                  <div className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-6 text-center hover:border-[var(--color-surface-hover)] transition-colors">
                     {logoPreview ? (
                       <div className="space-y-4">
                         <img
@@ -1089,7 +1102,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeFile('logo')}
-                          className="text-red-600 hover:text-red-700 font-medium flex items-center justify-center mx-auto"
+                          className="text-[var(--color-error)] hover:text-[var(--color-error)] font-medium flex items-center justify-center mx-auto"
                         >
                           <XMarkIcon className="h-5 w-5 mr-1" />
                           Supprimer
@@ -1097,15 +1110,15 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       </div>
                     ) : (
                       <>
-                        <PhotoIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                        <PhotoIcon className="h-12 w-12 mx-auto text-[var(--color-text-tertiary)] mb-3" />
                         <button
                           type="button"
                           onClick={() => logoInputRef.current?.click()}
-                          className="text-indigo-600 hover:text-indigo-700 font-medium"
+                          className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
                         >
                           Télécharger le logo
                         </button>
-                        <p className="text-xs text-gray-500 mt-2">JPG, PNG, GIF ou SVG (max 5MB)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-2">JPG, PNG, GIF ou SVG (max 5MB)</p>
                       </>
                     )}
                     <input
@@ -1120,8 +1133,8 @@ const EnhancedCompanyConfiguration: React.FC = () => {
 
                 {/* Cachet */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Cachet de l'entreprise</h3>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Cachet de l'entreprise</h3>
+                  <div className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-6 text-center hover:border-[var(--color-surface-hover)] transition-colors">
                     {cachetPreview ? (
                       <div className="space-y-4">
                         <img
@@ -1132,7 +1145,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeFile('cachet')}
-                          className="text-red-600 hover:text-red-700 font-medium flex items-center justify-center mx-auto"
+                          className="text-[var(--color-error)] hover:text-[var(--color-error)] font-medium flex items-center justify-center mx-auto"
                         >
                           <XMarkIcon className="h-5 w-5 mr-1" />
                           Supprimer
@@ -1140,15 +1153,15 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       </div>
                     ) : (
                       <>
-                        <DocumentTextIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                        <DocumentTextIcon className="h-12 w-12 mx-auto text-[var(--color-text-tertiary)] mb-3" />
                         <button
                           type="button"
                           onClick={() => cachetInputRef.current?.click()}
-                          className="text-indigo-600 hover:text-indigo-700 font-medium"
+                          className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
                         >
                           Télécharger le cachet
                         </button>
-                        <p className="text-xs text-gray-500 mt-2">JPG, PNG, GIF ou SVG (max 5MB)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-2">JPG, PNG, GIF ou SVG (max 5MB)</p>
                       </>
                     )}
                     <input
@@ -1163,8 +1176,8 @@ const EnhancedCompanyConfiguration: React.FC = () => {
 
                 {/* Signature */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Signature autorisée</h3>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Signature autorisée</h3>
+                  <div className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-6 text-center hover:border-[var(--color-surface-hover)] transition-colors">
                     {signaturePreview ? (
                       <div className="space-y-4">
                         <img
@@ -1175,7 +1188,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeFile('signature')}
-                          className="text-red-600 hover:text-red-700 font-medium flex items-center justify-center mx-auto"
+                          className="text-[var(--color-error)] hover:text-[var(--color-error)] font-medium flex items-center justify-center mx-auto"
                         >
                           <XMarkIcon className="h-5 w-5 mr-1" />
                           Supprimer
@@ -1183,15 +1196,15 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       </div>
                     ) : (
                       <>
-                        <IdentificationIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                        <IdentificationIcon className="h-12 w-12 mx-auto text-[var(--color-text-tertiary)] mb-3" />
                         <button
                           type="button"
                           onClick={() => signatureInputRef.current?.click()}
-                          className="text-indigo-600 hover:text-indigo-700 font-medium"
+                          className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
                         >
                           Télécharger la signature
                         </button>
-                        <p className="text-xs text-gray-500 mt-2">JPG, PNG, GIF ou SVG (max 5MB)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-2">JPG, PNG, GIF ou SVG (max 5MB)</p>
                       </>
                     )}
                     <input
@@ -1206,11 +1219,11 @@ const EnhancedCompanyConfiguration: React.FC = () => {
               </div>
 
               {/* Charte graphique */}
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Charte Graphique</h3>
+              <div className="bg-[var(--color-primary-light)] rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Charte Graphique</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                       Slogan de l'entreprise
                     </label>
                     <Controller
@@ -1221,7 +1234,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           {...field}
                           type="text"
                           placeholder="Votre partenaire comptable de confiance"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         />
                       )}
                     />
@@ -1229,7 +1242,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                         Couleur primaire
                       </label>
                       <div className="flex items-center space-x-2">
@@ -1241,13 +1254,13 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                               <input
                                 {...field}
                                 type="color"
-                                className="h-10 w-20 rounded border border-gray-300"
+                                className="h-10 w-20 rounded border border-[var(--color-border)]"
                               />
                               <input
                                 {...field}
                                 type="text"
                                 placeholder="#1e40af"
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                               />
                             </>
                           )}
@@ -1256,7 +1269,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                         Couleur secondaire
                       </label>
                       <div className="flex items-center space-x-2">
@@ -1268,13 +1281,13 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                               <input
                                 {...field}
                                 type="color"
-                                className="h-10 w-20 rounded border border-gray-300"
+                                className="h-10 w-20 rounded border border-[var(--color-border)]"
                               />
                               <input
                                 {...field}
                                 type="text"
                                 placeholder="#059669"
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                               />
                             </>
                           )}
@@ -1290,16 +1303,16 @@ const EnhancedCompanyConfiguration: React.FC = () => {
           {/* Tab: Multi-Établissements */}
           {activeTab === 'etablissements' && (
             <div className="space-y-6">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+              <div className="bg-[var(--color-warning-light)] border border-[var(--color-warning)] rounded-lg p-6">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
-                    <BuildingOffice2Icon className="h-6 w-6 text-yellow-600" />
+                    <BuildingOffice2Icon className="h-6 w-6 text-[var(--color-warning)]" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+                    <h3 className="text-lg font-semibold text-[var(--color-warning)] mb-2">
                       Configuration Multi-Établissements
                     </h3>
-                    <p className="text-sm text-yellow-700 mb-4">
+                    <p className="text-sm text-[var(--color-warning)] mb-4">
                       Cette fonctionnalité permet de gérer plusieurs sites, filiales ou succursales
                       avec une comptabilité centralisée ou décentralisée.
                     </p>
@@ -1314,11 +1327,11 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                             {...field}
                             value=""
                             checked={field.value}
-                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                            className="h-4 w-4 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
                           />
                         )}
                       />
-                      <label className="text-sm font-medium text-gray-900">
+                      <label className="text-sm font-medium text-[var(--color-text-primary)]">
                         Activer la gestion multi-établissements
                       </label>
                     </div>
@@ -1327,13 +1340,13 @@ const EnhancedCompanyConfiguration: React.FC = () => {
               </div>
 
               {watchedValues.multiEtablissements && (
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
                     Configuration des établissements
                   </h4>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                       Nombre d'établissements
                     </label>
                     <Controller
@@ -1347,39 +1360,39 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                           max="100"
                           placeholder="2"
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 2)}
-                          className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full max-w-xs px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         />
                       )}
                     />
                   </div>
 
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h5 className="font-medium text-blue-900 mb-2">Options disponibles:</h5>
-                    <ul className="space-y-2 text-sm text-blue-800">
+                  <div className="bg-[var(--color-info-light)] rounded-lg p-4">
+                    <h5 className="font-medium text-[var(--color-info)] mb-2">Options disponibles:</h5>
+                    <ul className="space-y-2 text-sm text-[var(--color-info)]">
                       <li className="flex items-start">
-                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-blue-600" />
+                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-[var(--color-info)]" />
                         Comptabilité centralisée avec ventilation par établissement
                       </li>
                       <li className="flex items-start">
-                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-blue-600" />
+                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-[var(--color-info)]" />
                         Plan comptable spécifique par établissement
                       </li>
                       <li className="flex items-start">
-                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-blue-600" />
+                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-[var(--color-info)]" />
                         Journaux dédiés par site
                       </li>
                       <li className="flex items-start">
-                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-blue-600" />
+                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-[var(--color-info)]" />
                         Reporting consolidé et par établissement
                       </li>
                       <li className="flex items-start">
-                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-blue-600" />
+                        <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-[var(--color-info)]" />
                         Gestion des transferts inter-établissements
                       </li>
                     </ul>
                   </div>
 
-                  <div className="mt-4 text-sm text-gray-600">
+                  <div className="mt-4 text-sm text-[var(--color-text-secondary)]">
                     <p>
                       Vous pourrez configurer chaque établissement en détail après la validation
                       de cette configuration initiale.
@@ -1391,16 +1404,16 @@ const EnhancedCompanyConfiguration: React.FC = () => {
           )}
 
           {/* Boutons de soumission */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex justify-end space-x-4 pt-6 border-t border-[var(--color-border)]">
             <button
               type="button"
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-6 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+              className="px-6 py-2 bg-[var(--color-primary)] text-[var(--color-surface)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center"
             >
               <CheckCircleIcon className="h-5 w-5 mr-2" />
               Enregistrer la configuration

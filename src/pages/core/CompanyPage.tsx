@@ -90,11 +90,11 @@ const CompanyPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-tuatara flex items-center">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
               <Building className="mr-3 h-7 w-7" />
               Informations Société
             </h1>
-            <p className="mt-2 text-rolling-stone">
+            <p className="mt-2 text-[var(--color-text-secondary)]">
               Configuration et paramètres de votre société
             </p>
           </div>
@@ -105,7 +105,7 @@ const CompanyPage: React.FC = () => {
                   Annuler
                 </Button>
                 <Button 
-                  className="bg-tuatara hover:bg-rolling-stone text-swirl"
+                  className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                   onClick={handleSave}
                   loading={updateCompanyMutation.isPending}
                 >
@@ -138,7 +138,7 @@ const CompanyPage: React.FC = () => {
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   Raison sociale
                 </label>
                 {isEditMode ? (
@@ -148,12 +148,12 @@ const CompanyPage: React.FC = () => {
                     placeholder="Nom de la société"
                   />
                 ) : (
-                  <p className="text-lg font-semibold text-tuatara">{company?.nom}</p>
+                  <p className="text-lg font-semibold text-[var(--color-text-primary)]">{company?.nom}</p>
                 )}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   Forme juridique
                 </label>
                 {isEditMode ? (
@@ -168,7 +168,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   RCCM / Numéro d'enregistrement
                 </label>
                 {isEditMode ? (
@@ -183,7 +183,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   Numéro fiscal
                 </label>
                 {isEditMode ? (
@@ -198,7 +198,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm font-medium text-tuatara block mb-2 flex items-center">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2 flex items-center">
                   <MapPin className="mr-1 h-4 w-4" />
                   Adresse
                 </label>
@@ -215,7 +215,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2 flex items-center">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2 flex items-center">
                   <Phone className="mr-1 h-4 w-4" />
                   Téléphone
                 </label>
@@ -231,7 +231,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2 flex items-center">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2 flex items-center">
                   <Mail className="mr-1 h-4 w-4" />
                   Email
                 </label>
@@ -248,7 +248,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm font-medium text-tuatara block mb-2 flex items-center">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2 flex items-center">
                   <Globe className="mr-1 h-4 w-4" />
                   Site web
                 </label>
@@ -285,7 +285,7 @@ const CompanyPage: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   Statut
                 </label>
                 <Badge 
@@ -297,7 +297,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2 flex items-center">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2 flex items-center">
                   <Calendar className="mr-1 h-4 w-4" />
                   Date de création
                 </label>
@@ -305,7 +305,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   Capital social
                 </label>
                 <p className="text-gray-900 font-semibold">
@@ -317,7 +317,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   Devise de référence
                 </label>
                 <p className="text-gray-900 font-mono text-lg">
@@ -326,7 +326,7 @@ const CompanyPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-tuatara block mb-2">
+                <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                   Régime fiscal
                 </label>
                 <p className="text-gray-900">
@@ -337,7 +337,7 @@ const CompanyPage: React.FC = () => {
               {/* Statistics */}
               {companyStats && (
                 <div className="pt-4 border-t">
-                  <h4 className="text-sm font-medium text-tuatara mb-3">Statistiques</h4>
+                  <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Statistiques</h4>
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Utilisateurs:</span>
@@ -370,7 +370,7 @@ const CompanyPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-6 md:grid-cols-3">
             <div>
-              <label className="text-sm font-medium text-tuatara block mb-2">
+              <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                 Plan comptable
               </label>
               <Badge variant="outline" className="bg-blue-50 text-blue-800">
@@ -382,7 +382,7 @@ const CompanyPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-tuatara block mb-2">
+              <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                 Longueur compte
               </label>
               <p className="text-gray-900 font-mono">
@@ -391,7 +391,7 @@ const CompanyPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-tuatara block mb-2">
+              <label className="text-sm font-medium text-[var(--color-text-primary)] block mb-2">
                 Gestion analytique
               </label>
               <Badge 

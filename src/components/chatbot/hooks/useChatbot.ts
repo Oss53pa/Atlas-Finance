@@ -10,6 +10,8 @@ import { intentRecognizer } from '../ai/intentRecognition';
 import { responseGenerator } from '../ai/responseGenerator';
 import { palomaAI } from '../ai/intelligentResponse';
 import { getContextualSuggestions, advancedSearch } from '../knowledge/wiseBookKnowledge';
+import { palomaMLManager } from '../ai/mlIntegration';
+import mlService from '../../../services/mlService';
 import { v4 as uuidv4 } from 'uuid';
 
 // Interfaces pour le contexte conversationnel avancé
@@ -399,9 +401,11 @@ export function useChatbot() {
     adaptivePersonality: 'helpful',
     quickReplies: [],
     suggestions: [
-      "Comment créer un nouveau budget ?",
-      "Où puis-je voir mes stocks ?",
-      "Comment ajouter un utilisateur ?"
+      "Prévois ma trésorerie sur 30 jours",
+      "Recommande un compte comptable",
+      "Analyse les risques clients",
+      "Détecte les anomalies récentes",
+      "Comment créer un nouveau budget ?"
     ],
   });
 
@@ -449,10 +453,11 @@ export function useChatbot() {
         confidence: 1.0,
         source: 'system',
         quickReplies: [
-          "Comment ça marche ?",
-          "Aide sur les budgets",
-          "Gérer les stocks",
-          "Problème technique"
+          "Prévois ma trésorerie",
+          "Quels sont les comptes recommandés ?",
+          "Analyse le risque client",
+          "Y a-t-il des anomalies ?",
+          "Comment ça marche ?"
         ]
       }
     };
@@ -475,97 +480,7 @@ export function useChatbot() {
     }));
   }, [state.context]);
 
-  const sendMessage = useCallback(async (text: string): Promise<void> => {
-    if (!text.trim() || state.isLoading) return;
-
-    const contextManager = contextManagerRef.current;
-
-    // Message utilisateur
-    const userMessage: ChatMessage = {
-      id: uuidv4(),
-      content: text.trim(),
-      sender: 'user',
-      timestamp: new Date(),
-      type: 'text'
-    };
-
-    // Ajouter le message utilisateur immédiatement
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, userMessage],
-      isLoading: true,
-      isTyping: true,
-      quickReplies: []
-    }));
-
-    try {
-      // Reconnaissance d'intention avancée avec contexte
-      const intent = intentRecognizer.recognizeIntent(text, state.context);
-
-      // Générer la réponse intelligente
-      const intelligentResponse = palomaAI.generateResponse(text, state.context);
-
-      // Mettre à jour le contexte conversationnel
-      const updatedContext = contextManager.updateConversationContext(
-        text,
-        intent.intent,
-        intent.entities,
-        intelligentResponse.message
-      );
-
-      // Adapter la personnalité de Paloma selon l'état émotionnel
-      const adaptivePersonality = adaptPersonalityToContext(contextManager.getMemory().emotionalState);
-
-      // Personnaliser la réponse selon le niveau d'expertise et l'état émotionnel
-      const personalizedResponse = personalizeResponse(
-        intelligentResponse.message,
-        updatedContext,
-        contextManager.getMemory()
-      );
-
-      // Calculer le délai de réponse adaptatif
-      const responseDelay = calculateAdaptiveDelay(intelligentResponse.confidence, updatedContext);
-      await sleep(responseDelay);
-
-      // Créer le message de réponse enrichi
-      const assistantMessage: ChatMessage = {
-        id: uuidv4(),
-        content: personalizedResponse,
-        sender: 'assistant',
-        timestamp: new Date(),
-        type: 'text',
-        metadata: {
-          confidence: intelligentResponse.confidence,
-          sources: intelligentResponse.sources,
-          actions: intelligentResponse.actions,
-          quickReplies: contextManager.getPersonalizedSuggestions()
-        }
-      };
-
-      // Obtenir les insights de session mis à jour
-      const sessionInsights = contextManager.getSessionInsights();
-
-      // Mettre à jour l'état avec le contexte enrichi
-      setState(prev => ({
-        ...prev,
-        messages: [...prev.messages, assistantMessage],
-        isLoading: false,
-        isTyping: false,
-        context: updatedContext,
-        conversationMemory: contextManager.getMemory(),
-        sessionInsights,
-        adaptivePersonality,
-        quickReplies: contextManager.getPersonalizedSuggestions(),
-        suggestions: generateContextualSuggestions(updatedContext, intent)
-      }));
-
-    } catch (error) {
-      console.error('Erreur lors de la génération de réponse:', error);
-      handleError(error);
-    }
-  }, [state.context, state.isLoading]);
-
-  // Méthodes privées pour la gestion avancée du contexte
+  // Méthodes privées pour la gestion avancée du contexte (définies avant sendMessage)
   const adaptPersonalityToContext = useCallback((emotionalState: ConversationMemory['emotionalState']) => {
     switch (emotionalState) {
       case 'frustrated':
@@ -628,6 +543,129 @@ export function useChatbot() {
 
     return Math.min(baseDelay, 3000);
   }, []);
+
+  const sendMessage = useCallback(async (text: string): Promise<void> => {
+    if (!text.trim() || state.isLoading) return;
+
+    const contextManager = contextManagerRef.current;
+
+    // Message utilisateur
+    const userMessage: ChatMessage = {
+      id: uuidv4(),
+      content: text.trim(),
+      sender: 'user',
+      timestamp: new Date(),
+      type: 'text'
+    };
+
+    // Ajouter le message utilisateur immédiatement
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, userMessage],
+      isLoading: true,
+      isTyping: true,
+      quickReplies: []
+    }));
+
+    try {
+      // 🤖 ÉTAPE 1: Vérifier si c'est une requête ML
+      const mlIntent = palomaMLManager.detectMLIntent(text);
+
+      let responseMessage: string;
+      let responseConfidence: number;
+      let responseSources: string[] | undefined;
+      let responseActions: any[] | undefined;
+      let detectedIntent: string;
+
+      if (mlIntent) {
+        // 🧠 Requête ML détectée - Utiliser les capacités d'apprentissage automatique
+        console.log('🤖 ML Intent détecté:', mlIntent.capability);
+
+        try {
+          responseMessage = await palomaMLManager.executeCapability(mlIntent.capability, mlIntent.params);
+          responseConfidence = 0.95;
+          responseSources = ['ML Backend', 'Modèles IA'];
+          detectedIntent = `ml_${mlIntent.capability}`;
+        } catch (mlError) {
+          console.error('Erreur ML:', mlError);
+          responseMessage = "Oups ! 😅 Mon système d'IA n'est pas disponible pour le moment. Laissez-moi vous aider autrement...";
+          responseConfidence = 0.5;
+          detectedIntent = 'ml_error';
+        }
+      } else {
+        // 💬 Requête normale - Utiliser l'IA conversationnelle classique
+        const intent = intentRecognizer.recognizeIntent(text, state.context);
+        const intelligentResponse = palomaAI.generateResponse(text, state.context);
+
+        responseMessage = intelligentResponse.message;
+        responseConfidence = intelligentResponse.confidence;
+        responseSources = intelligentResponse.sources;
+        responseActions = intelligentResponse.actions;
+        detectedIntent = intent.intent;
+      }
+
+      // Reconnaissance d'intention pour le contexte
+      const intent = intentRecognizer.recognizeIntent(text, state.context);
+
+      // Mettre à jour le contexte conversationnel
+      const updatedContext = contextManager.updateConversationContext(
+        text,
+        detectedIntent,
+        intent.entities,
+        responseMessage
+      );
+
+      // Adapter la personnalité de Paloma selon l'état émotionnel
+      const adaptivePersonality = adaptPersonalityToContext(contextManager.getMemory().emotionalState);
+
+      // Personnaliser la réponse selon le niveau d'expertise et l'état émotionnel
+      const personalizedResponse = personalizeResponse(
+        responseMessage,
+        updatedContext,
+        contextManager.getMemory()
+      );
+
+      // Calculer le délai de réponse adaptatif
+      const responseDelay = calculateAdaptiveDelay(responseConfidence, updatedContext);
+      await sleep(responseDelay);
+
+      // Créer le message de réponse enrichi
+      const assistantMessage: ChatMessage = {
+        id: uuidv4(),
+        content: personalizedResponse,
+        sender: 'assistant',
+        timestamp: new Date(),
+        type: 'text',
+        metadata: {
+          confidence: responseConfidence,
+          sources: responseSources,
+          actions: responseActions,
+          quickReplies: contextManager.getPersonalizedSuggestions()
+        }
+      };
+
+      // Obtenir les insights de session mis à jour
+      const sessionInsights = contextManager.getSessionInsights();
+
+      // Mettre à jour l'état avec le contexte enrichi
+      setState(prev => ({
+        ...prev,
+        messages: [...prev.messages, assistantMessage],
+        isLoading: false,
+        isTyping: false,
+        context: updatedContext,
+        conversationMemory: contextManager.getMemory(),
+        sessionInsights,
+        adaptivePersonality,
+        quickReplies: contextManager.getPersonalizedSuggestions(),
+        suggestions: generateContextualSuggestions(updatedContext, intent)
+      }));
+
+    } catch (error) {
+      console.error('Erreur lors de la génération de réponse:', error);
+      handleError(error);
+    }
+  }, [state.context, state.isLoading, adaptPersonalityToContext, personalizeResponse, calculateAdaptiveDelay]);
 
   const generateContextualSuggestions = useCallback((context: AdvancedChatContext, intent: UserIntent) => {
     const suggestions = [];
@@ -833,11 +871,11 @@ function generateWelcomeMessage(): string {
   }
 
   const welcomeMessages = [
-    `${greeting} ! 👋 Je suis **Paloma**, votre assistante WiseBook dotée d'une intelligence artificielle !\n\n🧠 **Je maîtrise l'intégralité de WiseBook** :\n• Finance, Budget & Comptabilité\n• Stocks, Achats & Approvisionnements\n• Ventes, Factures & Recouvrement\n• RH, Paie & Gestion du personnel\n• Projets & Immobilisations\n\n💡 **Posez-moi n'importe quelle question**, je suis là pour vous guider !`,
+    `${greeting} ! 👋 Je suis **Paloma**, votre assistante WiseBook dotée d'une intelligence artificielle !\n\n🧠 **Je maîtrise l'intégralité de WiseBook** :\n• Finance, Budget & Comptabilité\n• Stocks, Achats & Approvisionnements\n• Ventes, Factures & Recouvrement\n• RH, Paie & Gestion du personnel\n• Projets & Immobilisations\n\n🤖 **Mes capacités IA avancées** :\n• Recommandations comptables (Random Forest)\n• Prévisions de trésorerie (LSTM)\n• Analyse de risques clients (XGBoost)\n• Détection d'anomalies automatique\n\n💡 **Posez-moi n'importe quelle question**, je suis là pour vous guider !`,
 
-    `${greeting} ! ✨ **Paloma** à votre service, experte certifiée WiseBook !\n\n📚 **Ma base de connaissances couvre** :\n• Tous les processus métier\n• Configuration et paramétrage\n• Résolution de problèmes\n• Astuces et raccourcis\n• Rapports et analyses\n\n🎯 **Comment puis-je vous aider aujourd'hui ?**`,
+    `${greeting} ! ✨ **Paloma** à votre service, experte certifiée WiseBook !\n\n📚 **Ma base de connaissances couvre** :\n• Tous les processus métier\n• Configuration et paramétrage\n• Résolution de problèmes\n• Astuces et raccourcis\n• Rapports et analyses\n\n🧠 **Mes modèles d'apprentissage automatique** :\n• LSTM pour prédictions financières\n• Random Forest pour recommandations\n• XGBoost pour analyse de risques\n• Détection d'anomalies intelligente\n\n🎯 **Comment puis-je vous aider aujourd'hui ?**`,
 
-    `${greeting} ! 🚀 C'est **Paloma**, votre IA spécialisée WiseBook !\n\n🔍 **Je peux vous aider à** :\n• Naviguer dans les modules\n• Créer et gérer vos données\n• Comprendre les fonctionnalités\n• Optimiser votre utilisation\n• Résoudre vos problèmes\n\n💬 **Dites-moi ce dont vous avez besoin !**`
+    `${greeting} ! 🚀 C'est **Paloma**, votre IA spécialisée WiseBook !\n\n🔍 **Je peux vous aider à** :\n• Naviguer dans les modules\n• Créer et gérer vos données\n• Comprendre les fonctionnalités\n• Optimiser votre utilisation\n• Résoudre vos problèmes\n\n🤖 **Mes prédictions intelligentes** :\n• Suggérer les bons comptes comptables\n• Prévoir vos flux de trésorerie\n• Évaluer les risques clients\n• Détecter les transactions suspectes\n\n💬 **Dites-moi ce dont vous avez besoin !**`
   ];
 
   return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];

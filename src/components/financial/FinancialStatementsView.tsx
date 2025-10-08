@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   DocumentChartBarIcon,
   CalculatorIcon,
@@ -25,6 +26,7 @@ interface FinancialStatement {
 }
 
 const FinancialStatementsView: React.FC = () => {
+  const { t } = useLanguage();
   const [statements, setStatements] = useState<FinancialStatement[]>([]);
   const [selectedStatement, setSelectedStatement] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'analysis'>('list');
@@ -72,7 +74,7 @@ const FinancialStatementsView: React.FC = () => {
         return (
           <span className="flex items-center space-x-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
             <CheckCircleIcon className="h-3 w-3" />
-            <span>Validé</span>
+            <span>{t('accounting.validated')}</span>
           </span>
         );
       case 'approved':
@@ -86,7 +88,7 @@ const FinancialStatementsView: React.FC = () => {
         return (
           <span className="flex items-center space-x-1 px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
             <ExclamationTriangleIcon className="h-3 w-3" />
-            <span>Brouillon</span>
+            <span>{t('accounting.draft')}</span>
           </span>
         );
     }
@@ -101,7 +103,7 @@ const FinancialStatementsView: React.FC = () => {
       case 'cashflow':
         return <DocumentChartBarIcon className="h-5 w-5 text-purple-500" />;
       default:
-        return <DocumentChartBarIcon className="h-5 w-5 text-gray-500" />;
+        return <DocumentChartBarIcon className="h-5 w-5 text-gray-700" />;
     }
   };
 
@@ -129,7 +131,7 @@ const FinancialStatementsView: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   {statement.title}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-700">
                   Exercice {statement.fiscalYear} - Arrêté au {new Date(statement.statementDate).toLocaleDateString('fr-FR')}
                 </p>
               </div>
@@ -174,7 +176,7 @@ const FinancialStatementsView: React.FC = () => {
 
           {/* Actions */}
           <div className="flex items-center justify-between pt-4 border-t">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-700">
               Modifié le {new Date(statement.lastModified).toLocaleDateString('fr-FR')}
             </p>
             <div className="flex space-x-2">
@@ -183,18 +185,18 @@ const FinancialStatementsView: React.FC = () => {
                 <span>Voir</span>
               </button>
               {statement.status === 'draft' && (
-                <button className="flex items-center space-x-1 px-3 py-1 text-sm text-green-600 hover:bg-green-50 rounded">
+                <button className="flex items-center space-x-1 px-3 py-1 text-sm text-green-600 hover:bg-green-50 rounded" aria-label="Modifier">
                   <PencilIcon className="h-4 w-4" />
-                  <span>Modifier</span>
+                  <span>{t('common.edit')}</span>
                 </button>
               )}
               <button className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50 rounded">
                 <ArrowDownTrayIcon className="h-4 w-4" />
                 <span>Export</span>
               </button>
-              <button className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50 rounded">
+              <button className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50 rounded" aria-label="Imprimer">
                 <PrinterIcon className="h-4 w-4" />
-                <span>Imprimer</span>
+                <span>{t('common.print')}</span>
               </button>
             </div>
           </div>
@@ -396,7 +398,7 @@ const FinancialStatementsView: React.FC = () => {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'list'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             États Financiers
@@ -406,7 +408,7 @@ const FinancialStatementsView: React.FC = () => {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'analysis'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             Analyse Consolidée

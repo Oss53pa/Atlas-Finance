@@ -5,7 +5,7 @@ export const Label: React.FC<{
   htmlFor?: string;
   className?: string;
 }> = ({ children, htmlFor, className = '' }) => (
-  <label htmlFor={htmlFor} className={`block text-sm font-medium text-gray-700 ${className}`}>
+  <label htmlFor={htmlFor} className={`block text-sm font-medium text-[#353A3B] ${className}`}>
     {children}
   </label>
 );

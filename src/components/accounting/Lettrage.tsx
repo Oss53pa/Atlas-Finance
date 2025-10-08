@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   Search, Filter, Save, RefreshCw, CheckCircle, XCircle,
   Link2, Unlink, Calendar, Download, Eye, AlertTriangle,
@@ -50,6 +52,9 @@ interface LettrageHistory {
 }
 
 const Lettrage: React.FC = () => {
+  const { t } = useLanguage();
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [selectedCompte, setSelectedCompte] = useState<string>('411001');
   const [searchTerm, setSearchTerm] = useState('');
   const [showOnlyNonLettrage, setShowOnlyNonLettrage] = useState(true);
@@ -445,7 +450,7 @@ const Lettrage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4 flex-1">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
                   <input
                     type="text"
                     value={searchTerm}
@@ -494,10 +499,9 @@ const Lettrage: React.FC = () => {
                       ? canLettrage.partial
                         ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                         : 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-200 text-gray-700 cursor-not-allowed'
                   }`}
-                  title={canLettrage.reason}
-                >
+                  title={canLettrage.reason} aria-label="Valider">
                   {canLettrage.partial ? (
                     <>
                       <Lock className="w-4 h-4 mr-2 inline" />
@@ -526,9 +530,9 @@ const Lettrage: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600">Total comptes</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.totalComptes}</p>
-                  <p className="text-xs text-gray-500 mt-1">{stats.totalEcritures} écritures</p>
+                  <p className="text-xs text-gray-700 mt-1">{stats.totalEcritures} écritures</p>
                 </div>
-                <Database className="w-8 h-8 text-gray-400" />
+                <Database className="w-8 h-8 text-gray-700" />
               </div>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -579,7 +583,7 @@ const Lettrage: React.FC = () => {
                       ? Math.floor((Date.now() - stats.plusAncienneNonLettree.getTime()) / (1000 * 60 * 60 * 24))
                       : 0} jours
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Non lettrée</p>
+                  <p className="text-xs text-gray-700 mt-1">Non lettrée</p>
                 </div>
                 <Clock className="w-8 h-8 text-red-400" />
               </div>
@@ -598,15 +602,15 @@ const Lettrage: React.FC = () => {
                   >
                     <div className="flex items-center space-x-3">
                       {expandedAccounts.has(group.compte) ? (
-                        <ChevronDown className="w-5 h-5 text-gray-500" />
+                        <ChevronDown className="w-5 h-5 text-gray-700" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-gray-500" />
+                        <ChevronRight className="w-5 h-5 text-gray-700" />
                       )}
                       <div>
                         <span className="font-mono font-bold text-[#6A8A82]">{group.compte}</span>
                         <span className="ml-2 text-gray-700">
-                          {group.compte.startsWith('411') ? 'Clients' :
-                           group.compte.startsWith('401') ? 'Fournisseurs' :
+                          {group.compte.startsWith('411') ? t('thirdParty.customers') :
+                           group.compte.startsWith('401') ? t('thirdParty.suppliers') :
                            'Compte tiers'}
                         </span>
                       </div>
@@ -617,7 +621,7 @@ const Lettrage: React.FC = () => {
                         <span className={`ml-2 font-bold ${group.solde > 0 ? 'text-red-600' : group.solde < 0 ? 'text-green-600' : 'text-gray-900'}`}>
                           {Math.abs(group.solde).toLocaleString('fr-FR')} FCFA
                         </span>
-                        <span className="ml-1 text-gray-500">
+                        <span className="ml-1 text-gray-700">
                           {group.solde > 0 ? '(Débiteur)' : group.solde < 0 ? '(Créditeur)' : '(Soldé)'}
                         </span>
                       </div>
@@ -653,14 +657,14 @@ const Lettrage: React.FC = () => {
                                 }}
                               />
                             </th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Date</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Pièce</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Libellé</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('common.date')}</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.piece')}</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.label')}</th>
                             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Tiers</th>
-                            <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">Journal</th>
-                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">Débit</th>
-                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">Crédit</th>
-                            <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">Lettrage</th>
+                            <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('accounting.journal')}</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.debit')}</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.credit')}</th>
+                            <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('thirdParty.matching')}</th>
                             <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Échéance</th>
                           </tr>
                         </thead>
@@ -704,7 +708,7 @@ const Lettrage: React.FC = () => {
                                     {entry.lettrage}
                                   </span>
                                 ) : (
-                                  <span className="text-gray-400">-</span>
+                                  <span className="text-gray-700">-</span>
                                 )}
                               </td>
                               <td className="px-4 py-2 text-sm text-gray-600">
@@ -745,7 +749,7 @@ const Lettrage: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setSelectedEntries(new Set())}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-700 hover:text-gray-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -908,7 +912,7 @@ const Lettrage: React.FC = () => {
                         <p className="text-sm font-bold text-orange-600">
                           {(entry.debit || entry.credit).toLocaleString('fr-FR')} FCFA
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-700">
                           {Math.floor((Date.now() - new Date(entry.date).getTime()) / (1000 * 60 * 60 * 24))} jours
                         </p>
                       </div>
@@ -981,7 +985,7 @@ const Lettrage: React.FC = () => {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Utilisateur</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Action</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Code Lettrage</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Écritures</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('navigation.entries')}</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">Montant</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Statut</th>
                   </tr>
@@ -1075,7 +1079,7 @@ const Lettrage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h4 className="text-sm font-semibold text-gray-700 mb-4">Performance</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-4">{t('dashboard.performance')}</h4>
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
@@ -1267,7 +1271,7 @@ const Lettrage: React.FC = () => {
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Lettrer</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Délettrer</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Lettrage Auto</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Configuration</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('settings.configuration')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -1350,6 +1354,17 @@ const Lettrage: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+    {/* Modal de sélection de période */}
+    <PeriodSelectorModal
+      isOpen={showPeriodModal}
+      onClose={() => setShowPeriodModal(false)}
+      onApply={(range) => setDateRange(range)}
+      initialDateRange={dateRange}
+    />
+  </div>
   );
 };
 

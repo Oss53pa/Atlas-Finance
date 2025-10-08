@@ -294,7 +294,7 @@ const RatiosView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {ratio.valeurReference && (
           <div className="text-center">
-            <p className="text-xs text-gray-500">Référence</p>
+            <p className="text-xs text-gray-700">Référence</p>
             <p className="font-medium">{formatValue(ratio.valeurReference, ratio.unite)}</p>
             <p className={`text-xs ${ratio.ecartReference && ratio.ecartReference > 0 ? 'text-green-600' : 'text-red-600'}`}>
               {ratio.ecartReference && ratio.ecartReference > 0 ? '+' : ''}{ratio.ecartReference?.toFixed(1)}
@@ -304,7 +304,7 @@ const RatiosView: React.FC = () => {
 
         {ratio.valeurN1 && (
           <div className="text-center">
-            <p className="text-xs text-gray-500">N-1</p>
+            <p className="text-xs text-gray-700">N-1</p>
             <p className="font-medium">{formatValue(ratio.valeurN1, ratio.unite)}</p>
             <p className={`text-xs ${ratio.variationRelative && ratio.variationRelative > 0 ? 'text-green-600' : 'text-red-600'}`}>
               {ratio.variationRelative && ratio.variationRelative > 0 ? '+' : ''}{ratio.variationRelative?.toFixed(1)}%
@@ -314,7 +314,7 @@ const RatiosView: React.FC = () => {
 
         {ratio.benchmarkSectorValue && (
           <div className="text-center">
-            <p className="text-xs text-gray-500">Secteur</p>
+            <p className="text-xs text-gray-700">Secteur</p>
             <p className="font-medium">{formatValue(ratio.benchmarkSectorValue, ratio.unite)}</p>
             <p className="text-xs text-blue-600">P{ratio.sectorPercentile}</p>
           </div>
@@ -328,7 +328,7 @@ const RatiosView: React.FC = () => {
 
       {/* Actions */}
       <div className="flex justify-between items-center pt-4 border-t">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-700">
           Calculé le {new Date(ratio.calculationDate).toLocaleDateString('fr-FR')}
         </p>
         <div className="flex space-x-2">
@@ -414,7 +414,7 @@ const RatiosView: React.FC = () => {
         <div className="bg-white rounded-lg border p-8 text-center">
           <PresentationChartLineIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun ratio trouvé</h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-700 mb-4">
             {showAlertsOnly
               ? "Aucune alerte détectée dans les ratios calculés."
               : "Aucun ratio correspondant aux filtres sélectionnés."
@@ -473,7 +473,7 @@ const RatiosView: React.FC = () => {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Percentile {ratio.sectorPercentile}</span>
+                  <span className="text-xs text-gray-700">Percentile {ratio.sectorPercentile}</span>
                   <span className={`text-xs font-medium ${
                     ratio.sectorPercentile! > 50 ? 'text-green-600' : 'text-red-600'
                   }`}>
@@ -601,7 +601,7 @@ const RatiosView: React.FC = () => {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'current'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             Ratios Actuels
@@ -611,7 +611,7 @@ const RatiosView: React.FC = () => {
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'benchmark'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             Analyse Sectorielle

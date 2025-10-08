@@ -157,8 +157,7 @@ const PositionTresoreriePage: React.FC = () => {
               </div>
               <button
                 onClick={loadTreasuryPosition}
-                className="p-2 text-gray-600 hover:text-[#6A8A82] transition-colors"
-              >
+                className="p-2 text-gray-600 hover:text-[#6A8A82] transition-colors" aria-label="Actualiser">
                 <RefreshCw className="h-5 w-5" />
               </button>
             </div>
@@ -246,7 +245,7 @@ const PositionTresoreriePage: React.FC = () => {
                       <p className="text-lg font-bold text-gray-900">
                         {account.balance.toLocaleString()} {account.currency}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-700">
                         MAJ: {account.lastUpdate.toLocaleTimeString()}
                       </p>
                     </div>
@@ -292,7 +291,7 @@ const PositionTresoreriePage: React.FC = () => {
                     }`}>
                       {movement.type === 'inflow' ? '+' : '-'}{movement.amount.toLocaleString()} XOF
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-700">
                       {movement.date.toLocaleTimeString()}
                     </p>
                   </div>

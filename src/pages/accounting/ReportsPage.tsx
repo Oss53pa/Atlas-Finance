@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, FileText, Scale, BarChart3, ArrowLeft,
@@ -8,14 +9,15 @@ import GrandLivre from '@/components/accounting/GrandLivre';
 import Balance from '@/components/accounting/Balance';
 
 const ReportsPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('grand-livre');
 
   const tabs = [
     { id: 'grand-livre', label: 'Grand Livre', icon: BookOpen },
-    { id: 'balance', label: 'Balance', icon: Scale },
+    { id: 'balance', label: t('accounting.balance'), icon: Scale },
     { id: 'compte-resultat', label: 'Compte de Résultat', icon: TrendingUp },
-    { id: 'bilan', label: 'Bilan', icon: FileSpreadsheet }
+    { id: 'bilan', label: t('accounting.balanceSheet'), icon: FileSpreadsheet }
   ];
 
   return (
@@ -29,7 +31,7 @@ const ReportsPage: React.FC = () => {
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Comptabilité</span>
+              <span className="text-sm font-semibold text-[#444444]">{t('accounting.title')}</span>
             </button>
 
             <div className="flex items-center space-x-3">

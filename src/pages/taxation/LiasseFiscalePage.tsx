@@ -628,7 +628,7 @@ const LiasseFiscalePage: React.FC = () => {
                           <span>{Math.abs(ratio.evolution * 100).toFixed(1)}%</span>
                         </div>
                         {ratio.seuil_alerte && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-700">
                             Seuil: {ratio.seuil_alerte}
                           </span>
                         )}
@@ -647,9 +647,9 @@ const LiasseFiscalePage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <FileText className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Aperçu de la Liasse</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     L'aperçu de la liasse fiscale complète sera généré ici avec tous les documents obligatoires.
                   </p>
                   <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleGenerateLiasse}>
@@ -668,9 +668,9 @@ const LiasseFiscalePage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Calendar className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Historique des Déclarations</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     L'historique des liasses fiscales précédemment générées sera affiché ici.
                   </p>
                   <Button variant="outline">

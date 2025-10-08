@@ -75,7 +75,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
             </h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-700 hover:text-gray-600"
             >
               ×
             </button>
@@ -88,7 +88,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   Item
                 </label>
                 <p className="text-sm text-gray-900">{stockLevel.item.name}</p>
-                <p className="text-xs text-gray-500">{stockLevel.item.sku}</p>
+                <p className="text-xs text-gray-700">{stockLevel.item.sku}</p>
               </div>
 
               <div>
@@ -171,7 +171,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   Item
                 </label>
                 <p className="text-sm text-gray-900">{stockLevel.item.name}</p>
-                <p className="text-xs text-gray-500">{stockLevel.item.sku}</p>
+                <p className="text-xs text-gray-700">{stockLevel.item.sku}</p>
               </div>
 
               {type === 'transfer' && (
@@ -210,7 +210,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   max={type === 'transfer' ? stockLevel.quantityAvailable : undefined}
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-700 mt-1">
                   {type === 'transfer'
                     ? `Available: ${stockLevel.quantityAvailable}`
                     : `Current: ${stockLevel.quantityOnHand}`
@@ -563,12 +563,12 @@ const StockManagement: React.FC = () => {
                   <td className="py-4 px-4">
                     <div>
                       <div className="font-medium text-gray-900">{stock.item.name}</div>
-                      <div className="text-sm text-gray-500">{stock.item.sku}</div>
+                      <div className="text-sm text-gray-700">{stock.item.sku}</div>
                     </div>
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <MapPin className="w-4 h-4 text-gray-700" />
                       <span className="text-sm text-gray-900">{stock.location.name}</span>
                     </div>
                   </td>
@@ -602,21 +602,21 @@ const StockManagement: React.FC = () => {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => handleStockAction(stock, 'view')}
-                        className="p-1 text-gray-400 hover:text-[#6A8A82]"
+                        className="p-1 text-gray-700 hover:text-[#6A8A82]"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleStockAction(stock, 'adjust')}
-                        className="p-1 text-gray-400 hover:text-green-600"
+                        className="p-1 text-gray-700 hover:text-green-600"
                         title="Adjust Stock"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleStockAction(stock, 'transfer')}
-                        className="p-1 text-gray-400 hover:text-purple-600"
+                        className="p-1 text-gray-700 hover:text-purple-600"
                         title="Transfer Stock"
                       >
                         <Truck className="w-4 h-4" />

@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { toast } from 'react-hot-toast';
+import { closuresService } from '../../../services/modules/closures.service';
 import {
   Landmark, Upload, Download, CheckCircle, AlertCircle,
   Search, Filter, RefreshCw, FileText, TrendingUp,
@@ -40,12 +45,116 @@ interface MoyenPaiement {
 }
 
 const RapprochementBancaire: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedBank, setSelectedBank] = useState('001');
   const [selectedPeriod, setSelectedPeriod] = useState('2025-01');
   const [filterStatus, setFilterStatus] = useState('tous');
   const [autoRapprochement, setAutoRapprochement] = useState(true);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedTab, setSelectedTab] = useState('banques');
+  const [formData, setFormData] = useState({
+    compte_bancaire: '',
+    fichier: null as File | null,
+    periode_debut: '',
+    periode_fin: '',
+    format_fichier: 'csv' as 'csv' | 'ofx' | 'qif' | 'mt940',
+    ignorer_doublons: true,
+    auto_lettrage: false,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  // Schema simple pour l'import bancaire
+  const importBancaireSchema = z.object({
+    compte_bancaire: z.string().min(1, 'Le compte bancaire est requis'),
+    fichier: z.instanceof(File, { message: 'Un fichier est requis' }),
+    periode_debut: z.string().min(1, 'La période de début est requise'),
+    periode_fin: z.string().min(1, 'La période de fin est requise'),
+    format_fichier: z.enum(['csv', 'ofx', 'qif', 'mt940']),
+    ignorer_doublons: z.boolean(),
+    auto_lettrage: z.boolean(),
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: closuresService.uploadDocument, // Réutilise la méthode générique
+    onSuccess: () => {
+      toast.success('Import de relevé bancaire réussi');
+      queryClient.invalidateQueries({ queryKey: ['rapprochements-bancaires'] });
+      setShowImportModal(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erreur lors de l\'import');
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      compte_bancaire: '',
+      fichier: null,
+      periode_debut: '',
+      periode_fin: '',
+      format_fichier: 'csv',
+      ignorer_doublons: true,
+      auto_lettrage: false,
+    });
+    setErrors({});
+    setIsSubmitting(false);
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    if (field === 'fichier') {
+      const file = (value as FileList)?.[0] || null;
+      setFormData(prev => ({ ...prev, fichier: file }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors({});
+
+      // Validation spéciale pour fichiers
+      if (!formData.fichier) {
+        setErrors({ fichier: 'Un fichier est requis' });
+        toast.error('Veuillez sélectionner un fichier');
+        return;
+      }
+
+      // Validate with Zod
+      const validatedData = importBancaireSchema.parse(formData);
+
+      // Submit to backend
+      await uploadMutation.mutateAsync(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          fieldErrors[field] = err.message;
+        });
+        setErrors(fieldErrors);
+        toast.error('Veuillez corriger les erreurs du formulaire');
+      } else {
+        toast.error('Erreur lors de l\'import du relevé bancaire');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Moyens de paiement électroniques
   const moyensPaiement: MoyenPaiement[] = [
@@ -477,12 +586,12 @@ const RapprochementBancaire: React.FC = () => {
                 ))}
               </div>
 
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mt-6 p-4 bg-[var(--color-background-secondary)] rounded-lg">
                 <h4 className="font-medium mb-3">Répartition par Statut Global</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Rapprochés</span>
-                    <span className="font-medium text-green-600">
+                    <span className="font-medium text-[var(--color-success)]">
                       {operations.filter(o => o.statut === 'rapproche').length} / {operations.length}
                     </span>
                   </div>
@@ -547,7 +656,7 @@ const RapprochementBancaire: React.FC = () => {
                 )}
                 <button
                   onClick={() => setShowImportModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
                 >
                   <Upload className="w-4 h-4" />
                   <span>
@@ -606,33 +715,33 @@ const RapprochementBancaire: React.FC = () => {
 
             {/* Statistiques générales */}
             <div className="grid grid-cols-5 gap-4">
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg border border-[var(--color-success-light)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-green-700">Rapprochés</span>
-                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-[var(--color-success-dark)]">Rapprochés</span>
+                  <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                 </div>
-                <p className="text-2xl font-bold text-green-800">{stats.rapproches}</p>
+                <p className="text-2xl font-bold text-[var(--color-success-darker)]">{stats.rapproches}</p>
               </div>
-              <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg border border-yellow-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-yellow-700">En attente</span>
-                  <Clock className="w-4 h-4 text-yellow-600" />
+                  <span className="text-sm text-[var(--color-warning-dark)]">{t('status.pending')}</span>
+                  <Clock className="w-4 h-4 text-[var(--color-warning)]" />
                 </div>
                 <p className="text-2xl font-bold text-yellow-800">{stats.enAttente}</p>
               </div>
-              <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg border border-[var(--color-error-light)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-red-700">Écarts</span>
-                  <AlertTriangle className="w-4 h-4 text-red-600" />
+                  <span className="text-sm text-[var(--color-error-dark)]">Écarts</span>
+                  <AlertTriangle className="w-4 h-4 text-[var(--color-error)]" />
                 </div>
                 <p className="text-2xl font-bold text-red-800">{stats.ecarts}</p>
               </div>
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg border border-[var(--color-primary-light)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-blue-700">Taux rapprochement</span>
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm text-[var(--color-primary-dark)]">Taux rapprochement</span>
+                  <TrendingUp className="w-4 h-4 text-[var(--color-primary)]" />
                 </div>
-                <p className="text-2xl font-bold text-blue-800">{stats.tauxRapprochement}%</p>
+                <p className="text-2xl font-bold text-[var(--color-primary-darker)]">{stats.tauxRapprochement}%</p>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between mb-2">
@@ -659,7 +768,7 @@ const RapprochementBancaire: React.FC = () => {
                 >
                   <option value="tous">Tous les statuts</option>
                   <option value="rapproche">Rapprochés</option>
-                  <option value="en_attente">En attente</option>
+                  <option value="en_attente">{t('status.pending')}</option>
                   <option value="ecart">Écarts</option>
                   <option value="suggere">Suggestions IA</option>
                 </select>
@@ -673,10 +782,10 @@ const RapprochementBancaire: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="p-2 hover:bg-gray-100 rounded-lg">
+                <button className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg" aria-label="Actualiser">
                   <RefreshCw className="w-5 h-5 text-[#767676]" />
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg">
+                <button className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg" aria-label="Télécharger">
                   <Download className="w-5 h-5 text-[#767676]" />
                 </button>
               </div>
@@ -687,10 +796,10 @@ const RapprochementBancaire: React.FC = () => {
           <div className="bg-white rounded-lg border border-[#E8E8E8]">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-[#E8E8E8]">
+                <thead className="bg-[var(--color-background-secondary)] border-b border-[#E8E8E8]">
                   <tr>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">Date</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">Libellé</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">{t('common.date')}</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">{t('accounting.label')}</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-[#444444]">Référence</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-[#444444]">Montant Banque</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-[#444444]">Montant Compta</th>
@@ -703,7 +812,7 @@ const RapprochementBancaire: React.FC = () => {
                 </thead>
                 <tbody>
                   {filteredOperations.map((op) => (
-                    <tr key={op.id} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                    <tr key={op.id} className="border-b border-[#E8E8E8] hover:bg-[var(--color-background-secondary)]">
                       <td className="py-3 px-4">
                         <span className="text-sm text-[#444444]">{op.date}</span>
                       </td>
@@ -715,7 +824,7 @@ const RapprochementBancaire: React.FC = () => {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <span className={`font-mono font-semibold ${
-                          op.typeOperation === 'credit' ? 'text-green-600' : 'text-red-600'
+                          op.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
                           {op.montantBanque.toLocaleString('fr-FR')} FCFA
                         </span>
@@ -723,40 +832,40 @@ const RapprochementBancaire: React.FC = () => {
                       <td className="py-3 px-4 text-right">
                         {op.montantCompta ? (
                           <span className={`font-mono font-semibold ${
-                            op.typeOperation === 'credit' ? 'text-green-600' : 'text-red-600'
+                            op.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                           }`}>
                             {op.montantCompta.toLocaleString('fr-FR')} FCFA
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-[var(--color-text-secondary)]">-</span>
                         )}
                       </td>
                       {(selectedTab === 'cb' || selectedTab === 'mobile' || selectedTab === 'tpe') && (
                         <td className="py-3 px-4 text-right">
                           {op.commission ? (
-                            <span className="font-mono text-sm text-orange-600">
+                            <span className="font-mono text-sm text-[var(--color-warning)]">
                               {op.commission.toLocaleString('fr-FR')} FCFA
                             </span>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-[var(--color-text-secondary)]">-</span>
                           )}
                         </td>
                       )}
                       <td className="py-3 px-4 text-center">
                         {op.statut === 'rapproche' && (
-                          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]">
                             <CheckCircle className="w-3 h-3" />
                             <span>Rapproché</span>
                           </span>
                         )}
                         {op.statut === 'en_attente' && (
-                          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]">
                             <Clock className="w-3 h-3" />
-                            <span>En attente</span>
+                            <span>{t('status.pending')}</span>
                           </span>
                         )}
                         {op.statut === 'ecart' && (
-                          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]">
                             <AlertTriangle className="w-3 h-3" />
                             <span>Écart</span>
                           </span>
@@ -772,20 +881,20 @@ const RapprochementBancaire: React.FC = () => {
                         <div className="flex items-center justify-center space-x-2">
                           {op.statut === 'suggere' && (
                             <>
-                              <button className="p-1 text-green-600 hover:bg-green-50 rounded">
+                              <button className="p-1 text-[var(--color-success)] hover:bg-[var(--color-success-lightest)] rounded" aria-label="Valider">
                                 <Check className="w-4 h-4" />
                               </button>
-                              <button className="p-1 text-red-600 hover:bg-red-50 rounded">
+                              <button className="p-1 text-[var(--color-error)] hover:bg-[var(--color-error-lightest)] rounded" aria-label="Fermer">
                                 <X className="w-4 h-4" />
                               </button>
                             </>
                           )}
                           {op.statut === 'en_attente' && (
-                            <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                            <button className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary-lightest)] rounded">
                               <Link className="w-4 h-4" />
                             </button>
                           )}
-                          <button className="p-1 text-[#767676] hover:bg-gray-100 rounded">
+                          <button className="p-1 text-[#767676] hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
                             <Eye className="w-4 h-4" />
                           </button>
                         </div>
@@ -802,12 +911,12 @@ const RapprochementBancaire: React.FC = () => {
                 Affichage de 1-{Math.min(10, filteredOperations.length)} sur {filteredOperations.length} opérations
               </span>
               <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-gray-50">
+                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)]">
                   Précédent
                 </button>
                 <button className="px-3 py-1 bg-[#6A8A82] text-white rounded">1</button>
-                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-gray-50">2</button>
-                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-gray-50">
+                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)]">2</button>
+                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)]">
                   Suivant
                 </button>
               </div>
@@ -831,7 +940,7 @@ const RapprochementBancaire: React.FC = () => {
                 <button
                   onClick={() => setAutoRapprochement(!autoRapprochement)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full ${
-                    autoRapprochement ? 'bg-purple-600' : 'bg-gray-300'
+                    autoRapprochement ? 'bg-purple-600' : 'bg-[var(--color-border-dark)]'
                   }`}
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
@@ -845,12 +954,12 @@ const RapprochementBancaire: React.FC = () => {
               <div className="bg-white/50 rounded-lg p-3">
                 <p className="text-xs text-[#767676] mb-1">Taux de matching</p>
                 <p className="font-semibold">94%</p>
-                <p className="text-xs text-green-600">+2% vs mois dernier</p>
+                <p className="text-xs text-[var(--color-success)]">+2% vs mois dernier</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
                 <p className="text-xs text-[#767676] mb-1">Suggestions validées</p>
                 <p className="font-semibold">127/135</p>
-                <p className="text-xs text-blue-600">Précision: 94%</p>
+                <p className="text-xs text-[var(--color-primary)]">Précision: 94%</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
                 <p className="text-xs text-[#767676] mb-1">Temps économisé</p>
@@ -860,6 +969,266 @@ const RapprochementBancaire: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-cyan-100 text-cyan-600 p-2 rounded-lg">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Import Relevé Bancaire</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  resetForm();
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                disabled={isSubmitting}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Info alert */}
+                <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <Landmark className="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-cyan-900 mb-1">Import de Relevé</h4>
+                      <p className="text-sm text-cyan-800">Importez automatiquement les relevés bancaires pour le rapprochement comptable.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bank Selection */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sélection du Compte</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Banque</label>
+                      <select
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        value={formData.compte_bancaire}
+                        onChange={(e) => handleInputChange('compte_bancaire', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="">-- Sélectionner banque --</option>
+                        <option value="bgfi">BGFI Bank</option>
+                        <option value="uba">UBA</option>
+                        <option value="ecobank">Ecobank</option>
+                        <option value="bicec">BICEC</option>
+                        <option value="sgbc">Société Générale</option>
+                      </select>
+                      {errors.compte_bancaire && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.compte_bancaire}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Numéro de Compte</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        <option value="">-- Sélectionner compte --</option>
+                        <option value="40000001">40000001 - Compte Principal</option>
+                        <option value="40000002">40000002 - Compte USD</option>
+                        <option value="40000003">40000003 - Compte Épargne</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* File Upload */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Fichier de Relevé</h3>
+                  <div className="border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-6 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
+                    <div className="mt-4">
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        <span className="mt-2 block text-sm font-medium text-[var(--color-text-primary)]">
+                          Glissez votre relevé ici ou cliquez pour parcourir
+                        </span>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          className="sr-only"
+                          accept=".csv,.xls,.xlsx,.qif,.ofx,.mt940"
+                          onChange={(e) => handleInputChange('fichier', e.target.files)}
+                          disabled={isSubmitting}
+                        />
+                      {formData.fichier && (
+                        <p className="mt-1 text-sm text-[var(--color-success)]">
+                          Fichier sélectionné: {formData.fichier.name}
+                        </p>
+                      )}
+                      {errors.fichier && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.fichier}</p>
+                      )}
+                      </label>
+                      <p className="mt-1 text-xs text-[var(--color-text-secondary)]">Formats acceptés: CSV, Excel, QIF, OFX, MT940</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Import Parameters */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Paramètres d&apos;Import</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Format de Fichier</label>
+                      <select
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        value={formData.format_fichier}
+                        onChange={(e) => handleInputChange('format_fichier', e.target.value)}
+                        disabled={isSubmitting}
+                      >
+                        <option value="csv">CSV avec en-têtes</option>
+                        <option value="excel">Excel (.xlsx)</option>
+                        <option value="qif">QIF (Quicken)</option>
+                        <option value="ofx">OFX (Open Financial Exchange)</option>
+                        <option value="mt940">MT940 (SWIFT)</option>
+                      </select>
+                      {errors.format_fichier && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.format_fichier}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Séparateur (CSV)</label>
+                      <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        <option value=";">;  (Point-virgule)</option>
+                        <option value=",">,  (Virgule)</option>
+                        <option value="tab">Tab (Tabulation)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période de Début</label>
+                      <input
+                        type="date"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        value={formData.periode_debut}
+                        onChange={(e) => handleInputChange('periode_debut', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.periode_debut && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.periode_debut}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période de Fin</label>
+                      <input
+                        type="date"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        value={formData.periode_fin}
+                        onChange={(e) => handleInputChange('periode_fin', e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                      {errors.periode_fin && (
+                        <p className="mt-1 text-sm text-[var(--color-error)]">{errors.periode_fin}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Options */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Options d&apos;Import</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="ignore_duplicates"
+                        className="rounded border-[var(--color-border-dark)] text-cyan-500"
+                        checked={formData.ignorer_doublons}
+                        onChange={(e) => handleInputChange('ignorer_doublons', e.target.checked)}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="ignore_duplicates" className="text-sm text-[var(--color-text-primary)]">Ignorer les doublons</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="auto_matching"
+                        className="rounded border-[var(--color-border-dark)] text-cyan-500"
+                        checked={formData.auto_lettrage}
+                        onChange={(e) => handleInputChange('auto_lettrage', e.target.checked)}
+                        disabled={isSubmitting}
+                      />
+                      <label htmlFor="auto_matching" className="text-sm text-[var(--color-text-primary)]">Rapprochement automatique</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="validate_amounts" className="rounded border-[var(--color-border-dark)] text-cyan-500" />
+                      <label htmlFor="validate_amounts" className="text-sm text-[var(--color-text-primary)]">Validation des montants</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="backup_before" className="rounded border-[var(--color-border-dark)] text-cyan-500" defaultChecked />
+                      <label htmlFor="backup_before" className="text-sm text-[var(--color-text-primary)]">Sauvegarde avant import</label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mapping */}
+                <div>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Correspondance des Colonnes</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Date</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="Ex: Date, Date opération" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Montant</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="Ex: Montant, Amount" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Libellé</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="Ex: Libellé, Description" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Référence</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="Ex: Référence, Ref" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky footer */}
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  resetForm();
+                }}
+                disabled={isSubmitting}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-cyan-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Import en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    <span>Importer le Relevé</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

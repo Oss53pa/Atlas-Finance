@@ -21,7 +21,7 @@ interface UseDraggableOptions {
 
 export function useDraggable(options: UseDraggableOptions = {}) {
   const {
-    initialPosition = { x: window.innerWidth - 380, y: window.innerHeight - 520 },
+    initialPosition = { x: 20, y: window.innerHeight - 120 }, // Position à gauche
     bounds = 'window',
     handle,
     onDragStart,
@@ -41,10 +41,21 @@ export function useDraggable(options: UseDraggableOptions = {}) {
     if (savedPosition) {
       try {
         const parsed = JSON.parse(savedPosition);
-        setPosition(parsed);
+        // Vérifier que la position sauvegardée est valide
+        if (parsed.x !== undefined && parsed.y !== undefined) {
+          setPosition(parsed);
+        } else {
+          // Si invalide, utiliser la position par défaut (à gauche)
+          setPosition({ x: 20, y: window.innerHeight - 120 });
+        }
       } catch (e) {
         console.error('Erreur lors de la lecture de la position sauvegardée:', e);
+        // En cas d'erreur, utiliser la position par défaut (à gauche)
+        setPosition({ x: 20, y: window.innerHeight - 120 });
       }
+    } else {
+      // Pas de position sauvegardée, utiliser la position par défaut (à gauche)
+      setPosition({ x: 20, y: window.innerHeight - 120 });
     }
   }, []);
 
@@ -244,6 +255,10 @@ export function useDraggable(options: UseDraggableOptions = {}) {
     isDragging,
     dragRef,
     setPosition,
-    resetPosition: () => setPosition(initialPosition),
+    resetPosition: () => {
+      const leftPosition = { x: 20, y: window.innerHeight - 120 };
+      setPosition(leftPosition);
+      localStorage.setItem('paloma-position', JSON.stringify(leftPosition));
+    },
   };
 }

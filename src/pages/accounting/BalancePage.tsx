@@ -1,9 +1,11 @@
 import React, { Suspense } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 // Lazy load AdvancedBalance component
 const AdvancedBalance = React.lazy(() => import('../../components/accounting/AdvancedBalance'));
 
 const BalancePage: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <div className="h-full p-6 bg-[var(--color-background)]">
       <div className="mb-6">

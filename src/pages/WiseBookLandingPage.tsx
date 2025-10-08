@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   Calculator, 
@@ -26,6 +27,7 @@ interface UserRole {
 }
 
 const WiseBookLandingPage: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
@@ -83,7 +85,8 @@ const WiseBookLandingPage: React.FC = () => {
   const handleRoleSelection = (role: UserRole) => {
     setSelectedRole(role.id);
     setTimeout(() => {
-      navigate(role.dashboardPath);
+      // Rediriger vers la page de login avec le rôle sélectionné
+      navigate('/login', { state: { selectedRole: role.id, targetPath: role.dashboardPath } });
     }, 300);
   };
 

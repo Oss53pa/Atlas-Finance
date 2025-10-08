@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
+import { useLanguage } from '../../contexts/LanguageContext';
+import {
   CreditCard,
   Plus,
   Search,
@@ -20,13 +20,13 @@ import {
   ArrowUpRight,
   ArrowDownLeft
 } from 'lucide-react';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardContent, 
-  Button, 
-  Input, 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
+  Input,
   Badge,
   Table,
   TableHeader,
@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { treasuryService } from '../../services/treasury.service';
+import { useBankAccounts, useDeleteBankAccount } from '../../hooks';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
@@ -55,6 +55,7 @@ interface BankAccountsFilters {
 }
 
 const BankAccountsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<BankAccountsFilters>({
     search: '',
     banque: '',
@@ -66,36 +67,22 @@ const BankAccountsPage: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  // Fetch bank accounts
-  const { data: accountsData, isLoading } = useQuery({
-    queryKey: ['bank-accounts', 'list', page, filters],
-    queryFn: () => treasuryService.getBankAccounts({ 
-      page, 
-      search: filters.search,
-      banque: filters.banque,
-      type_compte: filters.type_compte,
-      statut: filters.statut,
-      devise: filters.devise
-    }),
+  // Utilisation des nouveaux hooks
+  const { data: accountsData, isLoading } = useBankAccounts({
+    page,
+    page_size: 20,
+    search: filters.search || undefined,
+    banque: filters.banque || undefined,
+    type_compte: filters.type_compte || undefined,
+    statut: filters.statut || undefined,
+    devise: filters.devise || undefined,
   });
 
-  // Delete bank account mutation
-  const deleteAccountMutation = useMutation({
-    mutationFn: treasuryService.deleteBankAccount,
-    onSuccess: () => {
-      toast.success('Compte bancaire supprimé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
-    },
-    onError: () => {
-      toast.error('Erreur lors de la suppression');
-    }
-  });
+  const deleteAccount = useDeleteBankAccount();
 
   const handleDeleteAccount = (accountId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce compte bancaire ?')) {
-      deleteAccountMutation.mutate(accountId);
+      deleteAccount.mutate(accountId);
     }
   };
 
@@ -167,11 +154,11 @@ const BankAccountsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-tuatara flex items-center">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
               <CreditCard className="mr-3 h-7 w-7" />
               Comptes Bancaires
             </h1>
-            <p className="mt-2 text-rolling-stone">
+            <p className="mt-2 text-[var(--color-text-secondary)]">
               Gestion des comptes bancaires et de trésorerie
             </p>
           </div>
@@ -185,7 +172,7 @@ const BankAccountsPage: React.FC = () => {
               Importer
             </Button>
             <Button 
-              className="bg-tuatara hover:bg-rolling-stone text-swirl"
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -273,7 +260,7 @@ const BankAccountsPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Rechercher un compte..."
                 value={filters.search}
@@ -283,7 +270,7 @@ const BankAccountsPage: React.FC = () => {
             </div>
             
             <div className="relative">
-              <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Building className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
                 placeholder="Banque"
                 value={filters.banque}
@@ -363,7 +350,7 @@ const BankAccountsPage: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Compte</TableHead>
+                      <TableHead>{t('accounting.account')}</TableHead>
                       <TableHead>Banque</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Titulaire</TableHead>
@@ -380,21 +367,21 @@ const BankAccountsPage: React.FC = () => {
                       <TableRow key={account.id} className="hover:bg-gray-50">
                         <TableCell>
                           <div>
-                            <p className="font-mono font-semibold text-tuatara">
+                            <p className="font-mono font-semibold text-[var(--color-text-primary)]">
                               {account.numero_compte}
                             </p>
-                            <p className="text-sm text-rolling-stone">
+                            <p className="text-sm text-[var(--color-text-secondary)]">
                               {account.libelle_compte}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Building className="h-4 w-4 text-gray-400" />
+                            <Building className="h-4 w-4 text-gray-700" />
                             <div>
                               <p className="font-medium">{account.nom_banque}</p>
                               {account.code_banque && (
-                                <p className="text-sm text-gray-500">{account.code_banque}</p>
+                                <p className="text-sm text-gray-700">{account.code_banque}</p>
                               )}
                             </div>
                           </div>
@@ -407,7 +394,7 @@ const BankAccountsPage: React.FC = () => {
                         <TableCell>
                           <p className="font-medium">{account.titulaire}</p>
                           {account.co_titulaire && (
-                            <p className="text-sm text-gray-500">+ {account.co_titulaire}</p>
+                            <p className="text-sm text-gray-700">+ {account.co_titulaire}</p>
                           )}
                         </TableCell>
                         <TableCell>
@@ -499,15 +486,15 @@ const BankAccountsPage: React.FC = () => {
 
               {(!accountsData?.results || accountsData.results.length === 0) && (
                 <div className="text-center py-12">
-                  <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <CreditCard className="h-12 w-12 text-gray-700 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun compte bancaire trouvé</h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-gray-700 mb-6">
                     {filters.search || filters.banque || filters.type_compte || filters.statut || filters.devise
                       ? 'Aucun compte ne correspond aux critères de recherche.'
                       : 'Commencez par créer votre premier compte bancaire.'}
                   </p>
                   <Button 
-                    className="bg-tuatara hover:bg-rolling-stone text-swirl"
+                    className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -519,6 +506,277 @@ const BankAccountsPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal - Créer Compte Bancaire */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Nouveau Compte Bancaire</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Informations du compte */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-900">Informations du compte</h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Numéro de compte *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Ex: 12345678901"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      IBAN
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Ex: FR76..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Libellé du compte *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: Compte courant principal"
+                  />
+                </div>
+              </div>
+
+              {/* Banque */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-900">Banque</h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nom de la banque *
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option value="">Sélectionner...</option>
+                      <option value="BOA">Bank of Africa (BOA)</option>
+                      <option value="SGCI">Société Générale CI</option>
+                      <option value="BNI">Banque Nationale d'Investissement</option>
+                      <option value="Ecobank">Ecobank</option>
+                      <option value="BICICI">BICICI</option>
+                      <option value="NSIA">NSIA Banque</option>
+                      <option value="Autre">Autre</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Code banque
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Ex: 01234"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Code guichet
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Ex: 56789"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Code BIC/SWIFT
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Ex: ABCDCIABXXX"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Agence
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: Plateau, Abidjan"
+                  />
+                </div>
+              </div>
+
+              {/* Paramètres du compte */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-900">{t('navigation.settings')}</h3>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Type de compte *
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option value="courant">Courant</option>
+                      <option value="epargne">Épargne</option>
+                      <option value="depot">Dépôt à terme</option>
+                      <option value="credit">{t('accounting.credit')}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Devise *
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option value="XOF">XOF (Franc CFA)</option>
+                      <option value="EUR">EUR (Euro)</option>
+                      <option value="USD">USD (Dollar)</option>
+                      <option value="GBP">GBP (Livre Sterling)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Statut *
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif</option>
+                      <option value="ferme">Fermé</option>
+                      <option value="bloque">Bloqué</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Titulaire du compte *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: ACME Corporation"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Solde initial
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date d'ouverture
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-gray-900">Contact bancaire</h3>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chargé de compte
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Nom du conseiller"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Téléphone
+                    </label>
+                    <input
+                      type="tel"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="+225 XX XX XX XX XX"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="conseiller@banque.com"
+                  />
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Informations complémentaires..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  console.log('Créer compte bancaire');
+                  toast.success('Compte bancaire créé avec succès');
+                  setShowCreateModal(false);
+                }}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-secondary)]"
+              >
+                Créer le compte
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

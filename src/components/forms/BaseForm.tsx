@@ -139,7 +139,7 @@ const BaseForm: React.FC<FormProps> = ({
     const error = errors[field.name];
     const hasError = touched[field.name] && error;
 
-    const baseClasses = `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-tuatara focus:border-transparent ${
+    const baseClasses = `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent ${
       hasError ? 'border-red-500' : 'border-gray-300'
     } ${field.disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`;
 
@@ -150,7 +150,7 @@ const BaseForm: React.FC<FormProps> = ({
       case 'textarea':
         return (
           <div key={field.name} className="space-y-2">
-            <label htmlFor={fieldId} className="block text-sm font-medium text-tuatara">
+            <label htmlFor={fieldId} className="block text-sm font-medium text-[var(--color-text-primary)]">
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
@@ -178,7 +178,7 @@ const BaseForm: React.FC<FormProps> = ({
       case 'select':
         return (
           <div key={field.name} className="space-y-2">
-            <label htmlFor={fieldId} className="block text-sm font-medium text-tuatara">
+            <label htmlFor={fieldId} className="block text-sm font-medium text-[var(--color-text-primary)]">
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
@@ -214,7 +214,7 @@ const BaseForm: React.FC<FormProps> = ({
             <input
               id={fieldId}
               type="checkbox"
-              className="h-4 w-4 text-tuatara focus:ring-tuatara border-gray-300 rounded"
+              className="h-4 w-4 text-[var(--color-text-primary)] focus:ring-[var(--color-primary)] border-gray-300 rounded"
               checked={value || false}
               onChange={(e) => handleInputChange(field, e.target.checked)}
               onBlur={() => handleInputBlur(field)}
@@ -222,7 +222,7 @@ const BaseForm: React.FC<FormProps> = ({
               aria-describedby={hasError ? errorId : undefined}
               aria-invalid={hasError}
             />
-            <label htmlFor={fieldId} className="text-sm font-medium text-tuatara">
+            <label htmlFor={fieldId} className="text-sm font-medium text-[var(--color-text-primary)]">
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
@@ -237,7 +237,7 @@ const BaseForm: React.FC<FormProps> = ({
       default:
         return (
           <div key={field.name} className="space-y-2">
-            <label htmlFor={fieldId} className="block text-sm font-medium text-tuatara">
+            <label htmlFor={fieldId} className="block text-sm font-medium text-[var(--color-text-primary)]">
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
@@ -286,7 +286,7 @@ const BaseForm: React.FC<FormProps> = ({
         )}
         <Button
           type="submit"
-          className="bg-tuatara hover:bg-rolling-stone text-swirl"
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
           disabled={isLoading}
           loading={isLoading}
         >

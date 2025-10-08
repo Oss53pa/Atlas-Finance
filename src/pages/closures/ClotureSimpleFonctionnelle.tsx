@@ -69,15 +69,15 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       {/* En-tête */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Calculator className="h-6 w-6 mr-3 text-blue-600" />
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
             Module de Clôture Comptable Périodique
           </h1>
-          <p className="mt-1 text-gray-600">
+          <p className="mt-1 text-[var(--color-text-primary)]">
             Système complet conforme SYSCOHADA - 14 opérations automatisées
           </p>
         </div>
@@ -98,8 +98,8 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                   onClick={() => setOngletActif(onglet.id as any)}
                   className={`py-4 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     ongletActif === onglet.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                   }`}
                 >
                   <onglet.icon className="h-4 w-4" />
@@ -116,14 +116,14 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                 {/* Configuration */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Exercice</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Exercice</label>
+                    <select className="w-full px-3 py-2 border border-[var(--color-border-dark)] rounded-md">
                       <option>Exercice 2024</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Mois</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Mois</label>
+                    <select className="w-full px-3 py-2 border border-[var(--color-border-dark)] rounded-md">
                       <option>Janvier</option>
                       <option>Février</option>
                       <option>Mars</option>
@@ -133,8 +133,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                     <button
                       onClick={demarrerCloture}
                       disabled={operationEnCours}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
-                    >
+                      className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] disabled:opacity-50 flex items-center justify-center space-x-2" aria-label="Lire">
                       {operationEnCours ? (
                         <Clock className="h-4 w-4 animate-spin" />
                       ) : (
@@ -147,34 +146,34 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
 
                 {/* État actuel */}
                 {operationActuelle && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="font-medium text-blue-900">{operationActuelle}</div>
+                  <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-4">
+                    <div className="font-medium text-[var(--color-primary-darker)]">{operationActuelle}</div>
                   </div>
                 )}
 
                 {/* Indicateurs de performance */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-blue-600">Progression</p>
-                        <p className="text-2xl font-bold text-blue-900">
+                        <p className="text-sm text-[var(--color-primary)]">Progression</p>
+                        <p className="text-2xl font-bold text-[var(--color-primary-darker)]">
                           {Math.round((operations.length / 14) * 100)}%
                         </p>
                       </div>
-                      <TrendingUp className="h-8 w-8 text-blue-500" />
+                      <TrendingUp className="h-8 w-8 text-[var(--color-primary)]" />
                     </div>
                   </div>
 
-                  <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-green-600">Écritures</p>
+                        <p className="text-sm text-[var(--color-success)]">Écritures</p>
                         <p className="text-2xl font-bold text-green-900">
                           {operations.reduce((sum, op) => sum + op.ecritures, 0)}
                         </p>
                       </div>
-                      <Database className="h-8 w-8 text-green-500" />
+                      <Database className="h-8 w-8 text-[var(--color-success)]" />
                     </div>
                   </div>
 
@@ -193,9 +192,9 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                   <div className="bg-orange-50 p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-orange-600">Conformité</p>
+                        <p className="text-sm text-[var(--color-warning)]">Conformité</p>
                         <p className="text-2xl font-bold text-orange-900">100%</p>
-                        <p className="text-xs text-orange-700">SYSCOHADA</p>
+                        <p className="text-xs text-[var(--color-warning-dark)]">SYSCOHADA</p>
                       </div>
                       <CheckCircle className="h-8 w-8 text-orange-500" />
                     </div>
@@ -207,29 +206,29 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
             {/* Onglet Opérations */}
             {ongletActif === 'operations' && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                   Opérations Exécutées ({operations.length}/14)
                 </h3>
 
                 {operations.length > 0 ? (
                   <div className="space-y-3">
                     {operations.map((operation, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                      <div key={index} className="flex items-center justify-between p-4 bg-[var(--color-background-secondary)] rounded-lg border">
                         <div className="flex items-center space-x-3">
-                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <CheckCircle className="h-5 w-5 text-[var(--color-success)]" />
                           <div>
-                            <div className="font-medium text-gray-900">{operation.nom}</div>
-                            <div className="text-sm text-gray-600">{operation.message}</div>
+                            <div className="font-medium text-[var(--color-text-primary)]">{operation.nom}</div>
+                            <div className="text-sm text-[var(--color-text-primary)]">{operation.message}</div>
                           </div>
                         </div>
                         <div className="text-right">
                           {operation.ecritures > 0 && (
-                            <div className="text-sm font-medium text-green-600">
+                            <div className="text-sm font-medium text-[var(--color-success)]">
                               {operation.ecritures} écritures
                             </div>
                           )}
                           {parseFloat(operation.montant) > 0 && (
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-[var(--color-text-secondary)]">
                               {formaterMontant(operation.montant)}
                             </div>
                           )}
@@ -238,7 +237,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-[var(--color-text-secondary)]">
                     <Calculator className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                     <p>Aucune opération exécutée</p>
                     <p className="text-sm">Cliquez sur "Démarrer Clôture" pour commencer</p>
@@ -250,7 +249,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
             {/* Onglet Contrôles */}
             {ongletActif === 'controles' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900">Contrôles SYSCOHADA</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Contrôles SYSCOHADA</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
@@ -261,19 +260,19 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                     { nom: 'Plan Comptable', reference: 'Art. 15', statut: 'reussi' },
                     { nom: 'Intangibilité Écritures', reference: 'Art. 18', statut: 'reussi' }
                   ].map((controle, index) => (
-                    <div key={index} className="p-4 border border-green-200 bg-green-50 rounded-lg">
+                    <div key={index} className="p-4 border border-[var(--color-success-light)] bg-[var(--color-success-lightest)] rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">{controle.nom}</span>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="font-medium text-[var(--color-text-primary)]">{controle.nom}</span>
+                        <CheckCircle className="h-4 w-4 text-[var(--color-success)]" />
                       </div>
-                      <div className="text-xs text-blue-600">SYSCOHADA {controle.reference}</div>
+                      <div className="text-xs text-[var(--color-primary)]">SYSCOHADA {controle.reference}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Workflow validation */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h4 className="font-medium text-gray-900 mb-4">Workflow de Validation</h4>
+                <div className="bg-white border border-[var(--color-border)] rounded-lg p-6">
+                  <h4 className="font-medium text-[var(--color-text-primary)] mb-4">Workflow de Validation</h4>
                   <div className="flex items-center space-x-4">
                     {[
                       { niveau: 'Saisie', statut: 'complete' },
@@ -284,16 +283,16 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                     ].map((etape, index) => (
                       <div key={index} className="flex-1">
                         <div className={`p-3 rounded-lg text-center border ${
-                          etape.statut === 'complete' ? 'bg-green-100 border-green-300' :
-                          etape.statut === 'en_cours' ? 'bg-blue-100 border-blue-300' :
-                          'bg-gray-100 border-gray-300'
+                          etape.statut === 'complete' ? 'bg-[var(--color-success-lighter)] border-green-300' :
+                          etape.statut === 'en_cours' ? 'bg-[var(--color-primary-lighter)] border-blue-300' :
+                          'bg-[var(--color-background-hover)] border-[var(--color-border-dark)]'
                         }`}>
                           <div className="font-medium text-sm">{etape.niveau}</div>
                           <div className="mt-2">
                             {etape.statut === 'complete' ? (
-                              <CheckCircle className="h-4 w-4 text-green-500 mx-auto" />
+                              <CheckCircle className="h-4 w-4 text-[var(--color-success)] mx-auto" />
                             ) : etape.statut === 'en_cours' ? (
-                              <Clock className="h-4 w-4 text-blue-500 mx-auto" />
+                              <Clock className="h-4 w-4 text-[var(--color-primary)] mx-auto" />
                             ) : (
                               <div className="h-4 w-4 border border-gray-400 rounded mx-auto"></div>
                             )}
@@ -309,33 +308,33 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
         </div>
 
         {/* Informations SYSCOHADA */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">Conformité SYSCOHADA</h3>
+        <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-6 mt-6">
+          <h3 className="text-lg font-semibold text-[var(--color-primary-darker)] mb-4">Conformité SYSCOHADA</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Art. 45 - Provisions</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Art. 45 - Provisions</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• 6-12 mois : 50%</li>
                 <li>• Plus de 12 mois : 100%</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Art. 42 - Amortissements</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Art. 42 - Amortissements</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Informatique : 3 ans</li>
                 <li>• Bureau : 5 ans</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Art. 58 - Régularisations</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Art. 58 - Régularisations</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Charges à payer</li>
                 <li>• Produits à recevoir</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">Art. 65 - Balance</h4>
-              <ul className="space-y-1 text-blue-800">
+              <h4 className="font-medium text-[var(--color-primary-darker)] mb-2">Art. 65 - Balance</h4>
+              <ul className="space-y-1 text-[var(--color-primary-darker)]">
                 <li>• Équilibre débit/crédit</li>
                 <li>• Cohérence comptes</li>
               </ul>

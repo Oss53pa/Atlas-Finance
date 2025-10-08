@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   TrendingUp, TrendingDown, Activity, DollarSign, Users, Package,
   Clock, AlertTriangle, CheckCircle, Info, ChevronUp, ChevronDown,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { LineChart as RechartsLineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 
 interface KPICard {
   id: string;
@@ -33,7 +35,9 @@ interface ActivityItem {
 }
 
 const ModernDashboard: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const { t } = useLanguage();
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [refreshing, setRefreshing] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
@@ -74,7 +78,7 @@ const ModernDashboard: React.FC = () => {
     },
     {
       id: 'cash',
-      title: 'Trésorerie',
+      title: t('navigation.treasury'),
       value: '789,012',
       change: 15.8,
       changeLabel: 'vs mois dernier',
@@ -132,9 +136,9 @@ const ModernDashboard: React.FC = () => {
 
   const expenseCategories = [
     { name: 'Salaires', value: 45, color: '#6A8A82' },
-    { name: 'Achats', value: 25, color: '#10B981' },
-    { name: 'Marketing', value: 15, color: '#F59E0B' },
-    { name: 'Loyer', value: 10, color: '#EF4444' },
+    { name: 'Achats', value: 25, color: "var(--color-success)" },
+    { name: 'Marketing', value: 15, color: "var(--color-warning)" },
+    { name: 'Loyer', value: 10, color: "var(--color-error)" },
     { name: 'Autres', value: 5, color: '#B87333' }
   ];
 
@@ -221,11 +225,11 @@ const ModernDashboard: React.FC = () => {
   const getColorClass = (color: string) => {
     const colors: Record<string, string> = {
       blue: 'bg-[#6A8A82]/10 text-[#6A8A82] border-[#6A8A82]/20',
-      green: 'bg-green-100 text-green-700 border-green-200',
-      red: 'bg-red-100 text-red-700 border-red-200',
+      green: 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] border-[var(--color-success-light)]',
+      red: 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] border-[var(--color-error-light)]',
       purple: 'bg-[#B87333]/10 text-[#B87333] border-[#B87333]/20',
-      indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-      orange: 'bg-orange-100 text-orange-700 border-orange-200'
+      indigo: 'bg-[var(--color-info-lighter)] text-[var(--color-info-dark)] border-indigo-200',
+      orange: 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)] border-[var(--color-warning-light)]'
     };
     return colors[color] || colors.blue;
   };
@@ -270,31 +274,29 @@ const ModernDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord</h1>
-          <p className="text-gray-600 mt-1">Vue d'ensemble de votre activité</p>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Tableau de Bord</h1>
+          <p className="text-[var(--color-text-primary)] mt-1">Vue d'ensemble de votre activité</p>
         </div>
 
         <div className="flex items-center gap-3">
-          <select
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+          <button
+            onClick={() => setShowPeriodModal(true)}
+            className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
           >
-            <option value="day">Aujourd'hui</option>
-            <option value="week">Cette semaine</option>
-            <option value="month">Ce mois</option>
-            <option value="quarter">Ce trimestre</option>
-            <option value="year">Cette année</option>
-          </select>
+            <Calendar className="w-4 h-4" />
+            {dateRange.startDate && dateRange.endDate
+              ? `${dateRange.startDate} - ${dateRange.endDate}`
+              : 'Ce mois'
+            }
+          </button>
 
           <button
             onClick={handleRefresh}
             className={cn(
-              "p-2 rounded-lg border hover:bg-gray-50 transition-all",
+              "p-2 rounded-lg border hover:bg-[var(--color-background-secondary)] transition-all",
               refreshing && "animate-spin"
             )}
-            disabled={refreshing}
-          >
+            disabled={refreshing} aria-label="Actualiser">
             <RefreshCw className="w-5 h-5" />
           </button>
 
@@ -321,23 +323,23 @@ const ModernDashboard: React.FC = () => {
                 {kpi.icon}
               </div>
               {kpi.trend === 'up' ? (
-                <ChevronUp className="w-4 h-4 text-green-600" />
+                <ChevronUp className="w-4 h-4 text-[var(--color-success)]" />
               ) : kpi.trend === 'down' ? (
-                <ChevronDown className="w-4 h-4 text-red-600" />
+                <ChevronDown className="w-4 h-4 text-[var(--color-error)]" />
               ) : null}
             </div>
 
-            <h3 className="text-sm font-medium text-gray-600 mb-1">{kpi.title}</h3>
-            <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{kpi.title}</h3>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{kpi.value}</p>
 
             <div className="flex items-center justify-between mt-3">
               <span className={cn(
                 "text-sm font-medium",
-                kpi.change > 0 ? "text-green-600" : "text-red-600"
+                kpi.change > 0 ? "text-[var(--color-success)]" : "text-[var(--color-error)]"
               )}>
                 {kpi.change > 0 ? '+' : ''}{kpi.change}%
               </span>
-              <span className="text-xs text-gray-500">{kpi.changeLabel}</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{kpi.changeLabel}</span>
             </div>
 
             {kpi.sparklineData && expandedCard !== kpi.id && (
@@ -379,12 +381,12 @@ const ModernDashboard: React.FC = () => {
         {/* Revenue Chart */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Évolution du CA</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Évolution du CA</h2>
             <div className="flex items-center gap-2">
-              <button className="p-1 hover:bg-gray-100 rounded">
+              <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Filtrer">
                 <Filter className="w-4 h-4" />
               </button>
-              <button className="p-1 hover:bg-gray-100 rounded">
+              <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
                 <Eye className="w-4 h-4" />
               </button>
             </div>
@@ -415,9 +417,9 @@ const ModernDashboard: React.FC = () => {
         {/* Cash Flow Chart */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Flux de Trésorerie</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Flux de Trésorerie</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Dernières 4 semaines</span>
+              <span className="text-sm text-[var(--color-text-secondary)]">Dernières 4 semaines</span>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={300}>
@@ -439,7 +441,7 @@ const ModernDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Expense Distribution */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Répartition des Dépenses</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Répartition des Dépenses</h3>
           <ResponsiveContainer width="100%" height={250}>
             <RechartsPieChart>
               <Pie
@@ -463,7 +465,7 @@ const ModernDashboard: React.FC = () => {
 
         {/* Performance Radar */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Indicateurs de Performance</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Indicateurs de Performance</h3>
           <ResponsiveContainer width="100%" height={250}>
             <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="80%" data={performanceData}>
               <RadialBar
@@ -482,29 +484,29 @@ const ModernDashboard: React.FC = () => {
 
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Activité Récente</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Activité Récente</h3>
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {activities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg">
+              <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-[var(--color-background-secondary)] rounded-lg">
                 <div className={cn(
                   "p-2 rounded-lg",
-                  activity.type === 'payment' && "bg-green-100 text-green-600",
+                  activity.type === 'payment' && "bg-[var(--color-success-lighter)] text-[var(--color-success)]",
                   activity.type === 'invoice' && "bg-[#6A8A82]/10 text-[#6A8A82]",
-                  activity.type === 'alert' && "bg-yellow-100 text-yellow-600",
+                  activity.type === 'alert' && "bg-[var(--color-warning-lighter)] text-[var(--color-warning)]",
                   activity.type === 'approval' && "bg-[#B87333]/10 text-[#B87333]"
                 )}>
                   {getActivityIcon(activity.type)}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                  <p className="text-xs text-gray-500">{activity.description}</p>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">{activity.title}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">{activity.description}</p>
                   {activity.amount && (
-                    <p className="text-sm font-semibold text-gray-900 mt-1">
+                    <p className="text-sm font-semibold text-[var(--color-text-primary)] mt-1">
                       {activity.amount.toLocaleString()}
                     </p>
                   )}
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-[var(--color-text-secondary)]">
                   {new Date(activity.timestamp).toLocaleTimeString()}
                 </span>
               </div>
@@ -516,8 +518,8 @@ const ModernDashboard: React.FC = () => {
       {/* Alerts Section */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Alertes Intelligentes</h2>
-          <Bell className="w-5 h-5 text-gray-400" />
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Alertes Intelligentes</h2>
+          <Bell className="w-5 h-5 text-[var(--color-text-secondary)]" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {alerts.map((alert) => (
@@ -525,19 +527,19 @@ const ModernDashboard: React.FC = () => {
               key={alert.id}
               className={cn(
                 "p-4 rounded-lg border-l-4",
-                alert.type === 'warning' && "bg-yellow-50 border-yellow-400",
+                alert.type === 'warning' && "bg-[var(--color-warning-lightest)] border-yellow-400",
                 alert.type === 'info' && "bg-[#6A8A82]/5 border-[#6A8A82]",
-                alert.type === 'success' && "bg-green-50 border-green-400"
+                alert.type === 'success' && "bg-[var(--color-success-lightest)] border-green-400"
               )}
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h4 className="font-medium text-gray-900">{alert.title}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{alert.message}</p>
+                  <h4 className="font-medium text-[var(--color-text-primary)]">{alert.title}</h4>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-1">{alert.message}</p>
                 </div>
-                {alert.type === 'warning' && <AlertTriangle className="w-5 h-5 text-yellow-600" />}
+                {alert.type === 'warning' && <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />}
                 {alert.type === 'info' && <Info className="w-5 h-5 text-[#6A8A82]" />}
-                {alert.type === 'success' && <CheckCircle className="w-5 h-5 text-green-600" />}
+                {alert.type === 'success' && <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />}
               </div>
             </div>
           ))}
@@ -550,7 +552,7 @@ const ModernDashboard: React.FC = () => {
           <Receipt className="w-5 h-5" />
           <span className="font-medium">Nouvelle Facture</span>
         </button>
-        <button className="flex items-center justify-center gap-2 p-4 bg-green-50 text-green-700 rounded-lg hover:bg-green-100">
+        <button className="flex items-center justify-center gap-2 p-4 bg-[var(--color-success-lightest)] text-[var(--color-success-dark)] rounded-lg hover:bg-[var(--color-success-lighter)]">
           <DollarSign className="w-5 h-5" />
           <span className="font-medium">Enregistrer Paiement</span>
         </button>
@@ -558,11 +560,21 @@ const ModernDashboard: React.FC = () => {
           <Users className="w-5 h-5" />
           <span className="font-medium">Nouveau Client</span>
         </button>
-        <button className="flex items-center justify-center gap-2 p-4 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100">
+        <button className="flex items-center justify-center gap-2 p-4 bg-[var(--color-warning-lightest)] text-[var(--color-warning-dark)] rounded-lg hover:bg-[var(--color-warning-lighter)]">
           <BarChart3 className="w-5 h-5" />
           <span className="font-medium">Générer Rapport</span>
         </button>
       </div>
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onPeriodSelect={(period) => {
+          setDateRange(period);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Calendar,
   Calculator,
@@ -55,6 +56,7 @@ interface ProvisionProposee {
 }
 
 const ModuleClotureComplet: React.FC = () => {
+  const { t } = useLanguage();
   // États principaux
   const [exerciceSelectionne, setExerciceSelectionne] = useState('2024');
   const [moisSelectionne, setMoisSelectionne] = useState(1);
@@ -237,39 +239,39 @@ const ModuleClotureComplet: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--color-background-secondary)]">
       {/* En-tête */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                <Calculator className="h-6 w-6 mr-3 text-blue-600" />
+              <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+                <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
                 Clôture Comptable Périodique - Module Complet
               </h1>
-              <p className="mt-1 text-gray-600">
+              <p className="mt-1 text-[var(--color-text-primary)]">
                 Gestion complète des clôtures conformes SYSCOHADA
               </p>
             </div>
 
             <div className="flex items-center space-x-4">
               <div>
-                <label className="block text-sm text-gray-600">Exercice</label>
+                <label className="block text-sm text-[var(--color-text-primary)]">Exercice</label>
                 <select
                   value={exerciceSelectionne}
                   onChange={(e) => setExerciceSelectionne(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-[var(--color-border-dark)] rounded-md"
                 >
                   <option value="2024">2024</option>
                   <option value="2023">2023</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600">Mois</label>
+                <label className="block text-sm text-[var(--color-text-primary)]">Mois</label>
                 <select
                   value={moisSelectionne}
                   onChange={(e) => setMoisSelectionne(parseInt(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-md"
+                  className="px-3 py-2 border border-[var(--color-border-dark)] rounded-md"
                 >
                   {Array.from({length: 12}, (_, i) => (
                     <option key={i+1} value={i+1}>
@@ -300,8 +302,8 @@ const ModuleClotureComplet: React.FC = () => {
                   onClick={() => setOngletActif(onglet.id as any)}
                   className={`py-4 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     ongletActif === onglet.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                   }`}
                 >
                   <onglet.icon className="h-4 w-4" />
@@ -316,21 +318,21 @@ const ModuleClotureComplet: React.FC = () => {
             {ongletActif === 'balances' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
                     Balances Pré et Post-Clôture
                   </h2>
                   <div className="flex space-x-3">
                     <button
                       onClick={chargerBalancePreCloture}
                       disabled={chargement}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                      className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] disabled:opacity-50 flex items-center space-x-2"
                     >
                       {chargement ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
                       <span>Actualiser Balance</span>
                     </button>
                     <button
                       onClick={genererBalancePostCloture}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                      className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2"
                     >
                       <Calculator className="h-4 w-4" />
                       <span>Générer Post-Clôture</span>
@@ -340,18 +342,18 @@ const ModuleClotureComplet: React.FC = () => {
 
                 {/* Statistiques balance */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="text-sm text-blue-600">Comptes Actifs</div>
-                    <div className="text-2xl font-bold text-blue-900">{balancePreCloture.length}</div>
+                  <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
+                    <div className="text-sm text-[var(--color-primary)]">Comptes Actifs</div>
+                    <div className="text-2xl font-bold text-[var(--color-primary-darker)]">{balancePreCloture.length}</div>
                   </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="text-sm text-green-600">Total Débit</div>
+                  <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg">
+                    <div className="text-sm text-[var(--color-success)]">Total Débit</div>
                     <div className="text-xl font-bold text-green-900">
                       {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.debit_total, 0))}
                     </div>
                   </div>
-                  <div className="bg-red-50 p-4 rounded-lg">
-                    <div className="text-sm text-red-600">Total Crédit</div>
+                  <div className="bg-[var(--color-error-lightest)] p-4 rounded-lg">
+                    <div className="text-sm text-[var(--color-error)]">Total Crédit</div>
                     <div className="text-xl font-bold text-red-900">
                       {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.credit_total, 0))}
                     </div>
@@ -369,21 +371,21 @@ const ModuleClotureComplet: React.FC = () => {
 
                 {/* Table balance détaillée */}
                 <div className="bg-white border rounded-lg overflow-hidden">
-                  <div className="px-6 py-4 border-b bg-gray-50">
+                  <div className="px-6 py-4 border-b bg-[var(--color-background-secondary)]">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-gray-900">
+                      <h3 className="font-medium text-[var(--color-text-primary)]">
                         Balance Pré-Clôture - {new Date(2024, moisSelectionne-1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
                       </h3>
                       <div className="flex space-x-2">
                         <button
                           onClick={() => exporterBalance('PDF')}
-                          className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                          className="px-3 py-1 bg-[var(--color-error)] text-white rounded text-sm hover:bg-[var(--color-error-dark)]"
                         >
                           PDF
                         </button>
                         <button
                           onClick={() => exporterBalance('EXCEL')}
-                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                          className="px-3 py-1 bg-[var(--color-success)] text-white rounded text-sm hover:bg-[var(--color-success-dark)]"
                         >
                           Excel
                         </button>
@@ -393,71 +395,70 @@ const ModuleClotureComplet: React.FC = () => {
 
                   <div className="overflow-x-auto">
                     <table className="min-w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[var(--color-background-secondary)]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Compte</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Libellé</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Débit</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Crédit</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Solde Débiteur</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Solde Créditeur</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Écritures</th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase">{t('accounting.account')}</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase">{t('accounting.label')}</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Total Débit</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Total Crédit</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Solde Débiteur</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Solde Créditeur</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase">Écritures</th>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {balancePreCloture.map((ligne, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm font-mono font-medium text-gray-900">
+                          <tr key={index} className="hover:bg-[var(--color-background-secondary)]">
+                            <td className="px-6 py-4 text-sm font-mono font-medium text-[var(--color-text-primary)]">
                               {ligne.compte}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-900">
+                            <td className="px-6 py-4 text-sm text-[var(--color-text-primary)]">
                               {ligne.libelle}
                             </td>
-                            <td className="px-6 py-4 text-right text-sm font-mono text-blue-600">
+                            <td className="px-6 py-4 text-right text-sm font-mono text-[var(--color-primary)]">
                               {ligne.debit_total > 0 ? formaterMontant(ligne.debit_total) : '-'}
                             </td>
-                            <td className="px-6 py-4 text-right text-sm font-mono text-green-600">
+                            <td className="px-6 py-4 text-right text-sm font-mono text-[var(--color-success)]">
                               {ligne.credit_total > 0 ? formaterMontant(ligne.credit_total) : '-'}
                             </td>
-                            <td className="px-6 py-4 text-right text-sm font-mono font-bold text-blue-600">
+                            <td className="px-6 py-4 text-right text-sm font-mono font-bold text-[var(--color-primary)]">
                               {ligne.solde_debiteur > 0 ? formaterMontant(ligne.solde_debiteur) : '-'}
                             </td>
-                            <td className="px-6 py-4 text-right text-sm font-mono font-bold text-green-600">
+                            <td className="px-6 py-4 text-right text-sm font-mono font-bold text-[var(--color-success)]">
                               {ligne.solde_crediteur > 0 ? formaterMontant(ligne.solde_crediteur) : '-'}
                             </td>
-                            <td className="px-6 py-4 text-center text-sm text-gray-600">
+                            <td className="px-6 py-4 text-center text-sm text-[var(--color-text-primary)]">
                               {ligne.nb_ecritures}
                             </td>
                             <td className="px-6 py-4 text-center">
                               <button
-                                className="text-blue-600 hover:text-blue-800"
-                                title="Voir détail compte"
-                              >
+                                className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]"
+                                title="Voir détail compte" aria-label="Voir les détails">
                                 <Eye className="h-4 w-4" />
                               </button>
                             </td>
                           </tr>
                         ))}
                       </tbody>
-                      <tfoot className="bg-gray-100">
+                      <tfoot className="bg-[var(--color-background-hover)]">
                         <tr>
-                          <td colSpan={2} className="px-6 py-4 text-right font-semibold text-gray-900">
+                          <td colSpan={2} className="px-6 py-4 text-right font-semibold text-[var(--color-text-primary)]">
                             TOTAUX:
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-blue-600">
+                          <td className="px-6 py-4 text-right font-bold text-[var(--color-primary)]">
                             {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.debit_total, 0))}
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-green-600">
+                          <td className="px-6 py-4 text-right font-bold text-[var(--color-success)]">
                             {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.credit_total, 0))}
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-blue-600">
+                          <td className="px-6 py-4 text-right font-bold text-[var(--color-primary)]">
                             {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.solde_debiteur, 0))}
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-green-600">
+                          <td className="px-6 py-4 text-right font-bold text-[var(--color-success)]">
                             {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.solde_crediteur, 0))}
                           </td>
-                          <td className="px-6 py-4 text-center font-bold text-gray-900">
+                          <td className="px-6 py-4 text-center font-bold text-[var(--color-text-primary)]">
                             {balancePreCloture.reduce((sum, b) => sum + b.nb_ecritures, 0)}
                           </td>
                           <td></td>
@@ -469,9 +470,9 @@ const ModuleClotureComplet: React.FC = () => {
 
                 {/* Balance post-clôture si générée */}
                 {balancePostCloture.length > 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <div className="bg-[var(--color-success-lightest)] border border-[var(--color-success-light)] rounded-lg p-6">
                     <h3 className="font-medium text-green-900 mb-4">Balance Post-Clôture Générée</h3>
-                    <div className="text-sm text-green-800">
+                    <div className="text-sm text-[var(--color-success-darker)]">
                       Balance mise à jour avec {ecritures.filter(e => e.statut !== 'BROUILLON').length} écritures de clôture validées
                     </div>
                   </div>
@@ -483,13 +484,13 @@ const ModuleClotureComplet: React.FC = () => {
             {ongletActif === 'provisions' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
                     Provisions Créances Clients SYSCOHADA
                   </h2>
                   <button
                     onClick={proposerProvisions}
                     disabled={chargement}
-                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 flex items-center space-x-2"
+                    className="px-4 py-2 bg-[var(--color-warning)] text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 flex items-center space-x-2"
                   >
                     {chargement ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Calculator className="h-4 w-4" />}
                     <span>Calculer Provisions</span>
@@ -498,38 +499,38 @@ const ModuleClotureComplet: React.FC = () => {
 
                 {provisionsProposees.length > 0 ? (
                   <div className="bg-white border rounded-lg overflow-hidden">
-                    <div className="px-6 py-4 border-b bg-gray-50">
-                      <h3 className="font-medium text-gray-900">Provisions Proposées - Validation Requise</h3>
+                    <div className="px-6 py-4 border-b bg-[var(--color-background-secondary)]">
+                      <h3 className="font-medium text-[var(--color-text-primary)]">Provisions Proposées - Validation Requise</h3>
                     </div>
 
                     <div className="overflow-x-auto">
                       <table className="min-w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-[var(--color-background-secondary)]">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Solde Créance</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Ancienneté</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Taux SYSCOHADA</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Provision Proposée</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Justification</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Statut</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase">Client</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Solde Créance</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase">Ancienneté</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase">Taux SYSCOHADA</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Provision Proposée</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase">Justification</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase">Statut</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                           {provisionsProposees.map((provision) => (
-                            <tr key={provision.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                            <tr key={provision.id} className="hover:bg-[var(--color-background-secondary)]">
+                              <td className="px-6 py-4 text-sm font-medium text-[var(--color-text-primary)]">
                                 {provision.client}
                               </td>
-                              <td className="px-6 py-4 text-right text-sm font-mono text-blue-600">
+                              <td className="px-6 py-4 text-right text-sm font-mono text-[var(--color-primary)]">
                                 {formaterMontant(provision.solde)}
                               </td>
                               <td className="px-6 py-4 text-center text-sm">
                                 <span className={`px-2 py-1 rounded-full text-xs ${
-                                  provision.anciennete_jours >= 365 ? 'bg-red-100 text-red-800' :
-                                  provision.anciennete_jours >= 180 ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-green-100 text-green-800'
+                                  provision.anciennete_jours >= 365 ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                                  provision.anciennete_jours >= 180 ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
+                                  'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]'
                                 }`}>
                                   {provision.anciennete_jours} jours
                                 </span>
@@ -537,17 +538,17 @@ const ModuleClotureComplet: React.FC = () => {
                               <td className="px-6 py-4 text-center text-sm font-medium">
                                 {provision.taux_syscohada}%
                               </td>
-                              <td className="px-6 py-4 text-right text-sm font-mono font-bold text-orange-600">
+                              <td className="px-6 py-4 text-right text-sm font-mono font-bold text-[var(--color-warning)]">
                                 {formaterMontant(provision.provision_proposee)}
                               </td>
-                              <td className="px-6 py-4 text-sm text-gray-600">
+                              <td className="px-6 py-4 text-sm text-[var(--color-text-primary)]">
                                 {provision.justification}
                               </td>
                               <td className="px-6 py-4 text-center">
                                 <span className={`px-2 py-1 rounded text-xs ${
-                                  provision.statut === 'VALIDEE' ? 'bg-green-100 text-green-800' :
-                                  provision.statut === 'REJETEE' ? 'bg-red-100 text-red-800' :
-                                  'bg-yellow-100 text-yellow-800'
+                                  provision.statut === 'VALIDEE' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                                  provision.statut === 'REJETEE' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                                  'bg-[var(--color-warning-lighter)] text-yellow-800'
                                 }`}>
                                   {provision.statut}
                                 </span>
@@ -557,14 +558,14 @@ const ModuleClotureComplet: React.FC = () => {
                                   <div className="flex space-x-1">
                                     <button
                                       onClick={() => validerProvision(provision.id, 'VALIDER')}
-                                      className="text-green-600 hover:text-green-800"
+                                      className="text-[var(--color-success)] hover:text-[var(--color-success-darker)]"
                                       title="Valider provision"
                                     >
                                       <CheckCircle className="h-4 w-4" />
                                     </button>
                                     <button
                                       onClick={() => validerProvision(provision.id, 'REJETER')}
-                                      className="text-red-600 hover:text-red-800"
+                                      className="text-[var(--color-error)] hover:text-red-800"
                                       title="Rejeter provision"
                                     >
                                       <X className="h-4 w-4" />
@@ -579,7 +580,7 @@ const ModuleClotureComplet: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-gray-500">
+                  <div className="text-center py-12 text-[var(--color-text-secondary)]">
                     <AlertTriangle className="h-16 w-16 mx-auto mb-4 text-gray-300" />
                     <p>Aucune provision calculée</p>
                     <p className="text-sm">Cliquez sur "Calculer Provisions" pour analyser les créances</p>
@@ -592,7 +593,7 @@ const ModuleClotureComplet: React.FC = () => {
             {ongletActif === 'ecritures' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
                     Journal de Clôture - Écritures Générées
                   </h2>
                   <button
@@ -610,12 +611,12 @@ const ModuleClotureComplet: React.FC = () => {
                       <div key={ecriture.id} className="bg-white border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-4">
-                            <span className="font-mono font-bold text-lg text-gray-900">{ecriture.numero}</span>
-                            <span className="text-gray-600">{ecriture.libelle}</span>
+                            <span className="font-mono font-bold text-lg text-[var(--color-text-primary)]">{ecriture.numero}</span>
+                            <span className="text-[var(--color-text-primary)]">{ecriture.libelle}</span>
                             <span className={`px-2 py-1 rounded text-xs ${
-                              ecriture.statut === 'APPROUVEE' ? 'bg-green-100 text-green-800' :
-                              ecriture.statut === 'VALIDEE' ? 'bg-blue-100 text-blue-800' :
-                              'bg-yellow-100 text-yellow-800'
+                              ecriture.statut === 'APPROUVEE' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                              ecriture.statut === 'VALIDEE' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                              'bg-[var(--color-warning-lighter)] text-yellow-800'
                             }`}>
                               {ecriture.statut}
                             </span>
@@ -625,14 +626,14 @@ const ModuleClotureComplet: React.FC = () => {
                             <div className="flex space-x-1">
                               <button
                                 onClick={() => modifierEcriture(ecriture)}
-                                className="text-blue-600 hover:text-blue-800"
+                                className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]"
                                 title="Modifier écriture"
                               >
                                 <Edit className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => supprimerEcriture(ecriture.id)}
-                                className="text-red-600 hover:text-red-800"
+                                className="text-[var(--color-error)] hover:text-red-800"
                                 title="Supprimer écriture"
                               >
                                 <X className="h-4 w-4" />
@@ -642,12 +643,12 @@ const ModuleClotureComplet: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="bg-blue-50 p-3 rounded">
-                            <div className="font-medium text-blue-900">Débit</div>
+                          <div className="bg-[var(--color-primary-lightest)] p-3 rounded">
+                            <div className="font-medium text-[var(--color-primary-darker)]">{t('accounting.debit')}</div>
                             <div className="font-mono">{ecriture.compte_debit} - {formaterMontant(ecriture.debit)}</div>
                           </div>
-                          <div className="bg-green-50 p-3 rounded">
-                            <div className="font-medium text-green-900">Crédit</div>
+                          <div className="bg-[var(--color-success-lightest)] p-3 rounded">
+                            <div className="font-medium text-green-900">{t('accounting.credit')}</div>
                             <div className="font-mono">{ecriture.compte_credit} - {formaterMontant(ecriture.credit)}</div>
                           </div>
                         </div>
@@ -655,7 +656,7 @@ const ModuleClotureComplet: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-gray-500">
+                  <div className="text-center py-12 text-[var(--color-text-secondary)]">
                     <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
                     <p>Aucune écriture de clôture générée</p>
                     <p className="text-sm">Les écritures apparaîtront après validation des provisions</p>
@@ -667,22 +668,22 @@ const ModuleClotureComplet: React.FC = () => {
             {/* ONGLET CALENDRIER */}
             {ongletActif === 'calendrier' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900">Calendrier des Clôtures</h2>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Calendrier des Clôtures</h2>
 
                 {/* Vue calendrier mensuel */}
                 <div className="bg-white border rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-gray-900">
+                    <h3 className="font-medium text-[var(--color-text-primary)]">
                       {new Date(2024, moisSelectionne-1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
                     </h3>
                     <div className="flex space-x-2">
-                      <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                      <button className="px-3 py-1 border border-[var(--color-border-dark)] rounded text-sm hover:bg-[var(--color-background-secondary)]">
                         Semaine
                       </button>
-                      <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                      <button className="px-3 py-1 bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] rounded text-sm">
                         Mois
                       </button>
-                      <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                      <button className="px-3 py-1 border border-[var(--color-border-dark)] rounded text-sm hover:bg-[var(--color-background-secondary)]">
                         Trimestre
                       </button>
                     </div>
@@ -691,29 +692,29 @@ const ModuleClotureComplet: React.FC = () => {
                   {/* Grille calendrier */}
                   <div className="grid grid-cols-7 gap-2">
                     {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((jour) => (
-                      <div key={jour} className="text-center text-sm font-medium text-gray-500 py-2">
+                      <div key={jour} className="text-center text-sm font-medium text-[var(--color-text-secondary)] py-2">
                         {jour}
                       </div>
                     ))}
 
                     {Array.from({length: 31}, (_, i) => {
                       const jour = i + 1;
-                      let classe = 'text-center p-3 text-sm border rounded cursor-pointer border-gray-200 hover:bg-gray-50';
+                      let classe = 'text-center p-3 text-sm border rounded cursor-pointer border-[var(--color-border)] hover:bg-[var(--color-background-secondary)]';
                       let contenu = jour.toString();
                       let tache = '';
 
                       // Échéances de clôture
                       if (jour === 5) {
-                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-red-100 border-red-300 text-red-800';
+                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-[var(--color-error-lighter)] border-red-300 text-red-800';
                         tache = 'J+5 Échéance';
                       } else if (jour === 10) {
-                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-yellow-100 border-yellow-300 text-yellow-800';
+                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-[var(--color-warning-lighter)] border-yellow-300 text-yellow-800';
                         tache = 'Provisions';
                       } else if (jour === 15) {
-                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-blue-100 border-blue-300 text-blue-800';
+                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-[var(--color-primary-lighter)] border-blue-300 text-[var(--color-primary-darker)]';
                         tache = 'Validation';
                       } else if (jour === 20) {
-                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-green-100 border-green-300 text-green-800';
+                        classe = 'text-center p-3 text-sm border rounded cursor-pointer bg-[var(--color-success-lighter)] border-green-300 text-[var(--color-success-darker)]';
                         tache = 'Terminé';
                       }
 
@@ -729,19 +730,19 @@ const ModuleClotureComplet: React.FC = () => {
                   {/* Légende */}
                   <div className="mt-4 flex items-center space-x-6 text-sm">
                     <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-red-100 border border-red-300 rounded"></div>
+                      <div className="w-4 h-4 bg-[var(--color-error-lighter)] border border-red-300 rounded"></div>
                       <span>Échéances critiques (J+5)</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded"></div>
+                      <div className="w-4 h-4 bg-[var(--color-warning-lighter)] border border-yellow-300 rounded"></div>
                       <span>Tâches en cours</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-blue-100 border border-blue-300 rounded"></div>
+                      <div className="w-4 h-4 bg-[var(--color-primary-lighter)] border border-blue-300 rounded"></div>
                       <span>En validation</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 bg-green-100 border border-green-300 rounded"></div>
+                      <div className="w-4 h-4 bg-[var(--color-success-lighter)] border border-green-300 rounded"></div>
                       <span>Terminées</span>
                     </div>
                   </div>
@@ -749,7 +750,7 @@ const ModuleClotureComplet: React.FC = () => {
 
                 {/* Planning des tâches */}
                 <div className="bg-white border rounded-lg p-6">
-                  <h3 className="font-medium text-gray-900 mb-4">Planning des Tâches de Clôture</h3>
+                  <h3 className="font-medium text-[var(--color-text-primary)] mb-4">Planning des Tâches de Clôture</h3>
 
                   <div className="space-y-3">
                     {[
@@ -758,16 +759,16 @@ const ModuleClotureComplet: React.FC = () => {
                       { tache: 'Régularisations cut-off', responsable: 'Paul Bernard', echeance: '15/01', statut: 'PLANIFIEE', priorite: 'CRITIQUE' },
                       { tache: 'Approbation directeur financier', responsable: 'Dir. Financier', echeance: '18/01', statut: 'PLANIFIEE', priorite: 'HAUTE' }
                     ].map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-4 bg-[var(--color-background-secondary)] rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className={`w-3 h-3 rounded-full ${
-                            item.statut === 'EN_COURS' ? 'bg-blue-500' :
-                            item.statut === 'EN_ATTENTE' ? 'bg-yellow-500' :
+                            item.statut === 'EN_COURS' ? 'bg-[var(--color-primary)]' :
+                            item.statut === 'EN_ATTENTE' ? 'bg-[var(--color-warning)]' :
                             'bg-gray-400'
                           }`}></div>
                           <div>
-                            <div className="font-medium text-gray-900">{item.tache}</div>
-                            <div className="text-sm text-gray-600 flex items-center space-x-2">
+                            <div className="font-medium text-[var(--color-text-primary)]">{item.tache}</div>
+                            <div className="text-sm text-[var(--color-text-primary)] flex items-center space-x-2">
                               <User className="h-3 w-3" />
                               <span>{item.responsable}</span>
                             </div>
@@ -775,14 +776,14 @@ const ModuleClotureComplet: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-4">
                           <span className={`px-2 py-1 rounded text-xs ${
-                            item.priorite === 'CRITIQUE' ? 'bg-red-100 text-red-800' :
-                            item.priorite === 'HAUTE' ? 'bg-orange-100 text-orange-800' :
-                            'bg-gray-100 text-gray-800'
+                            item.priorite === 'CRITIQUE' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                            item.priorite === 'HAUTE' ? 'bg-[var(--color-warning-lighter)] text-orange-800' :
+                            'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                           }`}>
                             {item.priorite}
                           </span>
-                          <span className="text-sm text-gray-600">{item.echeance}</span>
-                          <button className="text-blue-600 hover:text-blue-800">
+                          <span className="text-sm text-[var(--color-text-primary)]">{item.echeance}</span>
+                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]">
                             <Mail className="h-4 w-4" title="Envoyer rappel" />
                           </button>
                         </div>
@@ -796,28 +797,28 @@ const ModuleClotureComplet: React.FC = () => {
             {/* ONGLET EXPORTS */}
             {ongletActif === 'exports' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900">Exports et Rapports</h2>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Exports et Rapports</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-white border rounded-lg p-6 text-center">
-                    <FileText className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-2">Journal de Clôture</h3>
-                    <p className="text-sm text-gray-600 mb-4">Export PDF du journal avec toutes les écritures</p>
+                    <FileText className="h-12 w-12 text-[var(--color-primary)] mx-auto mb-4" />
+                    <h3 className="font-medium text-[var(--color-text-primary)] mb-2">Journal de Clôture</h3>
+                    <p className="text-sm text-[var(--color-text-primary)] mb-4">Export PDF du journal avec toutes les écritures</p>
                     <button
                       onClick={exporterJournal}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
                     >
                       Exporter PDF
                     </button>
                   </div>
 
                   <div className="bg-white border rounded-lg p-6 text-center">
-                    <Database className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-2">Balance Générale</h3>
-                    <p className="text-sm text-gray-600 mb-4">Export Excel de la balance avec formules</p>
+                    <Database className="h-12 w-12 text-[var(--color-success)] mx-auto mb-4" />
+                    <h3 className="font-medium text-[var(--color-text-primary)] mb-2">Balance Générale</h3>
+                    <p className="text-sm text-[var(--color-text-primary)] mb-4">Export Excel de la balance avec formules</p>
                     <button
                       onClick={() => exporterBalance('EXCEL')}
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      className="w-full px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)]"
                     >
                       Exporter Excel
                     </button>
@@ -825,8 +826,8 @@ const ModuleClotureComplet: React.FC = () => {
 
                   <div className="bg-white border rounded-lg p-6 text-center">
                     <Settings className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-2">Fichier FEC</h3>
-                    <p className="text-sm text-gray-600 mb-4">Fichier des écritures comptables pour administration</p>
+                    <h3 className="font-medium text-[var(--color-text-primary)] mb-2">Fichier FEC</h3>
+                    <p className="text-sm text-[var(--color-text-primary)] mb-4">Fichier des écritures comptables pour administration</p>
                     <button
                       onClick={exporterFEC}
                       className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
@@ -838,7 +839,7 @@ const ModuleClotureComplet: React.FC = () => {
 
                 {/* Workflow d'approbation */}
                 <div className="bg-white border rounded-lg p-6">
-                  <h3 className="font-medium text-gray-900 mb-4">Workflow d'Approbation</h3>
+                  <h3 className="font-medium text-[var(--color-text-primary)] mb-4">Workflow d'Approbation</h3>
 
                   <div className="space-y-4">
                     {/* Circuit de validation */}
@@ -852,18 +853,18 @@ const ModuleClotureComplet: React.FC = () => {
                       ].map((etape, index) => (
                         <div key={index} className="flex-1">
                           <div className={`p-4 rounded-lg border text-center ${
-                            etape.statut === 'TERMINE' ? 'bg-green-100 border-green-300' :
-                            etape.statut === 'EN_COURS' ? 'bg-blue-100 border-blue-300' :
-                            'bg-gray-100 border-gray-300'
+                            etape.statut === 'TERMINE' ? 'bg-[var(--color-success-lighter)] border-green-300' :
+                            etape.statut === 'EN_COURS' ? 'bg-[var(--color-primary-lighter)] border-blue-300' :
+                            'bg-[var(--color-background-hover)] border-[var(--color-border-dark)]'
                           }`}>
                             <div className="font-medium text-sm">{etape.etape}</div>
-                            <div className="text-xs text-gray-600 mt-1">{etape.utilisateur}</div>
-                            <div className="text-xs text-gray-500 mt-1">{etape.date}</div>
+                            <div className="text-xs text-[var(--color-text-primary)] mt-1">{etape.utilisateur}</div>
+                            <div className="text-xs text-[var(--color-text-secondary)] mt-1">{etape.date}</div>
                             <div className="mt-2">
                               {etape.statut === 'TERMINE' ? (
-                                <CheckCircle className="h-4 w-4 text-green-500 mx-auto" />
+                                <CheckCircle className="h-4 w-4 text-[var(--color-success)] mx-auto" />
                               ) : etape.statut === 'EN_COURS' ? (
-                                <Clock className="h-4 w-4 text-blue-500 mx-auto animate-pulse" />
+                                <Clock className="h-4 w-4 text-[var(--color-primary)] mx-auto animate-pulse" />
                               ) : (
                                 <div className="h-4 w-4 border border-gray-400 rounded mx-auto"></div>
                               )}
@@ -874,17 +875,17 @@ const ModuleClotureComplet: React.FC = () => {
                     </div>
 
                     {/* Actions d'approbation */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium text-blue-900">En attente de votre validation</div>
-                          <div className="text-sm text-blue-700">{provisionsProposees.filter(p => p.statut === 'PROPOSEE').length} provisions à valider</div>
+                          <div className="font-medium text-[var(--color-primary-darker)]">En attente de votre validation</div>
+                          <div className="text-sm text-[var(--color-primary-dark)]">{provisionsProposees.filter(p => p.statut === 'PROPOSEE').length} provisions à valider</div>
                         </div>
                         <div className="flex space-x-3">
-                          <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                          <button className="px-4 py-2 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)]">
                             Rejeter Tout
                           </button>
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                          <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)]">
                             Valider Tout
                           </button>
                         </div>
@@ -893,20 +894,20 @@ const ModuleClotureComplet: React.FC = () => {
 
                     {/* Cut-off et régularisations */}
                     <div className="bg-white border rounded-lg p-6">
-                      <h4 className="font-medium text-gray-900 mb-4">Cut-off et Régularisations</h4>
+                      <h4 className="font-medium text-[var(--color-text-primary)] mb-4">Cut-off et Régularisations</h4>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-3">Opérations à Cheval</h5>
+                          <h5 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Opérations à Cheval</h5>
                           <div className="space-y-2">
                             {[
                               { operation: 'Facture fournisseur reçue 02/02', montant: 45000, action: 'À régulariser en janvier' },
                               { operation: 'Prestation livrée 30/01', montant: 85000, action: 'Produit à recevoir' },
                               { operation: 'Assurance payée pour Q1', montant: 120000, action: 'Charge constatée d\'avance' }
                             ].map((item, index) => (
-                              <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-                                <div className="font-medium text-sm text-gray-900">{item.operation}</div>
-                                <div className="text-xs text-gray-600 mt-1">
+                              <div key={index} className="p-3 bg-[var(--color-warning-lightest)] border border-yellow-200 rounded">
+                                <div className="font-medium text-sm text-[var(--color-text-primary)]">{item.operation}</div>
+                                <div className="text-xs text-[var(--color-text-primary)] mt-1">
                                   {formaterMontant(item.montant)} - {item.action}
                                 </div>
                               </div>
@@ -915,24 +916,24 @@ const ModuleClotureComplet: React.FC = () => {
                         </div>
 
                         <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-3">Régularisations Automatiques</h5>
+                          <h5 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Régularisations Automatiques</h5>
                           <div className="space-y-2">
                             {[
                               { type: 'Charges à payer', montant: 75000, statut: 'PROPOSEE' },
                               { type: 'Produits à recevoir', montant: 85000, statut: 'VALIDEE' },
                               { type: 'Charges constatées d\'avance', montant: 120000, statut: 'VALIDEE' }
                             ].map((item, index) => (
-                              <div key={index} className="p-3 bg-gray-50 border rounded">
+                              <div key={index} className="p-3 bg-[var(--color-background-secondary)] border rounded">
                                 <div className="flex items-center justify-between">
-                                  <div className="font-medium text-sm text-gray-900">{item.type}</div>
+                                  <div className="font-medium text-sm text-[var(--color-text-primary)]">{item.type}</div>
                                   <span className={`px-2 py-1 rounded text-xs ${
-                                    item.statut === 'VALIDEE' ? 'bg-green-100 text-green-800' :
-                                    'bg-yellow-100 text-yellow-800'
+                                    item.statut === 'VALIDEE' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                                    'bg-[var(--color-warning-lighter)] text-yellow-800'
                                   }`}>
                                     {item.statut}
                                   </span>
                                 </div>
-                                <div className="text-xs text-gray-600 mt-1">
+                                <div className="text-xs text-[var(--color-text-primary)] mt-1">
                                   {formaterMontant(item.montant)}
                                 </div>
                               </div>
@@ -949,9 +950,9 @@ const ModuleClotureComplet: React.FC = () => {
         </div>
 
         {/* Référence SYSCOHADA */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-medium text-blue-900 mb-3">Conformité SYSCOHADA</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-blue-800">
+        <div className="bg-[var(--color-primary-lightest)] border border-[var(--color-primary-light)] rounded-lg p-6">
+          <h3 className="font-medium text-[var(--color-primary-darker)] mb-3">Conformité SYSCOHADA</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-[var(--color-primary-darker)]">
             <div>
               <strong>Art. 45 - Provisions :</strong> &gt;6 mois = 50%, &gt;12 mois = 100%
             </div>
@@ -973,14 +974,14 @@ const ModuleClotureComplet: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full">
             <div className="p-6 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 Modifier Écriture {ecritureSelectionnee.numero}
               </h3>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Libellé</label>
+                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{t('accounting.label')}</label>
                 <input
                   type="text"
                   value={ecritureSelectionnee.libelle}
@@ -988,13 +989,13 @@ const ModuleClotureComplet: React.FC = () => {
                     ...ecritureSelectionnee,
                     libelle: e.target.value
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-[var(--color-border-dark)] rounded-md"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Compte Débit</label>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Compte Débit</label>
                   <input
                     type="text"
                     value={ecritureSelectionnee.compte_debit}
@@ -1002,11 +1003,11 @@ const ModuleClotureComplet: React.FC = () => {
                       ...ecritureSelectionnee,
                       compte_debit: e.target.value
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono"
+                    className="w-full px-3 py-2 border border-[var(--color-border-dark)] rounded-md font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Compte Crédit</label>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Compte Crédit</label>
                   <input
                     type="text"
                     value={ecritureSelectionnee.compte_credit}
@@ -1014,13 +1015,13 @@ const ModuleClotureComplet: React.FC = () => {
                       ...ecritureSelectionnee,
                       compte_credit: e.target.value
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono"
+                    className="w-full px-3 py-2 border border-[var(--color-border-dark)] rounded-md font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Montant</label>
+                <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Montant</label>
                 <input
                   type="number"
                   value={ecritureSelectionnee.debit}
@@ -1032,21 +1033,21 @@ const ModuleClotureComplet: React.FC = () => {
                       credit: montant
                     });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-[var(--color-border-dark)] rounded-md"
                 />
               </div>
             </div>
 
-            <div className="p-6 border-t bg-gray-50 flex justify-between">
+            <div className="p-6 border-t bg-[var(--color-background-secondary)] flex justify-between">
               <button
                 onClick={() => setModalOuverte(null)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                className="px-4 py-2 bg-[var(--color-border-dark)] text-[var(--color-text-primary)] rounded-lg hover:bg-gray-400"
               >
                 Annuler
               </button>
               <button
                 onClick={() => sauvegarderEcriture(ecritureSelectionnee)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
               >
                 <Save className="h-4 w-4" />
                 <span>Sauvegarder</span>

@@ -3,6 +3,7 @@
  * Interface complète avec mapping intelligent et prévisualisation
  */
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Upload,
@@ -69,6 +70,7 @@ interface MigrationStep {
 }
 
 const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
+  const { t } = useLanguage();
   companyId,
   onComplete,
   onCancel,
@@ -253,7 +255,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                 ${step.status === 'completed' ? 'bg-green-500 border-green-500 text-white' :
                   step.status === 'current' ? 'bg-blue-500 border-blue-500 text-white' :
                   step.status === 'error' ? 'bg-red-500 border-red-500 text-white' :
-                  'bg-gray-200 border-gray-300 text-gray-500'}
+                  'bg-gray-200 border-gray-300 text-gray-700'}
               `}>
                 {step.status === 'completed' ? (
                   <CheckCircle className="h-5 w-5" />
@@ -265,15 +267,15 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               <div className="ml-3 text-left">
                 <p className={`text-sm font-medium ${
                   step.status === 'current' ? 'text-blue-600' : 
-                  step.status === 'completed' ? 'text-green-600' : 'text-gray-500'
+                  step.status === 'completed' ? 'text-green-600' : 'text-gray-700'
                 }`}>
                   {step.title}
                 </p>
-                <p className="text-xs text-gray-500">{step.description}</p>
+                <p className="text-xs text-gray-700">{step.description}</p>
               </div>
               
               {index < steps.length - 1 && (
-                <ArrowRight className="h-4 w-4 text-gray-400 ml-6" />
+                <ArrowRight className="h-4 w-4 text-gray-700 ml-6" />
               )}
             </div>
           ))}
@@ -411,7 +413,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
                       cutoff_date: e.target.value
                     })}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     Données antérieures à cette date ne seront pas migrées
                   </p>
                 </div>
@@ -454,7 +456,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               <h4 className="font-medium text-blue-900 mb-2">Instructions Export depuis Sage</h4>
               <ol className="text-sm text-blue-800 space-y-1">
                 <li>1. <strong>Plan comptable</strong> : Menu Traitement → Export → Plan comptable (format Excel)</li>
-                <li>2. <strong>Balance</strong> : Menu Édition → Balance générale → Export Excel</li>
+                <li>2. <strong>{t('accounting.balance')}</strong> : Menu Édition → Balance générale → Export Excel</li>
                 <li>3. <strong>Écritures</strong> : Menu Traitement → Export → Grand livre (toutes écritures) ou FEC</li>
                 <li>4. <strong>Clients/Fournisseurs</strong> : Menu Traitement → Export → Tiers (format Excel)</li>
               </ol>
@@ -465,7 +467,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               {/* Plan comptable */}
               {migrationConfig.include_chart_of_accounts && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                  <Database className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <Database className="h-8 w-8 text-gray-700 mx-auto mb-2" />
                   <h4 className="font-medium text-gray-900 mb-2">Plan Comptable</h4>
                   <p className="text-sm text-gray-600 mb-4">
                     Export Excel du plan comptable Sage
@@ -494,7 +496,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               {/* Écritures comptables */}
               {migrationConfig.include_journal_entries && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                  <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <FileText className="h-8 w-8 text-gray-700 mx-auto mb-2" />
                   <h4 className="font-medium text-gray-900 mb-2">Écritures Comptables</h4>
                   <p className="text-sm text-gray-600 mb-4">
                     Export des écritures ou fichier FEC
@@ -523,7 +525,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               {/* Balance d'ouverture */}
               {migrationConfig.include_opening_balance && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                  <BarChart3 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <BarChart3 className="h-8 w-8 text-gray-700 mx-auto mb-2" />
                   <h4 className="font-medium text-gray-900 mb-2">Balance d'Ouverture</h4>
                   <p className="text-sm text-gray-600 mb-4">
                     Balance avec soldes d'ouverture
@@ -552,7 +554,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               {/* Fichier tiers */}
               {(migrationConfig.include_customers || migrationConfig.include_suppliers) && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                  <Target className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <Target className="h-8 w-8 text-gray-700 mx-auto mb-2" />
                   <h4 className="font-medium text-gray-900 mb-2">Fichier Tiers</h4>
                   <p className="text-sm text-gray-600 mb-4">
                     Clients et fournisseurs Sage
@@ -829,7 +831,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               
               <div className="max-w-md mx-auto">
                 <Progress value={75} className="mb-2" />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-700">
                   Étape: Création des écritures comptables (75%)
                 </p>
               </div>

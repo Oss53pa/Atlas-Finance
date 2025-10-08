@@ -36,6 +36,7 @@ import {
 import { ModernCard } from '../../components/ui/ModernCard';
 import { StatCard } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -138,6 +139,8 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
   const [activeModule, setActiveModule] = useState<number>(initialModule);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
   // Mock data pour Module 6 - IoT Monitoring
   const iotDevices: IoTDevice[] = [
     {
@@ -358,12 +361,12 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                     }`} />
                     <div>
                       <p className="font-medium text-sm">{device.name}</p>
-                      <p className="text-xs text-gray-500">{device.location}</p>
+                      <p className="text-xs text-gray-700">{device.location}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm">{device.lastReading.value} {device.lastReading.unit}</p>
-                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                    <div className="flex items-center space-x-2 text-xs text-gray-700">
                       <Wifi className="w-3 h-3" />
                       <span>{device.signalStrength}%</span>
                     </div>
@@ -381,7 +384,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
               <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                 <div>
                   <p className="font-medium text-sm">Température Critique</p>
-                  <p className="text-xs text-gray-500">Seuil: &gt; 35°C</p>
+                  <p className="text-xs text-gray-700">Seuil: &gt; 35°C</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Bell className="w-4 h-4 text-red-500" />
@@ -391,7 +394,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
               <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                 <div>
                   <p className="font-medium text-sm">Vibration Anormale</p>
-                  <p className="text-xs text-gray-500">Seuil: &gt; 10 mm/s</p>
+                  <p className="text-xs text-gray-700">Seuil: &gt; 10 mm/s</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Bell className="w-4 h-4 text-orange-500" />
@@ -460,7 +463,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <p className="font-medium text-sm">{task.title}</p>
-                      <p className="text-xs text-gray-500 mt-1">{task.description}</p>
+                      <p className="text-xs text-gray-700 mt-1">{task.description}</p>
                     </div>
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       task.priority === 'critical' ? 'bg-red-100 text-red-800' :
@@ -484,7 +487,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                     </div>
                   )}
                   <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center space-x-3 text-xs text-gray-500">
+                    <div className="flex items-center space-x-3 text-xs text-gray-700">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-3 h-3" />
                         <span>{new Date(task.scheduledDate).toLocaleDateString()}</span>
@@ -637,7 +640,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                     <div className="w-4 h-4 bg-white rounded-full"></div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-xs text-gray-500">
+                <div className="grid grid-cols-2 gap-3 text-xs text-gray-700">
                   <div>
                     <span className="block">Fréquence:</span>
                     <span className="font-medium text-gray-900">Toutes les 12h</span>
@@ -660,7 +663,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                   ].map((mapping, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
                       <span className="font-medium">{mapping.field}</span>
-                      <span className="text-gray-500">→ {mapping.mapped}</span>
+                      <span className="text-gray-700">→ {mapping.mapped}</span>
                       <span className={`px-2 py-1 rounded ${
                         mapping.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                       }`}>
@@ -699,7 +702,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                         {record.syncType.charAt(0).toUpperCase() + record.syncType.slice(1)}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-700">
                       {new Date(record.lastSync).toLocaleString()}
                     </span>
                   </div>
@@ -716,7 +719,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                     </div>
                   )}
                   <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                    <div className="flex items-center space-x-2 text-xs text-gray-700">
                       <span>{record.dataFields.length} champs</span>
                       {record.status === 'success' && (
                         <CheckCircle className="w-3 h-3 text-green-500" />
@@ -820,7 +823,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <h5 className="font-medium text-sm">{template.name}</h5>
-                      <p className="text-xs text-gray-500 mt-1">{template.description}</p>
+                      <p className="text-xs text-gray-700 mt-1">{template.description}</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -838,7 +841,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                       </span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs text-gray-500 mb-3">
+                  <div className="grid grid-cols-2 gap-3 text-xs text-gray-700 mb-3">
                     <div>
                       <span className="block">Fréquence:</span>
                       <span className="font-medium text-gray-900">{template.frequency}</span>
@@ -849,12 +852,12 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                     </div>
                   </div>
                   {template.lastGenerated && (
-                    <div className="text-xs text-gray-500 mb-3">
+                    <div className="text-xs text-gray-700 mb-3">
                       Dernière génération: {new Date(template.lastGenerated).toLocaleDateString()}
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                    <div className="flex items-center space-x-1 text-xs text-gray-700">
                       <Users className="w-3 h-3" />
                       <span>{template.recipients.length} destinataires</span>
                     </div>
@@ -897,10 +900,14 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="date" className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                  <input type="date" className="px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                </div>
+                <ModernButton
+                  variant="outline"
+                  onClick={() => setShowPeriodModal(true)}
+                  className="flex items-center gap-2 w-full"
+                >
+                  <Calendar className="w-4 h-4" />
+                  Sélectionner période
+                </ModernButton>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Catégories</label>
@@ -966,10 +973,10 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
             ].map((report, index) => (
               <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <FileText className="w-4 h-4 text-gray-500" />
+                  <FileText className="w-4 h-4 text-gray-700" />
                   <div>
                     <p className="font-medium text-sm">{report.name}</p>
-                    <p className="text-xs text-gray-500">{report.size} • {new Date(report.date).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-700">{report.size} • {new Date(report.date).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -1076,6 +1083,17 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
       {activeModule === 7 && renderMaintenanceIA()}
       {activeModule === 8 && renderWiseFMSync()}
       {activeModule === 9 && renderRapports()}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(newDateRange) => {
+          setDateRange(newDateRange);
+          // Update any existing filter logic here
+        }}
+        initialDateRange={dateRange}
+      />
     </div>
   );
 };

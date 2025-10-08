@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  PlusIcon, 
-  MagnifyingGlassIcon, 
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
   FunnelIcon,
   EyeIcon,
   PencilIcon,
@@ -36,6 +39,7 @@ interface Budget {
 }
 
 const BudgetsPage: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -47,6 +51,12 @@ const BudgetsPage: React.FC = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // États pour le modal de sélection de période
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [showEditPeriodModal, setShowEditPeriodModal] = useState(false);
+  const [createDateRange, setCreateDateRange] = useState({ start: '', end: '' });
+  const [editDateRange, setEditDateRange] = useState({ start: '', end: '' });
 
   const queryClient = useQueryClient();
 
@@ -181,9 +191,19 @@ const BudgetsPage: React.FC = () => {
     }).format(amount);
   };
 
-  const handleDelete = (budget: Budget) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le budget "${budget.name}" ?`)) {
-      deleteBudgetMutation.mutate(budget.id);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; budget: Budget | null }>({
+    isOpen: false,
+    budget: null
+  });
+
+  const handleDeleteClick = (budget: Budget) => {
+    setDeleteConfirm({ isOpen: true, budget });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteConfirm.budget) {
+      deleteBudgetMutation.mutate(deleteConfirm.budget.id);
+      setDeleteConfirm({ isOpen: false, budget: null });
     }
   };
 
@@ -280,7 +300,7 @@ const BudgetsPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
               <input
                 type="text"
                 placeholder="Rechercher un budget..."
@@ -311,7 +331,7 @@ const BudgetsPage: React.FC = () => {
                 <option value="all">Tous les types</option>
                 <option value="operational">Opérationnel</option>
                 <option value="investment">Investissement</option>
-                <option value="treasury">Trésorerie</option>
+                <option value="treasury">{t('navigation.treasury')}</option>
               </select>
             </div>
 
@@ -323,7 +343,7 @@ const BudgetsPage: React.FC = () => {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
-                <option value="draft">Brouillon</option>
+                <option value="draft">{t('accounting.draft')}</option>
                 <option value="active">Actif</option>
                 <option value="closed">Clôturé</option>
                 <option value="archived">Archivé</option>
@@ -355,28 +375,28 @@ const BudgetsPage: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Budget
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Statut
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Période
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Montant
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Consommation
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Responsable
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -417,7 +437,7 @@ const BudgetsPage: React.FC = () => {
                 ))
               ) : filteredBudgets.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-700">
                     Aucun budget trouvé
                   </td>
                 </tr>
@@ -427,7 +447,7 @@ const BudgetsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{budget.name}</div>
-                        <div className="text-sm text-gray-500">{budget.code}</div>
+                        <div className="text-sm text-gray-700">{budget.code}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -448,7 +468,7 @@ const BudgetsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatCurrency(budget.totalAmount)}</div>
-                      <div className="text-sm text-gray-500">Restant: {formatCurrency(budget.remainingAmount)}</div>
+                      <div className="text-sm text-gray-700">Restant: {formatCurrency(budget.remainingAmount)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -472,7 +492,7 @@ const BudgetsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{budget.responsible}</div>
-                      <div className="text-sm text-gray-500">{budget.department}</div>
+                      <div className="text-sm text-gray-700">{budget.department}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
@@ -481,7 +501,7 @@ const BudgetsPage: React.FC = () => {
                             setSelectedBudget(budget);
                             setShowViewModal(true);
                           }}
-                          className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
+                          className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
                           title="Voir les détails"
                         >
                           <EyeIcon className="h-5 w-5" />
@@ -491,23 +511,23 @@ const BudgetsPage: React.FC = () => {
                             setSelectedBudget(budget);
                             setShowEditModal(true);
                           }}
-                          className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
-                          title="Modifier"
+                          className="p-2 text-gray-700 hover:text-indigo-600 transition-colors"
+                          title={t('common.edit')}
                         >
                           <PencilIcon className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleDuplicate(budget)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                          className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
                           title="Dupliquer"
                           disabled={duplicateBudgetMutation.isPending}
                         >
                           <DocumentDuplicateIcon className="h-5 w-5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(budget)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                          title="Supprimer"
+                          onClick={() => handleDeleteClick(budget)}
+                          className="p-2 text-gray-700 hover:text-red-600 transition-colors"
+                          title={t('common.delete')}
                           disabled={deleteBudgetMutation.isPending}
                         >
                           <TrashIcon className="h-5 w-5" />
@@ -558,6 +578,554 @@ const BudgetsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal - Créer Budget */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Créer un nouveau budget</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Informations générales */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom du budget *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: Budget Marketing Q1 2025"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Code *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: MKT-Q1-2025"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type *
+                  </label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option value="operational">Opérationnel</option>
+                    <option value="investment">Investissement</option>
+                    <option value="treasury">{t('navigation.treasury')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Statut *
+                  </label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option value="draft">{t('accounting.draft')}</option>
+                    <option value="active">Actif</option>
+                    <option value="closed">Clôturé</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Période
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Ex: Q1 2025"
+                  />
+                </div>
+              </div>
+
+              {/* Période */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Période *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPeriodModal(true)}
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  <span>
+                    {createDateRange.start && createDateRange.end
+                      ? `Du ${new Date(createDateRange.start).toLocaleDateString('fr-FR')} au ${new Date(createDateRange.end).toLocaleDateString('fr-FR')}`
+                      : 'Sélectionner une période'
+                    }
+                  </span>
+                </button>
+              </div>
+
+              {/* Montants */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Montant total *
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Devise *
+                  </label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option value="FCFA">FCFA</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Assignation */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Département *
+                  </label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <option value="">Sélectionner...</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="IT">IT</option>
+                    <option value="RH">RH</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Opérations">Opérations</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Responsable *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Nom du responsable"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Décrivez les objectifs et périmètre de ce budget..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  console.log('Créer budget');
+                  setShowCreateModal(false);
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Créer le budget
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal - Modifier Budget */}
+      {showEditModal && selectedBudget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Modifier le budget</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom du budget *</label>
+                  <input
+                    type="text"
+                    defaultValue={selectedBudget.name}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Code *</label>
+                  <input
+                    type="text"
+                    defaultValue={selectedBudget.code}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                  <select
+                    defaultValue={selectedBudget.type}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  >
+                    <option value="operational">Opérationnel</option>
+                    <option value="investment">Investissement</option>
+                    <option value="treasury">{t('navigation.treasury')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Statut *</label>
+                  <select
+                    defaultValue={selectedBudget.status}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  >
+                    <option value="draft">{t('accounting.draft')}</option>
+                    <option value="active">Actif</option>
+                    <option value="closed">Clôturé</option>
+                    <option value="archived">Archivé</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Période</label>
+                  <input
+                    type="text"
+                    defaultValue={selectedBudget.period}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              {/* Période pour modification */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Période *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditDateRange({
+                      start: selectedBudget.startDate,
+                      end: selectedBudget.endDate
+                    });
+                    setShowEditPeriodModal(true);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  <span>
+                    {editDateRange.start && editDateRange.end
+                      ? `Du ${new Date(editDateRange.start).toLocaleDateString('fr-FR')} au ${new Date(editDateRange.end).toLocaleDateString('fr-FR')}`
+                      : `Du ${new Date(selectedBudget.startDate).toLocaleDateString('fr-FR')} au ${new Date(selectedBudget.endDate).toLocaleDateString('fr-FR')}`
+                    }
+                  </span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Montant total *</label>
+                  <input
+                    type="number"
+                    defaultValue={selectedBudget.totalAmount}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Devise *</label>
+                  <select
+                    defaultValue={selectedBudget.currency}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  >
+                    <option value="FCFA">FCFA</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Département *</label>
+                  <input
+                    type="text"
+                    defaultValue={selectedBudget.department}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Responsable *</label>
+                  <input
+                    type="text"
+                    defaultValue={selectedBudget.responsible}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  rows={3}
+                  defaultValue={selectedBudget.description}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  console.log('Modifier budget', selectedBudget.id);
+                  setShowEditModal(false);
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Enregistrer les modifications
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal - Voir Budget */}
+      {showViewModal && selectedBudget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{selectedBudget.name}</h2>
+                <p className="text-sm text-gray-700 mt-1">Code: {selectedBudget.code}</p>
+              </div>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Statistiques */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-sm text-blue-600 font-medium mb-1">Montant Total</div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {selectedBudget.totalAmount.toLocaleString()} {selectedBudget.currency}
+                  </div>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <div className="text-sm text-orange-600 font-medium mb-1">Consommé</div>
+                  <div className="text-2xl font-bold text-orange-900">
+                    {selectedBudget.consumedAmount.toLocaleString()} {selectedBudget.currency}
+                  </div>
+                  <div className="text-xs text-orange-600 mt-1">
+                    {selectedBudget.consumptionRate}% du budget
+                  </div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="text-sm text-green-600 font-medium mb-1">Restant</div>
+                  <div className="text-2xl font-bold text-green-900">
+                    {selectedBudget.remainingAmount.toLocaleString()} {selectedBudget.currency}
+                  </div>
+                </div>
+              </div>
+
+              {/* Barre de progression */}
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium">Taux de consommation</span>
+                  <span className="text-gray-600">{selectedBudget.consumptionRate}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className={`h-3 rounded-full ${
+                      selectedBudget.consumptionRate > 90
+                        ? 'bg-red-500'
+                        : selectedBudget.consumptionRate > 75
+                        ? 'bg-orange-500'
+                        : 'bg-green-500'
+                    }`}
+                    style={{ width: `${selectedBudget.consumptionRate}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Informations générales */}
+              <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Informations générales</h3>
+                  <dl className="space-y-3">
+                    <div>
+                      <dt className="text-sm text-gray-700">Type</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1 capitalize">
+                        {selectedBudget.type}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-700">Statut</dt>
+                      <dd className="mt-1">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          selectedBudget.status === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : selectedBudget.status === 'draft'
+                            ? 'bg-gray-100 text-gray-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {selectedBudget.status === 'active' ? 'Actif' :
+                           selectedBudget.status === 'draft' ? 'Brouillon' :
+                           selectedBudget.status === 'closed' ? 'Clôturé' : 'Archivé'}
+                        </span>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-700">Période</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1">{selectedBudget.period}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-700">Date de début</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1">
+                        {new Date(selectedBudget.startDate).toLocaleDateString()}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-700">Date de fin</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1">
+                        {new Date(selectedBudget.endDate).toLocaleDateString()}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Assignation</h3>
+                  <dl className="space-y-3">
+                    <div>
+                      <dt className="text-sm text-gray-700">Département</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1">{selectedBudget.department}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-700">Responsable</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1">{selectedBudget.responsible}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-700">Créé le</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1">
+                        {new Date(selectedBudget.createdAt).toLocaleDateString()}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-700">Dernière modification</dt>
+                      <dd className="text-sm font-medium text-gray-900 mt-1">
+                        {new Date(selectedBudget.lastModified).toLocaleDateString()}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedBudget.description && (
+                <div className="pt-4 border-t">
+                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-sm text-gray-600">{selectedBudget.description}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => {
+                  setShowViewModal(false);
+                  setShowEditModal(true);
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Modifier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de sélection de période pour création */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(newDateRange) => {
+          setCreateDateRange(newDateRange);
+        }}
+        initialDateRange={createDateRange}
+      />
+
+      {/* Modal de sélection de période pour modification */}
+      <PeriodSelectorModal
+        isOpen={showEditPeriodModal}
+        onClose={() => setShowEditPeriodModal(false)}
+        onApply={(newDateRange) => {
+          setEditDateRange(newDateRange);
+        }}
+        initialDateRange={editDateRange}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, budget: null })}
+        onConfirm={handleConfirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer le budget "${deleteConfirm.budget?.name}" ? Cette action est irréversible.`}
+        variant="danger"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        confirmLoading={deleteBudgetMutation.isPending}
+      />
     </div>
   );
 };

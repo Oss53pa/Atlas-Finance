@@ -62,7 +62,7 @@ const SecurityDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
-            <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-xl font-semibold text-neutral-700">Chargement du module sécurité...</p>
           </motion.div>
         </div>
@@ -176,7 +176,7 @@ const SecurityDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-3">
                 <div className="p-3 bg-white/90 rounded-2xl">
-                  <Activity className="h-6 w-6 text-blue-600" />
+                  <Activity className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-neutral-900">Événements de Sécurité Récents</h2>
@@ -192,7 +192,7 @@ const SecurityDashboard: React.FC = () => {
 
             {isLoadingEvents ? (
               <div className="flex justify-center items-center py-16">
-                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
               </div>
             ) : (
               <div className="space-y-6">
@@ -205,11 +205,11 @@ const SecurityDashboard: React.FC = () => {
                     className="group flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-blue-300 hover:shadow-lg transition-all duration-300"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-2xl text-blue-600">
+                      <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary-lighter)] rounded-2xl text-[var(--color-primary)]">
                         {getEventIcon(event.type_evenement)}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-neutral-900 group-hover:text-blue-700 transition-colors">
+                        <h4 className="font-semibold text-neutral-900 group-hover:text-[var(--color-primary-dark)] transition-colors">
                           {event.description}
                         </h4>
                         <div className="flex items-center space-x-4 text-sm text-neutral-600">
@@ -223,9 +223,9 @@ const SecurityDashboard: React.FC = () => {
                       </div>
                     </div>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      event.niveau_gravite === 'high' ? 'bg-red-100 text-red-700' :
-                      event.niveau_gravite === 'medium' ? 'bg-orange-100 text-orange-700' :
-                      event.niveau_gravite === 'low' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'
+                      event.niveau_gravite === 'high' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]' :
+                      event.niveau_gravite === 'medium' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
+                      event.niveau_gravite === 'low' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' : 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]'
                     }`}>
                       {event.niveau_gravite === 'high' ? 'Élevé' : 
                        event.niveau_gravite === 'medium' ? 'Moyen' : 
@@ -255,7 +255,7 @@ const SecurityDashboard: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-3 bg-white/90 rounded-2xl">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
+                <AlertTriangle className="h-6 w-6 text-[var(--color-error)]" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-neutral-900">Alertes de Sécurité</h2>
@@ -265,7 +265,7 @@ const SecurityDashboard: React.FC = () => {
 
             {isLoadingAlerts ? (
               <div className="flex justify-center items-center py-16">
-                <div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-[var(--color-error-light)] border-t-red-600 rounded-full animate-spin"></div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -275,21 +275,21 @@ const SecurityDashboard: React.FC = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="p-6 rounded-2xl border bg-red-50/80 border-red-200/60"
+                    className="p-6 rounded-2xl border bg-[var(--color-error-lightest)]/80 border-[var(--color-error-light)]/60"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold text-red-900">{alert.titre}</h4>
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                        alert.statut === 'nouveau' ? 'bg-red-100 text-red-700' :
-                        alert.statut === 'en_cours' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'
+                        alert.statut === 'nouveau' ? 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]' :
+                        alert.statut === 'en_cours' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' : 'bg-emerald-100 text-emerald-700'
                       }`}>
                         {alert.statut === 'nouveau' ? 'Nouveau' : 
                          alert.statut === 'en_cours' ? 'En cours' : 'Résolu'}
                       </span>
                     </div>
-                    <p className="text-sm text-red-700 mb-2">{alert.description}</p>
+                    <p className="text-sm text-[var(--color-error-dark)] mb-2">{alert.description}</p>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-red-600">{formatDate(alert.date_creation)}</span>
+                      <span className="text-[var(--color-error)]">{formatDate(alert.date_creation)}</span>
                       {alert.actions_recommandees && (
                         <ElegantButton variant="ghost" size="sm">
                           Actions
@@ -322,7 +322,7 @@ const SecurityDashboard: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-3 bg-white/90 rounded-2xl">
-                <Users className="h-6 w-6 text-purple-600" />
+                <Users className="h-6 w-6 text-[var(--color-info)]" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-neutral-900">Activité des Utilisateurs (24h)</h2>
@@ -340,13 +340,13 @@ const SecurityDashboard: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="p-6 rounded-2xl border bg-blue-50/80 border-blue-200/60"
+                  className="p-6 rounded-2xl border bg-[var(--color-primary-lightest)]/80 border-[var(--color-primary-light)]/60"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-semibold text-blue-900">Connexions</span>
-                    <UserCheck className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-semibold text-[var(--color-primary-darker)]">Connexions</span>
+                    <UserCheck className="h-4 w-4 text-[var(--color-primary)]" />
                   </div>
-                  <p className="text-2xl font-bold text-blue-900">
+                  <p className="text-2xl font-bold text-[var(--color-primary-darker)]">
                     {userActivity.connexions_24h}
                   </p>
                 </motion.div>
@@ -355,11 +355,11 @@ const SecurityDashboard: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="p-6 rounded-2xl border bg-red-50/80 border-red-200/60"
+                  className="p-6 rounded-2xl border bg-[var(--color-error-lightest)]/80 border-[var(--color-error-light)]/60"
                 >
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-semibold text-red-900">Échecs</span>
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <AlertTriangle className="h-4 w-4 text-[var(--color-error)]" />
                   </div>
                   <p className="text-2xl font-bold text-red-900">
                     {userActivity.echecs_connexion_24h}
@@ -385,11 +385,11 @@ const SecurityDashboard: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="p-6 rounded-2xl border bg-purple-50/80 border-purple-200/60"
+                  className="p-6 rounded-2xl border bg-[var(--color-info-lightest)]/80 border-purple-200/60"
                 >
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-semibold text-purple-900">Temps moyen</span>
-                    <Clock className="h-4 w-4 text-purple-600" />
+                    <Clock className="h-4 w-4 text-[var(--color-info)]" />
                   </div>
                   <p className="text-2xl font-bold text-purple-900">
                     {userActivity.duree_moyenne_session}
@@ -417,8 +417,8 @@ const SecurityDashboard: React.FC = () => {
                 transition={{ delay: 0.1 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="h-6 w-6 text-blue-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <Users className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Utilisateurs</h3>
                 <p className="text-sm text-neutral-600">Gérer les comptes</p>
@@ -449,8 +449,8 @@ const SecurityDashboard: React.FC = () => {
                 transition={{ delay: 0.3 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <Activity className="h-6 w-6 text-purple-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <Activity className="h-6 w-6 text-[var(--color-info)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Journal d'Audit</h3>
                 <p className="text-sm text-neutral-600">Traçabilité complète</p>
@@ -465,8 +465,8 @@ const SecurityDashboard: React.FC = () => {
                 transition={{ delay: 0.4 }}
                 className="group p-6 border border-neutral-200 rounded-2xl hover:border-orange-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
-                  <Settings className="h-6 w-6 text-orange-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-warning-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <Settings className="h-6 w-6 text-[var(--color-warning)]" />
                 </div>
                 <h3 className="font-bold text-neutral-900 mb-1">Paramètres Sécurité</h3>
                 <p className="text-sm text-neutral-600">Politiques de sécurité</p>

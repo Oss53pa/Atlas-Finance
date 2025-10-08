@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
+import ExportMenu from '../../components/shared/ExportMenu';
 import {
-  Search, Plus, Filter, Download, Upload, Eye, Edit, Trash2,
+  Search, Plus, Filter, Upload, Eye, Edit, Trash2,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
   Euro, Calendar, FileText, Mail, Phone, MapPin, CreditCard,
   Package, Truck, ShieldCheck, AlertCircle, BarChart3, PieChart,
@@ -56,14 +59,19 @@ interface Fournisseur {
 }
 
 const FournisseursModule: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('liste');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatut, setSelectedStatut] = useState<string>('all');
   const [selectedFournisseurs, setSelectedFournisseurs] = useState<string[]>([]);
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const [selectedYear, setSelectedYear] = useState('2025');
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    period: 'month' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
+  });
   const [compareMode, setCompareMode] = useState(false);
 
   // Mock Data Fournisseurs CEMAC
@@ -497,10 +505,24 @@ const FournisseursModule: React.FC = () => {
                   {selectedFournisseurs.length} sélectionné(s)
                 </span>
               )}
-              <button className="flex items-center space-x-2 px-3 py-2 text-sm border border-[#E8E8E8] rounded hover:bg-gray-50">
-                <Download className="w-4 h-4" />
-                <span>Exporter</span>
-              </button>
+              <ExportMenu
+                data={filteredFournisseurs}
+                filename="fournisseurs"
+                columns={[
+                  { key: 'code', label: 'Code' },
+                  { key: 'raisonSociale', label: 'Fournisseur' },
+                  { key: 'secteurActivite', label: 'Secteur' },
+                  { key: 'categorie', label: 'Catégorie' },
+                  { key: 'pays', label: 'Pays' },
+                  { key: 'encoursActuel', label: 'Encours' },
+                  { key: 'volumeAchats', label: 'Volume Achats' },
+                  { key: 'dpo', label: 'DPO' },
+                  { key: 'notationInterne', label: 'Note' },
+                  { key: 'statut', label: 'Statut' }
+                ]}
+                buttonText={t('common.export')}
+                buttonVariant="outline"
+              />
               <button className="flex items-center space-x-2 px-3 py-2 text-sm border border-[#E8E8E8] rounded hover:bg-gray-50">
                 <Filter className="w-4 h-4" />
                 <span>Plus de filtres</span>
@@ -610,7 +632,7 @@ const FournisseursModule: React.FC = () => {
                       <button className="p-1 text-blue-600 hover:bg-blue-100 rounded">
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-red-600 hover:bg-red-100 rounded">
+                      <button className="p-1 text-red-600 hover:bg-red-100 rounded" aria-label="Supprimer">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -647,29 +669,22 @@ const FournisseursModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-[#666666]" />
-                  <select
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
-                  >
-                    <option value="day">Aujourd'hui</option>
-                    <option value="week">Cette semaine</option>
-                    <option value="month">Ce mois</option>
-                    <option value="quarter">Ce trimestre</option>
-                    <option value="year">Cette année</option>
-                  </select>
-                </div>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
+                <button
+                  onClick={() => setShowPeriodModal(true)}
+                  className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
                 >
-                  <option value="2025">2025</option>
-                  <option value="2024">2024</option>
-                  <option value="2023">2023</option>
-                </select>
+                  <Calendar className="w-4 h-4 text-[#666666]" />
+                  <span>
+                    {dateRange.period === 'custom'
+                      ? `${dateRange.startDate} - ${dateRange.endDate}`
+                      : dateRange.period === 'day' ? t('common.today')
+                      : dateRange.period === 'week' ? 'Cette semaine'
+                      : dateRange.period === 'month' ? 'Ce mois'
+                      : dateRange.period === 'quarter' ? 'Ce trimestre'
+                      : 'Cette année'
+                    }
+                  </span>
+                </button>
                 <button
                   onClick={() => setCompareMode(!compareMode)}
                   className={`px-4 py-2 rounded-lg text-sm transition-colors ${
@@ -683,13 +698,23 @@ const FournisseursModule: React.FC = () => {
                 </button>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="p-2 text-gray-600 hover:text-gray-900">
+                <button className="p-2 text-gray-600 hover:text-gray-900" aria-label="Actualiser">
                   <RefreshCw className="w-4 h-4" />
                 </button>
-                <button className="px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] text-sm">
-                  <Download className="w-4 h-4 inline mr-2" />
-                  Export PDF
-                </button>
+                <ExportMenu
+                  data={filteredFournisseurs}
+                  filename="dashboard-fournisseurs"
+                  columns={[
+                    { key: 'code', label: 'Code' },
+                    { key: 'raisonSociale', label: 'Fournisseur' },
+                    { key: 'categorie', label: 'Catégorie' },
+                    { key: 'volumeAchats', label: 'Volume Achats' },
+                    { key: 'scoreQualite', label: 'Score Qualité' },
+                    { key: 'respectDelais', label: 'Respect Délais' },
+                    { key: 'notationInterne', label: 'Note' }
+                  ]}
+                  buttonText="Export PDF"
+                />
               </div>
             </div>
           </div>
@@ -703,7 +728,7 @@ const FournisseursModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">52</p>
               <p className="text-sm text-[#666666]">Fournisseurs Actifs</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronUp className="w-3 h-3 text-green-500 mr-1" />
                 <span>4 nouveaux ce mois</span>
               </div>
@@ -716,7 +741,7 @@ const FournisseursModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">9.35M</p>
               <p className="text-sm text-[#666666]">Volume Achats</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <TrendingUp className="w-3 h-3 text-purple-500 mr-1" />
                 <span>FCFA YTD</span>
               </div>
@@ -729,7 +754,7 @@ const FournisseursModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">47j</p>
               <p className="text-sm text-[#666666]">DPO Moyen</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronDown className="w-3 h-3 text-green-500 mr-1" />
                 <span>Amélioration</span>
               </div>
@@ -742,7 +767,7 @@ const FournisseursModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">1.45M</p>
               <p className="text-sm text-[#666666]">Encours Total</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <Info className="w-3 h-3 text-orange-500 mr-1" />
                 <span>FCFA</span>
               </div>
@@ -755,7 +780,7 @@ const FournisseursModule: React.FC = () => {
               </div>
               <p className="text-2xl font-bold text-[#191919]">4.3/5</p>
               <p className="text-sm text-[#666666]">Score Qualité</p>
-              <div className="mt-2 flex items-center text-xs text-gray-500">
+              <div className="mt-2 flex items-center text-xs text-gray-700">
                 <Award className="w-3 h-3 text-green-500 mr-1" />
                 <span>Performance</span>
               </div>
@@ -824,7 +849,7 @@ const FournisseursModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">8</span>
-                    <span className="text-xs text-gray-500">fournisseurs</span>
+                    <span className="text-xs text-gray-700">fournisseurs</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
@@ -834,7 +859,7 @@ const FournisseursModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">15</span>
-                    <span className="text-xs text-gray-500">fournisseurs</span>
+                    <span className="text-xs text-gray-700">fournisseurs</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -844,7 +869,7 @@ const FournisseursModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">22</span>
-                    <span className="text-xs text-gray-500">fournisseurs</span>
+                    <span className="text-xs text-gray-700">fournisseurs</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
@@ -854,7 +879,7 @@ const FournisseursModule: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-lg font-bold text-gray-900 mr-2">5</span>
-                    <span className="text-xs text-gray-500">fournisseurs</span>
+                    <span className="text-xs text-gray-700">fournisseurs</span>
                   </div>
                 </div>
               </div>
@@ -903,7 +928,7 @@ const FournisseursModule: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[#191919]">Évolution des Achats</h3>
                 <div className="flex items-center space-x-2">
-                  <button className="p-1 text-gray-400 hover:text-gray-600">
+                  <button className="p-1 text-gray-700 hover:text-gray-600" aria-label="Information">
                     <Info className="w-4 h-4" />
                   </button>
                 </div>
@@ -992,10 +1017,10 @@ const FournisseursModule: React.FC = () => {
               <h3 className="text-lg font-semibold text-[#191919] mb-4">Matrice des Risques</h3>
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-1 row-span-3"></div>
-                <div className="text-center text-xs text-gray-500 pb-2">Faible Impact</div>
-                <div className="text-center text-xs text-gray-500 pb-2">Fort Impact</div>
+                <div className="text-center text-xs text-gray-700 pb-2">Faible Impact</div>
+                <div className="text-center text-xs text-gray-700 pb-2">Fort Impact</div>
 
-                <div className="text-right text-xs text-gray-500 pr-2">Haute Probabilité</div>
+                <div className="text-right text-xs text-gray-700 pr-2">Haute Probabilité</div>
                 <div className="bg-yellow-100 p-4 rounded-lg text-center">
                   <p className="text-2xl font-bold text-yellow-800">3</p>
                   <p className="text-xs text-yellow-600">Modérés</p>
@@ -1005,7 +1030,7 @@ const FournisseursModule: React.FC = () => {
                   <p className="text-xs text-red-600">Critiques</p>
                 </div>
 
-                <div className="text-right text-xs text-gray-500 pr-2">Basse Probabilité</div>
+                <div className="text-right text-xs text-gray-700 pr-2">Basse Probabilité</div>
                 <div className="bg-green-100 p-4 rounded-lg text-center">
                   <p className="text-2xl font-bold text-green-800">35</p>
                   <p className="text-xs text-green-600">Faibles</p>
@@ -1070,6 +1095,17 @@ const FournisseursModule: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Period Selector Modal */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        currentRange={dateRange}
+        onPeriodChange={(newRange) => {
+          setDateRange(newRange);
+          setShowPeriodModal(false);
+        }}
+      />
     </div>
   );
 };

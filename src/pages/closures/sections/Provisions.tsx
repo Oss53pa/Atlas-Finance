@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
   Shield,
@@ -123,6 +124,7 @@ interface AnalyseRisque {
 }
 
 const Provisions: React.FC = () => {
+  const { t } = useLanguage();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedProvision, setSelectedProvision] = useState<Provision | null>(null);
   const [filterType, setFilterType] = useState<string>('tous');
@@ -389,44 +391,44 @@ const Provisions: React.FC = () => {
 
   const getTypeProvisionIcon = (type: string) => {
     switch (type) {
-      case 'creances_douteuses': return <CreditCard className="w-5 h-5 text-red-600" />;
+      case 'creances_douteuses': return <CreditCard className="w-5 h-5 text-[var(--color-error)]" />;
       case 'litiges': return <Gavel className="w-5 h-5 text-purple-600" />;
-      case 'garanties': return <Shield className="w-5 h-5 text-blue-600" />;
-      case 'depreciation_stocks': return <Archive className="w-5 h-5 text-orange-600" />;
-      case 'retraites': return <Users className="w-5 h-5 text-green-600" />;
-      case 'restructuration': return <Factory className="w-5 h-5 text-gray-600" />;
-      default: return <AlertCircle className="w-5 h-5 text-gray-600" />;
+      case 'garanties': return <Shield className="w-5 h-5 text-[var(--color-primary)]" />;
+      case 'depreciation_stocks': return <Archive className="w-5 h-5 text-[var(--color-warning)]" />;
+      case 'retraites': return <Users className="w-5 h-5 text-[var(--color-success)]" />;
+      case 'restructuration': return <Factory className="w-5 h-5 text-[var(--color-text-primary)]" />;
+      default: return <AlertCircle className="w-5 h-5 text-[var(--color-text-primary)]" />;
     }
   };
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
-      'probable': 'bg-red-100 text-red-800',
-      'possible': 'bg-yellow-100 text-yellow-800',
-      'eventuel': 'bg-blue-100 text-blue-800',
+      'probable': 'bg-[var(--color-error-lighter)] text-red-800',
+      'possible': 'bg-[var(--color-warning-lighter)] text-yellow-800',
+      'eventuel': 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]',
       'certain': 'bg-purple-100 text-purple-800'
     };
-    return variants[statut] || 'bg-gray-100 text-gray-800';
+    return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getRisqueBadge = (niveau: string) => {
     const variants: Record<string, string> = {
-      'faible': 'bg-green-100 text-green-800',
-      'modere': 'bg-yellow-100 text-yellow-800',
-      'eleve': 'bg-orange-100 text-orange-800',
-      'critique': 'bg-red-100 text-red-800'
+      'faible': 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]',
+      'modere': 'bg-[var(--color-warning-lighter)] text-yellow-800',
+      'eleve': 'bg-[var(--color-warning-lighter)] text-orange-800',
+      'critique': 'bg-[var(--color-error-lighter)] text-red-800'
     };
-    return variants[niveau] || 'bg-gray-100 text-gray-800';
+    return variants[niveau] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
   const getCategorieChargeIcon = (categorie: string) => {
     switch (categorie) {
-      case 'charges_personnel': return <Users className="w-4 h-4 text-blue-600" />;
-      case 'charges_financieres': return <DollarSign className="w-4 h-4 text-green-600" />;
-      case 'charges_exploitation': return <Factory className="w-4 h-4 text-orange-600" />;
-      case 'charges_exceptionnelles': return <AlertTriangle className="w-4 h-4 text-red-600" />;
+      case 'charges_personnel': return <Users className="w-4 h-4 text-[var(--color-primary)]" />;
+      case 'charges_financieres': return <DollarSign className="w-4 h-4 text-[var(--color-success)]" />;
+      case 'charges_exploitation': return <Factory className="w-4 h-4 text-[var(--color-warning)]" />;
+      case 'charges_exceptionnelles': return <AlertTriangle className="w-4 h-4 text-[var(--color-error)]" />;
       case 'impots_taxes': return <Scale className="w-4 h-4 text-purple-600" />;
-      default: return <FileText className="w-4 h-4 text-gray-600" />;
+      default: return <FileText className="w-4 h-4 text-[var(--color-text-primary)]" />;
     }
   };
 
@@ -438,11 +440,11 @@ const Provisions: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Provisions</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Total Provisions</p>
                 <p className="text-2xl font-bold">{(kpis.totalProvisions / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-blue-600 mt-1">{kpis.nombreProvisions} provisions actives</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.nombreProvisions} provisions actives</p>
               </div>
-              <Shield className="w-8 h-8 text-blue-500" />
+              <Shield className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
           </CardContent>
         </Card>
@@ -451,11 +453,11 @@ const Provisions: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Dotations 2024</p>
-                <p className="text-2xl font-bold text-red-600">{(kpis.dotationsExercice / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-gray-600 mt-1">Impact résultat</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
+                <p className="text-2xl font-bold text-[var(--color-error)]">{(kpis.dotationsExercice / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-xs text-[var(--color-text-primary)] mt-1">Impact résultat</p>
               </div>
-              <TrendingDown className="w-8 h-8 text-red-500" />
+              <TrendingDown className="w-8 h-8 text-[var(--color-error)]" />
             </div>
           </CardContent>
         </Card>
@@ -464,11 +466,11 @@ const Provisions: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Reprises 2024</p>
-                <p className="text-2xl font-bold text-green-600">{(kpis.reprisesExercice / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-green-600 mt-1">Gains sur provisions</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Reprises 2024</p>
+                <p className="text-2xl font-bold text-[var(--color-success)]">{(kpis.reprisesExercice / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">Gains sur provisions</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
+              <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
             </div>
           </CardContent>
         </Card>
@@ -477,7 +479,7 @@ const Provisions: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Conformité SYSCOHADA</p>
+                <p className="text-sm text-[var(--color-text-primary)]">Conformité SYSCOHADA</p>
                 <p className="text-2xl font-bold">{kpis.tauxConformite.toFixed(0)}%</p>
                 <Progress value={kpis.tauxConformite} className="mt-2" />
               </div>
@@ -526,17 +528,17 @@ const Provisions: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-red-50 rounded">
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-error-lightest)] rounded">
                     <div className="flex items-center gap-3">
-                      <CreditCard className="w-5 h-5 text-red-600" />
+                      <CreditCard className="w-5 h-5 text-[var(--color-error)]" />
                       <div>
                         <p className="font-medium">Créances Douteuses</p>
-                        <p className="text-sm text-gray-600">1 provision</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">1 provision</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-red-600">4.5M</p>
-                      <p className="text-sm text-gray-500">16% du total</p>
+                      <p className="text-xl font-bold text-[var(--color-error)]">4.5M</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">16% du total</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-purple-50 rounded">
@@ -544,25 +546,25 @@ const Provisions: React.FC = () => {
                       <Gavel className="w-5 h-5 text-purple-600" />
                       <div>
                         <p className="font-medium">Litiges</p>
-                        <p className="text-sm text-gray-600">1 provision</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">1 provision</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-xl font-bold text-purple-600">8.0M</p>
-                      <p className="text-sm text-gray-500">29% du total</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">29% du total</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-primary-lightest)] rounded">
                     <div className="flex items-center gap-3">
-                      <Shield className="w-5 h-5 text-blue-600" />
+                      <Shield className="w-5 h-5 text-[var(--color-primary)]" />
                       <div>
                         <p className="font-medium">Garanties</p>
-                        <p className="text-sm text-gray-600">1 provision</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">1 provision</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-blue-600">15.0M</p>
-                      <p className="text-sm text-gray-500">55% du total</p>
+                      <p className="text-xl font-bold text-[var(--color-primary)]">15.0M</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">55% du total</p>
                     </div>
                   </div>
                 </div>
@@ -576,27 +578,27 @@ const Provisions: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-gray-50 rounded">
-                      <p className="text-sm text-gray-600">Solde Début 2024</p>
+                    <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
+                      <p className="text-sm text-[var(--color-text-primary)]">Solde Début 2024</p>
                       <p className="text-2xl font-bold">13.0M FCFA</p>
                     </div>
-                    <div className="text-center p-3 bg-gray-50 rounded">
-                      <p className="text-sm text-gray-600">Solde Fin 2024</p>
+                    <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
+                      <p className="text-sm text-[var(--color-text-primary)]">Solde Fin 2024</p>
                       <p className="text-2xl font-bold">27.5M FCFA</p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center p-2 bg-red-50 rounded">
+                    <div className="flex justify-between items-center p-2 bg-[var(--color-error-lightest)] rounded">
                       <span className="text-sm">Dotations exercice</span>
-                      <span className="font-medium text-red-600">+14.5M</span>
+                      <span className="font-medium text-[var(--color-error)]">+14.5M</span>
                     </div>
-                    <div className="flex justify-between items-center p-2 bg-green-50 rounded">
+                    <div className="flex justify-between items-center p-2 bg-[var(--color-success-lightest)] rounded">
                       <span className="text-sm">Reprises exercice</span>
-                      <span className="font-medium text-green-600">-2.0M</span>
+                      <span className="font-medium text-[var(--color-success)]">-2.0M</span>
                     </div>
-                    <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
+                    <div className="flex justify-between items-center p-2 bg-[var(--color-primary-lightest)] rounded">
                       <span className="text-sm">Utilisation</span>
-                      <span className="font-medium text-blue-600">-0M</span>
+                      <span className="font-medium text-[var(--color-primary)]">-0M</span>
                     </div>
                   </div>
                 </div>
@@ -612,12 +614,12 @@ const Provisions: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total charges à payer</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Total charges à payer</span>
                     <span className="font-bold text-lg">{(kpis.totalChargesAPayer / 1000000).toFixed(1)}M FCFA</span>
                   </div>
                   <div className="space-y-2">
                     {mockChargesAPayer.map(charge => (
-                      <div key={charge.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div key={charge.id} className="flex items-center justify-between p-2 bg-[var(--color-background-secondary)] rounded">
                         <div className="flex items-center gap-2">
                           {getCategorieChargeIcon(charge.categorie)}
                           <span className="text-sm">{charge.designation}</span>
@@ -637,17 +639,17 @@ const Provisions: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total produits à recevoir</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Total produits à recevoir</span>
                     <span className="font-bold text-lg">{(kpis.totalProduitsARecevoir / 1000000).toFixed(1)}M FCFA</span>
                   </div>
                   <div className="space-y-2">
                     {mockProduitsARecevoir.map(produit => (
-                      <div key={produit.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div key={produit.id} className="flex items-center justify-between p-2 bg-[var(--color-background-secondary)] rounded">
                         <div className="flex items-center gap-2">
-                          <PiggyBank className="w-4 h-4 text-green-600" />
+                          <PiggyBank className="w-4 h-4 text-[var(--color-success)]" />
                           <span className="text-sm">{produit.designation}</span>
                         </div>
-                        <span className="font-medium text-green-600">{(produit.montant / 1000000).toFixed(1)}M</span>
+                        <span className="font-medium text-[var(--color-success)]">{(produit.montant / 1000000).toFixed(1)}M</span>
                       </div>
                     ))}
                   </div>
@@ -662,7 +664,7 @@ const Provisions: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
                   placeholder="Rechercher une provision..."
@@ -696,13 +698,13 @@ const Provisions: React.FC = () => {
             </div>
             <div className="flex gap-2">
               <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
                 onClick={() => setShowProvisionModal(true)}
               >
                 <Plus className="w-4 h-4" />
                 Nouvelle Provision
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Exporter
               </button>
@@ -712,32 +714,32 @@ const Provisions: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Provision</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Solde</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Dotation 2024</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Probabilité</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Conformité</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Provision</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Type</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">{t('accounting.balance')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Dotation 2024</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Probabilité</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Conformité</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {provisionsFiltrees.map(provision => (
-                    <tr key={provision.id} className="border-t hover:bg-gray-50">
+                    <tr key={provision.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {getTypeProvisionIcon(provision.typeProvision)}
                           <div>
                             <p className="font-medium">{provision.designation}</p>
-                            <p className="text-sm text-gray-500">{provision.numero}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">{provision.numero}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge className="bg-blue-100 text-blue-800 capitalize">
+                        <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] capitalize">
                           {provision.typeProvision.replace('_', ' ')}
                         </Badge>
                       </td>
@@ -745,7 +747,7 @@ const Provisions: React.FC = () => {
                         {(provision.solde / 1000000).toFixed(1)}M FCFA
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <span className="text-red-600 font-medium">
+                        <span className="text-[var(--color-error)] font-medium">
                           {(provision.dotationExercice / 1000000).toFixed(1)}M
                         </span>
                       </td>
@@ -762,21 +764,21 @@ const Provisions: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         {provision.conformiteSYSCOHADA ? (
-                          <CheckCircle className="w-5 h-5 text-green-600 mx-auto" />
+                          <CheckCircle className="w-5 h-5 text-[var(--color-success)] mx-auto" />
                         ) : (
-                          <XCircle className="w-5 h-5 text-red-600 mx-auto" />
+                          <XCircle className="w-5 h-5 text-[var(--color-error)] mx-auto" />
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Edit className="w-4 h-4 text-blue-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Calculator className="w-4 h-4 text-green-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Calculator className="w-4 h-4 text-[var(--color-success)]" />
                           </button>
                         </div>
                       </td>
@@ -793,7 +795,7 @@ const Provisions: React.FC = () => {
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Charges à Payer - Exercice 2024</h3>
             <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
               onClick={() => setShowChargeModal(true)}
             >
               <Plus className="w-4 h-4" />
@@ -806,10 +808,10 @@ const Provisions: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Charges Personnel</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Charges Personnel</p>
                     <p className="text-2xl font-bold">25.0M</p>
                   </div>
-                  <Users className="w-8 h-8 text-blue-500" />
+                  <Users className="w-8 h-8 text-[var(--color-primary)]" />
                 </div>
               </CardContent>
             </Card>
@@ -817,10 +819,10 @@ const Provisions: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Charges Financières</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Charges Financières</p>
                     <p className="text-2xl font-bold">8.5M</p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-500" />
+                  <DollarSign className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -828,7 +830,7 @@ const Provisions: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Charges Exploitation</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Charges Exploitation</p>
                     <p className="text-2xl font-bold">3.2M</p>
                   </div>
                   <Factory className="w-8 h-8 text-orange-500" />
@@ -840,31 +842,31 @@ const Provisions: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Charge</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Catégorie</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Montant</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Compte</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Échéance</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Charge</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Catégorie</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Montant</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('accounting.account')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Échéance</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mockChargesAPayer.map(charge => (
-                    <tr key={charge.id} className="border-t hover:bg-gray-50">
+                    <tr key={charge.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {getCategorieChargeIcon(charge.categorie)}
                           <div>
                             <p className="font-medium">{charge.designation}</p>
-                            <p className="text-sm text-gray-500">Exercice {charge.exerciceConcerne}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">Exercice {charge.exerciceConcerne}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge className="bg-blue-100 text-blue-800 capitalize">
+                        <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] capitalize">
                           {charge.categorie.replace('_', ' ')}
                         </Badge>
                       </td>
@@ -877,20 +879,20 @@ const Provisions: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <Badge className={
-                          charge.statutValidation === 'valide' ? 'bg-green-100 text-green-800' :
-                          charge.statutValidation === 'comptabilise' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
+                          charge.statutValidation === 'valide' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          charge.statutValidation === 'comptabilise' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                          'bg-[var(--color-warning-lighter)] text-yellow-800'
                         }>
                           {charge.statutValidation}
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Edit className="w-4 h-4 text-blue-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
                       </td>
@@ -906,7 +908,7 @@ const Provisions: React.FC = () => {
         <TabsContent value="produits-recevoir" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Produits à Recevoir - Exercice 2024</h3>
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+            <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Nouveau Produit
             </button>
@@ -917,10 +919,10 @@ const Provisions: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Produits Financiers</p>
-                    <p className="text-2xl font-bold text-green-600">4.5M</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Produits Financiers</p>
+                    <p className="text-2xl font-bold text-[var(--color-success)]">4.5M</p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-500" />
+                  <DollarSign className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -928,10 +930,10 @@ const Provisions: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Subventions</p>
-                    <p className="text-2xl font-bold text-green-600">15.0M</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">Subventions</p>
+                    <p className="text-2xl font-bold text-[var(--color-success)]">15.0M</p>
                   </div>
-                  <PiggyBank className="w-8 h-8 text-green-500" />
+                  <PiggyBank className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
               </CardContent>
             </Card>
@@ -940,32 +942,32 @@ const Provisions: React.FC = () => {
           <Card>
             <CardContent className="p-0">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Produit</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Catégorie</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Montant</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Compte</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Encaissement</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Produit</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Catégorie</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Montant</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('accounting.account')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Encaissement</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mockProduitsARecevoir.map(produit => (
-                    <tr key={produit.id} className="border-t hover:bg-gray-50">
+                    <tr key={produit.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div>
                           <p className="font-medium">{produit.designation}</p>
-                          <p className="text-sm text-gray-500">Exercice {produit.exerciceConcerne}</p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">Exercice {produit.exerciceConcerne}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge className="bg-green-100 text-green-800 capitalize">
+                        <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] capitalize">
                           {produit.categorie.replace('_', ' ')}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-green-600">
+                      <td className="px-4 py-3 text-right font-medium text-[var(--color-success)]">
                         {(produit.montant / 1000000).toFixed(1)}M FCFA
                       </td>
                       <td className="px-4 py-3 font-mono text-sm">{produit.compteComptable}</td>
@@ -974,20 +976,20 @@ const Provisions: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <Badge className={
-                          produit.statutValidation === 'valide' ? 'bg-green-100 text-green-800' :
-                          produit.statutValidation === 'comptabilise' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
+                          produit.statutValidation === 'valide' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                          produit.statutValidation === 'comptabilise' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                          'bg-[var(--color-warning-lighter)] text-yellow-800'
                         }>
                           {produit.statutValidation}
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Eye className="w-4 h-4 text-gray-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <Edit className="w-4 h-4 text-blue-600" />
+                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                            <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
                       </td>
@@ -1004,7 +1006,7 @@ const Provisions: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-blue-600" />
+                <BookOpen className="w-5 h-5 text-[var(--color-primary)]" />
                 Référentiel SYSCOHADA - Provisions
               </CardTitle>
             </CardHeader>
@@ -1017,9 +1019,9 @@ const Provisions: React.FC = () => {
                         <h4 className="font-medium text-lg capitalize">
                           {regle.type.replace('_', ' ')}
                         </h4>
-                        <p className="text-gray-600">{regle.description}</p>
+                        <p className="text-[var(--color-text-primary)]">{regle.description}</p>
                       </div>
-                      <Badge className={regle.obligatoire ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}>
+                      <Badge className={regle.obligatoire ? 'bg-[var(--color-error-lighter)] text-red-800' : 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'}>
                         {regle.obligatoire ? 'Obligatoire' : 'Facultative'}
                       </Badge>
                     </div>
@@ -1030,7 +1032,7 @@ const Provisions: React.FC = () => {
                         <ul className="space-y-1 text-sm">
                           {regle.conditionsApplication.map((condition, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
+                              <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full mt-2" />
                               <span>{condition}</span>
                             </li>
                           ))}
@@ -1039,7 +1041,7 @@ const Provisions: React.FC = () => {
 
                       <div>
                         <h5 className="font-medium mb-2">Base de Calcul</h5>
-                        <p className="text-sm text-gray-600 mb-2">{regle.baseCalcul}</p>
+                        <p className="text-sm text-[var(--color-text-primary)] mb-2">{regle.baseCalcul}</p>
                         {regle.tauxRecommande && (
                           <p className="text-sm">
                             <span className="font-medium">Taux recommandé:</span> {regle.tauxRecommande}%
@@ -1052,7 +1054,7 @@ const Provisions: React.FC = () => {
                       <h5 className="font-medium mb-2">Exemples d'Application</h5>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                         {regle.exemples.map((exemple, i) => (
-                          <div key={i} className="p-2 bg-gray-50 rounded text-sm">
+                          <div key={i} className="p-2 bg-[var(--color-background-secondary)] rounded text-sm">
                             {exemple}
                           </div>
                         ))}
@@ -1081,7 +1083,7 @@ const Provisions: React.FC = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h4 className="font-medium text-lg">{analyse.domaineRisque}</h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[var(--color-text-primary)]">
                           Dernière mise à jour: {new Date(analyse.derniereMiseAJour).toLocaleDateString()}
                         </p>
                       </div>
@@ -1091,22 +1093,22 @@ const Provisions: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                      <div className="text-center p-3 bg-gray-50 rounded">
-                        <p className="text-sm text-gray-600">Probabilité</p>
+                      <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
+                        <p className="text-sm text-[var(--color-text-primary)]">Probabilité</p>
                         <div className="flex items-center justify-center gap-2 mt-1">
                           <Progress value={analyse.probabilite} className="w-16 h-2" />
                           <span className="font-bold">{analyse.probabilite}%</span>
                         </div>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded">
-                        <p className="text-sm text-gray-600">Impact Financier</p>
-                        <p className="text-xl font-bold text-red-600">
+                      <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
+                        <p className="text-sm text-[var(--color-text-primary)]">Impact Financier</p>
+                        <p className="text-xl font-bold text-[var(--color-error)]">
                           {(analyse.impactFinancier / 1000000).toFixed(1)}M FCFA
                         </p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded">
-                        <p className="text-sm text-gray-600">Provisions Recommandées</p>
-                        <p className="text-xl font-bold text-blue-600">
+                      <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
+                        <p className="text-sm text-[var(--color-text-primary)]">Provisions Recommandées</p>
+                        <p className="text-xl font-bold text-[var(--color-primary)]">
                           {(analyse.provisionsRecommandees / 1000000).toFixed(1)}M FCFA
                         </p>
                       </div>
@@ -1117,7 +1119,7 @@ const Provisions: React.FC = () => {
                       <div className="space-y-2">
                         {analyse.mesuresPreventives.map((mesure, i) => (
                           <div key={i} className="flex items-start gap-2 text-sm">
-                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                            <CheckCircle className="w-4 h-4 text-[var(--color-success)] mt-0.5" />
                             <span>{mesure}</span>
                           </div>
                         ))}
@@ -1137,15 +1139,15 @@ const Provisions: React.FC = () => {
                     <h5 className="font-medium mb-2">Actions Prioritaires</h5>
                     <ul className="space-y-1">
                       <li className="flex items-start gap-2">
-                        <AlertTriangle className="w-3 h-3 text-orange-600 mt-1" />
+                        <AlertTriangle className="w-3 h-3 text-[var(--color-warning)] mt-1" />
                         <span>Renforcer le suivi des créances clients</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <AlertTriangle className="w-3 h-3 text-orange-600 mt-1" />
+                        <AlertTriangle className="w-3 h-3 text-[var(--color-warning)] mt-1" />
                         <span>Réviser les contrats pour réduire les litiges</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <AlertTriangle className="w-3 h-3 text-orange-600 mt-1" />
+                        <AlertTriangle className="w-3 h-3 text-[var(--color-warning)] mt-1" />
                         <span>Mettre en place une veille juridique</span>
                       </li>
                     </ul>
@@ -1154,15 +1156,15 @@ const Provisions: React.FC = () => {
                     <h5 className="font-medium mb-2">Optimisations Possibles</h5>
                     <ul className="space-y-1">
                       <li className="flex items-start gap-2">
-                        <Target className="w-3 h-3 text-blue-600 mt-1" />
+                        <Target className="w-3 h-3 text-[var(--color-primary)] mt-1" />
                         <span>Automatiser le calcul des provisions</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <Target className="w-3 h-3 text-blue-600 mt-1" />
+                        <Target className="w-3 h-3 text-[var(--color-primary)] mt-1" />
                         <span>Améliorer la documentation des risques</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <Target className="w-3 h-3 text-blue-600 mt-1" />
+                        <Target className="w-3 h-3 text-[var(--color-primary)] mt-1" />
                         <span>Réviser trimestriellement les provisions</span>
                       </li>
                     </ul>
@@ -1173,6 +1175,414 @@ const Provisions: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Provision Modal */}
+      {showProvisionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-[var(--color-warning)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvelle provision</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Enregistrer une provision pour risques et charges</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowProvisionModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertCircle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-orange-900">Provision pour risques et charges</p>
+                      <p className="text-sm text-[var(--color-warning-dark)] mt-1">
+                        Provisionnez les charges probables ou certaines mais dont le montant ou l'échéance est incertain
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Date de provision <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Catégorie <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="litige">Litige en cours</option>
+                      <option value="garantie">Garantie clients</option>
+                      <option value="retraite">Engagements retraite</option>
+                      <option value="restructuration">Restructuration</option>
+                      <option value="pertes_contrats">Pertes sur contrats</option>
+                      <option value="fiscale">Risque fiscal</option>
+                      <option value="environnementale">Risque environnemental</option>
+                      <option value="autre">Autre</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Objet de la provision <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Ex: Litige commercial avec Client XYZ"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Montant estimé (€) <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="50000"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Probabilité de réalisation
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                      <option value="elevee">⬆ Élevée (&gt; 75%)</option>
+                      <option value="moyenne">➡ Moyenne (25-75%)</option>
+                      <option value="faible">⬇ Faible (&lt; 25%)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Échéance prévue
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                      <option value="">Sélectionner</option>
+                      <option value="court">Court terme (&lt; 1 an)</option>
+                      <option value="moyen">Moyen terme (1-3 ans)</option>
+                      <option value="long">Long terme (&gt; 3 ans)</option>
+                      <option value="indetermine">Indéterminée</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Compte comptable <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono text-sm">
+                      <option value="">Sélectionner</option>
+                      <option value="1511">1511 - Provision litiges</option>
+                      <option value="1513">1513 - Provision garanties</option>
+                      <option value="1514">1514 - Provision restructuration</option>
+                      <option value="1515">1515 - Provision pertes contrats</option>
+                      <option value="1518">1518 - Autres provisions</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Description détaillée <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Décrivez le risque ou la charge: nature, contexte, historique, éléments justifiant le montant..."
+                  />
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Évaluation du risque</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-[var(--color-text-primary)] mb-1">Montant minimum (€)</label>
+                      <input
+                        type="number"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 text-sm"
+                        placeholder="30000"
+                        step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[var(--color-text-primary)] mb-1">Montant maximum (€)</label>
+                      <input
+                        type="number"
+                        className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 text-sm"
+                        placeholder="70000"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Documents justificatifs
+                  </label>
+                  <div className="border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-6 text-center hover:border-orange-500 transition-colors cursor-pointer">
+                    <FileText className="w-8 h-8 text-[var(--color-text-secondary)] mx-auto mb-2" />
+                    <p className="text-sm text-[var(--color-text-primary)]">Charger les pièces justificatives</p>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">Jugement, courrier avocat, devis réparation...</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 p-3 bg-[var(--color-background-secondary)] rounded-lg border border-[var(--color-border-dark)]">
+                  <input
+                    type="checkbox"
+                    id="validation-audit"
+                    className="w-4 h-4 text-[var(--color-warning)] border-[var(--color-border-dark)] rounded focus:ring-orange-500 mt-0.5"
+                  />
+                  <label htmlFor="validation-audit" className="text-sm text-[var(--color-text-primary)] cursor-pointer">
+                    Cette provision nécessite une validation par l'expert-comptable / commissaire aux comptes
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowProvisionModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-warning)] hover:bg-orange-700 rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Enregistrer la provision
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Charge Modal */}
+      {showChargeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--color-error-lighter)] rounded-lg flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5 text-[var(--color-error)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Utilisation de provision</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Enregistrer une charge sur provision</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowChargeModal(false)}
+                  className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="bg-[var(--color-error-lightest)] border border-[var(--color-error-light)] rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-900">Charge sur provision</p>
+                      <p className="text-sm text-[var(--color-error-dark)] mt-1">
+                        Enregistrez la réalisation du risque provisionné et l'utilisation de la provision
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Provision concernée <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Sélectionner une provision</option>
+                    <option value="1">Litige Client XYZ - 50 000,00 €</option>
+                    <option value="2">Garantie Produit ABC - 25 000,00 €</option>
+                    <option value="3">Restructuration Service - 100 000,00 €</option>
+                    <option value="4">Risque fiscal 2024 - 35 000,00 €</option>
+                  </select>
+                </div>
+
+                <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background-secondary)]">
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Détails de la provision</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Date de constitution:</p>
+                      <p className="font-semibold">15/03/2024</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Montant initial:</p>
+                      <p className="font-semibold">50 000,00 €</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Montant utilisé:</p>
+                      <p className="font-semibold text-[var(--color-warning)]">12 000,00 €</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-text-primary)]">Solde disponible:</p>
+                      <p className="font-semibold text-[var(--color-primary)]">38 000,00 €</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Date de la charge <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Montant de la charge (€) <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="15000"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Nature de la charge <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="Ex: Paiement avocat suite jugement"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Type d'utilisation
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-[var(--color-error)] transition-colors">
+                      <input type="radio" name="type-util" value="partielle" className="mr-3" defaultChecked />
+                      <div>
+                        <p className="font-medium text-sm">Utilisation partielle</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Maintenir le solde</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-[var(--color-error)] transition-colors">
+                      <input type="radio" name="type-util" value="totale" className="mr-3" />
+                      <div>
+                        <p className="font-medium text-sm">Utilisation totale</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Solder la provision</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Compte de charge <span className="text-[var(--color-error)]">*</span>
+                    </label>
+                    <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm">
+                      <option value="">Sélectionner</option>
+                      <option value="6281">6281 - Dotation provision exploitation</option>
+                      <option value="6871">6871 - Dotation provision exceptionnelle</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Référence facture/paiement
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm"
+                      placeholder="FAC-2025-001"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                    Observations
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="Détails sur l'utilisation de la provision..."
+                  />
+                </div>
+
+                <div className="border border-[var(--color-primary-light)] rounded-lg p-4 bg-[var(--color-primary-lightest)]">
+                  <h4 className="font-semibold text-sm text-[var(--color-primary-darker)] mb-2">Après cette opération</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-[var(--color-primary-dark)]">Provision restante:</p>
+                      <p className="font-bold text-[var(--color-primary-darker)]">23 000,00 €</p>
+                    </div>
+                    <div>
+                      <p className="text-[var(--color-primary-dark)]">Taux d'utilisation:</p>
+                      <p className="font-bold text-[var(--color-primary-darker)]">54%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] px-6 py-4 rounded-b-lg border-t border-[var(--color-border)] flex justify-end gap-3">
+              <button
+                onClick={() => setShowChargeModal(false)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-error)] hover:bg-[var(--color-error-dark)] rounded-lg transition-colors flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Enregistrer la charge
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

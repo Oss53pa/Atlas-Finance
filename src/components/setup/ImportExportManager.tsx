@@ -307,7 +307,7 @@ const ImportExportManager: React.FC = () => {
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === id
                   ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -338,7 +338,7 @@ const ImportExportManager: React.FC = () => {
               onDrop={handleFileDrop}
             >
               <CloudArrowUpIcon className={`h-16 w-16 mx-auto mb-4 ${
-                dragOver ? 'text-indigo-500' : 'text-gray-400'
+                dragOver ? 'text-indigo-500' : 'text-gray-700'
               }`} />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Glissez vos fichiers ici ou cliquez pour sélectionner
@@ -382,7 +382,7 @@ const ImportExportManager: React.FC = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                          <span className="text-xs text-gray-500">{template.format}</span>
+                          <span className="text-xs text-gray-700">{template.format}</span>
                         </div>
                       </div>
                       {template.isStandard && (
@@ -434,22 +434,22 @@ const ImportExportManager: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Import
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Template
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Résultats
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -459,7 +459,7 @@ const ImportExportManager: React.FC = () => {
                     <tr key={job.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">{job.name}</div>
-                        <div className="text-sm text-gray-500">{job.fileName}</div>
+                        <div className="text-sm text-gray-700">{job.fileName}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {job.template}
@@ -508,11 +508,11 @@ const ImportExportManager: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex space-x-2 justify-center">
-                          <button className="text-indigo-600 hover:text-indigo-900">
+                          <button className="text-indigo-600 hover:text-indigo-900" aria-label="Voir les détails">
                             <EyeIcon className="h-4 w-4" />
                           </button>
                           {job.status === 'FAILED' && (
-                            <button className="text-green-600 hover:text-green-900">
+                            <button className="text-green-600 hover:text-green-900" aria-label="Actualiser">
                               <ArrowPathIcon className="h-4 w-4" />
                             </button>
                           )}
@@ -577,7 +577,7 @@ const ImportExportManager: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-4">{exportType.description}</p>
                   
                   <div className="space-y-2">
-                    <div className="text-xs text-gray-500 mb-2">Formats disponibles:</div>
+                    <div className="text-xs text-gray-700 mb-2">Formats disponibles:</div>
                     <div className="flex flex-wrap gap-2">
                       {exportType.formats.map((format) => (
                         <button
@@ -606,25 +606,25 @@ const ImportExportManager: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Export
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Format
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Taille
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -634,7 +634,7 @@ const ImportExportManager: React.FC = () => {
                     <tr key={job.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">{job.name}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-700">
                           {Object.entries(job.parameters).map(([key, value]) => 
                             `${key}: ${value}`
                           ).join(' • ')}
@@ -653,7 +653,7 @@ const ImportExportManager: React.FC = () => {
                         {React.createElement(getFormatIcon(job.format), {
                           className: 'h-5 w-5 mx-auto text-gray-600'
                         })}
-                        <div className="text-xs text-gray-500 mt-1">{job.format}</div>
+                        <div className="text-xs text-gray-700 mt-1">{job.format}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex flex-col items-center space-y-1">
@@ -690,7 +690,7 @@ const ImportExportManager: React.FC = () => {
                               <CloudArrowDownIcon className="h-4 w-4" />
                             </button>
                           )}
-                          <button className="text-indigo-600 hover:text-indigo-900">
+                          <button className="text-indigo-600 hover:text-indigo-900" aria-label="Voir les détails">
                             <EyeIcon className="h-4 w-4" />
                           </button>
                         </div>

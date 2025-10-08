@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Calculator,
@@ -29,7 +30,8 @@ import {
   AlertCircle,
   MessageSquare,
   CheckSquare,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 
 // Import des modules internes
@@ -37,10 +39,23 @@ import EnhancedTasksModule from '../../components/tasks/EnhancedTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import NotificationSystem from '../../components/notifications/NotificationSystem';
 
+// Import des hooks API
+import { useWorkspaceByRole, useSystemInfo } from '../../hooks';
+
 const EnhancedComptableWorkspace: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeModule, setActiveModule] = useState<'dashboard' | 'tasks' | 'collaboration'>('dashboard');
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+
+  // Chargement du workspace Comptable depuis l'API
+  const { data: comptableWorkspace, isLoading: loadingWorkspace } = useWorkspaceByRole('comptable');
+  const { data: systemInfo } = useSystemInfo();
+
+  // Utiliser les données du workspace si disponibles
+  const workspaceWidgets = comptableWorkspace?.widgets || [];
+  const workspaceActions = comptableWorkspace?.quick_actions || [];
+  const workspaceStats = comptableWorkspace?.statistics || [];
 
   // Sample notifications for Comptable (avec IDs uniques)
   const [notifications, setNotifications] = useState([
@@ -128,25 +143,70 @@ const EnhancedComptableWorkspace: React.FC = () => {
   const stats = {
     journalEntries: { value: 234, trend: 12, label: 'Écritures du mois' },
     pendingInvoices: { value: 45, trend: -8, label: 'Factures en attente' },
-    cashFlow: { value: '125.4k€', trend: 15, label: 'Trésorerie' },
+    cashFlow: { value: '125.4k€', trend: 15, label: t('navigation.treasury') },
     monthlyRevenue: { value: '89.2k€', trend: 5, label: 'CA du mois' }
   };
 
-  // Liens directs vers WiseBook
-  const wiseBookLinks = [
-    { id: 'chart', label: 'Plan comptable', icon: BookOpen, badge: 'SYSCOHADA', path: '/accounting/chart-of-accounts' },
-    { id: 'closure', label: 'Calendrier de clôture', icon: Calendar, badge: null, path: '/accounting/closure-calendar' },
-    { id: 'entries', label: 'Saisie d\'écritures', icon: FileText, badge: '5', path: '/accounting/entries' },
-    { id: 'journals', label: 'Journaux', icon: BookOpen, path: '/accounting/journals' },
-    { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
-    { id: 'balance', label: 'Balance générale', icon: PieChart, path: '/accounting/balance' },
-    { id: 'statements', label: 'États financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
-    { id: 'thirds', label: 'Gestion tiers', icon: Users, path: '/third-party' },
-    { id: 'banking', label: 'Banque', icon: Banknote, path: '/treasury' },
-  ];
+  // Liens directs vers WiseBook - Utiliser les actions rapides du workspace si disponibles, sinon fallback
+  const wiseBookLinks = workspaceActions.length > 0
+    ? workspaceActions.filter(action => action.is_visible).map(action => ({
+        id: action.id,
+        label: action.label,
+        icon: eval(action.icon) as any,
+        badge: null,
+        path: action.action_target
+      }))
+    : [
+        { id: 'chart', label: 'Plan comptable', icon: BookOpen, badge: 'SYSCOHADA', path: '/accounting/chart-of-accounts' },
+        { id: 'closure', label: 'Calendrier de clôture', icon: Calendar, badge: null, path: '/accounting/closure-calendar' },
+        { id: 'entries', label: 'Saisie d\'écritures', icon: FileText, badge: '5', path: '/accounting/entries' },
+        { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
+        { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
+        { id: 'balance', label: 'Balance générale', icon: PieChart, path: '/accounting/balance' },
+        { id: 'statements', label: 'États financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
+        { id: 'thirds', label: 'Gestion tiers', icon: Users, path: '/third-party' },
+        { id: 'banking', label: 'Banque', icon: Banknote, path: '/treasury' },
+      ];
 
-  const renderDashboard = () => (
+  const renderDashboard = () => {
+    // Afficher un loader pendant le chargement
+    if (loadingWorkspace) {
+      return (
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-[#6A8A82] mx-auto mb-4" />
+            <p className="text-gray-600">Chargement du workspace comptable...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
     <div className="p-6">
+      {/* Informations workspace en haut */}
+      {comptableWorkspace && (
+        <div className="bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-lg p-6 mb-6 text-white">
+          <div className="grid grid-cols-4 gap-6">
+            <div>
+              <p className="text-gray-200 text-sm mb-1">Workspace</p>
+              <p className="text-xl font-bold">{comptableWorkspace.name}</p>
+            </div>
+            <div>
+              <p className="text-gray-200 text-sm mb-1">Rôle</p>
+              <p className="text-xl font-bold">{comptableWorkspace.role_display}</p>
+            </div>
+            <div>
+              <p className="text-gray-200 text-sm mb-1">Widgets actifs</p>
+              <p className="text-xl font-bold">{comptableWorkspace.widget_count}</p>
+            </div>
+            <div>
+              <p className="text-gray-200 text-sm mb-1">Actions rapides</p>
+              <p className="text-xl font-bold">{comptableWorkspace.action_count}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Statistiques principales */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {Object.entries(stats).map(([key, stat]) => (
@@ -203,9 +263,9 @@ const EnhancedComptableWorkspace: React.FC = () => {
               <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                 <div>
                   <div className="text-sm font-medium text-gray-900">Facture F2024-{100 + i}</div>
-                  <div className="text-xs text-gray-500">Client ABC - {1250 + i * 100}€</div>
+                  <div className="text-xs text-gray-700">Client ABC - {1250 + i * 100}€</div>
                 </div>
-                <span className="text-xs text-gray-500">Il y a {i}h</span>
+                <span className="text-xs text-gray-700">Il y a {i}h</span>
               </div>
             ))}
           </div>
@@ -223,7 +283,7 @@ const EnhancedComptableWorkspace: React.FC = () => {
               <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                 <div>
                   <div className="text-sm font-medium text-gray-900">{item.label}</div>
-                  <div className="text-xs text-gray-500">{item.date} - {item.amount}</div>
+                  <div className="text-xs text-gray-700">{item.date} - {item.amount}</div>
                 </div>
                 <span className={`px-2 py-1 text-xs rounded-full ${
                   item.type === 'tax' ? 'bg-orange-100 text-orange-700' :
@@ -239,7 +299,8 @@ const EnhancedComptableWorkspace: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -249,7 +310,7 @@ const EnhancedComptableWorkspace: React.FC = () => {
           {/* Navigation et logo */}
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-700" />
@@ -262,7 +323,7 @@ const EnhancedComptableWorkspace: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900">Espace Comptable</h1>
-                <p className="text-xs text-gray-500">WiseBook ERP v3.0</p>
+                <p className="text-xs text-gray-700">WiseBook ERP v3.0</p>
               </div>
             </div>
           </div>
@@ -327,7 +388,7 @@ const EnhancedComptableWorkspace: React.FC = () => {
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-gray-900">Marie Dupont</p>
-                <p className="text-xs text-gray-500">Comptable</p>
+                <p className="text-xs text-gray-700">Comptable</p>
               </div>
             </div>
           </div>

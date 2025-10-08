@@ -191,9 +191,9 @@ const FinancialAnalysisDashboard: React.FC = () => {
   };
 
   const getVarianceColor = (variance: number) => {
-    if (variance > 0) return 'text-green-600';
-    if (variance < -5) return 'text-red-600';
-    return 'text-orange-600';
+    if (variance > 0) return 'text-[var(--color-success)]';
+    if (variance < -5) return 'text-[var(--color-error)]';
+    return 'text-[var(--color-warning)]';
   };
 
   const formatCurrency = (amount: number) => {
@@ -250,7 +250,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">Chiffre d'Affaires</span>
-              <DollarSign className="w-4 h-4 text-green-600" />
+              <DollarSign className="w-4 h-4 text-[var(--color-success)]" />
             </div>
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.revenue.current)}
@@ -264,7 +264,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">Marge Brute</span>
-              <Percent className="w-4 h-4 text-blue-600" />
+              <Percent className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {financialMetrics.profit.grossMargin}%
@@ -277,7 +277,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">EBITDA</span>
-              <TrendingUp className="w-4 h-4 text-purple-600" />
+              <TrendingUp className="w-4 h-4 text-[var(--color-info)]" />
             </div>
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.profit.ebitda)}
@@ -290,7 +290,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">Cash Flow Net</span>
-              <PiggyBank className="w-4 h-4 text-orange-600" />
+              <PiggyBank className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.cashflow.net)}
@@ -303,7 +303,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-text-secondary)]">BFR</span>
-              <Wallet className="w-4 h-4 text-indigo-600" />
+              <Wallet className="w-4 h-4 text-[var(--color-info)]" />
             </div>
             <div className="text-xl font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.ratios.workingCapital)}
@@ -366,8 +366,8 @@ const FinancialAnalysisDashboard: React.FC = () => {
                       </td>
                       <td className={`py-3 px-4 text-right font-medium ${
                         item.actual > 0 
-                          ? budgetVariance >= 0 ? 'text-green-600' : 'text-red-600'
-                          : budgetVariance <= 0 ? 'text-green-600' : 'text-red-600'
+                          ? budgetVariance >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
+                          : budgetVariance <= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                       }`}>
                         {formatCurrency(budgetVariance)}
                       </td>
@@ -390,13 +390,13 @@ const FinancialAnalysisDashboard: React.FC = () => {
                   <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
                     {formatCurrency(1500000)}
                   </td>
-                  <td className="py-3 px-4 text-right text-green-600">
+                  <td className="py-3 px-4 text-right text-[var(--color-success)]">
                     {formatCurrency(75000)}
                   </td>
                   <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
                     {formatCurrency(1350000)}
                   </td>
-                  <td className="py-3 px-4 text-right text-green-600">
+                  <td className="py-3 px-4 text-right text-[var(--color-success)]">
                     +16.7%
                   </td>
                 </tr>
@@ -577,12 +577,12 @@ const FinancialAnalysisDashboard: React.FC = () => {
           </div>
 
           {/* Alerts */}
-          <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+          <div className="mt-6 p-4 bg-[var(--color-warning-lightest)] rounded-lg border border-[var(--color-warning-light)]">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] mt-0.5" />
               <div>
                 <h4 className="font-medium text-orange-900 mb-1">Points d'Attention</h4>
-                <ul className="text-sm text-orange-800 space-y-1">
+                <ul className="text-sm text-[var(--color-warning-darker)] space-y-1">
                   <li>• Le DSO a augmenté de 5 jours ce mois-ci</li>
                   <li>• Les charges externes dépassent le budget de 2.1%</li>
                   <li>• Le ratio de liquidité rapide est en dessous de l'objectif de 2.0</li>

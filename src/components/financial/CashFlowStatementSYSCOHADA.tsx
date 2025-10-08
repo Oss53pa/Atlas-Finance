@@ -133,15 +133,15 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   };
 
   const getFlowColor = (value: number) => {
-    if (value > 0) return 'text-green-600';
-    if (value < 0) return 'text-red-600';
-    return 'text-gray-600';
+    if (value > 0) return 'text-[#6A8A82]';
+    if (value < 0) return 'text-[#B87333]';
+    return 'text-[#191919]/70';
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6A8A82]"></div>
       </div>
     );
   }
@@ -149,7 +149,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   if (!cashFlowData) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">Aucune donnée de tableau de flux disponible</p>
+        <p className="text-[#191919]/50">Aucune donnée de tableau de flux disponible</p>
       </div>
     );
   }
@@ -157,17 +157,17 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* En-tête */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-[#ECECEC] p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <CurrencyDollarIcon className="h-6 w-6 mr-2 text-indigo-600" />
+            <h1 className="text-2xl font-bold text-[#191919] flex items-center">
+              <CurrencyDollarIcon className="h-6 w-6 mr-2 text-[#6A8A82]" />
               TABLEAU DES FLUX DE TRÉSORERIE (TAFIRE)
             </h1>
             <div className="mt-2 space-y-1">
-              <p className="text-lg font-semibold text-gray-800">{cashFlowData.company.name}</p>
-              <p className="text-sm text-gray-600">{cashFlowData.company.address}</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-lg font-semibold text-[#191919]/90">{cashFlowData.company.name}</p>
+              <p className="text-sm text-[#191919]/70">{cashFlowData.company.address}</p>
+              <p className="text-sm text-[#191919]/70">
                 Exercice {cashFlowData.fiscalYear} - Méthode {cashFlowData.calculationMethod === 'INDIRECT' ? 'indirecte' : 'directe'}
               </p>
             </div>
@@ -180,21 +180,21 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
                 <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
               )}
               <span className={`text-sm font-medium ${
-                cashFlowData.isCashFlowBalanced ? 'text-green-600' : 'text-red-600'
+                cashFlowData.isCashFlowBalanced ? 'text-[#6A8A82]' : 'text-[#B87333]'
               }`}>
                 {cashFlowData.isCashFlowBalanced ? 'Flux équilibrés' : 'Flux déséquilibrés'}
               </span>
             </div>
             <div className="flex space-x-2">
-              <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+              <button className="flex items-center space-x-2 px-3 py-2 border border-[#ECECEC] rounded-md hover:bg-[#ECECEC]">
                 <EyeIcon className="h-4 w-4" />
                 <span>Méthode directe</span>
               </button>
-              <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+              <button className="flex items-center space-x-2 px-3 py-2 border border-[#ECECEC] rounded-md hover:bg-[#ECECEC]">
                 <ArrowDownTrayIcon className="h-4 w-4" />
                 <span>Export Excel</span>
               </button>
-              <button className="flex items-center space-x-2 px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+              <button className="flex items-center space-x-2 px-3 py-2 bg-[#B87333] text-[#F0F3F2] rounded-md hover:bg-[#A66B2A]">
                 <DocumentTextIcon className="h-4 w-4" />
                 <span>Imprimer PDF</span>
               </button>
@@ -205,61 +205,61 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
 
       {/* KPIs des flux */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Flux d'Exploitation</p>
+              <p className="text-sm font-medium text-[#191919]/70">Flux d'Exploitation</p>
               <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.operatingCashFlow)}`}>
                 {formatCurrency(cashFlowData.operatingCashFlow)}
               </p>
-              <p className="text-sm text-green-600">CAF: {formatCurrency(cashFlowData.selfFinancingCapacity)}</p>
+              <p className="text-sm text-[#6A8A82]">CAF: {formatCurrency(cashFlowData.selfFinancingCapacity)}</p>
             </div>
-            <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="h-12 w-12 bg-[#6A8A82]/20 rounded-lg flex items-center justify-center">
               {getFlowIcon(cashFlowData.operatingCashFlow)}
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Flux d'Investissement</p>
+              <p className="text-sm font-medium text-[#191919]/70">Flux d'Investissement</p>
               <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.investmentCashFlow)}`}>
                 {formatCurrency(cashFlowData.investmentCashFlow)}
               </p>
-              <p className="text-sm text-blue-600">Acquisitions nettes</p>
+              <p className="text-sm text-[#6A8A82]">Acquisitions nettes</p>
             </div>
-            <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <div className="h-12 w-12 bg-[#6A8A82]/15 rounded-lg flex items-center justify-center">
               {getFlowIcon(cashFlowData.investmentCashFlow)}
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Flux de Financement</p>
+              <p className="text-sm font-medium text-[#191919]/70">Flux de Financement</p>
               <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.financingCashFlow)}`}>
                 {formatCurrency(cashFlowData.financingCashFlow)}
               </p>
-              <p className="text-sm text-purple-600">Emprunts nets</p>
+              <p className="text-sm text-[#B87333]">Emprunts nets</p>
             </div>
-            <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <div className="h-12 w-12 bg-[#B87333]/15 rounded-lg flex items-center justify-center">
               {getFlowIcon(cashFlowData.financingCashFlow)}
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-[#ECECEC]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Variation Trésorerie</p>
+              <p className="text-sm font-medium text-[#191919]/70">Variation Trésorerie</p>
               <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.cashFlowVariation)}`}>
                 {formatCurrency(cashFlowData.cashFlowVariation)}
               </p>
-              <p className="text-sm text-orange-600">Total période</p>
+              <p className="text-sm text-[#B87333]">Total période</p>
             </div>
-            <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+            <div className="h-12 w-12 bg-[#B87333]/20 rounded-lg flex items-center justify-center">
               {getFlowIcon(cashFlowData.cashFlowVariation)}
             </div>
           </div>
@@ -267,208 +267,208 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       </div>
 
       {/* Tableau des flux de trésorerie */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-[#ECECEC] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-indigo-50">
+            <thead className="bg-[#6A8A82]">
               <tr>
-                <th colSpan={2} className="px-6 py-4 text-center text-lg font-bold text-indigo-900 border-b-2 border-indigo-200">
+                <th colSpan={2} className="px-6 py-4 text-center text-lg font-bold text-[#F0F3F2] border-b-2 border-[#6A8A82]">
                   TABLEAU DES FLUX DE TRÉSORERIE - Exercice {cashFlowData.fiscalYear}
                 </th>
-                <th className="px-6 py-4 text-center text-lg font-bold text-indigo-900 border-b-2 border-indigo-200">
+                <th className="px-6 py-4 text-center text-lg font-bold text-[#F0F3F2] border-b-2 border-[#6A8A82]">
                   Montant (XAF)
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-[#ECECEC]">
               {/* FLUX D'EXPLOITATION */}
-              <tr className="bg-green-50">
-                <td colSpan={2} className="px-6 py-3 font-bold text-green-900 text-lg">
+              <tr className="bg-[#6A8A82]/10">
+                <td colSpan={2} className="px-6 py-3 font-bold text-[#6A8A82] text-lg">
                   FLUX DE TRÉSORERIE LIÉS À L'ACTIVITÉ
                 </td>
                 <td className="px-6 py-3"></td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">Résultat net de l'exercice</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">Résultat net de l'exercice</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{formatCurrency(cashFlowData.netResultForCashFlow)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">+ Dotations aux amortissements et provisions</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-green-600">+{formatCurrency(cashFlowData.depreciationAndProvisions)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">+ Dotations aux amortissements et provisions</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#6A8A82]">+{formatCurrency(cashFlowData.depreciationAndProvisions)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">- Reprises de provisions</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-red-600">-{formatCurrency(cashFlowData.provisionsReversals)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">- Reprises de provisions</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#B87333]">-{formatCurrency(cashFlowData.provisionsReversals)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">± Plus et moins-values de cession</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">± Plus et moins-values de cession</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
                 <td className="px-6 py-2 text-right text-sm">{formatCurrency(cashFlowData.valueAdjustments)}</td>
               </tr>
               
-              <tr className="bg-green-100">
-                <td className="px-6 py-3 pl-8 text-sm font-semibold text-green-900">= Capacité d'autofinancement (CAF)</td>
-                <td className="px-6 py-3 text-sm text-gray-500"></td>
-                <td className="px-6 py-3 text-right text-sm font-bold text-green-900">
+              <tr className="bg-[#6A8A82]/20">
+                <td className="px-6 py-3 pl-8 text-sm font-semibold text-[#6A8A82]">= Capacité d'autofinancement (CAF)</td>
+                <td className="px-6 py-3 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-3 text-right text-sm font-bold text-[#6A8A82]">
                   {formatCurrency(cashFlowData.selfFinancingCapacity)}
                 </td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">- Variation du besoin en fonds de roulement</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-red-600">-{formatCurrency(Math.abs(cashFlowData.workingCapitalVariation))}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">- Variation du besoin en fonds de roulement</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#B87333]">-{formatCurrency(Math.abs(cashFlowData.workingCapitalVariation))}</td>
               </tr>
               
-              <tr className="bg-green-200 font-bold">
-                <td className="px-6 py-4 font-bold text-green-900">
+              <tr className="bg-[#6A8A82]/30 font-bold">
+                <td className="px-6 py-4 font-bold text-[#6A8A82]">
                   = FLUX NET DE TRÉSORERIE GÉNÉRÉ PAR L'ACTIVITÉ
                 </td>
                 <td className="px-6 py-4"></td>
-                <td className="px-6 py-4 text-right font-bold text-green-900 text-lg">
+                <td className="px-6 py-4 text-right font-bold text-[#6A8A82] text-lg">
                   {formatCurrency(cashFlowData.operatingCashFlow)}
                 </td>
               </tr>
               
               {/* FLUX D'INVESTISSEMENT */}
-              <tr className="bg-blue-50">
-                <td colSpan={2} className="px-6 py-3 font-bold text-blue-900 text-lg">
+              <tr className="bg-[#6A8A82]/10">
+                <td colSpan={2} className="px-6 py-3 font-bold text-[#6A8A82] text-lg">
                   FLUX DE TRÉSORERIE LIÉS AUX OPÉRATIONS D'INVESTISSEMENT
                 </td>
                 <td className="px-6 py-3"></td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">- Acquisitions d'immobilisations corporelles et incorporelles</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-red-600">-{formatCurrency(cashFlowData.fixedAssetsAcquisitions)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">- Acquisitions d'immobilisations corporelles et incorporelles</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#B87333]">-{formatCurrency(cashFlowData.fixedAssetsAcquisitions)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">+ Cessions d'immobilisations corporelles et incorporelles</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-green-600">+{formatCurrency(cashFlowData.fixedAssetsDisposals)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">+ Cessions d'immobilisations corporelles et incorporelles</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#6A8A82]">+{formatCurrency(cashFlowData.fixedAssetsDisposals)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">- Acquisitions d'immobilisations financières</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-red-600">-{formatCurrency(cashFlowData.financialAssetsAcquisitions)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">- Acquisitions d'immobilisations financières</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#B87333]">-{formatCurrency(cashFlowData.financialAssetsAcquisitions)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">+ Cessions d'immobilisations financières</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-green-600">+{formatCurrency(cashFlowData.financialAssetsDisposals)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">+ Cessions d'immobilisations financières</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#6A8A82]">+{formatCurrency(cashFlowData.financialAssetsDisposals)}</td>
               </tr>
               
-              <tr className="bg-blue-200 font-bold">
-                <td className="px-6 py-4 font-bold text-blue-900">
+              <tr className="bg-[#6A8A82]/30 font-bold">
+                <td className="px-6 py-4 font-bold text-[#6A8A82]">
                   = FLUX NET DE TRÉSORERIE LIÉ AUX OPÉRATIONS D'INVESTISSEMENT
                 </td>
                 <td className="px-6 py-4"></td>
-                <td className="px-6 py-4 text-right font-bold text-blue-900 text-lg">
+                <td className="px-6 py-4 text-right font-bold text-[#6A8A82] text-lg">
                   {formatCurrency(cashFlowData.investmentCashFlow)}
                 </td>
               </tr>
               
               {/* FLUX DE FINANCEMENT */}
-              <tr className="bg-purple-50">
-                <td colSpan={2} className="px-6 py-3 font-bold text-purple-900 text-lg">
+              <tr className="bg-[#B87333]/10">
+                <td colSpan={2} className="px-6 py-3 font-bold text-[#B87333] text-lg">
                   FLUX DE TRÉSORERIE LIÉS AUX OPÉRATIONS DE FINANCEMENT
                 </td>
                 <td className="px-6 py-3"></td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">+ Augmentation de capital en numéraire</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">+ Augmentation de capital en numéraire</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
                 <td className="px-6 py-2 text-right text-sm">{formatCurrency(cashFlowData.capitalIncrease)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">+ Subventions d'investissement reçues</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-green-600">+{formatCurrency(cashFlowData.investmentSubsidiesReceived)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">+ Subventions d'investissement reçues</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#6A8A82]">+{formatCurrency(cashFlowData.investmentSubsidiesReceived)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">+ Nouveaux emprunts</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-green-600">+{formatCurrency(cashFlowData.newBorrowings)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">+ Nouveaux emprunts</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#6A8A82]">+{formatCurrency(cashFlowData.newBorrowings)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">- Remboursements d'emprunts</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-red-600">-{formatCurrency(cashFlowData.loanRepayments)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">- Remboursements d'emprunts</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#B87333]">-{formatCurrency(cashFlowData.loanRepayments)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 pl-8 text-sm text-gray-700">- Dividendes versés</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
-                <td className="px-6 py-2 text-right text-sm text-red-600">-{formatCurrency(cashFlowData.dividendsPaid)}</td>
+                <td className="px-6 py-2 pl-8 text-sm text-[#191919]/70">- Dividendes versés</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
+                <td className="px-6 py-2 text-right text-sm text-[#B87333]">-{formatCurrency(cashFlowData.dividendsPaid)}</td>
               </tr>
               
-              <tr className="bg-purple-200 font-bold">
-                <td className="px-6 py-4 font-bold text-purple-900">
+              <tr className="bg-[#B87333]/30 font-bold">
+                <td className="px-6 py-4 font-bold text-[#B87333]">
                   = FLUX NET DE TRÉSORERIE LIÉ AUX OPÉRATIONS DE FINANCEMENT
                 </td>
                 <td className="px-6 py-4"></td>
-                <td className="px-6 py-4 text-right font-bold text-purple-900 text-lg">
+                <td className="px-6 py-4 text-right font-bold text-[#B87333] text-lg">
                   {formatCurrency(cashFlowData.financingCashFlow)}
                 </td>
               </tr>
               
               {/* VARIATION DE TRÉSORERIE */}
-              <tr className="bg-orange-50">
-                <td colSpan={2} className="px-6 py-3 font-bold text-orange-900 text-lg">
+              <tr className="bg-[#B87333]/10">
+                <td colSpan={2} className="px-6 py-3 font-bold text-[#B87333] text-lg">
                   VARIATION DE TRÉSORERIE
                 </td>
                 <td className="px-6 py-3"></td>
               </tr>
               
-              <tr className="bg-orange-100">
-                <td className="px-6 py-3 font-bold text-orange-900">
+              <tr className="bg-[#B87333]/20">
+                <td className="px-6 py-3 font-bold text-[#B87333]">
                   = VARIATION DE TRÉSORERIE (Flux nets)
                 </td>
                 <td className="px-6 py-3"></td>
-                <td className="px-6 py-3 text-right font-bold text-orange-900 text-lg">
+                <td className="px-6 py-3 text-right font-bold text-[#B87333] text-lg">
                   {formatCurrency(cashFlowData.cashFlowVariation)}
                 </td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 text-sm text-gray-700">Trésorerie d'ouverture</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
+                <td className="px-6 py-2 text-sm text-[#191919]/70">Trésorerie d'ouverture</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
                 <td className="px-6 py-2 text-right text-sm">{formatCurrency(cashFlowData.openingCashBalance)}</td>
               </tr>
               
               <tr>
-                <td className="px-6 py-2 text-sm text-gray-700">Trésorerie de clôture</td>
-                <td className="px-6 py-2 text-sm text-gray-500"></td>
+                <td className="px-6 py-2 text-sm text-[#191919]/70">Trésorerie de clôture</td>
+                <td className="px-6 py-2 text-sm text-[#191919]/50"></td>
                 <td className="px-6 py-2 text-right text-sm font-medium">{formatCurrency(cashFlowData.closingCashBalance)}</td>
               </tr>
               
               {/* Contrôle */}
-              <tr className="bg-gray-100">
-                <td className="px-6 py-3 font-medium text-gray-900">
+              <tr className="bg-[#ECECEC]">
+                <td className="px-6 py-3 font-medium text-[#191919]">
                   CONTRÔLE: Variation calculée (Clôture - Ouverture)
                 </td>
                 <td className="px-6 py-3"></td>
-                <td className="px-6 py-3 text-right font-medium text-gray-900">
+                <td className="px-6 py-3 text-right font-medium text-[#191919]">
                   {formatCurrency(cashFlowData.cashVariationControl)}
                 </td>
               </tr>
               
-              <tr className={`${cashFlowData.isCashFlowBalanced ? 'bg-green-100' : 'bg-red-100'}`}>
+              <tr className={`${cashFlowData.isCashFlowBalanced ? 'bg-[#6A8A82]/20' : 'bg-red-100'}`}>
                 <td className="px-6 py-3 font-bold">
                   <div className="flex items-center">
                     {cashFlowData.isCashFlowBalanced ? (
@@ -481,7 +481,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
                 </td>
                 <td className="px-6 py-3"></td>
                 <td className="px-6 py-3 text-right font-bold">
-                  <span className={cashFlowData.isCashFlowBalanced ? 'text-green-900' : 'text-red-900'}>
+                  <span className={cashFlowData.isCashFlowBalanced ? 'text-[#6A8A82]' : 'text-red-900'}>
                     {formatCurrency(Math.abs(cashFlowData.cashFlowVariation - cashFlowData.cashVariationControl))}
                   </span>
                 </td>
@@ -493,24 +493,24 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
 
       {/* Analyses complémentaires */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <CalculatorIcon className="h-5 w-5 mr-2 text-blue-600" />
+        <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-[#ECECEC] p-6">
+          <h3 className="text-lg font-medium text-[#191919] mb-4 flex items-center">
+            <CalculatorIcon className="h-5 w-5 mr-2 text-[#6A8A82]" />
             Indicateurs de Flux
           </h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Free Cash Flow:</span>
+              <span className="text-sm text-[#191919]/70">Free Cash Flow:</span>
               <div className="text-right">
-                <span className="text-sm font-bold text-blue-600">
+                <span className="text-sm font-bold text-[#6A8A82]">
                   {formatCurrency(cashFlowData.operatingCashFlow + cashFlowData.investmentCashFlow)}
                 </span>
-                <p className="text-xs text-gray-500">Flux d'exploitation + Investissement</p>
+                <p className="text-xs text-[#191919]/50">Flux d'exploitation + Investissement</p>
               </div>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Ratio CAF/Investissement:</span>
+              <span className="text-sm text-[#191919]/70">Ratio CAF/Investissement:</span>
               <span className="text-sm font-medium">
                 {cashFlowData.fixedAssetsAcquisitions > 0 
                   ? (cashFlowData.selfFinancingCapacity / cashFlowData.fixedAssetsAcquisitions * 100).toFixed(1)
@@ -520,16 +520,16 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Couverture des investissements:</span>
+              <span className="text-sm text-[#191919]/70">Couverture des investissements:</span>
               <span className={`text-sm font-medium ${
-                cashFlowData.selfFinancingCapacity >= cashFlowData.fixedAssetsAcquisitions ? 'text-green-600' : 'text-red-600'
+                cashFlowData.selfFinancingCapacity >= cashFlowData.fixedAssetsAcquisitions ? 'text-[#6A8A82]' : 'text-[#B87333]'
               }`}>
                 {cashFlowData.selfFinancingCapacity >= cashFlowData.fixedAssetsAcquisitions ? 'Couverte' : 'Insuffisante'}
               </span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Autonomie de financement:</span>
+              <span className="text-sm text-[#191919]/70">Autonomie de financement:</span>
               <span className="text-sm font-medium">
                 {cashFlowData.newBorrowings > 0 
                   ? ((cashFlowData.selfFinancingCapacity / (cashFlowData.selfFinancingCapacity + cashFlowData.newBorrowings)) * 100).toFixed(1)
@@ -540,16 +540,16 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Analyse Qualitative</h3>
+        <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-[#ECECEC] p-6">
+          <h3 className="text-lg font-medium text-[#191919] mb-4">Analyse Qualitative</h3>
           <div className="space-y-4">
             {/* Flux d'exploitation */}
-            <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+            <div className="p-3 rounded-lg bg-[#6A8A82]/10 border border-green-200">
               <div className="flex items-center space-x-2 mb-2">
-                <ArrowTrendingUpIcon className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-900">Flux d'Exploitation</span>
+                <ArrowTrendingUpIcon className="h-4 w-4 text-[#6A8A82]" />
+                <span className="text-sm font-medium text-[#6A8A82]">Flux d'Exploitation</span>
               </div>
-              <p className="text-xs text-green-800">
+              <p className="text-xs text-[#6A8A82]/90">
                 {cashFlowData.operatingCashFlow > 0 
                   ? 'Flux positif - L\'activité génère de la trésorerie'
                   : 'Flux négatif - L\'activité consomme de la trésorerie'
@@ -558,12 +558,12 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
             </div>
             
             {/* Flux d'investissement */}
-            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="p-3 rounded-lg bg-[#6A8A82]/10 border border-blue-200">
               <div className="flex items-center space-x-2 mb-2">
-                <ArrowTrendingDownIcon className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Flux d'Investissement</span>
+                <ArrowTrendingDownIcon className="h-4 w-4 text-[#6A8A82]" />
+                <span className="text-sm font-medium text-[#6A8A82]">Flux d'Investissement</span>
               </div>
-              <p className="text-xs text-blue-800">
+              <p className="text-xs text-[#6A8A82]/90">
                 {cashFlowData.investmentCashFlow < 0 
                   ? 'Flux négatif - Phase d\'investissement et de croissance'
                   : 'Flux positif - Cessions supérieures aux acquisitions'
@@ -572,12 +572,12 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
             </div>
             
             {/* Flux de financement */}
-            <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
+            <div className="p-3 rounded-lg bg-[#B87333]/10 border border-purple-200">
               <div className="flex items-center space-x-2 mb-2">
-                <CurrencyDollarIcon className="h-4 w-4 text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">Flux de Financement</span>
+                <CurrencyDollarIcon className="h-4 w-4 text-[#B87333]" />
+                <span className="text-sm font-medium text-[#B87333]">Flux de Financement</span>
               </div>
-              <p className="text-xs text-purple-800">
+              <p className="text-xs text-[#B87333]/90">
                 {cashFlowData.financingCashFlow > 0 
                   ? 'Apport net de financement externe'
                   : cashFlowData.financingCashFlow < 0
@@ -593,9 +593,9 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       {/* Note méthodologique */}
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-start space-x-2">
-          <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5" />
-          <div className="text-xs text-gray-600">
-            <p className="font-medium text-gray-700 mb-2">Note méthodologique:</p>
+          <InformationCircleIcon className="h-5 w-5 text-[#6A8A82] mt-0.5" />
+          <div className="text-xs text-[#191919]/70">
+            <p className="font-medium text-[#191919]/70 mb-2">Note méthodologique:</p>
             <p>
               Tableau établi selon la méthode {cashFlowData.calculationMethod === 'INDIRECT' ? 'indirecte' : 'directe'} 
               conformément aux dispositions du Système Comptable OHADA (SYSCOHADA) révisé en 2017.
