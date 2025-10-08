@@ -1,0 +1,115 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+/static
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+
+# Build
+frontend/dist/
+frontend/build/
+*.bak
+*.tmp
+*.old
+
+# Backend Node.js (unused)
+backend/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.swp
+*~
+.tmp/
+
+# Reports (temporary)
+*.md.backup
+cleanup_report.md
+BACKEND_ANALYSIS_REPORT.md
+CLEANUP_FINAL_REPORT.md
+
+# Database backups
+*.backup
+db_minimal.sqlite3
+db.sqlite3.backup
+backup.sql
+media_backup.tar.gz
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Test files
+nul
+chart-data-fix.txt
+renderSyntheseFix.txt
+
+# Batch/Shell scripts (local)
+*.bat
+*.sh
+
+# Frontend (separate repository)
+frontend/

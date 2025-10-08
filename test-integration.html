@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Intégration WiseBook API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .test-header {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-header h3 {
+            color: #333;
+            font-size: 18px;
+        }
+        .test-body {
+            padding: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .result.success {
+            background: #c6f6d5;
+            border: 1px solid #48bb78;
+            color: #22543d;
+        }
+        .result.error {
+            background: #fed7d7;
+            border: 1px solid #f56565;
+            color: #742a2a;
+        }
+        .result.info {
+            background: #bee3f8;
+            border: 1px solid #4299e1;
+            color: #2c5282;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #48bb78;
+            color: white;
+        }
+        .status.pending {
+            background: #ed8936;
+            color: white;
+        }
+        .status.error {
+            background: #f56565;
+            color: white;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .credentials {
+            background: #fef5e7;
+            border: 2px solid #f39c12;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .credentials h4 {
+            color: #d68910;
+            margin-bottom: 10px;
+        }
+        .credentials p {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Test Intégration API WiseBook</h1>
+            <p>Interface de test Frontend ↔ Backend Django</p>
+        </div>
+
+        <div class="content">
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="testsPassed">0</div>
+                    <div class="stat-label">Tests Réussis</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="stat-value" id="testsFailed">0</div>
+                    <div class="stat-label">Tests Échoués</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stat-value" id="totalTests">10</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+            </div>
+
+            <!-- Credentials -->
+            <div class="credentials">
+                <h4>🔐 Identifiants de Test</h4>
+                <p><strong>Email:</strong> admin@wisebook.cm</p>
+                <p><strong>Password:</strong> admin123</p>
+                <p><strong>Backend:</strong> http://localhost:8000/api/v1</p>
+            </div>
+
+            <!-- Test 1: Login -->
+            <div class="test-section">
+                <div class="test-header">
+                    <h3>1. 🔐 Test Login JWT</h3>
+                    <button class="btn btn-primary" onclick="testLogin()">Tester</button>
+                </div>
+                <div class="test-body">
+                    <div id="loginResult"></div>
+                </div>
+            </div>
+
+            <!-- Test 2: Profile -->
+            <div class="test-section">
+                <div class="test-header">
+                    <h3>2. 👤 Test Profil Utilisateur</h3>
+                    <button class="btn btn-primary" onclick="testProfile()">Tester</button>
+                </div>
+                <div class="test-body">
+                    <div id="profileResult"></div>
+                </div>
+            </div>
+
+            <!-- Test 3: Sociétés -->
+            <div class="test-section">
+                <div class="test-header">
+                    <h3>3. 🏢 Test Liste Sociétés</h3>
+                    <button class="btn btn-primary" onclick="testSocietes()">Tester</button>
+                </div>
+                <div class="test-body">
+                    <div id="societesResult"></div>
+                </div>
+            </div>
+
+            <!-- Test 4: Devises -->
+            <div class="test-section">
+                <div class="test-header">
+                    <h3>4. 💰 Test Liste Devises</h3>
+                    <button class="btn btn-primary" onclick="testDevises()">Tester</button>
+                </div>
+                <div class="test-body">
+                    <div id="devisesResult"></div>
+                </div>
+            </div>
+
+            <!-- Test 5: Plan Comptable -->
+            <div class="test-section">
+                <div class="test-header">
+                    <h3>5. 📊 Test Plan Comptable</h3>
+                    <button class="btn btn-primary" onclick="testComptes()">Tester</button>
+                </div>
+                <div class="test-body">
+                    <div id="comptesResult"></div>
+                </div>
+            </div>
+
+            <!-- Test 6: Journaux -->
+            <div class="test-section">
+                <div class="test-header">
+                    <h3>6. 📖 Test Journaux</h3>
+                    <button class="btn btn-primary" onclick="testJournaux()">Tester</button>
+                </div>
+                <div class="test-body">
+                    <div id="journauxResult"></div>
+                </div>
+            </div>
+
+            <!-- Test All -->
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-success" onclick="runAllTests()" style="font-size: 18px; padding: 15px 40px;">
+                    🚀 Lancer Tous les Tests
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8000/api/v1';
+        let accessToken = null;
+        let testsPassed = 0;
+        let testsFailed = 0;
+
+        function updateStats() {
+            document.getElementById('testsPassed').textContent = testsPassed;
+            document.getElementById('testsFailed').textContent = testsFailed;
+        }
+
+        function showResult(elementId, success, message, data = null) {
+            const element = document.getElementById(elementId);
+            const className = success ? 'success' : 'error';
+            const status = success ? '✅ RÉUSSI' : '❌ ÉCHOUÉ';
+
+            let html = `<div class="result ${className}">`;
+            html += `<strong>${status}</strong>\n`;
+            html += `${message}\n`;
+
+            if (data) {
+                html += `\n<strong>Données:</strong>\n`;
+                html += JSON.stringify(data, null, 2);
+            }
+
+            html += `</div>`;
+            element.innerHTML = html;
+
+            if (success) {
+                testsPassed++;
+            } else {
+                testsFailed++;
+            }
+            updateStats();
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch(`${BASE_URL}/auth/token/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@wisebook.cm',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                accessToken = data.access;
+
+                showResult('loginResult', true,
+                    `Login réussi!\nToken JWT obtenu et stocké.`,
+                    {
+                        access: data.access.substring(0, 50) + '...',
+                        refresh: data.refresh.substring(0, 50) + '...',
+                        user: data.user
+                    }
+                );
+            } catch (error) {
+                showResult('loginResult', false,
+                    `Erreur lors du login:\n${error.message}`
+                );
+            }
+        }
+
+        async function testProfile() {
+            if (!accessToken) {
+                showResult('profileResult', false, 'Vous devez d\'abord vous connecter (Test 1)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/auth/profile/`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                showResult('profileResult', true,
+                    'Profil utilisateur récupéré avec succès!',
+                    data
+                );
+            } catch (error) {
+                showResult('profileResult', false,
+                    `Erreur lors de la récupération du profil:\n${error.message}`
+                );
+            }
+        }
+
+        async function testSocietes() {
+            if (!accessToken) {
+                showResult('societesResult', false, 'Vous devez d\'abord vous connecter (Test 1)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/societes/`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const results = Array.isArray(data) ? data : data.results || [];
+
+                showResult('societesResult', true,
+                    `${results.length} société(s) trouvée(s)`,
+                    results
+                );
+            } catch (error) {
+                showResult('societesResult', false,
+                    `Erreur lors de la récupération des sociétés:\n${error.message}`
+                );
+            }
+        }
+
+        async function testDevises() {
+            if (!accessToken) {
+                showResult('devisesResult', false, 'Vous devez d\'abord vous connecter (Test 1)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/devises/`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const results = Array.isArray(data) ? data : data.results || [];
+
+                showResult('devisesResult', true,
+                    `${results.length} devise(s) trouvée(s)`,
+                    results
+                );
+            } catch (error) {
+                showResult('devisesResult', false,
+                    `Erreur lors de la récupération des devises:\n${error.message}`
+                );
+            }
+        }
+
+        async function testComptes() {
+            if (!accessToken) {
+                showResult('comptesResult', false, 'Vous devez d\'abord vous connecter (Test 1)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/comptes/?page_size=10`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const results = Array.isArray(data) ? data : data.results || [];
+                const total = data.count || results.length;
+
+                showResult('comptesResult', true,
+                    `${total} comptes SYSCOHADA total\nAffichage des ${results.length} premiers`,
+                    results.slice(0, 5)
+                );
+            } catch (error) {
+                showResult('comptesResult', false,
+                    `Erreur lors de la récupération des comptes:\n${error.message}`
+                );
+            }
+        }
+
+        async function testJournaux() {
+            if (!accessToken) {
+                showResult('journauxResult', false, 'Vous devez d\'abord vous connecter (Test 1)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/journaux/`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const results = Array.isArray(data) ? data : data.results || [];
+
+                showResult('journauxResult', true,
+                    `${results.length} journaux trouvés`,
+                    results
+                );
+            } catch (error) {
+                showResult('journauxResult', false,
+                    `Erreur lors de la récupération des journaux:\n${error.message}`
+                );
+            }
+        }
+
+        async function runAllTests() {
+            // Reset stats
+            testsPassed = 0;
+            testsFailed = 0;
+            updateStats();
+
+            // Run all tests sequentially
+            await testLogin();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testProfile();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testSocietes();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testDevises();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testComptes();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await testJournaux();
+
+            // Show final summary
+            alert(`Tests terminés!\n\n✅ Réussis: ${testsPassed}\n❌ Échoués: ${testsFailed}\n\nTaux de réussite: ${((testsPassed / (testsPassed + testsFailed)) * 100).toFixed(1)}%`);
+        }
+    </script>
+</body>
+</html>
