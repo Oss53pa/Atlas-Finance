@@ -12,6 +12,7 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
 import { toast } from 'react-hot-toast';
+import { isDemoMode, hasMockData, getMockData } from './mockData';
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -80,6 +81,30 @@ class ApiClient {
     // Intercepteur de requête - Ajout du token
     this.axiosInstance.interceptors.request.use(
       (config) => {
+        // MODE DÉMO : Intercepter les requêtes et retourner des données mockées
+        if (isDemoMode() && config.url && hasMockData(config.url)) {
+          const mockData = getMockData(config.url);
+
+          console.log('🎭 [MODE DÉMO] Retour de données mockées pour:', config.url);
+
+          // Retourner une promesse résolue avec des données mockées
+          return Promise.reject({
+            config,
+            response: {
+              data: mockData,
+              status: 200,
+              statusText: 'OK (Mock)',
+              headers: {},
+              config,
+            },
+            isAxiosError: false,
+            toJSON: () => ({}),
+            name: 'MockResponse',
+            message: 'Mock data',
+            _isMockResponse: true,  // Flag pour identifier les réponses mockées
+          });
+        }
+
         const token = this.getAccessToken();
 
         if (token) {
@@ -118,7 +143,13 @@ class ApiClient {
 
         return response;
       },
-      async (error: AxiosError) => {
+      async (error: any) => {
+        // MODE DÉMO : Gérer les réponses mockées
+        if (error._isMockResponse) {
+          console.log('✅ [MODE DÉMO] Données mockées retournées avec succès');
+          return Promise.resolve(error.response);
+        }
+
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
         // Log erreur
@@ -255,9 +286,19 @@ class ApiClient {
    * Gestion de l'erreur d'authentification
    */
   private handleAuthError(): void {
+    // ✅ Ne pas rediriger en mode DÉMO
+    const token = localStorage.getItem('authToken');
+    const isDemoMode = token && token.startsWith('demo_token_');
+
+    if (isDemoMode) {
+      console.warn('⚠️ [API Client] Erreur auth en mode DÉMO - pas de redirection');
+      return;
+    }
+
     // Supprimer les tokens
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
 
     // Rediriger vers login
     if (window.location.pathname !== '/login') {
@@ -270,14 +311,14 @@ class ApiClient {
    * Récupération du token d'accès
    */
   private getAccessToken(): string | null {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('authToken');
   }
 
   /**
    * Récupération du refresh token
    */
   private getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
+    return localStorage.getItem('refreshToken');
   }
 
   /**
@@ -290,6 +331,12 @@ class ApiClient {
       throw new Error('No refresh token available');
     }
 
+    // ✅ Ne pas essayer de refresh en mode DÉMO
+    if (refreshToken.startsWith('demo_refresh_')) {
+      console.warn('⚠️ [API Client] Tentative de refresh en mode DÉMO - ignoré');
+      throw new Error('Demo mode - no refresh');
+    }
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/auth/token/refresh/`,
@@ -297,7 +344,7 @@ class ApiClient {
       );
 
       const newAccessToken = response.data.access;
-      localStorage.setItem('access_token', newAccessToken);
+      localStorage.setItem('authToken', newAccessToken);
 
       return newAccessToken;
     } catch (error) {
