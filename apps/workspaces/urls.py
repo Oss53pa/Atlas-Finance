@@ -8,7 +8,9 @@ from . import views
 
 router = DefaultRouter()
 
-router.register(r'workspaces', views.WorkspaceViewSet, basename='workspace')
+# FIX: Ne pas utiliser 'workspaces' comme préfixe car déjà inclus dans wisebook/urls.py
+# path('api/workspaces/', ...) + 'workspaces' = /api/workspaces/workspaces/ (doublon)
+router.register(r'', views.WorkspaceViewSet, basename='workspace')
 router.register(r'widgets', views.WorkspaceWidgetViewSet, basename='workspace-widget')
 router.register(r'statistics', views.WorkspaceStatisticViewSet, basename='workspace-statistic')
 router.register(r'quick-actions', views.WorkspaceQuickActionViewSet, basename='workspace-quick-action')
