@@ -15,78 +15,124 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sometype+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Styles de base pour éviter le flash -->
+    <!-- Styles de base CRITIQUES pour éviter le flash (FOUC) -->
     <style>
-      * {
+      /* Reset basique */
+      *, *::before, *::after {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-      
-      body {
+
+      /* Police et couleurs de base */
+      html {
         font-family: 'Sometype Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        background-color: #FFFFFF;
-        color: #353A3B;
+        font-size: 16px;
+        line-height: 1.5;
       }
-      
+
+      body {
+        background-color: #f1f5f9;
+        color: #353A3B;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
       #root {
         min-height: 100vh;
+        width: 100%;
       }
-      
-      /* Loading initial - Trinity Colors */
-      .app-loading {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #7A8B8E 0%, #353A3B 100%);
+
+      /* Classes Tailwind de base - INLINE pour chargement instantané */
+      .min-h-screen { min-height: 100vh; }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-center { justify-content: center; }
+      .text-center { text-align: center; }
+      .bg-white { background-color: #ffffff; }
+      .rounded-2xl { border-radius: 1rem; }
+      .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+      .p-12 { padding: 3rem; }
+      .mb-4 { margin-bottom: 1rem; }
+      .mb-6 { margin-bottom: 1.5rem; }
+      .text-5xl { font-size: 3rem; line-height: 1; }
+      .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+      .font-bold { font-weight: 700; }
+      .text-gray-800 { color: #1f2937; }
+      .text-gray-600 { color: #4b5563; }
+
+      /* Gradients */
+      .bg-gradient-to-br {
+        background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
       }
-      
-      .loading-content {
-        text-align: center;
-        color: white;
-      }
-      
+      .from-blue-500 { --tw-gradient-from: #3b82f6; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0)); }
+      .to-purple-600 { --tw-gradient-to: #9333ea; }
+      .from-gray-100 { --tw-gradient-from: #f3f4f6; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(243, 244, 246, 0)); }
+      .to-gray-200 { --tw-gradient-to: #e5e7eb; }
+
+      /* Loading spinner */
       .loading-spinner {
         width: 48px;
         height: 48px;
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        border-top: 4px solid #ffffff;
+        border: 4px solid rgba(59, 130, 246, 0.3);
+        border-top: 4px solid #3b82f6;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin: 0 auto 16px;
+        margin: 0 auto 1rem;
       }
-      
+
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
-      
-      .loading-text {
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 8px;
+
+      /* Masquer le contenu initial jusqu'au chargement */
+      #root:empty::after {
+        content: '';
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        z-index: 9999;
       }
-      
-      .loading-subtext {
-        font-size: 14px;
-        opacity: 0.9;
+
+      /* Overlay de chargement initial */
+      .app-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        transition: opacity 0.3s ease-out;
+      }
+
+      .app-loader.hidden {
+        opacity: 0;
+        pointer-events: none;
       }
     </style>
   </head>
   <body>
-    <div id="root">
-      <!-- Loading initial pendant le chargement de l'app -->
-      <div class="app-loading">
-        <div class="loading-content">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">WiseBook ERP</div>
-          <div class="loading-subtext">Système ERP Comptable SYSCOHADA</div>
-        </div>
+    <!-- Loader visible immédiatement -->
+    <div id="app-loader" class="app-loader">
+      <div style="text-align: center;">
+        <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #374151; margin-bottom: 0.5rem;">WiseBook ERP</h2>
+        <p style="color: #6b7280;">Chargement de l'application...</p>
       </div>
     </div>
+
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
