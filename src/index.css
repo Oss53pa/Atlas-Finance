@@ -1,3 +1,4 @@
+
 /* WiseBook V3.0 - Design System Clarity */
 @import url('https://fonts.googleapis.com/css2?family=Sometype+Mono:wght@400;500;600;700&display=swap');
 
@@ -428,9 +429,9 @@
   
   /* Print specific */
   .print-area {
-    @apply bg-white text-black shadow-lg rounded-lg p-8 max-w-[210mm];
+    @apply bg-white text-black;
   }
-  
+
   @media print {
     .print-area {
       @apply shadow-none rounded-none p-0 max-w-none;

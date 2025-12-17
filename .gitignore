@@ -35,4 +35,5 @@ lerna-debug.log*
 *.sw?
 
 # Vite
-*.local
+*.localnul
+src/nul

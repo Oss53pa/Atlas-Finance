@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Calculator, Eye, EyeOff, Shield } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent } from '../../components/ui';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
   const { selectedRole, targetPath } = (location.state as any) || { targetPath: '/dashboard' };
 
   const [formData, setFormData] = useState({
@@ -41,20 +43,51 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // For demo purposes, simulate a successful login
     setIsLoggingIn(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Check credentials (simple demo validation)
-      if (formData.email === 'admin@wisebook.com' && formData.password === 'admin123') {
-        // Login successful, redirect to workspace
-        navigate(targetPath || '/dashboard');
-      } else {
-        setErrors({ password: 'Email ou mot de passe incorrect' });
-        setIsLoggingIn(false);
+    try {
+      console.log('🚀 [LoginPage] Tentative de connexion...', formData.email);
+
+      // ✅ Appeler la vraie méthode login() de AuthContext
+      await login(formData.email, formData.password);
+
+      console.log('✅ [LoginPage] Connexion réussie!');
+
+      // ✅ Petite pause pour s'assurer que le state est mis à jour
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // ✅ Récupérer le rôle de l'utilisateur depuis localStorage
+      const storedUser = localStorage.getItem('user');
+      const userData = storedUser ? JSON.parse(storedUser) : null;
+      const userRole = userData?.role || 'user';
+
+      // ✅ Redirection vers le workspace correspondant au rôle
+      let redirectPath = '/workspace';
+
+      switch(userRole) {
+        case 'admin':
+          redirectPath = '/workspace/admin';
+          break;
+        case 'manager':
+          redirectPath = '/workspace/manager';
+          break;
+        case 'comptable':
+          redirectPath = '/workspace/comptable';
+          break;
+        default:
+          redirectPath = '/workspace';
       }
-    }, 500);
+
+      console.log(`✅ [LoginPage] Redirection vers ${redirectPath} (rôle: ${userRole})`);
+      navigate(redirectPath, { replace: true });
+    } catch (error: any) {
+      // ✅ Afficher l'erreur de connexion
+      console.error('❌ [LoginPage] Erreur de connexion:', error);
+      setErrors({
+        password: error.message || 'Email ou mot de passe incorrect. Veuillez réessayer.'
+      });
+      setIsLoggingIn(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,10 +99,16 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleAutoFill = () => {
+  const handleAutoFill = (role: 'admin' | 'manager' | 'comptable') => {
+    const credentials = {
+      admin: { email: 'admin@wisebook.com', password: 'admin123' },
+      manager: { email: 'manager@wisebook.com', password: 'manager123' },
+      comptable: { email: 'comptable@wisebook.com', password: 'comptable123' }
+    };
+
     setFormData({
-      email: 'admin@wisebook.com',
-      password: 'admin123',
+      email: credentials[role].email,
+      password: credentials[role].password,
       mfaCode: '',
     });
     setErrors({});
@@ -227,25 +266,70 @@ const LoginPage: React.FC = () => {
             <div className="mt-6 rounded-lg bg-[var(--color-background-secondary)] border border-[var(--color-border)] p-4">
               <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
                 <Shield className="h-4 w-4" />
-                Compte de démonstration
+                Comptes de démonstration
               </h3>
-              <div className="text-xs space-y-2 text-[var(--color-text-primary)]">
-                <div className="bg-white p-2 rounded border">
-                  <p><strong>Administrateur:</strong> admin@wisebook.com</p>
-                  <p><strong>Mot de passe:</strong> admin123</p>
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">Accès complet au système</p>
+              <div className="text-xs space-y-3 text-[var(--color-text-primary)]">
+                {/* Admin Account */}
+                <div className="bg-white p-3 rounded border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-sm">👨‍💼 Administrateur</span>
+                    <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded">ADMIN</span>
+                  </div>
+                  <p className="text-xs mb-1"><strong>Email:</strong> admin@wisebook.com</p>
+                  <p className="text-xs mb-2"><strong>Mot de passe:</strong> admin123</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs text-[var(--color-text-primary)] border-red-300 hover:bg-red-500 hover:text-white"
+                    onClick={() => handleAutoFill('admin')}
+                  >
+                    Connexion Administrateur
+                  </Button>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-2">Accès complet au système</p>
+                </div>
+
+                {/* Manager Account */}
+                <div className="bg-white p-3 rounded border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-sm">👔 Manager</span>
+                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">MANAGER</span>
+                  </div>
+                  <p className="text-xs mb-1"><strong>Email:</strong> manager@wisebook.com</p>
+                  <p className="text-xs mb-2"><strong>Mot de passe:</strong> manager123</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs text-[var(--color-text-primary)] border-blue-300 hover:bg-blue-500 hover:text-white"
+                    onClick={() => handleAutoFill('manager')}
+                  >
+                    Connexion Manager
+                  </Button>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-2">Gestion et supervision</p>
+                </div>
+
+                {/* Comptable Account */}
+                <div className="bg-white p-3 rounded border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-sm">📊 Comptable</span>
+                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">COMPTABLE</span>
+                  </div>
+                  <p className="text-xs mb-1"><strong>Email:</strong> comptable@wisebook.com</p>
+                  <p className="text-xs mb-2"><strong>Mot de passe:</strong> comptable123</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs text-[var(--color-text-primary)] border-green-300 hover:bg-green-500 hover:text-white"
+                    onClick={() => handleAutoFill('comptable')}
+                  >
+                    Connexion Comptable
+                  </Button>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-2">Saisie et comptabilité</p>
                 </div>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full mt-3 text-[var(--color-text-primary)] border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
-                onClick={handleAutoFill}
-              >
-                Remplir automatiquement
-              </Button>
-              <p className="text-xs text-[var(--color-text-secondary)] mt-3 italic">
+              <p className="text-xs text-[var(--color-text-secondary)] mt-3 italic text-center">
                 ⚠️ Environnement de démonstration - Données fictives uniquement
               </p>
             </div>

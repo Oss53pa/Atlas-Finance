@@ -4,8 +4,7 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
   CurrencyDollarIcon,
-  ChartBarIcon,
-  TrendingDownIcon,
+  ArrowArrowTrendingDownIcon,
   ArrowRightIcon,
   CalendarIcon,
   ExclamationTriangleIcon,
@@ -194,7 +193,7 @@ const FinancialAnalysisPage: React.FC = () => {
 
   const getStatusIcon = (value: number, reference: number) => {
     if (value >= reference * 1.1) return <ChartBarIcon className="h-5 w-5 text-green-500" />;
-    if (value <= reference * 0.9) return <TrendingDownIcon className="h-5 w-5 text-red-500" />;
+    if (value <= reference * 0.9) return <ArrowTrendingDownIcon className="h-5 w-5 text-red-500" />;
     return <ArrowRightIcon className="h-5 w-5 text-yellow-500" />;
   };
 

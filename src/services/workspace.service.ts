@@ -36,7 +36,7 @@ class WorkspaceService extends BaseApiService<
   CreateWorkspaceDto,
   UpdateWorkspaceDto
 > {
-  protected readonly basePath = '/api/workspaces/workspaces';
+  protected readonly basePath = '/api/workspaces';
   protected readonly entityName = 'workspace';
 
   async getMyWorkspace(): Promise<Workspace> {

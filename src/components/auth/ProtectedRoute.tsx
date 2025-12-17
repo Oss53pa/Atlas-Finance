@@ -1,8 +1,9 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/store/auth';
-import { UserRole } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui';
+
+type UserRole = 'admin' | 'manager' | 'comptable' | 'user' | 'viewer';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,10 +17,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   fallback
 }) => {
   const location = useLocation();
-  const { isAuthenticated, user, isLoading } = useAuthStore();
+  const { isAuthenticated, user, loading } = useAuth();
+
+  // Logs de débogage
+  console.log('🛡️ [ProtectedRoute] Check:', {
+    path: location.pathname,
+    isAuthenticated,
+    hasUser: !!user,
+    userRole: user?.role,
+    loading,
+    requiredRole
+  });
 
   // Show loading spinner while checking authentication
-  if (isLoading) {
+  if (loading) {
+    console.log('⏳ [ProtectedRoute] Loading...');
     return (
       <div className="flex h-screen items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
@@ -28,29 +40,39 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Redirect to login if not authenticated
-  if (!isAuthenticated || !user) {
+  // IMPORTANT: Ne rediriger que si loading est terminé ET user n'existe pas
+  if (!loading && (!isAuthenticated || !user)) {
+    console.log('❌ [ProtectedRoute] Non authentifié - Redirection vers /login', {
+      isAuthenticated,
+      hasUser: !!user,
+      loading
+    });
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  console.log('✅ [ProtectedRoute] Authentifié - Accès autorisé');
 
   // Check role-based access
   if (requiredRole && user.role !== requiredRole) {
     // Check if user has sufficient privileges (ADMIN can access everything)
-    const roleHierarchy = {
-      [UserRole.MEMBER]: 1,
-      [UserRole.LIBRARIAN]: 2,
-      [UserRole.ADMIN]: 3,
+    const roleHierarchy: Record<UserRole, number> = {
+      'viewer': 1,
+      'user': 2,
+      'comptable': 3,
+      'manager': 4,
+      'admin': 5,
     };
 
-    const userRoleLevel = roleHierarchy[user.role];
-    const requiredRoleLevel = roleHierarchy[requiredRole];
+    const userRoleLevel = roleHierarchy[user.role] || 0;
+    const requiredRoleLevel = roleHierarchy[requiredRole] || 0;
 
     if (userRoleLevel < requiredRoleLevel) {
       return fallback || (
         <div className="flex h-screen items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
-            <p className="mt-2 text-muted-foreground">
-              You don't have permission to access this page.
+            <h2 className="text-2xl font-bold text-red-600">Accès Refusé</h2>
+            <p className="mt-2 text-gray-600">
+              Vous n'avez pas la permission d'accéder à cette page.
             </p>
           </div>
         </div>

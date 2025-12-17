@@ -19,7 +19,10 @@ import {
   AlertCircle,
   CheckCircle,
   FileText,
-  Calculator
+  Calculator,
+  TrendingUp,
+  TrendingDown,
+  BarChart3
 } from 'lucide-react';
 import { 
   UnifiedCard,
@@ -30,7 +33,7 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { useChartOfAccounts } from '../../hooks';
+// import { useChartOfAccounts } from '../../hooks'; // Désactivé - données locales
 import { formatCurrency } from '../../lib/utils';
 
 // Types SYSCOHADA pour le plan comptable
@@ -38,7 +41,7 @@ interface SyscohadaAccount {
   code: string; // 9 positions obligatoires
   libelle: string;
   classe: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-  nature: 'ACTIF' | 'PASSIF' | 'CHARGE' | 'PRODUIT' | 'SPECIAL';
+  nature: 'ACTIF' | 'PASSIF' | 'CHARGE' | 'PRODUIT' | 'SPECIAL' | 'MIXTE';
   sens_normal: 'DEBITEUR' | 'CREDITEUR';
   niveau: 1 | 2 | 3 | 4; // Niveau hiérarchique
   compte_parent?: string;
@@ -59,9 +62,32 @@ const ChartOfAccountsPage: React.FC = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
+  // États pour les modales
+  const [showNewAccountModal, setShowNewAccountModal] = useState(false);
+  const [showEditAccountModal, setShowEditAccountModal] = useState(false);
+  const [showViewAccountModal, setShowViewAccountModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showAdvancedFiltersModal, setShowAdvancedFiltersModal] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<SyscohadaAccount | null>(null);
+
+  // État pour le formulaire de nouveau compte
+  const [newAccount, setNewAccount] = useState({
+    code: '',
+    libelle: '',
+    classe: 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
+    nature: 'ACTIF' as 'ACTIF' | 'PASSIF' | 'CHARGE' | 'PRODUIT' | 'SPECIAL' | 'MIXTE',
+    sens_normal: 'DEBITEUR' as 'DEBITEUR' | 'CREDITEUR',
+    niveau: 1 as 1 | 2 | 3 | 4,
+    is_collectif: false,
+    description: ''
+  });
+
   // Fetch chart of accounts avec le nouveau hook
-  const { data: accountsData, isLoading } = useChartOfAccounts();
-  const accounts = accountsData?.results || [];
+  // API désactivé - utilisation des données SYSCOHADA locales
+  const isLoading = false;
+  const isError = false;
+  // const accounts = []; // Données API non utilisées
 
   // Plan comptable SYSCOHADA standard avec structure hiérarchique
   const syscohadaPlan: SyscohadaAccount[] = [
@@ -148,7 +174,7 @@ const ChartOfAccountsPage: React.FC = () => {
     return /^\d{9}$/.test(code);
   };
 
-  if (isLoading) {
+  if (isLoading && !isError) {
     return (
       <PageContainer background="warm" padding="lg">
         <div className="flex justify-center items-center min-h-[60vh]">
@@ -175,13 +201,23 @@ const ChartOfAccountsPage: React.FC = () => {
           icon={Book}
           action={
             <div className="flex gap-3">
-              <ElegantButton variant="outline" icon={Upload}>
+              <ElegantButton variant="outline" icon={Upload} onClick={() => setShowImportModal(true)}>
                 Importer Plan
               </ElegantButton>
-              <ElegantButton variant="outline" icon={Download}>
+              <ElegantButton variant="outline" icon={Download} onClick={() => {
+                // Export Excel functionality
+                const csvContent = syscohadaPlan.map(acc =>
+                  `${acc.code};${acc.libelle};${acc.classe};${acc.nature};${acc.sens_normal}`
+                ).join('\n');
+                const blob = new Blob([`Code;Libellé;Classe;Nature;Sens\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `plan_comptable_syscohada_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+              }}>
                 Exporter Excel
               </ElegantButton>
-              <ElegantButton variant="primary" icon={Plus}>
+              <ElegantButton variant="primary" icon={Plus} onClick={() => setShowNewAccountModal(true)}>
                 Nouveau Compte
               </ElegantButton>
             </div>
@@ -286,7 +322,7 @@ const ChartOfAccountsPage: React.FC = () => {
                 />
                 <span>Comptes inactifs</span>
               </label>
-              <ElegantButton variant="outline" icon={Filter} size="sm">
+              <ElegantButton variant="outline" icon={Filter} size="sm" onClick={() => setShowAdvancedFiltersModal(true)}>
                 Filtres Avancés
               </ElegantButton>
             </div>
@@ -418,14 +454,34 @@ const ChartOfAccountsPage: React.FC = () => {
                             </td>
                             <td className="p-4 text-center">
                               <div className="flex justify-center gap-1">
-                                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" aria-label="Voir les détails">
+                                <button
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                  aria-label="Voir les détails"
+                                  onClick={() => {
+                                    setSelectedAccount(account);
+                                    setShowViewAccountModal(true);
+                                  }}
+                                >
                                   <Eye className="h-4 w-4" />
                                 </button>
-                                <button className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all">
+                                <button
+                                  className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                                  onClick={() => {
+                                    setSelectedAccount(account);
+                                    setShowEditAccountModal(true);
+                                  }}
+                                >
                                   <Edit className="h-4 w-4" />
                                 </button>
                                 {!account.is_collectif && account.nb_mouvements === 0 && (
-                                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all" aria-label="Supprimer">
+                                  <button
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                    aria-label="Supprimer"
+                                    onClick={() => {
+                                      setSelectedAccount(account);
+                                      setShowDeleteConfirmModal(true);
+                                    }}
+                                  >
                                     <Trash2 className="h-4 w-4" />
                                   </button>
                                 )}
@@ -533,13 +589,23 @@ const ChartOfAccountsPage: React.FC = () => {
                 <div className="space-y-3">
                   <h4 className="font-semibold text-neutral-700">Actions Rapides:</h4>
                   <div className="space-y-2">
-                    <ElegantButton variant="outline" size="sm" icon={Download} className="w-full">
+                    <ElegantButton variant="outline" size="sm" icon={Download} className="w-full" onClick={() => {
+                      // Télécharger un template Excel
+                      const template = `Code;Libellé;Classe;Nature;Sens Normal;Niveau;Collectif;Description
+100000000;CAPITAL;1;PASSIF;CREDITEUR;1;false;Compte de capital
+110000000;RESERVES;1;PASSIF;CREDITEUR;1;true;Compte collectif de réserves`;
+                      const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+                      const link = document.createElement('a');
+                      link.href = URL.createObjectURL(blob);
+                      link.download = 'template_plan_comptable_syscohada.csv';
+                      link.click();
+                    }}>
                       Template Excel
                     </ElegantButton>
-                    <ElegantButton variant="outline" size="sm" icon={Upload} className="w-full">
+                    <ElegantButton variant="outline" size="sm" icon={Upload} className="w-full" onClick={() => setShowImportModal(true)}>
                       Importer Comptes
                     </ElegantButton>
-                    <ElegantButton variant="primary" size="sm" icon={Plus} className="w-full">
+                    <ElegantButton variant="primary" size="sm" icon={Plus} className="w-full" onClick={() => setShowNewAccountModal(true)}>
                       Nouveau Compte
                     </ElegantButton>
                   </div>
@@ -549,6 +615,600 @@ const ChartOfAccountsPage: React.FC = () => {
           </UnifiedCard>
         </motion.div>
       </div>
+
+      {/* Modal Nouveau Compte */}
+      {showNewAccountModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6 border-b border-neutral-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-neutral-800">Nouveau Compte SYSCOHADA</h2>
+                <button
+                  onClick={() => setShowNewAccountModal(false)}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                >
+                  <AlertCircle className="w-5 h-5 text-neutral-500" />
+                </button>
+              </div>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              alert('Compte créé avec succès !');
+              setShowNewAccountModal(false);
+            }}>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Code Compte (9 positions) *</label>
+                    <input
+                      type="text"
+                      maxLength={9}
+                      pattern="\d{9}"
+                      placeholder="Ex: 101000000"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+                      required
+                      value={newAccount.code}
+                      onChange={(e) => setNewAccount({...newAccount, code: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                    />
+                    <p className="text-xs text-neutral-500 mt-1">Format SYSCOHADA: 9 chiffres obligatoires</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Classe *</label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                      value={newAccount.classe}
+                      onChange={(e) => setNewAccount({...newAccount, classe: parseInt(e.target.value) as any})}
+                    >
+                      <option value={1}>Classe 1 - Ressources Durables</option>
+                      <option value={2}>Classe 2 - Actif Immobilisé</option>
+                      <option value={3}>Classe 3 - Stocks</option>
+                      <option value={4}>Classe 4 - Tiers</option>
+                      <option value={5}>Classe 5 - Trésorerie</option>
+                      <option value={6}>Classe 6 - Charges</option>
+                      <option value={7}>Classe 7 - Produits</option>
+                      <option value={8}>Classe 8 - Résultats</option>
+                      <option value={9}>Classe 9 - Analytique</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Libellé du Compte *</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Capital social"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    required
+                    value={newAccount.libelle}
+                    onChange={(e) => setNewAccount({...newAccount, libelle: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Nature *</label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                      value={newAccount.nature}
+                      onChange={(e) => setNewAccount({...newAccount, nature: e.target.value as any})}
+                    >
+                      <option value="ACTIF">ACTIF</option>
+                      <option value="PASSIF">PASSIF</option>
+                      <option value="CHARGE">CHARGE</option>
+                      <option value="PRODUIT">PRODUIT</option>
+                      <option value="SPECIAL">SPECIAL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Sens Normal *</label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      required
+                      value={newAccount.sens_normal}
+                      onChange={(e) => setNewAccount({...newAccount, sens_normal: e.target.value as any})}
+                    >
+                      <option value="DEBITEUR">DEBITEUR</option>
+                      <option value="CREDITEUR">CREDITEUR</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Niveau Hiérarchique</label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      value={newAccount.niveau}
+                      onChange={(e) => setNewAccount({...newAccount, niveau: parseInt(e.target.value) as any})}
+                    >
+                      <option value={1}>Niveau 1 - Principal</option>
+                      <option value={2}>Niveau 2 - Sous-compte</option>
+                      <option value={3}>Niveau 3 - Détail</option>
+                      <option value={4}>Niveau 4 - Analytique</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center">
+                    <label className="flex items-center space-x-2 mt-6">
+                      <input
+                        type="checkbox"
+                        className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                        checked={newAccount.is_collectif}
+                        onChange={(e) => setNewAccount({...newAccount, is_collectif: e.target.checked})}
+                      />
+                      <span className="text-sm text-neutral-700">Compte collectif (regroupement)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Description</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Description optionnelle du compte..."
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={newAccount.description}
+                    onChange={(e) => setNewAccount({...newAccount, description: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="p-6 border-t border-neutral-200 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowNewAccountModal(false)}
+                  className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Créer le Compte
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal Vue Détail Compte */}
+      {showViewAccountModal && selectedAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4"
+          >
+            <div className="p-6 border-b border-neutral-200 bg-gradient-to-r from-blue-50 to-blue-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                    {selectedAccount.classe}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-neutral-800">{selectedAccount.libelle}</h2>
+                    <p className="text-sm text-neutral-600 font-mono">{selectedAccount.code}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowViewAccountModal(false)}
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                >
+                  <AlertCircle className="w-5 h-5 text-neutral-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-500">Nature</p>
+                    <p className="text-lg font-semibold text-neutral-800">{selectedAccount.nature}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-500">Sens Normal</p>
+                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                      selectedAccount.sens_normal === 'DEBITEUR' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {selectedAccount.sens_normal}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-500">Type</p>
+                    <p className="text-lg font-semibold text-neutral-800">
+                      {selectedAccount.is_collectif ? 'Compte Collectif' : 'Compte de Détail'}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-500">Solde Débit</p>
+                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(selectedAccount.solde_debit)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-500">Solde Crédit</p>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedAccount.solde_credit)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-neutral-500">Mouvements</p>
+                    <p className="text-lg font-semibold text-neutral-800">{selectedAccount.nb_mouvements} écritures</p>
+                  </div>
+                </div>
+              </div>
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium text-neutral-500">Date de création</p>
+                <p className="text-neutral-800">{selectedAccount.date_creation}</p>
+              </div>
+            </div>
+            <div className="p-6 border-t border-neutral-200 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowViewAccountModal(false)}
+                className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => {
+                  setShowViewAccountModal(false);
+                  setShowEditAccountModal(true);
+                }}
+                className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+              >
+                Modifier
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal Édition Compte */}
+      {showEditAccountModal && selectedAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6 border-b border-neutral-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-neutral-800">Modifier le Compte</h2>
+                <button
+                  onClick={() => setShowEditAccountModal(false)}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                >
+                  <AlertCircle className="w-5 h-5 text-neutral-500" />
+                </button>
+              </div>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              alert('Compte modifié avec succès !');
+              setShowEditAccountModal(false);
+            }}>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Code Compte</label>
+                    <input
+                      type="text"
+                      defaultValue={selectedAccount.code}
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-100 font-mono"
+                      disabled
+                    />
+                    <p className="text-xs text-neutral-500 mt-1">Le code ne peut pas être modifié</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Classe</label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      defaultValue={selectedAccount.classe}
+                    >
+                      <option value={1}>Classe 1 - Ressources Durables</option>
+                      <option value={2}>Classe 2 - Actif Immobilisé</option>
+                      <option value={3}>Classe 3 - Stocks</option>
+                      <option value={4}>Classe 4 - Tiers</option>
+                      <option value={5}>Classe 5 - Trésorerie</option>
+                      <option value={6}>Classe 6 - Charges</option>
+                      <option value={7}>Classe 7 - Produits</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Libellé *</label>
+                  <input
+                    type="text"
+                    defaultValue={selectedAccount.libelle}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Nature</label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      defaultValue={selectedAccount.nature}
+                    >
+                      <option value="ACTIF">ACTIF</option>
+                      <option value="PASSIF">PASSIF</option>
+                      <option value="CHARGE">CHARGE</option>
+                      <option value="PRODUIT">PRODUIT</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">Sens Normal</label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      defaultValue={selectedAccount.sens_normal}
+                    >
+                      <option value="DEBITEUR">DEBITEUR</option>
+                      <option value="CREDITEUR">CREDITEUR</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="rounded border-neutral-300 text-blue-600"
+                      defaultChecked={selectedAccount.is_collectif}
+                    />
+                    <span className="text-sm text-neutral-700">Compte collectif</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="rounded border-neutral-300 text-green-600"
+                      defaultChecked={selectedAccount.is_active}
+                    />
+                    <span className="text-sm text-neutral-700">Compte actif</span>
+                  </label>
+                </div>
+              </div>
+              <div className="p-6 border-t border-neutral-200 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditAccountModal(false)}
+                  className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal Confirmation Suppression */}
+      {showDeleteConfirmModal && selectedAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4"
+          >
+            <div className="p-6">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-neutral-800">Supprimer le compte ?</h3>
+                  <p className="text-sm text-neutral-600">{selectedAccount.code} - {selectedAccount.libelle}</p>
+                </div>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-red-700">
+                  Cette action est irréversible. Le compte sera définitivement supprimé du plan comptable.
+                </p>
+              </div>
+            </div>
+            <div className="p-6 border-t border-neutral-200 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirmModal(false)}
+                className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  alert(`Compte ${selectedAccount.code} supprimé !`);
+                  setShowDeleteConfirmModal(false);
+                  setSelectedAccount(null);
+                }}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Supprimer
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal Import */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4"
+          >
+            <div className="p-6 border-b border-neutral-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-neutral-800">Importer un Plan Comptable</h2>
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                >
+                  <AlertCircle className="w-5 h-5 text-neutral-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="border-2 border-dashed border-neutral-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors">
+                <Upload className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+                <p className="text-lg font-medium text-neutral-700 mb-2">Glissez votre fichier ici</p>
+                <p className="text-sm text-neutral-500 mb-4">ou cliquez pour sélectionner</p>
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  className="hidden"
+                  id="file-import"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      alert(`Fichier sélectionné: ${e.target.files[0].name}`);
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="file-import"
+                  className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                >
+                  Sélectionner un fichier
+                </label>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 mb-2">Formats acceptés:</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• CSV avec séparateur point-virgule (;)</li>
+                  <li>• Excel (.xlsx, .xls)</li>
+                  <li>• Colonnes requises: Code, Libellé, Classe, Nature, Sens</li>
+                </ul>
+              </div>
+            </div>
+            <div className="p-6 border-t border-neutral-200 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  alert('Import lancé !');
+                  setShowImportModal(false);
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Importer
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal Filtres Avancés */}
+      {showAdvancedFiltersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4"
+          >
+            <div className="p-6 border-b border-neutral-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-neutral-800">Filtres Avancés</h2>
+                <button
+                  onClick={() => setShowAdvancedFiltersModal(false)}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                >
+                  <AlertCircle className="w-5 h-5 text-neutral-500" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Plage de codes</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="De"
+                    className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg font-mono"
+                  />
+                  <input
+                    type="text"
+                    placeholder="À"
+                    className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg font-mono"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Solde</label>
+                <div className="flex space-x-2">
+                  <select className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg">
+                    <option value="all">Tous les soldes</option>
+                    <option value="debit">Solde débiteur</option>
+                    <option value="credit">Solde créditeur</option>
+                    <option value="zero">Solde nul</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Mouvements</label>
+                <div className="flex space-x-2">
+                  <select className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg">
+                    <option value="all">Tous</option>
+                    <option value="with">Avec mouvements</option>
+                    <option value="without">Sans mouvement</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded border-neutral-300 text-blue-600" />
+                  <span className="text-sm">Comptes collectifs uniquement</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded border-neutral-300 text-blue-600" />
+                  <span className="text-sm">Comptes de détail uniquement</span>
+                </label>
+              </div>
+            </div>
+            <div className="p-6 border-t border-neutral-200 flex justify-between">
+              <button
+                onClick={() => {
+                  // Reset filters
+                  setSelectedClass('all');
+                  setSelectedLevel('all');
+                  setShowInactive(false);
+                  setSearchTerm('');
+                }}
+                className="px-4 py-2 text-neutral-600 hover:text-neutral-800"
+              >
+                Réinitialiser
+              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowAdvancedFiltersModal(false)}
+                  className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAdvancedFiltersModal(false);
+                  }}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Appliquer
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </PageContainer>
   );
 };

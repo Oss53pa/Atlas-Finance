@@ -42,6 +42,8 @@ import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/progress';
+import { toast } from 'react-hot-toast';
+import { X } from 'lucide-react';
 
 interface Article {
   id: string;
@@ -131,6 +133,8 @@ const GestionStocks: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showInventaireModal, setShowInventaireModal] = useState(false);
   const [showProvisionModal, setShowProvisionModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedMouvement, setSelectedMouvement] = useState<MouvementStock | null>(null);
 
   // Données simulées
   const mockArticles: Article[] = [
@@ -389,6 +393,34 @@ const GestionStocks: React.FC = () => {
     }
   };
 
+  // Handler functions
+  const handleViewArticleDetail = (article: Article) => {
+    setSelectedArticle(article);
+    setShowDetailModal(true);
+    toast.success(`Affichage de l'article: ${article.designation}`);
+  };
+
+  const handleEditArticle = (article: Article) => {
+    toast.success(`Édition de l'article: ${article.code}`);
+  };
+
+  const handleViewMouvementDetail = (mouvement: MouvementStock) => {
+    setSelectedMouvement(mouvement);
+    toast.success(`Affichage du mouvement: ${mouvement.reference}`);
+  };
+
+  const handleValidateMouvement = (mouvement: MouvementStock) => {
+    toast.success(`Mouvement ${mouvement.reference} validé`);
+  };
+
+  const handleNouvelArticle = () => {
+    toast.success('Création d\'un nouvel article');
+  };
+
+  const handleExportArticles = () => {
+    toast.success('Export des articles en cours...');
+  };
+
   return (
     <div className="space-y-6">
       {/* En-tête avec KPIs */}
@@ -598,11 +630,17 @@ const GestionStocks: React.FC = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
+              <button
+                onClick={handleNouvelArticle}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
+              >
                 <Plus className="w-4 h-4" />
                 Nouvel Article
               </button>
-              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
+              <button
+                onClick={handleExportArticles}
+                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2"
+              >
                 <Download className="w-4 h-4" />
                 Exporter
               </button>
@@ -660,10 +698,17 @@ const GestionStocks: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewArticleDetail(article)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            onClick={() => handleEditArticle(article)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                          >
                             <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
@@ -784,11 +829,19 @@ const GestionStocks: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewMouvementDetail(mouvement)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
                           {mouvement.statut === 'en_attente' && (
-                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Valider">
+                            <button
+                              onClick={() => handleValidateMouvement(mouvement)}
+                              className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                              aria-label="Valider"
+                            >
                               <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                             </button>
                           )}
@@ -1550,7 +1603,13 @@ const GestionStocks: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-warning)] hover:bg-orange-700 rounded-lg transition-colors flex items-center gap-2">
+              <button
+                onClick={() => {
+                  toast.success('Provision enregistrée avec succès');
+                  setShowProvisionModal(false);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-warning)] hover:bg-orange-700 rounded-lg transition-colors flex items-center gap-2"
+              >
                 <CheckCircle className="w-4 h-4" />
                 Enregistrer la provision
               </button>

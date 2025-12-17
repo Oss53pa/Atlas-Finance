@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   ArrowLeft, Edit, Download, Printer, AlertTriangle, CheckCircle, Clock,
@@ -196,6 +197,39 @@ const FournisseurDetailView: React.FC = () => {
     period: 'year' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
   });
   const [expandedSections, setExpandedSections] = useState<string[]>(['infos-base']);
+
+  // Modal states for tiers actions
+  const [showLettrageModal, setShowLettrageModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedEcheance, setSelectedEcheance] = useState<Echeance | null>(null);
+
+  // Handlers
+  const handleExportMouvements = () => {
+    toast.success('Export des mouvements comptables en cours...');
+    setTimeout(() => toast.success('Export terminé - fichier téléchargé'), 1500);
+  };
+
+  const handleLettrage = () => {
+    setShowLettrageModal(true);
+  };
+
+  const handlePayEcheance = (echeance: Echeance) => {
+    setSelectedEcheance(echeance);
+    setShowPaymentModal(true);
+  };
+
+  const confirmLettrage = () => {
+    toast.success('Lettrage automatique effectué avec succès');
+    setShowLettrageModal(false);
+  };
+
+  const confirmPayment = () => {
+    if (selectedEcheance) {
+      toast.success(`Paiement de ${selectedEcheance.montantRestant.toLocaleString('fr-FR')} XOF enregistré`);
+    }
+    setShowPaymentModal(false);
+    setSelectedEcheance(null);
+  };
 
   // Mock Fournisseur Data
   const fournisseurDetail: FournisseurDetail = {
@@ -679,10 +713,16 @@ const FournisseurDetailView: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-[#191919]">Mouvements Comptables Fournisseur</h3>
             <div className="flex space-x-2">
-              <button className="px-3 py-1 text-sm bg-[#6A8A82] text-white rounded hover:bg-[#6A8A82]/90">
+              <button
+                onClick={handleExportMouvements}
+                className="px-3 py-1 text-sm bg-[#6A8A82] text-white rounded hover:bg-[#6A8A82]/90"
+              >
                 Exporter
               </button>
-              <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+              <button
+                onClick={handleLettrage}
+                className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
                 Lettrage
               </button>
             </div>
@@ -766,7 +806,10 @@ const FournisseurDetailView: React.FC = () => {
                     )}
                   </td>
                   <td className="p-3 text-center">
-                    <button className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                    <button
+                      onClick={() => handlePayEcheance(echeance)}
+                      className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
                       Payer
                     </button>
                   </td>
@@ -1340,7 +1383,7 @@ const FournisseurDetailView: React.FC = () => {
   );
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+    <div className="p-6 bg-[#ECECEC] min-h-screen ">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between">
@@ -1435,6 +1478,156 @@ const FournisseurDetailView: React.FC = () => {
           setShowPeriodModal(false);
         }}
       />
+
+      {/* Modal Lettrage */}
+      {showLettrageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-[#191919]">Lettrage Automatique</h3>
+                <button
+                  onClick={() => setShowLettrageModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  Le lettrage automatique va rapprocher les factures et les règlements du fournisseur
+                  <strong> {fournisseurDetail.raisonSociale}</strong>.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mode de lettrage</label>
+                <select className="w-full border border-gray-300 rounded-lg p-2">
+                  <option>Par montant exact</option>
+                  <option>Par référence facture</option>
+                  <option>Par date</option>
+                  <option>Intelligent (IA)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tolérance</label>
+                <select className="w-full border border-gray-300 rounded-lg p-2">
+                  <option>Exacte (0 XOF)</option>
+                  <option>1 000 XOF</option>
+                  <option>5 000 XOF</option>
+                  <option>10 000 XOF</option>
+                </select>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  <strong>Écritures non lettrées:</strong> 5 factures, 3 règlements
+                </p>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowLettrageModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmLettrage}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Lancer le lettrage
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Paiement Échéance */}
+      {showPaymentModal && selectedEcheance && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-[#191919]">Enregistrer le Paiement</h3>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-[#6A8A82]/10 p-4 rounded-lg">
+                <p className="text-sm text-[#6A8A82]">Facture</p>
+                <p className="font-semibold text-[#191919]">{selectedEcheance.numeroFacture}</p>
+                <p className="text-2xl font-bold text-[#6A8A82] mt-2">
+                  {selectedEcheance.montantRestant.toLocaleString('fr-FR')} XOF
+                </p>
+                <p className="text-sm text-gray-500">
+                  Échéance: {new Date(selectedEcheance.dateEcheance).toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mode de paiement</label>
+                <select className="w-full border border-gray-300 rounded-lg p-2">
+                  <option>Virement bancaire</option>
+                  <option>Chèque</option>
+                  <option>Prélèvement</option>
+                  <option>Traite</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Compte bancaire</label>
+                <select className="w-full border border-gray-300 rounded-lg p-2">
+                  <option>Compte Principal - BICEC</option>
+                  <option>Compte Fournisseurs - SGBC</option>
+                  <option>Compte Devises - UBA</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Référence de paiement</label>
+                <input
+                  type="text"
+                  placeholder="N° de virement ou chèque"
+                  className="w-full border border-gray-300 rounded-lg p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
+                <input
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  className="w-full border border-gray-300 rounded-lg p-2"
+                />
+              </div>
+              {selectedEcheance.escomptePossible && (
+                <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="text-sm text-green-700">
+                    Escompte de 2% disponible (-{Math.round(selectedEcheance.montantRestant * 0.02).toLocaleString('fr-FR')} XOF)
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmPayment}
+                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90"
+              >
+                Confirmer le paiement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,7 +11,6 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { useAuthStore } from '@/store/auth';
 import toast from 'react-hot-toast';
 import type {
   ApiClientConfig,
@@ -169,10 +168,10 @@ export class EnhancedApiClient {
       (config) => {
         const startTime = Date.now();
 
-        // Add auth token
-        const { accessToken } = useAuthStore.getState();
-        if (accessToken) {
-          config.headers.Authorization = `Bearer ${accessToken}`;
+        // Add auth token from localStorage
+        const authToken = localStorage.getItem('authToken');
+        if (authToken) {
+          config.headers.Authorization = `Bearer ${authToken}`;
         }
 
         // Store start time for duration tracking
@@ -273,10 +272,21 @@ export class EnhancedApiClient {
     originalRequest._retry = true;
 
     try {
-      const { refreshToken, refreshAccessToken, logout } = useAuthStore.getState();
+      const refreshToken = localStorage.getItem('refreshToken');
+      const authToken = localStorage.getItem('authToken');
+      const isDemoMode = authToken && authToken.startsWith('demo_token_');
 
       if (!refreshToken) {
-        logout();
+        // ✅ Ne pas rediriger en mode DÉMO
+        if (!isDemoMode) {
+          // Clear auth data and redirect to login
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        } else {
+          console.warn('⚠️ [Enhanced API] Pas de refresh token en mode DÉMO - pas de redirection');
+        }
         return Promise.reject(new Error('No refresh token available'));
       }
 
@@ -287,15 +297,27 @@ export class EnhancedApiClient {
       );
 
       const { access: newAccessToken } = response.data;
-      refreshAccessToken(newAccessToken);
+      localStorage.setItem('authToken', newAccessToken);
 
       // Retry original request with new token
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
       return this.client(originalRequest);
 
     } catch (refreshError) {
-      useAuthStore.getState().logout();
-      toast.error('Session expirée. Veuillez vous reconnecter.');
+      // ✅ Ne pas rediriger en mode DÉMO
+      const authToken = localStorage.getItem('authToken');
+      const isDemoMode = authToken && authToken.startsWith('demo_token_');
+
+      if (!isDemoMode) {
+        // Clear auth data and redirect to login
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        toast.error('Session expirée. Veuillez vous reconnecter.');
+        window.location.href = '/login';
+      } else {
+        console.warn('⚠️ [Enhanced API] Échec refresh en mode DÉMO - pas de redirection');
+      }
       return Promise.reject(refreshError);
     }
   }

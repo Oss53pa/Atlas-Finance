@@ -1,118 +1,104 @@
 /**
- * Service d'authentification WiseBook
- * Aligné avec le backend Django REST Framework + JWT
+ * Auth Backend Service - WiseBook ERP
+ * Handles authentication with Django backend
  */
+import apiService from './api.service';
 
-import { enhancedApiClient } from '@/lib/enhanced-api-client';
-import type {
-  LoginRequest,
-  LoginResponse,
-  TokenRefreshRequest,
-  TokenRefreshResponse,
-  User,
-  RegisterRequest,
-  ChangePasswordRequest,
-  PasswordResetRequest,
-  PasswordResetConfirm,
-  ApiResponse
-} from '@/types/backend.types';
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
-export class AuthBackendService {
-  private readonly baseUrl = '/auth';
+interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    is_active: boolean;
+  };
+}
 
-  /**
-   * Connexion utilisateur
-   * POST /api/v1/auth/login/
-   */
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
-    return enhancedApiClient.post<LoginResponse>(`${this.baseUrl}/login/`, credentials);
+interface UserProfile {
+  id: string;
+  email: string;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  role: string;
+  is_active: boolean;
+  date_joined?: string;
+  last_login?: string;
+  company?: string;
+  phone?: string;
+  permissions?: string[];
+}
+
+class AuthBackendService {
+  private BASE_PATH = '/api/v1/auth';
+
+  async login(credentials: LoginCredentials): Promise<LoginResponse> {
+    const response = await apiService.post<LoginResponse>(`${this.BASE_PATH}/login/`, credentials);
+
+    // Store tokens
+    if (response.access) {
+      localStorage.setItem('authToken', response.access);
+    }
+    if (response.refresh) {
+      localStorage.setItem('refreshToken', response.refresh);
+    }
+
+    return response;
   }
 
-  /**
-   * Déconnexion utilisateur
-   * POST /api/v1/auth/logout/
-   */
-  async logout(): Promise<ApiResponse> {
-    return enhancedApiClient.post<ApiResponse>(`${this.baseUrl}/logout/`);
+  async logout(): Promise<void> {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        await apiService.post(`${this.BASE_PATH}/logout/`, { refresh: refreshToken });
+      }
+    } catch (error) {
+      console.warn('Logout error (ignored):', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+    }
   }
 
-  /**
-   * Récupérer le profil utilisateur connecté
-   * GET /api/v1/auth/profile/
-   */
-  async getProfile(): Promise<User> {
-    return enhancedApiClient.get<User>(`${this.baseUrl}/profile/`);
+  async getProfile(): Promise<UserProfile> {
+    return apiService.get<UserProfile>(`${this.BASE_PATH}/profile/`);
   }
 
-  /**
-   * Obtenir un token JWT
-   * POST /api/v1/auth/token/
-   */
-  async getToken(credentials: LoginRequest): Promise<LoginResponse> {
-    return enhancedApiClient.post<LoginResponse>(`${this.baseUrl}/token/`, credentials);
+  async refreshToken(): Promise<{ access: string }> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await apiService.post<{ access: string }>(`${this.BASE_PATH}/token/refresh/`, {
+      refresh: refreshToken
+    });
+
+    if (response.access) {
+      localStorage.setItem('authToken', response.access);
+    }
+
+    return response;
   }
 
-  /**
-   * Rafraîchir le token JWT
-   * POST /api/v1/auth/token/refresh/
-   */
-  async refreshToken(refreshToken: string): Promise<TokenRefreshResponse> {
-    const request: TokenRefreshRequest = { refresh: refreshToken };
-    return enhancedApiClient.post<TokenRefreshResponse>(`${this.baseUrl}/token/refresh/`, request);
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem('authToken');
   }
 
-  /**
-   * Enregistrer un nouvel utilisateur (si activé)
-   * POST /api/v1/auth/register/
-   */
-  async register(userData: RegisterRequest): Promise<LoginResponse> {
-    return enhancedApiClient.post<LoginResponse>(`${this.baseUrl}/register/`, userData);
-  }
-
-  /**
-   * Changer le mot de passe
-   * PUT /api/v1/auth/password/
-   */
-  async changePassword(passwordData: ChangePasswordRequest): Promise<ApiResponse> {
-    return enhancedApiClient.put<ApiResponse>(`${this.baseUrl}/password/`, passwordData);
-  }
-
-  /**
-   * Demander une réinitialisation de mot de passe
-   * POST /api/v1/auth/password-reset-request/
-   */
-  async requestPasswordReset(email: string): Promise<ApiResponse> {
-    const request: PasswordResetRequest = { email };
-    return enhancedApiClient.post<ApiResponse>(`${this.baseUrl}/password-reset-request/`, request);
-  }
-
-  /**
-   * Confirmer la réinitialisation de mot de passe
-   * POST /api/v1/auth/password-reset/
-   */
-  async resetPassword(data: PasswordResetConfirm): Promise<ApiResponse> {
-    return enhancedApiClient.post<ApiResponse>(`${this.baseUrl}/password-reset/`, data);
-  }
-
-  /**
-   * Vérifier l'email
-   * POST /api/v1/auth/verify-email/
-   */
-  async verifyEmail(token: string): Promise<ApiResponse> {
-    return enhancedApiClient.post<ApiResponse>(`${this.baseUrl}/verify-email/`, { token });
-  }
-
-  /**
-   * Renvoyer l'email de vérification
-   * POST /api/v1/auth/resend-verification/
-   */
-  async resendVerificationEmail(): Promise<ApiResponse> {
-    return enhancedApiClient.post<ApiResponse>(`${this.baseUrl}/resend-verification/`);
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
   }
 }
 
-// Singleton instance
 export const authBackendService = new AuthBackendService();
-
-// Default export
 export default authBackendService;

@@ -21,6 +21,8 @@
   --color-primary: #6A8A82;
   --color-primary-hover: #5A7A72;
   --color-primary-light: rgba(106, 138, 130, 0.1);
+  --color-primary-rgb: 106, 138, 130;
+  --color-secondary-rgb: 184, 115, 51;
   --color-secondary: #B87333;
   --color-accent: #B87333;
   --color-background: #ECECEC;
@@ -54,9 +56,9 @@
   --shadow-xl: 0 20px 25px rgba(25, 25, 25, 0.09);
   
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow: 350ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Border Radius */
   --radius-sm: 3px;

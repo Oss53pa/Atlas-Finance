@@ -8,8 +8,6 @@ import {
 import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import SearchableDropdown from '../../components/ui/SearchableDropdown';
-import PrintableArea from '../../components/ui/PrintableArea';
-import { usePrintReport } from '../../hooks/usePrint';
 
 interface EcritureBrouillard {
   id: string;
@@ -37,14 +35,6 @@ const EntriesPage: React.FC = () => {
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
-
-  // Hook d'impression pour les brouillards
-  const { printRef, handlePrint, isPrinting, PrintWrapper } = usePrintReport({
-    title: `Brouillard des Écritures - ${new Date().toLocaleDateString('fr-FR')}`,
-    orientation: 'landscape',
-    showHeaders: true,
-    showFooters: true
-  });
 
   // Données des écritures pour DataTable
   const ecrituresData: EcritureBrouillard[] = [
@@ -335,9 +325,9 @@ const EntriesPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-[#ECECEC] flex flex-col">
+    <div className="h-screen bg-[#ECECEC] flex flex-col overflow-hidden">
       {/* En-tête avec navigation de retour */}
-      <div className="bg-white border-b border-[#E8E8E8] px-6 py-4">
+      <div className="bg-white border-b border-[#E8E8E8] px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -411,9 +401,9 @@ const EntriesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation par onglets */}
-      <div className="bg-white border border-[#E8E8E8] shadow-sm mx-6 mt-6 flex flex-col max-h-[calc(100vh-120px)]">
-        <div className="px-6 border-b border-[#E8E8E8]">
+      {/* Navigation par onglets - Pleine largeur */}
+      <div className="bg-white border-y border-[#E8E8E8] shadow-sm flex flex-col flex-1 overflow-hidden w-full">
+        <div className="px-4 border-b border-[#E8E8E8]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -442,60 +432,21 @@ const EntriesPage: React.FC = () => {
           </nav>
         </div>
 
-        {/* Contenu organisé avec scroll */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* Contenu organisé avec scroll - pleine largeur */}
+        <div className="flex-1 overflow-auto">
 
           {/* ONGLET BROUILLARD avec validation intégrée */}
           {activeTab === 'brouillard' && (
-            <div className="space-y-4">
-              <PrintableArea
-                documentTitle={`Brouillard des Écritures - ${new Date().toLocaleDateString('fr-FR')}`}
-                orientation="landscape"
-                showPrintButton={false}
-                headerContent={
-                  <div className="text-center mb-4">
-                    <h1 className="text-xl font-bold">Brouillard des Écritures Comptables</h1>
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                      Généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')}
-                    </p>
-                  </div>
-                }
-                footerContent={
-                  <div className="text-center text-xs text-[var(--color-text-tertiary)]">
-                    WiseBook - Logiciel de Comptabilité
-                  </div>
-                }
-              >
-                {/* Statistiques d'impression */}
-                <div className="print-only mb-4 flex justify-center space-x-6">
-                  <div className="text-center">
-                    <span className="text-sm font-medium">Total écritures:</span>
-                    <span className="ml-2 font-bold">{ecrituresData.length}</span>
-                  </div>
-                  <div className="text-center">
-                    <span className="text-sm font-medium">Équilibrées:</span>
-                    <span className="ml-2 font-bold text-[var(--color-success)]">
-                      {ecrituresData.filter(e => e.equilibre).length}
-                    </span>
-                  </div>
-                  <div className="text-center">
-                    <span className="text-sm font-medium">En attente:</span>
-                    <span className="ml-2 font-bold text-[var(--color-error)]">
-                      {ecrituresData.filter(e => !e.equilibre).length}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Liste des écritures avec DataTable */}
+            <div className="w-full h-full">
+                {/* Liste des écritures avec DataTable - Pleine largeur */}
                 <DataTable
                   columns={ecrituresColumns}
                   data={ecrituresData}
-                  pageSize={10}
+                  pageSize={15}
                   searchable={true}
                   exportable={true}
                   refreshable={true}
-                  printable={true}
-                  onPrint={handlePrint}
+                  printable={false}
                   selectable={false}
                   actions={(item) => (
                     <div className="flex items-center space-x-1">
@@ -536,10 +487,8 @@ const EntriesPage: React.FC = () => {
                     </div>
                   )}
                   emptyMessage="Aucune écriture en brouillard"
-                  className="bg-white rounded-lg border border-[#E8E8E8] data-table"
+                  className="bg-white border-0 data-table w-full rounded-none shadow-none"
                 />
-              </PrintableArea>
-
             </div>
           )}
         </div>

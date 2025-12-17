@@ -45,6 +45,8 @@ import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/progress';
+import { toast } from 'react-hot-toast';
+import { X } from 'lucide-react';
 
 interface Provision {
   id: string;
@@ -132,6 +134,7 @@ const Provisions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showProvisionModal, setShowProvisionModal] = useState(false);
   const [showChargeModal, setShowChargeModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Données simulées
   const mockProvisions: Provision[] = [
@@ -432,6 +435,41 @@ const Provisions: React.FC = () => {
     }
   };
 
+  // Handler functions
+  const handleViewProvisionDetail = (provision: Provision) => {
+    setSelectedProvision(provision);
+    setShowDetailModal(true);
+    toast.success(`Affichage de la provision: ${provision.numero}`);
+  };
+
+  const handleEditProvision = (provision: Provision) => {
+    toast.success(`Édition de la provision: ${provision.numero}`);
+  };
+
+  const handleCalculateProvision = (provision: Provision) => {
+    toast.success(`Recalcul de la provision: ${provision.numero}`);
+  };
+
+  const handleExportProvisions = () => {
+    toast.success('Export des provisions en cours...');
+  };
+
+  const handleViewChargeDetail = (charge: ChargeAPayerAComptabiliser) => {
+    toast.success(`Affichage de la charge: ${charge.designation}`);
+  };
+
+  const handleEditCharge = (charge: ChargeAPayerAComptabiliser) => {
+    toast.success(`Édition de la charge: ${charge.id}`);
+  };
+
+  const handleViewProduitDetail = (produit: ProduitARecevoir) => {
+    toast.success(`Affichage du produit: ${produit.designation}`);
+  };
+
+  const handleEditProduit = (produit: ProduitARecevoir) => {
+    toast.success(`Édition du produit: ${produit.id}`);
+  };
+
   return (
     <div className="space-y-6">
       {/* En-tête avec KPIs */}
@@ -704,7 +742,10 @@ const Provisions: React.FC = () => {
                 <Plus className="w-4 h-4" />
                 Nouvelle Provision
               </button>
-              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
+              <button
+                onClick={handleExportProvisions}
+                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2"
+              >
                 <Download className="w-4 h-4" />
                 Exporter
               </button>
@@ -771,13 +812,23 @@ const Provisions: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewProvisionDetail(provision)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            onClick={() => handleEditProvision(provision)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                          >
                             <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            onClick={() => handleCalculateProvision(provision)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                          >
                             <Calculator className="w-4 h-4 text-[var(--color-success)]" />
                           </button>
                         </div>
@@ -888,10 +939,17 @@ const Provisions: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewChargeDetail(charge)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            onClick={() => handleEditCharge(charge)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                          >
                             <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
@@ -908,7 +966,10 @@ const Provisions: React.FC = () => {
         <TabsContent value="produits-recevoir" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Produits à Recevoir - Exercice 2024</h3>
-            <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
+            <button
+              onClick={() => toast.success('Création d\'un nouveau produit à recevoir')}
+              className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" />
               Nouveau Produit
             </button>
@@ -985,10 +1046,17 @@ const Provisions: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewProduitDetail(produit)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            onClick={() => handleEditProduit(produit)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                          >
                             <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>

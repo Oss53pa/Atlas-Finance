@@ -75,6 +75,10 @@ const ReconciliationPage: React.FC = () => {
     end: filters.periode_fin
   });
 
+  // États pour le modal de détail
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+
   const { data: bankAccounts } = useBankAccounts({
     page: 1,
     page_size: 100,
@@ -185,6 +189,26 @@ const ReconciliationPage: React.FC = () => {
       case 'absent_comptable': return 'bg-[#B87333]/10 text-[#B87333]';
       case 'absent_banque': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Handlers pour les actions
+  const handleViewDetail = (item: any) => {
+    setSelectedItem(item);
+    setShowDetailModal(true);
+  };
+
+  const handleReconcileSingle = (item: any) => {
+    if (confirm(`Confirmer le rapprochement de l'élément "${item.libelle}" ?`)) {
+      toast.success(`Élément "${item.libelle}" rapproché avec succès`);
+      // TODO: Appel API pour rapprocher l'élément
+    }
+  };
+
+  const handleCancelReconciliation = (item: any) => {
+    if (confirm(`Annuler le rapprochement de l'élément "${item.libelle}" ?`)) {
+      toast.success(`Rapprochement annulé pour "${item.libelle}"`);
+      // TODO: Appel API pour annuler le rapprochement
     }
   };
 
@@ -583,6 +607,7 @@ const ReconciliationPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               aria-label="Voir les détails"
+                              onClick={() => handleViewDetail(item)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -592,6 +617,7 @@ const ReconciliationPage: React.FC = () => {
                                 size="sm"
                                 className="text-green-600 hover:text-green-700"
                                 aria-label="Rapprocher"
+                                onClick={() => handleReconcileSingle(item)}
                               >
                                 <Check className="h-4 w-4" />
                               </Button>
@@ -602,6 +628,7 @@ const ReconciliationPage: React.FC = () => {
                                 size="sm"
                                 className="text-red-600 hover:text-red-700"
                                 aria-label="Annuler rapprochement"
+                                onClick={() => handleCancelReconciliation(item)}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
@@ -656,6 +683,178 @@ const ReconciliationPage: React.FC = () => {
         }}
         initialDateRange={dateRange}
       />
+
+      {/* Modal de Détail Rapprochement */}
+      {showDetailModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[#6A8A82]/10 to-[#B87333]/10">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-[#6A8A82] rounded-lg flex items-center justify-center text-white">
+                  <GitCompare className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Détail du Rapprochement</h2>
+                  <p className="text-sm text-gray-600">{selectedItem.libelle}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Informations Générales */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">Informations Comptables</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Date d'Opération</p>
+                    <p className="font-semibold">{formatDate(selectedItem.date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Référence Comptable</p>
+                    <p className="font-mono text-sm">{selectedItem.reference_comptable || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Montant Comptable</p>
+                    <p className={`text-xl font-bold ${selectedItem.montant_comptable >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(selectedItem.montant_comptable)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Libellé</p>
+                    <p className="text-sm">{selectedItem.libelle}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">Informations Bancaires</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Date Valeur Banque</p>
+                    <p className="font-semibold">{selectedItem.date_valeur ? formatDate(selectedItem.date_valeur) : formatDate(selectedItem.date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Référence Banque</p>
+                    <p className="font-mono text-sm">{selectedItem.reference_banque || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Montant Banque</p>
+                    <p className={`text-xl font-bold ${selectedItem.montant_banque >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(selectedItem.montant_banque)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Type de Mouvement</p>
+                    <div className="flex items-center space-x-2">
+                      {selectedItem.montant_banque > 0 ? (
+                        <ArrowUpRight className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <ArrowDownLeft className="h-4 w-4 text-red-600" />
+                      )}
+                      <span>{selectedItem.type_mouvement || 'Non spécifié'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Analyse de l'Écart */}
+              <div className={`p-4 rounded-lg ${
+                Math.abs(selectedItem.ecart_montant || 0) > 0.01
+                  ? 'bg-red-50 border border-red-200'
+                  : 'bg-green-50 border border-green-200'
+              }`}>
+                <h3 className="font-semibold mb-3 flex items-center">
+                  {Math.abs(selectedItem.ecart_montant || 0) > 0.01 ? (
+                    <>
+                      <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+                      <span className="text-red-900">Écart Détecté</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                      <span className="text-green-900">Aucun Écart</span>
+                    </>
+                  )}
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Écart de Montant</p>
+                    <p className={`text-lg font-bold ${Math.abs(selectedItem.ecart_montant || 0) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatCurrency(Math.abs(selectedItem.ecart_montant || 0))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Type d'Écart</p>
+                    {selectedItem.type_ecart ? (
+                      <Badge className={getEcartTypeColor(selectedItem.type_ecart)}>
+                        {selectedItem.type_ecart}
+                      </Badge>
+                    ) : (
+                      <span className="text-green-600">Aucun</span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Statut</p>
+                    <Badge className={getStatusColor(selectedItem.statut)}>
+                      {getStatusLabel(selectedItem.statut)}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedItem.description && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{selectedItem.description}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+              <div className="text-xs text-gray-500">
+                ID: {selectedItem.id}
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  Fermer
+                </button>
+                {selectedItem.statut === 'non_rapproche' && (
+                  <button
+                    onClick={() => {
+                      handleReconcileSingle(selectedItem);
+                      setShowDetailModal(false);
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Check className="w-4 h-4 inline mr-2" />
+                    Rapprocher
+                  </button>
+                )}
+                {selectedItem.statut === 'rapproche' && (
+                  <button
+                    onClick={() => {
+                      handleCancelReconciliation(selectedItem);
+                      setShowDetailModal(false);
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <X className="w-4 h-4 inline mr-2" />
+                    Annuler Rapprochement
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

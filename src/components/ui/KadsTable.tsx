@@ -28,7 +28,6 @@ interface KadsTableProps {
 }
 
 const KadsTable: React.FC<KadsTableProps> = ({
-  const { t } = useLanguage();
   title,
   columns,
   data,
@@ -44,6 +43,7 @@ const KadsTable: React.FC<KadsTableProps> = ({
   onDelete,
   className = ''
 }) => {
+  const { t } = useLanguage();
   return (
     <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${className}`}>
       {/* Header du tableau */}

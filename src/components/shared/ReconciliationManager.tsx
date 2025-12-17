@@ -63,12 +63,12 @@ interface ReconciliationFilters {
 }
 
 const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
-  const { t } = useLanguage();
   companyId,
   fiscalYearId,
   accountId,
   className = ''
 }) => {
+  const { t } = useLanguage();
   // États
   const [filters, setFilters] = useState<ReconciliationFilters>({
     accountType: 'all',

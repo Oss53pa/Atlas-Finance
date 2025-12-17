@@ -1353,18 +1353,15 @@ const Lettrage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
-  );
-};
 
-    {/* Modal de sélection de période */}
-    <PeriodSelectorModal
-      isOpen={showPeriodModal}
-      onClose={() => setShowPeriodModal(false)}
-      onApply={(range) => setDateRange(range)}
-      initialDateRange={dateRange}
-    />
-  </div>
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
+    </div>
   );
 };
 

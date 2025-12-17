@@ -1,11 +1,12 @@
 import React, { useState, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Search, 
-  Bell, 
-  User, 
-  HelpCircle, 
-  Settings, 
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  Search,
+  Bell,
+  User,
+  HelpCircle,
+  Settings,
   LogOut,
   ChevronDown,
   BarChart3,
@@ -23,7 +24,7 @@ interface WorkspaceLayoutProps {
   workspaceIcon: React.ComponentType<any>;
   sidebar: ReactNode;
   children: ReactNode;
-  userRole: 'comptable' | 'manager' | 'admin';
+  userRole?: 'comptable' | 'manager' | 'admin'; // Optional, will use auth context
   notifications?: number;
 }
 
@@ -32,13 +33,26 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
   workspaceIcon: WorkspaceIcon,
   sidebar,
   children,
-  userRole,
+  userRole: propUserRole,
   notifications = 0
 }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Utiliser le rôle du contexte ou celui passé en props
+  const userRole = (propUserRole || user?.role || 'user') as 'comptable' | 'manager' | 'admin';
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
+  };
 
   const roleColors = {
     comptable: '#6A8A82',
@@ -53,7 +67,7 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#ECECEC] font-['Sometype Mono']">
+    <div className="min-h-screen bg-[#ECECEC] ">
       {/* Barre de navigation supérieure */}
       <header className="bg-white border-b border-[#D9D9D9] sticky top-0 z-50">
         <div className="flex items-center justify-between px-6 py-3">
@@ -159,7 +173,7 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-[#191919]">Marie Dupont</p>
+                  <p className="text-sm font-medium text-[#191919]">{user?.name || 'Utilisateur'}</p>
                   <p className="text-xs text-[#767676] capitalize">{userRole}</p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-[#767676]" />
@@ -169,19 +183,28 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-[#E8E8E8] py-2 z-50">
                   <div className="px-4 py-3 border-b border-[#E8E8E8]">
-                    <p className="text-sm font-medium text-[#191919]">Marie Dupont</p>
-                    <p className="text-xs text-[#767676]">marie.dupont@company.com</p>
+                    <p className="text-sm font-medium text-[#191919]">{user?.name || 'Utilisateur'}</p>
+                    <p className="text-xs text-[#767676]">{user?.email || ''}</p>
                   </div>
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors">
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors"
+                  >
                     <User className="w-4 h-4 text-[#767676]" />
                     <span className="text-sm text-[#444444]">Mon profil</span>
                   </button>
-                  <button className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors">
+                  <button
+                    onClick={() => navigate('/settings')}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors"
+                  >
                     <Settings className="w-4 h-4 text-[#767676]" />
                     <span className="text-sm text-[#444444]">Préférences</span>
                   </button>
                   <div className="border-t border-[#E8E8E8] mt-2 pt-2">
-                    <button className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors"
+                    >
                       <LogOut className="w-4 h-4 text-red-500" />
                       <span className="text-sm text-red-500">Déconnexion</span>
                     </button>

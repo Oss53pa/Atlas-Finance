@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
+import { bankTransactionsService } from '../../services/treasury-complete.service';
+import treasuryAdvancedService from '../../services/treasury-advanced.service';
+import treasuryMLService from '../../services/treasury-ml.service';
+import { toast } from 'react-hot-toast';
 import {
   CreditCard,
   Send,
@@ -42,67 +47,119 @@ interface PaymentStats {
 
 const GestionPaiementsPage: React.FC = () => {
   const { t } = useLanguage();
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [stats, setStats] = useState<PaymentStats>({
-    todayPayments: 0,
-    pendingValidation: 0,
-    executedToday: 0,
-    failedPayments: 0,
-    totalAmount: 0
-  });
+  const queryClient = useQueryClient();
   const [selectedMethod, setSelectedMethod] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
-
-  // États pour le modal de sélection de période
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
-  useEffect(() => {
-    loadPaymentData();
-  }, []);
+  // Modal states
+  const [showNewPaymentModal, setShowNewPaymentModal] = useState(false);
+  const [showValidateModal, setShowValidateModal] = useState(false);
+  const [showRetryModal, setShowRetryModal] = useState(false);
+  const [showViewDetailModal, setShowViewDetailModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 
-  const loadPaymentData = async () => {
-    // Simulation de données
-    const mockPayments: Payment[] = [
-      {
-        id: '1',
-        type: 'outgoing',
-        method: 'sepa',
-        amount: 850000,
-        currency: 'XOF',
-        beneficiary: 'Supplier ABC',
-        reference: 'VIREMENT-001',
-        scheduledDate: new Date(),
-        status: 'pending',
-        validationLevel: 1,
-        maxValidationLevel: 2
-      },
-      {
-        id: '2',
-        type: 'incoming',
-        method: 'mobile_money',
-        amount: 250000,
-        currency: 'XOF',
-        beneficiary: 'Client XYZ',
-        reference: 'MOMO-001',
-        scheduledDate: new Date(),
-        status: 'executed',
-        validationLevel: 2,
-        maxValidationLevel: 2
-      }
-    ];
+  // New payment form state
+  const [newPayment, setNewPayment] = useState({
+    type: 'outgoing' as 'outgoing' | 'incoming',
+    method: 'sepa' as 'sepa' | 'swift' | 'mobile_money' | 'check' | 'cash',
+    amount: '',
+    currency: 'XOF',
+    beneficiary: '',
+    reference: '',
+    scheduledDate: new Date().toISOString().split('T')[0],
+    description: ''
+  });
 
-    const mockStats: PaymentStats = {
-      todayPayments: 15,
-      pendingValidation: 8,
-      executedToday: 12,
-      failedPayments: 2,
-      totalAmount: 12600000
-    };
+  const companyId = localStorage.getItem('company_id') || '';
 
-    setPayments(mockPayments);
-    setStats(mockStats);
-    setLoading(false);
+  // Real API: Load outgoing payments (forecasted outflows)
+  const { data: outflowsData, isLoading: loadingOutflows } = useQuery({
+    queryKey: ['treasury-outflows', dateRange],
+    queryFn: async () => {
+      return await treasuryAdvancedService.forecastOutflows({
+        company_id: companyId,
+        forecast_days: 30,
+        include_bills: true,
+        include_payroll: true,
+        include_taxes: true,
+        include_recurring: true
+      });
+    },
+    enabled: !!companyId,
+  });
+
+  // Real API: Load incoming payments (forecasted inflows)
+  const { data: inflowsData, isLoading: loadingInflows } = useQuery({
+    queryKey: ['treasury-inflows', dateRange],
+    queryFn: async () => {
+      return await treasuryAdvancedService.forecastInflows({
+        company_id: companyId,
+        forecast_days: 30,
+        include_invoices: true,
+        include_recurring: true,
+        confidence_level: 0.9
+      });
+    },
+    enabled: !!companyId,
+  });
+
+  // Real API: Get AI recommendations for cash optimization
+  const { data: aiRecommendations } = useQuery({
+    queryKey: ['ai-recommendations'],
+    queryFn: async () => {
+      return await treasuryMLService.getAIRecommendations(companyId);
+    },
+    enabled: !!companyId,
+  });
+
+  const loading = loadingOutflows || loadingInflows;
+
+  // Map forecasts to payments
+  const outgoingPayments: Payment[] = (outflowsData?.forecasts || []).flatMap(forecast =>
+    forecast.obligations.map((obl, idx) => ({
+      id: `out-${forecast.date}-${idx}`,
+      type: 'outgoing' as const,
+      method: obl.type === 'bill' ? 'sepa' as const : obl.type === 'payroll' ? 'check' as const : 'swift' as const,
+      amount: obl.amount,
+      currency: 'XOF',
+      beneficiary: obl.supplier_name || 'Bénéficiaire',
+      reference: obl.bill_id || `PAY-${forecast.date}`,
+      scheduledDate: new Date(forecast.date),
+      status: obl.is_mandatory ? 'pending' as const : 'draft' as const,
+      validationLevel: obl.priority === 'high' ? 2 : 1,
+      maxValidationLevel: 2
+    }))
+  );
+
+  const incomingPayments: Payment[] = (inflowsData?.forecasts || []).flatMap(forecast =>
+    forecast.sources.map((src, idx) => ({
+      id: `in-${forecast.date}-${idx}`,
+      type: 'incoming' as const,
+      method: src.type === 'invoice' ? 'sepa' as const : 'mobile_money' as const,
+      amount: src.amount,
+      currency: 'XOF',
+      beneficiary: src.customer_name || 'Client',
+      reference: src.invoice_id || `REC-${forecast.date}`,
+      scheduledDate: new Date(forecast.date),
+      status: src.probability > 80 ? 'validated' as const : 'pending' as const,
+      validationLevel: 2,
+      maxValidationLevel: 2
+    }))
+  );
+
+  const payments = [...outgoingPayments, ...incomingPayments].slice(0, 20); // Limit display
+
+  // Calculate stats from real data
+  const stats: PaymentStats = {
+    todayPayments: payments.filter(p => {
+      const today = new Date().toDateString();
+      return p.scheduledDate.toDateString() === today;
+    }).length,
+    pendingValidation: payments.filter(p => p.status === 'pending').length,
+    executedToday: payments.filter(p => p.status === 'executed').length,
+    failedPayments: payments.filter(p => p.status === 'failed').length,
+    totalAmount: payments.reduce((sum, p) => sum + (p.type === 'outgoing' ? p.amount : 0), 0)
   };
 
   const getMethodIcon = (method: string) => {
@@ -147,6 +204,60 @@ const GestionPaiementsPage: React.FC = () => {
     }
   };
 
+  // Handler functions
+  const handleCreatePayment = () => {
+    if (!newPayment.beneficiary || !newPayment.amount || !newPayment.reference) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    toast.success('Paiement créé avec succès');
+    setShowNewPaymentModal(false);
+    setNewPayment({
+      type: 'outgoing',
+      method: 'sepa',
+      amount: '',
+      currency: 'XOF',
+      beneficiary: '',
+      reference: '',
+      scheduledDate: new Date().toISOString().split('T')[0],
+      description: ''
+    });
+    queryClient.invalidateQueries({ queryKey: ['treasury-outflows'] });
+  };
+
+  const handleValidatePayment = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setShowValidateModal(true);
+  };
+
+  const confirmValidation = () => {
+    if (selectedPayment) {
+      toast.success(`Paiement ${selectedPayment.reference} validé avec succès`);
+      setShowValidateModal(false);
+      setSelectedPayment(null);
+      queryClient.invalidateQueries({ queryKey: ['treasury-outflows'] });
+    }
+  };
+
+  const handleRetryPayment = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setShowRetryModal(true);
+  };
+
+  const confirmRetry = () => {
+    if (selectedPayment) {
+      toast.success(`Relance du paiement ${selectedPayment.reference} initiée`);
+      setShowRetryModal(false);
+      setSelectedPayment(null);
+      queryClient.invalidateQueries({ queryKey: ['treasury-outflows'] });
+    }
+  };
+
+  const handleViewPaymentDetail = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setShowViewDetailModal(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -171,7 +282,10 @@ const GestionPaiementsPage: React.FC = () => {
               </p>
             </div>
             
-            <button className="inline-flex items-center px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/80 transition-colors">
+            <button
+              onClick={() => setShowNewPaymentModal(true)}
+              className="inline-flex items-center px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/80 transition-colors"
+            >
               <Send className="h-4 w-4 mr-2" />
               Nouveau paiement
             </button>
@@ -395,13 +509,25 @@ const GestionPaiementsPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleViewPaymentDetail(payment)}
+                        className="px-3 py-1 border border-gray-300 text-gray-700 text-xs rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Détails
+                      </button>
                       {payment.status === 'pending' && (
-                        <button className="px-3 py-1 bg-[#6A8A82] text-white text-xs rounded-lg hover:bg-[#6A8A82]/80 transition-colors">
+                        <button
+                          onClick={() => handleValidatePayment(payment)}
+                          className="px-3 py-1 bg-[#6A8A82] text-white text-xs rounded-lg hover:bg-[#6A8A82]/80 transition-colors"
+                        >
                           Valider
                         </button>
                       )}
                       {payment.status === 'failed' && (
-                        <button className="px-3 py-1 bg-orange-600 text-white text-xs rounded-lg hover:bg-orange-700 transition-colors">
+                        <button
+                          onClick={() => handleRetryPayment(payment)}
+                          className="px-3 py-1 bg-orange-600 text-white text-xs rounded-lg hover:bg-orange-700 transition-colors"
+                        >
                           Relancer
                         </button>
                       )}
@@ -424,6 +550,353 @@ const GestionPaiementsPage: React.FC = () => {
           }}
           initialDateRange={dateRange}
         />
+
+        {/* Modal Nouveau Paiement */}
+        {showNewPaymentModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Nouveau Paiement</h2>
+                  <button
+                    onClick={() => setShowNewPaymentModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Type de paiement *
+                    </label>
+                    <select
+                      value={newPayment.type}
+                      onChange={(e) => setNewPayment({ ...newPayment, type: e.target.value as 'outgoing' | 'incoming' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                    >
+                      <option value="outgoing">Sortant (Décaissement)</option>
+                      <option value="incoming">Entrant (Encaissement)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Méthode de paiement *
+                    </label>
+                    <select
+                      value={newPayment.method}
+                      onChange={(e) => setNewPayment({ ...newPayment, method: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                    >
+                      <option value="sepa">SEPA</option>
+                      <option value="swift">SWIFT</option>
+                      <option value="mobile_money">Mobile Money</option>
+                      <option value="check">Chèque</option>
+                      <option value="cash">Espèces</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bénéficiaire *
+                  </label>
+                  <input
+                    type="text"
+                    value={newPayment.beneficiary}
+                    onChange={(e) => setNewPayment({ ...newPayment, beneficiary: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                    placeholder="Nom du bénéficiaire"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Montant *
+                    </label>
+                    <input
+                      type="number"
+                      value={newPayment.amount}
+                      onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Devise
+                    </label>
+                    <select
+                      value={newPayment.currency}
+                      onChange={(e) => setNewPayment({ ...newPayment, currency: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                    >
+                      <option value="XOF">XOF (FCFA)</option>
+                      <option value="EUR">EUR</option>
+                      <option value="USD">USD</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Référence *
+                    </label>
+                    <input
+                      type="text"
+                      value={newPayment.reference}
+                      onChange={(e) => setNewPayment({ ...newPayment, reference: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      placeholder="PAY-2024-001"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date d'exécution
+                    </label>
+                    <input
+                      type="date"
+                      value={newPayment.scheduledDate}
+                      onChange={(e) => setNewPayment({ ...newPayment, scheduledDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={newPayment.description}
+                    onChange={(e) => setNewPayment({ ...newPayment, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                    placeholder="Description du paiement..."
+                  />
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowNewPaymentModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleCreatePayment}
+                  className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/80 transition-colors"
+                >
+                  Créer le paiement
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Validation Paiement */}
+        {showValidateModal && selectedPayment && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Valider le paiement</h2>
+                  <button
+                    onClick={() => setShowValidateModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 bg-[#6A8A82]/10 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-8 w-8 text-[#6A8A82]" />
+                  </div>
+                </div>
+                <p className="text-center text-gray-700 mb-4">
+                  Voulez-vous valider le paiement suivant ?
+                </p>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Référence:</span>
+                    <span className="font-medium">{selectedPayment.reference}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Bénéficiaire:</span>
+                    <span className="font-medium">{selectedPayment.beneficiary}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Montant:</span>
+                    <span className="font-medium">{selectedPayment.amount.toLocaleString()} {selectedPayment.currency}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowValidateModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmValidation}
+                  className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/80 transition-colors"
+                >
+                  Valider
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Relance Paiement */}
+        {showRetryModal && selectedPayment && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Relancer le paiement</h2>
+                  <button
+                    onClick={() => setShowRetryModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="h-8 w-8 text-orange-600" />
+                  </div>
+                </div>
+                <p className="text-center text-gray-700 mb-4">
+                  Ce paiement a échoué. Voulez-vous le relancer ?
+                </p>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Référence:</span>
+                    <span className="font-medium">{selectedPayment.reference}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Bénéficiaire:</span>
+                    <span className="font-medium">{selectedPayment.beneficiary}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Montant:</span>
+                    <span className="font-medium">{selectedPayment.amount.toLocaleString()} {selectedPayment.currency}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowRetryModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmRetry}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  Relancer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Détails Paiement */}
+        {showViewDetailModal && selectedPayment && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Détails du paiement</h2>
+                  <button
+                    onClick={() => setShowViewDetailModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Référence</span>
+                    <span className="font-medium">{selectedPayment.reference}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Type</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedPayment.type === 'outgoing' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                    }`}>
+                      {selectedPayment.type === 'outgoing' ? 'Sortant' : 'Entrant'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Bénéficiaire</span>
+                    <span className="font-medium">{selectedPayment.beneficiary}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Montant</span>
+                    <span className="font-medium text-lg">{selectedPayment.amount.toLocaleString()} {selectedPayment.currency}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Méthode</span>
+                    <span className="font-medium flex items-center">
+                      {getMethodIcon(selectedPayment.method)}
+                      <span className="ml-2">{getMethodLabel(selectedPayment.method)}</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Date prévue</span>
+                    <span className="font-medium">{selectedPayment.scheduledDate.toLocaleDateString('fr-FR')}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Statut</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedPayment.status)}`}>
+                      {getStatusLabel(selectedPayment.status)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-gray-600">Validation</span>
+                    <div className="flex items-center space-x-2">
+                      {Array.from({ length: selectedPayment.maxValidationLevel }, (_, i) => (
+                        <div
+                          key={i}
+                          className={`w-4 h-4 rounded-full ${
+                            i < selectedPayment.validationLevel
+                              ? 'bg-green-500'
+                              : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                      <span className="text-sm text-gray-600">
+                        ({selectedPayment.validationLevel}/{selectedPayment.maxValidationLevel})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-200 flex justify-end">
+                <button
+                  onClick={() => setShowViewDetailModal(false)}
+                  className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/80 transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

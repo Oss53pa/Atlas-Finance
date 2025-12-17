@@ -101,6 +101,8 @@ const CycleClients: React.FC = () => {
   const [filterStatut, setFilterStatut] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');
   const [showProvisionModal, setShowProvisionModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCreance, setSelectedCreance] = useState<Creance | null>(null);
   const [formData, setFormData] = useState({
     type: 'creances_douteuses' as 'creances_douteuses' | 'depreciation_stocks' | 'risques_clients' | 'autres',
     montant: '',
@@ -350,6 +352,25 @@ const CycleClients: React.FC = () => {
     return variants[risque] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
+  // Handler functions
+  const handleViewCreanceDetail = (creance: Creance) => {
+    setSelectedCreance(creance);
+    setShowDetailModal(true);
+    toast.success(`Affichage des détails: ${creance.numeroFacture}`);
+  };
+
+  const handleSendRelance = (creance: Creance) => {
+    toast.success(`Relance envoyée pour: ${creance.numeroFacture}`);
+  };
+
+  const handleExportCreances = () => {
+    toast.success('Export des créances en cours...');
+  };
+
+  const handleAnalyseIA = () => {
+    toast.success('Analyse IA des créances en cours...');
+  };
+
   return (
     <div className="space-y-6">
       {/* En-tête avec KPIs */}
@@ -522,11 +543,17 @@ const CycleClients: React.FC = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
+              <button
+                onClick={handleExportCreances}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
+              >
                 <Download className="w-4 h-4" />
                 Exporter
               </button>
-              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
+              <button
+                onClick={handleAnalyseIA}
+                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2"
+              >
                 <Brain className="w-4 h-4" />
                 Analyse IA
               </button>
@@ -576,10 +603,17 @@ const CycleClients: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewCreanceDetail(creance)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            onClick={() => handleSendRelance(creance)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                          >
                             <Send className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
@@ -1013,6 +1047,140 @@ const CycleClients: React.FC = () => {
                     <span>Enregistrer la Provision</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedCreance && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de la Créance</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedCreance(null);
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">N° Facture</p>
+                    <p className="font-medium font-mono">{selectedCreance.numeroFacture}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Client</p>
+                    <p className="font-medium">{selectedCreance.clientNom}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Date Facture</p>
+                    <p className="font-medium">{new Date(selectedCreance.dateFacture).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Date Échéance</p>
+                    <p className="font-medium">{new Date(selectedCreance.dateEcheance).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Montant TTC</p>
+                    <p className="font-medium font-mono">{selectedCreance.montantTTC.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Montant Réglé</p>
+                    <p className="font-medium font-mono text-[var(--color-success)]">{selectedCreance.montantRegle.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Solde Restant</p>
+                    <p className="font-medium font-mono text-[var(--color-error)]">{selectedCreance.solde.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Jours de Retard</p>
+                    <p className={`font-medium ${selectedCreance.joursRetard > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
+                      {selectedCreance.joursRetard > 0 ? `${selectedCreance.joursRetard} jours` : 'À jour'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Statut</p>
+                    <Badge className={getStatutBadge(selectedCreance.statut)}>
+                      {selectedCreance.statut}
+                    </Badge>
+                  </div>
+                  {selectedCreance.tauxProvision && (
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Taux Provision</p>
+                      <p className="font-medium">{selectedCreance.tauxProvision}%</p>
+                    </div>
+                  )}
+                  {selectedCreance.montantProvision && (
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Montant Provision</p>
+                      <p className="font-medium font-mono text-[var(--color-warning)]">{selectedCreance.montantProvision.toLocaleString()} FCFA</p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedCreance.actionsRelance.length > 0 && (
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)] mb-3">Historique des Relances</p>
+                    <div className="space-y-2">
+                      {selectedCreance.actionsRelance.map((action, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded">
+                          <div className="flex items-center gap-3">
+                            {action.type === 'email' && <Mail className="w-4 h-4 text-[var(--color-primary)]" />}
+                            {action.type === 'telephone' && <Phone className="w-4 h-4 text-orange-500" />}
+                            {action.type === 'mise_en_demeure' && <FileText className="w-4 h-4 text-[var(--color-error)]" />}
+                            <div>
+                              <p className="font-medium capitalize">{action.type.replace('_', ' ')}</p>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{action.resultat}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm">{new Date(action.date).toLocaleDateString()}</p>
+                            <Badge className={action.statut === 'execute' ? 'bg-[var(--color-success-lighter)]' : 'bg-[var(--color-background-hover)]'}>
+                              {action.statut}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedCreance(null);
+                }}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => {
+                  handleSendRelance(selectedCreance);
+                  setShowDetailModal(false);
+                  setSelectedCreance(null);
+                }}
+                className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+              >
+                <Send className="w-4 h-4" />
+                <span>Envoyer Relance</span>
               </button>
             </div>
           </div>

@@ -30,6 +30,14 @@ interface RapprochementItem {
   moyenPaiement?: 'virement' | 'cb' | 'cheque' | 'mobile' | 'especes' | 'prelevement' | 'tpe';
   confidence?: number;
   commission?: number;
+  // Informations comptables
+  compteBancaire?: string;
+  compteContrepartie?: string;
+  pieceComptable?: string;
+  journalCode?: string;
+  dateComptabilisation?: string;
+  tiers?: string;
+  tierCode?: string;
 }
 
 interface MoyenPaiement {
@@ -52,6 +60,9 @@ const RapprochementBancaire: React.FC = () => {
   const [autoRapprochement, setAutoRapprochement] = useState(true);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedTab, setSelectedTab] = useState('banques');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedOperation, setSelectedOperation] = useState<RapprochementItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     compte_bancaire: '',
     fichier: null as File | null,
@@ -271,7 +282,14 @@ const RapprochementBancaire: React.FC = () => {
       montantCompta: 250000,
       statut: 'rapproche',
       typeOperation: 'credit',
-      moyenPaiement: 'virement'
+      moyenPaiement: 'virement',
+      compteBancaire: '521100',
+      compteContrepartie: '411100',
+      pieceComptable: 'BQ-2025-00145',
+      journalCode: 'BQ',
+      dateComptabilisation: '2025-01-15',
+      tiers: 'Client ABC SARL',
+      tierCode: 'CLI-001'
     },
     {
       id: '2',
@@ -282,7 +300,14 @@ const RapprochementBancaire: React.FC = () => {
       montantCompta: -85000,
       statut: 'rapproche',
       typeOperation: 'debit',
-      moyenPaiement: 'cheque'
+      moyenPaiement: 'cheque',
+      compteBancaire: '521100',
+      compteContrepartie: '401100',
+      pieceComptable: 'BQ-2025-00142',
+      journalCode: 'BQ',
+      dateComptabilisation: '2025-01-14',
+      tiers: 'Fournisseur XYZ SA',
+      tierCode: 'FRN-045'
     },
     {
       id: '3',
@@ -292,7 +317,8 @@ const RapprochementBancaire: React.FC = () => {
       montantBanque: -2500,
       statut: 'en_attente',
       typeOperation: 'debit',
-      moyenPaiement: 'virement'
+      moyenPaiement: 'virement',
+      compteBancaire: '521100'
     },
     {
       id: '4',
@@ -304,7 +330,14 @@ const RapprochementBancaire: React.FC = () => {
       statut: 'ecart',
       typeOperation: 'credit',
       confidence: 85,
-      moyenPaiement: 'cheque'
+      moyenPaiement: 'cheque',
+      compteBancaire: '521100',
+      compteContrepartie: '411000',
+      pieceComptable: 'BQ-2025-00138',
+      journalCode: 'BQ',
+      dateComptabilisation: '2025-01-12',
+      tiers: 'Clients divers',
+      tierCode: 'CLI-DIV'
     },
     {
       id: '5',
@@ -315,7 +348,11 @@ const RapprochementBancaire: React.FC = () => {
       statut: 'suggere',
       typeOperation: 'debit',
       confidence: 92,
-      moyenPaiement: 'virement'
+      moyenPaiement: 'virement',
+      compteBancaire: '521100',
+      compteContrepartie: '421000',
+      pieceComptable: 'SA-2025-00012',
+      journalCode: 'SA'
     },
     // Opérations Mobile Money
     {
@@ -328,7 +365,14 @@ const RapprochementBancaire: React.FC = () => {
       statut: 'rapproche',
       typeOperation: 'credit',
       moyenPaiement: 'mobile',
-      commission: 375
+      commission: 375,
+      compteBancaire: '521200',
+      compteContrepartie: '411100',
+      pieceComptable: 'MM-2025-00234',
+      journalCode: 'MM',
+      dateComptabilisation: '2025-01-15',
+      tiers: 'Client #2341',
+      tierCode: 'CLI-2341'
     },
     {
       id: '7',
@@ -340,7 +384,14 @@ const RapprochementBancaire: React.FC = () => {
       statut: 'rapproche',
       typeOperation: 'credit',
       moyenPaiement: 'mobile',
-      commission: 625
+      commission: 625,
+      compteBancaire: '521300',
+      compteContrepartie: '411100',
+      pieceComptable: 'MM-2025-00235',
+      journalCode: 'MM',
+      dateComptabilisation: '2025-01-15',
+      tiers: 'Client #5678',
+      tierCode: 'CLI-5678'
     },
     {
       id: '8',
@@ -488,6 +539,44 @@ const RapprochementBancaire: React.FC = () => {
       ? Math.round((filteredOperations.filter(o => o.statut === 'rapproche').length / filteredOperations.length) * 100)
       : 0
   };
+
+  // Handler functions
+  const handleViewDetail = (operation: RapprochementItem) => {
+    setSelectedOperation(operation);
+    setShowDetailModal(true);
+    toast.success(`Affichage des détails: ${operation.libelle}`);
+  };
+
+  const handleValidateSuggestion = (operation: RapprochementItem) => {
+    toast.success(`Suggestion validée: ${operation.libelle}`);
+  };
+
+  const handleRejectSuggestion = (operation: RapprochementItem) => {
+    toast.error(`Suggestion rejetée: ${operation.libelle}`);
+  };
+
+  const handleLinkOperation = (operation: RapprochementItem) => {
+    toast.success(`Lier l'opération: ${operation.reference}`);
+  };
+
+  const handleRapprochementIA = () => {
+    toast.success('Rapprochement IA lancé - Analyse en cours...');
+  };
+
+  const handleRefresh = () => {
+    toast.success('Données actualisées');
+  };
+
+  const handleExport = () => {
+    toast.success('Export du rapport de rapprochement en cours...');
+  };
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredOperations.length / itemsPerPage);
+  const paginatedOperations = filteredOperations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const banques = [
     { id: '001', nom: 'SGBCI - Compte Principal', solde: 12450000 },
@@ -757,7 +846,10 @@ const RapprochementBancaire: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center space-x-2">
+                <button
+                  onClick={handleRapprochementIA}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center space-x-2"
+                >
                   <Zap className="w-4 h-4" />
                   <span>Rapprochement IA</span>
                 </button>
@@ -782,10 +874,18 @@ const RapprochementBancaire: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg" aria-label="Actualiser">
+                <button
+                  onClick={handleRefresh}
+                  className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
+                  aria-label="Actualiser"
+                >
                   <RefreshCw className="w-5 h-5 text-[#767676]" />
                 </button>
-                <button className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg" aria-label="Télécharger">
+                <button
+                  onClick={handleExport}
+                  className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
+                  aria-label="Télécharger"
+                >
                   <Download className="w-5 h-5 text-[#767676]" />
                 </button>
               </div>
@@ -881,20 +981,35 @@ const RapprochementBancaire: React.FC = () => {
                         <div className="flex items-center justify-center space-x-2">
                           {op.statut === 'suggere' && (
                             <>
-                              <button className="p-1 text-[var(--color-success)] hover:bg-[var(--color-success-lightest)] rounded" aria-label="Valider">
+                              <button
+                                onClick={() => handleValidateSuggestion(op)}
+                                className="p-1 text-[var(--color-success)] hover:bg-[var(--color-success-lightest)] rounded"
+                                aria-label="Valider"
+                              >
                                 <Check className="w-4 h-4" />
                               </button>
-                              <button className="p-1 text-[var(--color-error)] hover:bg-[var(--color-error-lightest)] rounded" aria-label="Fermer">
+                              <button
+                                onClick={() => handleRejectSuggestion(op)}
+                                className="p-1 text-[var(--color-error)] hover:bg-[var(--color-error-lightest)] rounded"
+                                aria-label="Fermer"
+                              >
                                 <X className="w-4 h-4" />
                               </button>
                             </>
                           )}
                           {op.statut === 'en_attente' && (
-                            <button className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary-lightest)] rounded">
+                            <button
+                              onClick={() => handleLinkOperation(op)}
+                              className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary-lightest)] rounded"
+                            >
                               <Link className="w-4 h-4" />
                             </button>
                           )}
-                          <button className="p-1 text-[#767676] hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewDetail(op)}
+                            className="p-1 text-[#767676] hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4" />
                           </button>
                         </div>
@@ -908,15 +1023,30 @@ const RapprochementBancaire: React.FC = () => {
             {/* Footer avec pagination */}
             <div className="p-4 border-t border-[#E8E8E8] flex items-center justify-between">
               <span className="text-sm text-[#767676]">
-                Affichage de 1-{Math.min(10, filteredOperations.length)} sur {filteredOperations.length} opérations
+                Affichage de {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredOperations.length)} sur {filteredOperations.length} opérations
               </span>
               <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)]">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Précédent
                 </button>
-                <button className="px-3 py-1 bg-[#6A8A82] text-white rounded">1</button>
-                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)]">2</button>
-                <button className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)]">
+                {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 rounded ${currentPage === page ? 'bg-[#6A8A82] text-white' : 'border border-[#E8E8E8] hover:bg-[var(--color-background-secondary)]'}`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border border-[#E8E8E8] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Suivant
                 </button>
               </div>
@@ -1226,6 +1356,211 @@ const RapprochementBancaire: React.FC = () => {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedOperation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de l'Opération Bancaire</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedOperation(null);
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Section Informations Générales */}
+                <div>
+                  <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 border-b border-[#6A8A82] pb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-[#6A8A82] rounded"></span>
+                    Informations Générales
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Référence Bancaire</p>
+                      <p className="font-medium font-mono">{selectedOperation.reference}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Date Opération</p>
+                      <p className="font-medium">{selectedOperation.date}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm text-[var(--color-text-secondary)]">Libellé</p>
+                      <p className="font-medium">{selectedOperation.libelle}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Moyen de Paiement</p>
+                      <p className="font-medium capitalize">{selectedOperation.moyenPaiement || 'Non spécifié'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Statut</p>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedOperation.statut === 'rapproche' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                        selectedOperation.statut === 'en_attente' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
+                        selectedOperation.statut === 'ecart' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {selectedOperation.statut === 'rapproche' ? 'Rapproché' :
+                         selectedOperation.statut === 'en_attente' ? 'En attente' :
+                         selectedOperation.statut === 'ecart' ? 'Écart' : 'Suggéré'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Montants */}
+                <div>
+                  <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 border-b border-[#6A8A82] pb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-[#6A8A82] rounded"></span>
+                    Montants
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Montant Relevé Banque</p>
+                      <p className={`font-medium font-mono text-lg ${selectedOperation.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                        {selectedOperation.typeOperation === 'credit' ? '+' : ''}{selectedOperation.montantBanque.toLocaleString('fr-FR')} FCFA
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Montant Comptabilisé</p>
+                      <p className={`font-medium font-mono text-lg ${selectedOperation.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                        {selectedOperation.montantCompta ? `${selectedOperation.typeOperation === 'credit' ? '+' : ''}${selectedOperation.montantCompta.toLocaleString('fr-FR')} FCFA` : '-'}
+                      </p>
+                    </div>
+                    {selectedOperation.commission && (
+                      <div>
+                        <p className="text-sm text-[var(--color-text-secondary)]">Commission</p>
+                        <p className="font-medium font-mono text-[var(--color-warning)]">
+                          -{selectedOperation.commission.toLocaleString('fr-FR')} FCFA
+                        </p>
+                      </div>
+                    )}
+                    {selectedOperation.montantCompta && selectedOperation.montantBanque !== selectedOperation.montantCompta && (
+                      <div>
+                        <p className="text-sm text-[var(--color-text-secondary)]">Écart</p>
+                        <p className="font-medium font-mono text-[var(--color-error)]">
+                          {(selectedOperation.montantBanque - selectedOperation.montantCompta).toLocaleString('fr-FR')} FCFA
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Section Informations Comptables */}
+                <div>
+                  <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 border-b border-[#6A8A82] pb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-[#6A8A82] rounded"></span>
+                    Informations Comptables
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">N° Pièce Comptable</p>
+                      <p className="font-medium font-mono">{selectedOperation.pieceComptable || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Code Journal</p>
+                      <p className="font-medium font-mono">{selectedOperation.journalCode || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Compte Bancaire</p>
+                      <p className="font-medium font-mono bg-[var(--color-background-secondary)] px-2 py-1 rounded inline-block">
+                        {selectedOperation.compteBancaire || '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Compte Contrepartie</p>
+                      <p className="font-medium font-mono bg-[var(--color-background-secondary)] px-2 py-1 rounded inline-block">
+                        {selectedOperation.compteContrepartie || '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Date Comptabilisation</p>
+                      <p className="font-medium">{selectedOperation.dateComptabilisation || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Tiers */}
+                {(selectedOperation.tiers || selectedOperation.tierCode) && (
+                  <div>
+                    <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 border-b border-[#6A8A82] pb-2 flex items-center gap-2">
+                      <span className="w-1 h-4 bg-[#6A8A82] rounded"></span>
+                      Tiers
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-[var(--color-text-secondary)]">Code Tiers</p>
+                        <p className="font-medium font-mono">{selectedOperation.tierCode || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-[var(--color-text-secondary)]">Nom du Tiers</p>
+                        <p className="font-medium">{selectedOperation.tiers || '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section IA */}
+                {selectedOperation.confidence && (
+                  <div>
+                    <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 border-b border-purple-400 pb-2 flex items-center gap-2">
+                      <span className="w-1 h-4 bg-purple-500 rounded"></span>
+                      Analyse IA
+                    </h3>
+                    <div className="flex items-center gap-4 bg-purple-50 p-3 rounded-lg">
+                      <Bot className="w-8 h-8 text-purple-600" />
+                      <div className="flex-1">
+                        <p className="text-sm text-[var(--color-text-secondary)]">Niveau de Confiance</p>
+                        <div className="flex items-center gap-2">
+                          <Progress value={selectedOperation.confidence} className="flex-1 h-2" />
+                          <span className="font-bold text-purple-600">{selectedOperation.confidence}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedOperation(null);
+                }}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors"
+              >
+                Fermer
+              </button>
+              {selectedOperation.statut === 'en_attente' && (
+                <button
+                  onClick={() => {
+                    handleLinkOperation(selectedOperation);
+                    setShowDetailModal(false);
+                    setSelectedOperation(null);
+                  }}
+                  className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+                >
+                  <Link className="w-4 h-4" />
+                  <span>Lier à une écriture</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

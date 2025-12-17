@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
@@ -25,7 +25,8 @@ import {
   Check,
   AlertCircle,
   ChevronDown,
-  Search
+  Search,
+  ChevronRight
 } from 'lucide-react';
 import SearchableDropdown from '../ui/SearchableDropdown';
 import { TVAValidator, LigneEcriture as TVALigneEcriture, TVAValidationResult } from '../../utils/tvaValidation';
@@ -68,6 +69,19 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const [searchAnalytique, setSearchAnalytique] = useState<{[key: number]: string}>({});
   const [tvaValidation, setTvaValidation] = useState<TVAValidationResult | null>(null);
   const [showAnalytiqueDropdown, setShowAnalytiqueDropdown] = useState<number | null>(null);
+
+  // État pour le système de wizard
+  const [tabValidation, setTabValidation] = useState<{[key: string]: boolean}>({
+    details: false,
+    ventilation: false,
+    attachements: true, // Optionnel, donc valide par défaut
+    notes: true, // Optionnel, donc valide par défaut
+    validation: false
+  });
+  const prevTabValidation = useRef<{[key: string]: boolean}>({});
+
+  // État pour les erreurs de validation
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Plan comptable SYSCOHADA simplifié
   const planComptable = [
@@ -266,6 +280,124 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Fonction pour réinitialiser le formulaire
+  const resetForm = useCallback(() => {
+    setActiveTab('details');
+    setTransactionType('purchase');
+    setDetails({
+      dateEcriture: new Date().toISOString().split('T')[0],
+      numeroEcriture: getNumeroByType('purchase'),
+      journal: getJournalByType('purchase'),
+      reference: '',
+      description: '',
+      preparePar: 'Jean Dupont (Comptable)',
+      approuvePar: ''
+    });
+    setLignesEcriture([
+      { compte: '', libelle: '', debit: 0, credit: 0, codeAnalytique: '' }
+    ]);
+    setFactureInfo({
+      fournisseur: '',
+      dateFacture: '',
+      numeroFacture: 'FA-2025-001'
+    });
+    setVenteInfo({
+      client: '',
+      dateFacture: '',
+      numeroFacture: 'FV-2025-001'
+    });
+    setReglementInfo({
+      typeReglement: 'encaissement',
+      tiers: '',
+      modeReglement: 'virement',
+      reference: '',
+      dateEcheance: '',
+      montant: 0,
+      compteBank: '512100',
+      document: ''
+    });
+    setVirementInfo({
+      compteDebit: '',
+      compteCredit: '',
+      motif: ''
+    });
+    setSousJournalOD('');
+    setAttachements([]);
+    setNotes({
+      notesObligatoires: '',
+      commentairesGeneraux: ''
+    });
+    setValidationErrors([]);
+    setSearchCompte({});
+    setSearchAnalytique({});
+  }, []);
+
+  // Fonction pour fermer et réinitialiser
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [resetForm, onClose]);
+
+  // Fonction pour calculer les erreurs de validation
+  const getValidationErrors = useCallback((): string[] => {
+    const errors: string[] = [];
+
+    // Vérifications onglet Détails
+    if (!details.dateEcriture) {
+      errors.push("Date d'écriture manquante");
+    }
+    if (!details.description.trim()) {
+      errors.push("Description de l'opération manquante");
+    }
+    if (transactionType === 'other' && !sousJournalOD) {
+      errors.push("Sous-journal OD non sélectionné");
+    }
+
+    // Vérifications onglet Ventilation
+    if (totalDebit !== totalCredit || totalDebit === 0) {
+      errors.push(`Écriture non équilibrée (Débit: ${totalDebit.toLocaleString()} ≠ Crédit: ${totalCredit.toLocaleString()})`);
+    }
+
+    const emptyAccounts = lignesEcriture.filter(l => !l.compte);
+    if (emptyAccounts.length > 0) {
+      errors.push(`${emptyAccounts.length} ligne(s) sans compte comptable`);
+    }
+
+    // Vérifications spécifiques par type
+    if (transactionType === 'purchase') {
+      if (!factureInfo.fournisseur) errors.push("Fournisseur non sélectionné");
+      if (!factureInfo.dateFacture) errors.push("Date de facture fournisseur manquante");
+      if (!factureInfo.numeroFacture) errors.push("Numéro de facture fournisseur manquant");
+    }
+    if (transactionType === 'sale') {
+      if (!venteInfo.client) errors.push("Client non sélectionné");
+      if (!venteInfo.dateFacture) errors.push("Date de facture client manquante");
+      if (!venteInfo.numeroFacture) errors.push("Numéro de facture client manquant");
+    }
+    if (transactionType === 'payment') {
+      if (!reglementInfo.tiers) errors.push("Tiers non sélectionné");
+      if (!reglementInfo.modeReglement) errors.push("Mode de règlement non sélectionné");
+      if (reglementInfo.montant <= 0) errors.push("Montant du règlement invalide");
+    }
+    if (transactionType === 'transfer') {
+      if (!virementInfo.compteDebit) errors.push("Compte à débiter non sélectionné");
+      if (!virementInfo.compteCredit) errors.push("Compte à créditer non sélectionné");
+      if (!virementInfo.motif) errors.push("Motif du virement manquant");
+    }
+
+    // Vérification TVA
+    if (tvaValidation && !tvaValidation.isValid) {
+      errors.push("Validation TVA échouée");
+    }
+
+    return errors;
+  }, [details, transactionType, sousJournalOD, totalDebit, totalCredit, lignesEcriture, factureInfo, venteInfo, reglementInfo, virementInfo, tvaValidation]);
+
+  // Mettre à jour les erreurs de validation quand les données changent
+  useEffect(() => {
+    setValidationErrors(getValidationErrors());
+  }, [getValidationErrors]);
+
   const transactionTypes = [
     { value: 'purchase', label: "Facture d'Achat (Fournisseur)", icon: ShoppingCart },
     { value: 'sale', label: "Facture de Vente (Client)", icon: CreditCard },
@@ -281,6 +413,125 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     { id: 'notes', label: 'Notes', sublabel: 'Commentaires', icon: MessageSquare },
     { id: 'validation', label: 'Validation', sublabel: 'Contrôles', icon: CheckCircle }
   ];
+
+  // Fonctions de validation par onglet
+  const validateDetailsTab = useCallback(() => {
+    const hasDate = !!details.dateEcriture;
+    const hasDescription = !!details.description.trim();
+
+    // Validation spécifique pour les opérations diverses
+    if (transactionType === 'other') {
+      return hasDate && hasDescription && !!sousJournalOD;
+    }
+
+    return hasDate && hasDescription;
+  }, [details.dateEcriture, details.description, transactionType, sousJournalOD]);
+
+  const validateVentilationTab = useCallback(() => {
+    // L'écriture doit être équilibrée
+    if (!isEquilibree) return false;
+
+    // Toutes les lignes doivent avoir un compte
+    const allLinesHaveAccount = lignesEcriture.every(ligne => !!ligne.compte);
+    if (!allLinesHaveAccount) return false;
+
+    // Validation spécifique par type de transaction
+    if (transactionType === 'purchase') {
+      return !!factureInfo.fournisseur && !!factureInfo.dateFacture && !!factureInfo.numeroFacture;
+    }
+    if (transactionType === 'sale') {
+      return !!venteInfo.client && !!venteInfo.dateFacture && !!venteInfo.numeroFacture;
+    }
+    if (transactionType === 'payment') {
+      return !!reglementInfo.tiers && !!reglementInfo.modeReglement && !!reglementInfo.compteBank && reglementInfo.montant > 0;
+    }
+    if (transactionType === 'transfer') {
+      return !!virementInfo.compteDebit && !!virementInfo.compteCredit && !!virementInfo.motif;
+    }
+
+    return true;
+  }, [isEquilibree, lignesEcriture, transactionType, factureInfo, venteInfo, reglementInfo, virementInfo]);
+
+  const validateValidationTab = useCallback(() => {
+    // La validation finale nécessite l'équilibre et la TVA valide
+    return isEquilibree && (!tvaValidation || tvaValidation.isValid);
+  }, [isEquilibree, tvaValidation]);
+
+  // Ordre des onglets pour la navigation
+  const tabOrder = ['details', 'ventilation', 'attachements', 'notes', 'validation'];
+
+  // Fonction pour passer à l'onglet suivant
+  const goToNextTab = useCallback(() => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    }
+  }, [activeTab]);
+
+  // Fonction pour passer à l'onglet précédent
+  const goToPrevTab = useCallback(() => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  }, [activeTab]);
+
+  // Navigation libre - tous les onglets sont accessibles
+  const canAccessTab = useCallback((_tabId: string) => {
+    return true; // Navigation libre entre tous les onglets
+  }, []);
+
+  // Mise à jour de la validation des onglets (pour affichage visuel uniquement)
+  useEffect(() => {
+    const newValidation = {
+      details: validateDetailsTab(),
+      ventilation: validateVentilationTab(),
+      attachements: true, // Toujours valide (optionnel)
+      notes: true, // Toujours valide (optionnel)
+      validation: validateValidationTab()
+    };
+    setTabValidation(newValidation);
+  }, [validateDetailsTab, validateVentilationTab, validateValidationTab]);
+
+  // Gestion du clavier pour la navigation entre onglets
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ne pas intercepter si on est dans un champ de formulaire (sauf si c'est Ctrl+Tab)
+      const target = e.target as HTMLElement;
+      const isFormField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
+
+      // Ctrl+Tab ou Ctrl+Shift+Tab pour naviguer entre les onglets (navigation libre)
+      if (e.ctrlKey && e.key === 'Tab') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          goToPrevTab();
+        } else {
+          goToNextTab();
+        }
+        return;
+      }
+
+      // PageDown/PageUp pour naviguer (navigation libre)
+      if (e.key === 'PageDown' && !isFormField) {
+        e.preventDefault();
+        goToNextTab();
+      } else if (e.key === 'PageUp' && !isFormField) {
+        e.preventDefault();
+        goToPrevTab();
+      }
+
+      // Entrée sur le dernier onglet pour valider (si tout est valide)
+      if (e.key === 'Enter' && e.ctrlKey && activeTab === 'validation') {
+        e.preventDefault();
+        if (validationErrors.length === 0) {
+          console.log('Validation et comptabilisation...');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, goToNextTab, goToPrevTab, validationErrors]);
 
   const ajouterLigne = () => {
     setLignesEcriture([
@@ -428,7 +679,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 <span>SYSCOHADA Conforme</span>
               </span>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="p-1 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">
                 <X className="w-5 h-5 text-gray-700" />
               </button>
@@ -465,29 +716,97 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs - Wizard Style */}
           <div className="border-b border-gray-200 bg-white">
-            <nav className="flex space-x-8 px-6">
-              {tabs.map((tab) => {
+            <nav className="flex items-center px-6 py-2">
+              {tabs.map((tab, index) => {
                 const Icon = tab.icon;
+                const isValid = tabValidation[tab.id];
+                const isActive = activeTab === tab.id;
+                const isAccessible = canAccessTab(tab.id);
+                const currentIndex = tabOrder.indexOf(activeTab);
+                const tabIndex = tabOrder.indexOf(tab.id);
+                const isPassed = tabIndex < currentIndex;
+
                 return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      py-3 px-1 border-b-2 transition-colors flex items-center space-x-2
-                      ${activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-700 hover:text-gray-700'
-                      }
-                    `}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium">{tab.label}</span>
-                      <span className="text-xs text-gray-700">{tab.sublabel}</span>
-                    </div>
-                  </button>
+                  <React.Fragment key={tab.id}>
+                    <button
+                      onClick={() => isAccessible && setActiveTab(tab.id)}
+                      disabled={!isAccessible}
+                      className={`
+                        relative py-3 px-4 rounded-lg transition-all flex items-center space-x-3
+                        ${isActive
+                          ? 'bg-blue-50 border-2 border-blue-500 text-blue-600 shadow-sm'
+                          : isPassed && isValid
+                            ? 'bg-green-50 border-2 border-green-400 text-green-700 hover:bg-green-100'
+                            : isAccessible
+                              ? 'bg-gray-50 border-2 border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-300'
+                              : 'bg-gray-50 border-2 border-transparent text-gray-400 cursor-not-allowed opacity-60'
+                        }
+                      `}
+                    >
+                      {/* Indicateur de numéro/statut */}
+                      <div className={`
+                        w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+                        ${isActive
+                          ? 'bg-blue-500 text-white'
+                          : isPassed && isValid
+                            ? 'bg-green-500 text-white'
+                            : isAccessible
+                              ? 'bg-gray-300 text-gray-600'
+                              : 'bg-gray-200 text-gray-400'
+                        }
+                      `}>
+                        {isPassed && isValid ? (
+                          <Check className="w-5 h-5" />
+                        ) : (
+                          index + 1
+                        )}
+                      </div>
+
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium">{tab.label}</span>
+                        <span className={`text-xs ${isActive ? 'text-blue-500' : 'text-gray-500'}`}>
+                          {tab.sublabel}
+                        </span>
+                      </div>
+
+                      {/* Badge de validation */}
+                      {isValid && !isActive && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+                        >
+                          <Check className="w-3 h-3 text-white" />
+                        </motion.div>
+                      )}
+                    </button>
+
+                    {/* Connecteur entre les onglets */}
+                    {index < tabs.length - 1 && (
+                      <div className={`
+                        flex-1 h-1 mx-2 rounded transition-colors
+                        ${tabIndex < currentIndex
+                          ? 'bg-green-400'
+                          : tabIndex === currentIndex && tabValidation[tab.id]
+                            ? 'bg-green-400'
+                            : 'bg-gray-200'
+                        }
+                      `}>
+                        <motion.div
+                          className="h-full bg-green-500 rounded"
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: tabIndex < currentIndex || (tabIndex === currentIndex && tabValidation[tab.id])
+                              ? '100%'
+                              : '0%'
+                          }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </nav>
@@ -1325,9 +1644,52 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
             {activeTab === 'validation' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  {validationErrors.length === 0 ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  )}
                   <span>Validation et Contrôles</span>
+                  {validationErrors.length > 0 && (
+                    <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">
+                      {validationErrors.length} élément(s) à corriger
+                    </span>
+                  )}
                 </h3>
+
+                {/* Erreurs de validation */}
+                {validationErrors.length > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-red-800 mb-3 flex items-center space-x-2">
+                      <AlertCircle className="w-5 h-5" />
+                      <span>Éléments manquants ou incorrects</span>
+                    </h4>
+                    <ul className="space-y-2">
+                      {validationErrors.map((error, index) => (
+                        <li key={index} className="flex items-start space-x-2 text-red-700">
+                          <X className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{error}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-4 text-sm text-red-600 italic">
+                      Veuillez corriger ces éléments avant de pouvoir valider l'écriture.
+                    </p>
+                  </div>
+                )}
+
+                {/* Message de succès si tout est valide */}
+                {validationErrors.length === 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-800 mb-2 flex items-center space-x-2">
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Écriture prête à être validée</span>
+                    </h4>
+                    <p className="text-sm text-green-700">
+                      Tous les contrôles sont passés avec succès. Vous pouvez valider et comptabiliser cette écriture.
+                    </p>
+                  </div>
+                )}
 
                 {/* Validation TVA */}
                 {tvaValidation && (
@@ -1339,7 +1701,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
                     {tvaValidation.errors.length > 0 && (
                       <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="font-semibold text-red-700 mb-2">❌ Erreurs:</p>
+                        <p className="font-semibold text-red-700 mb-2">Erreurs TVA:</p>
                         <ul className="list-disc list-inside space-y-1">
                           {tvaValidation.errors.map((error, i) => (
                             <li key={i} className="text-sm text-red-600">{error}</li>
@@ -1350,7 +1712,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
                     {tvaValidation.warnings.length > 0 && (
                       <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="font-semibold text-yellow-700 mb-2">⚠️ Avertissements:</p>
+                        <p className="font-semibold text-yellow-700 mb-2">Avertissements:</p>
                         <ul className="list-disc list-inside space-y-1">
                           {tvaValidation.warnings.map((warning, i) => (
                             <li key={i} className="text-sm text-yellow-600">{warning}</li>
@@ -1362,7 +1724,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     {tvaValidation.isValid && tvaValidation.errors.length === 0 && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
                         <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="text-green-700 font-medium">✅ Validation TVA: Conforme</span>
+                        <span className="text-green-700 font-medium">Validation TVA: Conforme</span>
                       </div>
                     )}
                   </div>
@@ -1383,7 +1745,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       {isEquilibree ? (
                         <div className="flex items-center justify-center space-x-2 text-green-600">
                           <CheckCircle className="w-6 h-6" />
-                          <span className="text-2xl font-bold">Équilibré ✓</span>
+                          <span className="text-2xl font-bold">Équilibré</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center space-x-2 text-red-600">
@@ -1397,16 +1759,22 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="border-t border-gray-200 pt-4">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                       <FileText className="w-4 h-4 text-blue-600" />
-                      <span>Journal des écritures comptables</span>
+                      <span>Aperçu des écritures comptables</span>
                     </h4>
                     <div className="space-y-2">
                       {lignesEcriture.map((ligne, index) => (
-                        <div key={index} className="flex items-center justify-between py-2 px-3 bg-white rounded-lg">
+                        <div key={index} className={`flex items-center justify-between py-2 px-3 rounded-lg ${
+                          !ligne.compte ? 'bg-red-50 border border-red-200' : 'bg-white'
+                        }`}>
                           <div className="flex items-center space-x-4">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded ${ligne.debit > 0 ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                              ligne.debit > 0 ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                            }`}>
                               {ligne.debit > 0 ? 'DT' : 'CT'}
                             </span>
-                            <span className="font-mono text-sm">{ligne.compte}</span>
+                            <span className={`font-mono text-sm ${!ligne.compte ? 'text-red-500 italic' : ''}`}>
+                              {ligne.compte || '(compte manquant)'}
+                            </span>
                             <span className="text-sm text-gray-600">{ligne.libelle}</span>
                           </div>
                           <span className="font-semibold text-right">
@@ -1416,11 +1784,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       ))}
                     </div>
 
-                    {isEquilibree && (
+                    {isEquilibree && validationErrors.length === 0 && (
                       <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
                         <CheckCircle className="w-5 h-5 text-green-600" />
                         <span className="text-green-700 font-medium">
-                          • Équilibre comptable respecté {formatMontant(totalDebit)} XAF
+                          Équilibre comptable respecté: {formatMontant(totalDebit)} XAF
                         </span>
                       </div>
                     )}
@@ -1430,11 +1798,12 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
             )}
           </div>
 
-          {/* Footer */}
+          {/* Footer - Wizard Navigation */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+            {/* Boutons de gauche */}
             <div className="flex items-center space-x-3">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Annuler
@@ -1443,20 +1812,79 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 Brouillon
               </button>
             </div>
-            <button
-              disabled={!isEquilibree || (tvaValidation && !tvaValidation.isValid)}
-              className={`
-                px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2
-                ${isEquilibree && (!tvaValidation || tvaValidation.isValid)
-                  ? 'bg-[#6A8A82] text-white hover:bg-[#5A7A72]'
-                  : 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                }
-              `}
-              title={!isEquilibree ? 'Écriture non équilibrée' : (tvaValidation && !tvaValidation.isValid) ? 'Validation TVA échouée' : ''}
-            >
-              <CheckCircle className="w-5 h-5" />
-              <span>Valider et Comptabiliser</span>
-            </button>
+
+            {/* Indicateur de progression et raccourcis */}
+            <div className="flex flex-col items-center space-y-1">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span>Étape {tabOrder.indexOf(activeTab) + 1} sur {tabOrder.length}</span>
+                {tabValidation[activeTab] && activeTab !== 'validation' && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center space-x-1 text-green-600"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Complété</span>
+                  </motion.span>
+                )}
+              </div>
+              <div className="flex items-center space-x-3 text-xs text-gray-400">
+                <span className="flex items-center space-x-1">
+                  <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Ctrl</kbd>
+                  <span>+</span>
+                  <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Tab</kbd>
+                  <span>Suivant</span>
+                </span>
+                <span className="flex items-center space-x-1">
+                  <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Ctrl</kbd>
+                  <span>+</span>
+                  <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Shift</kbd>
+                  <span>+</span>
+                  <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Tab</kbd>
+                  <span>Précédent</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Boutons de navigation */}
+            <div className="flex items-center space-x-3">
+              {/* Bouton Précédent */}
+              {activeTab !== 'details' && (
+                <button
+                  onClick={goToPrevTab}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                >
+                  <ChevronRight className="w-4 h-4 rotate-180" />
+                  <span>Précédent</span>
+                </button>
+              )}
+
+              {/* Bouton Suivant ou Valider */}
+              {activeTab !== 'validation' ? (
+                <button
+                  onClick={goToNextTab}
+                  className="px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  <span>Suivant</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  disabled={validationErrors.length > 0}
+                  className={`
+                    px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2
+                    ${validationErrors.length === 0
+                      ? 'bg-[#6A8A82] text-white hover:bg-[#5A7A72]'
+                      : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                    }
+                  `}
+                  title={validationErrors.length > 0 ? `${validationErrors.length} élément(s) à corriger` : 'Valider et comptabiliser cette écriture'}
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Valider et Comptabiliser</span>
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
 

@@ -5,7 +5,6 @@ import { DataTableProps, Column } from './DataTable.types';
 import { useDataTable } from './useDataTable';
 
 export const DataTable = <T extends Record<string, any>>({
-  const { t } = useLanguage();
   data,
   columns,
   loading = false,
@@ -25,6 +24,7 @@ export const DataTable = <T extends Record<string, any>>({
   className = '',
   actions,
 }: DataTableProps<T>) => {
+  const { t } = useLanguage();
   const internalTableState = useDataTable({
     data,
     columns,

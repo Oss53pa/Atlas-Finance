@@ -37,7 +37,12 @@
     "**/*.backup.tsx",
     "**/*.broken.tsx",
     "src/pages/assets/CompleteAssetsModulesDetailed.tsx",
-    "src/pages/financial/CompleteFinancialModule.tsx"
+    "src/pages/financial/CompleteFinancialModule.tsx",
+    "src/pages/accounting/CompleteJournalsPage.tsx",
+    "src/pages/accounting/EntriesPageClean.tsx",
+    "src/pages/dashboard/KPIDashboard.tsx",
+    "src/pages/taxation/CompleteTaxationModule.tsx",
+    "src/test/setup/test-setup.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

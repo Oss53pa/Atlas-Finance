@@ -44,6 +44,39 @@ const ReportsANouveauModule: React.FC = () => {
   const [filterStatut, setFilterStatut] = useState<'tous' | 'valide' | 'a_verifier' | 'erreur'>('tous');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'comptes' | 'validation' | 'historique'>('comptes');
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // Handlers pour les actions
+  const handleSettingsCompte = (compte: ReportCompte) => {
+    setSelectedCompte(compte);
+    setShowEditModal(true);
+  };
+
+  const handleExport = () => {
+    alert('Export des reports en cours...');
+    // TODO: Implémentation export
+  };
+
+  const handleArchive = () => {
+    if (confirm('Archiver les reports de cet exercice ?')) {
+      alert('Reports archivés avec succès');
+    }
+  };
+
+  const handleCancelValidation = () => {
+    setActiveTab('comptes');
+  };
+
+  const handleFinalizeReport = () => {
+    if (confirm('Finaliser le report à nouveau ? Cette action est irréversible.')) {
+      alert('Report à nouveau finalisé avec succès');
+    }
+  };
+
+  const handleModifyCompte = () => {
+    alert('Modifications enregistrées (simulation)');
+    setShowDetailModal(false);
+  };
 
   // Données d'exemple pour l'exercice
   const exerciceInfo: ReportExercice = {
@@ -176,7 +209,7 @@ const ReportsANouveauModule: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+    <div className="p-6 bg-[#ECECEC] min-h-screen ">
       {/* Header */}
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -429,7 +462,12 @@ const ReportsANouveauModule: React.FC = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 text-[#767676] hover:text-[#191919] hover:bg-[var(--color-background-hover)] rounded" aria-label="Paramètres">
+                          <button
+                            onClick={() => handleSettingsCompte(compte)}
+                            className="p-1.5 text-[#767676] hover:text-[#191919] hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Paramètres"
+                            title="Paramètres du compte"
+                          >
                             <Settings className="w-4 h-4" />
                           </button>
                         </div>
@@ -443,11 +481,18 @@ const ReportsANouveauModule: React.FC = () => {
             {/* Actions en bas */}
             <div className="mt-6 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2" aria-label="Télécharger">
+                <button
+                  onClick={handleExport}
+                  className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2"
+                  aria-label="Télécharger"
+                >
                   <Download className="w-4 h-4" />
                   <span>{t('common.export')}</span>
                 </button>
-                <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2">
+                <button
+                  onClick={handleArchive}
+                  className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2"
+                >
                   <Archive className="w-4 h-4" />
                   <span>Archiver</span>
                 </button>
@@ -511,10 +556,16 @@ const ReportsANouveauModule: React.FC = () => {
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
-                <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]">
+                <button
+                  onClick={handleCancelValidation}
+                  className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
+                >
                   Annuler
                 </button>
-                <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2">
+                <button
+                  onClick={handleFinalizeReport}
+                  className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2"
+                >
                   <Send className="w-4 h-4" />
                   <span>Finaliser le report</span>
                 </button>
@@ -556,80 +607,431 @@ const ReportsANouveauModule: React.FC = () => {
       {/* Modal de détail */}
       {showDetailModal && selectedCompte && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-[#E8E8E8]">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white p-6 border-b border-[#E8E8E8] z-10">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-[#191919]">Détail du compte</h3>
-                  <p className="text-sm text-[#767676]">{selectedCompte.code} - {selectedCompte.libelle}</p>
+                <div className="flex items-center gap-3">
+                  <div className="bg-[#6A8A82]/10 text-[#6A8A82] p-2 rounded-lg">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#191919]">Détail du Compte - Report à Nouveau</h3>
+                    <p className="text-sm text-[#767676]">Exercice {selectedExercice}</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Section Identification du Compte */}
+              <div>
+                <h4 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-[#6A8A82] pb-2">
+                  <span className="w-1 h-4 bg-[#6A8A82] rounded"></span>
+                  Identification du Compte
+                </h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-xs text-[#767676] mb-1">Code Compte SYSCOHADA</p>
+                    <p className="font-mono font-bold text-lg text-[#191919]">{selectedCompte.code}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg col-span-2">
+                    <p className="text-xs text-[#767676] mb-1">Libellé du Compte</p>
+                    <p className="font-semibold text-[#191919]">{selectedCompte.libelle}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-xs text-[#767676] mb-1">Classe de Compte</p>
+                    <p className="font-semibold text-[#191919]">Classe {selectedCompte.code.charAt(0)}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-xs text-[#767676] mb-1">Type</p>
+                    <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${
+                      selectedCompte.type === 'actif' ? 'bg-blue-100 text-blue-800' :
+                      selectedCompte.type === 'passif' ? 'bg-purple-100 text-purple-800' :
+                      selectedCompte.type === 'charge' ? 'bg-red-100 text-red-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {selectedCompte.type.charAt(0).toUpperCase() + selectedCompte.type.slice(1)}
+                    </span>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-xs text-[#767676] mb-1">Catégorie</p>
+                    <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${
+                      selectedCompte.categorie === 'bilan' ? 'bg-indigo-100 text-indigo-800' :
+                      selectedCompte.categorie === 'resultat' ? 'bg-orange-100 text-orange-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedCompte.categorie === 'bilan' ? 'Bilan' :
+                       selectedCompte.categorie === 'resultat' ? 'Résultat' : 'Hors Bilan'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section Soldes et Mouvements */}
+              <div>
+                <h4 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-blue-400 pb-2">
+                  <span className="w-1 h-4 bg-blue-500 rounded"></span>
+                  Soldes et Mouvements
+                </h4>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-700 mb-1">Solde Exercice N-1 (Clôture)</p>
+                    <p className="text-2xl font-bold text-blue-900 font-mono">
+                      {selectedCompte.soldeN1.toLocaleString('fr-FR')} <span className="text-sm font-normal">FCFA</span>
+                    </p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <p className="text-xs text-green-700 mb-1">Solde Exercice N (Ouverture)</p>
+                    <p className="text-2xl font-bold text-green-900 font-mono">
+                      {selectedCompte.soldeN.toLocaleString('fr-FR')} <span className="text-sm font-normal">FCFA</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tableau des mouvements */}
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="text-left py-2 px-4 text-sm font-semibold text-[#191919]">Nature du Mouvement</th>
+                        <th className="text-right py-2 px-4 text-sm font-semibold text-[#191919]">Débit (FCFA)</th>
+                        <th className="text-right py-2 px-4 text-sm font-semibold text-[#191919]">Crédit (FCFA)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-100">
+                        <td className="py-3 px-4 text-sm">Solde de clôture N-1</td>
+                        <td className="py-3 px-4 text-right font-mono text-sm">
+                          {selectedCompte.type === 'actif' || selectedCompte.type === 'charge'
+                            ? selectedCompte.soldeN1.toLocaleString('fr-FR')
+                            : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm">
+                          {selectedCompte.type === 'passif' || selectedCompte.type === 'produit'
+                            ? selectedCompte.soldeN1.toLocaleString('fr-FR')
+                            : '-'}
+                        </td>
+                      </tr>
+                      {selectedCompte.mouvementDebit > 0 && (
+                        <tr className="border-b border-gray-100 bg-red-50">
+                          <td className="py-3 px-4 text-sm text-red-800">Mouvement de report (Débit)</td>
+                          <td className="py-3 px-4 text-right font-mono text-sm font-semibold text-red-700">
+                            {selectedCompte.mouvementDebit.toLocaleString('fr-FR')}
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-sm">-</td>
+                        </tr>
+                      )}
+                      {selectedCompte.mouvementCredit > 0 && (
+                        <tr className="border-b border-gray-100 bg-green-50">
+                          <td className="py-3 px-4 text-sm text-green-800">Mouvement de report (Crédit)</td>
+                          <td className="py-3 px-4 text-right font-mono text-sm">-</td>
+                          <td className="py-3 px-4 text-right font-mono text-sm font-semibold text-green-700">
+                            {selectedCompte.mouvementCredit.toLocaleString('fr-FR')}
+                          </td>
+                        </tr>
+                      )}
+                      <tr className="bg-gray-100 font-bold">
+                        <td className="py-3 px-4 text-sm">Solde d'ouverture N</td>
+                        <td className="py-3 px-4 text-right font-mono text-sm">
+                          {selectedCompte.type === 'actif' || selectedCompte.type === 'charge'
+                            ? selectedCompte.soldeN.toLocaleString('fr-FR')
+                            : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-sm">
+                          {selectedCompte.type === 'passif' || selectedCompte.type === 'produit'
+                            ? selectedCompte.soldeN.toLocaleString('fr-FR')
+                            : '-'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Section Écart et Analyse */}
+              <div>
+                <h4 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-orange-400 pb-2">
+                  <span className="w-1 h-4 bg-orange-500 rounded"></span>
+                  Analyse et Contrôle
+                </h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className={`p-4 rounded-lg border ${
+                    selectedCompte.ecart === 0
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-red-50 border-red-200'
+                  }`}>
+                    <p className="text-xs text-[#767676] mb-1">Écart Détecté</p>
+                    <p className={`text-xl font-bold font-mono ${
+                      selectedCompte.ecart === 0 ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {selectedCompte.ecart.toLocaleString('fr-FR')} FCFA
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-[#767676] mb-1">Variation (%)</p>
+                    <p className="text-xl font-bold text-[#191919]">
+                      {selectedCompte.soldeN1 !== 0
+                        ? ((selectedCompte.soldeN - selectedCompte.soldeN1) / selectedCompte.soldeN1 * 100).toFixed(2)
+                        : '0.00'} %
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-[#767676] mb-1">Statut de Validation</p>
+                    <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
+                      selectedCompte.statut === 'valide' ? 'bg-green-100 text-green-800' :
+                      selectedCompte.statut === 'a_verifier' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedCompte.statut === 'erreur' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {selectedCompte.statut === 'valide' ? <CheckCircle className="w-4 h-4" /> :
+                       selectedCompte.statut === 'a_verifier' ? <AlertCircle className="w-4 h-4" /> :
+                       selectedCompte.statut === 'erreur' ? <AlertTriangle className="w-4 h-4" /> :
+                       <Clock className="w-4 h-4" />}
+                      {selectedCompte.statut === 'valide' ? 'Validé' :
+                       selectedCompte.statut === 'a_verifier' ? 'À vérifier' :
+                       selectedCompte.statut === 'erreur' ? 'En erreur' : 'En cours'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section Écriture Comptable de Report */}
+              <div>
+                <h4 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-purple-400 pb-2">
+                  <span className="w-1 h-4 bg-purple-500 rounded"></span>
+                  Écriture Comptable de Report
+                </h4>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div>
+                      <p className="text-xs text-purple-700 mb-1">N° Pièce Comptable</p>
+                      <p className="font-mono font-semibold text-purple-900">RAN-{selectedExercice}-{selectedCompte.code}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-purple-700 mb-1">Journal</p>
+                      <p className="font-semibold text-purple-900">OD - Opérations Diverses</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-purple-700 mb-1">Date de Report</p>
+                      <p className="font-semibold text-purple-900">01/01/{selectedExercice}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-purple-700 mb-1">Libellé de l'Écriture</p>
+                      <p className="font-semibold text-purple-900">Report à nouveau - {selectedCompte.libelle}</p>
+                    </div>
+                  </div>
+                  <div className="border-t border-purple-200 pt-3">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-purple-700">
+                          <th className="text-left py-1">Compte</th>
+                          <th className="text-left py-1">Libellé</th>
+                          <th className="text-right py-1">Débit</th>
+                          <th className="text-right py-1">Crédit</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-purple-900">
+                        <tr>
+                          <td className="py-1 font-mono">{selectedCompte.code}</td>
+                          <td className="py-1">{selectedCompte.libelle}</td>
+                          <td className="py-1 text-right font-mono">
+                            {selectedCompte.mouvementDebit > 0 ? selectedCompte.mouvementDebit.toLocaleString('fr-FR') : '-'}
+                          </td>
+                          <td className="py-1 text-right font-mono">
+                            {selectedCompte.mouvementCredit > 0 ? selectedCompte.mouvementCredit.toLocaleString('fr-FR') : '-'}
+                          </td>
+                        </tr>
+                        {(selectedCompte.mouvementDebit > 0 || selectedCompte.mouvementCredit > 0) && (
+                          <tr>
+                            <td className="py-1 font-mono">
+                              {selectedCompte.mouvementDebit > 0 ? '120000' : '121000'}
+                            </td>
+                            <td className="py-1">
+                              {selectedCompte.mouvementDebit > 0 ? 'Résultat de l\'exercice' : 'Report à nouveau'}
+                            </td>
+                            <td className="py-1 text-right font-mono">
+                              {selectedCompte.mouvementCredit > 0 ? selectedCompte.mouvementCredit.toLocaleString('fr-FR') : '-'}
+                            </td>
+                            <td className="py-1 text-right font-mono">
+                              {selectedCompte.mouvementDebit > 0 ? selectedCompte.mouvementDebit.toLocaleString('fr-FR') : '-'}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section Commentaires et Notes */}
+              <div>
+                <h4 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-gray-400 pb-2">
+                  <span className="w-1 h-4 bg-gray-500 rounded"></span>
+                  Commentaires et Notes
+                </h4>
+                {selectedCompte.commentaire ? (
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-yellow-800">{selectedCompte.commentaire}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
+                    <p className="text-sm text-[#767676]">Aucun commentaire pour ce compte</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Section Historique */}
+              <div>
+                <h4 className="text-sm font-bold text-[#191919] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-cyan-400 pb-2">
+                  <span className="w-1 h-4 bg-cyan-500 rounded"></span>
+                  Historique des Reports
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { exercice: '2024', solde: selectedCompte.soldeN1, date: '01/01/2024', statut: 'complete' },
+                    { exercice: '2023', solde: Math.round(selectedCompte.soldeN1 * 0.85), date: '01/01/2023', statut: 'complete' },
+                    { exercice: '2022', solde: Math.round(selectedCompte.soldeN1 * 0.72), date: '01/01/2022', statut: 'complete' }
+                  ].map((hist, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
+                          <Calendar className="w-4 h-4 text-cyan-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-[#191919]">Exercice {hist.exercice}</p>
+                          <p className="text-xs text-[#767676]">Report effectué le {hist.date}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono font-semibold">{hist.solde.toLocaleString('fr-FR')} FCFA</p>
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Complété</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-[#E8E8E8] px-6 py-4 flex justify-between items-center">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => alert('Impression en cours...')}
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Exporter
+                </button>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                >
+                  Fermer
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setShowEditModal(true);
+                  }}
+                  className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] flex items-center gap-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  Modifier
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal d'édition paramètres compte */}
+      {showEditModal && selectedCompte && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-[#E8E8E8]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-[#191919]">Paramètres du compte</h3>
+                  <p className="text-sm text-[#767676]">{selectedCompte.code} - {selectedCompte.libelle}</p>
+                </div>
+                <button
+                  onClick={() => setShowEditModal(false)}
                   className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
-            
-            <div className="p-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm text-[#767676] mb-1">Solde N-1</p>
-                  <p className="text-xl font-semibold text-[#191919]">
-                    {selectedCompte.soldeN1.toLocaleString('fr-FR')} FCFA
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-[#767676] mb-1">Solde N</p>
-                  <p className="text-xl font-semibold text-[#191919]">
-                    {selectedCompte.soldeN.toLocaleString('fr-FR')} FCFA
-                  </p>
-                </div>
-              </div>
 
-              <div className="mt-6">
-                <h4 className="font-semibold text-[#191919] mb-3">Mouvements de report</h4>
-                <div className="space-y-2">
-                  {selectedCompte.mouvementDebit > 0 && (
-                    <div className="flex justify-between p-3 bg-[var(--color-error-lightest)] rounded-lg">
-                      <span className="text-sm">Mouvement débit</span>
-                      <span className="font-mono font-semibold text-[var(--color-error)]">
-                        {selectedCompte.mouvementDebit.toLocaleString('fr-FR')}
-                      </span>
-                    </div>
-                  )}
-                  {selectedCompte.mouvementCredit > 0 && (
-                    <div className="flex justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
-                      <span className="text-sm">Mouvement crédit</span>
-                      <span className="font-mono font-semibold text-[var(--color-success)]">
-                        {selectedCompte.mouvementCredit.toLocaleString('fr-FR')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {selectedCompte.commentaire && (
-                <div className="mt-6">
-                  <h4 className="font-semibold text-[#191919] mb-2">Commentaire</h4>
-                  <p className="text-[#767676] p-3 bg-[var(--color-background-secondary)] rounded-lg">
-                    {selectedCompte.commentaire}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#191919] mb-1">Catégorie</label>
+                <select
+                  defaultValue={selectedCompte.categorie}
+                  className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg"
                 >
-                  Fermer
-                </button>
-                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
-                  Modifier
-                </button>
+                  <option value="bilan">Bilan</option>
+                  <option value="resultat">Résultat</option>
+                  <option value="hors_bilan">Hors bilan</option>
+                </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-[#191919] mb-1">Statut</label>
+                <select
+                  defaultValue={selectedCompte.statut}
+                  className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg"
+                >
+                  <option value="valide">Validé</option>
+                  <option value="a_verifier">À vérifier</option>
+                  <option value="erreur">En erreur</option>
+                  <option value="en_cours">En cours</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#191919] mb-1">Commentaire</label>
+                <textarea
+                  rows={3}
+                  defaultValue={selectedCompte.commentaire || ''}
+                  placeholder="Ajouter un commentaire..."
+                  className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input type="checkbox" id="forceValidation" className="rounded" />
+                <label htmlFor="forceValidation" className="text-sm text-[#767676]">
+                  Forcer la validation malgré l'écart
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 p-6 border-t border-[#E8E8E8]">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  alert('Paramètres enregistrés (simulation)');
+                  setShowEditModal(false);
+                }}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
+              >
+                Enregistrer
+              </button>
             </div>
           </div>
         </div>

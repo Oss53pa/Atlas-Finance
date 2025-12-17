@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, startTransition, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
@@ -275,28 +275,27 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   }, [setTheme]);
 
   const handlePrimaryClick = useCallback((item: MenuItem) => {
+    // Debounce réduit à 50ms
     const now = Date.now();
-    if (now - lastClickTime.current < 100) return;
+    if (now - lastClickTime.current < 50) return;
     lastClickTime.current = now;
 
-    startTransition(() => {
-      if (item.path) {
-        navigate(item.path);
-      } else {
-        setSelectedModule(item.id);
-      }
-    });
+    if (item.path) {
+      navigate(item.path);
+    } else {
+      setSelectedModule(item.id);
+    }
   }, [navigate]);
 
   const handleSecondaryClick = useCallback((path: string | undefined) => {
     if (!path) return;
+
+    // Debounce réduit à 50ms pour éviter les double-clics accidentels
     const now = Date.now();
-    if (now - lastClickTime.current < 100) return;
+    if (now - lastClickTime.current < 50) return;
     lastClickTime.current = now;
 
-    startTransition(() => {
-      navigate(path);
-    });
+    navigate(path);
   }, [navigate]);
 
   const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
@@ -338,7 +337,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       {/* Primary Sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col bg-[var(--color-sidebar-bg)] transition-all duration-300',
+          'hidden lg:flex flex-col bg-[var(--color-sidebar-bg)] transition-all duration-300 ease-in-out',
           primaryCollapsed ? 'w-20' : 'w-64'
         )}
         role="navigation"
@@ -447,21 +446,22 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       {/* Secondary Sidebar */}
       {secondaryMenuItems[selectedModule] && (
         <>
-          {/* Toggle button when collapsed */}
+          {/* Toggle button when collapsed - positioned to not block content */}
           {secondaryCollapsed && (
             <button
               type="button"
               onClick={() => setSecondaryCollapsed(false)}
-              className="hidden lg:flex items-center justify-center w-12 h-full bg-[var(--color-background)] border-r border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors"
+              className="hidden lg:flex items-center justify-center w-6 h-16 bg-[var(--color-surface)] border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors rounded-r-md shadow-sm"
               aria-label="Ouvrir le sous-menu"
+              style={{ marginTop: '1rem' }}
             >
-              <ChevronRight className="w-5 h-5 text-[var(--color-text-tertiary)]" />
+              <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             </button>
           )}
 
           <aside
             className={cn(
-              'hidden lg:flex flex-col bg-[var(--color-background)] border-r border-[var(--color-border)] transition-all duration-300',
+              'hidden lg:flex flex-col bg-[var(--color-background)] border-r border-[var(--color-border)] transition-all duration-300 ease-in-out',
               secondaryCollapsed ? 'w-0 overflow-hidden' : 'w-64'
             )}
             role="navigation"

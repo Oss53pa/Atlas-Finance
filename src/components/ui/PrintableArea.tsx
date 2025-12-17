@@ -80,7 +80,7 @@ const PrintableArea = forwardRef<HTMLDivElement, PrintableAreaProps>(
 
         <div
           ref={ref}
-          className={`print-area ${className}`}
+          className={`print-area w-full ${className}`}
           data-print-orientation={orientation}
           data-print-size={pageSize}
         >
@@ -92,7 +92,7 @@ const PrintableArea = forwardRef<HTMLDivElement, PrintableAreaProps>(
           )}
 
           {/* Contenu principal */}
-          <div className="print-content">
+          <div className="print-content w-full">
             {children}
           </div>
 

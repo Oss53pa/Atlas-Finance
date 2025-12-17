@@ -70,12 +70,12 @@ interface MigrationStep {
 }
 
 const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
-  const { t } = useLanguage();
   companyId,
   onComplete,
   onCancel,
   className = ''
 }) => {
+  const { t } = useLanguage();
   // États du wizard
   const [currentStep, setCurrentStep] = useState(0);
   const [migrationConfig, setMigrationConfig] = useState({

@@ -40,7 +40,6 @@ interface ModalProps {
 }
 
 const FinancialDetailModal: React.FC<ModalProps> = ({
-  const { t } = useLanguage();
   isOpen,
   onClose,
   title,
@@ -48,6 +47,7 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
   type,
   data
 }) => {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   const formatCurrency = (amount: number): string => {

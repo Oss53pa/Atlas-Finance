@@ -1,6 +1,31 @@
-import { apiClientClient } from '../lib/apiClient';
+/**
+ * SERVICE FRONTEND TAXATION - WiseBook ERP v4.1.0
+ * BASE PATH: /api/v1/taxation/
+ *
+ * Alignement 100% avec backend Django REST Framework
+ * Architecture standardisée selon P0/P1 audit integration
+ *
+ * Gestion complète de la fiscalité:
+ * - Régimes fiscaux
+ * - Types de déclarations
+ * - Déclarations fiscales
+ * - Lignes de déclarations
+ * - Obligations fiscales
+ * - Alertes fiscales
+ * - Contrôles fiscaux
+ * - Documents fiscaux
+ * - Événements fiscaux
+ * - Analytics et conformité
+ */
 
-// Types pour la fiscalité
+import { apiService } from './api';
+
+const BASE_PATH = '/api/v1/taxation';
+
+// ============================================================================
+// INTERFACES TYPESCRIPT
+// ============================================================================
+
 export interface RegimeFiscal {
   id: number;
   code: string;
@@ -40,6 +65,27 @@ export interface TypeDeclaration {
   penalite_fixe: number;
   is_active: boolean;
   ordre_affichage: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LigneDeclaration {
+  id: number;
+  code_ligne: string;
+  libelle: string;
+  description?: string;
+  montant_base: number;
+  taux_applique: number;
+  montant_calcule: number;
+  obligatoire: boolean;
+  calculee_auto: boolean;
+  formule?: string;
+  ordre: number;
+  compte?: number;
+  compte_detail?: {
+    numero: string;
+    intitule: string;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -86,27 +132,6 @@ export interface DeclarationFiscale {
   lignes: LigneDeclaration[];
   is_en_retard: boolean;
   jours_retard: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface LigneDeclaration {
-  id: number;
-  code_ligne: string;
-  libelle: string;
-  description?: string;
-  montant_base: number;
-  taux_applique: number;
-  montant_calcule: number;
-  obligatoire: boolean;
-  calculee_auto: boolean;
-  formule?: string;
-  ordre: number;
-  compte?: number;
-  compte_detail?: {
-    numero: string;
-    intitule: string;
-  };
   created_at: string;
   updated_at: string;
 }
@@ -167,6 +192,65 @@ export interface AlerteFiscale {
   updated_at: string;
 }
 
+export interface ControleFiscal {
+  id: number;
+  numero_controle: string;
+  type_controle: 'DESK' | 'ON_SITE' | 'COMPLETE';
+  date_debut: string;
+  date_fin?: string;
+  statut: 'EN_COURS' | 'TERMINE' | 'ANNULE';
+  inspecteur_principal?: string;
+  periodes_concernees: Array<{ debut: string; fin: string }>;
+  impots_concernes: string[];
+  observations?: string;
+  redressements: Array<{
+    impot: string;
+    periode: string;
+    montant: number;
+    motif: string;
+  }>;
+  montant_total_redressement: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentFiscal {
+  id: number;
+  titre: string;
+  type_document: 'DECLARATION' | 'ATTESTATION' | 'AVIS_IMPOSITION' | 'ACCUSE_RECEPTION' | 'CORRESPONDANCE' | 'AUTRE';
+  fichier: string;
+  fichier_url?: string;
+  date_document: string;
+  declaration?: number;
+  controle?: number;
+  obligation?: number;
+  tags: string[];
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EvenementFiscal {
+  id: number;
+  type_evenement: 'DEPOT_DECLARATION' | 'PAIEMENT_IMPOT' | 'RECEPTION_NOTIFICATION' | 'DEBUT_CONTROLE' | 'FIN_CONTROLE' | 'CHANGEMENT_REGIME' | 'AUTRE';
+  titre: string;
+  description: string;
+  date_evenement: string;
+  traite: boolean;
+  date_traitement?: string;
+  traite_par?: number;
+  traite_par_detail?: {
+    username: string;
+    email: string;
+  };
+  declaration?: number;
+  controle?: number;
+  obligation?: number;
+  donnees_evenement: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface DashboardStats {
   total_declarations: number;
   total_amount: number;
@@ -223,51 +307,161 @@ export interface DeclarationCreateRequest {
   periode_fin: string;
 }
 
+export interface EcheanceProchaine {
+  obligation_id: number;
+  type_declaration: string;
+  date_echeance: string;
+  jours_restants: number;
+  responsable?: string;
+}
+
+export interface Anomalie {
+  type: string;
+  description: string;
+  niveau_gravite: string;
+  periode: string;
+  montant_impact?: number;
+}
+
+export interface ObligationFiscaleVerification {
+  type_declaration: TypeDeclaration;
+  date_limite: string;
+  en_retard: boolean;
+  jours_retard?: number;
+  penalites?: number;
+}
+
+// ============================================================================
+// SERVICE CLASS
+// ============================================================================
+
 class TaxationService {
-  private baseUrl = '/apiClient/taxation';
+  // ============================================================================
+  // SECTION 1: CRUD RÉGIMES FISCAUX
+  // ============================================================================
 
-  // Régimes fiscaux
-  async getRegimesFiscaux(): Promise<RegimeFiscal[]> {
-    const response = await apiClient.get(`${this.baseUrl}/regimes-fiscaux/`);
-    return response.data.results || response.data;
+  /**
+   * Récupère la liste de tous les régimes fiscaux
+   */
+  async getRegimesFiscaux(params?: {
+    page?: number;
+    page_size?: number;
+    is_active?: boolean;
+  }): Promise<{ results: RegimeFiscal[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/regimes-fiscaux/`, { params });
+    return response.data;
   }
 
+  /**
+   * Récupère un régime fiscal par ID
+   */
+  async getRegimeFiscalById(id: number): Promise<RegimeFiscal> {
+    const response = await apiService.get(`${BASE_PATH}/regimes-fiscaux/${id}/`);
+    return response.data;
+  }
+
+  /**
+   * Récupère le régime fiscal actif
+   */
   async getRegimeFiscalActif(): Promise<RegimeFiscal> {
-    const response = await apiClient.get(`${this.baseUrl}/regimes-fiscaux/actif/`);
+    const response = await apiService.get(`${BASE_PATH}/regimes-fiscaux/actif/`);
     return response.data;
   }
 
-  async activerRegimeFiscal(id: number): Promise<RegimeFiscal> {
-    const response = await apiClient.post(`${this.baseUrl}/regimes-fiscaux/${id}/activer/`);
-    return response.data;
-  }
-
+  /**
+   * Crée un nouveau régime fiscal
+   */
   async createRegimeFiscal(data: Partial<RegimeFiscal>): Promise<RegimeFiscal> {
-    const response = await apiClient.post(`${this.baseUrl}/regimes-fiscaux/`, data);
+    const response = await apiService.post(`${BASE_PATH}/regimes-fiscaux/`, data);
     return response.data;
   }
 
+  /**
+   * Met à jour un régime fiscal existant
+   */
   async updateRegimeFiscal(id: number, data: Partial<RegimeFiscal>): Promise<RegimeFiscal> {
-    const response = await apiClient.patch(`${this.baseUrl}/regimes-fiscaux/${id}/`, data);
+    const response = await apiService.patch(`${BASE_PATH}/regimes-fiscaux/${id}/`, data);
     return response.data;
   }
 
+  /**
+   * Supprime un régime fiscal
+   */
   async deleteRegimeFiscal(id: number): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/regimes-fiscaux/${id}/`);
+    await apiService.delete(`${BASE_PATH}/regimes-fiscaux/${id}/`);
   }
 
-  // Types de déclarations
-  async getTypesDeclarations(): Promise<TypeDeclaration[]> {
-    const response = await apiClient.get(`${this.baseUrl}/types-declarations/`);
-    return response.data.results || response.data;
-  }
-
-  async getTypesDeclarationsObligatoires(): Promise<TypeDeclaration[]> {
-    const response = await apiClient.get(`${this.baseUrl}/types-declarations/obligatoires/`);
+  /**
+   * Active un régime fiscal spécifique
+   */
+  async activerRegimeFiscal(id: number): Promise<RegimeFiscal> {
+    const response = await apiService.post(`${BASE_PATH}/regimes-fiscaux/${id}/activer/`);
     return response.data;
   }
 
-  // Déclarations fiscales
+  // ============================================================================
+  // SECTION 2: CRUD TYPES DE DÉCLARATIONS
+  // ============================================================================
+
+  /**
+   * Récupère la liste de tous les types de déclarations
+   */
+  async getTypesDeclarations(params?: {
+    page?: number;
+    page_size?: number;
+    is_active?: boolean;
+    statut?: string;
+  }): Promise<{ results: TypeDeclaration[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/types-declarations/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Récupère un type de déclaration par ID
+   */
+  async getTypeDeclarationById(id: number): Promise<TypeDeclaration> {
+    const response = await apiService.get(`${BASE_PATH}/types-declarations/${id}/`);
+    return response.data;
+  }
+
+  /**
+   * Récupère uniquement les types de déclarations obligatoires
+   */
+  async getTypesDeclarationsObligatoires(): Promise<TypeDeclaration[]> {
+    const response = await apiService.get(`${BASE_PATH}/types-declarations/obligatoires/`);
+    return response.data;
+  }
+
+  /**
+   * Crée un nouveau type de déclaration
+   */
+  async createTypeDeclaration(data: Partial<TypeDeclaration>): Promise<TypeDeclaration> {
+    const response = await apiService.post(`${BASE_PATH}/types-declarations/`, data);
+    return response.data;
+  }
+
+  /**
+   * Met à jour un type de déclaration
+   */
+  async updateTypeDeclaration(id: number, data: Partial<TypeDeclaration>): Promise<TypeDeclaration> {
+    const response = await apiService.patch(`${BASE_PATH}/types-declarations/${id}/`, data);
+    return response.data;
+  }
+
+  /**
+   * Supprime un type de déclaration
+   */
+  async deleteTypeDeclaration(id: number): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/types-declarations/${id}/`);
+  }
+
+  // ============================================================================
+  // SECTION 3: CRUD DÉCLARATIONS FISCALES
+  // ============================================================================
+
+  /**
+   * Récupère la liste des déclarations fiscales avec filtres
+   */
   async getDeclarationsFiscales(params?: {
     type_declaration?: number;
     exercice?: number;
@@ -275,136 +469,327 @@ class TaxationService {
     page?: number;
     page_size?: number;
   }): Promise<{ results: DeclarationFiscale[]; count: number; next: string | null; previous: string | null }> {
-    const response = await apiClient.get(`${this.baseUrl}/declarations/`, { params });
+    const response = await apiService.get(`${BASE_PATH}/declarations/`, { params });
     return response.data;
   }
 
+  /**
+   * Récupère une déclaration fiscale par ID
+   */
   async getDeclarationFiscale(id: number): Promise<DeclarationFiscale> {
-    const response = await apiClient.get(`${this.baseUrl}/declarations/${id}/`);
+    const response = await apiService.get(`${BASE_PATH}/declarations/${id}/`);
     return response.data;
   }
 
-  async getDashboardStats(): Promise<DashboardStats> {
-    const response = await apiClient.get(`${this.baseUrl}/declarations/dashboard_stats/`);
+  /**
+   * Crée une déclaration fiscale manuellement
+   */
+  async createDeclaration(data: Partial<DeclarationFiscale>): Promise<DeclarationFiscale> {
+    const response = await apiService.post(`${BASE_PATH}/declarations/`, data);
     return response.data;
   }
 
-  async genererDeclarationAutomatique(data: DeclarationCreateRequest): Promise<DeclarationFiscale> {
-    const response = await apiClient.post(`${this.baseUrl}/declarations/generer_automatique/`, data);
-    return response.data;
-  }
-
-  async validerDeclaration(id: number): Promise<DeclarationFiscale> {
-    const response = await apiClient.post(`${this.baseUrl}/declarations/${id}/valider/`);
-    return response.data;
-  }
-
-  async transmettreDeclaration(id: number): Promise<DeclarationFiscale> {
-    const response = await apiClient.post(`${this.baseUrl}/declarations/${id}/transmettre/`);
-    return response.data;
-  }
-
-  async exporterDeclarationPDF(id: number): Promise<{ download_url: string; filename: string }> {
-    const response = await apiClient.get(`${this.baseUrl}/declarations/${id}/export_pdf/`);
-    return response.data;
-  }
-
+  /**
+   * Met à jour une déclaration fiscale
+   */
   async updateDeclaration(id: number, data: Partial<DeclarationFiscale>): Promise<DeclarationFiscale> {
-    const response = await apiClient.patch(`${this.baseUrl}/declarations/${id}/`, data);
+    const response = await apiService.patch(`${BASE_PATH}/declarations/${id}/`, data);
     return response.data;
   }
 
+  /**
+   * Supprime une déclaration fiscale
+   */
   async deleteDeclaration(id: number): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/declarations/${id}/`);
+    await apiService.delete(`${BASE_PATH}/declarations/${id}/`);
   }
 
-  // Obligations fiscales
-  async getObligationsFiscales(): Promise<ObligationFiscale[]> {
-    const response = await apiClient.get(`${this.baseUrl}/obligations/`);
-    return response.data.results || response.data;
-  }
-
-  async getEcheancesProchaines(): Promise<Array<{
-    obligation_id: number;
-    type_declaration: string;
-    date_echeance: string;
-    jours_restants: number;
-    responsable?: string;
-  }>> {
-    const response = await apiClient.get(`${this.baseUrl}/obligations/echeances_prochaines/`);
+  /**
+   * Génère automatiquement une déclaration fiscale
+   */
+  async genererDeclarationAutomatique(data: DeclarationCreateRequest): Promise<DeclarationFiscale> {
+    const response = await apiService.post(`${BASE_PATH}/declarations/generer_automatique/`, data);
     return response.data;
   }
 
-  // Alertes fiscales
-  async getAlertesFiscales(): Promise<AlerteFiscale[]> {
-    const response = await apiClient.get(`${this.baseUrl}/alertes/`);
-    return response.data.results || response.data;
+  /**
+   * Valide une déclaration fiscale
+   */
+  async validerDeclaration(id: number): Promise<DeclarationFiscale> {
+    const response = await apiService.post(`${BASE_PATH}/declarations/${id}/valider/`);
+    return response.data;
   }
 
+  /**
+   * Transmet une déclaration fiscale à l'administration
+   */
+  async transmettreDeclaration(id: number): Promise<DeclarationFiscale> {
+    const response = await apiService.post(`${BASE_PATH}/declarations/${id}/transmettre/`);
+    return response.data;
+  }
+
+  /**
+   * Exporte une déclaration en PDF
+   */
+  async exporterDeclarationPDF(id: number): Promise<{ download_url: string; filename: string }> {
+    const response = await apiService.get(`${BASE_PATH}/declarations/${id}/export_pdf/`);
+    return response.data;
+  }
+
+  /**
+   * Récupère les statistiques du dashboard déclarations
+   */
+  async getDashboardStats(): Promise<DashboardStats> {
+    const response = await apiService.get(`${BASE_PATH}/declarations/dashboard_stats/`);
+    return response.data;
+  }
+
+  // ============================================================================
+  // SECTION 4: CRUD LIGNES DE DÉCLARATIONS
+  // ============================================================================
+
+  /**
+   * Récupère les lignes de déclaration
+   */
+  async getLignesDeclarations(params?: {
+    declaration?: number;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: LigneDeclaration[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/lignes-declarations/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Récupère une ligne de déclaration par ID
+   */
+  async getLigneDeclarationById(id: number): Promise<LigneDeclaration> {
+    const response = await apiService.get(`${BASE_PATH}/lignes-declarations/${id}/`);
+    return response.data;
+  }
+
+  /**
+   * Crée une ligne de déclaration
+   */
+  async createLigneDeclaration(data: Partial<LigneDeclaration>): Promise<LigneDeclaration> {
+    const response = await apiService.post(`${BASE_PATH}/lignes-declarations/`, data);
+    return response.data;
+  }
+
+  /**
+   * Met à jour une ligne de déclaration
+   */
+  async updateLigneDeclaration(id: number, data: Partial<LigneDeclaration>): Promise<LigneDeclaration> {
+    const response = await apiService.patch(`${BASE_PATH}/lignes-declarations/${id}/`, data);
+    return response.data;
+  }
+
+  /**
+   * Supprime une ligne de déclaration
+   */
+  async deleteLigneDeclaration(id: number): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/lignes-declarations/${id}/`);
+  }
+
+  // ============================================================================
+  // SECTION 5: CRUD OBLIGATIONS FISCALES
+  // ============================================================================
+
+  /**
+   * Récupère la liste des obligations fiscales
+   */
+  async getObligationsFiscales(params?: {
+    statut?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: ObligationFiscale[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/obligations/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Récupère une obligation fiscale par ID
+   */
+  async getObligationFiscaleById(id: number): Promise<ObligationFiscale> {
+    const response = await apiService.get(`${BASE_PATH}/obligations/${id}/`);
+    return response.data;
+  }
+
+  /**
+   * Crée une obligation fiscale
+   */
+  async createObligationFiscale(data: Partial<ObligationFiscale>): Promise<ObligationFiscale> {
+    const response = await apiService.post(`${BASE_PATH}/obligations/`, data);
+    return response.data;
+  }
+
+  /**
+   * Met à jour une obligation fiscale
+   */
+  async updateObligationFiscale(id: number, data: Partial<ObligationFiscale>): Promise<ObligationFiscale> {
+    const response = await apiService.patch(`${BASE_PATH}/obligations/${id}/`, data);
+    return response.data;
+  }
+
+  /**
+   * Supprime une obligation fiscale
+   */
+  async deleteObligationFiscale(id: number): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/obligations/${id}/`);
+  }
+
+  /**
+   * Récupère les échéances fiscales prochaines
+   */
+  async getEcheancesProchaines(params?: {
+    jours?: number;
+  }): Promise<EcheanceProchaine[]> {
+    const response = await apiService.get(`${BASE_PATH}/obligations/echeances_prochaines/`, { params });
+    return response.data;
+  }
+
+  // ============================================================================
+  // SECTION 6: CRUD ALERTES FISCALES
+  // ============================================================================
+
+  /**
+   * Récupère la liste des alertes fiscales
+   */
+  async getAlertesFiscales(params?: {
+    statut?: string;
+    niveau?: string;
+    type_alerte?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: AlerteFiscale[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/alertes/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Récupère une alerte fiscale par ID
+   */
+  async getAlerteFiscaleById(id: number): Promise<AlerteFiscale> {
+    const response = await apiService.get(`${BASE_PATH}/alertes/${id}/`);
+    return response.data;
+  }
+
+  /**
+   * Crée une alerte fiscale
+   */
+  async createAlerteFiscale(data: Partial<AlerteFiscale>): Promise<AlerteFiscale> {
+    const response = await apiService.post(`${BASE_PATH}/alertes/`, data);
+    return response.data;
+  }
+
+  /**
+   * Met à jour une alerte fiscale
+   */
+  async updateAlerteFiscale(id: number, data: Partial<AlerteFiscale>): Promise<AlerteFiscale> {
+    const response = await apiService.patch(`${BASE_PATH}/alertes/${id}/`, data);
+    return response.data;
+  }
+
+  /**
+   * Supprime une alerte fiscale
+   */
+  async deleteAlerteFiscale(id: number): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/alertes/${id}/`);
+  }
+
+  /**
+   * Récupère les alertes non lues
+   */
   async getAlertesNonLues(): Promise<AlerteFiscale[]> {
-    const response = await apiClient.get(`${this.baseUrl}/alertes/non_lues/`);
+    const response = await apiService.get(`${BASE_PATH}/alertes/non_lues/`);
     return response.data;
   }
 
-  async acquitterAlerte(id: number): Promise<AlerteFiscale> {
-    const response = await apiClient.post(`${this.baseUrl}/alertes/${id}/acquitter/`);
+  /**
+   * Acquitte une alerte fiscale
+   */
+  async acquitterAlerte(id: number, commentaires?: string): Promise<AlerteFiscale> {
+    const response = await apiService.post(`${BASE_PATH}/alertes/${id}/acquitter/`, { commentaires });
     return response.data;
   }
 
-  // Analytics et rapports
-  async genererRapportConformite(annee?: number): Promise<RapportConformite> {
-    const params = annee ? { annee } : {};
-    const response = await apiClient.get(`${this.baseUrl}/analytics/rapport_conformite/`, { params });
+  // ============================================================================
+  // SECTION 7: CRUD CONTRÔLES FISCAUX
+  // ============================================================================
+
+  /**
+   * Récupère la liste des contrôles fiscaux
+   */
+  async getControlesFiscaux(params?: {
+    statut?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: ControleFiscal[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/controles/`, { params });
     return response.data;
   }
 
-  async detecterAnomalies(): Promise<Array<{
-    type: string;
-    description: string;
-    niveau_gravite: string;
-    periode: string;
-    montant_impact?: number;
-  }>> {
-    const response = await apiClient.get(`${this.baseUrl}/analytics/detecter_anomalies/`);
+  /**
+   * Récupère un contrôle fiscal par ID
+   */
+  async getControleFiscalById(id: number): Promise<ControleFiscal> {
+    const response = await apiService.get(`${BASE_PATH}/controles/${id}/`);
     return response.data;
   }
 
-  async verifierObligationsFiscales(): Promise<Array<{
-    type_declaration: any;
-    date_limite: string;
-    en_retard: boolean;
-    jours_retard?: number;
-    penalites?: number;
-  }>> {
-    const response = await apiClient.get(`${this.baseUrl}/analytics/obligations_fiscales/`);
+  /**
+   * Crée un contrôle fiscal
+   */
+  async createControleFiscal(data: Partial<ControleFiscal>): Promise<ControleFiscal> {
+    const response = await apiService.post(`${BASE_PATH}/controles/`, data);
     return response.data;
   }
 
-  // Calcul d'impôts
-  async calculerImpot(request: CalculImpotRequest): Promise<CalculImpotResponse> {
-    const response = await apiClient.post(`${this.baseUrl}/calcul-impot/`, request);
+  /**
+   * Met à jour un contrôle fiscal
+   */
+  async updateControleFiscal(id: number, data: Partial<ControleFiscal>): Promise<ControleFiscal> {
+    const response = await apiService.patch(`${BASE_PATH}/controles/${id}/`, data);
     return response.data;
   }
 
-  // Événements fiscaux
-  async getEvenementsFiscaux(): Promise<any[]> {
-    const response = await apiClient.get(`${this.baseUrl}/evenements/`);
-    return response.data.results || response.data;
+  /**
+   * Supprime un contrôle fiscal
+   */
+  async deleteControleFiscal(id: number): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/controles/${id}/`);
   }
 
-  async marquerEvenementTraite(id: number): Promise<any> {
-    const response = await apiClient.post(`${this.baseUrl}/evenements/${id}/marquer_traite/`);
+  // ============================================================================
+  // SECTION 8: CRUD DOCUMENTS FISCAUX
+  // ============================================================================
+
+  /**
+   * Récupère la liste des documents fiscaux
+   */
+  async getDocumentsFiscaux(params?: {
+    type_document?: string;
+    declaration?: number;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: DocumentFiscal[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/documents/`, { params });
     return response.data;
   }
 
-  // Documents fiscaux
-  async getDocumentsFiscaux(): Promise<any[]> {
-    const response = await apiClient.get(`${this.baseUrl}/documents/`);
-    return response.data.results || response.data;
+  /**
+   * Récupère un document fiscal par ID
+   */
+  async getDocumentFiscalById(id: number): Promise<DocumentFiscal> {
+    const response = await apiService.get(`${BASE_PATH}/documents/${id}/`);
+    return response.data;
   }
 
-  async uploadDocumentFiscal(data: FormData): Promise<any> {
-    const response = await apiClient.post(`${this.baseUrl}/documents/`, data, {
+  /**
+   * Upload un document fiscal
+   */
+  async uploadDocumentFiscal(data: FormData): Promise<DocumentFiscal> {
+    const response = await apiService.post(`${BASE_PATH}/documents/`, data, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -412,10 +797,136 @@ class TaxationService {
     return response.data;
   }
 
-  // Contrôles fiscaux
-  async getControlesFiscaux(): Promise<any[]> {
-    const response = await apiClient.get(`${this.baseUrl}/controles/`);
-    return response.data.results || response.data;
+  /**
+   * Met à jour un document fiscal
+   */
+  async updateDocumentFiscal(id: number, data: Partial<DocumentFiscal>): Promise<DocumentFiscal> {
+    const response = await apiService.patch(`${BASE_PATH}/documents/${id}/`, data);
+    return response.data;
+  }
+
+  /**
+   * Supprime un document fiscal
+   */
+  async deleteDocumentFiscal(id: number): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/documents/${id}/`);
+  }
+
+  // ============================================================================
+  // SECTION 9: CRUD ÉVÉNEMENTS FISCAUX
+  // ============================================================================
+
+  /**
+   * Récupère la liste des événements fiscaux
+   */
+  async getEvenementsFiscaux(params?: {
+    type_evenement?: string;
+    traite?: boolean;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: EvenementFiscal[]; count: number }> {
+    const response = await apiService.get(`${BASE_PATH}/evenements/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Récupère un événement fiscal par ID
+   */
+  async getEvenementFiscalById(id: number): Promise<EvenementFiscal> {
+    const response = await apiService.get(`${BASE_PATH}/evenements/${id}/`);
+    return response.data;
+  }
+
+  /**
+   * Crée un événement fiscal
+   */
+  async createEvenementFiscal(data: Partial<EvenementFiscal>): Promise<EvenementFiscal> {
+    const response = await apiService.post(`${BASE_PATH}/evenements/`, data);
+    return response.data;
+  }
+
+  /**
+   * Met à jour un événement fiscal
+   */
+  async updateEvenementFiscal(id: number, data: Partial<EvenementFiscal>): Promise<EvenementFiscal> {
+    const response = await apiService.patch(`${BASE_PATH}/evenements/${id}/`, data);
+    return response.data;
+  }
+
+  /**
+   * Supprime un événement fiscal
+   */
+  async deleteEvenementFiscal(id: number): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/evenements/${id}/`);
+  }
+
+  /**
+   * Marque un événement fiscal comme traité
+   */
+  async marquerEvenementTraite(id: number, commentaires?: string): Promise<EvenementFiscal> {
+    const response = await apiService.post(`${BASE_PATH}/evenements/${id}/marquer_traite/`, { commentaires });
+    return response.data;
+  }
+
+  // ============================================================================
+  // SECTION 10: ANALYTICS ET CONFORMITÉ
+  // ============================================================================
+
+  /**
+   * Génère un rapport de conformité fiscale
+   */
+  async genererRapportConformite(params?: {
+    annee?: number;
+    exercice?: number;
+  }): Promise<RapportConformite> {
+    const response = await apiService.get(`${BASE_PATH}/analytics/rapport_conformite/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Détecte les anomalies fiscales
+   */
+  async detecterAnomalies(params?: {
+    periode_debut?: string;
+    periode_fin?: string;
+  }): Promise<Anomalie[]> {
+    const response = await apiService.get(`${BASE_PATH}/analytics/detecter_anomalies/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Vérifie les obligations fiscales et leur conformité
+   */
+  async verifierObligationsFiscales(params?: {
+    annee?: number;
+  }): Promise<ObligationFiscaleVerification[]> {
+    const response = await apiService.get(`${BASE_PATH}/analytics/obligations_fiscales/`, { params });
+    return response.data;
+  }
+
+  /**
+   * Calcule un impôt selon les paramètres fournis
+   */
+  async calculerImpot(request: CalculImpotRequest): Promise<CalculImpotResponse> {
+    const response = await apiService.post(`${BASE_PATH}/analytics/calcul-impot/`, request);
+    return response.data;
+  }
+
+  /**
+   * Récupère des statistiques analytics globales
+   */
+  async getAnalyticsStats(params?: {
+    periode_debut?: string;
+    periode_fin?: string;
+  }): Promise<{
+    declarations_total: number;
+    declarations_en_retard: number;
+    montant_total_impots: number;
+    montant_penalites: number;
+    score_conformite: number;
+  }> {
+    const response = await apiService.get(`${BASE_PATH}/analytics/stats/`, { params });
+    return response.data;
   }
 }
 

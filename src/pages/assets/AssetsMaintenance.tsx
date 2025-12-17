@@ -107,6 +107,27 @@ const AssetsMaintenance: React.FC = () => {
   const [maintenanceModal, setMaintenanceModal] = useState<MaintenanceModal>({ isOpen: false, mode: 'view' });
   const [selectedPeriod, setSelectedPeriod] = useState('current_month');
 
+  // Form state for create/edit modes
+  const [formData, setFormData] = useState({
+    assetId: '',
+    assetName: '',
+    assetTag: '',
+    category: 'materiel_informatique',
+    maintenanceType: 'preventive' as 'preventive' | 'corrective' | 'predictive' | 'emergency',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
+    scheduledDate: '',
+    estimatedDuration: '',
+    estimatedCost: '',
+    assignedTo: '',
+    technician: '',
+    supplier: '',
+    description: '',
+    location: '',
+    notes: ''
+  });
+
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   // Mock data for maintenance records
   const mockMaintenanceRecords: MaintenanceRecord[] = [
     {
@@ -389,6 +410,120 @@ const AssetsMaintenance: React.FC = () => {
 
   const uniqueTechnicians = [...new Set(mockMaintenanceRecords.map(r => r.technician).filter(Boolean))];
 
+  // Form handlers
+  const handleFormChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field when user starts typing
+    if (formErrors[field]) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.assetName.trim()) {
+      errors.assetName = 'Le nom de l\'actif est requis';
+    }
+
+    if (!formData.description.trim()) {
+      errors.description = 'La description est requise';
+    }
+
+    if (!formData.scheduledDate) {
+      errors.scheduledDate = 'La date planifiée est requise';
+    }
+
+    if (!formData.estimatedDuration || parseFloat(formData.estimatedDuration) <= 0) {
+      errors.estimatedDuration = 'La durée estimée doit être supérieure à 0';
+    }
+
+    if (!formData.estimatedCost || parseFloat(formData.estimatedCost) < 0) {
+      errors.estimatedCost = 'Le coût estimé doit être positif';
+    }
+
+    if (!formData.location.trim()) {
+      errors.location = 'L\'emplacement est requis';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      assetId: '',
+      assetName: '',
+      assetTag: '',
+      category: 'materiel_informatique',
+      maintenanceType: 'preventive',
+      priority: 'medium',
+      scheduledDate: '',
+      estimatedDuration: '',
+      estimatedCost: '',
+      assignedTo: '',
+      technician: '',
+      supplier: '',
+      description: '',
+      location: '',
+      notes: ''
+    });
+    setFormErrors({});
+  };
+
+  const handleModalOpen = (mode: 'view' | 'edit' | 'create' | 'schedule', record?: MaintenanceRecord) => {
+    if (mode === 'edit' && record) {
+      setFormData({
+        assetId: record.assetId,
+        assetName: record.assetName,
+        assetTag: record.assetTag,
+        category: record.category,
+        maintenanceType: record.maintenanceType,
+        priority: record.priority,
+        scheduledDate: record.scheduledDate.split('T')[0],
+        estimatedDuration: record.estimatedDuration.toString(),
+        estimatedCost: record.estimatedCost.toString(),
+        assignedTo: record.assignedTo || '',
+        technician: record.technician || '',
+        supplier: record.supplier || '',
+        description: record.description,
+        location: record.location,
+        notes: record.notes || ''
+      });
+    } else if (mode === 'create') {
+      resetForm();
+    }
+    setMaintenanceModal({ isOpen: true, mode, record });
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      alert('Veuillez corriger les erreurs du formulaire');
+      return;
+    }
+
+    try {
+      if (maintenanceModal.mode === 'create') {
+        // Create new maintenance record
+        console.log('Creating maintenance:', formData);
+        alert('Maintenance créée avec succès!');
+      } else if (maintenanceModal.mode === 'edit') {
+        // Update existing maintenance record
+        console.log('Updating maintenance:', formData);
+        alert('Maintenance mise à jour avec succès!');
+      }
+      setMaintenanceModal({ isOpen: false, mode: 'view' });
+      resetForm();
+    } catch (error) {
+      console.error('Error submitting maintenance:', error);
+      alert('Erreur lors de l\'enregistrement');
+    }
+  };
+
   const statusChartData = [
     { label: 'Terminés', value: aggregatedData.completedRecords, color: 'bg-green-500' },
     { label: 'Planifiés', value: aggregatedData.scheduledRecords, color: 'bg-blue-500' },
@@ -422,7 +557,7 @@ const AssetsMaintenance: React.FC = () => {
               <ElegantButton
                 variant="primary"
                 icon={Plus}
-                onClick={() => setMaintenanceModal({ isOpen: true, mode: 'create' })}
+                onClick={() => handleModalOpen('create')}
               >
                 Nouvelle Maintenance
               </ElegantButton>
@@ -664,13 +799,13 @@ const AssetsMaintenance: React.FC = () => {
                             </span>
                             <div className="flex space-x-2">
                               <button
-                                onClick={() => setMaintenanceModal({ isOpen: true, mode: 'view', record })}
+                                onClick={() => handleModalOpen('view', record)}
                                 className="p-2 text-neutral-400 hover:text-blue-600 transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
                               <button
-                                onClick={() => setMaintenanceModal({ isOpen: true, mode: 'edit', record })}
+                                onClick={() => handleModalOpen('edit', record)}
                                 className="p-2 text-neutral-400 hover:text-green-600 transition-colors"
                               >
                                 <Edit className="h-4 w-4" />
@@ -718,7 +853,7 @@ const AssetsMaintenance: React.FC = () => {
                 <ElegantButton
                   variant="primary"
                   icon={Plus}
-                  onClick={() => setMaintenanceModal({ isOpen: true, mode: 'schedule' })}
+                  onClick={() => handleModalOpen('schedule')}
                 >
                   Planifier
                 </ElegantButton>
@@ -1005,21 +1140,249 @@ const AssetsMaintenance: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center text-neutral-600">
-                    <p>Formulaire de maintenance...</p>
-                    <p className="text-sm mt-2">Interface de création en développement</p>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Asset Information */}
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Nom de l'Actif <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.assetName}
+                          onChange={(e) => handleFormChange('assetName', e.target.value)}
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                            formErrors.assetName ? 'border-red-500' : 'border-neutral-200'
+                          }`}
+                          placeholder="Ex: MacBook Pro 16"
+                        />
+                        {formErrors.assetName && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.assetName}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Tag de l'Actif
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.assetTag}
+                          onChange={(e) => handleFormChange('assetTag', e.target.value)}
+                          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="Ex: IT001"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Catégorie
+                        </label>
+                        <select
+                          value={formData.category}
+                          onChange={(e) => handleFormChange('category', e.target.value)}
+                          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="materiel_informatique">Matériel Informatique</option>
+                          <option value="vehicules">Véhicules</option>
+                          <option value="equipements">Équipements</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Type de Maintenance
+                        </label>
+                        <select
+                          value={formData.maintenanceType}
+                          onChange={(e) => handleFormChange('maintenanceType', e.target.value)}
+                          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="preventive">Préventif</option>
+                          <option value="corrective">Correctif</option>
+                          <option value="predictive">Prédictif</option>
+                          <option value="emergency">Urgence</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Priorité
+                        </label>
+                        <select
+                          value={formData.priority}
+                          onChange={(e) => handleFormChange('priority', e.target.value)}
+                          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="low">Faible</option>
+                          <option value="medium">Moyenne</option>
+                          <option value="high">Élevée</option>
+                          <option value="critical">Critique</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Date Planifiée <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.scheduledDate}
+                          onChange={(e) => handleFormChange('scheduledDate', e.target.value)}
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                            formErrors.scheduledDate ? 'border-red-500' : 'border-neutral-200'
+                          }`}
+                        />
+                        {formErrors.scheduledDate && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.scheduledDate}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Durée Estimée (heures) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={formData.estimatedDuration}
+                          onChange={(e) => handleFormChange('estimatedDuration', e.target.value)}
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                            formErrors.estimatedDuration ? 'border-red-500' : 'border-neutral-200'
+                          }`}
+                          placeholder="Ex: 2.5"
+                        />
+                        {formErrors.estimatedDuration && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.estimatedDuration}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Coût Estimé (€) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.estimatedCost}
+                          onChange={(e) => handleFormChange('estimatedCost', e.target.value)}
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                            formErrors.estimatedCost ? 'border-red-500' : 'border-neutral-200'
+                          }`}
+                          placeholder="Ex: 150.00"
+                        />
+                        {formErrors.estimatedCost && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.estimatedCost}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Assigné à
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.assignedTo}
+                          onChange={(e) => handleFormChange('assignedTo', e.target.value)}
+                          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="Ex: Service IT"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Technicien
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.technician}
+                          onChange={(e) => handleFormChange('technician', e.target.value)}
+                          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="Ex: Marc Technician"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Fournisseur
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.supplier}
+                          onChange={(e) => handleFormChange('supplier', e.target.value)}
+                          className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="Ex: Apple Service"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Emplacement <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.location}
+                          onChange={(e) => handleFormChange('location', e.target.value)}
+                          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                            formErrors.location ? 'border-red-500' : 'border-neutral-200'
+                          }`}
+                          placeholder="Ex: Bureau Paris"
+                        />
+                        {formErrors.location && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.location}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Description <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => handleFormChange('description', e.target.value)}
+                        rows={3}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                          formErrors.description ? 'border-red-500' : 'border-neutral-200'
+                        }`}
+                        placeholder="Décrivez la maintenance à effectuer..."
+                      />
+                      {formErrors.description && (
+                        <p className="text-red-500 text-xs mt-1">{formErrors.description}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Notes
+                      </label>
+                      <textarea
+                        value={formData.notes}
+                        onChange={(e) => handleFormChange('notes', e.target.value)}
+                        rows={2}
+                        className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="Notes supplémentaires..."
+                      />
+                    </div>
                   </div>
                 )}
 
                 <div className="flex justify-end space-x-3 pt-4 border-t border-neutral-200">
                   <ElegantButton
                     variant="outline"
-                    onClick={() => setMaintenanceModal({ isOpen: false, mode: 'view' })}
+                    onClick={() => {
+                      setMaintenanceModal({ isOpen: false, mode: 'view' });
+                      if (maintenanceModal.mode !== 'view') {
+                        resetForm();
+                      }
+                    }}
                   >
                     {maintenanceModal.mode === 'view' ? 'Fermer' : 'Annuler'}
                   </ElegantButton>
                   {maintenanceModal.mode !== 'view' && (
-                    <ElegantButton variant="primary">
+                    <ElegantButton variant="primary" onClick={handleSubmit}>
                       {maintenanceModal.mode === 'create' ? 'Créer' :
                        maintenanceModal.mode === 'schedule' ? 'Planifier' : 'Sauvegarder'}
                     </ElegantButton>

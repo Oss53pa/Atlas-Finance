@@ -374,7 +374,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#ECECEC] font-['Sometype Mono']">
+    <div className="min-h-screen bg-[#ECECEC] ">
       <PrintableArea
         ref={printRef}
         orientation="landscape"

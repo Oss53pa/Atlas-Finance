@@ -53,11 +53,11 @@ interface MovementDetailsModalProps {
 }
 
 const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
-  const { t } = useLanguage();
   isOpen,
   onClose,
   movement
 }) => {
+  const { t } = useLanguage();
   if (!isOpen || !movement) return null;
 
   return (

@@ -144,6 +144,10 @@ const ControlesCoherence: React.FC = () => {
   const [filterStatut, setFilterStatut] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');
   const [showExecutionModal, setShowExecutionModal] = useState(false);
+  const [showDetailControleModal, setShowDetailControleModal] = useState(false);
+  const [selectedControle, setSelectedControle] = useState<ControleCoherence | null>(null);
+  const [showDetailAnomalieModal, setShowDetailAnomalieModal] = useState(false);
+  const [selectedAnomalie, setSelectedAnomalie] = useState<RapportAnomalies | null>(null);
   const [formData, setFormData] = useState({
     controle_ids: [] as string[],
     arret_sur_erreur: false,
@@ -578,6 +582,31 @@ const ControlesCoherence: React.FC = () => {
     }
   };
 
+  // Handler functions
+  const handleViewControleDetail = (controle: ControleCoherence) => {
+    setSelectedControle(controle);
+    setShowDetailControleModal(true);
+    toast.success(`Affichage du contrôle: ${controle.nom}`);
+  };
+
+  const handleRefreshControle = (controle: ControleCoherence) => {
+    toast.success(`Exécution du contrôle: ${controle.nom}`);
+  };
+
+  const handleSettingsControle = (controle: ControleCoherence) => {
+    toast.success(`Paramètres du contrôle: ${controle.nom}`);
+  };
+
+  const handleViewAnomalieDetail = (anomalie: RapportAnomalies) => {
+    setSelectedAnomalie(anomalie);
+    setShowDetailAnomalieModal(true);
+    toast.success(`Affichage de l'anomalie: ${anomalie.description}`);
+  };
+
+  const handleEditAnomalie = (anomalie: RapportAnomalies) => {
+    toast.success(`Édition de l'anomalie: ${anomalie.id}`);
+  };
+
   return (
     <div className="space-y-6">
       {/* En-tête avec KPIs */}
@@ -893,13 +922,25 @@ const ControlesCoherence: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewControleDetail(controle)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Actualiser">
+                          <button
+                            onClick={() => handleRefreshControle(controle)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Actualiser"
+                          >
                             <RefreshCw className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Paramètres">
+                          <button
+                            onClick={() => handleSettingsControle(controle)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Paramètres"
+                          >
                             <Settings className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
                         </div>
@@ -1027,10 +1068,17 @@ const ControlesCoherence: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewAnomalieDetail(anomalie)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            onClick={() => handleEditAnomalie(anomalie)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                          >
                             <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                         </div>
@@ -1432,6 +1480,225 @@ const ControlesCoherence: React.FC = () => {
                     <span>Lancer les Contrôles</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Controle Detail Modal */}
+      {showDetailControleModal && selectedControle && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail du Contrôle</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailControleModal(false);
+                  setSelectedControle(null);
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <p className="text-sm text-[var(--color-text-secondary)]">Nom du contrôle</p>
+                    <p className="font-medium text-lg">{selectedControle.nom}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm text-[var(--color-text-secondary)]">Description</p>
+                    <p className="text-[var(--color-text-primary)]">{selectedControle.description}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Catégorie</p>
+                    <p className="font-medium capitalize">{selectedControle.categorie.replace('_', ' ')}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Priorité</p>
+                    <p className="font-medium capitalize">{selectedControle.priorite}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Statut</p>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatutBadge(selectedControle.statut)}`}>
+                      {selectedControle.statut}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Dernière exécution</p>
+                    <p className="font-medium">{new Date(selectedControle.dateExecution).toLocaleString()}</p>
+                  </div>
+                  {selectedControle.ecart !== undefined && (
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Écart détecté</p>
+                      <p className={`font-medium font-mono ${selectedControle.ecart === 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                        {selectedControle.ecart.toLocaleString()} FCFA
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Temps d'exécution</p>
+                    <p className="font-medium">{selectedControle.tempsExecution}s</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)] mb-2">Résultat</p>
+                  <div className="bg-[var(--color-background-secondary)] p-3 rounded-lg">
+                    <p>{selectedControle.messageResultat}</p>
+                  </div>
+                </div>
+                {selectedControle.recommandations.length > 0 && (
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)] mb-2">Recommandations</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {selectedControle.recommandations.map((rec, idx) => (
+                        <li key={idx} className="text-sm">{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDetailControleModal(false);
+                  setSelectedControle(null);
+                }}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => {
+                  handleRefreshControle(selectedControle);
+                  setShowDetailControleModal(false);
+                  setSelectedControle(null);
+                }}
+                className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Relancer le contrôle</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Anomalie Detail Modal */}
+      {showDetailAnomalieModal && selectedAnomalie && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[var(--color-error-lighter)] text-[var(--color-error)] p-2 rounded-lg">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de l'Anomalie</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailAnomalieModal(false);
+                  setSelectedAnomalie(null);
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <p className="text-sm text-[var(--color-text-secondary)]">Description</p>
+                    <p className="font-medium">{selectedAnomalie.description}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Sévérité</p>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedAnomalie.severite === 'critique' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                      selectedAnomalie.severite === 'majeure' ? 'bg-[var(--color-warning-lighter)] text-orange-800' :
+                      selectedAnomalie.severite === 'mineure' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
+                      'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'
+                    }`}>
+                      {selectedAnomalie.severite}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Module</p>
+                    <p className="font-medium">{selectedAnomalie.module}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Valeur détectée</p>
+                    <p className="font-medium">{selectedAnomalie.valeurDetectee}</p>
+                  </div>
+                  {selectedAnomalie.valeurAttendue && (
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Valeur attendue</p>
+                      <p className="font-medium">{selectedAnomalie.valeurAttendue}</p>
+                    </div>
+                  )}
+                  {selectedAnomalie.montantImpact && (
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Impact financier</p>
+                      <p className="font-medium font-mono text-[var(--color-error)]">
+                        {selectedAnomalie.montantImpact.toLocaleString()} FCFA
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Statut</p>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedAnomalie.statut === 'resolu' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                      selectedAnomalie.statut === 'en_cours' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                      'bg-[var(--color-warning-lighter)] text-yellow-800'
+                    }`}>
+                      {selectedAnomalie.statut}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)] mb-2">Actions correctives</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {selectedAnomalie.actionsCorrectives.map((action, idx) => (
+                      <li key={idx} className="text-sm">{action}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDetailAnomalieModal(false);
+                  setSelectedAnomalie(null);
+                }}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => {
+                  handleEditAnomalie(selectedAnomalie);
+                  setShowDetailAnomalieModal(false);
+                  setSelectedAnomalie(null);
+                }}
+                className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Traiter l'anomalie</span>
               </button>
             </div>
           </div>

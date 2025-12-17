@@ -8,7 +8,7 @@ import {
   BarChart3, PieChart, TrendingUp, TrendingDown, Target, Award, Shield,
   CreditCard, Euro, Users, Activity, RefreshCw, Eye, Plus, Filter,
   Search, ChevronRight, ChevronDown, AlertCircle, Info, Settings,
-  Upload, Folder, File, Image, Paperclip, Link, Trash2
+  Upload, Folder, File, Image, Paperclip, Link, Trash2, X
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -160,6 +160,49 @@ const ClientDetailView: React.FC = () => {
     period: 'year' as 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
   });
   const [expandedSections, setExpandedSections] = useState<string[]>(['infos-base']);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editModalTab, setEditModalTab] = useState<'general' | 'contact' | 'comptable' | 'commercial' | 'bancaire'>('general');
+  const [editFormData, setEditFormData] = useState({
+    // Informations générales
+    nom: '',
+    nomCommercial: '',
+    formeJuridique: '',
+    secteurActivite: '',
+    categorie: '',
+    responsableCommercial: '',
+    // Contact & Adresse
+    email: '',
+    telephone: '',
+    telephoneSecondaire: '',
+    fax: '',
+    siteWeb: '',
+    adresse: '',
+    ville: '',
+    codePostal: '',
+    pays: '',
+    // Paramètres comptables SYSCOHADA
+    compteCollectif: '411000',
+    compteAuxiliaire: '',
+    journalVentes: 'VE',
+    journalEncaissements: 'BQ',
+    tauxTVADefaut: 18,
+    exonerationTVA: false,
+    numeroNIU: '',
+    numeroRCCM: '',
+    // Conditions commerciales
+    regimeTVA: '',
+    delaiPaiement: 0,
+    plafondEncours: 0,
+    modeReglement: '',
+    remiseGenerale: 0,
+    escompte: 0,
+    devise: 'XAF',
+    // Coordonnées bancaires
+    banque: '',
+    iban: '',
+    bic: '',
+    domiciliation: ''
+  });
 
   // Mock Client Data
   const clientDetail: ClientDetail = {
@@ -364,10 +407,62 @@ const ClientDetailView: React.FC = () => {
     );
   };
 
+  const handleOpenEditModal = () => {
+    setEditModalTab('general');
+    setEditFormData({
+      // Informations générales
+      nom: clientDetail.nom,
+      nomCommercial: clientDetail.nomCommercial || '',
+      formeJuridique: clientDetail.formeJuridique,
+      secteurActivite: clientDetail.secteurActivite,
+      categorie: clientDetail.classification.categorie,
+      responsableCommercial: clientDetail.classification.responsableCommercial,
+      // Contact & Adresse
+      email: clientDetail.contacts.principal.email,
+      telephone: clientDetail.contacts.principal.telephone,
+      telephoneSecondaire: '',
+      fax: '',
+      siteWeb: '',
+      adresse: clientDetail.adresseFacturation.rue,
+      ville: clientDetail.adresseFacturation.ville,
+      codePostal: clientDetail.adresseFacturation.codePostal,
+      pays: clientDetail.adresseFacturation.pays,
+      // Paramètres comptables SYSCOHADA
+      compteCollectif: clientDetail.comptabilite.compteCollectif,
+      compteAuxiliaire: clientDetail.comptabilite.comptesAuxiliaires[0] || '',
+      journalVentes: 'VE',
+      journalEncaissements: 'BQ',
+      tauxTVADefaut: clientDetail.comptabilite.tauxTVADefaut,
+      exonerationTVA: clientDetail.comptabilite.exonerationTVA,
+      numeroNIU: clientDetail.numeroTVA || '',
+      numeroRCCM: clientDetail.siret || '',
+      // Conditions commerciales
+      regimeTVA: clientDetail.comptabilite.regimeTVA,
+      delaiPaiement: clientDetail.comptabilite.delaiPaiement,
+      plafondEncours: clientDetail.comptabilite.plafondEncours,
+      modeReglement: clientDetail.comptabilite.modeReglement,
+      remiseGenerale: 0,
+      escompte: 0,
+      devise: clientDetail.comptabilite.deviseFacturation,
+      // Coordonnées bancaires
+      banque: '',
+      iban: clientDetail.banque.iban,
+      bic: clientDetail.banque.bic,
+      domiciliation: clientDetail.banque.domiciliation
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveClient = () => {
+    console.log('Données sauvegardées:', editFormData);
+    // Ici, on ferait un appel API pour sauvegarder les modifications
+    setShowEditModal(false);
+  };
+
   const COLORS = ['#6A8A82', '#B87333', '#5A6B65', '#9B6B2A'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+    <div className="p-6 bg-[#ECECEC] min-h-screen ">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between">
@@ -418,7 +513,10 @@ const ClientDetailView: React.FC = () => {
               <span className="text-sm font-semibold">{t('common.print')}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
+            <button
+              onClick={handleOpenEditModal}
+              className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors"
+            >
               <Edit className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.edit')}</span>
             </button>
@@ -1831,6 +1929,525 @@ const ClientDetailView: React.FC = () => {
           setShowPeriodModal(false);
         }}
       />
+
+      {/* Modal Édition Client avec Onglets */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
+            {/* Header du modal */}
+            <div className="bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Edit className="w-6 h-6 text-white" />
+                <h2 className="text-xl font-bold text-white">Modifier le client - {clientDetail.code}</h2>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-white/80 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Navigation par onglets */}
+            <div className="bg-gray-50 border-b border-gray-200 px-6">
+              <div className="flex space-x-1 overflow-x-auto">
+                {[
+                  { id: 'general', label: 'Général', icon: Building },
+                  { id: 'contact', label: 'Contact & Adresse', icon: MapPin },
+                  { id: 'comptable', label: 'Paramètres comptables', icon: FileText },
+                  { id: 'commercial', label: 'Conditions commerciales', icon: CreditCard },
+                  { id: 'bancaire', label: 'Coordonnées bancaires', icon: DollarSign }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setEditModalTab(tab.id as any)}
+                    className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                      editModalTab === tab.id
+                        ? 'border-[#6A8A82] text-[#6A8A82] bg-white'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Contenu du modal avec scroll */}
+            <div className="overflow-y-auto max-h-[calc(90vh-200px)] p-6">
+
+              {/* Onglet Général */}
+              {editModalTab === 'general' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Raison sociale *</label>
+                      <input
+                        type="text"
+                        value={editFormData.nom}
+                        onChange={(e) => setEditFormData({...editFormData, nom: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Nom commercial</label>
+                      <input
+                        type="text"
+                        value={editFormData.nomCommercial}
+                        onChange={(e) => setEditFormData({...editFormData, nomCommercial: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Forme juridique</label>
+                      <select
+                        value={editFormData.formeJuridique}
+                        onChange={(e) => setEditFormData({...editFormData, formeJuridique: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      >
+                        <option value="SARL">SARL</option>
+                        <option value="SA">SA</option>
+                        <option value="SAS">SAS</option>
+                        <option value="EI">Entreprise Individuelle</option>
+                        <option value="GIE">GIE</option>
+                        <option value="AUTRE">Autre</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Secteur d'activité</label>
+                      <input
+                        type="text"
+                        value={editFormData.secteurActivite}
+                        onChange={(e) => setEditFormData({...editFormData, secteurActivite: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Catégorie client</label>
+                      <select
+                        value={editFormData.categorie}
+                        onChange={(e) => setEditFormData({...editFormData, categorie: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      >
+                        <option value="GRAND_COMPTE">Grand Compte</option>
+                        <option value="PME">PME</option>
+                        <option value="TPE">TPE</option>
+                        <option value="PARTICULIER">Particulier</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Responsable commercial</label>
+                      <input
+                        type="text"
+                        value={editFormData.responsableCommercial}
+                        onChange={(e) => setEditFormData({...editFormData, responsableCommercial: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet Contact & Adresse */}
+              {editModalTab === 'contact' && (
+                <div className="space-y-6">
+                  {/* Contact */}
+                  <div>
+                    <h4 className="text-md font-semibold text-[#2D2D2D] mb-4 flex items-center">
+                      <Phone className="w-4 h-4 mr-2 text-[#6A8A82]" />
+                      Coordonnées
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Email principal</label>
+                        <input
+                          type="email"
+                          value={editFormData.email}
+                          onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Téléphone principal</label>
+                        <input
+                          type="tel"
+                          value={editFormData.telephone}
+                          onChange={(e) => setEditFormData({...editFormData, telephone: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Téléphone secondaire</label>
+                        <input
+                          type="tel"
+                          value={editFormData.telephoneSecondaire}
+                          onChange={(e) => setEditFormData({...editFormData, telephoneSecondaire: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Site web</label>
+                        <input
+                          type="url"
+                          value={editFormData.siteWeb}
+                          onChange={(e) => setEditFormData({...editFormData, siteWeb: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                          placeholder="https://"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Adresse */}
+                  <div>
+                    <h4 className="text-md font-semibold text-[#2D2D2D] mb-4 flex items-center">
+                      <MapPin className="w-4 h-4 mr-2 text-[#6A8A82]" />
+                      Adresse de facturation
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Adresse</label>
+                        <input
+                          type="text"
+                          value={editFormData.adresse}
+                          onChange={(e) => setEditFormData({...editFormData, adresse: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Ville</label>
+                        <input
+                          type="text"
+                          value={editFormData.ville}
+                          onChange={(e) => setEditFormData({...editFormData, ville: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Code postal</label>
+                        <input
+                          type="text"
+                          value={editFormData.codePostal}
+                          onChange={(e) => setEditFormData({...editFormData, codePostal: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Pays</label>
+                        <select
+                          value={editFormData.pays}
+                          onChange={(e) => setEditFormData({...editFormData, pays: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        >
+                          <option value="Congo">Congo</option>
+                          <option value="Gabon">Gabon</option>
+                          <option value="Cameroun">Cameroun</option>
+                          <option value="Tchad">Tchad</option>
+                          <option value="RCA">République Centrafricaine</option>
+                          <option value="Guinée Équatoriale">Guinée Équatoriale</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet Paramètres comptables SYSCOHADA */}
+              {editModalTab === 'comptable' && (
+                <div className="space-y-6">
+                  {/* Comptes */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-md font-semibold text-blue-800 mb-4 flex items-center">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Plan comptable SYSCOHADA
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-blue-700 mb-1">Compte collectif (411)</label>
+                        <input
+                          type="text"
+                          value={editFormData.compteCollectif}
+                          onChange={(e) => setEditFormData({...editFormData, compteCollectif: e.target.value})}
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono bg-white"
+                          placeholder="411000"
+                        />
+                        <p className="text-xs text-blue-600 mt-1">Compte principal clients</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-blue-700 mb-1">Compte auxiliaire</label>
+                        <input
+                          type="text"
+                          value={editFormData.compteAuxiliaire}
+                          onChange={(e) => setEditFormData({...editFormData, compteAuxiliaire: e.target.value})}
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono bg-white"
+                          placeholder="411001"
+                        />
+                        <p className="text-xs text-blue-600 mt-1">Compte spécifique au client</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Journaux */}
+                  <div>
+                    <h4 className="text-md font-semibold text-[#2D2D2D] mb-4">Journaux comptables</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Journal des ventes</label>
+                        <select
+                          value={editFormData.journalVentes}
+                          onChange={(e) => setEditFormData({...editFormData, journalVentes: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        >
+                          <option value="VE">VE - Journal des Ventes</option>
+                          <option value="VE1">VE1 - Ventes locales</option>
+                          <option value="VE2">VE2 - Ventes export</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Journal des encaissements</label>
+                        <select
+                          value={editFormData.journalEncaissements}
+                          onChange={(e) => setEditFormData({...editFormData, journalEncaissements: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        >
+                          <option value="BQ">BQ - Banque</option>
+                          <option value="CA">CA - Caisse</option>
+                          <option value="OD">OD - Opérations diverses</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TVA */}
+                  <div>
+                    <h4 className="text-md font-semibold text-[#2D2D2D] mb-4">Paramètres TVA</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Régime TVA</label>
+                        <select
+                          value={editFormData.regimeTVA}
+                          onChange={(e) => setEditFormData({...editFormData, regimeTVA: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        >
+                          <option value="NORMAL">Réel Normal</option>
+                          <option value="SIMPLIFIE">Réel Simplifié</option>
+                          <option value="FRANCHISE">Franchise de base</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">Taux TVA par défaut (%)</label>
+                        <select
+                          value={editFormData.tauxTVADefaut}
+                          onChange={(e) => setEditFormData({...editFormData, tauxTVADefaut: parseFloat(e.target.value)})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        >
+                          <option value={18}>18% - Taux normal</option>
+                          <option value={10}>10% - Taux réduit</option>
+                          <option value={5}>5% - Taux super réduit</option>
+                          <option value={0}>0% - Exonéré</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center pt-6">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editFormData.exonerationTVA}
+                            onChange={(e) => setEditFormData({...editFormData, exonerationTVA: e.target.checked})}
+                            className="w-4 h-4 text-[#6A8A82] border-gray-300 rounded focus:ring-[#6A8A82]"
+                          />
+                          <span className="text-sm font-medium text-[#666666]">Exonération TVA</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Identifiants fiscaux */}
+                  <div>
+                    <h4 className="text-md font-semibold text-[#2D2D2D] mb-4">Identifiants fiscaux</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">NIU (Numéro d'Identification Unique)</label>
+                        <input
+                          type="text"
+                          value={editFormData.numeroNIU}
+                          onChange={(e) => setEditFormData({...editFormData, numeroNIU: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent font-mono"
+                          placeholder="M0123456789A"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#666666] mb-1">RCCM</label>
+                        <input
+                          type="text"
+                          value={editFormData.numeroRCCM}
+                          onChange={(e) => setEditFormData({...editFormData, numeroRCCM: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent font-mono"
+                          placeholder="CG-BZV-01-2024-A12-00123"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet Conditions commerciales */}
+              {editModalTab === 'commercial' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Délai de paiement (jours)</label>
+                      <select
+                        value={editFormData.delaiPaiement}
+                        onChange={(e) => setEditFormData({...editFormData, delaiPaiement: parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      >
+                        <option value={0}>Comptant</option>
+                        <option value={15}>15 jours</option>
+                        <option value={30}>30 jours</option>
+                        <option value={45}>45 jours</option>
+                        <option value={60}>60 jours</option>
+                        <option value={90}>90 jours</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Mode de règlement</label>
+                      <select
+                        value={editFormData.modeReglement}
+                        onChange={(e) => setEditFormData({...editFormData, modeReglement: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      >
+                        <option value="VIREMENT">Virement bancaire</option>
+                        <option value="CHEQUE">Chèque</option>
+                        <option value="PRELEVEMENT">Prélèvement automatique</option>
+                        <option value="ESPECES">Espèces</option>
+                        <option value="MOBILE_MONEY">Mobile Money</option>
+                        <option value="TRAITE">Traite/Effet</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Plafond encours (XAF)</label>
+                      <input
+                        type="number"
+                        value={editFormData.plafondEncours}
+                        onChange={(e) => setEditFormData({...editFormData, plafondEncours: parseInt(e.target.value) || 0})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Devise de facturation</label>
+                      <select
+                        value={editFormData.devise}
+                        onChange={(e) => setEditFormData({...editFormData, devise: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      >
+                        <option value="XAF">XAF - Franc CFA CEMAC</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="USD">USD - Dollar US</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Remise générale (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        value={editFormData.remiseGenerale}
+                        onChange={(e) => setEditFormData({...editFormData, remiseGenerale: parseFloat(e.target.value) || 0})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Escompte (%)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        value={editFormData.escompte}
+                        onChange={(e) => setEditFormData({...editFormData, escompte: parseFloat(e.target.value) || 0})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Réduction pour paiement anticipé</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Onglet Coordonnées bancaires */}
+              {editModalTab === 'bancaire' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Banque</label>
+                      <input
+                        type="text"
+                        value={editFormData.banque}
+                        onChange={(e) => setEditFormData({...editFormData, banque: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        placeholder="Nom de la banque"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">Domiciliation</label>
+                      <input
+                        type="text"
+                        value={editFormData.domiciliation}
+                        onChange={(e) => setEditFormData({...editFormData, domiciliation: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                        placeholder="Agence ou succursale"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-[#666666] mb-1">IBAN</label>
+                      <input
+                        type="text"
+                        value={editFormData.iban}
+                        onChange={(e) => setEditFormData({...editFormData, iban: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent font-mono tracking-wider"
+                        placeholder="CG00 0000 0000 0000 0000 0000 000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#666666] mb-1">BIC / SWIFT</label>
+                      <input
+                        type="text"
+                        value={editFormData.bic}
+                        onChange={(e) => setEditFormData({...editFormData, bic: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent font-mono"
+                        placeholder="XXXXXXXX"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer du modal */}
+            <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+              <div className="text-sm text-gray-500">
+                * Champs obligatoires
+              </div>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 text-[#666666] hover:text-[#2D2D2D] font-medium transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSaveClient}
+                  className="px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] font-medium transition-colors flex items-center space-x-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Enregistrer</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

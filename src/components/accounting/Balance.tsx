@@ -4,7 +4,7 @@ import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
 import {
   ChevronDown, ChevronRight, FileText, Calendar, Filter,
-  Printer, Search, Calculator, Scale,
+  Printer, Search, Calculator, Scale, Download,
   TrendingUp, TrendingDown, Eye, EyeOff, Folder, FolderOpen,
   TreePine, List, Grid3x3, RefreshCw, Settings, Columns,
   Mail, FileSpreadsheet, Users, Building
@@ -156,7 +156,7 @@ const Balance: React.FC = () => {
           children: [
             {
               code: '401',
-              libelle: t('navigation.suppliers')},
+              libelle: t('navigation.suppliers'),
               niveau: 3,
               parent: '40',
               soldeDebiteurAN: 0,
@@ -184,7 +184,7 @@ const Balance: React.FC = () => {
           children: [
             {
               code: '411',
-              libelle: t('navigation.clients')},
+              libelle: t('navigation.clients'),
               niveau: 3,
               parent: '41',
               soldeDebiteurAN: 45000,

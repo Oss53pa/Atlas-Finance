@@ -10,10 +10,10 @@ interface ClientFacturesTableProps {
 }
 
 export const ClientFacturesTable: React.FC<ClientFacturesTableProps> = ({
-  const { t } = useLanguage();
   factures,
   loading
 }) => {
+  const { t } = useLanguage();
   const getStatutBadge = (statut: string) => {
     const styles = {
       EN_ATTENTE: 'bg-blue-100 text-blue-800',

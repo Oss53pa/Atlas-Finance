@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { bankAccountsService, bankTransactionsService } from '../../services/treasury-complete.service';
+import treasuryAdvancedService from '../../services/treasury-advanced.service';
 import {
   Building2,
   CreditCard,
@@ -98,179 +100,85 @@ interface SyncLog {
 
 const ConnexionsBancairesPage: React.FC = () => {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [syncInProgress, setSyncInProgress] = useState<Set<string>>(new Set());
 
-  // Mock bank connections data
-  const mockConnections: BankConnection[] = [
-    {
-      id: '1',
-      nom_banque: 'Ecobank Côte d\'Ivoire',
-      nom_compte: 'Compte Principal',
-      numero_compte: 'CI001234567890123',
-      type_compte: 'courant',
-      statut: 'connecté',
-      derniere_sync: '2024-01-31T10:30:00Z',
-      solde_actuel: 125430000,
-      devise: 'XOF',
-      api_type: 'API_BANQUE',
-      derniere_transaction: '2024-01-31T09:45:00Z',
-      nb_transactions: 1247,
-      auto_sync: true,
-      certificat_ssl: true,
-      authentification: 'OAuth'
+  // Real API calls for bank accounts
+  const { data: accountsData, isLoading, error: accountsError } = useQuery({
+    queryKey: ['bank-accounts'],
+    queryFn: async () => {
+      const accounts = await bankAccountsService.getActiveAccounts();
+      return accounts.map((acc: any) => ({
+        id: acc.id,
+        nom_banque: acc.banque || 'Banque',
+        nom_compte: acc.libelle || acc.numero_compte,
+        numero_compte: acc.numero_compte,
+        type_compte: acc.type_compte || 'courant',
+        statut: acc.actif ? 'connecté' : 'déconnecté',
+        derniere_sync: acc.date_derniere_sync || new Date().toISOString(),
+        solde_actuel: acc.solde_courant || 0,
+        devise: acc.devise_code || 'XOF',
+        api_type: 'API_BANQUE' as const,
+        derniere_transaction: acc.date_derniere_transaction || new Date().toISOString(),
+        nb_transactions: 0,
+        auto_sync: true,
+        certificat_ssl: true,
+        authentification: 'OAuth' as const
+      }));
     },
-    {
-      id: '2',
-      nom_banque: 'BACI (Bank of Africa)',
-      nom_compte: 'Compte Épargne',
-      numero_compte: 'CI987654321098765',
-      type_compte: 'epargne',
-      statut: 'connecté',
-      derniere_sync: '2024-01-31T08:15:00Z',
-      solde_actuel: 45680000,
-      devise: 'XOF',
-      api_type: 'AGREGATEUR',
-      derniere_transaction: '2024-01-30T16:20:00Z',
-      nb_transactions: 523,
-      auto_sync: true,
-      certificat_ssl: true,
-      authentification: '2FA'
-    },
-    {
-      id: '3',
-      nom_banque: 'SGBCI (Société Générale)',
-      nom_compte: 'Compte Dépôt à Terme',
-      numero_compte: 'CI456789012345678',
-      type_compte: 'depot',
-      statut: 'erreur',
-      derniere_sync: '2024-01-30T14:22:00Z',
-      solde_actuel: 25000000,
-      devise: 'XOF',
-      api_type: 'API_BANQUE',
-      derniere_transaction: '2024-01-29T11:10:00Z',
-      nb_transactions: 89,
-      auto_sync: false,
-      certificat_ssl: true,
-      authentification: 'API_KEY'
-    },
-    {
-      id: '4',
-      nom_banque: 'BICICI (BNP Paribas)',
-      nom_compte: 'Ligne de Crédit',
-      numero_compte: 'CI789012345678901',
-      type_compte: 'credit',
-      statut: 'en_attente',
-      derniere_sync: '2024-01-29T18:45:00Z',
-      solde_actuel: -15600000,
-      devise: 'XOF',
-      api_type: 'AGREGATEUR',
-      derniere_transaction: '2024-01-29T17:30:00Z',
-      nb_transactions: 342,
-      auto_sync: true,
-      certificat_ssl: true,
-      authentification: 'OAuth'
-    }
-  ];
-
-  // Mock transactions data
-  const mockTransactions: Transaction[] = [
-    {
-      id: '1',
-      date: '2024-01-31T09:45:00Z',
-      libelle: 'Virement Fournisseur ABC SARL',
-      montant: -2450000,
-      type: 'débit',
-      solde_apres: 125430000,
-      compte_id: '1',
-      statut: 'traité',
-      reference: 'VIR240131001',
-      categorie: t('navigation.suppliers')
-    },
-    {
-      id: '2',
-      date: '2024-01-31T08:20:00Z',
-      libelle: 'Encaissement Client XYZ',
-      montant: 5800000,
-      type: 'crédit',
-      solde_apres: 127880000,
-      compte_id: '1',
-      statut: 'traité',
-      reference: 'ENC240131002',
-      categorie: t('navigation.clients')
-    },
-    {
-      id: '3',
-      date: '2024-01-30T16:20:00Z',
-      libelle: 'Intérêts Compte Épargne',
-      montant: 180000,
-      type: 'crédit',
-      solde_apres: 45680000,
-      compte_id: '2',
-      statut: 'traité',
-      reference: 'INT240130003',
-      categorie: 'Produits Financiers'
-    },
-    {
-      id: '4',
-      date: '2024-01-30T14:15:00Z',
-      libelle: 'Prélèvement Automatique - Loyer',
-      montant: -1200000,
-      type: 'débit',
-      solde_apres: 124230000,
-      compte_id: '1',
-      statut: 'traité',
-      reference: 'PRE240130004',
-      categorie: 'Charges'
-    }
-  ];
-
-  // Mock sync logs
-  const mockSyncLogs: SyncLog[] = [
-    {
-      id: '1',
-      compte_id: '1',
-      date_sync: '2024-01-31T10:30:00Z',
-      statut: 'succès',
-      nb_transactions: 12,
-      message: 'Synchronisation réussie - 12 nouvelles transactions',
-      duree: 3.2
-    },
-    {
-      id: '2',
-      compte_id: '2',
-      date_sync: '2024-01-31T08:15:00Z',
-      statut: 'succès',
-      nb_transactions: 3,
-      message: 'Synchronisation réussie - 3 nouvelles transactions',
-      duree: 1.8
-    },
-    {
-      id: '3',
-      compte_id: '3',
-      date_sync: '2024-01-30T14:22:00Z',
-      statut: 'erreur',
-      nb_transactions: 0,
-      message: 'Erreur d\'authentification - Token expiré',
-      duree: 0.5
-    }
-  ];
-
-  const { data: connections = mockConnections, isLoading } = useQuery({
-    queryKey: ['bank-connections'],
-    queryFn: () => Promise.resolve(mockConnections),
+    staleTime: 30000, // 30 seconds
   });
 
-  const { data: transactions = mockTransactions } = useQuery({
+  const connections = accountsData || [];
+
+  // Real API calls for transactions
+  const { data: transactionsData } = useQuery({
     queryKey: ['bank-transactions', selectedAccount],
-    queryFn: () => Promise.resolve(mockTransactions.filter(t => !selectedAccount || t.compte_id === selectedAccount)),
+    queryFn: async () => {
+      if (!selectedAccount) {
+        const allTransactions = await bankTransactionsService.getAll({ page_size: 50 });
+        return allTransactions.results || [];
+      }
+      const accountTransactions = await bankTransactionsService.getByAccount(selectedAccount, { page_size: 50 });
+      return accountTransactions;
+    },
+    enabled: true,
   });
 
-  const { data: syncLogs = mockSyncLogs } = useQuery({
-    queryKey: ['sync-logs'],
-    queryFn: () => Promise.resolve(mockSyncLogs),
+  const transactions = (transactionsData || []).map((tx: any) => ({
+    id: tx.id,
+    date: tx.date,
+    libelle: tx.libelle || tx.memo || 'Transaction',
+    montant: tx.montant || 0,
+    type: tx.type_operation === 'credit' || tx.montant > 0 ? 'crédit' as const : 'débit' as const,
+    solde_apres: tx.solde_apres || 0,
+    compte_id: tx.compte_bancaire,
+    statut: tx.statut === 'valide' ? 'traité' as const : 'en_attente' as const,
+    reference: tx.reference || tx.id,
+    categorie: tx.categorie
+  }));
+
+  // Real API calls for reconciliation status
+  const { data: reconciliationData } = useQuery({
+    queryKey: ['reconciliation-status'],
+    queryFn: async () => {
+      const companyId = localStorage.getItem('company_id') || '';
+      return await treasuryAdvancedService.getReconciliationStatus(companyId);
+    },
+    enabled: !!localStorage.getItem('company_id'),
   });
+
+  const syncLogs = (reconciliationData?.reconciliations || []).map((rec: any) => ({
+    id: rec.reconciliation_id,
+    compte_id: rec.account_id,
+    date_sync: rec.created_at,
+    statut: rec.status === 'balanced' ? 'succès' as const : rec.status === 'unbalanced' ? 'erreur' as const : 'partiel' as const,
+    nb_transactions: 0,
+    message: rec.status === 'balanced' ? 'Rapprochement réussi' : 'Rapprochement en cours',
+    duree: 0
+  }));
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
@@ -328,26 +236,56 @@ const ConnexionsBancairesPage: React.FC = () => {
   const handleSyncAccount = async (accountId: string) => {
     setSyncInProgress(prev => new Set(prev).add(accountId));
     toast.success('Synchronisation en cours...');
-    
-    // Simulate sync process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setSyncInProgress(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(accountId);
-      return newSet;
-    });
-    toast.success('Synchronisation terminée!');
+
+    try {
+      // Real sync with reconciliation
+      const companyId = localStorage.getItem('company_id') || '';
+      const account = connections.find(c => c.id === accountId);
+
+      if (account) {
+        await treasuryAdvancedService.autoReconcile({
+          company_id: companyId,
+          account_id: accountId,
+          statement_date: new Date().toISOString().split('T')[0],
+          statement_balance: account.solde_actuel,
+          auto_match: true,
+          tolerance_amount: 0.01
+        });
+
+        // Refresh data
+        queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+        queryClient.invalidateQueries({ queryKey: ['bank-transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['reconciliation-status'] });
+
+        toast.success('Synchronisation terminée!');
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast.error('Erreur lors de la synchronisation');
+    } finally {
+      setSyncInProgress(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(accountId);
+        return newSet;
+      });
+    }
   };
 
   const handleConnectNewAccount = async () => {
     setIsConnecting(true);
     toast.success('Connexion d\'un nouveau compte en cours...');
-    
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    setIsConnecting(false);
-    toast.success('Nouveau compte connecté avec succès!');
+
+    try {
+      // Navigate to bank account creation page or show modal
+      // For now, just refresh the accounts list
+      await queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      toast.success('Rafraîchissement des comptes terminé!');
+    } catch (error) {
+      console.error('Connection error:', error);
+      toast.error('Erreur lors de la connexion');
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const connectedCount = connections.filter(c => c.statut === 'connecté').length;

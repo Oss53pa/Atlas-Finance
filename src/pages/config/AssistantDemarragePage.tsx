@@ -555,6 +555,333 @@ const AssistantDemarragePage: React.FC = () => {
           </motion.div>
         );
 
+      case 3:
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-8">
+              <Users className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900">Configuration des Utilisateurs</h2>
+              <p className="text-gray-600">Créez les premiers utilisateurs de votre système</p>
+            </div>
+
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Administrateur Principal */}
+              <div className="border border-purple-200 bg-purple-50 rounded-lg p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <Shield className="h-6 w-6 text-purple-600" />
+                  <h3 className="font-semibold text-purple-900">Administrateur Principal</h3>
+                  <Badge className="bg-purple-100 text-purple-800">Requis</Badge>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nom Complet *
+                    </label>
+                    <Input placeholder="Ex: Jean KONAN" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email *
+                    </label>
+                    <Input type="email" placeholder="admin@entreprise.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mot de Passe *
+                    </label>
+                    <Input type="password" placeholder="Minimum 8 caractères" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirmer le Mot de Passe *
+                    </label>
+                    <Input type="password" placeholder="Confirmer le mot de passe" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Utilisateur Comptable */}
+              <div className="border rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Users className="h-6 w-6 text-blue-600" />
+                    <h3 className="font-semibold text-gray-900">Utilisateur Comptable</h3>
+                    <Badge variant="outline">Optionnel</Badge>
+                  </div>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" defaultChecked className="form-checkbox" />
+                    <span className="text-sm text-gray-600">Créer cet utilisateur</span>
+                  </label>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nom Complet
+                    </label>
+                    <Input placeholder="Ex: Marie COULIBALY" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email
+                    </label>
+                    <Input type="email" placeholder="comptable@entreprise.com" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div className="text-sm text-blue-700">
+                    <p className="font-medium mb-1">Profils de Sécurité</p>
+                    <p>
+                      Les utilisateurs pourront être affectés à différents profils de sécurité
+                      (Administrateur, Comptable, Auditeur, etc.) avec des permissions spécifiques.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+
+      case 4:
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-8">
+              <CreditCard className="h-12 w-12 text-orange-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900">Configuration TVA et Taxes</h2>
+              <p className="text-gray-600">Paramétrez les taux de TVA applicables à votre activité</p>
+            </div>
+
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Régime TVA */}
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Régime de TVA</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
+                    <input type="radio" name="tva_regime" value="normal" defaultChecked className="mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">Régime Normal</p>
+                      <p className="text-sm text-gray-600">TVA facturée et récupérable</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
+                    <input type="radio" name="tva_regime" value="simplifie" className="mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">Régime Simplifié</p>
+                      <p className="text-sm text-gray-600">Déclaration simplifiée</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
+                    <input type="radio" name="tva_regime" value="franchise" className="mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">Franchise de Base</p>
+                      <p className="text-sm text-gray-600">Exonération de TVA</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
+                    <input type="radio" name="tva_regime" value="exonere" className="mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">Activité Exonérée</p>
+                      <p className="text-sm text-gray-600">Pas de TVA applicable</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Taux de TVA */}
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Taux de TVA Applicables</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                        <span className="font-bold text-orange-600">18%</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Taux Normal</p>
+                        <p className="text-sm text-gray-600">Applicable par défaut</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-orange-100 text-orange-800">Actif</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                        <span className="font-bold text-gray-600">9%</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Taux Réduit</p>
+                        <p className="text-sm text-gray-600">Produits de première nécessité</p>
+                      </div>
+                    </div>
+                    <label className="flex items-center space-x-2">
+                      <input type="checkbox" className="form-checkbox" />
+                      <span className="text-sm">Activer</span>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                        <span className="font-bold text-gray-600">0%</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Exonéré</p>
+                        <p className="text-sm text-gray-600">Exportations et opérations exonérées</p>
+                      </div>
+                    </div>
+                    <label className="flex items-center space-x-2">
+                      <input type="checkbox" defaultChecked className="form-checkbox" />
+                      <span className="text-sm">Activer</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div className="text-sm text-yellow-700">
+                    <p className="font-medium mb-1">Information Fiscale</p>
+                    <p>
+                      Les taux de TVA sont configurés selon la législation fiscale de votre pays.
+                      Consultez votre conseiller fiscal en cas de doute.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+
+      case 5:
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-8">
+              <Shield className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900">{t('settings.security')}</h2>
+              <p className="text-gray-600">Configurez les paramètres de sécurité de votre système</p>
+            </div>
+
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Politique de Mot de Passe */}
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Politique de Mot de Passe</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">Longueur Minimale</p>
+                      <p className="text-sm text-gray-600">Nombre de caractères requis</p>
+                    </div>
+                    <Select defaultValue="8">
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6">6</SelectItem>
+                        <SelectItem value="8">8</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="12">12</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="flex items-center space-x-3">
+                      <input type="checkbox" defaultChecked className="form-checkbox" />
+                      <span className="text-sm text-gray-700">Exiger au moins une majuscule</span>
+                    </label>
+                    <label className="flex items-center space-x-3">
+                      <input type="checkbox" defaultChecked className="form-checkbox" />
+                      <span className="text-sm text-gray-700">Exiger au moins un chiffre</span>
+                    </label>
+                    <label className="flex items-center space-x-3">
+                      <input type="checkbox" className="form-checkbox" />
+                      <span className="text-sm text-gray-700">Exiger un caractère spécial</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sessions */}
+              <div className="border rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Gestion des Sessions</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">Expiration de Session</p>
+                      <p className="text-sm text-gray-600">Déconnexion automatique après inactivité</p>
+                    </div>
+                    <Select defaultValue="30">
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="60">1 heure</SelectItem>
+                        <SelectItem value="120">2 heures</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" defaultChecked className="form-checkbox" />
+                    <span className="text-sm text-gray-700">Limiter à une session par utilisateur</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Authentification à Deux Facteurs */}
+              <div className="border border-indigo-200 bg-indigo-50 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Shield className="h-6 w-6 text-indigo-600" />
+                    <div>
+                      <h3 className="font-semibold text-indigo-900">Authentification à Deux Facteurs (2FA)</h3>
+                      <p className="text-sm text-indigo-700">Sécurité renforcée pour les connexions</p>
+                    </div>
+                  </div>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" className="form-checkbox" />
+                    <span className="text-sm text-indigo-700">Activer</span>
+                  </label>
+                </div>
+                <p className="text-sm text-indigo-600">
+                  L'activation du 2FA ajoute une couche de sécurité supplémentaire en demandant
+                  un code envoyé par SMS ou généré par une application d'authentification.
+                </p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div className="text-sm text-green-700">
+                    <p className="font-medium mb-1">Configuration Recommandée</p>
+                    <p>
+                      Les paramètres par défaut suivent les bonnes pratiques de sécurité.
+                      Vous pourrez les ajuster ultérieurement dans les paramètres avancés.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+
       case 6:
         return (
           <motion.div
