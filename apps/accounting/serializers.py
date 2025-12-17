@@ -7,8 +7,9 @@ from django.utils import timezone
 
 from .models import (
     Company, FiscalYear, Journal, ChartOfAccounts,
-    JournalEntry, JournalEntryLine, FundCall
+    JournalEntry, JournalEntryLine
 )
+from apps.treasury.models import FundCall
 
 
 class CompanySerializer(serializers.ModelSerializer):

@@ -3,8 +3,9 @@ Modèles pour Gestion de Clôture Comptable Périodique WiseBook
 Conforme cahier des charges : cycle complet, workflow, archivage
 """
 from django.db import models
-from django.contrib.postgres.fields import JSONField, ArrayField
-from django.contrib.auth.models import User
+from django.db.models import JSONField
+from django.contrib.postgres.fields import ArrayField
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
@@ -105,10 +106,10 @@ class ClosurePeriod(TimeStampedModel):
     )
 
     # Responsables
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='created_closure_periods')
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Responsable principal")
-    controller = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Contrôleur", related_name='controlled_periods')
-    approver = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Approbateur", related_name='approved_periods')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_closure_periods')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Responsable principal")
+    controller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Contrôleur", related_name='controlled_periods')
+    approver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Approbateur", related_name='approved_periods')
 
     # Métriques
     total_entries_generated = models.PositiveIntegerField(default=0, verbose_name="Écritures générées")
@@ -190,8 +191,8 @@ class ClosureTask(TimeStampedModel):
     priority = models.CharField(max_length=10, choices=PRIORITY_LEVELS, default='MEDIUM')
 
     # Responsabilité
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    completed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='completed_tasks')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    completed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='completed_tasks')
 
     # Dépendances
     depends_on = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='dependent_tasks')
@@ -339,7 +340,7 @@ class ClosureCalendar(TimeStampedModel):
     location = models.CharField(max_length=200, blank=True)
 
     # Participants
-    assigned_users = models.ManyToManyField(User, blank=True, related_name='closure_calendar_events')
+    assigned_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='closure_calendar_events')
 
     # Récurrence
     is_recurring = models.BooleanField(default=False)
@@ -390,7 +391,7 @@ class ValidationWorkflow(TimeStampedModel):
     required_role = models.CharField(max_length=50, verbose_name="Rôle requis")
 
     # Utilisateur et action
-    validator = models.ForeignKey(User, on_delete=models.PROTECT)
+    validator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     action_taken = models.CharField(max_length=20, choices=ACTION_TYPES)
     validation_date = models.DateTimeField(auto_now_add=True)
 
@@ -409,7 +410,7 @@ class ValidationWorkflow(TimeStampedModel):
 
     # Délégation
     delegated_to = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='delegated_validations'
     )
     delegation_reason = models.TextField(blank=True)
@@ -468,7 +469,7 @@ class ClosureControl(TimeStampedModel):
 
     # Exécution
     execution_date = models.DateTimeField(null=True, blank=True)
-    executed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    executed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     execution_time_ms = models.PositiveIntegerField(default=0)
 
     # Résultats
@@ -519,7 +520,7 @@ class ClosureAuditLog(TimeStampedModel):
     object_id = models.UUIDField()
 
     # Utilisateur et contexte
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     ip_address = models.GenericIPAddressField()
     user_agent = models.TextField()
     session_id = models.CharField(max_length=100)
@@ -602,7 +603,7 @@ class ClosureArchive(TimeStampedModel):
     # Accès
     access_count = models.PositiveIntegerField(default=0)
     last_accessed = models.DateTimeField(null=True, blank=True)
-    last_accessed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    last_accessed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Statut
     is_verified = models.BooleanField(default=False)
@@ -648,7 +649,7 @@ class ClosureNotification(TimeStampedModel):
     # Configuration
     notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
     channel = models.CharField(max_length=20, choices=CHANNELS)
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE)
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     # Contenu
     subject = models.CharField(max_length=200)

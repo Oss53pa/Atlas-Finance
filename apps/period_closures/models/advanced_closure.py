@@ -3,8 +3,9 @@ Modèles Avancés pour Module Clôture Automatisée WiseBook
 Gestion complète du cycle de clôture avec workflow BPMN et conformité SYSCOHADA
 """
 from django.db import models
-from django.contrib.postgres.fields import JSONField, ArrayField
-from django.contrib.auth.models import User
+from django.db.models import JSONField
+from django.contrib.postgres.fields import ArrayField
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
@@ -93,10 +94,10 @@ class AdvancedFiscalPeriod(TimeStampedModel):
     current_step = models.ForeignKey('WorkflowStep', on_delete=models.SET_NULL, null=True, blank=True)
 
     # Responsabilités
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='created_closures')
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Responsable")
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Approuvé par")
-    locked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Verrouillé par")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_closures')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Responsable")
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Approuvé par")
+    locked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Verrouillé par")
 
     # Dates importantes
     started_at = models.DateTimeField(null=True, blank=True)
@@ -229,8 +230,8 @@ class WorkflowStep(TimeStampedModel):
     ], default='PENDING')
 
     # Responsabilité
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    executed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='executed_steps')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    executed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='executed_steps')
 
     # Timing
     scheduled_start = models.DateTimeField(null=True, blank=True)
@@ -352,7 +353,7 @@ class RegularizationCenter(TimeStampedModel):
 
     # Validation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='validated_regularizations')
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='validated_regularizations')
     validation_date = models.DateTimeField(null=True, blank=True)
 
     # Écritures générées
@@ -424,7 +425,7 @@ class AdvancedProvisionEngine(TimeStampedModel):
 
     # Validation et approbation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     validation_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -521,7 +522,7 @@ class ClosureControlExecution(TimeStampedModel):
     # Exécution
     execution_date = models.DateTimeField(auto_now_add=True)
     execution_time_ms = models.PositiveIntegerField(default=0)
-    executed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    executed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Résultats
     passed = models.BooleanField(default=False)
@@ -537,7 +538,7 @@ class ClosureControlExecution(TimeStampedModel):
     # Actions correctives
     correction_applied = models.BooleanField(default=False)
     correction_details = models.TextField(blank=True)
-    corrected_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='applied_corrections')
+    corrected_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='applied_corrections')
 
     class Meta:
         db_table = 'closure_control_executions'
@@ -579,7 +580,7 @@ class FinancialStatementsGenerator(TimeStampedModel):
 
     # Génération
     generation_date = models.DateTimeField(auto_now_add=True)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     generation_duration_ms = models.PositiveIntegerField(default=0)
 
     # Contenu
@@ -589,7 +590,7 @@ class FinancialStatementsGenerator(TimeStampedModel):
 
     # Validation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='validated_statements')
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='validated_statements')
     validation_date = models.DateTimeField(null=True, blank=True)
 
     # Signature électronique
@@ -672,7 +673,7 @@ class ClosureAuditTrail(TimeStampedModel):
     object_id = models.UUIDField()  # ID de l'objet modifié
 
     # Utilisateur et contexte
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     ip_address = models.GenericIPAddressField()
     user_agent = models.TextField()
     session_id = models.CharField(max_length=64)
@@ -723,7 +724,7 @@ class ClosureNotification(TimeStampedModel):
 
     # Configuration
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE)
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     channel = models.CharField(max_length=10, choices=CHANNELS, default='EMAIL')
 
     # Contenu

@@ -3,6 +3,7 @@ Module Consolidation Multi-Sociétés WiseBook
 Gestion groupes d'entreprises avec éliminations intercos selon cahier des charges 5.1.2
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -10,8 +11,11 @@ from decimal import Decimal
 import uuid
 from datetime import date
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, FiscalYear, ChartOfAccounts
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import FiscalYear, ChartOfAccounts
+
+# Alias pour rétrocompatibilité
+Company = Societe
 
 
 class ConsolidationGroup(TimeStampedModel):
@@ -173,7 +177,7 @@ class ConsolidationEntity(TimeStampedModel):
             models.Index(fields=['consolidation_group', 'status']),
             models.Index(fields=['entity_type', 'ownership_percentage']),
         ]
-        ordering = ['-ownership_percentage', 'company__name']
+        ordering = ['-ownership_percentage', 'company__nom']
         verbose_name = "Entité consolidation"
         verbose_name_plural = "Entités consolidation"
     
@@ -234,7 +238,7 @@ class ConsolidationPeriod(TimeStampedModel):
     
     # Validation
     validated_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
     validation_date = models.DateTimeField(null=True, blank=True)
     
@@ -340,7 +344,7 @@ class IntercompanyTransaction(TimeStampedModel):
     
     # Validation
     validated_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
     validation_date = models.DateTimeField(null=True, blank=True)
     
@@ -423,7 +427,7 @@ class ConsolidationAdjustment(TimeStampedModel):
     # Validation
     is_validated = models.BooleanField(default=False)
     validated_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
     validation_date = models.DateTimeField(null=True, blank=True)
     
@@ -533,7 +537,7 @@ class ConsolidationWorkflow(TimeStampedModel):
     
     # Responsabilité
     assigned_to = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
     
     # Exécution

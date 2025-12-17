@@ -29,7 +29,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Application definition
 DJANGO_APPS = [
-    # 'django.contrib.admin',  # Temporarily disabled to debug inline errors
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -43,11 +43,11 @@ THIRD_PARTY_APPS = [
     'corsheaders',
     'django_filters',
     'mptt',
-    'graphene_django',
+    # 'graphene_django',  # Temporarily disabled - not installed
     'drf_spectacular',
-    'django_otp',
-    'django_celery_beat',
-    'django_celery_results',
+    # 'django_otp',  # Temporarily disabled - not installed
+    # 'django_celery_beat',  # Temporarily disabled - testing
+    # 'django_celery_results',  # Temporarily disabled - testing
 ]
 
 LOCAL_APPS = [
@@ -55,38 +55,38 @@ LOCAL_APPS = [
     'apps.core',
     'apps.authentication',
     'apps.api',
+    'apps.third_party.apps.ThirdPartyConfig',  # Doit être avant accounting (ForeignKey)
 
     # Nouveaux modules - Frontend-Backend Alignment
-    'apps.dashboard',  # ✅ Module Dashboard créé
-    'apps.integrations',  # ✅ Module Integrations créé
-    'apps.workspaces',  # ✅ Module Workspaces
+    'apps.dashboard',
+    'apps.integrations',
+    'apps.workspaces',
 
-    # Modules métier principaux - Réactivés avec admin.py complets
-    'apps.accounting.apps.AccountingConfig',  # ✅ Admin complet (5 modèles)
-    'apps.treasury.apps.TreasuryConfig',  # ✅ Admin complet (10 modèles)
-    'apps.budgeting.apps.BudgetingConfig',  # ✅ Fixed - auth.User corrected
-    'apps.crm_clients.apps.CrmClientsConfig',  # ✅ Admin complet (8 modèles)
-    'apps.suppliers.apps.SuppliersConfig',  # ✅ Admin complet (7 modèles) + Serializers créés
-    # 'apps.analytics.apps.AnalyticsConfig',  # ⚠️ Temporarily disabled - model clash with reporting
-    'apps.financial_statements',  # ✅ Fixed - auth.User corrected
+    # Modules métier principaux
+    'apps.accounting.apps.AccountingConfig',
+    'apps.treasury.apps.TreasuryConfig',
+    'apps.budgeting.apps.BudgetingConfig',
+    'apps.crm_clients.apps.CrmClientsConfig',
+    'apps.suppliers.apps.SuppliersConfig',
+    'apps.analytics.apps.AnalyticsConfig',
+    'apps.financial_statements',
 
     # Modules complémentaires
-    'apps.ml_detection.apps.MlDetectionConfig',  # ✅ Réactivé pour /api/v1/analysis/anomalies/
-    'apps.taxation.apps.TaxationConfig',  # ✅ Admin existant
-    'apps.third_party.apps.ThirdPartyConfig',
-    'apps.advanced_bi.apps.AdvancedBiConfig',  # ✅ Paloma IA
+    'apps.ml_detection.apps.MlDetectionConfig',
+    'apps.taxation.apps.TaxationConfig',
+    # 'apps.advanced_bi.apps.AdvancedBiConfig',  # Temporarily disabled - pgvector not installed
     'apps.parameters.apps.ParametersConfig',
-    # 'apps.assets',  # ⚠️ Temporarily disabled - model errors (auth.User references)
-    'apps.assets_management',  # ✅ Fixed - auth.User corrected
-    'apps.grand_livre.apps.GrandLivreConfig',  # ✅ Fixed - auth.User corrected
-    'apps.financial_analysis.apps.FinancialAnalysisConfig',  # ✅ Fixed - auth.User corrected
+    # 'apps.assets',  # Temporarily disabled - model errors
+    'apps.assets_management',
+    'apps.grand_livre.apps.GrandLivreConfig',
+    'apps.financial_analysis.apps.FinancialAnalysisConfig',
     'apps.period_closures.apps.PeriodClosuresConfig',
-    'apps.closures_comptables.apps.ClosuresComptablesConfig',  # ✅ Fixed - auth.User corrected
-    'apps.cloture_comptable.apps.ClotureComptableConfig',  # ✅ Fixed - auth.User corrected
-    'apps.consolidation.apps.ConsolidationConfig',  # ✅ Fixed - auth.User corrected
-    'apps.data_import.apps.DataImportConfig',  # ✅ Fixed - auth.User corrected
-    # 'apps.customers.apps.CustomersConfig',  # Temporairement désactivé - fichier corrompu
-    # 'apps.reporting.apps.ReportingConfig',  # ⚠️ Temporarily disabled - model clash with analytics
+    'apps.closures_comptables.apps.ClosuresComptablesConfig',
+    # 'apps.cloture_comptable.apps.ClotureComptableConfig',  # Removed - duplicate
+    'apps.consolidation.apps.ConsolidationConfig',
+    'apps.data_import.apps.DataImportConfig',
+    'apps.customers.apps.CustomersConfig',
+    'apps.reporting.apps.ReportingConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -234,6 +234,16 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 25,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'apps.core.exceptions.custom_exception_handler',
+    # Rate Limiting - Protection contre les abus
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'login': '5/minute',
+    },
 }
 
 # JWT Settings
@@ -261,9 +271,17 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 }
 
-# CORS Settings
-# FIX: Permettre tous les ports Vite en développement
-CORS_ALLOW_ALL_ORIGINS = True  # Simplifié pour le développement
+# CORS Settings - SÉCURISÉ
+# En production: définir CORS_ALLOWED_ORIGINS dans .env
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=False)
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173',
+    'http://localhost:5781',
+    'http://127.0.0.1:5781',
+])
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -385,6 +403,8 @@ WISEBOOK_SETTINGS = {
     'MAX_LOGIN_ATTEMPTS': 5,
     'LOCKOUT_DURATION_MINUTES': 30,
 }
+
+# System checks - All checks enabled (third_party FK fixed)
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

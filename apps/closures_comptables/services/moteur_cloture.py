@@ -5,7 +5,7 @@ Calculs réels, génération d'écritures et contrôles SYSCOHADA
 from django.db import models, transaction
 from django.utils import timezone
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from typing import Dict, List, Any, Tuple
 import logging
 

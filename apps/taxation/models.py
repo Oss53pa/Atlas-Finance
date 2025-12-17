@@ -2,10 +2,12 @@
 Modèles pour la fiscalité et conformité OHADA.
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from datetime import date, timedelta
+from typing import List
 from dateutil.relativedelta import relativedelta
 from apps.core.models import BaseModel, Societe
 from apps.accounting.models import PlanComptable, Ecriture
@@ -210,11 +212,11 @@ class DeclarationFiscale(BaseModel):
     
     # Responsables
     valide_par = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='declarations_validees'
     )
     transmise_par = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='declarations_transmises'
     )
     
@@ -369,7 +371,7 @@ class EvenementFiscal(BaseModel):
     # Suivi
     traite = models.BooleanField(default=False)
     date_traitement = models.DateTimeField(null=True, blank=True)
-    traite_par = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    traite_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     
     # Documents
     pieces_justificatives = models.JSONField(default=list, blank=True)
@@ -415,7 +417,7 @@ class ObligationFiscale(BaseModel):
     
     # Responsable
     responsable = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         help_text="Responsable de cette obligation"
     )
     
@@ -712,7 +714,7 @@ class AlerteFiscale(BaseModel):
     date_creation = models.DateTimeField(auto_now_add=True)
     date_acquittement = models.DateTimeField(null=True, blank=True)
     acquittee_par = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
     
     # Actions et suivi

@@ -2,11 +2,12 @@
 Modèles pour la gestion des tiers (clients, fournisseurs, etc.).
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from apps.core.models import BaseModel, Societe, Devise
-from apps.accounting.models import PlanComptable
+# Note: PlanComptable est référencé par string pour éviter import circulaire avec accounting
 
 
 class Tiers(BaseModel):
@@ -85,11 +86,11 @@ class Tiers(BaseModel):
     
     # Informations comptables
     compte_client = models.ForeignKey(
-        PlanComptable, on_delete=models.SET_NULL, null=True, blank=True,
+        'accounting.ChartOfAccounts', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='tiers_clients', verbose_name="Compte client"
     )
     compte_fournisseur = models.ForeignKey(
-        PlanComptable, on_delete=models.SET_NULL, null=True, blank=True,
+        'accounting.ChartOfAccounts', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='tiers_fournisseurs', verbose_name="Compte fournisseur"
     )
     
@@ -145,7 +146,7 @@ class Tiers(BaseModel):
     motif_blocage = models.TextField(blank=True, null=True)
     date_blocage = models.DateTimeField(blank=True, null=True)
     bloque_par = models.ForeignKey(
-        'authentication.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='tiers_bloques'
     )
     
@@ -172,6 +173,7 @@ class Tiers(BaseModel):
     tags = models.JSONField(default=list, blank=True)
     
     class Meta:
+        app_label = 'third_party'
         db_table = 'third_party_tiers'
         unique_together = [('societe', 'code')]
         indexes = [
@@ -451,7 +453,7 @@ class HistoriqueTiers(BaseModel):
     nouvelles_valeurs = models.JSONField(blank=True, null=True)
     
     # Métadonnées
-    utilisateur = models.ForeignKey('authentication.User', on_delete=models.SET_NULL, null=True)
+    utilisateur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     date_action = models.DateTimeField(auto_now_add=True)
     adresse_ip = models.GenericIPAddressField(blank=True, null=True)
     

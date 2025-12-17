@@ -13,6 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ValidationError
 import pandas as pd
 from datetime import date, timedelta
+from typing import List, Dict, Any, Optional
 from decimal import Decimal
 
 from apps.core.mixins import CompanyFilterMixin

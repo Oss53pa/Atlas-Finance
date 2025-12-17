@@ -1,11 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from decimal import Decimal
 from datetime import date, datetime
 import uuid
 
 from apps.accounting.models import CompteComptable, EcritureComptable, ExerciceComptable, Devise
-from apps.company.models import Company
+from apps.core.models import Societe as Company
 from apps.analytical_accounting.models import SectionAnalytique
 
 
@@ -48,7 +48,7 @@ class TypeCloture(models.Model):
     
     # Workflow d'approbation
     approbation_requise = models.BooleanField(default=True)
-    approbateurs = models.ManyToManyField(User, blank=True, related_name='types_clotures_approbateur')
+    approbateurs = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='types_clotures_approbateur')
     
     actif = models.BooleanField(default=True)
     date_creation = models.DateTimeField(auto_now_add=True)
@@ -101,8 +101,8 @@ class ProcedureCloture(models.Model):
     pourcentage_avancement = models.IntegerField(default=0)  # 0 à 100%
     
     # Responsables
-    responsable_cloture = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clotures_responsable')
-    equipe_cloture = models.ManyToManyField(User, blank=True, related_name='clotures_equipe')
+    responsable_cloture = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='clotures_responsable')
+    equipe_cloture = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='clotures_equipe')
     
     # Périmètre
     sections_incluses = models.ManyToManyField(SectionAnalytique, blank=True)
@@ -119,7 +119,7 @@ class ProcedureCloture(models.Model):
     
     # Approbation
     date_approbation = models.DateTimeField(null=True, blank=True)
-    approbateur = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='clotures_approuvees')
+    approbateur = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='clotures_approuvees')
     commentaires_approbation = models.TextField(blank=True)
     
     class Meta:
@@ -179,7 +179,7 @@ class EtapeCloture(models.Model):
     messages_erreur = models.TextField(blank=True)
     
     # Responsable
-    responsable_etape = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    responsable_etape = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     
     class Meta:
         db_table = 'closure_steps'
@@ -330,7 +330,7 @@ class JournalCloture(models.Model):
     donnees_contexte = models.JSONField(default=dict)  # Données additionnelles
     
     # Traçabilité
-    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE)
+    utilisateur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date_evenement = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     
@@ -525,7 +525,7 @@ class AnnexNote(models.Model):
     
     # Validation
     is_complete = models.BooleanField(default=False, verbose_name="Note complète")
-    validated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     validation_date = models.DateTimeField(null=True, blank=True)
     
     # Audit
@@ -568,7 +568,7 @@ class CarryForwardBalance(models.Model):
     
     # Données du report
     account = models.ForeignKey('accounting.ChartOfAccounts', on_delete=models.CASCADE)
-    third_party = models.ForeignKey('core.ThirdParty', on_delete=models.SET_NULL, null=True, blank=True)
+    third_party = models.ForeignKey('third_party.Tiers', on_delete=models.SET_NULL, null=True, blank=True)
     
     # Soldes reportés
     closing_balance_debit = models.DecimalField(
@@ -602,7 +602,7 @@ class CarryForwardBalance(models.Model):
     
     # Traitement
     processed_date = models.DateTimeField(auto_now_add=True)
-    processed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    processed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     
     # Contrôles
     is_validated = models.BooleanField(default=False)
@@ -714,7 +714,7 @@ class ResultAllocation(models.Model):
     
     # Validation et approbation
     is_approved = models.BooleanField(default=False, verbose_name="Affectation approuvée")
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     approval_date = models.DateTimeField(null=True, blank=True)
     
     # Comptabilisation

@@ -11,8 +11,12 @@ from decimal import Decimal
 import uuid
 from datetime import date, timedelta
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, ChartOfAccounts, FiscalYear
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import ChartOfAccounts, FiscalYear
+from django.conf import settings
+
+# Alias pour rétrocompatibilité
+Company = Societe
 
 
 class Supplier(TimeStampedModel):
@@ -256,7 +260,7 @@ class Supplier(TimeStampedModel):
     blocking_reason = models.TextField(blank=True, verbose_name="Motif de blocage")
     blocking_date = models.DateTimeField(null=True, blank=True)
     blocked_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='blocked_suppliers'
     )
     
@@ -544,7 +548,7 @@ class SupplierEvaluation(TimeStampedModel):
     ], verbose_name="Recommandation")
     
     # Métadonnées
-    evaluator = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    evaluator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     evaluation_date = models.DateField(default=date.today)
     
     class Meta:
@@ -613,7 +617,7 @@ class SupplierDocument(TimeStampedModel):
     
     # Validation
     is_verified = models.BooleanField(default=False, verbose_name="Vérifié")
-    verified_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    verified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     verification_date = models.DateTimeField(null=True, blank=True)
     
     # Alertes
@@ -713,7 +717,7 @@ class SupplierInvoice(TimeStampedModel):
         max_length=20, choices=VALIDATION_STATUS_CHOICES, default='PENDING'
     )
     technical_validator = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='technical_validations'
     )
     technical_validation_date = models.DateTimeField(null=True, blank=True)
@@ -723,7 +727,7 @@ class SupplierInvoice(TimeStampedModel):
         max_length=20, choices=VALIDATION_STATUS_CHOICES, default='PENDING'
     )
     accounting_validator = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='accounting_validations'
     )
     accounting_validation_date = models.DateTimeField(null=True, blank=True)
@@ -903,11 +907,11 @@ class SupplierPayment(TimeStampedModel):
     
     # Workflow d'approbation
     proposed_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
         related_name='proposed_payments'
     )
     approved_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='approved_payments'
     )
     approval_date = models.DateTimeField(null=True, blank=True)

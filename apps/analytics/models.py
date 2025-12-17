@@ -2,6 +2,7 @@
 Modèles pour la comptabilité analytique multi-axes.
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from decimal import Decimal
@@ -71,7 +72,7 @@ class SectionAnalytique(BaseModel):
     # Relations
     axe = models.ForeignKey(AxeAnalytique, on_delete=models.CASCADE, related_name='sections')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
-    responsable = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    responsable = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     
     # Informations de base
     code = models.CharField(max_length=50, db_index=True)
@@ -196,12 +197,12 @@ class VentilationAnalytique(BaseModel):
     
     def clean(self):
         super().clean()
-        
+
         # Validation de cohérence montant/pourcentage
         if self.ligne_ecriture:
-            montant_base = self.ligne_ecriture.debit or self.ligne_ecriture.credit
+            montant_base = self.ligne_ecriture.debit_amount or self.ligne_ecriture.credit_amount
             montant_calcule = (montant_base * self.pourcentage) / 100
-            
+
             if abs(self.montant - montant_calcule) > Decimal('0.01'):
                 raise ValidationError("Le montant ne correspond pas au pourcentage appliqué")
 
@@ -413,7 +414,7 @@ class TableauBord(BaseModel):
     ]
     
     # Relations
-    societe = models.ForeignKey(Societe, on_delete=models.CASCADE, related_name='tableaux_bord')
+    societe = models.ForeignKey(Societe, on_delete=models.CASCADE, related_name='tableaux_bord_analytiques')
     axes_analyses = models.ManyToManyField(AxeAnalytique, blank=True)
     
     # Informations de base
@@ -429,7 +430,7 @@ class TableauBord(BaseModel):
     
     # Permissions
     public = models.BooleanField(default=False)
-    utilisateurs_autorises = models.ManyToManyField('auth.User', blank=True)
+    utilisateurs_autorises = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
     
     # Métadonnées
     is_active = models.BooleanField(default=True)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from decimal import Decimal
 from datetime import date
 
@@ -8,8 +8,7 @@ from .models import (
     LigneDeclaration, EvenementFiscal, ObligationFiscale,
     PlanificationDeclaration, ControlesFiscaux, DocumentFiscal, AlerteFiscale
 )
-from ..accounting.models import PlanComptable
-from ..core.models import Exercice
+from ..accounting.models import PlanComptable, FiscalYear as Exercice
 
 class RegimeFiscalSerializer(serializers.ModelSerializer):
     """Serializer pour les régimes fiscaux."""

@@ -40,17 +40,28 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'django_filters',
+    'mptt',
 ]
 
 LOCAL_APPS = [
+    # Core apps - Essential
     'apps.core',
     'apps.authentication',
-    'apps.accounting',
-    'apps.third_party',
-    'apps.treasury',
-    'apps.assets',
-    'apps.analytics',
-    'apps.security',
+    'apps.api',
+    'apps.third_party.apps.ThirdPartyConfig',
+
+    # Dashboard
+    'apps.dashboard',
+
+    # Modules métier principaux
+    'apps.accounting.apps.AccountingConfig',
+    'apps.treasury.apps.TreasuryConfig',
+    'apps.budgeting.apps.BudgetingConfig',
+    'apps.crm_clients.apps.CrmClientsConfig',
+    'apps.suppliers.apps.SuppliersConfig',
+    'apps.reporting.apps.ReportingConfig',
+    'apps.consolidation.apps.ConsolidationConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -66,7 +77,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'wisebook.urls'
+ROOT_URLCONF = 'wisebook.urls_local'
 
 TEMPLATES = [
     {
@@ -117,7 +128,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Django REST Framework - Configuration minimale
+# Django REST Framework - Configuration complète
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -130,6 +141,12 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 25,
 }
 
@@ -144,20 +161,25 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings - Permissives pour développement
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:5178',
+    'http://127.0.0.1:5178',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
-CORS_ALLOW_CREDENTIALS = True
 
 # Email - Console backend pour développement
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'wisebook@localhost'
 
 # Custom User Model
-AUTH_USER_MODEL = 'security.Utilisateur'
+AUTH_USER_MODEL = 'authentication.User'
 
 # WiseBook Specific Settings - Simplifiées
 WISEBOOK_SETTINGS = {

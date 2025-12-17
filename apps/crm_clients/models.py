@@ -3,15 +3,29 @@ Module CRM Clients - Modèles de données WiseBook
 Conforme au cahier des charges v2.0 - Architecture complète
 """
 from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.db.models import JSONField
+from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from decimal import Decimal
 import uuid
 from datetime import datetime, timedelta
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, ChartOfAccounts
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import ChartOfAccounts
+
+# Alias pour rétrocompatibilité
+Company = Societe
+
+
+def default_list():
+    """Retourne une liste vide (callable pour default JSONField)"""
+    return []
+
+
+def default_dict():
+    """Retourne un dict vide (callable pour default JSONField)"""
+    return {}
 
 
 class Client(TimeStampedModel):
@@ -125,7 +139,7 @@ class Client(TimeStampedModel):
     date_premier_contact = models.DateField(null=True, blank=True)
 
     # Métadonnées
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='clients_created')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='clients_created')
 
     class Meta:
         db_table = 'crm_clients'
@@ -476,7 +490,7 @@ class ClientDocument(TimeStampedModel):
     ocr_effectue = models.BooleanField(default=False)
 
     # Métadonnées
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     is_confidentiel = models.BooleanField(default=False)
     tags = ArrayField(models.CharField(max_length=50), default=list, blank=True)
 
@@ -518,7 +532,7 @@ class ClientHistorique(TimeStampedModel):
     description = models.TextField()
 
     # Contexte
-    utilisateur = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    utilisateur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     date_evenement = models.DateTimeField(auto_now_add=True)
 
     # Liens et références

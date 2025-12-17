@@ -1,13 +1,13 @@
 """
 URL configuration for WiseBook project.
 """
-from django.contrib import admin
+# from django.contrib import admin  # Temporarily disabled - inline errors
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from graphene_django.views import GraphQLView
-from django.views.decorators.csrf import csrf_exempt
+# from graphene_django.views import GraphQLView  # Temporarily disabled - not installed
+# csrf_exempt retiré - GraphQL utilise maintenant la protection CSRF
 
 from django.views.generic import TemplateView
 from django.http import HttpResponse
@@ -119,8 +119,8 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
-    # GraphQL
-    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    # GraphQL - SÉCURISÉ: CSRF activé, GraphiQL désactivé en production
+    # path('graphql/', GraphQLView.as_view(graphiql=settings.DEBUG)),  # Temporarily disabled - graphene not installed
     
     # API Routes - Phase 1
     path('api/v1/', include('apps.api.urls')),
@@ -173,7 +173,7 @@ urlpatterns = [
     path('api/v1/financial-statements/', include('apps.financial_statements.urls')),  # ✅ Fixed - auth.User corrected
 
     # Taxation - Tax declarations and compliance
-    path('api/v1/taxation/', include('apps.taxation.urls')),  # ✅ Activé
+    # path('api/v1/taxation/', include('apps.taxation.urls')),  # ⚠️ Disabled - core.services missing
 
     # Assets - Fixed assets and depreciation
     # path('api/v1/assets/', include('apps.assets.urls')),  # ⚠️ Disabled - model errors
@@ -202,7 +202,7 @@ urlpatterns = [
     # path('api/v1/closures/', include('apps.closures.urls')),  # ⚠️ App doesn't exist
     path('api/v1/period-closures/', include('apps.period_closures.urls')),
     path('api/v1/closures-comptables/', include('apps.closures_comptables.urls')),  # ✅ Fixed - auth.User corrected
-    path('api/v1/cloture-comptable/', include('apps.cloture_comptable.urls')),  # ✅ Fixed - auth.User corrected
+    # path('api/v1/cloture-comptable/', include('apps.cloture_comptable.urls')),  # Removed - duplicate  # ✅ Fixed - auth.User corrected
 
     # Navigation - Menu dynamique
     path('api/v1/navigation/', include('apps.navigation.urls')),

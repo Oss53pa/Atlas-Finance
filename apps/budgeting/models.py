@@ -4,15 +4,19 @@ Gestion budgétaire intelligente avec IA et analyse prédictive
 Conforme au cahier des charges complet
 """
 from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.db.models import JSONField
+from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 import uuid
 from datetime import datetime, date
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, FiscalYear, ChartOfAccounts
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import FiscalYear, ChartOfAccounts
+
+# Alias pour rétrocompatibilité
+Company = Societe
 
 
 class BudgetPlan(TimeStampedModel):
@@ -55,9 +59,9 @@ class BudgetPlan(TimeStampedModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
 
     # Responsables
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_plans_created')
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_plans_approved')
-    locked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_plans_locked')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='budget_plans_created')
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='budget_plans_approved')
+    locked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='budget_plans_locked')
 
     # Dates importantes
     approval_date = models.DateTimeField(null=True, blank=True)
@@ -109,14 +113,14 @@ class BudgetDepartment(TimeStampedModel):
 
     # Responsables
     manager = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='managed_departments'
     )
     budget_responsible = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -218,9 +222,9 @@ class BudgetLine(TimeStampedModel):
     )
 
     # Responsables
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_lines_created')
-    last_modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_lines_modified')
-    validated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='budget_lines_validated')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='budget_lines_created')
+    last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='budget_lines_modified')
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='budget_lines_validated')
 
     # Dates de gestion
     validation_date = models.DateTimeField(null=True, blank=True)
@@ -392,7 +396,7 @@ class BudgetForecast(TimeStampedModel):
 
     # Métadonnées
     generated_at = models.DateTimeField(auto_now_add=True)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     model_version = models.CharField(max_length=10, default='1.0')
 
     class Meta:
@@ -464,14 +468,14 @@ class BudgetAlert(TimeStampedModel):
 
     # Gestion
     assigned_to = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='assigned_alerts'
     )
     acknowledged_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -481,7 +485,7 @@ class BudgetAlert(TimeStampedModel):
 
     # Résolution
     resolved_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -550,7 +554,7 @@ class BudgetTemplate(TimeStampedModel):
     learning_enabled = models.BooleanField(default=True)
 
     # Métadonnées
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     is_public = models.BooleanField(default=False)
     usage_count = models.IntegerField(default=0)
 
@@ -667,7 +671,7 @@ class BudgetWorkflow(TimeStampedModel):
 
     # Responsables actuels
     current_approvers = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,
         related_name='pending_budget_approvals',
         blank=True
     )
@@ -771,7 +775,7 @@ class BudgetReport(TimeStampedModel):
 
     # Métadonnées
     generated_at = models.DateTimeField(null=True, blank=True)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     generation_time_seconds = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -822,7 +826,7 @@ class BudgetImportLog(TimeStampedModel):
     warning_details = JSONField(default=list, help_text="Détail des warnings")
 
     # Métadonnées
-    imported_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    imported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     import_started_at = models.DateTimeField(auto_now_add=True)
     import_completed_at = models.DateTimeField(null=True, blank=True)
     processing_time_seconds = models.IntegerField(null=True, blank=True)

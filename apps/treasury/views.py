@@ -13,11 +13,12 @@ from django.http import HttpResponse
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
 from decimal import Decimal
+from typing import List, Dict, Any, Optional
 
 from apps.core.mixins import CompanyFilterMixin
 from apps.core.permissions import IsCompanyMember
 from .models import (
-    BankAccount, Bank, Payment, FundCall, FundCallContributor,
+    BankAccount, Bank, Payment, FundCall,
     CashFlowForecast, TreasuryPosition, TreasuryAlert,
     BankConnection, CashMovement
 )

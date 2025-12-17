@@ -2,7 +2,7 @@
 Minimal core models for WiseBook startup
 """
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 import uuid
 
 
@@ -69,3 +69,7 @@ class Devise(BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.nom}"
+
+
+# Note: Exercice (FiscalYear) is in apps.accounting.models
+# Import it from there: from apps.accounting.models import FiscalYear as Exercice

@@ -3,6 +3,7 @@ Module Trésorerie SYSCOHADA Avancé pour WiseBook
 Gestion position temps réel, appels de fonds et prévisions selon EXF-TR-001 à EXF-TR-005
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -494,11 +495,11 @@ class FundCall(TimeStampedModel):
     # Workflow et validation
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='DRAFT')
     requested_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
         related_name='fund_calls_requested'
     )
     approved_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='fund_calls_approved'
     )
     approval_date = models.DateTimeField(null=True, blank=True)
@@ -513,10 +514,10 @@ class FundCall(TimeStampedModel):
         db_table = 'treasury_fund_calls'
         indexes = [
             models.Index(fields=['company', 'status']),
-            models.Index(fields=['-call_date']),
-            models.Index(fields=['urgency_level', 'deadline_date']),
+            models.Index(fields=['-request_date']),
+            models.Index(fields=['urgency_level', 'needed_date']),
         ]
-        ordering = ['-call_date']
+        ordering = ['-request_date']
         verbose_name = "Appel de fonds"
         verbose_name_plural = "Appels de fonds"
     
@@ -920,7 +921,7 @@ class TreasuryAlert(TimeStampedModel):
     # Suivi
     is_acknowledged = models.BooleanField(default=False)
     acknowledged_by = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
     acknowledged_at = models.DateTimeField(null=True, blank=True)
     

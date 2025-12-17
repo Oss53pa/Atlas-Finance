@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -7,8 +7,8 @@ from decimal import Decimal
 import uuid
 import json
 
-from apps.company.models import Company
-from apps.accounting.models import ExerciceComptable
+from apps.core.models import Societe as Company
+from apps.accounting.models import FiscalYear as ExerciceComptable
 
 class CategorieRapport(models.Model):
     """EXF-BI-002: Catégories de rapports SYSCOHADA"""
@@ -160,7 +160,7 @@ class ModeleRapport(models.Model):
     # Traçabilité
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
-    utilisateur_creation = models.ForeignKey(User, on_delete=models.CASCADE, related_name='modeles_crees')
+    utilisateur_creation = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='modeles_crees')
     
     class Meta:
         db_table = 'apps_reporting_modelerapport'
@@ -257,7 +257,7 @@ class Rapport(models.Model):
     
     # Traçabilité
     date_creation = models.DateTimeField(auto_now_add=True)
-    utilisateur_creation = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rapports_crees')
+    utilisateur_creation = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='rapports_crees')
     
     class Meta:
         db_table = 'apps_reporting_rapport'
@@ -265,7 +265,7 @@ class Rapport(models.Model):
         verbose_name_plural = 'Rapports'
         ordering = ['-date_creation']
         indexes = [
-            models.Index(fields=['societe', 'modele', 'date_creation']),
+            models.Index(fields=['company', 'modele', 'date_creation']),
             models.Index(fields=['statut', 'date_expiration']),
             models.Index(fields=['hash_parametres']),
         ]
@@ -375,7 +375,7 @@ class PlanificationRapport(models.Model):
     # Traçabilité
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
-    utilisateur_creation = models.ForeignKey(User, on_delete=models.CASCADE, related_name='planifications_creees')
+    utilisateur_creation = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='planifications_creees')
     
     class Meta:
         db_table = 'apps_reporting_planificationrapport'
@@ -495,7 +495,7 @@ class TableauBord(models.Model):
     # Traçabilité
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
-    utilisateur_creation = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tableaux_crees')
+    utilisateur_creation = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tableaux_crees')
     
     class Meta:
         db_table = 'apps_reporting_tableaubord'
@@ -593,7 +593,7 @@ class Widget(models.Model):
     # Traçabilité
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
-    utilisateur_creation = models.ForeignKey(User, on_delete=models.CASCADE, related_name='widgets_crees')
+    utilisateur_creation = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='widgets_crees')
     
     class Meta:
         db_table = 'apps_reporting_widget'
@@ -618,7 +618,7 @@ class FavoriRapport(models.Model):
     """
     
     utilisateur = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='rapports_favoris'
     )
@@ -661,7 +661,7 @@ class CommentaireRapport(models.Model):
     """
     
     utilisateur = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='commentaires_rapport'
     )

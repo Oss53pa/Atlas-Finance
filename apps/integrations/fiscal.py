@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.cache import cache
 
-from apps.taxation.models import DeclarationFiscale, TVA
+from apps.taxation.models import DeclarationFiscale
 from apps.core.models import Societe
 
 logger = logging.getLogger(__name__)
@@ -503,7 +503,7 @@ class FiscalService:
         return errors
     
     @staticmethod
-    def _validate_is_declaration(declaration: DeclarationFiscal) -> List[str]:
+    def _validate_is_declaration(declaration: DeclarationFiscale) -> List[str]:
         """Valider une déclaration IS."""
         errors = []
         donnees = declaration.donnees_declaration

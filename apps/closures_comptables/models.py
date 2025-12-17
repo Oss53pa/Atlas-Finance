@@ -3,7 +3,7 @@ Modèles de Clôture Comptable Périodique WiseBook
 Système complet de bout en bout pour opérations comptables réelles
 """
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils import timezone
 from decimal import Decimal
 import uuid
@@ -53,9 +53,9 @@ class PeriodeClotureComptable(TimeStampedModel):
     pourcentage_avancement = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
 
     # Responsables
-    cree_par = models.ForeignKey(User, on_delete=models.PROTECT, related_name='clotures_creees')
-    responsable = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='clotures_assignees')
-    valide_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='clotures_validees')
+    cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='clotures_creees')
+    responsable = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='clotures_assignees')
+    valide_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='clotures_validees')
 
     # Résultats comptables
     nombre_ecritures_generees = models.PositiveIntegerField(default=0)
@@ -113,7 +113,7 @@ class OperationClotureComptable(TimeStampedModel):
     statut = models.CharField(max_length=20, choices=STATUT_OPERATION, default='EN_ATTENTE')
     date_execution = models.DateTimeField(null=True, blank=True)
     duree_execution_ms = models.PositiveIntegerField(default=0)
-    execute_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    execute_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Résultats comptables
     montant_calcule = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal('0'))
@@ -287,7 +287,7 @@ class LigneBalanceGenerale(TimeStampedModel):
     class Meta:
         db_table = 'lignes_balance_generale'
         unique_together = [('balance', 'compte')]
-        ordering = ['compte__account_number']
+        ordering = ['compte__code']
         verbose_name = "Ligne Balance"
         verbose_name_plural = "Lignes Balance"
 

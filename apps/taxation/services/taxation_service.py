@@ -12,8 +12,8 @@ from ..models import (
     LigneDeclaration, EvenementFiscal, ObligationFiscale,
     PlanificationDeclaration, ControlesFiscaux, DocumentFiscal, AlerteFiscale
 )
-from ...accounting.models import Ecriture, LigneEcriture, CompteComptable
-from ...core.models import Societe, Exercice
+from ...accounting.models import Ecriture, LigneEcriture, CompteComptable, FiscalYear as Exercice
+from ...core.models import Societe
 from ...core.services.base_service import BaseService
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ class TaxationService(BaseService):
             logger.error(f"Erreur génération déclaration {type_declaration_id}: {str(e)}")
             raise ValidationError(f"Impossible de générer la déclaration: {str(e)}")
     
-    def _generer_lignes_tva(self, declaration: DeclarationFiscal, periode_debut: date, periode_fin: date):
+    def _generer_lignes_tva(self, declaration: DeclarationFiscale, periode_debut: date, periode_fin: date):
         """Génère les lignes de déclaration TVA."""
         
         # TVA collectée (comptes 44571x)

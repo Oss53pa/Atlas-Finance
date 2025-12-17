@@ -4,7 +4,7 @@ Gestion des actifs avec IoT, maintenance prédictive et intégration Wise FM
 Conforme au cahier des charges - Technologies de pointe
 """
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db.models import JSONField
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -12,8 +12,11 @@ from decimal import Decimal
 import uuid
 from datetime import date, datetime, timedelta
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, ChartOfAccounts, FiscalYear
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import ChartOfAccounts, FiscalYear
+
+# Alias pour rétrocompatibilité
+Company = Societe
 
 
 class AssetCategory(TimeStampedModel):
@@ -178,7 +181,7 @@ class Asset(TimeStampedModel):
 
     # Responsabilité
     responsible_person = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -233,7 +236,7 @@ class Asset(TimeStampedModel):
     )
 
     # Métadonnées
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assets_created')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='assets_created')
     last_inventory_date = models.DateField(null=True, blank=True)
     tags = ArrayField(models.CharField(max_length=50), default=list, blank=True)
 
@@ -334,7 +337,7 @@ class AssetDocument(TimeStampedModel):
     is_expired = models.BooleanField(default=False)
 
     # Métadonnées
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     is_confidential = models.BooleanField(default=False)
 
     class Meta:
@@ -503,14 +506,14 @@ class AssetMovement(TimeStampedModel):
     from_location = JSONField(default=dict, help_text="Localisation d'origine")
     to_location = JSONField(default=dict, help_text="Localisation de destination")
     from_responsible = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='asset_movements_from'
     )
     to_responsible = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -531,7 +534,7 @@ class AssetMovement(TimeStampedModel):
     # Workflow de validation
     requires_approval = models.BooleanField(default=True)
     approved_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -691,7 +694,7 @@ class AssetMaintenanceRecord(TimeStampedModel):
 
     # Ressources
     technician = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -818,12 +821,12 @@ class AssetInventory(TimeStampedModel):
 
     # Responsables
     inventory_manager = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='inventories_managed'
     )
-    counters = models.ManyToManyField(User, related_name='inventories_counted', blank=True)
+    counters = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='inventories_counted', blank=True)
 
     # Wise FM sync
     wisefm_inventory_id = models.CharField(max_length=50, blank=True)
@@ -1085,7 +1088,7 @@ class MaintenanceServiceContract(TimeStampedModel):
     vendor_id_reg = models.CharField(max_length=100, blank=True, help_text="ID/Immatriculation fournisseur")
 
     # Creation information
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='maintenance_contracts_created')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='maintenance_contracts_created')
     creation_date = models.DateField(auto_now_add=True)
 
     # Price & payment terms
@@ -1283,7 +1286,7 @@ class AssetAttachment(TimeStampedModel):
     keywords = models.TextField(blank=True, help_text="Mots-clés pour recherche")
 
     # Upload information
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='asset_attachments_uploaded')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='asset_attachments_uploaded')
     upload_date = models.DateTimeField(auto_now_add=True)
 
     # Reference
@@ -1370,7 +1373,7 @@ class AssetNote(TimeStampedModel):
     # Follow-up
     requires_action = models.BooleanField(default=False, help_text="Nécessite une action")
     action_due_date = models.DateField(null=True, blank=True, help_text="Date limite d'action")
-    action_assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='asset_notes_assigned')
+    action_assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='asset_notes_assigned')
     action_completed = models.BooleanField(default=False)
     action_completed_date = models.DateTimeField(null=True, blank=True)
 
@@ -1389,8 +1392,8 @@ class AssetNote(TimeStampedModel):
     tags = ArrayField(models.CharField(max_length=50), default=list, blank=True)
 
     # Author information
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='asset_notes_created')
-    last_modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='asset_notes_modified')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='asset_notes_created')
+    last_modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='asset_notes_modified')
 
     # Parent/child relationship for note threads
     parent_note = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='replies')

@@ -93,7 +93,7 @@ class ConfigurationSociete(BaseModel):
     """Configuration spécifique par société"""
     
     societe = models.ForeignKey(
-        'core.Company',
+        'core.Societe',
         on_delete=models.CASCADE,
         related_name='configurations'
     )
@@ -208,7 +208,7 @@ class JournalParametres(BaseModel):
     ]
     
     societe = models.ForeignKey(
-        'core.Company',
+        'core.Societe',
         on_delete=models.CASCADE,
         related_name='journaux_parametres'
     )
@@ -259,7 +259,7 @@ class NotificationParametres(BaseModel):
     ]
     
     societe = models.ForeignKey(
-        'core.Company',
+        'core.Societe',
         on_delete=models.CASCADE,
         related_name='notifications_parametres'
     )

@@ -2,7 +2,9 @@
 Tâches Celery pour l'apprentissage automatique
 """
 import logging
+import numpy as np
 from celery import shared_task
+from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal

@@ -3,6 +3,7 @@ Module Import et Migration de Données WiseBook
 Support migration depuis Sage, SAP, Excel avec mapping intelligent
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -10,8 +11,11 @@ import uuid
 import json
 from datetime import date
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, FiscalYear, ChartOfAccounts
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import FiscalYear, ChartOfAccounts
+
+# Alias pour rétrocompatibilité
+Company = Societe
 
 
 class DataSourceConfiguration(TimeStampedModel):
@@ -169,7 +173,7 @@ class ImportSession(TimeStampedModel):
     processing_duration = models.DurationField(null=True, blank=True, verbose_name="Durée traitement")
     
     # Utilisateur et audit
-    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     import_notes = models.TextField(blank=True, verbose_name="Notes d'import")
     
     # Logs détaillés
@@ -291,7 +295,7 @@ class AccountMappingRule(TimeStampedModel):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    source_config = models.ForeignKey(DataSourceConfiguration, on_delete=models.CASCADE, related_name='account_mapping_rules')
+    source_config = models.ForeignKey(DataSourceConfiguration, on_delete=models.CASCADE, related_name='mapping_rules')
     
     # Règle de mapping
     rule_name = models.CharField(max_length=100, verbose_name="Nom de la règle")
@@ -594,12 +598,12 @@ class MigrationProject(TimeStampedModel):
     overall_progress = models.PositiveIntegerField(default=0, verbose_name="Progression globale (%)")
     
     # Équipe projet
-    project_manager = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    project_manager = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     technical_lead = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='led_migrations'
     )
-    business_users = models.ManyToManyField('auth.User', blank=True, related_name='participated_migrations')
+    business_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='participated_migrations')
     
     # Risques et contingences
     identified_risks = models.JSONField(default=list, verbose_name="Risques identifiés")

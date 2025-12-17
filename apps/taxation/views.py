@@ -19,10 +19,11 @@ from .serializers import (
     RegimeFiscalSerializer, TypeDeclarationSerializer, DeclarationFiscaleSerializer,
     LigneDeclarationSerializer, EvenementFiscalSerializer, ObligationFiscaleSerializer,
     PlanificationDeclarationSerializer, ControlesFiscauxSerializer, DocumentFiscalSerializer,
-    AlerteFiscaleSerializer, DeclarationCreateSerializer, TeleDéclarationSerializer
+    AlerteFiscaleSerializer, DeclarationCreateSerializer
 )
 from .services.taxation_service import TaxationService
-from ..core.permissions import IsAuthenticated, IsCompanyMember
+from rest_framework.permissions import IsAuthenticated
+from ..core.permissions import IsCompanyMember
 from ..core.views import BaseCompanyViewSet
 
 logger = logging.getLogger(__name__)

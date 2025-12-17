@@ -79,6 +79,66 @@ app.conf.beat_schedule = {
         'task': 'apps.third_party.tasks.update_aging_analysis',
         'schedule': crontab(hour=10, minute=0, day=1),  # 1st of month 10:00 AM
     },
+
+    # ==========================================
+    # Paloma AI Tasks
+    # ==========================================
+
+    # Update chunk statistics for RAG relevance
+    'paloma-update-chunk-stats': {
+        'task': 'apps.advanced_bi.tasks.update_chunk_statistics',
+        'schedule': crontab(hour=5, minute=0),  # Daily 5:00 AM
+    },
+
+    # Generate Paloma analytics - hourly for real-time insights
+    'paloma-hourly-analytics': {
+        'task': 'apps.advanced_bi.tasks.generate_paloma_analytics',
+        'schedule': crontab(minute=30),  # Every hour at :30
+        'args': (None, 'HOUR'),
+    },
+
+    # Generate daily Paloma analytics
+    'paloma-daily-analytics': {
+        'task': 'apps.advanced_bi.tasks.generate_paloma_analytics',
+        'schedule': crontab(hour=0, minute=15),  # Midnight + 15 min
+        'args': (None, 'DAY'),
+    },
+
+    # Cleanup old conversations - weekly
+    'paloma-cleanup-conversations': {
+        'task': 'apps.advanced_bi.tasks.cleanup_old_conversations',
+        'schedule': crontab(hour=3, minute=30, day_of_week=0),  # Sunday 3:30 AM
+        'kwargs': {'days_to_keep': 365},
+    },
+
+    # Reindex WiseBook codebase - weekly for Paloma knowledge
+    'paloma-reindex-codebase': {
+        'task': 'apps.advanced_bi.tasks.reindex_wisebook_codebase',
+        'schedule': crontab(hour=4, minute=0, day_of_week=0),  # Sunday 4:00 AM
+    },
+
+    # ==========================================
+    # Treasury monitoring tasks
+    # ==========================================
+
+    # Check overdraft limits - twice daily
+    'treasury-overdraft-check': {
+        'task': 'apps.treasury.tasks.monitor_overdraft_limits',
+        'schedule': crontab(hour='9,17', minute=0),  # 9 AM and 5 PM
+    },
+
+    # Update FX exposure - daily
+    'treasury-fx-exposure': {
+        'task': 'apps.treasury.tasks.update_fx_exposure',
+        'schedule': crontab(hour=8, minute=0),  # 8 AM daily
+    },
+
+    # Check payment deadlines - daily at 8:30 AM
+    'treasury-payment-deadlines': {
+        'task': 'apps.treasury.tasks.check_payment_deadlines',
+        'schedule': crontab(hour=8, minute=30),
+        'kwargs': {'days_ahead': 7},
+    },
 }
 
 app.conf.timezone = 'Africa/Douala'

@@ -3,6 +3,7 @@ Module Analyse Financière Avancée WiseBook
 TAFIRE SYSCOHADA, SIG et ratios financiers selon EXF-AF-001 à EXF-AF-007
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -10,8 +11,11 @@ from decimal import Decimal
 import uuid
 from datetime import date, timedelta
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, ChartOfAccounts, FiscalYear
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import ChartOfAccounts, FiscalYear
+
+# Alias pour rétrocompatibilité
+Company = Societe
 
 
 class FinancialAnalysisConfiguration(TimeStampedModel):
@@ -196,7 +200,7 @@ class TAFIREStatement(TimeStampedModel):
     
     # Validation et approbation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     validation_date = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -629,7 +633,7 @@ class FunctionalBalanceSheet(TimeStampedModel):
     
     # Validation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     validation_date = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -807,7 +811,7 @@ class CashFlowScenario(TimeStampedModel):
         verbose_name="Niveau de confiance (%)"
     )
     
-    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     last_updated = models.DateTimeField(auto_now=True)
     
     class Meta:
@@ -926,7 +930,7 @@ class RatioFinancier(TimeStampedModel):
     )
     
     class Meta:
-        db_table = 'financial_ratios'
+        db_table = 'financial_analysis_ratios'
         unique_together = [('company', 'fiscal_year', 'type_ratio')]
         indexes = [
             models.Index(fields=['company', 'category', '-calculation_date']),

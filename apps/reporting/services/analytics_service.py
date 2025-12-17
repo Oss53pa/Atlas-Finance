@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 
 from ..models import ModeleRapport, Rapport
 from apps.accounting.models import EcritureComptable, CompteComptable, ExerciceComptable
-from apps.company.models import Company
+from apps.core.models import Societe as Company
 from apps.third_party.models import Tiers
 from apps.treasury.models import PrevisionTresorerie
 

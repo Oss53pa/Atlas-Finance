@@ -12,8 +12,9 @@ from decimal import Decimal
 
 from .models import (
     Company, FiscalYear, Journal, ChartOfAccounts,
-    JournalEntry, JournalEntryLine, FundCall
+    JournalEntry, JournalEntryLine
 )
+from apps.treasury.models import FundCall
 from .serializers import (
     CompanySerializer, FiscalYearSerializer, JournalSerializer,
     ChartOfAccountsSerializer, JournalEntrySerializer,

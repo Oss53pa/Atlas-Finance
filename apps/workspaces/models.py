@@ -3,7 +3,7 @@ Modèles pour le module Workspaces WiseBook ERP V3.0
 Gestion des espaces de travail personnalisés par rôle
 """
 from django.db import models
-# from django.contrib.auth.models import User
+from django.conf import settings
 from apps.core.models import BaseModel
 import uuid
 
@@ -98,7 +98,7 @@ class UserWorkspacePreference(BaseModel):
     """Préférences utilisateur pour son workspace"""
 
     user = models.OneToOneField(
-        'authentication.User',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='workspace_preferences'
     )

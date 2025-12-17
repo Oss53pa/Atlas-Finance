@@ -3,6 +3,7 @@ Modèles pour les États Financiers SYSCOHADA
 Bilan, Compte de Résultat et TAFIRE selon normes OHADA révisées 2017
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 import uuid
@@ -314,7 +315,7 @@ class BalanceSYSCOHADA(TimeStampedModel):
     
     # Validation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     validation_date = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -598,7 +599,7 @@ class CompteResultatSYSCOHADA(TimeStampedModel):
     
     # Validation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     validation_date = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -818,7 +819,7 @@ class TableauFluxTresorerieSYSCOHADA(TimeStampedModel):
     
     # Validation
     is_validated = models.BooleanField(default=False)
-    validated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     validation_date = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -928,7 +929,7 @@ class FinancialStatementsSet(TimeStampedModel):
     
     # Approbation finale
     is_approved = models.BooleanField(default=False, verbose_name="États approuvés")
-    approved_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     approval_date = models.DateTimeField(null=True, blank=True)
     
     # Publication

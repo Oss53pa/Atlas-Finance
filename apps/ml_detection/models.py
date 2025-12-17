@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -6,7 +7,10 @@ from decimal import Decimal
 import uuid
 import json
 
-from apps.core.models import BaseModel, Company
+from apps.core.models import BaseModel, Societe
+
+# Alias pour rétrocompatibilité
+Company = Societe
 
 # Constantes pour les niveaux de sévérité
 NIVEAUX_SEVERITE = [
@@ -260,7 +264,7 @@ class DetectionAnomalie(BaseModel):
     statut = models.CharField(max_length=20, choices=STATUTS, default='DETECTEE')
     date_analyse = models.DateTimeField(null=True, blank=True)
     analyseur = models.ForeignKey(
-        'auth.User',
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -593,7 +597,7 @@ class FeedbackAnomalie(BaseModel):
         related_name='feedbacks'
     )
     utilisateur = models.ForeignKey(
-        'auth.User',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='feedbacks_anomalies'
     )

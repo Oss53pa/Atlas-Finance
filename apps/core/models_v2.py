@@ -4,7 +4,7 @@ Implémentation complète du schéma conceptuel SQL
 """
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -181,7 +181,7 @@ class Exercice(models.Model):
     statut = models.CharField(max_length=10, choices=STATUT_EXERCICE, default='OUVERT')
     date_cloture = models.DateTimeField(null=True, blank=True)
     cloture_par = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -307,7 +307,7 @@ class Tiers(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='tiers_crees'
@@ -435,13 +435,13 @@ class EcritureComptable(models.Model):
     
     # Audit
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='ecritures_creees'
     )
     validated_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -627,7 +627,7 @@ class Immobilisation(models.Model):
     # Localisation et responsable
     localisation = models.CharField(max_length=255, blank=True)
     responsable = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -641,7 +641,7 @@ class Immobilisation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='immobilisations_creees'

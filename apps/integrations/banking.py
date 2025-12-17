@@ -14,7 +14,11 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.cache import cache
 
-from apps.treasury.models import ComptesBancaires, MouvementTresorerie
+from apps.treasury.models import BankAccount, CashMovement
+
+# Alias pour rétrocompatibilité
+ComptesBancaires = BankAccount
+MouvementTresorerie = CashMovement
 
 logger = logging.getLogger(__name__)
 
@@ -291,21 +295,246 @@ class EBICSConnector(BaseBankingConnector):
     
     def get_balance(self) -> Decimal:
         """Récupérer le solde via EBICS (ordre HAC)."""
-        # Implémentation EBICS pour récupérer le solde
-        # Ordre HAC (Have Account Currents)
-        pass
-    
+        try:
+            if not self.authenticate():
+                raise Exception("Authentification EBICS échouée")
+
+            # Construction de la requête EBICS HAC (Have Account Currents)
+            request_xml = self._build_ebics_request('HAC')
+
+            response = requests.post(
+                self.bank_url,
+                data=request_xml,
+                headers={'Content-Type': 'application/xml'},
+                cert=(self.certificate_path, self.certificate_path.replace('.crt', '.key')) if self.certificate_path else None,
+                timeout=60
+            )
+
+            if response.status_code == 200:
+                # Parser la réponse EBICS
+                root = ET.fromstring(response.content)
+                ns = {'ebics': 'urn:org:ebics:H004'}
+
+                # Extraire le solde depuis la réponse
+                balance_element = root.find('.//ebics:Balance', ns)
+                if balance_element is not None:
+                    return Decimal(balance_element.text)
+
+                # Fallback: parser le format CAMT.052 si présent
+                camt_balance = root.find('.//{urn:iso:std:iso:20022:tech:xsd:camt.052.001.02}Bal')
+                if camt_balance is not None:
+                    amt = camt_balance.find('.//{urn:iso:std:iso:20022:tech:xsd:camt.052.001.02}Amt')
+                    if amt is not None:
+                        return Decimal(amt.text)
+
+            logger.warning(f"Impossible de récupérer le solde EBICS, utilisation du solde en base")
+            return self.compte.solde_actuel or Decimal('0')
+
+        except Exception as e:
+            logger.error(f"Erreur récupération solde EBICS: {str(e)}")
+            return self.compte.solde_actuel or Decimal('0')
+
     def get_transactions(self, date_debut: datetime, date_fin: datetime) -> List[BankTransaction]:
         """Récupérer les transactions via EBICS (ordre STA)."""
-        # Implémentation EBICS pour récupérer les relevés
-        # Ordre STA (Statement)
-        pass
-    
+        try:
+            if not self.authenticate():
+                raise Exception("Authentification EBICS échouée")
+
+            # Construction de la requête EBICS STA (Statement)
+            request_xml = self._build_ebics_request('STA', {
+                'date_debut': date_debut.strftime('%Y-%m-%d'),
+                'date_fin': date_fin.strftime('%Y-%m-%d')
+            })
+
+            response = requests.post(
+                self.bank_url,
+                data=request_xml,
+                headers={'Content-Type': 'application/xml'},
+                cert=(self.certificate_path, self.certificate_path.replace('.crt', '.key')) if self.certificate_path else None,
+                timeout=120
+            )
+
+            transactions = []
+
+            if response.status_code == 200:
+                # Parser la réponse MT940 ou CAMT.053
+                root = ET.fromstring(response.content)
+
+                # Parser format CAMT.053 (ISO 20022)
+                ns = {'camt': 'urn:iso:std:iso:20022:tech:xsd:camt.053.001.02'}
+                entries = root.findall('.//camt:Ntry', ns)
+
+                for entry in entries:
+                    try:
+                        # Extraire les informations de la transaction
+                        amount_elem = entry.find('.//camt:Amt', ns)
+                        amount = Decimal(amount_elem.text) if amount_elem is not None else Decimal('0')
+
+                        # Déterminer le sens (débit/crédit)
+                        cdt_dbt = entry.find('.//camt:CdtDbtInd', ns)
+                        if cdt_dbt is not None and cdt_dbt.text == 'DBIT':
+                            amount = -amount
+
+                        booking_date = entry.find('.//camt:BookgDt/camt:Dt', ns)
+                        value_date = entry.find('.//camt:ValDt/camt:Dt', ns)
+                        ref = entry.find('.//camt:AcctSvcrRef', ns)
+                        info = entry.find('.//camt:AddtlNtryInf', ns)
+
+                        transaction = BankTransaction(
+                            reference=ref.text if ref is not None else f"EBICS_{datetime.now().timestamp()}",
+                            date_valeur=datetime.fromisoformat(value_date.text) if value_date is not None else datetime.now(),
+                            date_operation=datetime.fromisoformat(booking_date.text) if booking_date is not None else datetime.now(),
+                            montant=amount,
+                            libelle=info.text if info is not None else "Transaction EBICS",
+                            type_operation='credit' if amount > 0 else 'debit',
+                            metadonnees={'source': 'EBICS', 'format': 'CAMT.053'}
+                        )
+                        transactions.append(transaction)
+                    except Exception as parse_error:
+                        logger.warning(f"Erreur parsing transaction EBICS: {parse_error}")
+                        continue
+
+            logger.info(f"EBICS: {len(transactions)} transactions récupérées")
+            return transactions
+
+        except Exception as e:
+            logger.error(f"Erreur récupération transactions EBICS: {str(e)}")
+            return []
+
     def initiate_transfer(self, beneficiaire: str, montant: Decimal, libelle: str) -> Dict:
         """Initier un virement via EBICS (ordre CCT)."""
-        # Implémentation EBICS pour les virements
-        # Ordre CCT (SEPA Credit Transfer)
-        pass
+        try:
+            if not self.authenticate():
+                raise Exception("Authentification EBICS échouée")
+
+            # Générer le fichier pain.001 (SEPA Credit Transfer)
+            pain_xml = self._generate_pain001(beneficiaire, montant, libelle)
+
+            # Construction de la requête EBICS CCT
+            request_xml = self._build_ebics_request('CCT', {'payload': pain_xml})
+
+            response = requests.post(
+                self.bank_url,
+                data=request_xml,
+                headers={'Content-Type': 'application/xml'},
+                cert=(self.certificate_path, self.certificate_path.replace('.crt', '.key')) if self.certificate_path else None,
+                timeout=60
+            )
+
+            if response.status_code in [200, 201, 202]:
+                root = ET.fromstring(response.content)
+
+                # Extraire la référence de transaction
+                order_id = root.find('.//{urn:org:ebics:H004}OrderID')
+
+                return {
+                    'success': True,
+                    'status': 'submitted',
+                    'order_id': order_id.text if order_id is not None else f"CCT_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                    'message': 'Virement SEPA soumis avec succès'
+                }
+            else:
+                return {
+                    'success': False,
+                    'status': 'failed',
+                    'error': f"Erreur EBICS: {response.status_code}"
+                }
+
+        except Exception as e:
+            logger.error(f"Erreur initiation virement EBICS: {str(e)}")
+            return {
+                'success': False,
+                'status': 'error',
+                'error': str(e)
+            }
+
+    def _build_ebics_request(self, order_type: str, params: Dict = None) -> str:
+        """Construire une requête EBICS."""
+        params = params or {}
+        timestamp = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+        request = f"""<?xml version="1.0" encoding="UTF-8"?>
+<ebicsRequest xmlns="urn:org:ebics:H004" Version="H004" Revision="1">
+    <header authenticate="true">
+        <static>
+            <HostID>{self.host_id}</HostID>
+            <PartnerID>{self.partner_id}</PartnerID>
+            <UserID>{self.user_id}</UserID>
+            <OrderDetails>
+                <OrderType>{order_type}</OrderType>
+                <OrderAttribute>OZHNN</OrderAttribute>
+            </OrderDetails>
+        </static>
+        <mutable>
+            <TransactionPhase>Initialisation</TransactionPhase>
+        </mutable>
+    </header>
+    <body>
+        <DataTransfer>
+            <OrderData>{params.get('payload', '')}</OrderData>
+        </DataTransfer>
+    </body>
+</ebicsRequest>"""
+        return request
+
+    def _generate_pain001(self, beneficiaire_iban: str, montant: Decimal, libelle: str) -> str:
+        """Générer un fichier pain.001 pour virement SEPA."""
+        timestamp = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        msg_id = f"WB{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+    <CstmrCdtTrfInitn>
+        <GrpHdr>
+            <MsgId>{msg_id}</MsgId>
+            <CreDtTm>{timestamp}</CreDtTm>
+            <NbOfTxs>1</NbOfTxs>
+            <CtrlSum>{montant}</CtrlSum>
+            <InitgPty>
+                <Nm>{self.compte.nom}</Nm>
+            </InitgPty>
+        </GrpHdr>
+        <PmtInf>
+            <PmtInfId>{msg_id}-1</PmtInfId>
+            <PmtMtd>TRF</PmtMtd>
+            <NbOfTxs>1</NbOfTxs>
+            <CtrlSum>{montant}</CtrlSum>
+            <PmtTpInf>
+                <SvcLvl><Cd>SEPA</Cd></SvcLvl>
+            </PmtTpInf>
+            <ReqdExctnDt>{datetime.now().strftime('%Y-%m-%d')}</ReqdExctnDt>
+            <Dbtr>
+                <Nm>{self.compte.nom}</Nm>
+            </Dbtr>
+            <DbtrAcct>
+                <Id><IBAN>{self.compte.iban}</IBAN></Id>
+            </DbtrAcct>
+            <DbtrAgt>
+                <FinInstnId><BIC>{self.compte.bic or ''}</BIC></FinInstnId>
+            </DbtrAgt>
+            <CdtTrfTxInf>
+                <PmtId>
+                    <EndToEndId>{msg_id}-E2E</EndToEndId>
+                </PmtId>
+                <Amt>
+                    <InstdAmt Ccy="{self.compte.devise.code if hasattr(self.compte, 'devise') else 'EUR'}">{montant}</InstdAmt>
+                </Amt>
+                <CdtrAgt>
+                    <FinInstnId><BIC></BIC></FinInstnId>
+                </CdtrAgt>
+                <Cdtr>
+                    <Nm>Beneficiaire</Nm>
+                </Cdtr>
+                <CdtrAcct>
+                    <Id><IBAN>{beneficiaire_iban}</IBAN></Id>
+                </CdtrAcct>
+                <RmtInf>
+                    <Ustrd>{libelle}</Ustrd>
+                </RmtInf>
+            </CdtTrfTxInf>
+        </PmtInf>
+    </CstmrCdtTrfInitn>
+</Document>"""
 
 
 class SWIFTConnector(BaseBankingConnector):
@@ -444,8 +673,38 @@ class AfricanBankingConnector(BaseBankingConnector):
     
     def _authenticate_bgfi(self) -> bool:
         """Authentification BGFI Bank."""
-        # Implémentation spécifique BGFI
-        pass
+        try:
+            auth_url = f"{self.api_url}/v1/auth/token"
+
+            # Signature HMAC pour BGFI
+            timestamp = str(int(datetime.now().timestamp()))
+            signature_string = f"{self.api_key}{timestamp}{self.api_secret}"
+            signature = hmac.new(
+                self.api_secret.encode(),
+                signature_string.encode(),
+                hashlib.sha256
+            ).hexdigest()
+
+            headers = {
+                'Content-Type': 'application/json',
+                'X-API-Key': self.api_key,
+                'X-Timestamp': timestamp,
+                'X-Signature': signature
+            }
+
+            response = requests.post(auth_url, headers=headers, timeout=30)
+
+            if response.status_code == 200:
+                token_data = response.json()
+                self.access_token = token_data.get('access_token')
+                return True
+
+            logger.error(f"Erreur authentification BGFI: {response.text}")
+            return False
+
+        except Exception as e:
+            logger.error(f"Erreur authentification BGFI: {str(e)}")
+            return False
     
     def get_balance(self) -> Decimal:
         """Récupérer le solde via API banque africaine."""

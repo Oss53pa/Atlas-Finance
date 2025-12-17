@@ -1,0 +1,587 @@
+[
+  {
+    "model": "workspaces.workspace",
+    "pk": 1,
+    "fields": {
+      "role": "admin",
+      "name": "Espace Administrateur",
+      "description": "Tableau de bord complet pour les administrateurs système avec accès à toutes les fonctionnalités",
+      "icon": "Shield",
+      "color": "#1F2937",
+      "is_active": true,
+      "order": 1,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspace",
+    "pk": 2,
+    "fields": {
+      "role": "manager",
+      "name": "Espace Manager",
+      "description": "Tableau de bord pour les managers avec KPIs financiers et opérationnels",
+      "icon": "Briefcase",
+      "color": "#059669",
+      "is_active": true,
+      "order": 2,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspace",
+    "pk": 3,
+    "fields": {
+      "role": "comptable",
+      "name": "Espace Comptable",
+      "description": "Tableau de bord dédié aux comptables avec accès rapide aux écritures et balance",
+      "icon": "Calculator",
+      "color": "#4F46E5",
+      "is_active": true,
+      "order": 3,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspace",
+    "pk": 4,
+    "fields": {
+      "role": "controller",
+      "name": "Espace Contrôleur",
+      "description": "Tableau de bord pour le contrôle de gestion avec budgets et analyses",
+      "icon": "TrendingUp",
+      "color": "#DC2626",
+      "is_active": true,
+      "order": 4,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspace",
+    "pk": 5,
+    "fields": {
+      "role": "viewer",
+      "name": "Espace Visualisation",
+      "description": "Tableau de bord en lecture seule pour consultation des rapports",
+      "icon": "Eye",
+      "color": "#7C2D12",
+      "is_active": true,
+      "order": 5,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 1,
+    "fields": {
+      "workspace": 3,
+      "stat_key": "total_entries",
+      "stat_label": "Total Écritures",
+      "stat_value": "1247",
+      "stat_type": "number",
+      "trend": 12.5,
+      "trend_direction": "up",
+      "cache_duration": 300,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 2,
+    "fields": {
+      "workspace": 3,
+      "stat_key": "monthly_balance",
+      "stat_label": "Balance du Mois",
+      "stat_value": "45890000",
+      "stat_type": "currency",
+      "trend": -3.2,
+      "trend_direction": "down",
+      "cache_duration": 300,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 3,
+    "fields": {
+      "workspace": 3,
+      "stat_key": "pending_validations",
+      "stat_label": "En Attente de Validation",
+      "stat_value": "23",
+      "stat_type": "number",
+      "trend": null,
+      "trend_direction": "stable",
+      "cache_duration": 300,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 4,
+    "fields": {
+      "workspace": 3,
+      "stat_key": "completion_rate",
+      "stat_label": "Taux de Lettrage",
+      "stat_value": "87.5",
+      "stat_type": "percentage",
+      "trend": 5.3,
+      "trend_direction": "up",
+      "target_value": "95",
+      "progress": 92,
+      "cache_duration": 300,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 5,
+    "fields": {
+      "workspace": 2,
+      "stat_key": "revenue",
+      "stat_label": "Chiffre d'Affaires",
+      "stat_value": "125000000",
+      "stat_type": "currency",
+      "trend": 18.7,
+      "trend_direction": "up",
+      "target_value": "150000000",
+      "progress": 83,
+      "cache_duration": 600,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 6,
+    "fields": {
+      "workspace": 2,
+      "stat_key": "expenses",
+      "stat_label": "Dépenses",
+      "stat_value": "87000000",
+      "stat_type": "currency",
+      "trend": -12.3,
+      "trend_direction": "down",
+      "cache_duration": 600,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 7,
+    "fields": {
+      "workspace": 2,
+      "stat_key": "profit_margin",
+      "stat_label": "Marge Nette",
+      "stat_value": "30.4",
+      "stat_type": "percentage",
+      "trend": 8.5,
+      "trend_direction": "up",
+      "target_value": "35",
+      "progress": 87,
+      "cache_duration": 600,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 8,
+    "fields": {
+      "workspace": 1,
+      "stat_key": "active_users",
+      "stat_label": "Utilisateurs Actifs",
+      "stat_value": "42",
+      "stat_type": "number",
+      "trend": 16.7,
+      "trend_direction": "up",
+      "cache_duration": 1800,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacestatistic",
+    "pk": 9,
+    "fields": {
+      "workspace": 1,
+      "stat_key": "system_health",
+      "stat_label": "Santé Système",
+      "stat_value": "98.5",
+      "stat_type": "percentage",
+      "trend": 1.2,
+      "trend_direction": "up",
+      "target_value": "99.9",
+      "progress": 99,
+      "cache_duration": 1800,
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacewidget",
+    "pk": 1,
+    "fields": {
+      "workspace": 3,
+      "widget_type": "stat",
+      "title": "Écritures du Mois",
+      "description": "Nombre total d'écritures comptables du mois en cours",
+      "icon": "FileText",
+      "color": "#10B981",
+      "config": {"source": "accounting.entries", "filter": "current_month"},
+      "url": "/accounting/entries",
+      "api_endpoint": "/api/v1/accounting/entries/stats/",
+      "order": 1,
+      "width": 1,
+      "height": 1,
+      "is_visible": true,
+      "is_required": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacewidget",
+    "pk": 2,
+    "fields": {
+      "workspace": 3,
+      "widget_type": "chart",
+      "title": "Évolution Balance",
+      "description": "Graphique d'évolution de la balance comptable sur 12 mois",
+      "icon": "TrendingUp",
+      "color": "#3B82F6",
+      "config": {"chart_type": "line", "period": "12_months"},
+      "url": "/accounting/balance",
+      "api_endpoint": "/api/v1/accounting/balance/evolution/",
+      "order": 2,
+      "width": 2,
+      "height": 1,
+      "is_visible": true,
+      "is_required": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacewidget",
+    "pk": 3,
+    "fields": {
+      "workspace": 3,
+      "widget_type": "list",
+      "title": "Dernières Écritures",
+      "description": "Liste des 10 dernières écritures comptables",
+      "icon": "List",
+      "color": "#8B5CF6",
+      "config": {"limit": 10, "sort": "-created_at"},
+      "url": "/accounting/entries",
+      "api_endpoint": "/api/v1/accounting/entries/recent/",
+      "order": 3,
+      "width": 2,
+      "height": 2,
+      "is_visible": true,
+      "is_required": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacewidget",
+    "pk": 4,
+    "fields": {
+      "workspace": 3,
+      "widget_type": "notification",
+      "title": "Alertes Comptables",
+      "description": "Notifications importantes nécessitant une action",
+      "icon": "Bell",
+      "color": "#EF4444",
+      "config": {"priority": "high"},
+      "api_endpoint": "/api/v1/notifications/accounting/",
+      "order": 4,
+      "width": 1,
+      "height": 1,
+      "is_visible": true,
+      "is_required": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacewidget",
+    "pk": 5,
+    "fields": {
+      "workspace": 2,
+      "widget_type": "chart",
+      "title": "KPIs Financiers",
+      "description": "Vue d'ensemble des principaux indicateurs financiers",
+      "icon": "BarChart3",
+      "color": "#059669",
+      "config": {"chart_type": "bar", "metrics": ["revenue", "expenses", "profit"]},
+      "url": "/dashboard/financial",
+      "api_endpoint": "/api/v1/dashboard/kpis/",
+      "order": 1,
+      "width": 2,
+      "height": 2,
+      "is_visible": true,
+      "is_required": true,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacewidget",
+    "pk": 6,
+    "fields": {
+      "workspace": 2,
+      "widget_type": "stat",
+      "title": "Trésorerie",
+      "description": "Position de trésorerie actuelle",
+      "icon": "Wallet",
+      "color": "#F59E0B",
+      "config": {"source": "treasury.position"},
+      "url": "/treasury/position",
+      "api_endpoint": "/api/v1/treasury/position/current/",
+      "order": 2,
+      "width": 1,
+      "height": 1,
+      "is_visible": true,
+      "is_required": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 1,
+    "fields": {
+      "workspace": 3,
+      "label": "Nouvelle Écriture",
+      "description": "Créer une nouvelle écriture comptable",
+      "icon": "Plus",
+      "color": "#4F46E5",
+      "action_type": "navigate",
+      "action_target": "/accounting/entry/new",
+      "order": 1,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 2,
+    "fields": {
+      "workspace": 3,
+      "label": "Consulter Balance",
+      "description": "Accéder à la balance comptable",
+      "icon": "Scale",
+      "color": "#10B981",
+      "action_type": "navigate",
+      "action_target": "/accounting/balance",
+      "order": 2,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 3,
+    "fields": {
+      "workspace": 3,
+      "label": "Grand Livre",
+      "description": "Afficher le grand livre",
+      "icon": "Book",
+      "color": "#3B82F6",
+      "action_type": "navigate",
+      "action_target": "/accounting/general-ledger",
+      "order": 3,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 4,
+    "fields": {
+      "workspace": 3,
+      "label": "Valider Écritures",
+      "description": "Valider les écritures en attente",
+      "icon": "CheckCircle",
+      "color": "#EF4444",
+      "action_type": "modal",
+      "action_target": "validation_modal",
+      "order": 4,
+      "is_visible": true,
+      "show_badge": true,
+      "badge_api_endpoint": "/api/v1/accounting/entries/pending/count/",
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 5,
+    "fields": {
+      "workspace": 3,
+      "label": "Lettrage",
+      "description": "Lettrer les comptes clients/fournisseurs",
+      "icon": "Link",
+      "color": "#8B5CF6",
+      "action_type": "navigate",
+      "action_target": "/accounting/lettrage",
+      "order": 5,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 6,
+    "fields": {
+      "workspace": 3,
+      "label": "Import Bancaire",
+      "description": "Importer des relevés bancaires",
+      "icon": "Upload",
+      "color": "#F59E0B",
+      "action_type": "modal",
+      "action_target": "import_modal",
+      "order": 6,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 7,
+    "fields": {
+      "workspace": 2,
+      "label": "Tableau de Bord",
+      "description": "Vue d'ensemble financière",
+      "icon": "LayoutDashboard",
+      "color": "#059669",
+      "action_type": "navigate",
+      "action_target": "/dashboard/executive",
+      "order": 1,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 8,
+    "fields": {
+      "workspace": 2,
+      "label": "Rapports Financiers",
+      "description": "Générer des rapports financiers",
+      "icon": "FileText",
+      "color": "#3B82F6",
+      "action_type": "navigate",
+      "action_target": "/reporting/financial",
+      "order": 2,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 9,
+    "fields": {
+      "workspace": 2,
+      "label": "Budgets",
+      "description": "Gérer les budgets et écarts",
+      "icon": "Target",
+      "color": "#DC2626",
+      "action_type": "navigate",
+      "action_target": "/budgeting",
+      "order": 3,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 10,
+    "fields": {
+      "workspace": 1,
+      "label": "Gestion Utilisateurs",
+      "description": "Gérer les utilisateurs et permissions",
+      "icon": "Users",
+      "color": "#1F2937",
+      "action_type": "navigate",
+      "action_target": "/security/users",
+      "order": 1,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 11,
+    "fields": {
+      "workspace": 1,
+      "label": "Configuration Système",
+      "description": "Paramètres système et configuration",
+      "icon": "Settings",
+      "color": "#6B7280",
+      "action_type": "navigate",
+      "action_target": "/settings",
+      "order": 2,
+      "is_visible": true,
+      "show_badge": false,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "workspaces.workspacequickaction",
+    "pk": 12,
+    "fields": {
+      "workspace": 1,
+      "label": "Logs Système",
+      "description": "Consulter les journaux d'audit",
+      "icon": "FileSearch",
+      "color": "#7C2D12",
+      "action_type": "navigate",
+      "action_target": "/security/audit-logs",
+      "order": 3,
+      "is_visible": true,
+      "show_badge": true,
+      "badge_api_endpoint": "/api/v1/security/alerts/count/",
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  }
+]

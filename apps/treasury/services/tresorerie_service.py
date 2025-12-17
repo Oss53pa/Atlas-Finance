@@ -614,7 +614,7 @@ class TresorerieService:
         for mouvement in mouvements:
             if mouvement.reference:
                 ecriture_match = ecritures.filter(
-                    ecriture__reference_externe=mouvement.reference,
+                    Q(ecriture__reference_externe=mouvement.reference),
                     Q(debit=mouvement.montant) | Q(credit=mouvement.montant)
                 ).first()
                 

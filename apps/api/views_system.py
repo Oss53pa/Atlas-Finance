@@ -1,22 +1,26 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.conf import settings
 from django.db.models import Count
 from django.contrib.auth import get_user_model
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])  # SÉCURISÉ: Authentification requise
 def system_info(request):
+    """Informations système - Authentification requise"""
     return Response({
         'name': 'WiseBook ERP',
         'version': '3.0.0',
         'description': 'Système ERP Comptable et Financier SYSCOHADA',
-        'environment': settings.DEBUG and 'development' or 'production',
+        # Ne pas exposer l'environnement en production
         'features': {
             'syscohada_compliant': True,
             'multi_currency': True,
@@ -27,16 +31,18 @@ def system_info(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])  # SÉCURISÉ: Admin uniquement
 def system_stats(request):
-    from apps.company.models import Company
+    """Statistiques système - Admin uniquement"""
+    from apps.core.models import Societe
 
     try:
         total_users = User.objects.count()
         active_users = User.objects.filter(is_active=True).count()
-        total_companies = Company.objects.count()
-        active_companies = Company.objects.filter(actif=True).count()
-    except Exception:
+        total_companies = Societe.objects.count()
+        active_companies = Societe.objects.filter(actif=True).count()
+    except Exception as e:
+        logger.debug(f"Could not get system stats: {e}")
         total_users = 0
         active_users = 0
         total_companies = 0
@@ -60,7 +66,7 @@ def system_stats(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])  # SÉCURISÉ: Authentification requise
 def system_modules(request):
     modules = [
         {
@@ -185,11 +191,11 @@ def global_search(request):
                 'url': f'/third-party/{tier.id}',
                 'icon': 'Users'
             })
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"ThirdParty search skipped: {e}")
 
     try:
-        from apps.company.models import Company
+        from apps.core.models import Societe as Company
         companies = Company.objects.filter(nom__icontains=query)[:5]
         for company in companies:
             results.append({
@@ -199,8 +205,8 @@ def global_search(request):
                 'url': f'/core/companies/{company.id}',
                 'icon': 'Building'
             })
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Company search skipped: {e}")
 
     return Response({
         'query': query,

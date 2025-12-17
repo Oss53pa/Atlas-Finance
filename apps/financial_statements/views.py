@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.db.models import Sum, Count
 from datetime import date
 from decimal import Decimal
+from typing import List, Dict, Any, Optional
 import json
 
 from apps.core.mixins import CompanyFilterMixin

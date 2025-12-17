@@ -3,8 +3,9 @@ Calendrier de Clôture Intelligent WiseBook
 Gestion multi-niveaux avec dépendances et notifications automatiques
 """
 from django.db import models
-from django.contrib.postgres.fields import JSONField, ArrayField
-from django.contrib.auth.models import User
+from django.db.models import JSONField
+from django.contrib.postgres.fields import ArrayField
+from django.conf import settings
 from django.utils import timezone
 from decimal import Decimal
 import uuid
@@ -132,9 +133,9 @@ class TacheClotureCalendrier(TimeStampedModel):
     pourcentage_avancement = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
 
     # Responsabilités
-    responsable_principal = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='taches_assignees')
-    intervenants = models.ManyToManyField(User, blank=True, related_name='taches_participees')
-    delegue_a = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='taches_deleguees')
+    responsable_principal = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='taches_assignees')
+    intervenants = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='taches_participees')
+    delegue_a = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='taches_deleguees')
 
     # Dépendances et jalons
     dependances = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='taches_dependantes')
@@ -147,7 +148,7 @@ class TacheClotureCalendrier(TimeStampedModel):
 
     # Résultats et validation
     resultats = JSONField(default=dict, verbose_name="Résultats de la tâche")
-    validee_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='taches_validees')
+    validee_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='taches_validees')
     commentaires = models.TextField(blank=True)
 
     # Récurrence
@@ -199,7 +200,7 @@ class MatriceResponsabilites(TimeStampedModel):
     type_operation = models.CharField(max_length=30, choices=TYPES_OPERATION)
 
     # Utilisateurs autorisés
-    utilisateurs_autorises = models.ManyToManyField(User, related_name='responsabilites_cloture')
+    utilisateurs_autorises = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='responsabilites_cloture')
 
     # Seuils de montants
     seuil_montant_min = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
@@ -271,9 +272,9 @@ class JournalOperationsRegulariser(TimeStampedModel):
     date_realisation = models.DateTimeField(null=True, blank=True)
 
     # Responsabilités
-    identifiee_par = models.ForeignKey(User, on_delete=models.PROTECT, related_name='operations_identifiees')
-    assignee_a = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='operations_assignees')
-    validee_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='operations_validees')
+    identifiee_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='operations_identifiees')
+    assignee_a = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='operations_assignees')
+    validee_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='operations_validees')
 
     # Documentation
     pieces_justificatives = ArrayField(
@@ -422,7 +423,7 @@ class WorkflowValidationMultiNiveaux(TimeStampedModel):
     niveau_validation = models.CharField(max_length=20, choices=NIVEAUX_VALIDATION)
 
     # Utilisateur et action
-    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE)
+    utilisateur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     action_effectuee = models.CharField(max_length=20, choices=ACTIONS_POSSIBLES)
     date_action = models.DateTimeField(auto_now_add=True)
 
@@ -450,7 +451,7 @@ class WorkflowValidationMultiNiveaux(TimeStampedModel):
     ville_connexion = models.CharField(max_length=100, blank=True)
 
     # Délégation
-    delegue_a = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='validations_deleguees')
+    delegue_a = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='validations_deleguees')
     raison_delegation = models.TextField(blank=True)
     duree_delegation = models.PositiveIntegerField(null=True, blank=True, verbose_name="Durée délégation (jours)")
 
@@ -500,7 +501,7 @@ class IndicateursPerformanceCloture(TimeStampedModel):
     unite_mesure = models.CharField(max_length=20)  # %, jours, nombre, etc.
 
     # Contexte
-    utilisateur_concerne = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    utilisateur_concerne = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     etape_concernee = models.CharField(max_length=100, blank=True)
 
     # Objectifs et seuils
@@ -574,7 +575,7 @@ class NotificationMultiCanaux(TimeStampedModel):
     priorite = models.CharField(max_length=20, choices=PRIORITES, default='NORMALE')
 
     # Destinataire
-    destinataire = models.ForeignKey(User, on_delete=models.CASCADE)
+    destinataire = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     adresse_destination = models.CharField(max_length=200, verbose_name="Email, téléphone ou URL")
 
     # Contenu

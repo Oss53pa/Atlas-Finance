@@ -3,13 +3,17 @@ Modèles comptables complets SYSCOHADA pour WiseBook
 Conformes aux normes OHADA révisées 2017
 """
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from decimal import Decimal
 import uuid
 from datetime import date
-from apps.core.models import TimeStampedModel
+from apps.core.models import TimeStampedModel, Societe
+
+# Alias pour rétrocompatibilité des imports existants
+Company = Societe
 
 
 class FiscalYear(TimeStampedModel):
@@ -187,7 +191,7 @@ class JournalEntry(TimeStampedModel):
     is_balanced = models.BooleanField(default=False, verbose_name="Équilibrée")
     is_validated = models.BooleanField(default=False, verbose_name="Validée")
     validation_date = models.DateTimeField(null=True, blank=True)
-    validated_by = models.ForeignKey('authentication.User', on_delete=models.SET_NULL, null=True, blank=True,
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='validated_entries')
 
     # Métadonnées
@@ -246,8 +250,11 @@ class JournalEntryLine(TimeStampedModel):
     label = models.CharField(max_length=255, verbose_name="Libellé")
 
     # Tiers (optionnel)
-    third_party = models.ForeignKey('third_party.Tiers', on_delete=models.SET_NULL,
-                                    null=True, blank=True, related_name='entry_lines')
+    third_party = models.ForeignKey(
+        'third_party.Tiers', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='entry_lines',
+        verbose_name="Tiers"
+    )
 
     # Multi-devises
     currency = models.CharField(max_length=3, blank=True)
@@ -294,6 +301,8 @@ class JournalEntryLine(TimeStampedModel):
 PlanComptable = ChartOfAccounts
 CompteComptable = ChartOfAccounts
 EcritureComptable = JournalEntry
+Ecriture = JournalEntry
 LigneEcriture = JournalEntryLine
 JournalComptable = Journal
 Exercice = FiscalYear
+AccountingEntry = JournalEntry  # Alias anglais alternatif

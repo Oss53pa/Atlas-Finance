@@ -1,6 +1,6 @@
 """
 Module Clients SYSCOHADA pour WiseBook
-Gestion avancée des clients selon EXF-CC-001 à EXF-CC-004
+Gestion avancÃ©e des clients selon EXF-CC-001 Ã  EXF-CC-004
 """
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
@@ -10,14 +10,18 @@ from decimal import Decimal
 import uuid
 from datetime import date, timedelta
 
-from apps.core.models import TimeStampedModel
-from apps.accounting.models import Company, ChartOfAccounts, FiscalYear
+from apps.core.models import TimeStampedModel, Societe
+from apps.accounting.models import ChartOfAccounts, FiscalYear
+from django.conf import settings
+
+# Alias pour rÃ©trocompatibilitÃ©
+Company = Societe
 
 
 class Customer(TimeStampedModel):
     """
-    Modèle Client SYSCOHADA complet
-    Conforme aux spécifications EXF-CC-001: Fichier Clients Enrichi
+    ModÃ¨le Client SYSCOHADA complet
+    Conforme aux spÃ©cifications EXF-CC-001: Fichier Clients Enrichi
     """
     
     CUSTOMER_TYPE_CHOICES = [
@@ -25,25 +29,25 @@ class Customer(TimeStampedModel):
         ('COMPANY', 'Entreprise'),
         ('ADMINISTRATION', 'Administration'),
         ('ASSOCIATION', 'Association'),
-        ('FOREIGN', 'Client étranger'),
+        ('FOREIGN', 'Client Ã©tranger'),
     ]
     
     LEGAL_FORM_CHOICES = [
-        ('SA', 'Société Anonyme'),
+        ('SA', 'SociÃ©tÃ© Anonyme'),
         ('SARL', 'SARL'),
         ('SAS', 'SAS'),
         ('EI', 'Entreprise Individuelle'),
         ('GIE', 'GIE'),
-        ('COOP', 'Coopérative'),
+        ('COOP', 'CoopÃ©rative'),
         ('ASSOC', 'Association'),
         ('OTHER', 'Autre'),
     ]
     
     PAYMENT_METHOD_CHOICES = [
-        ('CASH', 'Espèces'),
-        ('CHECK', 'Chèque'),
+        ('CASH', 'EspÃ¨ces'),
+        ('CHECK', 'ChÃ¨que'),
         ('TRANSFER', 'Virement'),
-        ('DIRECT_DEBIT', 'Prélèvement'),
+        ('DIRECT_DEBIT', 'PrÃ©lÃ¨vement'),
         ('CARD', 'Carte bancaire'),
         ('BILL', 'Traite'),
         ('MOBILE_MONEY', 'Mobile Money'),
@@ -51,27 +55,849 @@ class Customer(TimeStampedModel):
     
     STATUS_CHOICES = [
         ('ACTIVE', 'Actif'),
-        ('BLOCKED', 'Bloqué'),
+        ('BLOCKED', 'BloquÃ©'),
         ('SUSPENDED', 'Suspendu'),
         ('PROSPECT', 'Prospect'),
-        ('ARCHIVED', 'Archivé'),
+        ('ARCHIVED', 'ArchivÃ©'),
     ]
     
     RISK_LEVEL_CHOICES = [
         ('A', 'Excellent (A)'),
         ('B', 'Bon (B)'),
         ('C', 'Moyen (C)'),
-        ('D', 'Risqué (D)'),
-        ('E', 'Très risqué (E)'),
+        ('D', 'RisquÃ© (D)'),
+        ('E', 'TrÃ¨s risquÃ© (E)'),
     ]
     
     # Identifiants
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='customers')
     
-    # Code client selon cahier des charges: C + [Pays] + [Numéro séquentiel]
+    # Code client selon cahier des charges: C + [Pays] + [NumÃ©ro sÃ©quentiel]
     code = models.CharField(
         max_length=20, 
         db_index=True,
         validators=[RegexValidator(r'^C[A-Z]{2}\d{5,}$', 'Format: CCM00001 (Client Cameroun 00001)')],
-        help_text=\"Format: CCM00001 (Client Cameroun 00001)\"\n    )\n    \n    customer_type = models.CharField(max_length=20, choices=CUSTOMER_TYPE_CHOICES)\n    \n    # Données KYC Clients Complètes (EXF-CC-001)\n    legal_name = models.CharField(max_length=255, verbose_name=\"Raison sociale\")\n    commercial_name = models.CharField(max_length=255, blank=True, verbose_name=\"Nom commercial\")\n    legal_form = models.CharField(max_length=10, choices=LEGAL_FORM_CHOICES, blank=True)\n    \n    # Identification légale OHADA\n    rccm = models.CharField(max_length=50, blank=True, verbose_name=\"RCCM\")\n    nif = models.CharField(max_length=50, blank=True, verbose_name=\"NIF\")\n    taxpayer_number = models.CharField(max_length=50, blank=True, verbose_name=\"Numéro contribuable\")\n    vat_number = models.CharField(max_length=50, blank=True, verbose_name=\"Numéro TVA\")\n    \n    # Secteur d'activité et code NAF\n    business_sector = models.CharField(max_length=100, blank=True, verbose_name=\"Secteur d'activité\")\n    naf_code = models.CharField(max_length=10, blank=True, verbose_name=\"Code NAF\")\n    \n    # Adresses multi-sites (EXF-CC-001)\n    main_address = models.TextField(verbose_name=\"Adresse principale\")\n    city = models.CharField(max_length=100, verbose_name=\"Ville\")\n    region = models.CharField(max_length=100, blank=True, verbose_name=\"Région\")\n    country = models.CharField(max_length=50, default=\"Cameroun\", verbose_name=\"Pays\")\n    postal_code = models.CharField(max_length=10, blank=True, verbose_name=\"Code postal\")\n    \n    # Contact principal\n    main_phone = models.CharField(max_length=20, blank=True, verbose_name=\"Téléphone\")\n    mobile_phone = models.CharField(max_length=20, blank=True, verbose_name=\"Mobile\")\n    email = models.EmailField(blank=True, verbose_name=\"Email\")\n    website = models.URLField(blank=True, verbose_name=\"Site web\")\n    \n    # Paramètres Commerciaux Clients (EXF-CC-001)\n    payment_terms = models.PositiveIntegerField(\n        default=30,\n        validators=[MinValueValidator(0), MaxValueValidator(365)],\n        verbose_name=\"Conditions de paiement (0-90 jours)\"\n    )\n    \n    credit_limit = models.DecimalField(\n        max_digits=20, decimal_places=2, default=Decimal('0'),\n        validators=[MinValueValidator(Decimal('0'))],\n        verbose_name=\"Limite de crédit dynamique\"\n    )\n    \n    early_payment_discount = models.DecimalField(\n        max_digits=5, decimal_places=2, default=Decimal('0'),\n        validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('20'))],\n        verbose_name=\"Taux escompte paiement anticipé (%)\"\n    )\n    \n    preferred_payment_method = models.CharField(\n        max_length=20, choices=PAYMENT_METHOD_CHOICES, default='TRANSFER',\n        verbose_name=\"Mode de règlement privilégié\"\n    )\n    \n    billing_currency = models.CharField(max_length=3, choices=[\n        ('XAF', 'Franc CFA (CEMAC)'),\n        ('XOF', 'Franc CFA (UEMOA)'),\n        ('EUR', 'Euro'),\n        ('USD', 'Dollar US'),\n    ], default='XAF', verbose_name=\"Devise de facturation\")\n    \n    communication_language = models.CharField(max_length=5, choices=[\n        ('fr', 'Français'),\n        ('en', 'English'),\n    ], default='fr', verbose_name=\"Langue de communication\")\n    \n    # Conditions particulières de vente\n    special_conditions = models.TextField(blank=True, verbose_name=\"Conditions particulières\")\n    \n    # Scoring et Risk Management (EXF-CC-001)\n    credit_score = models.PositiveIntegerField(\n        default=500,\n        validators=[MinValueValidator(0), MaxValueValidator(1000)],\n        verbose_name=\"Score de crédit (0-1000)\",\n        help_text=\"Score calculé automatiquement\"\n    )\n    \n    risk_level = models.CharField(\n        max_length=1, choices=RISK_LEVEL_CHOICES, default='B',\n        verbose_name=\"Niveau de risque\"\n    )\n    \n    # Historique des retards de paiement\n    current_outstanding = models.DecimalField(\n        max_digits=20, decimal_places=2, default=Decimal('0'),\n        verbose_name=\"Encours actuel\", editable=False\n    )\n    \n    average_payment_delay = models.PositiveIntegerField(\n        default=0, verbose_name=\"Retard moyen (jours)\", editable=False\n    )\n    \n    litigation_rate = models.DecimalField(\n        max_digits=5, decimal_places=2, default=Decimal('0'),\n        verbose_name=\"Taux de litige (%)\", editable=False\n    )\n    \n    # Prédiction de risque par IA (EXF-CC-001)\n    ai_risk_prediction = models.CharField(max_length=20, choices=[\n        ('VERY_LOW', 'Très faible'),\n        ('LOW', 'Faible'),\n        ('MEDIUM', 'Moyen'),\n        ('HIGH', 'Élevé'),\n        ('CRITICAL', 'Critique'),\n    ], default='LOW', verbose_name=\"Prédiction IA\")\n    \n    ai_risk_score = models.DecimalField(\n        max_digits=5, decimal_places=2, default=Decimal('0'),\n        validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('100'))],\n        verbose_name=\"Score IA (%)\"\n    )\n    \n    last_risk_calculation = models.DateTimeField(\n        null=True, blank=True, verbose_name=\"Dernière analyse risque\"\n    )\n    \n    # Compte comptable associé\n    account = models.ForeignKey(\n        ChartOfAccounts, on_delete=models.SET_NULL, null=True,\n        limit_choices_to={'account_class': '4', 'code__startswith': '41'},\n        related_name='customers', verbose_name=\"Compte client (41x)\"\n    )\n    \n    # Statut et contrôles\n    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')\n    blocking_reason = models.TextField(blank=True, verbose_name=\"Motif de blocage\")\n    blocking_date = models.DateTimeField(null=True, blank=True)\n    blocked_by = models.ForeignKey(\n        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,\n        related_name='blocked_customers'\n    )\n    \n    # Informations entreprise\n    capital_amount = models.DecimalField(\n        max_digits=20, decimal_places=2, null=True, blank=True,\n        validators=[MinValueValidator(Decimal('0'))],\n        verbose_name=\"Capital social\"\n    )\n    annual_turnover = models.DecimalField(\n        max_digits=20, decimal_places=2, null=True, blank=True,\n        validators=[MinValueValidator(Decimal('0'))],\n        verbose_name=\"CA annuel déclaré\"\n    )\n    employee_count = models.PositiveIntegerField(\n        null=True, blank=True, verbose_name=\"Nombre d'employés\"\n    )\n    \n    # Dates importantes\n    company_creation_date = models.DateField(null=True, blank=True, verbose_name=\"Date création\")\n    first_order_date = models.DateField(null=True, blank=True, verbose_name=\"Première commande\")\n    last_order_date = models.DateField(null=True, blank=True, verbose_name=\"Dernière commande\", editable=False)\n    last_payment_date = models.DateField(null=True, blank=True, verbose_name=\"Dernier paiement\", editable=False)\n    \n    # Métadonnées\n    notes = models.TextField(blank=True, verbose_name=\"Notes internes\")\n    tags = models.JSONField(default=list, blank=True, verbose_name=\"Tags\")\n    \n    class Meta:\n        db_table = 'customers'\n        unique_together = [('company', 'code')]\n        indexes = [\n            models.Index(fields=['company', 'status']),\n            models.Index(fields=['legal_name']),\n            models.Index(fields=['credit_score']),\n            models.Index(fields=['risk_level']),\n            models.Index(fields=['-last_order_date']),\n        ]\n        ordering = ['code']\n        verbose_name = \"Client\"\n        verbose_name_plural = \"Clients\"\n    \n    def __str__(self):\n        return f\"{self.code} - {self.legal_name}\"\n    \n    def clean(self):\n        super().clean()\n        \n        # Validation compte client obligatoire\n        if not self.account:\n            raise ValidationError(\"Un compte client (classe 41) est obligatoire\")\n        \n        # Validation format code client\n        if not self.code.startswith('C'):\n            raise ValidationError(\"Le code client doit commencer par 'C'\")\n    \n    @property\n    def display_name(self):\n        if self.commercial_name:\n            return f\"{self.legal_name} ({self.commercial_name})\"\n        return self.legal_name\n    \n    @property\n    def available_credit(self):\n        \"\"\"Crédit disponible = limite - encours\"\"\"\n        return max(Decimal('0'), self.credit_limit - self.current_outstanding)\n    \n    @property\n    def credit_utilization_rate(self):\n        \"\"\"Taux utilisation crédit en %\"\"\"\n        if self.credit_limit == 0:\n            return Decimal('0')\n        return (self.current_outstanding / self.credit_limit * 100).quantize(Decimal('0.1'))\n    \n    @property\n    def days_since_last_order(self):\n        \"\"\"Nombre de jours depuis dernière commande\"\"\"\n        if not self.last_order_date:\n            return None\n        return (date.today() - self.last_order_date).days\n    \n    def update_outstanding_balance(self):\n        \"\"\"\n        Met à jour l'encours client depuis les écritures non lettrées\n        Performance optimisée\n        \"\"\"\n        from django.db.models import Sum\n        from apps.accounting.models import JournalEntryLine\n        \n        if not self.account:\n            return\n        \n        # Calcul encours = solde débiteur non lettré du compte client\n        aggregates = JournalEntryLine.objects.filter(\n            account=self.account,\n            third_party=self,  # Référence vers ce client\n            entry__is_validated=True,\n            is_reconciled=False  # Non lettrées\n        ).aggregate(\n            total_debit=Sum('debit_amount') or Decimal('0'),\n            total_credit=Sum('credit_amount') or Decimal('0')\n        )\n        \n        outstanding = max(Decimal('0'), \n                         aggregates['total_debit'] - aggregates['total_credit'])\n        \n        if self.current_outstanding != outstanding:\n            self.current_outstanding = outstanding\n            self.save(update_fields=['current_outstanding'])\n        \n        return outstanding\n    \n    def calculate_dso(self, period_days: int = 90):\n        \"\"\"\n        Calcule le DSO (Days Sales Outstanding) du client\n        \"\"\"\n        from django.db.models import Sum\n        from apps.accounting.models import JournalEntryLine\n        \n        period_start = date.today() - timedelta(days=period_days)\n        \n        # CA sur la période (compte 70x)\n        sales_amount = JournalEntryLine.objects.filter(\n            third_party=self,\n            account__account_class='7',\n            entry__entry_date__gte=period_start,\n            entry__is_validated=True\n        ).aggregate(\n            total=Sum('credit_amount') or Decimal('0')\n        )['total']\n        \n        if sales_amount == 0:\n            return 0\n        \n        # DSO = (Encours / CA) * Période\n        dso = (self.current_outstanding / sales_amount * period_days).quantize(Decimal('0.1'))\n        return float(dso)\n    \n    def get_aging_analysis(self):\n        \"\"\"\n        Analyse par ancienneté des créances (Balance Âgée)\n        \"\"\"\n        from django.db.models import Sum, Case, When, Q\n        from apps.accounting.models import JournalEntryLine\n        \n        today = date.today()\n        \n        # Tranches d'ancienneté\n        aging = JournalEntryLine.objects.filter(\n            account=self.account,\n            third_party=self,\n            entry__is_validated=True,\n            is_reconciled=False\n        ).aggregate(\n            current=Sum(Case(\n                When(entry__entry_date__gte=today - timedelta(days=30), \n                     then='debit_amount'),\n                default=Decimal('0')\n            )) or Decimal('0'),\n            \n            days_30_60=Sum(Case(\n                When(Q(entry__entry_date__lt=today - timedelta(days=30)) &\n                     Q(entry__entry_date__gte=today - timedelta(days=60)),\n                     then='debit_amount'),\n                default=Decimal('0')\n            )) or Decimal('0'),\n            \n            days_60_90=Sum(Case(\n                When(Q(entry__entry_date__lt=today - timedelta(days=60)) &\n                     Q(entry__entry_date__gte=today - timedelta(days=90)),\n                     then='debit_amount'),\n                default=Decimal('0')\n            )) or Decimal('0'),\n            \n            over_90=Sum(Case(\n                When(entry__entry_date__lt=today - timedelta(days=90),\n                     then='debit_amount'),\n                default=Decimal('0')\n            )) or Decimal('0')\n        )\n        \n        total = sum(aging.values())\n        \n        return {\n            'current': float(aging['current']),\n            '30_60_days': float(aging['days_30_60']),\n            '60_90_days': float(aging['days_60_90']),\n            'over_90_days': float(aging['over_90']),\n            'total': float(total),\n            'percentages': {\n                'current': float(aging['current'] / total * 100) if total > 0 else 0,\n                '30_60': float(aging['days_30_60'] / total * 100) if total > 0 else 0,\n                '60_90': float(aging['days_60_90'] / total * 100) if total > 0 else 0,\n                'over_90': float(aging['over_90'] / total * 100) if total > 0 else 0,\n            }\n        }\n\n\nclass CustomerContact(TimeStampedModel):\n    \"\"\"\n    Contacts multiples avec rôles (EXF-CC-001)\n    Comptable/Acheteur/Direction\n    \"\"\"\n    \n    ROLE_CHOICES = [\n        ('CEO', 'Dirigeant/PDG'),\n        ('CFO', 'Directeur Financier'),\n        ('ACCOUNTANT', 'Comptable'),\n        ('BUYER', 'Acheteur'),\n        ('SALES', 'Responsable Ventes'),\n        ('TECHNICAL', 'Contact Technique'),\n        ('LEGAL', 'Juridique'),\n        ('OTHER', 'Autre'),\n    ]\n    \n    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)\n    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='contacts')\n    \n    # Informations personnelles\n    title = models.CharField(max_length=10, choices=[\n        ('MR', 'M.'),\n        ('MS', 'Mme'),\n        ('DR', 'Dr'),\n    ], blank=True)\n    \n    first_name = models.CharField(max_length=100, verbose_name=\"Prénom\")\n    last_name = models.CharField(max_length=100, verbose_name=\"Nom\")\n    role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name=\"Rôle\")\n    job_title = models.CharField(max_length=100, blank=True, verbose_name=\"Titre/Fonction\")\n    department = models.CharField(max_length=100, blank=True, verbose_name=\"Service\")\n    \n    # Coordonnées\n    direct_phone = models.CharField(max_length=20, blank=True, verbose_name=\"Téléphone direct\")\n    mobile = models.CharField(max_length=20, blank=True, verbose_name=\"Mobile\")\n    email = models.EmailField(blank=True, verbose_name=\"Email\")\n    \n    # Préférences communication\n    preferred_contact = models.CharField(max_length=20, choices=[\n        ('EMAIL', 'Email'),\n        ('PHONE', 'Téléphone'),\n        ('MOBILE', 'Mobile'),\n    ], default='EMAIL')\n    \n    # Autorisations\n    can_approve_orders = models.BooleanField(default=False, verbose_name=\"Peut approuver commandes\")\n    can_receive_invoices = models.BooleanField(default=True, verbose_name=\"Reçoit les factures\")\n    can_receive_statements = models.BooleanField(default=False, verbose_name=\"Reçoit les relevés\")\n    \n    is_primary = models.BooleanField(default=False, verbose_name=\"Contact principal\")\n    is_active = models.BooleanField(default=True)\n    \n    class Meta:\n        db_table = 'customer_contacts'\n        verbose_name = \"Contact client\"\n        verbose_name_plural = \"Contacts clients\"\n    \n    def __str__(self):\n        return f\"{self.first_name} {self.last_name} ({self.customer.code})\"\n    \n    @property\n    def full_name(self):\n        return f\"{self.first_name} {self.last_name}\"\n\n\nclass CustomerDeliveryAddress(TimeStampedModel):\n    \"\"\"\n    Coordonnées multi-sites de livraison (EXF-CC-001)\n    \"\"\"\n    \n    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)\n    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='delivery_addresses')\n    \n    label = models.CharField(max_length=100, verbose_name=\"Libellé du site\")\n    \n    # Adresse complète\n    address_line1 = models.CharField(max_length=100, verbose_name=\"Ligne 1\")\n    address_line2 = models.CharField(max_length=100, blank=True, verbose_name=\"Ligne 2\")\n    city = models.CharField(max_length=100, verbose_name=\"Ville\")\n    region = models.CharField(max_length=100, blank=True, verbose_name=\"Région\")\n    postal_code = models.CharField(max_length=10, blank=True, verbose_name=\"Code postal\")\n    country = models.CharField(max_length=50, default=\"Cameroun\", verbose_name=\"Pays\")\n    \n    # Contact sur site\n    contact_person = models.CharField(max_length=100, blank=True, verbose_name=\"Contact sur site\")\n    phone = models.CharField(max_length=20, blank=True, verbose_name=\"Téléphone\")\n    email = models.EmailField(blank=True, verbose_name=\"Email\")\n    \n    # Instructions spéciales\n    delivery_instructions = models.TextField(blank=True, verbose_name=\"Instructions de livraison\")\n    access_instructions = models.TextField(blank=True, verbose_name=\"Instructions d'accès\")\n    \n    # Horaires\n    opening_hours = models.JSONField(default=dict, blank=True, verbose_name=\"Horaires d'ouverture\")\n    \n    # Géolocalisation\n    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)\n    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)\n    \n    is_default = models.BooleanField(default=False, verbose_name=\"Site par défaut\")\n    is_active = models.BooleanField(default=True)\n    \n    class Meta:\n        db_table = 'customer_delivery_addresses'\n        verbose_name = \"Adresse de livraison\"\n        verbose_name_plural = \"Adresses de livraison\"\n    \n    def __str__(self):\n        return f\"{self.customer.code} - {self.label}\"\n    \n    @property\n    def formatted_address(self):\n        lines = [self.address_line1]\n        if self.address_line2:\n            lines.append(self.address_line2)\n        \n        city_line = self.city\n        if self.postal_code:\n            city_line = f\"{self.postal_code} {self.city}\"\n        lines.append(city_line)\n        \n        if self.region:\n            lines.append(self.region)\n        \n        return \"\\n\".join(lines)\n\n\nclass CustomerDocument(TimeStampedModel):\n    \"\"\"\n    Documents légaux clients (EXF-CC-001)\n    Kbis, Attestations, etc.\n    \"\"\"\n    \n    DOCUMENT_TYPE_CHOICES = [\n        ('KBIS', 'Extrait Kbis'),\n        ('RCCM', 'RCCM'),\n        ('TAX_CERT', 'Attestation fiscale'),\n        ('VAT_CERT', 'Attestation TVA'),\n        ('INSURANCE', 'Attestation assurance'),\n        ('BANK_RIB', 'RIB'),\n        ('CONTRACT', 'Contrat cadre'),\n        ('ID_CARD', 'Pièce d\\'identité'),\n        ('OTHER', 'Autre'),\n    ]\n    \n    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)\n    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='documents')\n    \n    document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPE_CHOICES)\n    title = models.CharField(max_length=200, verbose_name=\"Titre du document\")\n    description = models.TextField(blank=True, verbose_name=\"Description\")\n    \n    # Stockage du document\n    file_path = models.CharField(max_length=500, blank=True, verbose_name=\"Chemin fichier\")\n    file_size = models.PositiveIntegerField(null=True, blank=True, verbose_name=\"Taille (bytes)\")\n    file_type = models.CharField(max_length=10, blank=True, verbose_name=\"Type fichier\")\n    \n    # Métadonnées du document\n    document_date = models.DateField(verbose_name=\"Date du document\")\n    expiry_date = models.DateField(null=True, blank=True, verbose_name=\"Date d'expiration\")\n    reference_number = models.CharField(max_length=100, blank=True, verbose_name=\"Numéro de référence\")\n    \n    # Validation et conformité\n    is_verified = models.BooleanField(default=False, verbose_name=\"Vérifié\")\n    verified_by = models.ForeignKey(\n        'auth.User', on_delete=models.SET_NULL, null=True, blank=True,\n        verbose_name=\"Vérifié par\"\n    )\n    verification_date = models.DateTimeField(null=True, blank=True)\n    \n    is_expired = models.BooleanField(default=False, verbose_name=\"Expiré\")\n    \n    class Meta:\n        db_table = 'customer_documents'\n        ordering = ['-document_date']\n        verbose_name = \"Document client\"\n        verbose_name_plural = \"Documents clients\"\n    \n    def __str__(self):\n        return f\"{self.customer.code} - {self.title}\"\n    \n    def save(self, *args, **kwargs):\n        # Vérification automatique expiration\n        if self.expiry_date and self.expiry_date <= date.today():\n            self.is_expired = True\n        \n        super().save(*args, **kwargs)\n\n\nclass CustomerPaymentPromise(TimeStampedModel):\n    \"\"\"\n    Gestion des Promesses de Paiement (EXF-CC-003)\n    \"\"\"\n    \n    STATUS_CHOICES = [\n        ('PENDING', 'En attente'),\n        ('RESPECTED', 'Respectée'),\n        ('BROKEN', 'Non respectée'),\n        ('PARTIAL', 'Partiellement respectée'),\n        ('CANCELLED', 'Annulée'),\n    ]\n    \n    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)\n    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='payment_promises')\n    \n    # Références\n    promise_reference = models.CharField(max_length=50, verbose_name=\"Référence promesse\")\n    related_invoice = models.CharField(max_length=50, blank=True, verbose_name=\"Facture concernée\")\n    \n    # Engagement du client\n    promised_amount = models.DecimalField(\n        max_digits=20, decimal_places=2, verbose_name=\"Montant promis\"\n    )\n    promised_date = models.DateField(verbose_name=\"Date promise\")\n    payment_method = models.CharField(\n        max_length=20, choices=Customer.PAYMENT_METHOD_CHOICES,\n        verbose_name=\"Mode de paiement promis\"\n    )\n    \n    # Suivi de la promesse\n    actual_amount = models.DecimalField(\n        max_digits=20, decimal_places=2, default=Decimal('0'),\n        verbose_name=\"Montant réellement payé\"\n    )\n    actual_payment_date = models.DateField(null=True, blank=True, verbose_name=\"Date paiement réel\")\n    \n    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')\n    \n    # Métadonnées\n    notes = models.TextField(blank=True, verbose_name=\"Notes\")\n    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)\n    \n    # Suivi automatique\n    reminder_sent = models.BooleanField(default=False, verbose_name=\"Rappel envoyé\")\n    reminder_date = models.DateTimeField(null=True, blank=True)\n    \n    class Meta:\n        db_table = 'customer_payment_promises'\n        ordering = ['-promised_date']\n        indexes = [\n            models.Index(fields=['customer', 'status']),\n            models.Index(fields=['-promised_date']),\n        ]\n        verbose_name = \"Promesse de paiement\"\n        verbose_name_plural = \"Promesses de paiement\"\n    \n    def __str__(self):\n        return f\"{self.customer.code} - {self.promised_amount} - {self.promised_date}\"\n    \n    @property\n    def days_overdue(self):\n        \"\"\"Nombre de jours de retard sur la promesse\"\"\"\n        if self.status in ['RESPECTED', 'CANCELLED']:\n            return 0\n        \n        if self.promised_date < date.today():\n            return (date.today() - self.promised_date).days\n        return 0\n    \n    @property\n    def respect_rate(self):\n        \"\"\"Taux de respect de la promesse en %\"\"\"\n        if self.promised_amount == 0:\n            return Decimal('0')\n        \n        return (self.actual_amount / self.promised_amount * 100).quantize(Decimal('0.1'))\n    \n    def check_fulfillment(self):\n        \"\"\"\n        Vérifie automatiquement si la promesse a été tenue\n        \"\"\"\n        if self.status != 'PENDING':\n            return\n        \n        if self.actual_payment_date:\n            if self.actual_amount >= self.promised_amount:\n                self.status = 'RESPECTED'\n            elif self.actual_amount > 0:\n                self.status = 'PARTIAL'\n            \n            self.save(update_fields=['status'])\n        \n        elif self.promised_date < date.today():\n            self.status = 'BROKEN'\n            self.save(update_fields=['status'])\n\n\nclass CustomerReminderHistory(TimeStampedModel):\n    \"\"\"\n    Historique des Relances Multi-Niveaux (EXF-CC-003)\n    \"\"\"\n    \n    REMINDER_LEVEL_CHOICES = [\n        ('LEVEL_1', 'Niveau 1 - Rappel courtois (J+5)'),\n        ('LEVEL_2', 'Niveau 2 - Email + SMS ferme (J+15)'),\n        ('LEVEL_3', 'Niveau 3 - Lettre recommandée (J+30)'),\n        ('LEVEL_4', 'Niveau 4 - Mise en demeure (J+45)'),\n        ('LEVEL_5', 'Niveau 5 - Transfert contentieux (J+60)'),\n    ]\n    \n    CHANNEL_CHOICES = [\n        ('EMAIL', 'Email'),\n        ('SMS', 'SMS'),\n        ('PHONE', 'Appel téléphonique'),\n        ('POST', 'Courrier postal'),\n        ('REGISTERED', 'Lettre recommandée'),\n        ('LEGAL', 'Procédure légale'),\n    ]\n    \n    STATUS_CHOICES = [\n        ('SENT', 'Envoyée'),\n        ('DELIVERED', 'Livrée'),\n        ('READ', 'Lue'),\n        ('RESPONDED', 'Réponse reçue'),\n        ('FAILED', 'Échec envoi'),\n    ]\n    \n    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)\n    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reminders')\n    \n    # Classification de la relance\n    reminder_level = models.CharField(max_length=10, choices=REMINDER_LEVEL_CHOICES)\n    channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)\n    \n    # Contenu\n    subject = models.CharField(max_length=200, verbose_name=\"Objet\")\n    message = models.TextField(verbose_name=\"Message\")\n    \n    # Cibles\n    target_contact = models.ForeignKey(\n        CustomerContact, on_delete=models.SET_NULL, null=True, blank=True,\n        verbose_name=\"Contact ciblé\"\n    )\n    target_email = models.EmailField(blank=True)\n    target_phone = models.CharField(max_length=20, blank=True)\n    \n    # Suivi\n    sent_date = models.DateTimeField(auto_now_add=True)\n    delivery_date = models.DateTimeField(null=True, blank=True)\n    read_date = models.DateTimeField(null=True, blank=True)\n    response_date = models.DateTimeField(null=True, blank=True)\n    \n    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SENT')\n    \n    # Résultats\n    response_received = models.BooleanField(default=False)\n    payment_promised = models.BooleanField(default=False)\n    promise_date = models.DateField(null=True, blank=True)\n    promise_amount = models.DecimalField(\n        max_digits=20, decimal_places=2, null=True, blank=True\n    )\n    \n    # Métadonnées\n    sent_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)\n    \n    class Meta:\n        db_table = 'customer_reminder_history'\n        ordering = ['-sent_date']\n        indexes = [\n            models.Index(fields=['customer', '-sent_date']),\n            models.Index(fields=['reminder_level']),\n        ]\n        verbose_name = \"Historique relance\"\n        verbose_name_plural = \"Historique relances\"\n    \n    def __str__(self):\n        return f\"{self.customer.code} - {self.reminder_level} - {self.sent_date}\"\n\n\nclass CustomerAnalytics(TimeStampedModel):\n    \"\"\"\n    Analytics et métriques clients\n    Historique complet de la relation (EXF-CC-001)\n    \"\"\"\n    \n    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)\n    customer = models.OneToOneField(\n        Customer, on_delete=models.CASCADE, related_name='analytics'\n    )\n    \n    # Métriques calculées automatiquement\n    total_orders_count = models.PositiveIntegerField(default=0, verbose_name=\"Nombre total commandes\")\n    total_invoices_count = models.PositiveIntegerField(default=0, verbose_name=\"Nombre total factures\")\n    total_amount_invoiced = models.DecimalField(\n        max_digits=20, decimal_places=2, default=Decimal('0'),\n        verbose_name=\"Montant total facturé\"\n    )\n    total_amount_paid = models.DecimalField(\n        max_digits=20, decimal_places=2, default=Decimal('0'),\n        verbose_name=\"Montant total payé\"\n    )\n    \n    # Moyennes et tendances\n    average_order_amount = models.DecimalField(\n        max_digits=20, decimal_places=2, default=Decimal('0'),\n        verbose_name=\"Montant moyen commande\"\n    )\n    average_payment_delay = models.DecimalField(\n        max_digits=10, decimal_places=1, default=Decimal('0'),\n        verbose_name=\"Délai moyen paiement (jours)\"\n    )\n    \n    # Taux de performance\n    on_time_payment_rate = models.DecimalField(\n        max_digits=5, decimal_places=2, default=Decimal('100'),\n        verbose_name=\"Taux paiement à temps (%)\"\n    )\n    promise_respect_rate = models.DecimalField(\n        max_digits=5, decimal_places=2, default=Decimal('100'),\n        verbose_name=\"Taux respect promesses (%)\"\n    )\n    \n    # Fréquence des commandes\n    last_12m_orders = models.PositiveIntegerField(default=0, verbose_name=\"Commandes 12 derniers mois\")\n    last_12m_amount = models.DecimalField(\n        max_digits=20, decimal_places=2, default=Decimal('0'),\n        verbose_name=\"CA 12 derniers mois\"\n    )\n    \n    # Tendances (calcul automatique)\n    trend_orders = models.CharField(max_length=10, choices=[\n        ('UP', 'Croissante'),\n        ('STABLE', 'Stable'),\n        ('DOWN', 'Décroissante'),\n    ], default='STABLE', verbose_name=\"Tendance commandes\")\n    \n    trend_amount = models.CharField(max_length=10, choices=[\n        ('UP', 'Croissante'),\n        ('STABLE', 'Stable'),\n        ('DOWN', 'Décroissante'),\n    ], default='STABLE', verbose_name=\"Tendance montants\")\n    \n    # Dernière mise à jour\n    last_calculation = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        db_table = 'customer_analytics'\n        verbose_name = \"Analytics client\"\n        verbose_name_plural = \"Analytics clients\"\n    \n    def __str__(self):\n        return f\"Analytics {self.customer.code}\"\n    \n    def refresh_metrics(self):\n        \"\"\"\n        Recalcule toutes les métriques du client\n        Performance optimisée avec requêtes groupées\n        \"\"\"\n        from django.db.models import Sum, Count, Avg\n        from apps.accounting.models import JournalEntryLine\n        \n        if not self.customer.account:\n            return\n        \n        # Période de calcul (12 mois)\n        one_year_ago = date.today() - timedelta(days=365)\n        \n        # Requêtes optimisées groupées\n        transactions = JournalEntryLine.objects.filter(\n            account=self.customer.account,\n            third_party=self.customer,\n            entry__is_validated=True,\n            entry__entry_date__gte=one_year_ago\n        )\n        \n        # Calculs d'agrégats\n        stats = transactions.aggregate(\n            total_invoiced=Sum('debit_amount') or Decimal('0'),\n            total_paid=Sum('credit_amount') or Decimal('0'),\n            invoice_count=Count('id', distinct=True),\n            avg_amount=Avg('debit_amount') or Decimal('0')\n        )\n        \n        # Mise à jour des métriques\n        self.last_12m_amount = stats['total_invoiced']\n        self.total_amount_invoiced = stats['total_invoiced']\n        self.total_amount_paid = stats['total_paid']\n        self.total_invoices_count = stats['invoice_count']\n        self.average_order_amount = stats['avg_amount']\n        \n        # Calcul du taux de paiement à temps\n        on_time_payments = transactions.filter(\n            is_reconciled=True,\n            reconciliation_date__lte=F('entry__entry_date') + timedelta(days=self.customer.payment_terms)\n        ).count()\n        \n        total_payments = transactions.filter(is_reconciled=True).count()\n        \n        if total_payments > 0:\n            self.on_time_payment_rate = (on_time_payments / total_payments * 100)\n        \n        self.save()
+        help_text="Format: CCM00001 (Client Cameroun 00001)"
+    )
+    
+    customer_type = models.CharField(max_length=20, choices=CUSTOMER_TYPE_CHOICES)
+    
+    # DonnÃ©es KYC Clients ComplÃ¨tes (EXF-CC-001)
+    legal_name = models.CharField(max_length=255, verbose_name="Raison sociale")
+    commercial_name = models.CharField(max_length=255, blank=True, verbose_name="Nom commercial")
+    legal_form = models.CharField(max_length=10, choices=LEGAL_FORM_CHOICES, blank=True)
+    
+    # Identification lÃ©gale OHADA
+    rccm = models.CharField(max_length=50, blank=True, verbose_name="RCCM")
+    nif = models.CharField(max_length=50, blank=True, verbose_name="NIF")
+    taxpayer_number = models.CharField(max_length=50, blank=True, verbose_name="NumÃ©ro contribuable")
+    vat_number = models.CharField(max_length=50, blank=True, verbose_name="NumÃ©ro TVA")
+    
+    # Secteur d'activitÃ© et code NAF
+    business_sector = models.CharField(max_length=100, blank=True, verbose_name="Secteur d'activitÃ©")
+    naf_code = models.CharField(max_length=10, blank=True, verbose_name="Code NAF")
+    
+    # Adresses multi-sites (EXF-CC-001)
+    main_address = models.TextField(verbose_name="Adresse principale")
+    city = models.CharField(max_length=100, verbose_name="Ville")
+    region = models.CharField(max_length=100, blank=True, verbose_name="RÃ©gion")
+    country = models.CharField(max_length=50, default="Cameroun", verbose_name="Pays")
+    postal_code = models.CharField(max_length=10, blank=True, verbose_name="Code postal")
+    
+    # Contact principal
+    main_phone = models.CharField(max_length=20, blank=True, verbose_name="TÃ©lÃ©phone")
+    mobile_phone = models.CharField(max_length=20, blank=True, verbose_name="Mobile")
+    email = models.EmailField(blank=True, verbose_name="Email")
+    website = models.URLField(blank=True, verbose_name="Site web")
+    
+    # ParamÃ¨tres Commerciaux Clients (EXF-CC-001)
+    payment_terms = models.PositiveIntegerField(
+        default=30,
+        validators=[MinValueValidator(0), MaxValueValidator(365)],
+        verbose_name="Conditions de paiement (0-90 jours)"
+    )
+    
+    credit_limit = models.DecimalField(
+        max_digits=20, decimal_places=2, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Limite de crÃ©dit dynamique"
+    )
+    
+    early_payment_discount = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('20'))],
+        verbose_name="Taux escompte paiement anticipÃ© (%)"
+    )
+    
+    preferred_payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_METHOD_CHOICES, default='TRANSFER',
+        verbose_name="Mode de rÃ¨glement privilÃ©giÃ©"
+    )
+    
+    billing_currency = models.CharField(max_length=3, choices=[
+        ('XAF', 'Franc CFA (CEMAC)'),
+        ('XOF', 'Franc CFA (UEMOA)'),
+        ('EUR', 'Euro'),
+        ('USD', 'Dollar US'),
+    ], default='XAF', verbose_name="Devise de facturation")
+    
+    communication_language = models.CharField(max_length=5, choices=[
+        ('fr', 'FranÃ§ais'),
+        ('en', 'English'),
+    ], default='fr', verbose_name="Langue de communication")
+    
+    # Conditions particuliÃ¨res de vente
+    special_conditions = models.TextField(blank=True, verbose_name="Conditions particuliÃ¨res")
+    
+    # Scoring et Risk Management (EXF-CC-001)
+    credit_score = models.PositiveIntegerField(
+        default=500,
+        validators=[MinValueValidator(0), MaxValueValidator(1000)],
+        verbose_name="Score de crÃ©dit (0-1000)",
+        help_text="Score calculÃ© automatiquement"
+    )
+    
+    risk_level = models.CharField(
+        max_length=1, choices=RISK_LEVEL_CHOICES, default='B',
+        verbose_name="Niveau de risque"
+    )
+    
+    # Historique des retards de paiement
+    current_outstanding = models.DecimalField(
+        max_digits=20, decimal_places=2, default=Decimal('0'),
+        verbose_name="Encours actuel", editable=False
+    )
+    
+    average_payment_delay = models.PositiveIntegerField(
+        default=0, verbose_name="Retard moyen (jours)", editable=False
+    )
+    
+    litigation_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('0'),
+        verbose_name="Taux de litige (%)", editable=False
+    )
+    
+    # PrÃ©diction de risque par IA (EXF-CC-001)
+    ai_risk_prediction = models.CharField(max_length=20, choices=[
+        ('VERY_LOW', 'TrÃ¨s faible'),
+        ('LOW', 'Faible'),
+        ('MEDIUM', 'Moyen'),
+        ('HIGH', 'ÃlevÃ©'),
+        ('CRITICAL', 'Critique'),
+    ], default='LOW', verbose_name="PrÃ©diction IA")
+    
+    ai_risk_score = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('100'))],
+        verbose_name="Score IA (%)"
+    )
+    
+    last_risk_calculation = models.DateTimeField(
+        null=True, blank=True, verbose_name="DerniÃ¨re analyse risque"
+    )
+    
+    # Compte comptable associÃ©
+    account = models.ForeignKey(
+        ChartOfAccounts, on_delete=models.SET_NULL, null=True,
+        limit_choices_to={'account_class': '4', 'code__startswith': '41'},
+        related_name='customers', verbose_name="Compte client (41x)"
+    )
+    
+    # Statut et contrÃ´les
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+    blocking_reason = models.TextField(blank=True, verbose_name="Motif de blocage")
+    blocking_date = models.DateTimeField(null=True, blank=True)
+    blocked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='blocked_customers'
+    )
+    
+    # Informations entreprise
+    capital_amount = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Capital social"
+    )
+    annual_turnover = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="CA annuel dÃ©clarÃ©"
+    )
+    employee_count = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Nombre d'employÃ©s"
+    )
+    
+    # Dates importantes
+    company_creation_date = models.DateField(null=True, blank=True, verbose_name="Date crÃ©ation")
+    first_order_date = models.DateField(null=True, blank=True, verbose_name="PremiÃ¨re commande")
+    last_order_date = models.DateField(null=True, blank=True, verbose_name="DerniÃ¨re commande", editable=False)
+    last_payment_date = models.DateField(null=True, blank=True, verbose_name="Dernier paiement", editable=False)
+    
+    # MÃ©tadonnÃ©es
+    notes = models.TextField(blank=True, verbose_name="Notes internes")
+    tags = models.JSONField(default=list, blank=True, verbose_name="Tags")
+    
+    class Meta:
+        db_table = 'customers'
+        unique_together = [('company', 'code')]
+        indexes = [
+            models.Index(fields=['company', 'status']),
+            models.Index(fields=['legal_name']),
+            models.Index(fields=['credit_score']),
+            models.Index(fields=['risk_level']),
+            models.Index(fields=['-last_order_date']),
+        ]
+        ordering = ['code']
+        verbose_name = "Client"
+        verbose_name_plural = "Clients"
+    
+    def __str__(self):
+        return f"{self.code} - {self.legal_name}"
+    
+    def clean(self):
+        super().clean()
+        
+        # Validation compte client obligatoire
+        if not self.account:
+            raise ValidationError("Un compte client (classe 41) est obligatoire")
+        
+        # Validation format code client
+        if not self.code.startswith('C'):
+            raise ValidationError("Le code client doit commencer par 'C'")
+    
+    @property
+    def display_name(self):
+        if self.commercial_name:
+            return f"{self.legal_name} ({self.commercial_name})"
+        return self.legal_name
+    
+    @property
+    def available_credit(self):
+        """CrÃ©dit disponible = limite - encours"""
+        return max(Decimal('0'), self.credit_limit - self.current_outstanding)
+    
+    @property
+    def credit_utilization_rate(self):
+        """Taux utilisation crÃ©dit en %"""
+        if self.credit_limit == 0:
+            return Decimal('0')
+        return (self.current_outstanding / self.credit_limit * 100).quantize(Decimal('0.1'))
+    
+    @property
+    def days_since_last_order(self):
+        """Nombre de jours depuis derniÃ¨re commande"""
+        if not self.last_order_date:
+            return None
+        return (date.today() - self.last_order_date).days
+    
+    def update_outstanding_balance(self):
+        """
+        Met Ã  jour l'encours client depuis les Ã©critures non lettrÃ©es
+        Performance optimisÃ©e
+        """
+        from django.db.models import Sum
+        from apps.accounting.models import JournalEntryLine
+        
+        if not self.account:
+            return
+        
+        # Calcul encours = solde dÃ©biteur non lettrÃ© du compte client
+        aggregates = JournalEntryLine.objects.filter(
+            account=self.account,
+            third_party=self,  # RÃ©fÃ©rence vers ce client
+            entry__is_validated=True,
+            is_reconciled=False  # Non lettrÃ©es
+        ).aggregate(
+            total_debit=Sum('debit_amount') or Decimal('0'),
+            total_credit=Sum('credit_amount') or Decimal('0')
+        )
+        
+        outstanding = max(Decimal('0'), 
+                         aggregates['total_debit'] - aggregates['total_credit'])
+        
+        if self.current_outstanding != outstanding:
+            self.current_outstanding = outstanding
+            self.save(update_fields=['current_outstanding'])
+        
+        return outstanding
+    
+    def calculate_dso(self, period_days: int = 90):
+        """
+        Calcule le DSO (Days Sales Outstanding) du client
+        """
+        from django.db.models import Sum
+        from apps.accounting.models import JournalEntryLine
+        
+        period_start = date.today() - timedelta(days=period_days)
+        
+        # CA sur la pÃ©riode (compte 70x)
+        sales_amount = JournalEntryLine.objects.filter(
+            third_party=self,
+            account__account_class='7',
+            entry__entry_date__gte=period_start,
+            entry__is_validated=True
+        ).aggregate(
+            total=Sum('credit_amount') or Decimal('0')
+        )['total']
+        
+        if sales_amount == 0:
+            return 0
+        
+        # DSO = (Encours / CA) * PÃ©riode
+        dso = (self.current_outstanding / sales_amount * period_days).quantize(Decimal('0.1'))
+        return float(dso)
+    
+    def get_aging_analysis(self):
+        """
+        Analyse par anciennetÃ© des crÃ©ances (Balance ÃgÃ©e)
+        """
+        from django.db.models import Sum, Case, When, Q
+        from apps.accounting.models import JournalEntryLine
+        
+        today = date.today()
+        
+        # Tranches d'anciennetÃ©
+        aging = JournalEntryLine.objects.filter(
+            account=self.account,
+            third_party=self,
+            entry__is_validated=True,
+            is_reconciled=False
+        ).aggregate(
+            current=Sum(Case(
+                When(entry__entry_date__gte=today - timedelta(days=30), 
+                     then='debit_amount'),
+                default=Decimal('0')
+            )) or Decimal('0'),
+            
+            days_30_60=Sum(Case(
+                When(Q(entry__entry_date__lt=today - timedelta(days=30)) &
+                     Q(entry__entry_date__gte=today - timedelta(days=60)),
+                     then='debit_amount'),
+                default=Decimal('0')
+            )) or Decimal('0'),
+            
+            days_60_90=Sum(Case(
+                When(Q(entry__entry_date__lt=today - timedelta(days=60)) &
+                     Q(entry__entry_date__gte=today - timedelta(days=90)),
+                     then='debit_amount'),
+                default=Decimal('0')
+            )) or Decimal('0'),
+            
+            over_90=Sum(Case(
+                When(entry__entry_date__lt=today - timedelta(days=90),
+                     then='debit_amount'),
+                default=Decimal('0')
+            )) or Decimal('0')
+        )
+        
+        total = sum(aging.values())
+        
+        return {
+            'current': float(aging['current']),
+            '30_60_days': float(aging['days_30_60']),
+            '60_90_days': float(aging['days_60_90']),
+            'over_90_days': float(aging['over_90']),
+            'total': float(total),
+            'percentages': {
+                'current': float(aging['current'] / total * 100) if total > 0 else 0,
+                '30_60': float(aging['days_30_60'] / total * 100) if total > 0 else 0,
+                '60_90': float(aging['days_60_90'] / total * 100) if total > 0 else 0,
+                'over_90': float(aging['over_90'] / total * 100) if total > 0 else 0,
+            }
+        }
+
+
+class CustomerContact(TimeStampedModel):
+    """
+    Contacts multiples avec rÃ´les (EXF-CC-001)
+    Comptable/Acheteur/Direction
+    """
+    
+    ROLE_CHOICES = [
+        ('CEO', 'Dirigeant/PDG'),
+        ('CFO', 'Directeur Financier'),
+        ('ACCOUNTANT', 'Comptable'),
+        ('BUYER', 'Acheteur'),
+        ('SALES', 'Responsable Ventes'),
+        ('TECHNICAL', 'Contact Technique'),
+        ('LEGAL', 'Juridique'),
+        ('OTHER', 'Autre'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='contacts')
+    
+    # Informations personnelles
+    title = models.CharField(max_length=10, choices=[
+        ('MR', 'M.'),
+        ('MS', 'Mme'),
+        ('DR', 'Dr'),
+    ], blank=True)
+    
+    first_name = models.CharField(max_length=100, verbose_name="PrÃ©nom")
+    last_name = models.CharField(max_length=100, verbose_name="Nom")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name="RÃ´le")
+    job_title = models.CharField(max_length=100, blank=True, verbose_name="Titre/Fonction")
+    department = models.CharField(max_length=100, blank=True, verbose_name="Service")
+    
+    # CoordonnÃ©es
+    direct_phone = models.CharField(max_length=20, blank=True, verbose_name="TÃ©lÃ©phone direct")
+    mobile = models.CharField(max_length=20, blank=True, verbose_name="Mobile")
+    email = models.EmailField(blank=True, verbose_name="Email")
+    
+    # PrÃ©fÃ©rences communication
+    preferred_contact = models.CharField(max_length=20, choices=[
+        ('EMAIL', 'Email'),
+        ('PHONE', 'TÃ©lÃ©phone'),
+        ('MOBILE', 'Mobile'),
+    ], default='EMAIL')
+    
+    # Autorisations
+    can_approve_orders = models.BooleanField(default=False, verbose_name="Peut approuver commandes")
+    can_receive_invoices = models.BooleanField(default=True, verbose_name="ReÃ§oit les factures")
+    can_receive_statements = models.BooleanField(default=False, verbose_name="ReÃ§oit les relevÃ©s")
+    
+    is_primary = models.BooleanField(default=False, verbose_name="Contact principal")
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'customer_contacts'
+        verbose_name = "Contact client"
+        verbose_name_plural = "Contacts clients"
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.customer.code})"
+    
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+
+class CustomerDeliveryAddress(TimeStampedModel):
+    """
+    CoordonnÃ©es multi-sites de livraison (EXF-CC-001)
+    """
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='delivery_addresses')
+    
+    label = models.CharField(max_length=100, verbose_name="LibellÃ© du site")
+    
+    # Adresse complÃ¨te
+    address_line1 = models.CharField(max_length=100, verbose_name="Ligne 1")
+    address_line2 = models.CharField(max_length=100, blank=True, verbose_name="Ligne 2")
+    city = models.CharField(max_length=100, verbose_name="Ville")
+    region = models.CharField(max_length=100, blank=True, verbose_name="RÃ©gion")
+    postal_code = models.CharField(max_length=10, blank=True, verbose_name="Code postal")
+    country = models.CharField(max_length=50, default="Cameroun", verbose_name="Pays")
+    
+    # Contact sur site
+    contact_person = models.CharField(max_length=100, blank=True, verbose_name="Contact sur site")
+    phone = models.CharField(max_length=20, blank=True, verbose_name="TÃ©lÃ©phone")
+    email = models.EmailField(blank=True, verbose_name="Email")
+    
+    # Instructions spÃ©ciales
+    delivery_instructions = models.TextField(blank=True, verbose_name="Instructions de livraison")
+    access_instructions = models.TextField(blank=True, verbose_name="Instructions d'accÃ¨s")
+    
+    # Horaires
+    opening_hours = models.JSONField(default=dict, blank=True, verbose_name="Horaires d'ouverture")
+    
+    # GÃ©olocalisation
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+    
+    is_default = models.BooleanField(default=False, verbose_name="Site par dÃ©faut")
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'customer_delivery_addresses'
+        verbose_name = "Adresse de livraison"
+        verbose_name_plural = "Adresses de livraison"
+    
+    def __str__(self):
+        return f"{self.customer.code} - {self.label}"
+    
+    @property
+    def formatted_address(self):
+        lines = [self.address_line1]
+        if self.address_line2:
+            lines.append(self.address_line2)
+        
+        city_line = self.city
+        if self.postal_code:
+            city_line = f"{self.postal_code} {self.city}"
+        lines.append(city_line)
+        
+        if self.region:
+            lines.append(self.region)
+        
+        return "\n".join(lines)
+
+
+class CustomerDocument(TimeStampedModel):
+    """
+    Documents lÃ©gaux clients (EXF-CC-001)
+    Kbis, Attestations, etc.
+    """
+    
+    DOCUMENT_TYPE_CHOICES = [
+        ('KBIS', 'Extrait Kbis'),
+        ('RCCM', 'RCCM'),
+        ('TAX_CERT', 'Attestation fiscale'),
+        ('VAT_CERT', 'Attestation TVA'),
+        ('INSURANCE', 'Attestation assurance'),
+        ('BANK_RIB', 'RIB'),
+        ('CONTRACT', 'Contrat cadre'),
+        ('ID_CARD', 'PiÃ¨ce d\'identitÃ©'),
+        ('OTHER', 'Autre'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='documents')
+    
+    document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPE_CHOICES)
+    title = models.CharField(max_length=200, verbose_name="Titre du document")
+    description = models.TextField(blank=True, verbose_name="Description")
+    
+    # Stockage du document
+    file_path = models.CharField(max_length=500, blank=True, verbose_name="Chemin fichier")
+    file_size = models.PositiveIntegerField(null=True, blank=True, verbose_name="Taille (bytes)")
+    file_type = models.CharField(max_length=10, blank=True, verbose_name="Type fichier")
+    
+    # MÃ©tadonnÃ©es du document
+    document_date = models.DateField(verbose_name="Date du document")
+    expiry_date = models.DateField(null=True, blank=True, verbose_name="Date d'expiration")
+    reference_number = models.CharField(max_length=100, blank=True, verbose_name="NumÃ©ro de rÃ©fÃ©rence")
+    
+    # Validation et conformitÃ©
+    is_verified = models.BooleanField(default=False, verbose_name="VÃ©rifiÃ©")
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name="VÃ©rifiÃ© par"
+    )
+    verification_date = models.DateTimeField(null=True, blank=True)
+    
+    is_expired = models.BooleanField(default=False, verbose_name="ExpirÃ©")
+    
+    class Meta:
+        db_table = 'customer_documents'
+        ordering = ['-document_date']
+        verbose_name = "Document client"
+        verbose_name_plural = "Documents clients"
+    
+    def __str__(self):
+        return f"{self.customer.code} - {self.title}"
+    
+    def save(self, *args, **kwargs):
+        # VÃ©rification automatique expiration
+        if self.expiry_date and self.expiry_date <= date.today():
+            self.is_expired = True
+        
+        super().save(*args, **kwargs)
+
+
+class CustomerPaymentPromise(TimeStampedModel):
+    """
+    Gestion des Promesses de Paiement (EXF-CC-003)
+    """
+    
+    STATUS_CHOICES = [
+        ('PENDING', 'En attente'),
+        ('RESPECTED', 'RespectÃ©e'),
+        ('BROKEN', 'Non respectÃ©e'),
+        ('PARTIAL', 'Partiellement respectÃ©e'),
+        ('CANCELLED', 'AnnulÃ©e'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='payment_promises')
+    
+    # RÃ©fÃ©rences
+    promise_reference = models.CharField(max_length=50, verbose_name="RÃ©fÃ©rence promesse")
+    related_invoice = models.CharField(max_length=50, blank=True, verbose_name="Facture concernÃ©e")
+    
+    # Engagement du client
+    promised_amount = models.DecimalField(
+        max_digits=20, decimal_places=2, verbose_name="Montant promis"
+    )
+    promised_date = models.DateField(verbose_name="Date promise")
+    payment_method = models.CharField(
+        max_length=20, choices=Customer.PAYMENT_METHOD_CHOICES,
+        verbose_name="Mode de paiement promis"
+    )
+    
+    # Suivi de la promesse
+    actual_amount = models.DecimalField(
+        max_digits=20, decimal_places=2, default=Decimal('0'),
+        verbose_name="Montant rÃ©ellement payÃ©"
+    )
+    actual_payment_date = models.DateField(null=True, blank=True, verbose_name="Date paiement rÃ©el")
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    
+    # MÃ©tadonnÃ©es
+    notes = models.TextField(blank=True, verbose_name="Notes")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    
+    # Suivi automatique
+    reminder_sent = models.BooleanField(default=False, verbose_name="Rappel envoyÃ©")
+    reminder_date = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'customer_payment_promises'
+        ordering = ['-promised_date']
+        indexes = [
+            models.Index(fields=['customer', 'status']),
+            models.Index(fields=['-promised_date']),
+        ]
+        verbose_name = "Promesse de paiement"
+        verbose_name_plural = "Promesses de paiement"
+    
+    def __str__(self):
+        return f"{self.customer.code} - {self.promised_amount} - {self.promised_date}"
+    
+    @property
+    def days_overdue(self):
+        """Nombre de jours de retard sur la promesse"""
+        if self.status in ['RESPECTED', 'CANCELLED']:
+            return 0
+        
+        if self.promised_date < date.today():
+            return (date.today() - self.promised_date).days
+        return 0
+    
+    @property
+    def respect_rate(self):
+        """Taux de respect de la promesse en %"""
+        if self.promised_amount == 0:
+            return Decimal('0')
+        
+        return (self.actual_amount / self.promised_amount * 100).quantize(Decimal('0.1'))
+    
+    def check_fulfillment(self):
+        """
+        VÃ©rifie automatiquement si la promesse a Ã©tÃ© tenue
+        """
+        if self.status != 'PENDING':
+            return
+        
+        if self.actual_payment_date:
+            if self.actual_amount >= self.promised_amount:
+                self.status = 'RESPECTED'
+            elif self.actual_amount > 0:
+                self.status = 'PARTIAL'
+            
+            self.save(update_fields=['status'])
+        
+        elif self.promised_date < date.today():
+            self.status = 'BROKEN'
+            self.save(update_fields=['status'])
+
+
+class CustomerReminderHistory(TimeStampedModel):
+    """
+    Historique des Relances Multi-Niveaux (EXF-CC-003)
+    """
+    
+    REMINDER_LEVEL_CHOICES = [
+        ('LEVEL_1', 'Niveau 1 - Rappel courtois (J+5)'),
+        ('LEVEL_2', 'Niveau 2 - Email + SMS ferme (J+15)'),
+        ('LEVEL_3', 'Niveau 3 - Lettre recommandÃ©e (J+30)'),
+        ('LEVEL_4', 'Niveau 4 - Mise en demeure (J+45)'),
+        ('LEVEL_5', 'Niveau 5 - Transfert contentieux (J+60)'),
+    ]
+    
+    CHANNEL_CHOICES = [
+        ('EMAIL', 'Email'),
+        ('SMS', 'SMS'),
+        ('PHONE', 'Appel tÃ©lÃ©phonique'),
+        ('POST', 'Courrier postal'),
+        ('REGISTERED', 'Lettre recommandÃ©e'),
+        ('LEGAL', 'ProcÃ©dure lÃ©gale'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('SENT', 'EnvoyÃ©e'),
+        ('DELIVERED', 'LivrÃ©e'),
+        ('READ', 'Lue'),
+        ('RESPONDED', 'RÃ©ponse reÃ§ue'),
+        ('FAILED', 'Ãchec envoi'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reminders')
+    
+    # Classification de la relance
+    reminder_level = models.CharField(max_length=10, choices=REMINDER_LEVEL_CHOICES)
+    channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
+    
+    # Contenu
+    subject = models.CharField(max_length=200, verbose_name="Objet")
+    message = models.TextField(verbose_name="Message")
+    
+    # Cibles
+    target_contact = models.ForeignKey(
+        CustomerContact, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name="Contact ciblÃ©"
+    )
+    target_email = models.EmailField(blank=True)
+    target_phone = models.CharField(max_length=20, blank=True)
+    
+    # Suivi
+    sent_date = models.DateTimeField(auto_now_add=True)
+    delivery_date = models.DateTimeField(null=True, blank=True)
+    read_date = models.DateTimeField(null=True, blank=True)
+    response_date = models.DateTimeField(null=True, blank=True)
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SENT')
+    
+    # RÃ©sultats
+    response_received = models.BooleanField(default=False)
+    payment_promised = models.BooleanField(default=False)
+    promise_date = models.DateField(null=True, blank=True)
+    promise_amount = models.DecimalField(
+        max_digits=20, decimal_places=2, null=True, blank=True
+    )
+    
+    # MÃ©tadonnÃ©es
+    sent_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    
+    class Meta:
+        db_table = 'customer_reminder_history'
+        ordering = ['-sent_date']
+        indexes = [
+            models.Index(fields=['customer', '-sent_date']),
+            models.Index(fields=['reminder_level']),
+        ]
+        verbose_name = "Historique relance"
+        verbose_name_plural = "Historique relances"
+    
+    def __str__(self):
+        return f"{self.customer.code} - {self.reminder_level} - {self.sent_date}"
+
+
+class CustomerAnalytics(TimeStampedModel):
+    """
+    Analytics et mÃ©triques clients
+    Historique complet de la relation (EXF-CC-001)
+    """
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.OneToOneField(
+        Customer, on_delete=models.CASCADE, related_name='analytics'
+    )
+    
+    # MÃ©triques calculÃ©es automatiquement
+    total_orders_count = models.PositiveIntegerField(default=0, verbose_name="Nombre total commandes")
+    total_invoices_count = models.PositiveIntegerField(default=0, verbose_name="Nombre total factures")
+    total_amount_invoiced = models.DecimalField(
+        max_digits=20, decimal_places=2, default=Decimal('0'),
+        verbose_name="Montant total facturÃ©"
+    )
+    total_amount_paid = models.DecimalField(
+        max_digits=20, decimal_places=2, default=Decimal('0'),
+        verbose_name="Montant total payÃ©"
+    )
+    
+    # Moyennes et tendances
+    average_order_amount = models.DecimalField(
+        max_digits=20, decimal_places=2, default=Decimal('0'),
+        verbose_name="Montant moyen commande"
+    )
+    average_payment_delay = models.DecimalField(
+        max_digits=10, decimal_places=1, default=Decimal('0'),
+        verbose_name="DÃ©lai moyen paiement (jours)"
+    )
+    
+    # Taux de performance
+    on_time_payment_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('100'),
+        verbose_name="Taux paiement Ã  temps (%)"
+    )
+    promise_respect_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('100'),
+        verbose_name="Taux respect promesses (%)"
+    )
+    
+    # FrÃ©quence des commandes
+    last_12m_orders = models.PositiveIntegerField(default=0, verbose_name="Commandes 12 derniers mois")
+    last_12m_amount = models.DecimalField(
+        max_digits=20, decimal_places=2, default=Decimal('0'),
+        verbose_name="CA 12 derniers mois"
+    )
+    
+    # Tendances (calcul automatique)
+    trend_orders = models.CharField(max_length=10, choices=[
+        ('UP', 'Croissante'),
+        ('STABLE', 'Stable'),
+        ('DOWN', 'DÃ©croissante'),
+    ], default='STABLE', verbose_name="Tendance commandes")
+    
+    trend_amount = models.CharField(max_length=10, choices=[
+        ('UP', 'Croissante'),
+        ('STABLE', 'Stable'),
+        ('DOWN', 'DÃ©croissante'),
+    ], default='STABLE', verbose_name="Tendance montants")
+    
+    # DerniÃ¨re mise Ã  jour
+    last_calculation = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'customer_analytics'
+        verbose_name = "Analytics client"
+        verbose_name_plural = "Analytics clients"
+    
+    def __str__(self):
+        return f"Analytics {self.customer.code}"
+    
+    def refresh_metrics(self):
+        """
+        Recalcule toutes les mÃ©triques du client
+        Performance optimisÃ©e avec requÃªtes groupÃ©es
+        """
+        from django.db.models import Sum, Count, Avg
+        from apps.accounting.models import JournalEntryLine
+        
+        if not self.customer.account:
+            return
+        
+        # PÃ©riode de calcul (12 mois)
+        one_year_ago = date.today() - timedelta(days=365)
+        
+        # RequÃªtes optimisÃ©es groupÃ©es
+        transactions = JournalEntryLine.objects.filter(
+            account=self.customer.account,
+            third_party=self.customer,
+            entry__is_validated=True,
+            entry__entry_date__gte=one_year_ago
+        )
+        
+        # Calculs d'agrÃ©gats
+        stats = transactions.aggregate(
+            total_invoiced=Sum('debit_amount') or Decimal('0'),
+            total_paid=Sum('credit_amount') or Decimal('0'),
+            invoice_count=Count('id', distinct=True),
+            avg_amount=Avg('debit_amount') or Decimal('0')
+        )
+        
+        # Mise Ã  jour des mÃ©triques
+        self.last_12m_amount = stats['total_invoiced']
+        self.total_amount_invoiced = stats['total_invoiced']
+        self.total_amount_paid = stats['total_paid']
+        self.total_invoices_count = stats['invoice_count']
+        self.average_order_amount = stats['avg_amount']
+        
+        # Calcul du taux de paiement Ã  temps
+        on_time_payments = transactions.filter(
+            is_reconciled=True,
+            reconciliation_date__lte=F('entry__entry_date') + timedelta(days=self.customer.payment_terms)
+        ).count()
+        
+        total_payments = transactions.filter(is_reconciled=True).count()
+        
+        if total_payments > 0:
+            self.on_time_payment_rate = (on_time_payments / total_payments * 100)
+        
+        self.save()

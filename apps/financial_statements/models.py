@@ -4,8 +4,8 @@ Génération automatique des états financiers conformes
 Conforme au cahier des charges - Tables normalisées
 """
 from django.db import models
-from django.contrib.auth.models import User
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
+from django.conf import settings
 from decimal import Decimal
 import uuid
 from datetime import date
@@ -68,7 +68,7 @@ class BilanComptable(TimeStampedModel):
 
     # Métadonnées de calcul
     date_generation = models.DateTimeField(auto_now=True)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         db_table = 'financial_bilan_comptable'
@@ -157,7 +157,7 @@ class CompteResultat(TimeStampedModel):
 
     # Métadonnées
     date_generation = models.DateTimeField(auto_now=True)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         db_table = 'financial_compte_resultat'
@@ -534,7 +534,7 @@ class FinancialReport(TimeStampedModel):
 
     # Métadonnées génération
     generated_at = models.DateTimeField(null=True, blank=True)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     generation_time_seconds = models.IntegerField(null=True, blank=True)
 
     # Données du rapport
@@ -584,7 +584,7 @@ class AuditTrail(TimeStampedModel):
     object_id = models.CharField(max_length=50, help_text="ID de l'objet modifié")
 
     # Utilisateur et contexte
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     session_id = models.CharField(max_length=100, blank=True)
     ip_address = models.GenericIPAddressField()
     user_agent = models.TextField(blank=True)
@@ -639,7 +639,7 @@ class FinancialDashboard(TimeStampedModel):
     description = models.TextField(blank=True)
 
     # Utilisateur
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='financial_dashboards')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='financial_dashboards')
     is_public = models.BooleanField(default=False)
 
     # Configuration widgets

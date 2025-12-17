@@ -4,9 +4,10 @@ Modèles avancés pour consultation temps réel, analyses IA et collaboration
 Conforme OHADA/SYSCOHADA avec performance < 1s pour 10M+ écritures
 """
 from django.db import models
+from django.db.models import JSONField
 from django.contrib.postgres.indexes import GinIndex, BrinIndex
-from django.contrib.postgres.fields import ArrayField, JSONField
-from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
@@ -199,7 +200,7 @@ class SearchHistory(TimeStampedModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='search_history')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='search_history')
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
     # Critères de recherche
@@ -246,7 +247,7 @@ class SavedSearch(TimeStampedModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_searches')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='saved_searches')
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
     # Métadonnées
@@ -264,7 +265,7 @@ class SavedSearch(TimeStampedModel):
     last_used = models.DateTimeField(null=True, blank=True)
 
     # Partage
-    shared_with_users = models.ManyToManyField(User, blank=True, related_name='shared_searches')
+    shared_with_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='shared_searches')
     share_permissions = JSONField(default=dict)
 
     class Meta:
@@ -303,8 +304,8 @@ class LedgerAnnotation(TimeStampedModel):
     entry_index = models.ForeignKey(LedgerEntryIndex, on_delete=models.CASCADE, related_name='annotations')
 
     # Auteur et destinataires
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_annotations')
-    mentioned_users = models.ManyToManyField(User, blank=True, related_name='mentioned_in_annotations')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_annotations')
+    mentioned_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='mentioned_in_annotations')
 
     # Contenu
     annotation_type = models.CharField(max_length=20, choices=ANNOTATION_TYPES, default='NOTE')
@@ -317,7 +318,7 @@ class LedgerAnnotation(TimeStampedModel):
 
     # Workflow
     is_resolved = models.BooleanField(default=False)
-    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_annotations')
+    resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_annotations')
     resolved_at = models.DateTimeField(null=True, blank=True)
 
     # Threading
@@ -354,7 +355,7 @@ class LedgerExportTemplate(TimeStampedModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='export_templates')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     # Métadonnées
     name = models.CharField(max_length=100)
@@ -431,7 +432,7 @@ class AIAnalysisResult(TimeStampedModel):
     priority_level = models.PositiveSmallIntegerField(default=1)
 
     # Suivi
-    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     review_date = models.DateTimeField(null=True, blank=True)
     review_notes = models.TextField(blank=True)
     is_false_positive = models.BooleanField(default=False)
@@ -466,7 +467,7 @@ class LedgerAccessLog(TimeStampedModel):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ledger_access_logs')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ledger_access_logs')
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
     # Détails de l'accès
@@ -518,8 +519,8 @@ class CollaborativeWorkspace(TimeStampedModel):
     color_theme = models.CharField(max_length=7, default='#3B82F6')  # Hex color
 
     # Membres
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_workspaces')
-    members = models.ManyToManyField(User, through='WorkspaceMembership', related_name='workspaces')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_workspaces')
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, through='WorkspaceMembership', related_name='workspaces')
 
     # Contenu
     saved_searches = models.ManyToManyField(SavedSearch, blank=True)
@@ -558,7 +559,7 @@ class WorkspaceMembership(TimeStampedModel):
     ]
 
     workspace = models.ForeignKey(CollaborativeWorkspace, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     # Permissions
     role = models.CharField(max_length=20, choices=ROLES, default='VIEWER')

@@ -9,7 +9,7 @@ import hashlib
 
 from ..models import TableauBord, Widget, ModeleRapport, Rapport
 from apps.accounting.models import EcritureComptable, CompteComptable, ExerciceComptable
-from apps.company.models import Company
+from apps.core.models import Societe as Company
 from apps.analytical_accounting.models import EcritureAnalytique, SectionAnalytique
 from apps.budget_control.models import VersionBudget, SuiviBudgetaire
 
