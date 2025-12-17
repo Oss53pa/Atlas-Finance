@@ -134,6 +134,24 @@ const Immobilisations: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAmortissementModal, setShowAmortissementModal] = useState(false);
   const [showCessionModal, setShowCessionModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  // Handlers pour les actions
+  const handleViewDetail = (immo: Immobilisation) => {
+    setSelectedImmobilisation(immo);
+    setShowDetailModal(true);
+  };
+
+  const handleEditImmo = (immo: Immobilisation) => {
+    setSelectedImmobilisation(immo);
+    setShowEditModal(true);
+  };
+
+  const handleCalculateAmortissement = (immo: Immobilisation) => {
+    setSelectedImmobilisation(immo);
+    setShowAmortissementModal(true);
+  };
 
   // Données simulées
   const mockImmobilisations: Immobilisation[] = [
@@ -714,13 +732,26 @@ const Immobilisations: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                            onClick={() => handleViewDetail(immo)}
+                            title="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            onClick={() => handleEditImmo(immo)}
+                            title="Modifier"
+                          >
                             <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
+                          <button
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            onClick={() => handleCalculateAmortissement(immo)}
+                            title="Calculer amortissement"
+                          >
                             <Calculator className="w-4 h-4 text-[var(--color-success)]" />
                           </button>
                         </div>
@@ -1175,6 +1206,255 @@ const Immobilisations: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal Détail Immobilisation */}
+      {showDetailModal && selectedImmobilisation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[var(--color-primary-lighter)] to-[var(--color-success-lighter)]">
+              <div className="flex items-center space-x-4">
+                {getCategorieIcon(selectedImmobilisation.categorie, selectedImmobilisation.sousCategorie)}
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">{selectedImmobilisation.designation}</h2>
+                  <p className="text-sm text-gray-600">{selectedImmobilisation.code}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Informations Générales */}
+              <div className="grid grid-cols-3 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">Identification</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Catégorie</p>
+                    <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] capitalize">
+                      {selectedImmobilisation.categorie}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Sous-catégorie</p>
+                    <p className="font-semibold">{selectedImmobilisation.sousCategorie}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Localisation</p>
+                    <p>{selectedImmobilisation.localisation}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Responsable</p>
+                    <p>{selectedImmobilisation.responsable}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">Acquisition</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Date d'Acquisition</p>
+                    <p className="font-semibold">{new Date(selectedImmobilisation.dateAcquisition).toLocaleDateString('fr-FR')}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Date de Mise en Service</p>
+                    <p>{new Date(selectedImmobilisation.dateMiseEnService).toLocaleDateString('fr-FR')}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Fournisseur</p>
+                    <p>{selectedImmobilisation.fournisseur}</p>
+                  </div>
+                  {selectedImmobilisation.numeroSerie && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">N° Série</p>
+                      <p className="font-mono text-sm">{selectedImmobilisation.numeroSerie}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">État</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">État Physique</p>
+                    <Badge className={getEtatPhysiqueBadge(selectedImmobilisation.etatPhysique)}>
+                      {selectedImmobilisation.etatPhysique}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Statut Comptable</p>
+                    <Badge className={getStatutBadge(selectedImmobilisation.statutComptable)}>
+                      {selectedImmobilisation.statutComptable}
+                    </Badge>
+                  </div>
+                  {selectedImmobilisation.garantieJusquau && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Garantie jusqu'au</p>
+                      <p>{new Date(selectedImmobilisation.garantieJusquau).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Valeurs Financières */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-4">Valeurs Financières</h3>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-gray-500">Valeur d'Acquisition</p>
+                    <p className="text-xl font-bold text-[var(--color-primary)]">
+                      {(selectedImmobilisation.valeurAcquisition / 1000000).toFixed(1)}M FCFA
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-gray-500">Valeur Brute</p>
+                    <p className="text-xl font-bold">
+                      {(selectedImmobilisation.valeurBrute / 1000000).toFixed(1)}M FCFA
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-gray-500">Amortissements Cumulés</p>
+                    <p className="text-xl font-bold text-[var(--color-error)]">
+                      -{(selectedImmobilisation.amortissementsCumules / 1000000).toFixed(1)}M FCFA
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-gray-500">Valeur Nette Comptable</p>
+                    <p className="text-xl font-bold text-[var(--color-success)]">
+                      {(selectedImmobilisation.valeurNette / 1000000).toFixed(1)}M FCFA
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Amortissement */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-4">Paramètres d'Amortissement</h3>
+                <div className="grid grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-500">Méthode</p>
+                    <p className="font-semibold capitalize">{selectedImmobilisation.methodeAmortissement}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Durée</p>
+                    <p className="font-semibold">{selectedImmobilisation.dureeAmortissement} ans</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Taux Annuel</p>
+                    <p className="font-semibold">{selectedImmobilisation.tauxAmortissement}%</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Dotation Annuelle</p>
+                    <p className="font-semibold">{(selectedImmobilisation.amortissementAnnuel / 1000000).toFixed(2)}M FCFA</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500 mb-2">Progression de l'amortissement</p>
+                  <Progress
+                    value={(selectedImmobilisation.amortissementsCumules / selectedImmobilisation.valeurBrute) * 100}
+                    className="h-3"
+                  />
+                  <p className="text-xs text-gray-500 mt-1 text-right">
+                    {((selectedImmobilisation.amortissementsCumules / selectedImmobilisation.valeurBrute) * 100).toFixed(1)}% amorti
+                  </p>
+                </div>
+              </div>
+
+              {/* Maintenance */}
+              {(selectedImmobilisation.derniereMaintenance || selectedImmobilisation.prochaineMaintenance) && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3">Maintenance</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    {selectedImmobilisation.derniereMaintenance && (
+                      <div>
+                        <p className="text-gray-500">Dernière Maintenance</p>
+                        <p className="font-semibold">{new Date(selectedImmobilisation.derniereMaintenance).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                    )}
+                    {selectedImmobilisation.prochaineMaintenance && (
+                      <div>
+                        <p className="text-gray-500">Prochaine Maintenance</p>
+                        <p className="font-semibold text-[var(--color-warning)]">{new Date(selectedImmobilisation.prochaineMaintenance).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+              <div className="text-xs text-gray-500">
+                {selectedImmobilisation.valeurAssurance && (
+                  <span>Valeur assurance: {(selectedImmobilisation.valeurAssurance / 1000000).toFixed(1)}M FCFA</span>
+                )}
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  Fermer
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    handleCalculateAmortissement(selectedImmobilisation);
+                  }}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                >
+                  <Calculator className="w-4 h-4" />
+                  Plan d'Amortissement
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    handleEditImmo(selectedImmobilisation);
+                  }}
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
+                >
+                  Modifier
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Édition Immobilisation */}
+      {showEditModal && selectedImmobilisation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Modifier l'Immobilisation</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">Édition de: {selectedImmobilisation.designation}</p>
+              <p className="text-sm text-gray-500">Formulaire d'édition en cours de développement...</p>
+            </div>
+            <div className="flex justify-end space-x-3 p-6 border-t">
+              <button
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                onClick={() => setShowEditModal(false)}
+              >
+                Annuler
+              </button>
+              <button
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
+                onClick={() => {
+                  alert('Modifications sauvegardées (simulation)');
+                  setShowEditModal(false);
+                }}
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Amortissement Modal */}
       {showAmortissementModal && (

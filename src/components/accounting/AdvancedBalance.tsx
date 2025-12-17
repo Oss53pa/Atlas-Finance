@@ -138,7 +138,7 @@ const AdvancedBalance: React.FC = () => {
         headerContent={
           <div className="text-center mb-4">
             <h2 className="text-xl font-bold">Balance Avancée</h2>
-            <p className="text-sm text-gray-600">Conforme SYSCOHADA - {selectedPeriod}</p>
+            <p className="text-sm text-gray-600">Conforme SYSCOHADA - {dateRange.start} au {dateRange.end}</p>
           </div>
         }
       >

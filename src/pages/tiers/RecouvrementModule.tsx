@@ -9,7 +9,7 @@ import {
   Target, Award, RefreshCw, Send, Bell, ChevronDown, ChevronRight,
   MoreVertical, Settings, Banknote, Scale, UserCircle, Receipt,
   ScrollText, History, Percent, Upload, Share, Trash, Wallet,
-  ArrowDown, UserCheck, FolderOpen, Gavel, Briefcase, CheckSquare,
+  ArrowDown, ArrowRight, UserCheck, FolderOpen, Gavel, Briefcase, CheckSquare,
   FileSignature, Hammer, Coins, Archive, Lock, Calculator,
   ShoppingCart, Package, Link, Zap, Cloud, TrendingDown, LineChart as LineChartIcon,
   Building2, Paperclip, Reply, Forward, Shield
@@ -1805,6 +1805,293 @@ Service Contentieux
     // Results Tab
     const [showCloturerModal, setShowCloturerModal] = useState(false);
 
+    // États pour la modal de mise à jour dossier contentieux
+    const [showEditContentieuxModal, setShowEditContentieuxModal] = useState(false);
+    const [editContentieuxActiveTab, setEditContentieuxActiveTab] = useState('statut');
+
+    // Types de dépenses pour le contentieux
+    const typesDepenses = [
+      { value: 'creance_principale', label: 'Créance principale' },
+      { value: 'interets_retard', label: 'Intérêts de retard' },
+      { value: 'frais_procedure', label: 'Frais de procédure' },
+      { value: 'honoraires_avocat', label: 'Honoraires avocat' },
+      { value: 'frais_huissier', label: 'Frais huissier' },
+      { value: 'frais_greffe', label: 'Frais de greffe' },
+      { value: 'frais_expertise', label: 'Frais d\'expertise' },
+      { value: 'frais_signification', label: 'Frais de signification' },
+      { value: 'frais_execution', label: 'Frais d\'exécution' },
+      { value: 'provision', label: 'Provision comptable' },
+      { value: 'autres', label: 'Autres frais' }
+    ];
+
+    // État pour les dépenses du contentieux
+    const [contentieuxDepenses, setContentieuxDepenses] = useState<any[]>([]);
+    const [newDepense, setNewDepense] = useState({
+      type: 'creance_principale',
+      date: new Date().toISOString().split('T')[0],
+      montant: 0,
+      destinataire: '',
+      reference: '',
+      notes: ''
+    });
+
+    const [editContentieuxFormData, setEditContentieuxFormData] = useState<any>({
+      id: '',
+      statutJuridique: '',
+      typeProcedure: '',
+      // Intervenants
+      avocat: '',
+      avocatTel: '',
+      avocatEmail: '',
+      huissier: '',
+      huissierTel: '',
+      huissierEmail: '',
+      // Tribunal
+      tribunal: '',
+      tribunalAdresse: '',
+      numeroRG: '',
+      chambre: '',
+      // Dates clés
+      dateTransfert: '',
+      dateMiseEnDemeure: '',
+      dateAssignation: '',
+      dateAudience: '',
+      dateTitreExecutoire: '',
+      dateExecution: '',
+      // Provision comptable
+      provision: 0,
+      // Débiteur
+      debiteurAdresse: '',
+      debiteurTel: '',
+      debiteurEmail: '',
+      debiteurRepresentant: '',
+      // Procédure
+      motifTransfert: '',
+      resultatAttendu: '',
+      risques: '',
+      chancesSucces: 'moyenne',
+      // Suivi
+      prochaineEcheance: '',
+      priorite: 'normale',
+      notes: '',
+      dernierContact: '',
+      prochainContact: ''
+    });
+
+    // Fonction pour ajouter une dépense
+    const addDepense = () => {
+      if (newDepense.montant <= 0) {
+        toast.error('Le montant doit être supérieur à 0');
+        return;
+      }
+      const depense = {
+        id: Date.now(),
+        ...newDepense
+      };
+      setContentieuxDepenses([...contentieuxDepenses, depense]);
+      setNewDepense({
+        type: 'creance_principale',
+        date: new Date().toISOString().split('T')[0],
+        montant: 0,
+        destinataire: '',
+        reference: '',
+        notes: ''
+      });
+      toast.success('Dépense ajoutée');
+    };
+
+    // Fonction pour supprimer une dépense
+    const removeDepense = (id: number) => {
+      setContentieuxDepenses(contentieuxDepenses.filter(d => d.id !== id));
+      toast.success('Dépense supprimée');
+    };
+
+    // Calcul des totaux par type
+    const getTotalByType = (type: string) => {
+      return contentieuxDepenses
+        .filter(d => d.type === type)
+        .reduce((sum, d) => sum + d.montant, 0);
+    };
+
+    // Total général des dépenses
+    const getTotalDepenses = () => {
+      return contentieuxDepenses.reduce((sum, d) => sum + d.montant, 0);
+    };
+
+    // Types d'étapes de suivi
+    const typesEtapesSuivi = [
+      { value: 'appel_telephonique', label: 'Appel téléphonique', icon: 'phone' },
+      { value: 'envoi_courrier', label: 'Envoi de courrier', icon: 'mail' },
+      { value: 'envoi_email', label: 'Envoi email', icon: 'mail' },
+      { value: 'reunion', label: 'Réunion / Rendez-vous', icon: 'users' },
+      { value: 'mise_demeure', label: 'Mise en demeure', icon: 'alert' },
+      { value: 'depot_greffe', label: 'Dépôt au greffe', icon: 'file' },
+      { value: 'audience', label: 'Audience tribunal', icon: 'scale' },
+      { value: 'signification', label: 'Signification huissier', icon: 'gavel' },
+      { value: 'saisie', label: 'Saisie / Exécution', icon: 'lock' },
+      { value: 'paiement_recu', label: 'Paiement reçu', icon: 'check' },
+      { value: 'negociation', label: 'Négociation', icon: 'handshake' },
+      { value: 'autre', label: 'Autre', icon: 'circle' }
+    ];
+
+    // État pour les étapes de suivi
+    const [suiviEtapes, setSuiviEtapes] = useState<any[]>([]);
+    const [newSuiviEtape, setNewSuiviEtape] = useState({
+      type: 'appel_telephonique',
+      date: new Date().toISOString().split('T')[0],
+      heure: '',
+      intervenant: '',
+      roleIntervenant: '',
+      contact: '',
+      resultat: 'en_attente',
+      notes: '',
+      prochainRdv: '',
+      documentsJoints: ''
+    });
+
+    // Résultats possibles pour une étape
+    const resultatsEtape = [
+      { value: 'en_attente', label: 'En attente', color: 'gray' },
+      { value: 'reussi', label: 'Réussi', color: 'green' },
+      { value: 'echoue', label: 'Échoué', color: 'red' },
+      { value: 'reporte', label: 'Reporté', color: 'yellow' },
+      { value: 'annule', label: 'Annulé', color: 'orange' }
+    ];
+
+    // Fonction pour ajouter une étape de suivi
+    const addSuiviEtape = () => {
+      if (!newSuiviEtape.date) {
+        toast.error('La date est obligatoire');
+        return;
+      }
+      const etape = {
+        id: Date.now(),
+        ...newSuiviEtape,
+        createdAt: new Date().toISOString()
+      };
+      setSuiviEtapes([etape, ...suiviEtapes]); // Ajouter en premier (plus récent en haut)
+      setNewSuiviEtape({
+        type: 'appel_telephonique',
+        date: new Date().toISOString().split('T')[0],
+        heure: '',
+        intervenant: '',
+        roleIntervenant: '',
+        contact: '',
+        resultat: 'en_attente',
+        notes: '',
+        prochainRdv: '',
+        documentsJoints: ''
+      });
+      toast.success('Étape de suivi ajoutée');
+    };
+
+    // Fonction pour supprimer une étape de suivi
+    const removeSuiviEtape = (id: number) => {
+      setSuiviEtapes(suiviEtapes.filter(e => e.id !== id));
+      toast.success('Étape supprimée');
+    };
+
+    // Fonction pour mettre à jour le résultat d'une étape
+    const updateSuiviEtapeResultat = (id: number, resultat: string) => {
+      setSuiviEtapes(suiviEtapes.map(e =>
+        e.id === id ? { ...e, resultat } : e
+      ));
+    };
+
+    // Fonction pour ouvrir la modal d'édition avec les données du dossier
+    const openEditContentieuxModal = (dossier: any) => {
+      setEditContentieuxFormData({
+        id: dossier.id,
+        numeroRef: dossier.numeroRef,
+        client: dossier.client,
+        statutJuridique: dossier.statutJuridique,
+        typeProcedure: dossier.typeProcedure,
+        // Intervenants
+        avocat: dossier.avocat || '',
+        avocatTel: dossier.avocatTel || '+242 06 XXX XX XX',
+        avocatEmail: dossier.avocatEmail || '',
+        huissier: dossier.huissier || '',
+        huissierTel: dossier.huissierTel || '',
+        huissierEmail: dossier.huissierEmail || '',
+        // Tribunal
+        tribunal: dossier.tribunal || 'Tribunal de Commerce',
+        tribunalAdresse: dossier.tribunalAdresse || '',
+        numeroRG: dossier.numeroRG || '',
+        chambre: dossier.chambre || '',
+        // Dates clés
+        dateTransfert: dossier.dateTransfert || '',
+        dateMiseEnDemeure: dossier.dateMiseEnDemeure || '',
+        dateAssignation: dossier.dateAssignation || '',
+        dateAudience: dossier.dateAudience || '',
+        dateTitreExecutoire: dossier.dateTitreExecutoire || '',
+        dateExecution: dossier.dateExecution || '',
+        // Provision comptable
+        provision: dossier.provision || 0,
+        // Débiteur
+        debiteurAdresse: dossier.debiteurAdresse || '',
+        debiteurTel: dossier.debiteurTel || '',
+        debiteurEmail: dossier.debiteurEmail || '',
+        debiteurRepresentant: dossier.debiteurRepresentant || '',
+        // Procédure
+        motifTransfert: dossier.motifTransfert || '',
+        resultatAttendu: dossier.resultatAttendu || '',
+        risques: dossier.risques || '',
+        chancesSucces: dossier.chancesSucces || 'moyenne',
+        // Suivi
+        prochaineEcheance: dossier.prochaineEcheance || '',
+        priorite: dossier.priorite || 'normale',
+        notes: dossier.notes || '',
+        dernierContact: dossier.dernierContact || '',
+        prochainContact: dossier.prochainContact || ''
+      });
+
+      // Initialiser les dépenses à partir des données existantes du dossier
+      const depensesInitiales: any[] = [];
+      if (dossier.montantPrincipal > 0) {
+        depensesInitiales.push({
+          id: 1,
+          type: 'creance_principale',
+          date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
+          montant: dossier.montantPrincipal,
+          destinataire: dossier.client,
+          reference: dossier.numeroRef,
+          notes: 'Créance principale'
+        });
+      }
+      if (dossier.interetsRetard > 0) {
+        depensesInitiales.push({
+          id: 2,
+          type: 'interets_retard',
+          date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
+          montant: dossier.interetsRetard,
+          destinataire: dossier.client,
+          reference: '',
+          notes: 'Intérêts de retard'
+        });
+      }
+      if (dossier.fraisProcedure > 0) {
+        depensesInitiales.push({
+          id: 3,
+          type: 'frais_procedure',
+          date: dossier.dateTransfert || new Date().toISOString().split('T')[0],
+          montant: dossier.fraisProcedure,
+          destinataire: 'Greffe',
+          reference: '',
+          notes: 'Frais de procédure'
+        });
+      }
+      setContentieuxDepenses(depensesInitiales);
+      setEditContentieuxActiveTab('statut');
+      setShowEditContentieuxModal(true);
+    };
+
+    // Fonction pour sauvegarder les modifications
+    const handleSaveContentieux = () => {
+      // TODO: Appel API pour sauvegarder
+      toast.success(`Dossier ${editContentieuxFormData.numeroRef} mis à jour avec succès`);
+      setShowEditContentieuxModal(false);
+    };
+
     // Onglets pour la page détaillée contentieux
     const contentieuxDetailTabs = [
       { id: 'general', label: 'Informations Générales', icon: FileText },
@@ -1935,13 +2222,15 @@ Service Contentieux
       }
     ];
 
+    // Workflow de contentieux avec les étapes correctes
     const statutsContentieux = [
       { value: 'tous', label: 'Tous les statuts' },
-      { value: 'mise_demeure', label: 'Mise en demeure' },
-      { value: 'assignation', label: 'Assignation' },
-      { value: 'jugement', label: 'Jugement obtenu' },
-      { value: 'execution', label: 'En exécution' },
-      { value: 'appel', label: 'En appel' },
+      { value: 'reglement_amiable', label: '1. Règlement à l\'amiable' },
+      { value: 'mise_demeure_huissier', label: '2. Mise en demeure (Huissier)' },
+      { value: 'saisine_tribunal', label: '3. Saisine au tribunal' },
+      { value: 'procedure_injonction', label: '4. Procédure d\'injonction' },
+      { value: 'titre_executoire', label: '5. Titre exécutoire obtenu' },
+      { value: 'execution_forcee', label: '6. Exécution forcée / Saisie' },
       { value: 'cloture', label: 'Clôturé' }
     ];
 
@@ -1951,16 +2240,202 @@ Service Contentieux
       { value: 'refere_provision', label: 'Référé provision' },
       { value: 'procedure_fond', label: 'Procédure au fond' },
       { value: 'saisie_attribution', label: 'Saisie-attribution' },
-      { value: 'saisie_vente', label: 'Saisie-vente' }
+      { value: 'saisie_vente', label: 'Saisie-vente' },
+      { value: 'saisie_immobiliere', label: 'Saisie immobilière' }
     ];
+
+    // États pour le workflow personnalisable
+    const [showWorkflowModal, setShowWorkflowModal] = useState(false);
+    const [selectedDossierWorkflow, setSelectedDossierWorkflow] = useState<any>(null);
+    const [showAddEtapeModal, setShowAddEtapeModal] = useState(false);
+    const [newEtape, setNewEtape] = useState({ titre: '', description: '', datePrevu: '' });
+    const [showCommentModal, setShowCommentModal] = useState(false);
+    const [selectedEtape, setSelectedEtape] = useState<any>(null);
+    const [newComment, setNewComment] = useState('');
+
+    // Structure des étapes du workflow par défaut
+    const defaultWorkflowEtapes = [
+      {
+        id: 1,
+        code: 'reglement_amiable',
+        titre: 'Règlement à l\'amiable',
+        description: 'Tentative de recouvrement amiable avant procédure judiciaire',
+        ordre: 1,
+        obligatoire: true,
+        delaiJours: 15
+      },
+      {
+        id: 2,
+        code: 'mise_demeure_huissier',
+        titre: 'Mise en demeure par Huissier',
+        description: 'Signification de la mise en demeure par voie d\'huissier de justice',
+        ordre: 2,
+        obligatoire: true,
+        delaiJours: 8
+      },
+      {
+        id: 3,
+        code: 'saisine_tribunal',
+        titre: 'Saisine au tribunal',
+        description: 'Dépôt de la requête auprès du tribunal compétent',
+        ordre: 3,
+        obligatoire: true,
+        delaiJours: 30
+      },
+      {
+        id: 4,
+        code: 'procedure_injonction',
+        titre: 'Procédure d\'injonction',
+        description: 'Procédure d\'injonction de payer devant le tribunal',
+        ordre: 4,
+        obligatoire: true,
+        delaiJours: 45
+      },
+      {
+        id: 5,
+        code: 'titre_executoire',
+        titre: 'Obtention du titre exécutoire',
+        description: 'Ordonnance d\'injonction de payer revêtue de la formule exécutoire',
+        ordre: 5,
+        obligatoire: true,
+        delaiJours: 15
+      },
+      {
+        id: 6,
+        code: 'execution_forcee',
+        titre: 'Exécution forcée / Saisie',
+        description: 'Mise en œuvre des mesures d\'exécution forcée (saisie-attribution, saisie-vente, etc.)',
+        ordre: 6,
+        obligatoire: true,
+        delaiJours: 30
+      }
+    ];
+
+    // État pour les étapes du workflow avec leurs statuts et commentaires
+    const [workflowData, setWorkflowData] = useState<{[key: string]: {
+      etapes: Array<{
+        id: number;
+        code: string;
+        titre: string;
+        description: string;
+        ordre: number;
+        obligatoire: boolean;
+        delaiJours: number;
+        statut: 'pending' | 'in_progress' | 'completed' | 'skipped';
+        dateDebut?: string;
+        dateFin?: string;
+        commentaires: Array<{
+          id: number;
+          texte: string;
+          auteur: string;
+          date: string;
+        }>;
+        custom?: boolean;
+      }>;
+    }}>({});
+
+    // Fonction pour initialiser le workflow d'un dossier
+    const initWorkflowForDossier = (dossierId: string) => {
+      if (!workflowData[dossierId]) {
+        setWorkflowData(prev => ({
+          ...prev,
+          [dossierId]: {
+            etapes: defaultWorkflowEtapes.map(etape => ({
+              ...etape,
+              statut: 'pending',
+              commentaires: []
+            }))
+          }
+        }));
+      }
+    };
+
+    // Fonction pour mettre à jour le statut d'une étape
+    const updateEtapeStatus = (dossierId: string, etapeId: number, newStatut: 'pending' | 'in_progress' | 'completed' | 'skipped') => {
+      setWorkflowData(prev => ({
+        ...prev,
+        [dossierId]: {
+          ...prev[dossierId],
+          etapes: prev[dossierId].etapes.map(etape =>
+            etape.id === etapeId
+              ? {
+                  ...etape,
+                  statut: newStatut,
+                  dateDebut: newStatut === 'in_progress' ? new Date().toISOString().split('T')[0] : etape.dateDebut,
+                  dateFin: newStatut === 'completed' ? new Date().toISOString().split('T')[0] : etape.dateFin
+                }
+              : etape
+          )
+        }
+      }));
+      toast.success(`Étape mise à jour: ${newStatut === 'completed' ? 'Terminée' : newStatut === 'in_progress' ? 'En cours' : 'En attente'}`);
+    };
+
+    // Fonction pour ajouter un commentaire à une étape
+    const addCommentToEtape = (dossierId: string, etapeId: number, commentText: string) => {
+      const newCommentObj = {
+        id: Date.now(),
+        texte: commentText,
+        auteur: 'Utilisateur actuel',
+        date: new Date().toISOString().split('T')[0]
+      };
+      setWorkflowData(prev => ({
+        ...prev,
+        [dossierId]: {
+          ...prev[dossierId],
+          etapes: prev[dossierId].etapes.map(etape =>
+            etape.id === etapeId
+              ? { ...etape, commentaires: [...etape.commentaires, newCommentObj] }
+              : etape
+          )
+        }
+      }));
+      toast.success('Commentaire ajouté');
+      setShowCommentModal(false);
+      setNewComment('');
+    };
+
+    // Fonction pour ajouter une étape personnalisée
+    const addCustomEtape = (dossierId: string) => {
+      const dossierWorkflow = workflowData[dossierId];
+      const maxOrdre = Math.max(...dossierWorkflow.etapes.map(e => e.ordre));
+      const newEtapeObj = {
+        id: Date.now(),
+        code: `custom_${Date.now()}`,
+        titre: newEtape.titre,
+        description: newEtape.description,
+        ordre: maxOrdre + 1,
+        obligatoire: false,
+        delaiJours: 0,
+        statut: 'pending' as const,
+        commentaires: [],
+        custom: true
+      };
+      setWorkflowData(prev => ({
+        ...prev,
+        [dossierId]: {
+          ...prev[dossierId],
+          etapes: [...prev[dossierId].etapes, newEtapeObj]
+        }
+      }));
+      toast.success('Étape personnalisée ajoutée');
+      setShowAddEtapeModal(false);
+      setNewEtape({ titre: '', description: '', datePrevu: '' });
+    };
 
     const getStatutColor = (statut: string) => {
       switch (statut) {
+        case 'reglement_amiable': return 'bg-blue-100 text-blue-800';
+        case 'mise_demeure_huissier': return 'bg-yellow-100 text-yellow-800';
         case 'mise_demeure': return 'bg-yellow-100 text-yellow-800';
+        case 'saisine_tribunal': return 'bg-orange-100 text-orange-800';
         case 'assignation': return 'bg-orange-100 text-orange-800';
-        case 'jugement': return 'bg-blue-100 text-blue-800';
-        case 'execution': return 'bg-purple-100 text-purple-800';
-        case 'appel': return 'bg-red-100 text-red-800';
+        case 'procedure_injonction': return 'bg-indigo-100 text-indigo-800';
+        case 'titre_executoire': return 'bg-purple-100 text-purple-800';
+        case 'jugement': return 'bg-purple-100 text-purple-800';
+        case 'execution_forcee': return 'bg-red-100 text-red-800';
+        case 'execution': return 'bg-red-100 text-red-800';
+        case 'appel': return 'bg-pink-100 text-pink-800';
         case 'cloture': return 'bg-green-100 text-green-800';
         default: return 'bg-gray-100 text-gray-800';
       }
@@ -2746,6 +3221,1295 @@ Service Contentieux
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
                   Clôturer définitivement
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Modifier Dossier Contentieux */}
+        {showEditContentieuxModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-xl font-semibold text-[#191919]">
+                    Modifier Dossier Contentieux
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    {editContentieuxFormData.numeroRef} - {editContentieuxFormData.client}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowEditContentieuxModal(false)}
+                  className="text-gray-700 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Navigation par onglets */}
+              <div className="border-b border-gray-200">
+                <div className="flex overflow-x-auto px-4">
+                  {[
+                    { id: 'statut', label: 'Statut', icon: Scale, color: 'blue' },
+                    { id: 'dates', label: 'Dates', icon: Calendar, color: 'purple' },
+                    { id: 'juridiction', label: 'Juridiction', icon: Building, color: 'indigo' },
+                    { id: 'intervenants', label: 'Intervenants', icon: Users, color: 'teal' },
+                    { id: 'debiteur', label: 'Débiteur', icon: UserCircle, color: 'red' },
+                    { id: 'montants', label: 'Montants', icon: DollarSign, color: 'orange' },
+                    { id: 'suivi', label: 'Suivi', icon: Phone, color: 'green' },
+                    { id: 'notes', label: 'Notes', icon: MessageSquare, color: 'gray' }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setEditContentieuxActiveTab(tab.id)}
+                      className={`flex items-center px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
+                        editContentieuxActiveTab === tab.id
+                          ? `border-${tab.color}-500 text-${tab.color}-600 bg-${tab.color}-50`
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <tab.icon className="w-4 h-4 mr-2" />
+                      <span className="text-sm font-medium">{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-6">
+                {/* Onglet: Statut & Procédure */}
+                {editContentieuxActiveTab === 'statut' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-blue-900 mb-4 flex items-center">
+                      <Scale className="w-5 h-5 mr-2" />
+                      Statut & Procédure
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Étape actuelle *</label>
+                        <select
+                          value={editContentieuxFormData.statutJuridique}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, statutJuridique: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="reglement_amiable">1. Règlement à l'amiable</option>
+                          <option value="mise_demeure_huissier">2. Mise en demeure (Huissier)</option>
+                          <option value="saisine_tribunal">3. Saisine au tribunal</option>
+                          <option value="procedure_injonction">4. Procédure d'injonction</option>
+                          <option value="titre_executoire">5. Titre exécutoire obtenu</option>
+                          <option value="execution_forcee">6. Exécution forcée / Saisie</option>
+                          <option value="cloture">Clôturé</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Type de Procédure *</label>
+                        <select
+                          value={editContentieuxFormData.typeProcedure}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, typeProcedure: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="injonction_payer">Injonction de payer</option>
+                          <option value="assignation_fond">Assignation au fond</option>
+                          <option value="refere">Référé provision</option>
+                          <option value="saisie_conservatoire">Saisie conservatoire</option>
+                          <option value="saisie_attribution">Saisie-attribution</option>
+                          <option value="saisie_vente">Saisie-vente</option>
+                          <option value="procedure_collective">Procédure collective</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                        <select
+                          value={editContentieuxFormData.priorite}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, priorite: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="basse">Basse</option>
+                          <option value="normale">Normale</option>
+                          <option value="haute">Haute</option>
+                          <option value="urgente">Urgente</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Chances de succès</label>
+                        <select
+                          value={editContentieuxFormData.chancesSucces}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chancesSucces: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="faible">Faible (&lt;30%)</option>
+                          <option value="moyenne">Moyenne (30-60%)</option>
+                          <option value="elevee">Élevée (60-80%)</option>
+                          <option value="tres_elevee">Très élevée (&gt;80%)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Onglet: Dates Clés */}
+                {editContentieuxActiveTab === 'dates' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-purple-900 mb-4 flex items-center">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Dates Clés de la Procédure
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date transfert contentieux</label>
+                        <input
+                          type="date"
+                          value={editContentieuxFormData.dateTransfert}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateTransfert: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date mise en demeure</label>
+                        <input
+                          type="date"
+                          value={editContentieuxFormData.dateMiseEnDemeure}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateMiseEnDemeure: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date assignation</label>
+                        <input
+                          type="date"
+                          value={editContentieuxFormData.dateAssignation}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateAssignation: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date audience</label>
+                        <input
+                          type="date"
+                          value={editContentieuxFormData.dateAudience}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateAudience: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date titre exécutoire</label>
+                        <input
+                          type="date"
+                          value={editContentieuxFormData.dateTitreExecutoire}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateTitreExecutoire: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date exécution</label>
+                        <input
+                          type="date"
+                          value={editContentieuxFormData.dateExecution}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, dateExecution: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Prochaine échéance</label>
+                      <input
+                        type="text"
+                        value={editContentieuxFormData.prochaineEcheance}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, prochaineEcheance: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        placeholder="ex: Audience 15/02/2024 à 10h"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Onglet: Juridiction */}
+                {editContentieuxActiveTab === 'juridiction' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-indigo-900 mb-4 flex items-center">
+                      <Building className="w-5 h-5 mr-2" />
+                      Juridiction
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tribunal compétent</label>
+                        <input
+                          type="text"
+                          value={editContentieuxFormData.tribunal}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunal: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                          placeholder="ex: Tribunal de Commerce de Brazzaville"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">N° RG (Répertoire Général)</label>
+                        <input
+                          type="text"
+                          value={editContentieuxFormData.numeroRG}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, numeroRG: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                          placeholder="ex: RG 2024/001234"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Chambre</label>
+                        <input
+                          type="text"
+                          value={editContentieuxFormData.chambre}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chambre: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                          placeholder="ex: 1ère Chambre"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse tribunal</label>
+                        <input
+                          type="text"
+                          value={editContentieuxFormData.tribunalAdresse}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunalAdresse: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Adresse du tribunal"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Onglet: Intervenants */}
+                {editContentieuxActiveTab === 'intervenants' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-teal-900 mb-4 flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Intervenants
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Avocat */}
+                      <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                        <h4 className="font-medium text-teal-800 mb-3 flex items-center">
+                          <Briefcase className="w-4 h-4 mr-2" />
+                          Avocat
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">Nom</label>
+                            <input
+                              type="text"
+                              value={editContentieuxFormData.avocat}
+                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocat: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                              placeholder="Maître..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
+                            <input
+                              type="tel"
+                              value={editContentieuxFormData.avocatTel}
+                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocatTel: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                              placeholder="+242 06 XXX XX XX"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">Email</label>
+                            <input
+                              type="email"
+                              value={editContentieuxFormData.avocatEmail}
+                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocatEmail: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                              placeholder="avocat@cabinet.com"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {/* Huissier */}
+                      <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                        <h4 className="font-medium text-teal-800 mb-3 flex items-center">
+                          <Gavel className="w-4 h-4 mr-2" />
+                          Huissier de Justice
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">Nom / Étude</label>
+                            <input
+                              type="text"
+                              value={editContentieuxFormData.huissier}
+                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissier: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                              placeholder="SCP Huissiers..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
+                            <input
+                              type="tel"
+                              value={editContentieuxFormData.huissierTel}
+                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissierTel: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                              placeholder="+242 06 XXX XX XX"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">Email</label>
+                            <input
+                              type="email"
+                              value={editContentieuxFormData.huissierEmail}
+                              onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, huissierEmail: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                              placeholder="contact@huissier.com"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Onglet: Informations Débiteur */}
+                {editContentieuxActiveTab === 'debiteur' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-red-900 mb-4 flex items-center">
+                      <UserCircle className="w-5 h-5 mr-2" />
+                      Informations Débiteur
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
+                        <textarea
+                          value={editContentieuxFormData.debiteurAdresse}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurAdresse: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 h-20"
+                          placeholder="Adresse du débiteur"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                        <input
+                          type="tel"
+                          value={editContentieuxFormData.debiteurTel}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurTel: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
+                          placeholder="+242 06 XXX XX XX"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input
+                          type="email"
+                          value={editContentieuxFormData.debiteurEmail}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurEmail: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
+                          placeholder="email@debiteur.com"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Représentant légal</label>
+                        <input
+                          type="text"
+                          value={editContentieuxFormData.debiteurRepresentant}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurRepresentant: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
+                          placeholder="Nom du représentant"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Onglet: Montants & Frais */}
+                {editContentieuxActiveTab === 'montants' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-orange-900 mb-4 flex items-center">
+                      <DollarSign className="w-5 h-5 mr-2" />
+                      Montants & Frais (FCFA)
+                    </h3>
+
+                    {/* Formulaire d'ajout de dépense */}
+                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                      <h4 className="font-medium text-orange-800 mb-3 flex items-center">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Ajouter une dépense
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Type de dépense *</label>
+                          <select
+                            value={newDepense.type}
+                            onChange={(e) => setNewDepense({...newDepense, type: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                          >
+                            {typesDepenses.map(t => (
+                              <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Date *</label>
+                          <input
+                            type="date"
+                            value={newDepense.date}
+                            onChange={(e) => setNewDepense({...newDepense, date: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Montant (FCFA) *</label>
+                          <input
+                            type="number"
+                            value={newDepense.montant || ''}
+                            onChange={(e) => setNewDepense({...newDepense, montant: Number(e.target.value)})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Destinataire</label>
+                          <input
+                            type="text"
+                            value={newDepense.destinataire}
+                            onChange={(e) => setNewDepense({...newDepense, destinataire: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                            placeholder="Bénéficiaire..."
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <button
+                            onClick={addDepense}
+                            className="w-full bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-orange-700 transition-colors flex items-center justify-center"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Ajouter
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Référence / N° Pièce</label>
+                          <input
+                            type="text"
+                            value={newDepense.reference}
+                            onChange={(e) => setNewDepense({...newDepense, reference: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                            placeholder="N° facture, reçu..."
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
+                          <input
+                            type="text"
+                            value={newDepense.notes}
+                            onChange={(e) => setNewDepense({...newDepense, notes: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                            placeholder="Observations..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Liste des dépenses */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destinataire</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
+                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {contentieuxDepenses.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                                Aucune dépense enregistrée. Utilisez le formulaire ci-dessus pour ajouter des dépenses.
+                              </td>
+                            </tr>
+                          ) : (
+                            contentieuxDepenses.map((dep) => (
+                              <tr key={dep.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3">
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                    dep.type === 'creance_principale' ? 'bg-blue-100 text-blue-800' :
+                                    dep.type === 'interets_retard' ? 'bg-purple-100 text-purple-800' :
+                                    dep.type === 'honoraires_avocat' ? 'bg-teal-100 text-teal-800' :
+                                    dep.type === 'frais_huissier' ? 'bg-indigo-100 text-indigo-800' :
+                                    dep.type === 'provision' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-orange-100 text-orange-800'
+                                  }`}>
+                                    {typesDepenses.find(t => t.value === dep.type)?.label || dep.type}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600">
+                                  {new Date(dep.date).toLocaleDateString('fr-FR')}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900">
+                                  {dep.montant.toLocaleString()} FCFA
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600">
+                                  {dep.destinataire || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-500">
+                                  {dep.reference || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <button
+                                    onClick={() => removeDepense(dep.id)}
+                                    className="text-red-600 hover:text-red-800 p-1"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Récapitulatif des totaux */}
+                    {contentieuxDepenses.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Totaux par type */}
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <h4 className="font-medium text-gray-800 mb-3">Récapitulatif par type</h4>
+                          <div className="space-y-2">
+                            {typesDepenses.map(type => {
+                              const total = getTotalByType(type.value);
+                              if (total === 0) return null;
+                              return (
+                                <div key={type.value} className="flex justify-between items-center text-sm">
+                                  <span className="text-gray-600">{type.label}:</span>
+                                  <span className="font-medium text-gray-800">{total.toLocaleString()} FCFA</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Total général */}
+                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-300">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-sm text-gray-600">Créance (principal + intérêts):</span>
+                            <span className="font-semibold text-orange-700">
+                              {(getTotalByType('creance_principale') + getTotalByType('interets_retard')).toLocaleString()} FCFA
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-sm text-gray-600">Frais de procédure:</span>
+                            <span className="font-semibold text-orange-700">
+                              {(getTotalDepenses() - getTotalByType('creance_principale') - getTotalByType('interets_retard') - getTotalByType('provision')).toLocaleString()} FCFA
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center pt-3 border-t border-orange-200">
+                            <span className="font-medium text-gray-700">MONTANT TOTAL:</span>
+                            <span className="text-xl font-bold text-orange-600">
+                              {getTotalDepenses().toLocaleString()} FCFA
+                            </span>
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-orange-200">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">Provision constituée:</span>
+                              <span className="font-medium text-yellow-700">
+                                {getTotalByType('provision').toLocaleString()} FCFA
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Onglet: Suivi & Contacts */}
+                {editContentieuxActiveTab === 'suivi' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-green-900 mb-4 flex items-center">
+                      <Clock className="w-5 h-5 mr-2" />
+                      Historique des Étapes & Suivi
+                    </h3>
+
+                    {/* Formulaire d'ajout d'étape */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-200 shadow-sm">
+                      <h4 className="font-semibold text-green-800 mb-4 flex items-center text-base">
+                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-3">
+                          <Plus className="w-5 h-5 text-white" />
+                        </div>
+                        Nouvelle étape de suivi
+                      </h4>
+
+                      {/* Section 1: Informations principales */}
+                      <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
+                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          Informations de l'étape
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="col-span-2 md:col-span-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Type d'action *</label>
+                            <select
+                              value={newSuiviEtape.type}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, type: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                            >
+                              {typesEtapesSuivi.map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                            <input
+                              type="date"
+                              value={newSuiviEtape.date}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, date: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+                            <input
+                              type="time"
+                              value={newSuiviEtape.heure}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, heure: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Résultat</label>
+                            <select
+                              value={newSuiviEtape.resultat}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, resultat: e.target.value})}
+                              className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                newSuiviEtape.resultat === 'reussi' ? 'bg-green-50 border-green-300 text-green-800' :
+                                newSuiviEtape.resultat === 'echoue' ? 'bg-red-50 border-red-300 text-red-800' :
+                                newSuiviEtape.resultat === 'reporte' ? 'bg-yellow-50 border-yellow-300 text-yellow-800' :
+                                'bg-white border-gray-300'
+                              }`}
+                            >
+                              {resultatsEtape.map(r => (
+                                <option key={r.value} value={r.value}>{r.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Section 2: Intervenants */}
+                      <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
+                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
+                          <Users className="w-3 h-3 mr-1" />
+                          Intervenants
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Qui a effectué l'action ?</label>
+                            <input
+                              type="text"
+                              value={newSuiviEtape.intervenant}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, intervenant: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              placeholder="Ex: Jean DUPONT"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Fonction / Rôle</label>
+                            <select
+                              value={newSuiviEtape.roleIntervenant}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, roleIntervenant: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                            >
+                              <option value="">-- Sélectionner --</option>
+                              <option value="responsable_recouvrement">Responsable recouvrement</option>
+                              <option value="agent_recouvrement">Agent de recouvrement</option>
+                              <option value="comptable">Comptable</option>
+                              <option value="directeur_financier">Directeur financier</option>
+                              <option value="commercial">Commercial</option>
+                              <option value="avocat">Avocat</option>
+                              <option value="huissier">Huissier de justice</option>
+                              <option value="expert">Expert / Consultant</option>
+                              <option value="autre">Autre</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Personne contactée (débiteur)</label>
+                            <input
+                              type="text"
+                              value={newSuiviEtape.contact}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, contact: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              placeholder="Ex: M. KOUASSI (DG)"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Section 3: Notes et suivi */}
+                      <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
+                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
+                          <MessageSquare className="w-3 h-3 mr-1" />
+                          Compte-rendu & Suivi
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Notes détaillées / Compte-rendu de l'échange
+                            </label>
+                            <textarea
+                              value={newSuiviEtape.notes}
+                              onChange={(e) => setNewSuiviEtape({...newSuiviEtape, notes: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                              rows={5}
+                              placeholder="Décrivez en détail :&#10;- Le contenu de l'échange&#10;- Les engagements pris&#10;- Les difficultés rencontrées&#10;- Les décisions prises..."
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <ArrowRight className="w-4 h-4 inline mr-1 text-orange-500" />
+                                Prochaine action à effectuer
+                              </label>
+                              <input
+                                type="text"
+                                value={newSuiviEtape.prochainRdv}
+                                onChange={(e) => setNewSuiviEtape({...newSuiviEtape, prochainRdv: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                placeholder="Ex: Relancer le 20/12/2025 si pas de paiement"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <FileText className="w-4 h-4 inline mr-1 text-blue-500" />
+                                Documents joints (références)
+                              </label>
+                              <input
+                                type="text"
+                                value={newSuiviEtape.documentsJoints}
+                                onChange={(e) => setNewSuiviEtape({...newSuiviEtape, documentsJoints: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                placeholder="Ex: Courrier ref. LR-2024-001, Email du 15/12"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bouton d'ajout */}
+                      <button
+                        onClick={addSuiviEtape}
+                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg px-6 py-3 font-medium hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center"
+                      >
+                        <Plus className="w-5 h-5 mr-2" />
+                        Enregistrer cette étape de suivi
+                      </button>
+                    </div>
+
+                    {/* Timeline des étapes */}
+                    <div className="mt-6">
+                      <h4 className="font-medium text-gray-800 mb-4">
+                        Chronologie ({suiviEtapes.length} étape{suiviEtapes.length > 1 ? 's' : ''})
+                      </h4>
+
+                      {suiviEtapes.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                          <Clock className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                          <p>Aucune étape de suivi enregistrée</p>
+                          <p className="text-sm">Utilisez le formulaire ci-dessus pour ajouter des étapes</p>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          {/* Ligne verticale de timeline */}
+                          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-green-200"></div>
+
+                          <div className="space-y-4">
+                            {suiviEtapes.map((etape, index) => (
+                              <div key={etape.id} className="relative flex items-start">
+                                {/* Point de timeline */}
+                                <div className={`absolute left-4 w-5 h-5 rounded-full border-2 ${
+                                  etape.resultat === 'reussi' ? 'bg-green-500 border-green-600' :
+                                  etape.resultat === 'echoue' ? 'bg-red-500 border-red-600' :
+                                  etape.resultat === 'reporte' ? 'bg-yellow-500 border-yellow-600' :
+                                  etape.resultat === 'annule' ? 'bg-orange-500 border-orange-600' :
+                                  'bg-gray-300 border-gray-400'
+                                }`}>
+                                  {etape.resultat === 'reussi' && <CheckCircle className="w-3 h-3 text-white m-0.5" />}
+                                </div>
+
+                                {/* Carte de l'étape */}
+                                <div className="ml-12 flex-1 bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center space-x-2 mb-2">
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                          etape.type === 'appel_telephonique' ? 'bg-blue-100 text-blue-800' :
+                                          etape.type === 'envoi_courrier' || etape.type === 'envoi_email' ? 'bg-purple-100 text-purple-800' :
+                                          etape.type === 'reunion' ? 'bg-teal-100 text-teal-800' :
+                                          etape.type === 'mise_demeure' ? 'bg-red-100 text-red-800' :
+                                          etape.type === 'audience' ? 'bg-indigo-100 text-indigo-800' :
+                                          etape.type === 'paiement_recu' ? 'bg-green-100 text-green-800' :
+                                          'bg-gray-100 text-gray-800'
+                                        }`}>
+                                          {typesEtapesSuivi.find(t => t.value === etape.type)?.label || etape.type}
+                                        </span>
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                          etape.resultat === 'reussi' ? 'bg-green-100 text-green-800' :
+                                          etape.resultat === 'echoue' ? 'bg-red-100 text-red-800' :
+                                          etape.resultat === 'reporte' ? 'bg-yellow-100 text-yellow-800' :
+                                          etape.resultat === 'annule' ? 'bg-orange-100 text-orange-800' :
+                                          'bg-gray-100 text-gray-600'
+                                        }`}>
+                                          {resultatsEtape.find(r => r.value === etape.resultat)?.label || 'En attente'}
+                                        </span>
+                                      </div>
+
+                                      <div className="flex items-center text-sm text-gray-500 mb-2">
+                                        <Calendar className="w-4 h-4 mr-1" />
+                                        {new Date(etape.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                        {etape.heure && <span className="ml-2">à {etape.heure}</span>}
+                                      </div>
+
+                                      {(etape.intervenant || etape.contact) && (
+                                        <div className="flex flex-wrap gap-3 text-sm mb-2">
+                                          {etape.intervenant && (
+                                            <div className="flex items-center text-gray-600">
+                                              <Users className="w-4 h-4 mr-1 text-green-600" />
+                                              <span className="font-medium">{etape.intervenant}</span>
+                                              {etape.roleIntervenant && (
+                                                <span className="text-gray-400 ml-1">({etape.roleIntervenant})</span>
+                                              )}
+                                            </div>
+                                          )}
+                                          {etape.contact && (
+                                            <div className="flex items-center text-gray-600">
+                                              <UserCircle className="w-4 h-4 mr-1 text-blue-600" />
+                                              Contact: {etape.contact}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {etape.notes && (
+                                        <div className="bg-gray-50 p-2 rounded text-sm text-gray-700 mb-2">
+                                          {etape.notes}
+                                        </div>
+                                      )}
+
+                                      {etape.prochainRdv && (
+                                        <div className="text-sm text-orange-600 flex items-center">
+                                          <ArrowRight className="w-4 h-4 mr-1" />
+                                          Prochaine action: {etape.prochainRdv}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center space-x-2 ml-4">
+                                      <select
+                                        value={etape.resultat}
+                                        onChange={(e) => updateSuiviEtapeResultat(etape.id, e.target.value)}
+                                        className="text-xs border border-gray-300 rounded px-2 py-1"
+                                      >
+                                        {resultatsEtape.map(r => (
+                                          <option key={r.value} value={r.value}>{r.label}</option>
+                                        ))}
+                                      </select>
+                                      <button
+                                        onClick={() => removeSuiviEtape(etape.id)}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                        title="Supprimer"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Résumé des étapes */}
+                    {suiviEtapes.length > 0 && (
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
+                        <h4 className="font-medium text-gray-800 mb-3">Résumé du suivi</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="text-2xl font-bold text-gray-700">{suiviEtapes.length}</div>
+                            <div className="text-xs text-gray-500">Total étapes</div>
+                          </div>
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="text-2xl font-bold text-green-600">
+                              {suiviEtapes.filter(e => e.resultat === 'reussi').length}
+                            </div>
+                            <div className="text-xs text-gray-500">Réussies</div>
+                          </div>
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="text-2xl font-bold text-red-600">
+                              {suiviEtapes.filter(e => e.resultat === 'echoue').length}
+                            </div>
+                            <div className="text-xs text-gray-500">Échouées</div>
+                          </div>
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="text-2xl font-bold text-yellow-600">
+                              {suiviEtapes.filter(e => e.resultat === 'reporte').length}
+                            </div>
+                            <div className="text-xs text-gray-500">Reportées</div>
+                          </div>
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="text-2xl font-bold text-gray-500">
+                              {suiviEtapes.filter(e => e.resultat === 'en_attente').length}
+                            </div>
+                            <div className="text-xs text-gray-500">En attente</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Onglet: Analyse & Notes */}
+                {editContentieuxActiveTab === 'notes' && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+                      <MessageSquare className="w-5 h-5 mr-2" />
+                      Analyse & Notes
+                    </h3>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Motif du transfert en contentieux</label>
+                      <textarea
+                        value={editContentieuxFormData.motifTransfert}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, motifTransfert: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
+                        placeholder="Décrivez le motif du transfert..."
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Résultat attendu</label>
+                        <textarea
+                          value={editContentieuxFormData.resultatAttendu}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, resultatAttendu: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
+                          placeholder="Objectif de la procédure..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Risques identifiés</label>
+                        <textarea
+                          value={editContentieuxFormData.risques}
+                          onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, risques: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
+                          placeholder="Risques potentiels..."
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Notes complémentaires</label>
+                      <textarea
+                        value={editContentieuxFormData.notes}
+                        onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, notes: e.target.value})}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-gray-500"
+                        placeholder="Informations supplémentaires, historique, observations..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+                <div className="text-sm text-gray-500">
+                  Dernière modification: {new Date().toLocaleDateString()}
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowEditContentieuxModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleSaveContentieux}
+                    className="px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] transition-colors flex items-center space-x-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Enregistrer les modifications</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Gestion Workflow Contentieux */}
+        {showWorkflowModal && selectedDossierWorkflow && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-indigo-600">
+                <div className="text-white">
+                  <h2 className="text-xl font-semibold flex items-center">
+                    <Activity className="w-6 h-6 mr-2" />
+                    Workflow de Procédure Contentieux
+                  </h2>
+                  <p className="text-purple-100 mt-1">
+                    {selectedDossierWorkflow.numeroRef} - {selectedDossierWorkflow.client}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowWorkflowModal(false)}
+                  className="text-white hover:text-purple-200"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {/* Barre de progression */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Progression du dossier</span>
+                    <span className="text-sm font-medium text-purple-600">
+                      {workflowData[selectedDossierWorkflow.id]?.etapes.filter(e => e.statut === 'completed').length || 0} / {workflowData[selectedDossierWorkflow.id]?.etapes.length || 6} étapes
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 h-3 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${((workflowData[selectedDossierWorkflow.id]?.etapes.filter(e => e.statut === 'completed').length || 0) / (workflowData[selectedDossierWorkflow.id]?.etapes.length || 6)) * 100}%`
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Liste des étapes */}
+                <div className="space-y-4">
+                  {(workflowData[selectedDossierWorkflow.id]?.etapes || defaultWorkflowEtapes.map(e => ({ ...e, statut: 'pending', commentaires: [] }))).map((etape, index) => (
+                    <div
+                      key={etape.id}
+                      className={`border rounded-lg p-4 ${
+                        etape.statut === 'completed' ? 'border-green-300 bg-green-50' :
+                        etape.statut === 'in_progress' ? 'border-blue-300 bg-blue-50' :
+                        etape.statut === 'skipped' ? 'border-gray-300 bg-gray-50 opacity-60' :
+                        'border-gray-200 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4">
+                          {/* Numéro de l'étape */}
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                            etape.statut === 'completed' ? 'bg-green-500' :
+                            etape.statut === 'in_progress' ? 'bg-blue-500' :
+                            etape.statut === 'skipped' ? 'bg-gray-400' :
+                            'bg-gray-300'
+                          }`}>
+                            {etape.statut === 'completed' ? <CheckCircle className="w-5 h-5" /> : index + 1}
+                          </div>
+
+                          {/* Détails de l'étape */}
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-semibold text-gray-900">{etape.titre}</h4>
+                              {etape.custom && (
+                                <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">Personnalisé</span>
+                              )}
+                              {etape.obligatoire && (
+                                <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">Obligatoire</span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{etape.description}</p>
+                            {etape.delaiJours > 0 && (
+                              <p className="text-xs text-gray-500 mt-1">Délai estimé: {etape.delaiJours} jours</p>
+                            )}
+                            {etape.dateDebut && (
+                              <p className="text-xs text-blue-600 mt-1">Démarré le: {etape.dateDebut}</p>
+                            )}
+                            {etape.dateFin && (
+                              <p className="text-xs text-green-600 mt-1">Terminé le: {etape.dateFin}</p>
+                            )}
+
+                            {/* Commentaires de l'étape */}
+                            {etape.commentaires && etape.commentaires.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                <p className="text-xs font-medium text-gray-700">Commentaires ({etape.commentaires.length}):</p>
+                                {etape.commentaires.map(comment => (
+                                  <div key={comment.id} className="bg-white border border-gray-200 rounded p-2 text-sm">
+                                    <p className="text-gray-700">{comment.texte}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{comment.auteur} - {comment.date}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-col space-y-2">
+                          {/* Boutons de statut */}
+                          <div className="flex space-x-1">
+                            {etape.statut !== 'completed' && (
+                              <button
+                                onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'in_progress')}
+                                className={`px-2 py-1 text-xs rounded ${etape.statut === 'in_progress' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+                                title="En cours"
+                              >
+                                <Clock className="w-3 h-3" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'completed')}
+                              className={`px-2 py-1 text-xs rounded ${etape.statut === 'completed' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                              title="Terminé"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                            </button>
+                            {!etape.obligatoire && (
+                              <button
+                                onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'skipped')}
+                                className={`px-2 py-1 text-xs rounded ${etape.statut === 'skipped' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                title="Passer"
+                              >
+                                <ArrowRight className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Bouton commentaire */}
+                          <button
+                            onClick={() => {
+                              setSelectedEtape(etape);
+                              setShowCommentModal(true);
+                            }}
+                            className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 flex items-center justify-center space-x-1"
+                          >
+                            <MessageSquare className="w-3 h-3" />
+                            <span>Commenter</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bouton ajouter étape */}
+                <button
+                  onClick={() => setShowAddEtapeModal(true)}
+                  className="mt-4 w-full py-3 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 hover:bg-purple-50 flex items-center justify-center space-x-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Ajouter une étape personnalisée</span>
+                </button>
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => setShowWorkflowModal(false)}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Ajouter Étape Personnalisée */}
+        {showAddEtapeModal && selectedDossierWorkflow && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Ajouter une étape personnalisée</h3>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Titre de l'étape</label>
+                  <input
+                    type="text"
+                    value={newEtape.titre}
+                    onChange={(e) => setNewEtape({ ...newEtape, titre: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ex: Négociation complémentaire"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={newEtape.description}
+                    onChange={(e) => setNewEtape({ ...newEtape, description: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-purple-500"
+                    placeholder="Décrivez cette étape..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date prévue (optionnel)</label>
+                  <input
+                    type="date"
+                    value={newEtape.datePrevu}
+                    onChange={(e) => setNewEtape({ ...newEtape, datePrevu: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowAddEtapeModal(false);
+                    setNewEtape({ titre: '', description: '', datePrevu: '' });
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => addCustomEtape(selectedDossierWorkflow.id)}
+                  disabled={!newEtape.titre}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                >
+                  Ajouter l'étape
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Ajouter Commentaire */}
+        {showCommentModal && selectedEtape && selectedDossierWorkflow && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Ajouter un commentaire</h3>
+                <p className="text-sm text-gray-600 mt-1">Étape: {selectedEtape.titre}</p>
+              </div>
+              <div className="p-6">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-purple-500"
+                  placeholder="Ajoutez votre commentaire, observation ou mise à jour..."
+                />
+              </div>
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowCommentModal(false);
+                    setNewComment('');
+                    setSelectedEtape(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => addCommentToEtape(selectedDossierWorkflow.id, selectedEtape.id, newComment)}
+                  disabled={!newComment}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                >
+                  Ajouter le commentaire
                 </button>
               </div>
             </div>
@@ -6081,15 +7845,33 @@ Service Contentieux
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => openEditContentieuxModal(dossier)}
+                            className="text-orange-600 hover:text-orange-800"
+                            title="Modifier le dossier"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              initWorkflowForDossier(dossier.id);
+                              setSelectedDossierWorkflow(dossier);
+                              setShowWorkflowModal(true);
+                            }}
+                            className="text-purple-600 hover:text-purple-800"
+                            title="Gérer le workflow"
+                          >
+                            <Activity className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => {
                               setSelectedContentieuxDetail(dossier);
                               setShowContentieuxDetailPage(true);
                               setActiveContentieuxTab('general');
                             }}
                             className="text-green-600 hover:text-green-800"
-                            title="Gérer le dossier contentieux"
+                            title="Page détaillée du dossier"
                           >
-                            <Edit className="w-4 h-4" />
+                            <FileText className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -6406,7 +8188,7 @@ Service Contentieux
   const COLORS = ['#7A99AC', '#6A89AC', '#5A79AC', '#4A69AC', '#3A59AC'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+    <div className="p-6 bg-[#ECECEC] min-h-screen ">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between">

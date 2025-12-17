@@ -17,7 +17,6 @@ interface CustomSelectorProps {
 }
 
 export const CustomSelector: React.FC<CustomSelectorProps> = ({
-  const { t } = useLanguage();
   optionsInitial,
   className = '',
   onSelect,
@@ -25,6 +24,7 @@ export const CustomSelector: React.FC<CustomSelectorProps> = ({
   defaultSelectedValue,
   placeholder = "Sélectionner une option..."
 }) => {
+  const { t } = useLanguage();
   const [selectedValue, setSelectedValue] = useState<string | number>(defaultSelectedValue || '');
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');

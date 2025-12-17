@@ -3,7 +3,7 @@ import AdvancedGeneralLedger from '../../components/accounting/AdvancedGeneralLe
 
 const GeneralLedgerPage: React.FC = () => {
   return (
-    <div className="h-full">
+    <div className="h-full w-full overflow-auto">
       <AdvancedGeneralLedger />
     </div>
   );

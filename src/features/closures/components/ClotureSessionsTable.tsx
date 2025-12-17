@@ -65,11 +65,11 @@ const getTypeBadge = (type: string) => {
 };
 
 export const ClotureSessionsTable: React.FC<ClotureSessionsTableProps> = ({
-  const { t } = useLanguage();
   sessions,
   loading,
   onViewSession,
 }) => {
+  const { t } = useLanguage();
   const columns: Column<ClotureSession>[] = [
     {
       key: 'type',

@@ -320,7 +320,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
         <div className="flex space-x-1 mt-4">
           {[
             { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3 },
-            { id: 'bilan', label: t('accounting.balanceSheet')}, icon: Building },
+            { id: 'bilan', label: t('accounting.balanceSheet'), icon: Building },
             { id: 'resultat', label: 'Compte de Résultat', icon: TrendingUp },
             { id: 'flux', label: 'Flux de Trésorerie', icon: Activity },
             { id: 'ratios', label: 'SIG & Ratios', icon: Target }

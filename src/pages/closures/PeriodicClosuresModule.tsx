@@ -248,7 +248,7 @@ const PeriodicClosuresModule: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#ECECEC] font-['Sometype Mono']">
+    <div className="flex h-screen bg-[#ECECEC] ">
       {/* Sidebar de navigation */}
       <div className={`${sidebarCollapsed ? 'w-16' : 'w-72'} bg-white border-r border-[#E8E8E8] transition-all duration-300 flex flex-col`}>
         {/* Header Sidebar */}

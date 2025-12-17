@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Config files
+package.json
+package-lock.json
+tsconfig.json
+vite.config.ts
+
+# Backups and disabled files
+**/*.backup.*
+**/*.disabled.*
+
+# Generated files
+*.min.js
+*.min.css
+
+# Other
+.DS_Store
+.env
+.env.local

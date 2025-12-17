@@ -13,12 +13,12 @@ interface TaskFiltersProps {
 }
 
 export const TaskFilters: React.FC<TaskFiltersProps> = ({
-  const { t } = useLanguage();
   filters,
   onFiltersChange,
   showFilters,
   onToggleFilters
 }) => {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <Button

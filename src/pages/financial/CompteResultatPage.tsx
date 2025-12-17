@@ -296,7 +296,7 @@ const CompteResultatPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#ECECEC] font-['Sometype Mono']">
+    <div className="min-h-screen bg-[#ECECEC] ">
       {/* En-tête */}
       <div className="bg-white border-b border-[#E8E8E8] p-6">
         <div className="flex items-center justify-between">

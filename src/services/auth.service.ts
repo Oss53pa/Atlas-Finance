@@ -1,4 +1,4 @@
-import { authBackendService } from './backend-services.index';
+import { authBackendService } from './auth-backend.service';
 import {
   AuthResponse,
   LoginRequest,

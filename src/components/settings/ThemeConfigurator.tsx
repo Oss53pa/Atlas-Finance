@@ -59,11 +59,11 @@ interface ThemeConfiguratorProps {
 }
 
 const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
-  const { t } = useLanguage();
   currentTheme = 'corporate-blue',
   onThemeChange,
   className = ''
 }) => {
+  const { t } = useLanguage();
   // États
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
   const [isCustomizing, setIsCustomizing] = useState(false);

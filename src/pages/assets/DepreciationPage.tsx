@@ -87,6 +87,9 @@ const DepreciationPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [showComptabiliserModal, setShowComptabiliserModal] = useState(false);
+  const [showEditDepreciationModal, setShowEditDepreciationModal] = useState(false);
+  const [depreciationToEdit, setDepreciationToEdit] = useState<any>(null);
 
   const queryClient = useQueryClient();
 
@@ -146,6 +149,65 @@ const DepreciationPage: React.FC = () => {
   const handleDeleteDepreciation = (depreciationId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet amortissement ?')) {
       deleteDepreciationMutation.mutate(depreciationId);
+    }
+  };
+
+  // Comptabiliser mutation
+  const comptabiliserMutation = useMutation({
+    mutationFn: async (depreciationId: string) => {
+      // Simulation API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return depreciationId;
+    },
+    onSuccess: () => {
+      toast.success('Amortissement comptabilisé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['depreciation'] });
+      setShowComptabiliserModal(false);
+      setSelectedDepreciation(null);
+    },
+    onError: () => {
+      toast.error('Erreur lors de la comptabilisation');
+    }
+  });
+
+  const handleComptabiliser = (depreciation: any) => {
+    setSelectedDepreciation(depreciation);
+    setShowComptabiliserModal(true);
+  };
+
+  const confirmComptabiliser = () => {
+    if (selectedDepreciation) {
+      comptabiliserMutation.mutate(selectedDepreciation.id);
+    }
+  };
+
+  const handleEditDepreciation = (depreciation: any) => {
+    setDepreciationToEdit(depreciation);
+    setFormData({
+      immobilisation_id: depreciation.immobilisation_id || '',
+      exercice: depreciation.exercice || new Date().getFullYear().toString(),
+      montant: depreciation.montant_dotation || 0,
+      date_debut: depreciation.date_debut || '',
+      date_fin: depreciation.date_fin || '',
+      methode: depreciation.methode || 'lineaire',
+    });
+    setShowEditDepreciationModal(true);
+  };
+
+  const handleUpdateDepreciation = async () => {
+    try {
+      setIsSubmitting(true);
+      // Simulation de mise à jour
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Amortissement mis à jour avec succès');
+      queryClient.invalidateQueries({ queryKey: ['depreciation'] });
+      setShowEditDepreciationModal(false);
+      setDepreciationToEdit(null);
+      resetForm();
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -622,6 +684,7 @@ const DepreciationPage: React.FC = () => {
                                   variant="ghost"
                                   size="sm"
                                   className="text-green-600 hover:text-green-700"
+                                  onClick={() => handleComptabiliser(depreciation)}
                                   aria-label="Comptabiliser"
                                 >
                                   <CheckCircle className="h-4 w-4" />
@@ -629,6 +692,7 @@ const DepreciationPage: React.FC = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={() => handleEditDepreciation(depreciation)}
                                   aria-label="Modifier"
                                 >
                                   <Edit className="h-4 w-4" />
@@ -936,6 +1000,207 @@ const DepreciationPage: React.FC = () => {
         }}
         initialDateRange={dateRange}
       />
+
+      {/* Modal de comptabilisation */}
+      {showComptabiliserModal && selectedDepreciation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className="bg-green-100 text-green-600 p-2 rounded-lg">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Comptabiliser l'amortissement</h2>
+              </div>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 mb-4">
+                Voulez-vous comptabiliser cet amortissement ? Cette action créera les écritures comptables correspondantes.
+              </p>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Actif:</span>
+                  <span className="font-medium">{selectedDepreciation.nom_actif}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Montant dotation:</span>
+                  <span className="font-medium text-red-600">
+                    {formatCurrency(selectedDepreciation.montant_dotation)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Méthode:</span>
+                  <span className="font-medium">{getMethodeLabel(selectedDepreciation.methode)}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowComptabiliserModal(false);
+                  setSelectedDepreciation(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={comptabiliserMutation.isPending}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmComptabiliser}
+                disabled={comptabiliserMutation.isPending}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+              >
+                {comptabiliserMutation.isPending ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Comptabilisation...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Comptabiliser</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de modification d'amortissement */}
+      {showEditDepreciationModal && depreciationToEdit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
+                  <Edit className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Modifier l'amortissement</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditDepreciationModal(false);
+                  setDepreciationToEdit(null);
+                  resetForm();
+                }}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">Modification d'amortissement</h4>
+                    <p className="text-sm text-blue-800">
+                      Modifiez les paramètres de l'amortissement pour: {depreciationToEdit.nom_actif}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Exercice *</label>
+                  <Input
+                    placeholder="2024"
+                    value={formData.exercice}
+                    onChange={(e) => handleInputChange('exercice', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Méthode *</label>
+                  <Select
+                    value={formData.methode}
+                    onValueChange={(value) => handleInputChange('methode', value)}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner la méthode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lineaire">Linéaire</SelectItem>
+                      <SelectItem value="degressive">Dégressive</SelectItem>
+                      <SelectItem value="unites_oeuvre">Unités d'œuvre</SelectItem>
+                      <SelectItem value="exceptionnelle">Exceptionnelle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date début *</label>
+                  <Input
+                    type="date"
+                    value={formData.date_debut}
+                    onChange={(e) => handleInputChange('date_debut', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date fin *</label>
+                  <Input
+                    type="date"
+                    value={formData.date_fin}
+                    onChange={(e) => handleInputChange('date_fin', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Montant *</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={formData.montant}
+                  onChange={(e) => handleInputChange('montant', parseFloat(e.target.value) || 0)}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowEditDepreciationModal(false);
+                  setDepreciationToEdit(null);
+                  resetForm();
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={isSubmitting}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleUpdateDepreciation}
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Mise à jour...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Enregistrer</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

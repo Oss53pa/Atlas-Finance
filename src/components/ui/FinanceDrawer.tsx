@@ -12,11 +12,11 @@ interface ContentFunCallsProps {
 }
 
 export const CashFlowCashAccountManagement_content_funCalls: React.FC<ContentFunCallsProps> = ({
-  const { t } = useLanguage();
   contentDrawerActive,
   listFilter,
   headerList
 }) => {
+  const { t } = useLanguage();
   return (
     <div className="finance-drawer-content">
       <h6>Gestion des Appels de Fonds</h6>

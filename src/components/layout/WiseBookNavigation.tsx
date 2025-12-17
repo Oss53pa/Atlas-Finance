@@ -62,11 +62,11 @@ interface NavItem {
 }
 
 const WiseBookNavigation: React.FC<NavigationProps> = ({
-  const { t } = useLanguage();
   companyId,
   currentUser,
   className = ''
 }) => {
+  const { t } = useLanguage();
   // États
   const [expandedSections, setExpandedSections] = useState<string[]>(['main']);
   const [searchQuery, setSearchQuery] = useState('');

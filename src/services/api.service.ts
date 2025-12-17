@@ -1,8 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Configuration de base
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const API_TIMEOUT = 30000; // 30 secondes
+
+console.log('🔧 [API Service] Base URL:', API_BASE_URL);
 
 // Types de base pour les réponses API
 export interface ApiResponse<T = any> {
@@ -62,9 +64,17 @@ class ApiService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Token expiré ou invalide
-          localStorage.removeItem('authToken');
-          window.location.href = '/login';
+          // ✅ Ne pas rediriger en mode DÉMO
+          const token = localStorage.getItem('authToken');
+          const isDemoMode = token && (token.startsWith('demo_token_') || import.meta.env.DEV);
+
+          if (!isDemoMode) {
+            // Token expiré ou invalide
+            localStorage.removeItem('authToken');
+            // window.location.href = '/login'; // Désactivé - laisser composants gérer
+          } else {
+            console.warn('⚠️ [API Service] Erreur 401 en mode DÉMO - pas de redirection');
+          }
         }
         return Promise.reject(error);
       }

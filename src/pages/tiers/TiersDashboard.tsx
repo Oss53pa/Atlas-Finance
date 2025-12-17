@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer,
+  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts';
 import { TiersKPI, ClientAnalytics, SupplierAnalytics, ThirdParty, Client, Supplier } from '../../types/tiers';
@@ -185,7 +185,7 @@ const TiersDashboard: React.FC = () => {
   const COLORS = ['#6A8A82', '#B87333', '#5A6B65', '#9B6B2A', '#7A9B94'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+    <div className="p-6 bg-[#ECECEC] min-h-screen">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between">

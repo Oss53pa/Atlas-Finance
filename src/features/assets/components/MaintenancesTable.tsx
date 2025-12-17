@@ -64,13 +64,13 @@ const getTypeBadge = (type: string) => {
 };
 
 export const MaintenancesTable: React.FC<MaintenancesTableProps> = ({
-  const { t } = useLanguage();
   maintenances,
   loading,
   onView,
   onEdit,
   onComplete,
 }) => {
+  const { t } = useLanguage();
   const columns: Column<AssetMaintenance>[] = [
     {
       key: 'assetNumber',

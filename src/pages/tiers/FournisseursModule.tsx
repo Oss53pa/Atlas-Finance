@@ -10,7 +10,8 @@ import {
   Package, Truck, ShieldCheck, AlertCircle, BarChart3, PieChart,
   DollarSign, Users, Target, Activity, TrendingDown, ShoppingBag,
   Wallet, RefreshCw, ChevronUp, ChevronDown, Info, Database,
-  Globe, Shield, Zap, Timer, BookOpen, AlertOctagon, Award
+  Globe, Shield, Zap, Timer, BookOpen, AlertOctagon, Award,
+  Receipt, Printer
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -56,12 +57,34 @@ interface Fournisseur {
   derniereFacture?: string;
   prochainPaiement?: string;
   alertes: number;
+
+  // Balance âgée (dettes fournisseurs)
+  nonEchu: number;
+  echu0_30: number;
+  echu31_60: number;
+  echu61_90: number;
+  echuPlus90: number;
+}
+
+// Interface Balance Âgée Fournisseurs
+interface BalanceAgeeFournisseurItem {
+  fournisseurId: string;
+  fournisseurCode: string;
+  fournisseurNom: string;
+  totalDettes: number;
+  nonEchu: number;
+  echu0_30: number;
+  echu31_60: number;
+  echu61_90: number;
+  echuPlus90: number;
+  provision: number;
 }
 
 const FournisseursModule: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('liste');
+  const [balanceAgeeSubTab, setBalanceAgeeSubTab] = useState<'repartition' | 'detail' | 'risques'>('repartition');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatut, setSelectedStatut] = useState<string>('all');
@@ -103,7 +126,12 @@ const FournisseursModule: React.FC = () => {
       statut: 'ACTIF',
       derniereFacture: '2024-09-10',
       prochainPaiement: '2024-10-10',
-      alertes: 0
+      alertes: 0,
+      nonEchu: 80000,
+      echu0_30: 30000,
+      echu31_60: 15000,
+      echu61_90: 0,
+      echuPlus90: 0
     },
     {
       id: '2',
@@ -131,7 +159,12 @@ const FournisseursModule: React.FC = () => {
       statut: 'ACTIF',
       derniereFacture: '2024-09-15',
       prochainPaiement: '2024-10-15',
-      alertes: 1
+      alertes: 1,
+      nonEchu: 180000,
+      echu0_30: 60000,
+      echu31_60: 30000,
+      echu61_90: 10000,
+      echuPlus90: 0
     },
     {
       id: '3',
@@ -160,7 +193,12 @@ const FournisseursModule: React.FC = () => {
       statut: 'ACTIF',
       derniereFacture: '2024-08-25',
       prochainPaiement: '2024-11-25',
-      alertes: 0
+      alertes: 0,
+      nonEchu: 300000,
+      echu0_30: 100000,
+      echu31_60: 50000,
+      echu61_90: 0,
+      echuPlus90: 0
     },
     {
       id: '4',
@@ -187,7 +225,12 @@ const FournisseursModule: React.FC = () => {
       statut: 'ACTIF',
       derniereFacture: '2024-09-05',
       prochainPaiement: '2024-10-20',
-      alertes: 2
+      alertes: 2,
+      nonEchu: 40000,
+      echu0_30: 25000,
+      echu31_60: 20000,
+      echu61_90: 10000,
+      echuPlus90: 0
     },
     {
       id: '5',
@@ -215,7 +258,12 @@ const FournisseursModule: React.FC = () => {
       statut: 'ACTIF',
       derniereFacture: '2024-09-01',
       prochainPaiement: '2024-09-16',
-      alertes: 0
+      alertes: 0,
+      nonEchu: 0,
+      echu0_30: 0,
+      echu31_60: 0,
+      echu61_90: 0,
+      echuPlus90: 0
     },
     {
       id: '6',
@@ -241,7 +289,12 @@ const FournisseursModule: React.FC = () => {
       telephoneComptable: '+240 222 456 789',
       statut: 'BLOQUE',
       derniereFacture: '2024-07-15',
-      alertes: 5
+      alertes: 5,
+      nonEchu: 15000,
+      echu0_30: 20000,
+      echu31_60: 15000,
+      echu61_90: 15000,
+      echuPlus90: 10000
     },
     {
       id: '7',
@@ -268,7 +321,12 @@ const FournisseursModule: React.FC = () => {
       statut: 'ACTIF',
       derniereFacture: '2024-09-12',
       prochainPaiement: '2024-10-12',
-      alertes: 0
+      alertes: 0,
+      nonEchu: 25000,
+      echu0_30: 15000,
+      echu31_60: 5000,
+      echu61_90: 0,
+      echuPlus90: 0
     }
   ];
 
@@ -369,13 +427,51 @@ const FournisseursModule: React.FC = () => {
 
   const COLORS = ['#6A8A82', '#B87333', '#7A99AC', '#5A79AC'];
 
+  // Données Balance Âgée Fournisseurs (Dettes)
+  const balanceAgeeData: BalanceAgeeFournisseurItem[] = fournisseurs.map(f => ({
+    fournisseurId: f.id,
+    fournisseurCode: f.code,
+    fournisseurNom: f.raisonSociale,
+    totalDettes: f.nonEchu + f.echu0_30 + f.echu31_60 + f.echu61_90 + f.echuPlus90,
+    nonEchu: f.nonEchu,
+    echu0_30: f.echu0_30,
+    echu31_60: f.echu31_60,
+    echu61_90: f.echu61_90,
+    echuPlus90: f.echuPlus90,
+    // Provision calculée selon SYSCOHADA (20% pour 61-90j, 50% pour +90j)
+    provision: (f.echu61_90 * 0.2) + (f.echuPlus90 * 0.5)
+  }));
+
+  // Calculs totaux Balance Âgée Fournisseurs
+  const totauxBalanceAgee = balanceAgeeData.reduce((acc, item) => ({
+    totalDettes: acc.totalDettes + item.totalDettes,
+    nonEchu: acc.nonEchu + item.nonEchu,
+    echu0_30: acc.echu0_30 + item.echu0_30,
+    echu31_60: acc.echu31_60 + item.echu31_60,
+    echu61_90: acc.echu61_90 + item.echu61_90,
+    echuPlus90: acc.echuPlus90 + item.echuPlus90,
+    provision: acc.provision + item.provision
+  }), {
+    totalDettes: 0, nonEchu: 0, echu0_30: 0, echu31_60: 0, echu61_90: 0, echuPlus90: 0, provision: 0
+  });
+
+  // Data pour graphique Balance Âgée Fournisseurs
+  const balanceAgeeChartData = [
+    { name: 'Non échu', value: totauxBalanceAgee.nonEchu, color: '#22c55e' },
+    { name: '0-30 jours', value: totauxBalanceAgee.echu0_30, color: '#eab308' },
+    { name: '31-60 jours', value: totauxBalanceAgee.echu31_60, color: '#f97316' },
+    { name: '61-90 jours', value: totauxBalanceAgee.echu61_90, color: '#ef4444' },
+    { name: '+90 jours', value: totauxBalanceAgee.echuPlus90, color: '#991b1b' }
+  ];
+
   const tabs = [
     { id: 'liste', label: 'Liste Fournisseurs', icon: Users },
+    { id: 'balance-agee', label: 'Balance Âgée', icon: Receipt },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 }
   ];
 
   return (
-    <div className="p-6 space-y-6 font-['Sometype Mono']">
+    <div className="p-6 space-y-6 ">
       {/* Header avec statistiques */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E8E8E8]">
         <h2 className="text-2xl font-bold text-[#191919] mb-6">Gestion des Fournisseurs</h2>
@@ -660,6 +756,592 @@ const FournisseursModule: React.FC = () => {
         </div>
       </div>
       </>
+      )}
+
+      {/* Balance Âgée Tab */}
+      {activeTab === 'balance-agee' && (
+        <div className="space-y-6">
+          {/* Header avec actions */}
+          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-[#191919]">Balance Âgée des Dettes Fournisseurs</h3>
+                <p className="text-sm text-[#666666]">Analyse de l'ancienneté des dettes au {new Date().toLocaleDateString('fr-FR')}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPeriodModal(true)}
+                  className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Date d'arrêté</span>
+                </button>
+                <ExportMenu
+                  data={balanceAgeeData}
+                  filename="balance-agee-fournisseurs"
+                  columns={{
+                    fournisseurCode: 'Code Fournisseur',
+                    fournisseurNom: 'Nom Fournisseur',
+                    totalDettes: 'Total Dettes',
+                    nonEchu: 'Non Échu',
+                    echu0_30: '0-30 jours',
+                    echu31_60: '31-60 jours',
+                    echu61_90: '61-90 jours',
+                    echuPlus90: '+90 jours',
+                    provision: 'Provision'
+                  }}
+                  buttonText="Exporter"
+                />
+                <button type="button" className="p-2 text-gray-600 hover:bg-gray-100 rounded" title="Imprimer">
+                  <Printer className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* KPIs Balance Âgée */}
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <Wallet className="w-5 h-5 text-blue-600" />
+              </div>
+              <p className="text-xl font-bold text-[#191919]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
+              <p className="text-xs text-[#666666]">Total Dettes</p>
+            </div>
+
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+              <div className="flex items-center justify-between mb-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="text-xs text-green-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.nonEchu / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
+              </div>
+              <p className="text-xl font-bold text-green-800">{formatCurrency(totauxBalanceAgee.nonEchu)}</p>
+              <p className="text-xs text-green-600">Non Échu</p>
+            </div>
+
+            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+              <div className="flex items-center justify-between mb-2">
+                <Clock className="w-5 h-5 text-yellow-600" />
+                <span className="text-xs text-yellow-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.echu0_30 / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
+              </div>
+              <p className="text-xl font-bold text-yellow-800">{formatCurrency(totauxBalanceAgee.echu0_30)}</p>
+              <p className="text-xs text-yellow-600">0-30 jours</p>
+            </div>
+
+            <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+              <div className="flex items-center justify-between mb-2">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+                <span className="text-xs text-orange-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.echu31_60 / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
+              </div>
+              <p className="text-xl font-bold text-orange-800">{formatCurrency(totauxBalanceAgee.echu31_60)}</p>
+              <p className="text-xs text-orange-600">31-60 jours</p>
+            </div>
+
+            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+              <div className="flex items-center justify-between mb-2">
+                <AlertOctagon className="w-5 h-5 text-red-600" />
+                <span className="text-xs text-red-600">{totauxBalanceAgee.totalDettes > 0 ? (((totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90) / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
+              </div>
+              <p className="text-xl font-bold text-red-800">{formatCurrency(totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90)}</p>
+              <p className="text-xs text-red-600">+60 jours</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <div className="flex items-center justify-between mb-2">
+                <Shield className="w-5 h-5 text-purple-600" />
+              </div>
+              <p className="text-xl font-bold text-purple-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
+              <p className="text-xs text-purple-600">Provisions</p>
+            </div>
+          </div>
+
+          {/* Sous-onglets Balance Âgée */}
+          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm overflow-hidden">
+            <div className="flex border-b border-[#E8E8E8]">
+              <button
+                type="button"
+                onClick={() => setBalanceAgeeSubTab('repartition')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
+                  balanceAgeeSubTab === 'repartition'
+                    ? 'bg-[#7A99AC]/10 text-[#7A99AC] border-b-2 border-[#7A99AC]'
+                    : 'text-[#666666] hover:bg-gray-50'
+                }`}
+              >
+                <PieChart className="w-4 h-4" />
+                <span>Répartition par ancienneté</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBalanceAgeeSubTab('detail')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
+                  balanceAgeeSubTab === 'detail'
+                    ? 'bg-[#7A99AC]/10 text-[#7A99AC] border-b-2 border-[#7A99AC]'
+                    : 'text-[#666666] hover:bg-gray-50'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>Détail par fournisseur</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBalanceAgeeSubTab('risques')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
+                  balanceAgeeSubTab === 'risques'
+                    ? 'bg-[#7A99AC]/10 text-[#7A99AC] border-b-2 border-[#7A99AC]'
+                    : 'text-[#666666] hover:bg-gray-50'
+                }`}
+              >
+                <AlertTriangle className="w-4 h-4" />
+                <span>Paiements prioritaires & Recommandations</span>
+              </button>
+            </div>
+
+            {/* Contenu sous-onglet: Répartition par ancienneté */}
+            {balanceAgeeSubTab === 'repartition' && (
+              <div className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                  {/* Graphique Donut Moderne */}
+                  <div className="lg:col-span-2 bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 shadow-inner">
+                    <h4 className="text-lg font-semibold text-[#191919] mb-2 text-center">Distribution des Dettes</h4>
+                    <p className="text-sm text-[#666666] text-center mb-4">Répartition par ancienneté</p>
+                    <div className="relative">
+                      <ResponsiveContainer width="100%" height={320}>
+                        <RechartsPieChart>
+                          <defs>
+                            <filter id="shadowFournisseur" x="-20%" y="-20%" width="140%" height="140%">
+                              <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.15"/>
+                            </filter>
+                          </defs>
+                          <Pie
+                            data={balanceAgeeChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={120}
+                            paddingAngle={3}
+                            dataKey="value"
+                            cornerRadius={6}
+                            stroke="none"
+                            filter="url(#shadowFournisseur)"
+                          >
+                            {balanceAgeeChartData.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={entry.color}
+                                style={{ filter: 'brightness(1.05)' }}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value) => formatCurrency(value as number)}
+                            contentStyle={{
+                              borderRadius: '12px',
+                              border: 'none',
+                              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                              padding: '12px 16px'
+                            }}
+                          />
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                      {/* Centre du Donut avec Total */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-lg">
+                          <p className="text-xs text-[#666666] uppercase tracking-wide">Total</p>
+                          <p className="text-lg font-bold text-[#191919]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
+                          <p className="text-xs text-[#666666]">{balanceAgeeData.length} fournisseurs</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Légende détaillée et statistiques */}
+                  <div className="lg:col-span-3 space-y-3">
+                    <h4 className="text-lg font-semibold text-[#191919] mb-4">Détail par Tranche d'Ancienneté</h4>
+                    {balanceAgeeChartData.map((item, idx) => {
+                      const percent = totauxBalanceAgee.totalDettes > 0
+                        ? ((item.value / totauxBalanceAgee.totalDettes) * 100).toFixed(1)
+                        : '0';
+                      const fournisseurCount = balanceAgeeData.filter(f => {
+                        if (item.name === 'Non échu') return f.nonEchu > 0;
+                        if (item.name === '0-30 jours') return f.echu0_30 > 0;
+                        if (item.name === '31-60 jours') return f.echu31_60 > 0;
+                        if (item.name === '61-90 jours') return f.echu61_90 > 0;
+                        if (item.name === '+90 jours') return f.echuPlus90 > 0;
+                        return false;
+                      }).length;
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-[#E8E8E8] hover:shadow-md transition-all duration-200 cursor-pointer group"
+                          style={{ borderLeft: `4px solid ${item.color}` }}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div
+                              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
+                              style={{ backgroundColor: `${item.color}20` }}
+                            >
+                              <div className="w-5 h-5 rounded-full" style={{ backgroundColor: item.color }}></div>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-[#191919] group-hover:text-[#7A99AC] transition-colors">{item.name}</p>
+                              <p className="text-sm text-[#666666]">{fournisseurCount} fournisseur(s) concerné(s)</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-[#191919]">{formatCurrency(item.value)}</p>
+                            <div className="flex items-center justify-end space-x-2">
+                              <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all duration-500"
+                                  style={{ width: `${percent}%`, backgroundColor: item.color }}
+                                ></div>
+                              </div>
+                              <span className="text-sm font-medium text-[#666666] min-w-[45px] text-right">{percent}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Graphique en barres empilées */}
+                <div className="mt-6 bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-md font-semibold text-[#191919] mb-4">Évolution par Fournisseur</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={balanceAgeeData.slice(0, 8)} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`} />
+                      <YAxis type="category" dataKey="fournisseurCode" width={80} />
+                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                      <Legend />
+                      <Bar dataKey="nonEchu" stackId="a" fill="#22C55E" name="Non Échu" />
+                      <Bar dataKey="echu0_30" stackId="a" fill="#EAB308" name="0-30j" />
+                      <Bar dataKey="echu31_60" stackId="a" fill="#F97316" name="31-60j" />
+                      <Bar dataKey="echu61_90" stackId="a" fill="#EF4444" name="61-90j" />
+                      <Bar dataKey="echuPlus90" stackId="a" fill="#991B1B" name="+90j" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {/* Contenu sous-onglet: Détail par fournisseur */}
+            {balanceAgeeSubTab === 'detail' && (
+              <div className="p-6">
+                {/* Filtres */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Rechercher un fournisseur..."
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                      <option value="all">Toutes les tranches</option>
+                      <option value="nonechu">Non Échu seulement</option>
+                      <option value="0-30">0-30 jours</option>
+                      <option value="31-60">31-60 jours</option>
+                      <option value="61-90">61-90 jours</option>
+                      <option value="+90">+90 jours</option>
+                    </select>
+                  </div>
+                  <p className="text-sm text-[#666666]">{balanceAgeeData.length} fournisseurs</p>
+                </div>
+
+                {/* Tableau détaillé */}
+                <div className="overflow-x-auto border border-[#E8E8E8] rounded-lg">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left p-3 font-medium text-[#666666]">Code</th>
+                        <th className="text-left p-3 font-medium text-[#666666]">Fournisseur</th>
+                        <th className="text-right p-3 font-medium text-[#666666]">Total Dettes</th>
+                        <th className="text-right p-3 font-medium text-green-600">Non Échu</th>
+                        <th className="text-right p-3 font-medium text-yellow-600">0-30j</th>
+                        <th className="text-right p-3 font-medium text-orange-600">31-60j</th>
+                        <th className="text-right p-3 font-medium text-red-600">61-90j</th>
+                        <th className="text-right p-3 font-medium text-red-800">+90j</th>
+                        <th className="text-right p-3 font-medium text-purple-600">Provision</th>
+                        <th className="text-center p-3 font-medium text-[#666666]">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {balanceAgeeData.map((item) => {
+                        const hasRisk = item.echuPlus90 > 0 || item.echu61_90 > 0;
+                        return (
+                          <tr key={item.fournisseurId} className={`border-t border-[#E8E8E8] hover:bg-gray-50 ${hasRisk ? 'bg-red-50/30' : ''}`}>
+                            <td className="p-3">
+                              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{item.fournisseurCode}</span>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center space-x-2">
+                                <p className="font-medium text-[#191919]">{item.fournisseurNom}</p>
+                                {hasRisk && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                              </div>
+                            </td>
+                            <td className="p-3 text-right font-bold">{formatCurrency(item.totalDettes)}</td>
+                            <td className="p-3 text-right text-green-600">{item.nonEchu > 0 ? formatCurrency(item.nonEchu) : '-'}</td>
+                            <td className="p-3 text-right text-yellow-600">{item.echu0_30 > 0 ? formatCurrency(item.echu0_30) : '-'}</td>
+                            <td className="p-3 text-right text-orange-600">{item.echu31_60 > 0 ? formatCurrency(item.echu31_60) : '-'}</td>
+                            <td className="p-3 text-right text-red-600">{item.echu61_90 > 0 ? formatCurrency(item.echu61_90) : '-'}</td>
+                            <td className="p-3 text-right text-red-800 font-bold">{item.echuPlus90 > 0 ? formatCurrency(item.echuPlus90) : '-'}</td>
+                            <td className="p-3 text-right text-purple-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
+                            <td className="p-3 text-center">
+                              <div className="flex items-center justify-center space-x-1">
+                                <button type="button" className="p-1 text-gray-500 hover:text-[#7A99AC]" title="Voir détail">
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                <button type="button" className="p-1 text-gray-500 hover:text-blue-600" title="Planifier paiement">
+                                  <CreditCard className="w-4 h-4" />
+                                </button>
+                                <button type="button" className="p-1 text-gray-500 hover:text-orange-600" title="Imprimer">
+                                  <Printer className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot className="bg-gray-100 font-bold">
+                      <tr>
+                        <td className="p-3" colSpan={2}>TOTAUX ({balanceAgeeData.length} fournisseurs)</td>
+                        <td className="p-3 text-right">{formatCurrency(totauxBalanceAgee.totalDettes)}</td>
+                        <td className="p-3 text-right text-green-600">{formatCurrency(totauxBalanceAgee.nonEchu)}</td>
+                        <td className="p-3 text-right text-yellow-600">{formatCurrency(totauxBalanceAgee.echu0_30)}</td>
+                        <td className="p-3 text-right text-orange-600">{formatCurrency(totauxBalanceAgee.echu31_60)}</td>
+                        <td className="p-3 text-right text-red-600">{formatCurrency(totauxBalanceAgee.echu61_90)}</td>
+                        <td className="p-3 text-right text-red-800">{formatCurrency(totauxBalanceAgee.echuPlus90)}</td>
+                        <td className="p-3 text-right text-purple-600">{formatCurrency(totauxBalanceAgee.provision)}</td>
+                        <td className="p-3"></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Contenu sous-onglet: Paiements prioritaires et recommandations */}
+            {balanceAgeeSubTab === 'risques' && (
+              <div className="p-6 space-y-6">
+                {/* Indicateurs de paiement */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <div className="flex items-center justify-between">
+                      <AlertOctagon className="w-8 h-8 text-red-600" />
+                      <span className="text-2xl font-bold text-red-800">
+                        {balanceAgeeData.filter(i => i.echuPlus90 > 0).length}
+                      </span>
+                    </div>
+                    <p className="text-sm text-red-700 mt-2">Paiements critiques (+90j)</p>
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                    <div className="flex items-center justify-between">
+                      <AlertTriangle className="w-8 h-8 text-orange-600" />
+                      <span className="text-2xl font-bold text-orange-800">
+                        {balanceAgeeData.filter(i => i.echu61_90 > 0).length}
+                      </span>
+                    </div>
+                    <p className="text-sm text-orange-700 mt-2">Paiements urgents (61-90j)</p>
+                  </div>
+                  <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                    <div className="flex items-center justify-between">
+                      <Clock className="w-8 h-8 text-yellow-600" />
+                      <span className="text-2xl font-bold text-yellow-800">
+                        {balanceAgeeData.filter(i => i.echu31_60 > 0).length}
+                      </span>
+                    </div>
+                    <p className="text-sm text-yellow-700 mt-2">Paiements à prévoir (31-60j)</p>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center justify-between">
+                      <Shield className="w-8 h-8 text-purple-600" />
+                      <span className="text-2xl font-bold text-purple-800">
+                        {formatCurrency(totauxBalanceAgee.provision)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-purple-700 mt-2">Provisions pour litiges</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Liste des fournisseurs prioritaires */}
+                  <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
+                    <div className="p-4 bg-red-50 border-b border-red-200">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-md font-semibold text-red-800">Fournisseurs Prioritaires</h4>
+                        <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                          {balanceAgeeData.filter(item => item.echuPlus90 > 0).length} fournisseurs
+                        </span>
+                      </div>
+                      <p className="text-xs text-red-600 mt-1">Dettes échues de plus de 90 jours - Risque de rupture</p>
+                    </div>
+                    <div className="divide-y divide-[#E8E8E8] max-h-96 overflow-y-auto">
+                      {balanceAgeeData
+                        .filter(item => item.echuPlus90 > 0)
+                        .sort((a, b) => b.echuPlus90 - a.echuPlus90)
+                        .map((item, idx) => (
+                          <div key={idx} className="p-4 hover:bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-[#191919]">{item.fournisseurNom}</p>
+                                <p className="text-xs text-[#666666]">{item.fournisseurCode}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-red-800">{formatCurrency(item.echuPlus90)}</p>
+                                <p className="text-xs text-[#666666]">échu +90j</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex items-center space-x-2">
+                              <button
+                                type="button"
+                                className="flex-1 px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center space-x-1"
+                              >
+                                <CreditCard className="w-3 h-3" />
+                                <span>Payer maintenant</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="flex-1 px-3 py-1.5 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center justify-center space-x-1"
+                              >
+                                <Phone className="w-3 h-3" />
+                                <span>Négocier</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      {balanceAgeeData.filter(item => item.echuPlus90 > 0).length === 0 && (
+                        <div className="p-8 text-center text-[#666666]">
+                          <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
+                          <p>Aucun paiement en retard critique</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions recommandées */}
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
+                      <div className="p-4 bg-[#7A99AC]/10 border-b border-[#E8E8E8]">
+                        <h4 className="text-md font-semibold text-[#191919]">Plan de Trésorerie Recommandé</h4>
+                        <p className="text-xs text-[#666666] mt-1">Actions prioritaires basées sur l'analyse des dettes</p>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {/* Action 1 */}
+                        <div className="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-red-800">🚨 Paiements urgents</p>
+                              <p className="text-sm text-red-700">
+                                {balanceAgeeData.filter(i => i.echuPlus90 > 0).length} fournisseurs avec dettes +90 jours
+                              </p>
+                            </div>
+                            <button type="button" className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">
+                              Planifier
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Action 2 */}
+                        <div className="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-orange-800">⚠️ Négociations délais</p>
+                              <p className="text-sm text-orange-700">
+                                {balanceAgeeData.filter(i => i.echu61_90 > 0).length} fournisseurs avec dettes 61-90 jours
+                              </p>
+                            </div>
+                            <button type="button" className="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700">
+                              Contacter
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Action 3 */}
+                        <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-yellow-800">📅 Échéancier à établir</p>
+                              <p className="text-sm text-yellow-700">
+                                {balanceAgeeData.filter(i => i.echu31_60 > 0).length} fournisseurs avec dettes 31-60 jours
+                              </p>
+                            </div>
+                            <button type="button" className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700">
+                              Planifier
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Action 4 */}
+                        <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-green-800">💰 Escomptes disponibles</p>
+                              <p className="text-sm text-green-700">
+                                {fournisseurs.filter(f => f.escompte && f.escompte > 0).length} fournisseurs avec escompte disponible
+                              </p>
+                            </div>
+                            <button type="button" className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
+                              Optimiser
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Action 5 */}
+                        <div className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-purple-800">📊 Provisions à comptabiliser</p>
+                              <p className="text-sm text-purple-700">
+                                {formatCurrency(totauxBalanceAgee.provision)} selon règles SYSCOHADA
+                              </p>
+                            </div>
+                            <button type="button" className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700">
+                              Générer OD
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Règles de provisionnement */}
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <h5 className="font-medium text-blue-800 flex items-center">
+                        <Info className="w-4 h-4 mr-2" />
+                        Règles de Gestion Trésorerie SYSCOHADA
+                      </h5>
+                      <div className="mt-3 space-y-2 text-sm text-blue-700">
+                        <div className="flex justify-between">
+                          <span>Paiement stratégique</span>
+                          <span className="font-medium">Priorité haute</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Négociation délai +90j</span>
+                          <span className="font-medium">Risque de rupture</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Escompte pour paiement anticipé</span>
+                          <span className="font-medium">Économie 2-3%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Analytics Tab */}

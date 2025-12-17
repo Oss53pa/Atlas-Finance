@@ -194,9 +194,9 @@ const AdvancedGeneralLedger: React.FC = () => {
       orientation="landscape"
       showPrintButton={false}
     >
-      <div className="min-h-screen bg-[#F0F3F2] print-area">
+      <div className="min-h-screen bg-[#F0F3F2] print-area w-full">
       {/* En-tête principal */}
-      <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-6 py-4">
+      <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <BookOpen className="w-8 h-8 text-[#6A8A82]" />
@@ -255,7 +255,7 @@ const AdvancedGeneralLedger: React.FC = () => {
         </div>
         
         {/* Navigation des vues - Version nouvelle génération */}
-        <div className="flex space-x-1 mt-4 overflow-x-auto">
+        <div className="flex space-x-1 mt-4 pt-3 overflow-x-auto overflow-y-visible">
           {[
             { id: 'intelligent', label: 'Recherche Intelligente', icon: Sparkles, badge: 'Nouveau', color: 'bg-purple-600' },
             { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3, color: 'bg-[#6A8A82]' },
@@ -276,7 +276,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <view.icon className="w-4 h-4 mr-2 inline" />
               {view.label}
               {view.badge && (
-                <span className={`absolute -top-2 -right-2 px-1.5 py-0.5 text-xs font-bold text-white rounded-full ${
+                <span className={`absolute -top-2 -right-2 px-1.5 py-0.5 text-xs font-bold text-white rounded-full z-10 ${
                   view.badge === 'Nouveau' ? 'bg-red-500' : view.badge === 'IA' ? 'bg-purple-500' : 'bg-orange-500'
                 } animate-pulse`}>
                   {view.badge}
@@ -289,7 +289,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Filtres avancés */}
       {showFilters && (
-        <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-6 py-4">
+        <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-4 py-3">
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
               <label className="block text-sm font-medium text-[#191919] mb-1">Date début</label>
@@ -356,10 +356,10 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Vue Recherche Intelligente Nouvelle Génération */}
       {activeView === 'intelligent' && (
-        <div className="p-6 space-y-6">
+        <div className="space-y-0 w-full">
 
           {/* Barre de recherche intelligente */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white border-b border-gray-200 p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
@@ -468,7 +468,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           </div>
 
           {/* Modes de vue */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white border-b border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <h4 className="text-md font-semibold text-gray-900">Mode de Navigation</h4>
               <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
@@ -495,8 +495,8 @@ const AdvancedGeneralLedger: React.FC = () => {
           </div>
 
           {/* Résultats de recherche intelligente */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white border-y border-gray-200">
+            <div className="p-3 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <h4 className="text-lg font-semibold text-gray-900">Résultats Intelligents</h4>
@@ -803,7 +803,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             {/* Vue Chronologique */}
             {viewMode === 'timeline' && (
-              <div className="p-6 space-y-6">
+              <div className="p-2 space-y-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                     <Clock className="h-5 w-5 mr-2 text-blue-600" />
@@ -878,7 +878,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             {/* Vue Hiérarchique */}
             {viewMode === 'hierarchy' && (
-              <div className="p-6">
+              <div className="p-2">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                     <GitBranch className="h-5 w-5 mr-2 text-purple-600" />
@@ -1143,10 +1143,10 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Tableau de bord */}
       {activeView === 'dashboard' && (
-        <div className="p-6 space-y-6">
-          
+        <div className="w-full bg-white">
+
           {/* Indicateurs clés */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -1344,10 +1344,10 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Vue Comptes Détaillés */}
       {activeView === 'accounts' && (
-        <div className="p-6 space-y-6">
-          
+        <div className="space-y-0 w-full">
+
           {/* Sélecteur de compte */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white p-4 border-b border-gray-200">
             <div className="flex items-center space-x-4">
               <h3 className="text-lg font-semibold text-gray-900">Sélection du Compte</h3>
               <select 
@@ -1374,7 +1374,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 
                 return (
                   <>
-                    <div className="p-6 border-b border-gray-200">
+                    <div className="p-3 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900">
@@ -1474,9 +1474,9 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Vue Grand Livre */}
       {activeView === 'general-ledger' && (
-        <div className="p-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
+        <div className="w-full">
+          <div className="bg-white">
+            <div className="p-3 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <h3 className="text-lg font-semibold text-gray-900">Grand Livre des Comptes</h3>
@@ -1589,7 +1589,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
 
             {/* Contenu conditionnel selon le mode d'affichage */}
-            <div className="p-6">
+            <div className="p-2">
               {(() => {
                 // Fonction pour récupérer les données selon le type de grand livre
                 const getLedgerData = () => {
@@ -2452,10 +2452,10 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Vue Analyse IA Avancée */}
       {activeView === 'analysis' && (
-        <div className="p-6 space-y-6">
+        <div className="space-y-0 w-full">
 
           {/* Tableau de bord IA */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200 p-6">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-indigo-900 flex items-center">
                 <Brain className="w-6 h-6 mr-3" />
@@ -2717,10 +2717,10 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Vue Collaboration Avancée */}
       {activeView === 'collaboration' && (
-        <div className="p-6 space-y-6">
+        <div className="space-y-0 w-full">
 
           {/* Espaces de travail collaboratifs */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white border-b border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-gray-900 flex items-center">
                 <Users className="w-6 h-6 mr-3 text-orange-500" />
@@ -2804,7 +2804,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               {[
                 { status: "À réviser", count: 7, color: "bg-yellow-100 text-yellow-800", entries: ["607000 - Montant élevé", "401200 - Nouveau tiers"] },
                 { status: "En cours", count: 3, color: "bg-blue-100 text-blue-800", entries: ["512000 - Virement validé", "701000 - Vente confirmée"] },
-                { status: {t('accounting.validated')}, count: 89, color: "bg-green-100 text-green-800", entries: ["Écritures mensuelles", "Rapprochements OK"] },
+                { status: "Validé", count: 89, color: "bg-green-100 text-green-800", entries: ["Écritures mensuelles", "Rapprochements OK"] },
                 { status: "Archivé", count: 1205, color: "bg-gray-100 text-gray-800", entries: ["Exercices précédents", "Données historiques"] }
               ].map((column, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4">
@@ -2837,10 +2837,10 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Vue Analyse Originale Améliorée */}
       {activeView === 'movements' && (
-        <div className="p-6 space-y-6">
-          
+        <div className="space-y-0 w-full">
+
           {/* Analyse par période */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">Analyse par Période</h3>
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={evolutionData}>
@@ -2925,7 +2925,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showPrintPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-3 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Aperçu Grand Livre</h3>
                 <div className="flex items-center space-x-3">
@@ -3817,16 +3817,16 @@ const AdvancedGeneralLedger: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de sélection de période */}
+      <PeriodSelectorModal
+        isOpen={showPeriodModal}
+        onClose={() => setShowPeriodModal(false)}
+        onApply={(range) => setDateRange(range)}
+        initialDateRange={dateRange}
+      />
       </div>
     </PrintableArea>
-
-    {/* Modal de sélection de période */}
-    <PeriodSelectorModal
-      isOpen={showPeriodModal}
-      onClose={() => setShowPeriodModal(false)}
-      onApply={(range) => setDateRange(range)}
-      initialDateRange={dateRange}
-    />
   );
 };
 

@@ -21,6 +21,31 @@ import {
 const ComptableDashboard: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
+  const [showNewEntryModal, setShowNewEntryModal] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterParams, setFilterParams] = useState({
+    dateFrom: '',
+    dateTo: '',
+    status: 'all',
+    type: 'all'
+  });
+
+  const handleExportData = () => {
+    const csvContent = recentEntries.map(e =>
+      `${e.id};${e.date};${e.description};${e.debit};${e.credit};${e.status}`
+    ).join('\n');
+    const blob = new Blob([`N°;Date;Description;Débit;Crédit;Statut\n${csvContent}`], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ecritures_comptables.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleQuickAction = (path: string) => {
+    window.location.href = path;
+  };
 
   // Données métriques style Kads Agency
   const metrics = [
@@ -93,7 +118,10 @@ const ComptableDashboard: React.FC = () => {
             <p className="text-[var(--color-text-primary)]">Tableau de bord opérationnel</p>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[var(--color-primary-dark)] transition-colors">
+            <button
+              onClick={() => setShowNewEntryModal(true)}
+              className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[var(--color-primary-dark)] transition-colors"
+            >
               <Plus className="w-4 h-4" />
               <span>Nouvelle écriture</span>
             </button>
@@ -175,6 +203,7 @@ const ComptableDashboard: React.FC = () => {
                   return (
                     <button
                       key={index}
+                      onClick={() => handleQuickAction(action.path)}
                       className={`p-4 rounded-lg border-2 border-dashed border-${action.color}-200 hover:border-${action.color}-300 hover:bg-${action.color}-50 transition-colors group`}
                     >
                       <div className="text-center">
@@ -206,10 +235,18 @@ const ComptableDashboard: React.FC = () => {
                       className="pl-10 pr-4 py-2 border border-[var(--color-border-dark)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  <button className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Filtrer">
+                  <button
+                    onClick={() => setShowFilterModal(true)}
+                    className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]"
+                    aria-label="Filtrer"
+                  >
                     <Filter className="w-4 h-4 text-[var(--color-text-secondary)]" />
                   </button>
-                  <button className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Télécharger">
+                  <button
+                    onClick={handleExportData}
+                    className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]"
+                    aria-label="Télécharger"
+                  >
                     <Download className="w-4 h-4 text-[var(--color-text-secondary)]" />
                   </button>
                 </div>
@@ -272,6 +309,209 @@ const ComptableDashboard: React.FC = () => {
 
         {/* Contenu des autres onglets à développer */}
       </main>
+
+      {/* Modal Nouvelle Écriture */}
+      {showNewEntryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full">
+            <div className="p-6 border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Plus className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Nouvelle Écriture Comptable</h2>
+                </div>
+                <button onClick={() => setShowNewEntryModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                  <input
+                    type="date"
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Journal *</label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="achats">Achats</option>
+                    <option value="ventes">Ventes</option>
+                    <option value="banque">Banque</option>
+                    <option value="caisse">Caisse</option>
+                    <option value="operations_diverses">Opérations Diverses</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Libellé de l'écriture"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Compte *</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="N° de compte"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tiers</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Client / Fournisseur"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('accounting.debit')}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('accounting.credit')}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Référence pièce</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="N° facture, reçu, etc."
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
+              <button
+                onClick={() => setShowNewEntryModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  alert('Écriture créée avec succès !');
+                  setShowNewEntryModal(false);
+                }}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
+              >
+                Créer l'écriture
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Filtres */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Filter className="w-5 h-5 text-gray-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Filtres avancés</h2>
+                </div>
+                <button onClick={() => setShowFilterModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+                  <input
+                    type="date"
+                    value={filterParams.dateFrom}
+                    onChange={(e) => setFilterParams({ ...filterParams, dateFrom: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+                  <input
+                    type="date"
+                    value={filterParams.dateTo}
+                    onChange={(e) => setFilterParams({ ...filterParams, dateTo: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <select
+                  value={filterParams.status}
+                  onChange={(e) => setFilterParams({ ...filterParams, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Tous les statuts</option>
+                  <option value="validated">Validé</option>
+                  <option value="pending">En attente</option>
+                  <option value="draft">Brouillon</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  value={filterParams.type}
+                  onChange={(e) => setFilterParams({ ...filterParams, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Tous les types</option>
+                  <option value="debit">Débit uniquement</option>
+                  <option value="credit">Crédit uniquement</option>
+                </select>
+              </div>
+            </div>
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-between">
+              <button
+                onClick={() => setFilterParams({ dateFrom: '', dateTo: '', status: 'all', type: 'all' })}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Réinitialiser
+              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    alert('Filtres appliqués !');
+                    setShowFilterModal(false);
+                  }}
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
+                >
+                  Appliquer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

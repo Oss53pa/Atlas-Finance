@@ -19,8 +19,19 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    port: 5178,
+    strictPort: true,
     host: true,
+    watch: {
+      usePolling: false,
+      interval: 300,
+    },
+    hmr: {
+      overlay: true,
+    },
+    fs: {
+      strict: false,
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:8000',

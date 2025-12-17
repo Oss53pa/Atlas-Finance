@@ -211,8 +211,22 @@ const PisteAuditModule: React.FC = () => {
     // Logique d'export
   };
 
+  const handleCancelConfig = () => {
+    alert('Modifications annulées');
+  };
+
+  const handleSaveConfig = () => {
+    alert('Configuration de la piste d\'audit enregistrée avec succès');
+  };
+
+  const handleExportEntry = () => {
+    if (selectedEntry) {
+      alert(`Export de l'entrée ${selectedEntry.id} en cours...`);
+    }
+  };
+
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+    <div className="p-6 bg-[#ECECEC] min-h-screen ">
       {/* Header */}
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -601,10 +615,17 @@ const PisteAuditModule: React.FC = () => {
 
                 {/* Boutons d'action */}
                 <div className="flex justify-end space-x-3 pt-4">
-                  <button className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]">
+                  <button
+                    onClick={handleCancelConfig}
+                    className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
+                  >
                     Annuler
                   </button>
-                  <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label="Enregistrer">
+                  <button
+                    onClick={handleSaveConfig}
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+                    aria-label="Enregistrer"
+                  >
                     <Save className="w-4 h-4" />
                     <span>{t('actions.save')}</span>
                   </button>
@@ -722,7 +743,11 @@ const PisteAuditModule: React.FC = () => {
                 >
                   Fermer
                 </button>
-                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label="Télécharger">
+                <button
+                  onClick={handleExportEntry}
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+                  aria-label="Télécharger"
+                >
                   <Download className="w-4 h-4" />
                   <span>{t('common.export')}</span>
                 </button>

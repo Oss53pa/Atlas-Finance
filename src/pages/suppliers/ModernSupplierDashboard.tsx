@@ -82,6 +82,43 @@ const ModernSupplierDashboard: React.FC = () => {
   // Vue active
   const [activeTab, setActiveTab] = useState('overview');
 
+  // États pour les modals
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+
+  // Handlers pour les actions
+  const handleViewSupplier = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setShowDetailModal(true);
+  };
+
+  const handleEditSupplier = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setShowEditModal(true);
+  };
+
+  const handlePaymentSupplier = (supplier: Supplier) => {
+    // Naviguer vers le module de paiement ou ouvrir un modal de paiement
+    alert(`Gestion des paiements pour: ${supplier.legal_name}`);
+  };
+
+  const handleCallSupplier = (supplier: Supplier) => {
+    if (supplier.main_phone) {
+      window.location.href = `tel:${supplier.main_phone}`;
+    } else {
+      alert('Aucun numéro de téléphone disponible pour ce fournisseur');
+    }
+  };
+
+  const handleEmailSupplier = (supplier: Supplier) => {
+    if (supplier.email) {
+      window.location.href = `mailto:${supplier.email}`;
+    } else {
+      alert('Aucun email disponible pour ce fournisseur');
+    }
+  };
+
   // Chargement initial
   useEffect(() => {
     chargerDashboardStats();
@@ -520,13 +557,13 @@ const ModernSupplierDashboard: React.FC = () => {
         {/* Actions */}
         <div className="flex justify-between items-center">
           <div className="flex gap-2">
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={() => handleViewSupplier(supplier)} title="Voir les détails">
               <Eye className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={() => handleEditSupplier(supplier)} title="Modifier">
               <Edit className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={() => handlePaymentSupplier(supplier)} title="Gérer les paiements">
               <CreditCard className="h-4 w-4" />
             </Button>
           </div>
@@ -739,6 +776,189 @@ const ModernSupplierDashboard: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal Détail Fournisseur */}
+      {showDetailModal && selectedSupplier && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[var(--color-primary-lighter)] to-[var(--color-primary-light)]">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-[var(--color-primary)] rounded-lg flex items-center justify-center text-white">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">{selectedSupplier.legal_name}</h2>
+                  <p className="text-sm text-gray-600">{selectedSupplier.code}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-gray-700 hover:text-gray-600"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Informations Générales */}
+              <div className="grid grid-cols-3 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">Identité</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Raison Sociale</p>
+                    <p className="font-semibold">{selectedSupplier.legal_name}</p>
+                  </div>
+                  {selectedSupplier.commercial_name && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Nom Commercial</p>
+                      <p className="text-[var(--color-primary)]">{selectedSupplier.commercial_name}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Forme Juridique</p>
+                    <p>{selectedSupplier.legal_form}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Type</p>
+                    <p>{selectedSupplier.supplier_type}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">Contact</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Ville</p>
+                    <p>{selectedSupplier.city}</p>
+                  </div>
+                  {selectedSupplier.main_phone && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Téléphone</p>
+                      <a href={`tel:${selectedSupplier.main_phone}`} className="text-[var(--color-primary)] hover:underline">
+                        {selectedSupplier.main_phone}
+                      </a>
+                    </div>
+                  )}
+                  {selectedSupplier.email && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Email</p>
+                      <a href={`mailto:${selectedSupplier.email}`} className="text-[var(--color-primary)] hover:underline">
+                        {selectedSupplier.email}
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">Évaluation</h3>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Notation</p>
+                    <Badge className={getBadgeColor(selectedSupplier.supplier_rating)}>
+                      {selectedSupplier.supplier_rating}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Statut</p>
+                    <Badge className={getStatusColor(selectedSupplier.status)}>
+                      {selectedSupplier.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Performance Globale</p>
+                    <p className="text-xl font-bold text-[var(--color-success)]">
+                      {Math.round(selectedSupplier.overall_performance)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Données Financières */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-4">Données Financières</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-gray-500">Encours Total</p>
+                    <p className="text-xl font-bold text-[var(--color-primary)]">
+                      {formaterMontant(selectedSupplier.current_outstanding)}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-gray-500">Dernière Commande</p>
+                    <p className="font-semibold">
+                      {selectedSupplier.last_order_date
+                        ? new Date(selectedSupplier.last_order_date).toLocaleDateString('fr-FR')
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border">
+                    <p className="text-sm font-medium text-gray-500">Performance</p>
+                    <Progress value={selectedSupplier.overall_performance} className="h-2 mt-2" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="border-t pt-4">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Date de création:</span> {new Date(selectedSupplier.created_at).toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex space-x-2">
+                {selectedSupplier.email && (
+                  <Button variant="outline" onClick={() => handleEmailSupplier(selectedSupplier)}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Envoyer un email
+                  </Button>
+                )}
+                {selectedSupplier.main_phone && (
+                  <Button variant="outline" onClick={() => handleCallSupplier(selectedSupplier)}>
+                    <Phone className="w-4 h-4 mr-2" />
+                    Appeler
+                  </Button>
+                )}
+              </div>
+              <div className="flex space-x-3">
+                <Button variant="outline" onClick={() => setShowDetailModal(false)}>
+                  Fermer
+                </Button>
+                <Button onClick={() => {
+                  setShowDetailModal(false);
+                  handleEditSupplier(selectedSupplier);
+                }}>
+                  Modifier
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Édition Fournisseur */}
+      {showEditModal && selectedSupplier && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Modifier le Fournisseur</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-700 hover:text-gray-600">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">Édition du fournisseur: {selectedSupplier.legal_name}</p>
+              <p className="text-sm text-gray-500">Formulaire d'édition en cours de développement...</p>
+            </div>
+            <div className="flex justify-end space-x-3 p-6 border-t">
+              <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
+              <Button onClick={() => {
+                alert('Modifications sauvegardées (simulation)');
+                setShowEditModal(false);
+              }}>Enregistrer</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

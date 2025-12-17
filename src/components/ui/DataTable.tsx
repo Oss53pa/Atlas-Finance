@@ -81,6 +81,7 @@ function DataTable<T extends Record<string, any>>({
   emptyMessage = 'Aucune donnée disponible',
   className = '',
 }: DataTableProps<T>) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [showFilters, setShowFilters] = useState(false);

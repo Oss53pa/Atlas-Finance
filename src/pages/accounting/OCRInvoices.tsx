@@ -519,7 +519,7 @@ const OCRInvoices: React.FC = () => {
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
-                {tab.count > 0 && (
+                {(tab.count ?? 0) > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
                     activeTab === tab.id
                       ? 'bg-[var(--color-primary)] text-white'

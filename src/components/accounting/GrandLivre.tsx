@@ -41,7 +41,7 @@ const GrandLivre: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([
     {
       code: '401',
-      libelle: t('navigation.suppliers')},
+      libelle: t('navigation.suppliers'),
       entries: [
         { date: '01/01/2024', piece: 'FAC001', journal: 'AC', libelle: 'Achat marchandises SUPPLIER A', debit: 0, credit: 15000, solde: -15000 },
         { date: '05/01/2024', piece: 'REG001', journal: 'BQ', libelle: 'Règlement SUPPLIER A', debit: 15000, credit: 0, solde: 0 },
@@ -57,7 +57,7 @@ const GrandLivre: React.FC = () => {
     },
     {
       code: '411',
-      libelle: t('navigation.clients')},
+      libelle: t('navigation.clients'),
       entries: [
         { date: '02/01/2024', piece: 'FCT001', journal: 'VT', libelle: 'Vente CLIENT X', debit: 25000, credit: 0, solde: 25000 },
         { date: '07/01/2024', piece: 'ENC001', journal: 'BQ', libelle: 'Encaissement CLIENT X', debit: 0, credit: 25000, solde: 0 },

@@ -35,6 +35,8 @@ import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/progress';
+import { toast } from 'react-hot-toast';
+import { X } from 'lucide-react';
 
 interface Fournisseur {
   id: string;
@@ -110,6 +112,8 @@ const CycleFournisseurs: React.FC = () => {
   const [selectedFournisseur, setSelectedFournisseur] = useState<Fournisseur | null>(null);
   const [filterStatut, setFilterStatut] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedFacture, setSelectedFacture] = useState<FactureFournisseur | null>(null);
 
   // Données simulées
   const mockFournisseurs: Fournisseur[] = [
@@ -300,6 +304,33 @@ const CycleFournisseurs: React.FC = () => {
     return 5;
   };
 
+  // Handler functions
+  const handleViewFactureDetail = (facture: FactureFournisseur) => {
+    setSelectedFacture(facture);
+    setShowDetailModal(true);
+    toast.success(`Affichage de la facture: ${facture.numeroFacture}`);
+  };
+
+  const handleValidateFacture = (facture: FactureFournisseur) => {
+    toast.success(`Facture ${facture.numeroFacture} validée avec succès`);
+  };
+
+  const handleImportFactures = () => {
+    toast.success('Import de factures en cours...');
+  };
+
+  const handleNouvelleFacture = () => {
+    toast.success('Création d\'une nouvelle facture');
+  };
+
+  const handleNouvelleCommande = () => {
+    toast.success('Création d\'une nouvelle commande');
+  };
+
+  const handlePlanifierPaiement = (facture: FactureFournisseur) => {
+    toast.success(`Paiement planifié pour ${facture.fournisseurNom}`);
+  };
+
   return (
     <div className="space-y-6">
       {/* En-tête avec KPIs */}
@@ -481,11 +512,17 @@ const CycleFournisseurs: React.FC = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
+              <button
+                onClick={handleImportFactures}
+                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2"
+              >
                 <Upload className="w-4 h-4" />
                 Importer
               </button>
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
+              <button
+                onClick={handleNouvelleFacture}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
+              >
                 <Receipt className="w-4 h-4" />
                 Nouvelle Facture
               </button>
@@ -560,10 +597,18 @@ const CycleFournisseurs: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center gap-2">
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewFactureDetail(facture)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
-                          <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Valider">
+                          <button
+                            onClick={() => handleValidateFacture(facture)}
+                            className="p-1 hover:bg-[var(--color-background-hover)] rounded"
+                            aria-label="Valider"
+                          >
                             <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                           </button>
                         </div>
@@ -581,7 +626,10 @@ const CycleFournisseurs: React.FC = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Bons de Commande</CardTitle>
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
+              <button
+                onClick={handleNouvelleCommande}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
+              >
                 <Package className="w-4 h-4" />
                 Nouvelle Commande
               </button>
@@ -665,7 +713,10 @@ const CycleFournisseurs: React.FC = () => {
                             </div>
                             <div className="text-right">
                               <p className="font-bold">{(facture.solde / 1000000).toFixed(1)}M</p>
-                              <button className="text-xs text-[var(--color-primary)] hover:underline">
+                              <button
+                                onClick={() => handlePlanifierPaiement(facture)}
+                                className="text-xs text-[var(--color-primary)] hover:underline"
+                              >
                                 Planifier
                               </button>
                             </div>
@@ -853,6 +904,144 @@ const CycleFournisseurs: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedFacture && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-[var(--color-border)] px-6 py-4 rounded-t-lg flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
+                  <Receipt className="w-5 h-5" />
+                </div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de la Facture Fournisseur</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedFacture(null);
+                }}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">N° Facture</p>
+                    <p className="font-medium font-mono">{selectedFacture.numeroFacture}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Fournisseur</p>
+                    <p className="font-medium">{selectedFacture.fournisseurNom}</p>
+                  </div>
+                  {selectedFacture.numeroBonCommande && (
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">N° Bon de Commande</p>
+                      <p className="font-medium font-mono">{selectedFacture.numeroBonCommande}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Date Facture</p>
+                    <p className="font-medium">{new Date(selectedFacture.dateFacture).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Date Échéance</p>
+                    <p className={`font-medium ${new Date(selectedFacture.dateEcheance) < new Date() ? 'text-[var(--color-error)]' : ''}`}>
+                      {new Date(selectedFacture.dateEcheance).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {selectedFacture.dateReception && (
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)]">Date Réception</p>
+                      <p className="font-medium">{new Date(selectedFacture.dateReception).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Montant HT</p>
+                    <p className="font-medium font-mono">{selectedFacture.montantHT.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">TVA</p>
+                    <p className="font-medium font-mono">{selectedFacture.montantTVA.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Montant TTC</p>
+                    <p className="font-medium font-mono text-[var(--color-primary)]">{selectedFacture.montantTTC.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Montant Payé</p>
+                    <p className="font-medium font-mono text-[var(--color-success)]">{selectedFacture.montantPaye.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Solde Restant</p>
+                    <p className="font-medium font-mono text-[var(--color-error)]">{selectedFacture.solde.toLocaleString()} FCFA</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Statut</p>
+                    <Badge className={getStatutBadge(selectedFacture.statut)}>
+                      {selectedFacture.statut}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)] mb-3">État du Workflow</p>
+                  <div className="flex items-center gap-2">
+                    {[
+                      { key: 'reception', label: 'Réception' },
+                      { key: 'validation', label: 'Validation' },
+                      { key: 'approbation', label: 'Approbation' },
+                      { key: 'comptabilisation', label: 'Comptabilisation' },
+                      { key: 'paiement', label: 'Paiement' }
+                    ].map((step) => (
+                      <div
+                        key={step.key}
+                        className={`flex-1 text-center p-2 rounded ${
+                          selectedFacture.workflow[step.key as keyof typeof selectedFacture.workflow]
+                            ? 'bg-[var(--color-success-lighter)] text-[var(--color-success)]'
+                            : 'bg-[var(--color-background-hover)] text-[var(--color-text-secondary)]'
+                        }`}
+                      >
+                        <CheckCircle className="w-4 h-4 mx-auto mb-1" />
+                        <p className="text-xs">{step.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-[var(--color-background-secondary)] border-t border-[var(--color-border)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setSelectedFacture(null);
+                }}
+                className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors"
+              >
+                Fermer
+              </button>
+              {selectedFacture.solde > 0 && (
+                <button
+                  onClick={() => {
+                    handlePlanifierPaiement(selectedFacture);
+                    setShowDetailModal(false);
+                    setSelectedFacture(null);
+                  }}
+                  className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>Planifier le Paiement</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

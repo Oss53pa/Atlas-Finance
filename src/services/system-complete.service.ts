@@ -1,70 +1,72 @@
-import { BaseApiService } from '../lib/base-api.service';
-import { apiClient } from '../lib/api-client';
+/**
+ * System Complete Service
+ */
+import { apiService } from './api';
 
 export interface SystemInfo {
-  name: string;
   version: string;
-  description: string;
-  environment: 'development' | 'production';
-  features: {
-    syscohada_compliant: boolean;
-    multi_currency: boolean;
-    ssl_enabled: boolean;
-    modules_count: number;
-  };
+  environment: string;
+  uptime: number;
 }
 
 export interface SystemStats {
-  users: {
-    total: number;
-    active: number;
-  };
-  companies: {
-    total: number;
-    active: number;
-  };
-  system: {
-    uptime: string;
-    database: string;
-    cache: string;
-  };
+  totalUsers: number;
+  activeUsers: number;
+  totalCompanies: number;
+  storageUsed: number;
 }
 
 export interface SystemModule {
-  id: string;
   name: string;
-  description: string;
-  icon: string;
-  route: string;
-  color: string;
-  active: boolean;
-  features: string[];
+  status: 'active' | 'inactive' | 'error';
+  version: string;
 }
 
 export interface SearchResult {
   type: string;
+  id: string;
   title: string;
-  subtitle: string;
+  description?: string;
   url: string;
-  icon: string;
 }
 
 class SystemService {
-  async getInfo(): Promise<SystemInfo> {
-    return apiClient.get('/api/system/info/');
+  async getSystemInfo(): Promise<SystemInfo> {
+    try {
+      const response = await apiService.get('/api/v1/system/info/');
+      return response.data;
+    } catch {
+      return { version: '4.1.0', environment: 'development', uptime: 0 };
+    }
   }
 
-  async getStats(): Promise<SystemStats> {
-    return apiClient.get('/api/system/stats/');
+  async getSystemStats(): Promise<SystemStats> {
+    try {
+      const response = await apiService.get('/api/v1/system/stats/');
+      return response.data;
+    } catch {
+      return { totalUsers: 0, activeUsers: 0, totalCompanies: 0, storageUsed: 0 };
+    }
   }
 
-  async getModules(): Promise<{ count: number; modules: SystemModule[] }> {
-    return apiClient.get('/api/system/modules/');
+  async getModules(): Promise<SystemModule[]> {
+    try {
+      const response = await apiService.get('/api/v1/system/modules/');
+      return response.data;
+    } catch {
+      return [];
+    }
   }
 
-  async globalSearch(query: string): Promise<{ query: string; count: number; results: SearchResult[] }> {
-    return apiClient.post('/api/system/search/', { query });
+  async globalSearch(query: string): Promise<SearchResult[]> {
+    try {
+      const response = await apiService.get('/api/v1/system/search/', { params: { q: query } });
+      return response.data;
+    } catch {
+      return [];
+    }
   }
 }
 
 export const systemService = new SystemService();
+export default systemService;

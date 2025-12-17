@@ -24,6 +24,65 @@ import {
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('system');
+  const [showNewUserModal, setShowNewUserModal] = useState(false);
+  const [showUserDetailModal, setShowUserDetailModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+
+  // New user form state
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    role: 'Comptable',
+    password: ''
+  });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsRefreshing(false);
+  };
+
+  const handleBackup = async () => {
+    setIsBackingUp(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsBackingUp(false);
+    alert('Sauvegarde effectuée avec succès !');
+  };
+
+  const handleCreateUser = () => {
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    alert(`Utilisateur ${newUser.name} créé avec succès !`);
+    setShowNewUserModal(false);
+    setNewUser({ name: '', email: '', role: 'Comptable', password: '' });
+  };
+
+  const handleViewUser = (user: any) => {
+    setSelectedUser(user);
+    setShowUserDetailModal(true);
+  };
+
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setShowEditUserModal(true);
+  };
+
+  const handleDeleteUser = (user: any) => {
+    setSelectedUser(user);
+    setShowDeleteUserModal(true);
+  };
+
+  const confirmDeleteUser = () => {
+    alert(`Utilisateur ${selectedUser?.name} supprimé avec succès !`);
+    setShowDeleteUserModal(false);
+    setSelectedUser(null);
+  };
 
   // Métriques système
   const systemMetrics = [
@@ -96,8 +155,13 @@ const AdminDashboard: React.FC = () => {
               <div className="w-2 h-2 bg-[var(--color-success)] rounded-full animate-pulse"></div>
               <span>Système en ligne</span>
             </div>
-            <button className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
-              <RefreshCw className="w-4 h-4 text-[var(--color-text-secondary)]" />
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]"
+              aria-label="Actualiser"
+            >
+              <RefreshCw className={`w-4 h-4 text-[var(--color-text-secondary)] ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
             <div className="w-10 h-10 bg-[var(--color-info-lighter)] rounded-full flex items-center justify-center">
               <Settings className="w-5 h-5 text-[var(--color-info)]" />
@@ -207,7 +271,10 @@ const AdminDashboard: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion des Utilisateurs</h2>
-                <button className="bg-[var(--color-info)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-purple-700 transition-colors">
+                <button
+                  onClick={() => setShowNewUserModal(true)}
+                  className="bg-[var(--color-info)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-purple-700 transition-colors"
+                >
                   <UserPlus className="w-4 h-4" />
                   <span>Nouvel utilisateur</span>
                 </button>
@@ -262,13 +329,25 @@ const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center space-x-2">
-                          <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]" aria-label="Voir les détails">
+                          <button
+                            onClick={() => handleViewUser(user)}
+                            className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]"
+                            aria-label="Voir les détails"
+                          >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="text-[var(--color-success)] hover:text-[var(--color-success-darker)]">
+                          <button
+                            onClick={() => handleEditUser(user)}
+                            className="text-[var(--color-success)] hover:text-[var(--color-success-darker)]"
+                            aria-label="Modifier"
+                          >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="text-[var(--color-error)] hover:text-[var(--color-error-darker)]" aria-label="Supprimer">
+                          <button
+                            onClick={() => handleDeleteUser(user)}
+                            className="text-[var(--color-error)] hover:text-[var(--color-error-darker)]"
+                            aria-label="Supprimer"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -347,8 +426,19 @@ const AdminDashboard: React.FC = () => {
                     <span className="text-sm text-[var(--color-text-primary)]">Fréquence</span>
                     <span className="text-sm text-[var(--color-text-primary)]">Toutes les 4h</span>
                   </div>
-                  <button className="w-full bg-[var(--color-primary)] text-white py-2 rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors">
-                    Sauvegarder maintenant
+                  <button
+                    onClick={handleBackup}
+                    disabled={isBackingUp}
+                    className="w-full bg-[var(--color-primary)] text-white py-2 rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  >
+                    {isBackingUp ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Sauvegarde en cours...</span>
+                      </>
+                    ) : (
+                      <span>Sauvegarder maintenant</span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -356,6 +446,247 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Modal Nouvel Utilisateur */}
+      {showNewUserModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-[var(--color-info-lighter)] rounded-lg flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-[var(--color-info)]" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Nouvel Utilisateur</h2>
+                </div>
+                <button onClick={() => setShowNewUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet *</label>
+                <input
+                  type="text"
+                  value={newUser.name}
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Nom Prénom"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rôle *</label>
+                <select
+                  value={newUser.role}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="Comptable">Comptable</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Admin">Administrateur</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe *</label>
+                <input
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
+              <button
+                onClick={() => setShowNewUserModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleCreateUser}
+                className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-purple-700"
+              >
+                Créer l'utilisateur
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Détails Utilisateur */}
+      {showUserDetailModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Détails Utilisateur</h2>
+                <button onClick={() => setShowUserDetailModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-16 h-16 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                  <Users className="w-8 h-8 text-[var(--color-primary)]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">{selectedUser.name}</h3>
+                  <p className="text-sm text-gray-500">{selectedUser.email}</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600">Rôle</span>
+                  <span className="font-medium">{selectedUser.role}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600">Statut</span>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    selectedUser.status === 'active'
+                      ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {selectedUser.status === 'active' ? 'Actif' : 'Inactif'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-gray-600">Dernière connexion</span>
+                  <span className="font-medium">Il y a {selectedUser.lastLogin}</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-end">
+              <button
+                onClick={() => setShowUserDetailModal(false)}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Modifier Utilisateur */}
+      {showEditUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Modifier Utilisateur</h2>
+                <button onClick={() => setShowEditUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                <input
+                  type="text"
+                  defaultValue={selectedUser.name}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  defaultValue={selectedUser.email}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+                <select
+                  defaultValue={selectedUser.role}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="Comptable">Comptable</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Admin">Administrateur</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <select
+                  defaultValue={selectedUser.status}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="active">Actif</option>
+                  <option value="inactive">Inactif</option>
+                </select>
+              </div>
+            </div>
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
+              <button
+                onClick={() => setShowEditUserModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  alert(`Utilisateur ${selectedUser.name} modifié avec succès !`);
+                  setShowEditUserModal(false);
+                }}
+                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-darker)]"
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Supprimer Utilisateur */}
+      {showDeleteUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-[var(--color-error)]">Supprimer Utilisateur</h2>
+                <button onClick={() => setShowDeleteUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-[var(--color-error)]" />
+                </div>
+              </div>
+              <p className="text-center text-gray-700 mb-4">
+                Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{selectedUser.name}</strong> ?
+              </p>
+              <p className="text-center text-sm text-gray-500">
+                Cette action est irréversible.
+              </p>
+            </div>
+            <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteUserModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmDeleteUser}
+                className="px-4 py-2 bg-[var(--color-error)] text-white rounded-lg hover:bg-red-700"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

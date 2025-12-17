@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import {
   Lock,
   Bot,
@@ -34,6 +35,36 @@ interface ClosureModule {
 
 const ClosureModulesIndex: React.FC = () => {
   const { t } = useLanguage();
+
+  // Modal states
+  const [showUserGuideModal, setShowUserGuideModal] = useState(false);
+  const [showTrainingModal, setShowTrainingModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [supportMessage, setSupportMessage] = useState('');
+
+  // Handlers
+  const handleOpenUserGuide = () => {
+    setShowUserGuideModal(true);
+  };
+
+  const handleStartTraining = () => {
+    setShowTrainingModal(true);
+  };
+
+  const handleContactSupport = () => {
+    setShowSupportModal(true);
+  };
+
+  const handleSubmitSupport = () => {
+    if (!supportMessage.trim()) {
+      toast.error('Veuillez saisir votre message');
+      return;
+    }
+    toast.success('Demande de support envoyée avec succès');
+    setSupportMessage('');
+    setShowSupportModal(false);
+  };
+
   const modules: ClosureModule[] = [
     {
       id: 'periodic',
@@ -438,7 +469,10 @@ const ClosureModulesIndex: React.FC = () => {
               <p className="text-sm text-[var(--color-primary-darker)] mb-3">
                 Documentation complète des workflows et fonctionnalités
               </p>
-              <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium">
+              <button
+                onClick={handleOpenUserGuide}
+                className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium"
+              >
                 Consulter →
               </button>
             </div>
@@ -448,7 +482,10 @@ const ClosureModulesIndex: React.FC = () => {
               <p className="text-sm text-[var(--color-primary-darker)] mb-3">
                 Modules e-learning sur les normes comptables
               </p>
-              <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium">
+              <button
+                onClick={handleStartTraining}
+                className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium"
+              >
                 Commencer →
               </button>
             </div>
@@ -458,13 +495,253 @@ const ClosureModulesIndex: React.FC = () => {
               <p className="text-sm text-[var(--color-primary-darker)] mb-3">
                 Assistance pour configuration et utilisation avancée
               </p>
-              <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium">
+              <button
+                onClick={handleContactSupport}
+                className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)] text-sm font-medium"
+              >
                 Contacter →
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal Guide Utilisateur */}
+      {showUserGuideModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                  📚 Guide Utilisateur - Clôtures Comptables
+                </h3>
+                <button
+                  onClick={() => setShowUserGuideModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              <section>
+                <h4 className="font-semibold text-lg text-[var(--color-primary-darker)] mb-3">1. Vue d'ensemble</h4>
+                <p className="text-gray-600 mb-2">
+                  Le module de clôture comptable WiseBook automatise les processus de clôture périodique
+                  conformément aux normes SYSCOHADA pour la zone CEMAC.
+                </p>
+              </section>
+
+              <section>
+                <h4 className="font-semibold text-lg text-[var(--color-primary-darker)] mb-3">2. Workflow de Clôture</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <ol className="list-decimal list-inside space-y-2 text-gray-600">
+                    <li>Vérification des écritures comptables</li>
+                    <li>Lettrage et rapprochement bancaire</li>
+                    <li>Calcul des provisions et amortissements</li>
+                    <li>Écritures de régularisation</li>
+                    <li>Génération des états financiers</li>
+                    <li>Validation et verrouillage de la période</li>
+                  </ol>
+                </div>
+              </section>
+
+              <section>
+                <h4 className="font-semibold text-lg text-[var(--color-primary-darker)] mb-3">3. Contrôles Automatiques</h4>
+                <p className="text-gray-600">
+                  Plus de 200 contrôles sont exécutés automatiquement pour garantir la conformité SYSCOHADA:
+                </p>
+                <ul className="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                  <li>Équilibre débit/crédit</li>
+                  <li>Cohérence des soldes</li>
+                  <li>Validation des comptes auxiliaires</li>
+                  <li>Contrôle des taux de TVA</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4 className="font-semibold text-lg text-[var(--color-primary-darker)] mb-3">4. États Financiers</h4>
+                <p className="text-gray-600">
+                  Génération automatique des états conformes SYSCOHADA: Bilan, Compte de résultat,
+                  TAFIRE, Tableau des flux de trésorerie, Annexes.
+                </p>
+              </section>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => {
+                  toast.success('Guide téléchargé');
+                  setShowUserGuideModal(false);
+                }}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] mr-3"
+              >
+                Télécharger PDF
+              </button>
+              <button
+                onClick={() => setShowUserGuideModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Formation SYSCOHADA */}
+      {showTrainingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                  🎓 Formation SYSCOHADA - E-Learning
+                </h3>
+                <button
+                  onClick={() => setShowTrainingModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { title: 'Introduction au SYSCOHADA', duration: '45 min', progress: 100, status: 'Terminé' },
+                  { title: 'Plan Comptable OHADA', duration: '1h 30', progress: 100, status: 'Terminé' },
+                  { title: 'Écritures de Clôture', duration: '2h', progress: 60, status: 'En cours' },
+                  { title: 'États Financiers SYSCOHADA', duration: '1h 45', progress: 0, status: 'Non commencé' },
+                  { title: 'TAFIRE et Tableaux de Flux', duration: '1h 15', progress: 0, status: 'Non commencé' },
+                  { title: 'Annexes et Notes', duration: '1h', progress: 0, status: 'Non commencé' },
+                ].map((module, index) => (
+                  <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium text-[var(--color-text-primary)]">{module.title}</h4>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        module.status === 'Terminé' ? 'bg-green-100 text-green-700' :
+                        module.status === 'En cours' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {module.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-3">Durée: {module.duration}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-[var(--color-primary)] h-2 rounded-full transition-all"
+                        style={{ width: `${module.progress}%` }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        toast.success(`Module "${module.title}" lancé`);
+                      }}
+                      className="mt-3 text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium"
+                    >
+                      {module.progress === 100 ? 'Revoir' : module.progress > 0 ? 'Continuer' : 'Commencer'} →
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Progression globale: <span className="font-semibold text-[var(--color-primary)]">43%</span>
+              </div>
+              <button
+                onClick={() => setShowTrainingModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Support Technique */}
+      {showSupportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                  🛠️ Contacter le Support Technique
+                </h3>
+                <button
+                  onClick={() => setShowSupportModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type de demande
+                </label>
+                <select className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
+                  <option>Question technique</option>
+                  <option>Problème de clôture</option>
+                  <option>Demande de formation</option>
+                  <option>Suggestion d'amélioration</option>
+                  <option>Autre</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Module concerné
+                </label>
+                <select className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
+                  <option>Clôtures Périodiques</option>
+                  <option>Workflow Designer BPMN</option>
+                  <option>Éditeur de Formules</option>
+                  <option>Générateur d'Annexes</option>
+                  <option>Gestionnaire de Reports</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Votre message *
+                </label>
+                <textarea
+                  value={supportMessage}
+                  onChange={(e) => setSupportMessage(e.target.value)}
+                  rows={4}
+                  className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                  placeholder="Décrivez votre demande ou problème..."
+                />
+              </div>
+
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  <strong>Horaires du support:</strong> Lun-Ven 8h-18h (GMT+1)
+                  <br />
+                  <strong>Temps de réponse moyen:</strong> 2h
+                </p>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowSupportModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmitSupport}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
+              >
+                Envoyer la demande
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

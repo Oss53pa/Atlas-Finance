@@ -1,223 +1,295 @@
-// Service de sécurité - données mock pour la démonstration
+/**
+ * WiseBook ERP - Security Service (Refactoré)
+ *
+ * Gestion des utilisateurs, rôles et permissions.
+ * Utilise les endpoints backend: /api/users/, /api/roles/, /api/permissions/
+ *
+ * @version 3.0.0 - Refactored
+ * @date 2025-10-18
+ */
+
+import { apiClient } from '@/lib/api';
+import API_ENDPOINTS from '@/config/apiEndpoints';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  is_active: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
+  date_joined?: string;
+  last_login?: string;
+  roles?: string[];
+  permissions?: string[];
+  company?: string;
+  company_name?: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  permissions?: string[];
+  is_active: boolean;
+  users_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+  codename: string;
+  content_type?: string;
+  content_type_name?: string;
+  description?: string;
+  module?: string;
+}
+
+interface ApiResponse<T> {
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  results: T[];
+}
+
+// ============================================================================
+// SECURITY SERVICE
+// ============================================================================
+
 export const securityService = {
-  getDashboardStats: async () => {
+  // ==========================================================================
+  // USERS
+  // ==========================================================================
+
+  async getUsers(params?: {
+    search?: string;
+    is_active?: boolean;
+    is_staff?: boolean;
+    company?: string;
+    role?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: User[]; count?: number }> {
+    try {
+      const response = await apiClient.get<ApiResponse<User>>(
+        API_ENDPOINTS.USERS.LIST,
+        params
+      );
+      return { results: response.results || [], count: response.count };
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
+
+  async getUser(id: string): Promise<User> {
+    try {
+      return await apiClient.get<User>(API_ENDPOINTS.USERS.DETAIL(id));
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      throw error;
+    }
+  },
+
+  async createUser(data: Partial<User> & { password?: string }): Promise<User> {
+    try {
+      return await apiClient.post<User>(API_ENDPOINTS.USERS.CREATE, data);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  },
+
+  async updateUser(id: string, data: Partial<User>): Promise<User> {
+    try {
+      return await apiClient.put<User>(API_ENDPOINTS.USERS.UPDATE(id), data);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  },
+
+  async deleteUser(id: string): Promise<void> {
+    try {
+      await apiClient.delete(API_ENDPOINTS.USERS.DELETE(id));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  },
+
+  // ==========================================================================
+  // ROLES
+  // ==========================================================================
+
+  async getRoles(params?: {
+    search?: string;
+    is_active?: boolean;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: Role[]; count?: number }> {
+    try {
+      const response = await apiClient.get<ApiResponse<Role>>(
+        API_ENDPOINTS.ROLES.LIST,
+        params
+      );
+      return { results: response.results || [], count: response.count };
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      throw error;
+    }
+  },
+
+  async getRole(id: string): Promise<Role> {
+    try {
+      return await apiClient.get<Role>(API_ENDPOINTS.ROLES.DETAIL(id));
+    } catch (error) {
+      console.error('Error fetching role:', error);
+      throw error;
+    }
+  },
+
+  async createRole(data: Partial<Role>): Promise<Role> {
+    try {
+      return await apiClient.post<Role>(API_ENDPOINTS.ROLES.CREATE, data);
+    } catch (error) {
+      console.error('Error creating role:', error);
+      throw error;
+    }
+  },
+
+  async updateRole(id: string, data: Partial<Role>): Promise<Role> {
+    try {
+      return await apiClient.put<Role>(API_ENDPOINTS.ROLES.UPDATE(id), data);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      throw error;
+    }
+  },
+
+  async deleteRole(id: string): Promise<void> {
+    try {
+      await apiClient.delete(API_ENDPOINTS.ROLES.DELETE(id));
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      throw error;
+    }
+  },
+
+  // ==========================================================================
+  // PERMISSIONS
+  // ==========================================================================
+
+  async getPermissions(params?: {
+    search?: string;
+    content_type?: string;
+    module?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ results: Permission[]; count?: number }> {
+    try {
+      const response = await apiClient.get<ApiResponse<Permission>>(
+        API_ENDPOINTS.PERMISSIONS.LIST,
+        params
+      );
+      return { results: response.results || [], count: response.count };
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+      throw error;
+    }
+  },
+
+  // ==========================================================================
+  // UTILITIES
+  // ==========================================================================
+
+  hasPermission(user: User, permissionCode: string): boolean {
+    if (user.is_superuser) return true;
+    return user.permissions?.includes(permissionCode) || false;
+  },
+
+  hasRole(user: User, roleCode: string): boolean {
+    return user.roles?.includes(roleCode) || false;
+  },
+
+  hasAnyRole(user: User, roleCodes: string[]): boolean {
+    if (user.is_superuser) return true;
+    return roleCodes.some((code) => this.hasRole(user, code));
+  },
+
+  // ==========================================================================
+  // COMPATIBILITY METHODS (pour backward compatibility avec ancien code)
+  // Ces méthodes seront supprimées dans une version future
+  // ==========================================================================
+
+  async getDashboardStats() {
+    // TODO: Créer un vrai endpoint backend pour ces stats
+    const users = await this.getUsers({ page_size: 1000 });
+    const roles = await this.getRoles({ page_size: 1000 });
+
     return {
-      totalUsers: 25,
-      activeUsers: 23,
-      totalRoles: 8,
-      activeRoles: 8,
-      recentLogins: 145,
-      failedAttempts: 3,
-      passwordExpiring: 5
+      totalUsers: users.count || 0,
+      activeUsers: users.results.filter(u => u.is_active).length,
+      totalRoles: roles.count || 0,
+      activeRoles: roles.results.filter(r => r.is_active).length,
+      recentLogins: 0, // TODO: Implémenter quand endpoint backend existe
+      failedAttempts: 0, // TODO: Implémenter quand endpoint backend existe
+      passwordExpiring: 0, // TODO: Implémenter quand endpoint backend existe
     };
   },
 
-  getUsers: async (filters?: any) => {
-    const users = [
-      {
-        id: '1',
-        username: 'admin',
-        email: 'admin@wisebook.com',
-        firstName: 'Jean',
-        lastName: 'Administrateur',
-        role: 'Administrateur',
-        status: 'active',
-        lastLogin: '2024-08-25',
-        passwordExpiry: '2024-12-25',
-        twoFactorEnabled: true
-      },
-      {
-        id: '2',
-        username: 'comptable1',
-        email: 'comptable@wisebook.com',
-        firstName: 'Marie',
-        lastName: 'Kouassi',
-        role: 'Comptable',
-        status: 'active',
-        lastLogin: '2024-08-24',
-        passwordExpiry: '2024-11-15',
-        twoFactorEnabled: false
-      }
-    ];
-    
-    return { users, totalPages: 1, totalCount: users.length, currentPage: 1 };
+  async getSecurityOverview() {
+    return this.getDashboardStats();
   },
 
-  getRoles: async (filters?: any) => {
-    const roles = [
-      {
-        id: '1',
-        name: 'Administrateur',
-        description: 'Accès complet au système',
-        permissions: ['create', 'read', 'update', 'delete', 'admin'],
-        userCount: 2,
-        status: 'active'
-      },
-      {
-        id: '2',
-        name: 'Comptable',
-        description: 'Accès aux modules comptables',
-        permissions: ['read', 'create', 'update'],
-        userCount: 8,
-        status: 'active'
-      }
-    ];
-    
-    return { roles, totalPages: 1, totalCount: roles.length, currentPage: 1 };
+  async getUserActivity() {
+    // TODO: Créer endpoint backend /api/user-activity/
+    console.warn('getUserActivity: endpoint backend pas encore implémenté');
+    return [];
   },
 
-  getSecurityEvents: async (filters?: any) => {
-    const events = [
-      {
-        id: '1',
-        type: 'login_success',
-        user: 'admin',
-        timestamp: '2024-08-25 10:30:00',
-        ipAddress: '192.168.1.100',
-        userAgent: 'Chrome/126.0'
-      },
-      {
-        id: '2',
-        type: 'login_failed',
-        user: 'unknown',
-        timestamp: '2024-08-25 09:15:00',
-        ipAddress: '192.168.1.200',
-        userAgent: 'Firefox/128.0'
-      }
-    ];
-    
-    return { events, totalPages: 1, totalCount: events.length, currentPage: 1 };
+  async getSecurityEvents(filters?: any) {
+    // TODO: Créer endpoint backend /api/security-events/
+    console.warn('getSecurityEvents: endpoint backend pas encore implémenté');
+    return { events: [], totalPages: 0, totalCount: 0, currentPage: 1 };
   },
 
-  deleteUser: async (id: string) => {
-    return { success: true };
+  async getRecentSecurityEvents(limit: number = 10) {
+    // TODO: Créer endpoint backend /api/security-events/recent/
+    console.warn('getRecentSecurityEvents: endpoint backend pas encore implémenté');
+    return [];
   },
 
-  deleteRole: async (id: string) => {
-    return { success: true };
+  async getAlerts() {
+    // TODO: Créer endpoint backend /api/security-alerts/
+    console.warn('getAlerts: endpoint backend pas encore implémenté');
+    return [];
   },
 
-  // Méthodes pour les queries spécifiques
-  getSecurityOverview: async () => {
+  async getSecurityAlerts() {
+    return this.getAlerts();
+  },
+
+  async getUserActivitySummary() {
+    // TODO: Créer endpoint backend /api/user-activity/summary/
+    console.warn('getUserActivitySummary: endpoint backend pas encore implémenté');
     return {
-      totalUsers: 25,
-      activeUsers: 23,
-      totalRoles: 8,
-      recentLogins: 145,
-      failedAttempts: 3,
-      passwordExpiring: 5,
-      systemStatus: 'healthy'
+      totalSessions: 0,
+      activeSessions: 0,
+      averageSessionDuration: 0,
+      peakHour: '00:00',
+      topUsers: []
     };
   },
-
-  getUserActivity: async () => {
-    return [
-      {
-        id: '1',
-        user: 'admin',
-        action: 'login',
-        timestamp: '2024-08-25 15:30:00',
-        ipAddress: '192.168.1.100',
-        status: 'success'
-      },
-      {
-        id: '2',
-        user: 'comptable1',
-        action: 'create_entry',
-        timestamp: '2024-08-25 14:45:00',
-        ipAddress: '192.168.1.101',
-        status: 'success'
-      },
-      {
-        id: '3',
-        user: 'unknown',
-        action: 'login_attempt',
-        timestamp: '2024-08-25 13:20:00',
-        ipAddress: '192.168.1.200',
-        status: 'failed'
-      }
-    ];
-  },
-
-  getAlerts: async () => {
-    return [
-      {
-        id: '1',
-        type: 'warning',
-        title: 'Mots de passe expirant bientôt',
-        message: '5 utilisateurs doivent renouveler leur mot de passe',
-        timestamp: '2024-08-25 10:00:00',
-        severity: 'medium'
-      },
-      {
-        id: '2',
-        type: 'info',
-        title: 'Connexions multiples détectées',
-        message: '3 tentatives de connexion échouées pour le compte admin',
-        timestamp: '2024-08-25 09:30:00',
-        severity: 'low'
-      }
-    ];
-  },
-
-  // Alias pour compatibilité
-  getRecentSecurityEvents: async (limit: number = 10) => {
-    const events = [
-      {
-        id: '1',
-        type: 'login_success',
-        user: 'admin',
-        timestamp: '2024-08-25 15:30:00',
-        ipAddress: '192.168.1.100',
-        userAgent: 'Chrome/126.0',
-        description: 'Connexion réussie'
-      },
-      {
-        id: '2',
-        type: 'login_failed',
-        user: 'unknown',
-        timestamp: '2024-08-25 13:20:00',
-        ipAddress: '192.168.1.200',
-        userAgent: 'Firefox/128.0',
-        description: 'Tentative de connexion échouée'
-      }
-    ];
-    return events.slice(0, limit);
-  },
-
-  getUserActivitySummary: async () => {
-    return {
-      totalSessions: 1245,
-      activeSessions: 23,
-      averageSessionDuration: 45,
-      peakHour: '14:00',
-      topUsers: [
-        { username: 'admin', sessionCount: 125 },
-        { username: 'comptable1', sessionCount: 98 }
-      ]
-    };
-  },
-
-  getSecurityAlerts: async () => {
-    return [
-      {
-        id: '1',
-        type: 'warning',
-        title: 'Tentatives de connexion suspectes',
-        message: 'Plusieurs tentatives échouées détectées',
-        timestamp: '2024-08-25 15:00:00',
-        severity: 'high',
-        status: 'active'
-      },
-      {
-        id: '2',
-        type: 'info',
-        title: 'Mise à jour de sécurité disponible',
-        message: 'Une nouvelle version de sécurité est disponible',
-        timestamp: '2024-08-25 12:00:00',
-        severity: 'medium',
-        status: 'pending'
-      }
-    ];
-  }
 };
+
+export default securityService;

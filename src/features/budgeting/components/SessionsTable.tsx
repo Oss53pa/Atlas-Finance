@@ -49,13 +49,13 @@ const getStatusBadge = (status: string) => {
 };
 
 export const SessionsTable: React.FC<SessionsTableProps> = ({
-  const { t } = useLanguage();
   sessions,
   loading,
   onView,
   onEdit,
   onDelete,
 }) => {
+  const { t } = useLanguage();
   const columns: Column<BudgetSession>[] = [
     {
       key: 'year',

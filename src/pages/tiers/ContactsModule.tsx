@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Cell, LineChart, Line, ResponsiveContainer,
+  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
   AreaChart, Area
 } from 'recharts';
 import { Contact, Interaction, ThirdParty } from '../../types/tiers';
@@ -24,6 +24,14 @@ const ContactsModule: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showInteractionModal, setShowInteractionModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [contactToEdit, setContactToEdit] = useState<(Contact & { tiers: string }) | null>(null);
+  const [contactToDelete, setContactToDelete] = useState<(Contact & { tiers: string }) | null>(null);
+  const [contactForInteraction, setContactForInteraction] = useState<(Contact & { tiers: string }) | null>(null);
+  const [showInteractionDetailModal, setShowInteractionDetailModal] = useState(false);
+  const [selectedInteraction, setSelectedInteraction] = useState<any>(null);
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set(['SARL CONGO BUSINESS', 'STE AFRICAINE TECH']));
 
   // Mock Contacts Data
   const mockContacts: (Contact & { tiers: string })[] = [
@@ -278,7 +286,7 @@ const ContactsModule: React.FC = () => {
   const COLORS = ['#7A99AC', '#6A89AC', '#5A79AC', '#4A69AC', '#3A59AC'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen font-['Sometype Mono']">
+    <div className="p-6 bg-[#ECECEC] min-h-screen ">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between">
@@ -293,11 +301,11 @@ const ContactsModule: React.FC = () => {
 
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
-                <UserCheck className="w-5 h-5 text-white" />
+                <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Gestion des Contacts</h1>
-                <p className="text-sm text-[#666666]">Centralisation et gestion des contacts tiers</p>
+                <h1 className="text-xl font-bold text-[#191919]">Gestion des Communications</h1>
+                <p className="text-sm text-[#666666]">Centralisation et suivi des communications avec les tiers</p>
               </div>
             </div>
           </div>
@@ -470,19 +478,39 @@ const ContactsModule: React.FC = () => {
                           <button
                             onClick={() => setSelectedContact(contact)}
                             className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80"
+                            title="Voir les détails"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setShowInteractionModal(true)}
+                            onClick={() => {
+                              setContactForInteraction(contact);
+                              setShowInteractionModal(true);
+                            }}
                             className="p-1 text-[#B87333] hover:text-[#B87333]/80"
+                            title="Nouvelle interaction"
                           >
                             <MessageSquare className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-green-600 hover:text-green-900">
+                          <button
+                            onClick={() => {
+                              setContactToEdit(contact);
+                              setShowEditModal(true);
+                            }}
+                            className="p-1 text-green-600 hover:text-green-900"
+                            title="Modifier"
+                          >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-red-600 hover:text-red-900" aria-label="Supprimer">
+                          <button
+                            onClick={() => {
+                              setContactToDelete(contact);
+                              setShowDeleteModal(true);
+                            }}
+                            className="p-1 text-red-600 hover:text-red-900"
+                            aria-label="Supprimer"
+                            title="Supprimer"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -546,14 +574,26 @@ const ContactsModule: React.FC = () => {
               {allInteractions.slice(0, 10).map((interaction) => {
                 const IconComponent = getInteractionIcon(interaction.type);
                 return (
-                  <div key={interaction.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div key={interaction.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getInteractionTypeColor(interaction.type)}`}>
                       <IconComponent className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium text-[#191919]">{interaction.sujet}</h4>
-                        <span className="text-sm text-[#666666]">{formatDate(interaction.date)}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-[#666666]">{formatDate(interaction.date)}</span>
+                          <button
+                            onClick={() => {
+                              setSelectedInteraction(interaction);
+                              setShowInteractionDetailModal(true);
+                            }}
+                            className="p-1.5 bg-[#6A8A82]/10 text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/20 transition-colors"
+                            title="Voir les détails"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <p className="text-sm text-[#666666] mt-1">{interaction.description}</p>
                       <div className="flex items-center justify-between mt-2">
@@ -805,11 +845,323 @@ const ContactsModule: React.FC = () => {
 
       {/* Organigramme Tab */}
       {activeTab === 'organigramme' && (
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-          <div className="text-center py-12">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#191919] mb-2">Organigramme des Contacts</h3>
-            <p className="text-[#666666]">Visualisation hiérarchique des contacts par entreprise</p>
+        <div className="space-y-6">
+          {/* Header avec statistiques */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[#666666]">Entreprises</p>
+                  <p className="text-2xl font-bold text-[#191919]">
+                    {[...new Set(mockContacts.map(c => c.tiers))].length}
+                  </p>
+                </div>
+                <Building className="w-8 h-8 text-[#6A8A82]" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[#666666]">Total Contacts</p>
+                  <p className="text-2xl font-bold text-[#191919]">{mockContacts.length}</p>
+                </div>
+                <Users className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[#666666]">Contacts Principaux</p>
+                  <p className="text-2xl font-bold text-[#191919]">
+                    {mockContacts.filter(c => c.isPrincipal).length}
+                  </p>
+                </div>
+                <Star className="w-8 h-8 text-yellow-500" />
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[#666666]">Départements</p>
+                  <p className="text-2xl font-bold text-[#191919]">
+                    {[...new Set(mockContacts.map(c => c.departement).filter(Boolean))].length}
+                  </p>
+                </div>
+                <Activity className="w-8 h-8 text-[#B87333]" />
+              </div>
+            </div>
+          </div>
+
+          {/* Organigramme hiérarchique */}
+          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#6A8A82] to-[#5A7A72] flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-[#191919]">Organigramme par Entreprise</h3>
+                  <p className="text-sm text-[#666666]">Visualisation hiérarchique des contacts</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    const allCompanies = [...new Set(mockContacts.map(c => c.tiers))];
+                    setExpandedCompanies(new Set(allCompanies));
+                  }}
+                  className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Tout déplier
+                </button>
+                <button
+                  onClick={() => setExpandedCompanies(new Set())}
+                  className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Tout replier
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Grouper les contacts par entreprise */}
+              {[...new Set(mockContacts.map(c => c.tiers))].map((entreprise) => {
+                const contactsEntreprise = mockContacts.filter(c => c.tiers === entreprise);
+                const isExpanded = expandedCompanies.has(entreprise);
+                const contactPrincipal = contactsEntreprise.find(c => c.isPrincipal);
+                const departements = [...new Set(contactsEntreprise.map(c => c.departement).filter(Boolean))];
+
+                return (
+                  <div key={entreprise} className="border border-gray-200 rounded-xl overflow-hidden">
+                    {/* En-tête entreprise */}
+                    <div
+                      className="bg-gradient-to-r from-[#6A8A82]/10 to-[#6A8A82]/5 p-4 cursor-pointer hover:from-[#6A8A82]/15 hover:to-[#6A8A82]/10 transition-colors"
+                      onClick={() => {
+                        const newExpanded = new Set(expandedCompanies);
+                        if (isExpanded) {
+                          newExpanded.delete(entreprise);
+                        } else {
+                          newExpanded.add(entreprise);
+                        }
+                        setExpandedCompanies(newExpanded);
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-[#6A8A82] rounded-xl flex items-center justify-center shadow-md">
+                            <Building className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-bold text-[#191919]">{entreprise}</h4>
+                            <div className="flex items-center space-x-3 mt-1">
+                              <span className="text-sm text-[#666666] flex items-center">
+                                <Users className="w-3 h-3 mr-1" />
+                                {contactsEntreprise.length} contact{contactsEntreprise.length > 1 ? 's' : ''}
+                              </span>
+                              <span className="text-sm text-[#666666] flex items-center">
+                                <Activity className="w-3 h-3 mr-1" />
+                                {departements.length} département{departements.length > 1 ? 's' : ''}
+                              </span>
+                              {contactPrincipal && (
+                                <span className="text-sm text-yellow-600 flex items-center">
+                                  <Star className="w-3 h-3 mr-1" />
+                                  {contactPrincipal.prenom} {contactPrincipal.nom}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex -space-x-2">
+                            {contactsEntreprise.slice(0, 3).map((contact, idx) => (
+                              <div
+                                key={contact.id}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 border-white ${
+                                  contact.isPrincipal ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                                }`}
+                                title={`${contact.prenom} ${contact.nom}`}
+                              >
+                                {contact.prenom[0]}{contact.nom[0]}
+                              </div>
+                            ))}
+                            {contactsEntreprise.length > 3 && (
+                              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold border-2 border-white">
+                                +{contactsEntreprise.length - 3}
+                              </div>
+                            )}
+                          </div>
+                          <svg
+                            className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contenu déplié - Organigramme */}
+                    {isExpanded && (
+                      <div className="p-4 bg-white">
+                        {/* Contact principal en haut */}
+                        {contactPrincipal && (
+                          <div className="flex flex-col items-center mb-6">
+                            <div className="relative">
+                              <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg">
+                                <span className="text-xl font-bold text-white">
+                                  {contactPrincipal.prenom[0]}{contactPrincipal.nom[0]}
+                                </span>
+                              </div>
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-white">
+                                <Star className="w-3 h-3 text-white" />
+                              </div>
+                            </div>
+                            <div className="mt-3 text-center">
+                              <p className="font-bold text-[#191919]">{contactPrincipal.prenom} {contactPrincipal.nom}</p>
+                              <p className="text-sm text-[#6A8A82] font-medium">{contactPrincipal.fonction}</p>
+                              <p className="text-xs text-[#666666]">{contactPrincipal.departement}</p>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-2">
+                              {contactPrincipal.telephone && (
+                                <a href={`tel:${contactPrincipal.telephone}`} className="p-1.5 bg-green-100 text-green-600 rounded-lg hover:bg-green-200">
+                                  <Phone className="w-3 h-3" />
+                                </a>
+                              )}
+                              {contactPrincipal.email && (
+                                <a href={`mailto:${contactPrincipal.email}`} className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200">
+                                  <Mail className="w-3 h-3" />
+                                </a>
+                              )}
+                              <button
+                                onClick={() => setSelectedContact(contactPrincipal)}
+                                className="p-1.5 bg-[#6A8A82]/10 text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/20"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </button>
+                            </div>
+                            {/* Ligne de connexion */}
+                            {contactsEntreprise.filter(c => !c.isPrincipal).length > 0 && (
+                              <div className="w-0.5 h-8 bg-gray-300 mt-4"></div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Contacts secondaires par département */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {contactsEntreprise.filter(c => !c.isPrincipal).map((contact) => (
+                            <div
+                              key={contact.id}
+                              className="relative bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-[#6A8A82] hover:shadow-md transition-all"
+                            >
+                              {/* Ligne de connexion vers le haut */}
+                              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-300"></div>
+
+                              <div className="flex items-start space-x-3">
+                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-sm font-bold text-green-700">
+                                    {contact.prenom[0]}{contact.nom[0]}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-[#191919] truncate">
+                                    {contact.prenom} {contact.nom}
+                                  </p>
+                                  <p className="text-sm text-[#6A8A82] truncate">{contact.fonction}</p>
+                                  {contact.departement && (
+                                    <span className="inline-flex items-center px-2 py-0.5 mt-1 text-xs bg-gray-200 text-gray-700 rounded-full">
+                                      {contact.departement}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex items-center space-x-1">
+                                  {contact.telephone && (
+                                    <a
+                                      href={`tel:${contact.telephone}`}
+                                      className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                      title={contact.telephone}
+                                    >
+                                      <Phone className="w-3.5 h-3.5" />
+                                    </a>
+                                  )}
+                                  {contact.email && (
+                                    <a
+                                      href={`mailto:${contact.email}`}
+                                      className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                      title={contact.email}
+                                    >
+                                      <Mail className="w-3.5 h-3.5" />
+                                    </a>
+                                  )}
+                                  {contact.linkedin && (
+                                    <a
+                                      href={`https://linkedin.com/in/${contact.linkedin}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="p-1.5 text-gray-600 hover:text-[#0077b5] hover:bg-blue-50 rounded-lg transition-colors"
+                                    >
+                                      <Linkedin className="w-3.5 h-3.5" />
+                                    </a>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => setSelectedContact(contact)}
+                                  className="p-1.5 bg-[#6A8A82]/10 text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/20 transition-colors"
+                                  title="Voir les détails"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              {/* Badge nombre d'interactions */}
+                              {contact.interactions.length > 0 && (
+                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#B87333] rounded-full flex items-center justify-center text-xs font-bold text-white">
+                                  {contact.interactions.length}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Message si aucun autre contact */}
+                        {contactsEntreprise.filter(c => !c.isPrincipal).length === 0 && contactPrincipal && (
+                          <div className="text-center py-4 text-gray-500">
+                            <p className="text-sm">Seul le contact principal est enregistré pour cette entreprise</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Légende */}
+          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <h4 className="text-sm font-semibold text-[#191919] mb-3">Légende</h4>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center">
+                  <Star className="w-3 h-3 text-white" />
+                </div>
+                <span className="text-sm text-[#666666]">Contact principal</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                  <User className="w-3 h-3 text-green-700" />
+                </div>
+                <span className="text-sm text-[#666666]">Contact secondaire</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-5 h-5 bg-[#B87333] rounded-full flex items-center justify-center text-[10px] font-bold text-white">3</div>
+                <span className="text-sm text-[#666666]">Nombre d'interactions</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1036,11 +1388,18 @@ const ContactsModule: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Nouvelle interaction</h3>
-                    <p className="text-sm text-gray-700">Enregistrer une interaction avec un contact</p>
+                    <p className="text-sm text-gray-700">
+                      {contactForInteraction
+                        ? `Communication avec ${contactForInteraction.prenom} ${contactForInteraction.nom}`
+                        : 'Enregistrer une interaction avec un contact'}
+                    </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowInteractionModal(false)}
+                  onClick={() => {
+                    setShowInteractionModal(false);
+                    setContactForInteraction(null);
+                  }}
                   className="text-gray-700 hover:text-gray-600 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1052,17 +1411,40 @@ const ContactsModule: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contact <span className="text-red-500">*</span>
-                  </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                    <option value="">Sélectionner un contact</option>
-                    <option value="1">Jean MAMBOU - SARL CONGO BUSINESS</option>
-                    <option value="2">Marie MBEMBA - SA CENTRAL AFRICA</option>
-                    <option value="3">Paul NGOMA - ETS DIGITAL SOLUTIONS</option>
-                  </select>
-                </div>
+                {/* Affichage du contact sélectionné */}
+                {contactForInteraction && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {contactForInteraction.prenom} {contactForInteraction.nom}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {contactForInteraction.fonction} - {contactForInteraction.tiers}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!contactForInteraction && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Contact <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                      <option value="">Sélectionner un contact</option>
+                      {mockContacts.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.prenom} {c.nom} - {c.tiers}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1163,7 +1545,10 @@ const ContactsModule: React.FC = () => {
 
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
               <button
-                onClick={() => setShowInteractionModal(false)}
+                onClick={() => {
+                  setShowInteractionModal(false);
+                  setContactForInteraction(null);
+                }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Annuler
@@ -1172,6 +1557,483 @@ const ContactsModule: React.FC = () => {
                 <MessageSquare className="w-4 h-4" />
                 Enregistrer l'interaction
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Contact Modal */}
+      {showEditModal && contactToEdit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Edit className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Modifier le contact</h3>
+                    <p className="text-sm text-gray-700">
+                      {contactToEdit.prenom} {contactToEdit.nom} - {contactToEdit.tiers}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setContactToEdit(null);
+                  }}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tiers associé <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    defaultValue={contactToEdit.tiersId}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="">Sélectionner un tiers</option>
+                    <option value="1">SARL CONGO BUSINESS</option>
+                    <option value="2">STE AFRICAINE TECH</option>
+                    <option value="3">CEMAC SUPPLIES</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Civilité <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      defaultValue={contactToEdit.civilite}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value="M">M.</option>
+                      <option value="MME">Mme</option>
+                      <option value="MLLE">Mlle</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Prénom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={contactToEdit.prenom}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={contactToEdit.nom}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fonction <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={contactToEdit.fonction}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Département
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={contactToEdit.departement || ''}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Téléphone fixe
+                    </label>
+                    <input
+                      type="tel"
+                      defaultValue={contactToEdit.telephone || ''}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Mobile
+                    </label>
+                    <input
+                      type="tel"
+                      defaultValue={contactToEdit.mobile || ''}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      defaultValue={contactToEdit.email || ''}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      LinkedIn
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={contactToEdit.linkedin || ''}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date de naissance
+                    </label>
+                    <input
+                      type="date"
+                      defaultValue={contactToEdit.dateNaissance || ''}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Langue préférée
+                    </label>
+                    <select
+                      defaultValue={contactToEdit.languePrefere || 'Français'}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value="Français">Français</option>
+                      <option value="Anglais">Anglais</option>
+                      <option value="Lingala">Lingala</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      defaultChecked={contactToEdit.isPrincipal}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <span className="text-sm text-gray-700">Contact principal</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      defaultChecked={contactToEdit.isActif}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <span className="text-sm text-gray-700">Actif</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    defaultValue={contactToEdit.notes || ''}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Informations complémentaires sur le contact..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setContactToEdit(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Annuler
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
+                <Edit className="w-4 h-4" />
+                Enregistrer les modifications
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && contactToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Supprimer le contact</h3>
+                  <p className="text-sm text-gray-600">Cette action est irréversible</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-gray-700">
+                  Vous êtes sur le point de supprimer le contact :
+                </p>
+                <p className="font-medium text-gray-900 mt-2">
+                  {contactToDelete.civilite} {contactToDelete.prenom} {contactToDelete.nom}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {contactToDelete.fonction} - {contactToDelete.tiers}
+                </p>
+                {contactToDelete.interactions.length > 0 && (
+                  <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded">
+                    <p className="text-sm text-orange-800">
+                      ⚠️ Ce contact a {contactToDelete.interactions.length} interaction(s) enregistrée(s).
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setContactToDelete(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    // Simuler la suppression
+                    console.log('Suppression du contact:', contactToDelete.id);
+                    setShowDeleteModal(false);
+                    setContactToDelete(null);
+                    // Afficher un toast ou notification ici
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Confirmer la suppression
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interaction Detail Modal */}
+      {showInteractionDetailModal && selectedInteraction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getInteractionTypeColor(selectedInteraction.type)}`}>
+                    {(() => {
+                      const IconComponent = getInteractionIcon(selectedInteraction.type);
+                      return <IconComponent className="w-5 h-5" />;
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Détails de l'interaction</h3>
+                    <p className="text-sm text-gray-700">{selectedInteraction.sujet}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowInteractionDetailModal(false);
+                    setSelectedInteraction(null);
+                  }}
+                  className="text-gray-700 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                {/* Informations principales */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <label className="text-xs font-medium text-gray-500 uppercase">Type</label>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className={`px-2 py-1 text-sm font-medium rounded-full ${getInteractionTypeColor(selectedInteraction.type)}`}>
+                        {selectedInteraction.type === 'APPEL' ? 'Appel téléphonique' :
+                         selectedInteraction.type === 'EMAIL' ? 'Email' :
+                         selectedInteraction.type === 'RENCONTRE' ? 'Réunion/Rencontre' :
+                         selectedInteraction.type === 'VISITE' ? 'Visite' :
+                         selectedInteraction.type}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <label className="text-xs font-medium text-gray-500 uppercase">Date</label>
+                    <p className="mt-1 text-gray-900 font-medium flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-600" />
+                      {formatDate(selectedInteraction.date)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Contact concerné */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <label className="text-xs font-medium text-green-600 uppercase">Contact concerné</label>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedInteraction.contactNom}</p>
+                      <p className="text-sm text-gray-600">{selectedInteraction.contactEntreprise}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Objet */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">Objet de l'interaction</label>
+                  <p className="mt-1 text-gray-900 font-medium text-lg">{selectedInteraction.sujet}</p>
+                </div>
+
+                {/* Description / Compte-rendu */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase">Compte-rendu</label>
+                  <div className="mt-2 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p className="text-gray-700 whitespace-pre-wrap">{selectedInteraction.description}</p>
+                  </div>
+                </div>
+
+                {/* Résultats si disponible */}
+                {selectedInteraction.resultats && (
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase">Résultats / Décisions</label>
+                    <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-blue-800">{selectedInteraction.resultats}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Informations complémentaires */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <label className="text-xs font-medium text-gray-500 uppercase">Responsable</label>
+                    <p className="mt-1 text-gray-900 font-medium flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-600" />
+                      {selectedInteraction.responsable}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <label className="text-xs font-medium text-gray-500 uppercase">Statut</label>
+                    <p className="mt-1">
+                      <span className={`px-2 py-1 text-sm font-medium rounded-full ${
+                        selectedInteraction.statut === 'TERMINE' ? 'bg-green-100 text-green-800' :
+                        selectedInteraction.statut === 'EN_COURS' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {selectedInteraction.statut === 'TERMINE' ? 'Terminé' :
+                         selectedInteraction.statut === 'EN_COURS' ? 'En cours' :
+                         selectedInteraction.statut}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Prochaine action */}
+                {selectedInteraction.prochaineSuivi && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <label className="text-xs font-medium text-orange-600 uppercase flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Prochaine action / Suivi
+                    </label>
+                    <p className="mt-1 text-orange-800 font-medium">
+                      {formatDate(selectedInteraction.prochaineSuivi)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Metadata */}
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>Créé le {selectedInteraction.createdAt ? new Date(selectedInteraction.createdAt).toLocaleString('fr-FR') : 'N/A'}</span>
+                    <span>ID: {selectedInteraction.id}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-between">
+              <button
+                onClick={() => {
+                  // Trouver le contact et ouvrir le modal d'édition d'interaction
+                  setShowInteractionDetailModal(false);
+                  setSelectedInteraction(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Fermer
+              </button>
+              <div className="flex gap-2">
+                <button className="px-4 py-2 text-sm font-medium text-[#6A8A82] bg-[#6A8A82]/10 hover:bg-[#6A8A82]/20 rounded-lg transition-colors flex items-center gap-2">
+                  <Edit className="w-4 h-4" />
+                  Modifier
+                </button>
+                <button
+                  onClick={() => {
+                    // Créer une nouvelle interaction de suivi
+                    setShowInteractionDetailModal(false);
+                    setSelectedInteraction(null);
+                    setShowInteractionModal(true);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Nouvelle interaction
+                </button>
+              </div>
             </div>
           </div>
         </div>

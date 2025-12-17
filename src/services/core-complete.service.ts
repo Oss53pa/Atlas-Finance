@@ -1,457 +1,191 @@
 /**
- * SERVICE CORE COMPLET
- *
- * Gestion complète des entités de base:
- * - Sociétés (Companies)
- * - Exercices fiscaux (Fiscal Years)
- * - Devises (Currencies)
+ * Core Complete Service
+ * Provides company, fiscal year, and currency management
  */
+import { apiService } from './api';
 
-import BaseApiService, { CrudOptions } from '../lib/base-api.service';
-import { apiClient, QueryParams } from '../lib/api-client';
-import {
-  Company,
-  FiscalYear,
-  Currency,
-  CreateCompanyDto,
-  UpdateCompanyDto,
-  CreateFiscalYearDto,
-  UpdateFiscalYearDto,
-} from '../types/api.types';
+const BASE_PATH = '/api/v1';
 
-/**
- * SERVICE SOCIÉTÉS
- */
-class CompaniesService extends BaseApiService<Company, CreateCompanyDto, UpdateCompanyDto> {
-  protected readonly basePath = '/api/societes';
-  protected readonly entityName = 'société';
+// Types
+export interface Company {
+  id: string;
+  code: string;
+  name: string;
+  legal_form?: string;
+  tax_id?: string;
+  registration_number?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  logo_url?: string;
+  currency_code: string;
+  fiscal_year_start_month: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
-  /**
-   * Obtenir les sociétés actives
-   */
-  async getActiveCompanies(): Promise<Company[]> {
-    return apiClient.get<Company[]>(this.basePath + '/', {
-      actif: true,
-    });
-  }
+export interface FiscalYear {
+  id: string;
+  company_id: string;
+  code: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  status: 'open' | 'closing' | 'closed';
+  is_current: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
-  /**
-   * Obtenir la société par défaut
-   */
-  async getDefaultCompany(): Promise<Company | null> {
-    const companies = await this.getActiveCompanies();
-    return companies.length > 0 ? companies[0] : null;
-  }
+export interface Currency {
+  id: string;
+  code: string;
+  name: string;
+  symbol: string;
+  decimal_places: number;
+  is_active: boolean;
+  is_base_currency: boolean;
+  exchange_rate?: number;
+}
 
-  /**
-   * Vérifier si un code société existe
-   */
-  async checkCodeExists(code: string): Promise<boolean> {
+export interface CreateCompanyDto {
+  code: string;
+  name: string;
+  legal_form?: string;
+  currency_code?: string;
+}
+
+export interface UpdateCompanyDto {
+  name?: string;
+  legal_form?: string;
+  address?: string;
+  is_active?: boolean;
+}
+
+// Companies Service
+class CompaniesService {
+  async getAll(params?: any): Promise<{ results: Company[]; count: number }> {
     try {
-      const companies = await apiClient.get<Company[]>(this.basePath + '/', {
-        code,
-      });
-      return companies.length > 0;
+      const response = await apiService.get(`${BASE_PATH}/core/companies/`, { params });
+      return response.data;
     } catch {
-      return false;
+      return { results: [], count: 0 };
     }
   }
 
-  /**
-   * Upload du logo
-   */
-  async uploadLogo(
-    companyId: string,
-    file: File,
-    onProgress?: (progress: number) => void
-  ): Promise<Company> {
-    return apiClient.uploadFile<Company>(
-      `${this.basePath}/${companyId}/upload-logo/`,
-      file,
-      {},
-      onProgress
-        ? (progressEvent: any) => {
-            if (progressEvent.total) {
-              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              onProgress(progress);
-            }
-          }
-        : undefined
-    );
-  }
-
-  /**
-   * Supprimer le logo
-   */
-  async deleteLogo(companyId: string, options?: CrudOptions): Promise<Company> {
-    return this.customAction<Company>(
-      'delete',
-      'delete-logo',
-      companyId,
-      {},
-      {
-        ...options,
-        successMessage: 'Logo supprimé',
-      }
-    );
-  }
-
-  /**
-   * Obtenir les statistiques d'une société
-   */
-  async getStatistics(companyId: string): Promise<{
-    nombre_exercices: number;
-    exercice_actif?: FiscalYear;
-    nombre_utilisateurs: number;
-    date_creation: string;
-    modules_actifs: string[];
-  }> {
-    return apiClient.get(`${this.basePath}/${companyId}/statistics/`);
-  }
-
-  /**
-   * Activer/Désactiver une société
-   */
-  async toggleActive(companyId: string, options?: CrudOptions): Promise<Company> {
-    return this.customAction<Company>(
-      'post',
-      'toggle-active',
-      companyId,
-      {},
-      {
-        ...options,
-        successMessage: 'Statut modifié avec succès',
-      }
-    );
-  }
-}
-
-/**
- * SERVICE EXERCICES FISCAUX
- */
-class FiscalYearsService extends BaseApiService<
-  FiscalYear,
-  CreateFiscalYearDto,
-  UpdateFiscalYearDto
-> {
-  protected readonly basePath = '/api/exercices';
-  protected readonly entityName = 'exercice fiscal';
-
-  /**
-   * Obtenir les exercices par société
-   */
-  async getByCompany(societeId: string, params?: QueryParams): Promise<FiscalYear[]> {
-    return apiClient.get<FiscalYear[]>(this.basePath + '/', {
-      ...params,
-      societe: societeId,
-    });
-  }
-
-  /**
-   * Obtenir l'exercice actif (ouvert)
-   */
-  async getActiveFiscalYear(societeId?: string): Promise<FiscalYear | null> {
-    const fiscalYears = await apiClient.get<FiscalYear[]>(this.basePath + '/', {
-      statut: 'ouvert',
-      societe: societeId,
-      actif: true,
-    });
-    return fiscalYears.length > 0 ? fiscalYears[0] : null;
-  }
-
-  /**
-   * Obtenir les exercices par statut
-   */
-  async getByStatus(statut: string, params?: QueryParams): Promise<FiscalYear[]> {
-    return apiClient.get<FiscalYear[]>(this.basePath + '/', {
-      ...params,
-      statut,
-    });
-  }
-
-  /**
-   * Obtenir l'exercice qui contient une date
-   */
-  async getByDate(date: string, societeId?: string): Promise<FiscalYear | null> {
+  async getById(id: string): Promise<Company | null> {
     try {
-      const result = await apiClient.get<{ exercice: FiscalYear | null }>(
-        `${this.basePath}/by-date/`,
-        {
-          date,
-          societe: societeId,
-        }
-      );
-      return result.exercice;
+      const response = await apiService.get(`${BASE_PATH}/core/companies/${id}/`);
+      return response.data;
     } catch {
       return null;
     }
   }
 
-  /**
-   * Vérifier si un code existe
-   */
-  async checkCodeExists(code: string, societeId?: string): Promise<boolean> {
-    try {
-      const fiscalYears = await apiClient.get<FiscalYear[]>(this.basePath + '/', {
-        code,
-        societe: societeId,
-      });
-      return fiscalYears.length > 0;
-    } catch {
-      return false;
-    }
+  async create(data: CreateCompanyDto): Promise<Company> {
+    const response = await apiService.post(`${BASE_PATH}/core/companies/`, data);
+    return response.data;
   }
 
-  /**
-   * Vérifier si des dates se chevauchent
-   */
-  async checkDateOverlap(
-    dateDebut: string,
-    dateFin: string,
-    societeId: string,
-    excludeId?: string
-  ): Promise<boolean> {
-    try {
-      const result = await apiClient.get<{ overlap: boolean }>(
-        `${this.basePath}/check-overlap/`,
-        {
-          date_debut: dateDebut,
-          date_fin: dateFin,
-          societe: societeId,
-          exclude: excludeId,
-        }
-      );
-      return result.overlap;
-    } catch {
-      return false;
-    }
+  async update(id: string, data: UpdateCompanyDto): Promise<Company> {
+    const response = await apiService.patch(`${BASE_PATH}/core/companies/${id}/`, data);
+    return response.data;
   }
 
-  /**
-   * Ouvrir un exercice
-   */
-  async open(id: string, options?: CrudOptions): Promise<FiscalYear> {
-    return this.customAction<FiscalYear>(
-      'post',
-      'open',
-      id,
-      {},
-      {
-        ...options,
-        successMessage: 'Exercice ouvert avec succès',
-      }
-    );
-  }
-
-  /**
-   * Clôturer un exercice
-   */
-  async close(id: string, options?: CrudOptions): Promise<FiscalYear> {
-    return this.customAction<FiscalYear>(
-      'post',
-      'close',
-      id,
-      {},
-      {
-        ...options,
-        successMessage: 'Exercice clôturé avec succès',
-      }
-    );
-  }
-
-  /**
-   * Archiver un exercice
-   */
-  async archive(id: string, options?: CrudOptions): Promise<FiscalYear> {
-    return this.customAction<FiscalYear>(
-      'post',
-      'archive',
-      id,
-      {},
-      {
-        ...options,
-        successMessage: 'Exercice archivé avec succès',
-      }
-    );
-  }
-
-  /**
-   * Réouvrir un exercice clôturé
-   */
-  async reopen(id: string, options?: CrudOptions): Promise<FiscalYear> {
-    return this.customAction<FiscalYear>(
-      'post',
-      'reopen',
-      id,
-      {},
-      {
-        ...options,
-        successMessage: 'Exercice réouvert avec succès',
-      }
-    );
-  }
-
-  /**
-   * Obtenir les statistiques d'un exercice
-   */
-  async getStatistics(id: string): Promise<{
-    nombre_ecritures: number;
-    nombre_ecritures_validees: number;
-    total_debit: number;
-    total_credit: number;
-    nombre_comptes_utilises: number;
-    periode: { debut: string; fin: string };
-  }> {
-    return apiClient.get(`${this.basePath}/${id}/statistics/`);
+  async delete(id: string): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/core/companies/${id}/`);
   }
 }
 
-/**
- * SERVICE DEVISES
- */
-class CurrenciesService extends BaseApiService<Currency> {
-  protected readonly basePath = '/api/devises';
-  protected readonly entityName = 'devise';
-
-  /**
-   * Obtenir les devises actives
-   */
-  async getActiveCurrencies(): Promise<Currency[]> {
-    return apiClient.get<Currency[]>(this.basePath + '/', {
-      actif: true,
-    });
-  }
-
-  /**
-   * Obtenir la devise de référence
-   */
-  async getReferenceCurrency(): Promise<Currency | null> {
-    const currencies = await apiClient.get<Currency[]>(this.basePath + '/', {
-      devise_reference: true,
-    });
-    return currencies.length > 0 ? currencies[0] : null;
-  }
-
-  /**
-   * Vérifier si un code devise existe
-   */
-  async checkCodeExists(code: string): Promise<boolean> {
+// Fiscal Years Service
+class FiscalYearsService {
+  async getAll(params?: any): Promise<{ results: FiscalYear[]; count: number }> {
     try {
-      const currencies = await apiClient.get<Currency[]>(this.basePath + '/', {
-        code,
-      });
-      return currencies.length > 0;
+      const response = await apiService.get(`${BASE_PATH}/core/fiscal-years/`, { params });
+      return response.data;
     } catch {
-      return false;
+      return { results: [], count: 0 };
     }
   }
 
-  /**
-   * Définir comme devise de référence
-   */
-  async setAsReference(id: string, options?: CrudOptions): Promise<Currency> {
-    return this.customAction<Currency>(
-      'post',
-      'set-reference',
-      id,
-      {},
-      {
-        ...options,
-        successMessage: 'Devise de référence définie',
-      }
-    );
+  async getById(id: string): Promise<FiscalYear | null> {
+    try {
+      const response = await apiService.get(`${BASE_PATH}/core/fiscal-years/${id}/`);
+      return response.data;
+    } catch {
+      return null;
+    }
   }
 
-  /**
-   * Mettre à jour le taux de change
-   */
-  async updateExchangeRate(
-    id: string,
-    tauxChange: number,
-    options?: CrudOptions
-  ): Promise<Currency> {
-    return this.customAction<Currency>(
-      'patch',
-      'update-rate',
-      id,
-      { taux_change: tauxChange },
-      {
-        ...options,
-        successMessage: 'Taux de change mis à jour',
-      }
-    );
+  async create(data: Partial<FiscalYear>): Promise<FiscalYear> {
+    const response = await apiService.post(`${BASE_PATH}/core/fiscal-years/`, data);
+    return response.data;
   }
 
-  /**
-   * Convertir un montant entre devises
-   */
-  async convert(params: {
-    montant: number;
-    devise_source: string;
-    devise_cible: string;
-    date?: string;
-  }): Promise<{
-    montant_source: number;
-    montant_cible: number;
-    taux_change: number;
-    devise_source: Currency;
-    devise_cible: Currency;
-    date: string;
-  }> {
-    return apiClient.get(`${this.basePath}/convert/`, params);
+  async update(id: string, data: Partial<FiscalYear>): Promise<FiscalYear> {
+    const response = await apiService.patch(`${BASE_PATH}/core/fiscal-years/${id}/`, data);
+    return response.data;
   }
 
-  /**
-   * Obtenir l'historique des taux de change
-   */
-  async getExchangeRateHistory(
-    currencyId: string,
-    dateDebut?: string,
-    dateFin?: string
-  ): Promise<
-    Array<{
-      date: string;
-      taux_change: number;
-    }>
-  > {
-    return apiClient.get(`${this.basePath}/${currencyId}/rate-history/`, {
-      date_debut: dateDebut,
-      date_fin: dateFin,
-    });
+  async delete(id: string): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/core/fiscal-years/${id}/`);
   }
 
-  /**
-   * Import des taux de change
-   */
-  async importExchangeRates(
-    file: File,
-    onProgress?: (progress: number) => void
-  ): Promise<{ success: number; errors: any[] }> {
-    return apiClient.uploadFile<{ success: number; errors: any[] }>(
-      this.basePath + '/import-rates/',
-      file,
-      {},
-      onProgress
-        ? (progressEvent: any) => {
-            if (progressEvent.total) {
-              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              onProgress(progress);
-            }
-          }
-        : undefined
-    );
+  async getCurrent(companyId: string): Promise<FiscalYear | null> {
+    try {
+      const response = await apiService.get(`${BASE_PATH}/core/fiscal-years/current/`, {
+        params: { company_id: companyId }
+      });
+      return response.data;
+    } catch {
+      return null;
+    }
   }
 }
 
-/**
- * EXPORTS
- */
+// Currencies Service
+class CurrenciesService {
+  async getAll(params?: any): Promise<{ results: Currency[]; count: number }> {
+    try {
+      const response = await apiService.get(`${BASE_PATH}/core/currencies/`, { params });
+      return response.data;
+    } catch {
+      return { results: [], count: 0 };
+    }
+  }
+
+  async getById(id: string): Promise<Currency | null> {
+    try {
+      const response = await apiService.get(`${BASE_PATH}/core/currencies/${id}/`);
+      return response.data;
+    } catch {
+      return null;
+    }
+  }
+
+  async create(data: Partial<Currency>): Promise<Currency> {
+    const response = await apiService.post(`${BASE_PATH}/core/currencies/`, data);
+    return response.data;
+  }
+
+  async update(id: string, data: Partial<Currency>): Promise<Currency> {
+    const response = await apiService.patch(`${BASE_PATH}/core/currencies/${id}/`, data);
+    return response.data;
+  }
+
+  async delete(id: string): Promise<void> {
+    await apiService.delete(`${BASE_PATH}/core/currencies/${id}/`);
+  }
+}
+
 export const companiesService = new CompaniesService();
 export const fiscalYearsService = new FiscalYearsService();
 export const currenciesService = new CurrenciesService();
 
-export default {
-  companies: companiesService,
-  fiscalYears: fiscalYearsService,
-  currencies: currenciesService,
-};
+// Re-export coreService for backwards compatibility
+export { coreService } from './core.service';
+export { coreService as default } from './core.service';
