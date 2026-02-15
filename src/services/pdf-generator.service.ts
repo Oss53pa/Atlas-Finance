@@ -38,13 +38,13 @@ export interface NotificationContent {
 
 class PDFGeneratorService {
   private defaultCompany: CompanyInfo = {
-    name: 'WiseBook ERP',
+    name: 'Atlas Finance',
     address: '123 Avenue de la Comptabilité',
     city: 'Paris',
     postalCode: '75001',
     country: 'France',
     phone: '+33 1 23 45 67 89',
-    email: 'contact@wisebook.com',
+    email: 'contact@atlasfinance.com',
     taxId: 'FR 12 345 678 901'
   };
 

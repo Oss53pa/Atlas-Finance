@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - Security Service (Refactoré)
+ * Atlas Finance - Security Service (Refactoré)
  *
  * Gestion des utilisateurs, rôles et permissions.
  * Utilise les endpoints backend: /api/users/, /api/roles/, /api/permissions/

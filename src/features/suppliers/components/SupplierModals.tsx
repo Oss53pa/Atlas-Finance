@@ -185,7 +185,7 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h2 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <Truck className="mr-3 h-6 w-6" />
             Nouveau Fournisseur
           </h2>
@@ -792,7 +792,7 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h2 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <Truck className="mr-3 h-6 w-6" />
             Modifier le Fournisseur - {supplier.code_fournisseur}
           </h2>
@@ -1065,7 +1065,7 @@ export const SupplierDetailModal: React.FC<SupplierDetailModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h2 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <Truck className="mr-3 h-6 w-6" />
             Détails du Fournisseur
           </h2>

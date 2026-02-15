@@ -513,7 +513,7 @@ const InventoryReports: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory Reports & Analytics</h1>
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Inventory Reports & Analytics</h1>
           <p className="text-gray-600">
             Generate comprehensive inventory reports and compliance documentation
           </p>
@@ -537,7 +537,7 @@ const InventoryReports: React.FC = () => {
           <div className="flex items-center gap-3">
             <FileText className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">{reportMetrics.totalGenerated}</p>
+              <p className="text-lg font-bold text-gray-900">{reportMetrics.totalGenerated}</p>
               <p className="text-sm text-gray-600">Total Reports</p>
             </div>
           </div>
@@ -547,7 +547,7 @@ const InventoryReports: React.FC = () => {
           <div className="flex items-center gap-3">
             <Calendar className="w-8 h-8 text-green-600" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">{reportMetrics.thisMonth}</p>
+              <p className="text-lg font-bold text-gray-900">{reportMetrics.thisMonth}</p>
               <p className="text-sm text-gray-600">This Month</p>
             </div>
           </div>
@@ -557,7 +557,7 @@ const InventoryReports: React.FC = () => {
           <div className="flex items-center gap-3">
             <Clock className="w-8 h-8 text-yellow-600" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">{reportMetrics.avgGenerationTime}s</p>
+              <p className="text-lg font-bold text-gray-900">{reportMetrics.avgGenerationTime}s</p>
               <p className="text-sm text-gray-600">Avg Generation Time</p>
             </div>
           </div>
@@ -567,7 +567,7 @@ const InventoryReports: React.FC = () => {
           <div className="flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-purple-600" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">{reportMetrics.mostPopular}</p>
+              <p className="text-lg font-bold text-gray-900">{reportMetrics.mostPopular}</p>
               <p className="text-sm text-gray-600">Most Popular</p>
             </div>
           </div>
@@ -633,7 +633,7 @@ const InventoryReports: React.FC = () => {
 
       {/* Standard Reports */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Standard Reports</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">Standard Reports</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {reportTemplates.map((template) => (
             <ReportTemplate
@@ -651,7 +651,7 @@ const InventoryReports: React.FC = () => {
 
       {/* Compliance Reports */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Compliance Reports</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">Compliance Reports</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <ComplianceReport
             standard="IFRS_IAS2"

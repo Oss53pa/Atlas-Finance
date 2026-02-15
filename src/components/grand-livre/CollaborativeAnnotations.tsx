@@ -25,7 +25,6 @@ const CollaborativeAnnotations: React.FC<CollaborativeAnnotationsProps> = ({ ent
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newAnnotation.trim()) {
-      console.log('Nouvelle annotation:', newAnnotation);
       setNewAnnotation('');
     }
   };

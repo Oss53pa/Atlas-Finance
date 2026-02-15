@@ -1,7 +1,7 @@
 /**
  * SERVICE PALOMA - Advanced BI & AI Assistant
  *
- * Paloma est l'assistant IA intelligent de WiseBook pour:
+ * Paloma est l'assistant IA intelligent de Atlas Finance pour:
  * - Analyse de code
  * - Réponses aux questions métier
  * - Génération de rapports

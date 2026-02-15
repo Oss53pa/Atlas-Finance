@@ -616,7 +616,7 @@ const ControlesCoherence: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Taux de Conformité</p>
-                <p className="text-2xl font-bold text-[var(--color-success)]">{kpis.tauxConformite.toFixed(1)}%</p>
+                <p className="text-lg font-bold text-[var(--color-success)]">{kpis.tauxConformite.toFixed(1)}%</p>
                 <Progress value={kpis.tauxConformite} className="mt-2" />
               </div>
               <CheckCircle className="w-8 h-8 text-[var(--color-success)]" />
@@ -629,7 +629,7 @@ const ControlesCoherence: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Contrôles Exécutés</p>
-                <p className="text-2xl font-bold">{kpis.totalControles}</p>
+                <p className="text-lg font-bold">{kpis.totalControles}</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.controlesConformes} conformes</p>
               </div>
               <Shield className="w-8 h-8 text-[var(--color-primary)]" />
@@ -642,7 +642,7 @@ const ControlesCoherence: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Anomalies Ouvertes</p>
-                <p className="text-2xl font-bold text-[var(--color-error)]">{kpis.anomaliesNonResolues}</p>
+                <p className="text-lg font-bold text-[var(--color-error)]">{kpis.anomaliesNonResolues}</p>
                 <p className="text-xs text-[var(--color-error)] mt-1">{kpis.anomaliesCritiques} critiques</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-[var(--color-error)]" />
@@ -655,7 +655,7 @@ const ControlesCoherence: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Temps Moyen</p>
-                <p className="text-2xl font-bold">{kpis.tempsExecutionMoyen.toFixed(1)}s</p>
+                <p className="text-lg font-bold">{kpis.tempsExecutionMoyen.toFixed(1)}s</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">Performance optimale</p>
               </div>
               <Clock className="w-8 h-8 text-purple-500" />
@@ -764,7 +764,7 @@ const ControlesCoherence: React.FC = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold">{ouvertes}</p>
+                          <p className="text-lg font-bold">{ouvertes}</p>
                           <p className="text-sm text-[var(--color-text-secondary)]">ouvertes</p>
                         </div>
                       </div>
@@ -793,7 +793,7 @@ const ControlesCoherence: React.FC = () => {
                         <Activity className="w-4 h-4 text-[var(--color-primary)]" />
                       )}
                     </div>
-                    <p className="text-2xl font-bold mb-1">
+                    <p className="text-lg font-bold mb-1">
                       {indicateur.valeur} {indicateur.unite}
                     </p>
                     <p className="text-sm text-[var(--color-text-primary)] mb-2">
@@ -961,7 +961,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Critiques</p>
-                    <p className="text-2xl font-bold text-[var(--color-error)]">{mockAnomalies.filter(a => a.severite === 'critique' && a.statut !== 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">{mockAnomalies.filter(a => a.severite === 'critique' && a.statut !== 'resolu').length}</p>
                   </div>
                   <AlertOctagon className="w-6 h-6 text-[var(--color-error)]" />
                 </div>
@@ -972,7 +972,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Majeures</p>
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">{mockAnomalies.filter(a => a.severite === 'majeure' && a.statut !== 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">{mockAnomalies.filter(a => a.severite === 'majeure' && a.statut !== 'resolu').length}</p>
                   </div>
                   <AlertTriangle className="w-6 h-6 text-orange-500" />
                 </div>
@@ -983,7 +983,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Mineures</p>
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">{mockAnomalies.filter(a => a.severite === 'mineure' && a.statut !== 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">{mockAnomalies.filter(a => a.severite === 'mineure' && a.statut !== 'resolu').length}</p>
                   </div>
                   <AlertCircle className="w-6 h-6 text-yellow-500" />
                 </div>
@@ -994,7 +994,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Résolues</p>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">{mockAnomalies.filter(a => a.statut === 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">{mockAnomalies.filter(a => a.statut === 'resolu').length}</p>
                   </div>
                   <CheckCircle className="w-6 h-6 text-[var(--color-success)]" />
                 </div>
@@ -1234,13 +1234,13 @@ const ControlesCoherence: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-[var(--color-text-primary)]">Valeur Actuelle</p>
-                          <p className="text-2xl font-bold">
+                          <p className="text-lg font-bold">
                             {indicateur.valeur} {indicateur.unite}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-[var(--color-text-primary)]">Objectif</p>
-                          <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                          <p className="text-lg font-bold text-[var(--color-text-primary)]">
                             {indicateur.objectif} {indicateur.unite}
                           </p>
                         </div>
@@ -1335,7 +1335,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
                   <Activity className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Exécution des Contrôles</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Exécution des Contrôles</h2>
               </div>
               <button
                 onClick={() => {
@@ -1495,7 +1495,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
                   <Shield className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail du Contrôle</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Détail du Contrôle</h2>
               </div>
               <button
                 onClick={() => {
@@ -1604,7 +1604,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="bg-[var(--color-error-lighter)] text-[var(--color-error)] p-2 rounded-lg">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de l'Anomalie</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Détail de l'Anomalie</h2>
               </div>
               <button
                 onClick={() => {

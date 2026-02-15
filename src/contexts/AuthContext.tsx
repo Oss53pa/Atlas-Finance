@@ -1,22 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { authBackendService } from '@/services/auth-backend.service';
+import { supabase, isSupabaseConfigured, getUserProfile, getUserPermissions } from '@/lib/supabase';
+import type { Session } from '@supabase/supabase-js';
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'manager' | 'comptable' | 'user' | 'viewer';
+  role: 'admin' | 'manager' | 'comptable' | 'accountant' | 'user' | 'viewer';
   first_name?: string;
   last_name?: string;
   company?: string;
+  company_id?: string;
   permissions?: string[];
+  photo_url?: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
   refreshUserProfile: () => Promise<void>;
@@ -24,177 +29,184 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ✅ Fonction pour charger l'utilisateur depuis localStorage de manière SYNCHRONE
-const getUserFromStorage = (): User | null => {
-  try {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  } catch {
-    return null;
-  }
+// Mock user for development when Supabase is not configured
+const DEV_MOCK_USER: User = {
+  id: 'dev-admin-001',
+  name: 'Admin Dev',
+  email: 'admin@atlasfinance.cm',
+  role: 'admin',
+  first_name: 'Admin',
+  last_name: 'Dev',
+  company: 'Atlas Finance',
+  company_id: 'a0000000-0000-0000-0000-000000000001',
+  permissions: [
+    'accounting.view', 'accounting.create', 'accounting.edit', 'accounting.delete', 'accounting.validate',
+    'treasury.view', 'treasury.create', 'treasury.edit',
+    'customers.view', 'customers.create', 'customers.edit',
+    'suppliers.view', 'suppliers.create', 'suppliers.edit',
+    'dashboard.view', 'reports.view', 'reports.export',
+    'admin.users', 'admin.settings', 'admin.roles',
+  ],
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // ✅ INITIALISATION SYNCHRONE : user chargé IMMÉDIATEMENT depuis localStorage
-  const [user, setUser] = useState<User | null>(getUserFromStorage());
-  const [loading, setLoading] = useState<boolean>(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState<boolean>(true);
+function mapRoleCode(code: string): User['role'] {
+  // DB enum uses 'accountant', frontend uses 'comptable'
+  if (code === 'accountant') return 'comptable';
+  return (code as User['role']) || 'user';
+}
 
-  /**
-   * Charger le profil utilisateur depuis le backend
-   */
+function mapProfileToUser(profile: any): User {
+  return {
+    id: profile.id,
+    name: profile.first_name && profile.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : profile.username || profile.email || 'Utilisateur',
+    email: profile.email,
+    role: mapRoleCode(profile.role?.code),
+    first_name: profile.first_name,
+    last_name: profile.last_name,
+    company: profile.company?.nom,
+    company_id: profile.company_id,
+    photo_url: profile.photo_url,
+  };
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Load user profile from Supabase and sync to localStorage
   const loadUserProfile = useCallback(async () => {
     try {
-      const profile = await authBackendService.getProfile();
-      const userData: User = {
-        id: profile.id?.toString() || '',
-        name: profile.first_name && profile.last_name
-          ? `${profile.first_name} ${profile.last_name}`
-          : profile.username || 'Utilisateur',
-        email: profile.email || '',
-        role: (profile.role as User['role']) || 'user',
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        company: profile.company,
-        permissions: profile.permissions
-      };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error);
-      // Si erreur, supprimer le token et déconnecter
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      setUser(null);
-    } finally {
-      setLoading(false);
-      setInitialLoadComplete(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    // ✅ VÉRIFICATION INITIALE : Toujours vérifier localStorage au démarrage
-    const token = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('user');
-
-    console.log('🔄 [AuthContext] Vérification initiale:', {
-      hasToken: !!token,
-      hasStoredUser: !!storedUser,
-      currentUser: !!user
-    });
-
-    // Si on a un token mais pas de user dans le state, le charger depuis localStorage
-    if (token && storedUser && !user) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        console.log('✅ [AuthContext] User rechargé depuis localStorage:', userData.email);
-      } catch (error) {
-        console.error('❌ [AuthContext] Erreur parsing user:', error);
-        localStorage.removeItem('user');
-      }
-    }
-    // Si on a un token mais pas de user stocké, recharger le profil
-    else if (token && !storedUser) {
-      loadUserProfile();
-    }
-  }, []);
-
-  const login = useCallback(async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      console.log('🔐 [AuthContext] Tentative de connexion au backend pour:', email);
-
-      // ✅ TOUJOURS essayer le backend en premier
-      const response = await authBackendService.login({ email, password });
-
-      console.log('✅ [AuthContext] Réponse backend:', response);
-
-      // Stocker les tokens
-      if (response.access) {
-        localStorage.setItem('authToken', response.access);
-        console.log('✅ [AuthContext] Token JWT stocké');
-      }
-      if (response.refresh) {
-        localStorage.setItem('refreshToken', response.refresh);
-      }
-
-      // Créer l'objet user depuis la réponse
-      if (response.user) {
-        const userData: User = {
-          id: response.user.id,
-          name: response.user.first_name && response.user.last_name
-            ? `${response.user.first_name} ${response.user.last_name}`
-            : response.user.username || 'Utilisateur',
-          email: response.user.email,
-          role: (response.user.role as User['role']) || 'user',
-          first_name: response.user.first_name,
-          last_name: response.user.last_name,
-        };
+      const profile = await getUserProfile();
+      if (profile) {
+        const permissions = await getUserPermissions();
+        const userData = mapProfileToUser(profile);
+        userData.permissions = permissions;
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
-        console.log('✅ [AuthContext] Utilisateur connecté:', userData.email);
       } else {
-        // Si pas de user dans la réponse, charger le profil
-        await loadUserProfile();
+        setUser(null);
+        localStorage.removeItem('user');
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      setUser(null);
+      localStorage.removeItem('user');
+    }
+  }, []);
+
+  // Initialize auth state
+  useEffect(() => {
+    // DEV MODE: no Supabase configured -> use mock user
+    if (!isSupabaseConfigured) {
+      console.warn('[AuthContext] Supabase not configured — using dev mock user');
+      setUser(DEV_MOCK_USER);
+      localStorage.setItem('user', JSON.stringify(DEV_MOCK_USER));
+      setLoading(false);
+      return;
+    }
+
+    // PRODUCTION: real Supabase auth
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setSession(initialSession);
+      if (initialSession) {
+        loadUserProfile().finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        setSession(newSession);
+
+        if (event === 'SIGNED_IN' && newSession) {
+          await loadUserProfile();
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [loadUserProfile]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      // Dev mode: accept any login
+      setUser(DEV_MOCK_USER);
+      localStorage.setItem('user', JSON.stringify(DEV_MOCK_USER));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        throw new Error(error.message === 'Invalid login credentials'
+          ? 'Identifiants incorrects. Veuillez reessayer.'
+          : error.message
+        );
       }
 
+      if (data.session) {
+        setSession(data.session);
+        await loadUserProfile();
+      }
+    } finally {
       setLoading(false);
-    } catch (error) {
-      console.error('❌ [AuthContext] Erreur lors de la connexion:', error);
-      setLoading(false);
-      throw new Error('Identifiants incorrects. Veuillez réessayer.');
     }
   }, [loadUserProfile]);
 
-  const logout = useCallback(async () => {
+  const signUp = useCallback(async (email: string, password: string, metadata?: Record<string, any>) => {
+    if (!isSupabaseConfigured) return;
+
+    setLoading(true);
     try {
-      setLoading(true);
-      await authBackendService.logout();
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
+      const { error } = await supabase.auth.signUp({ email, password, options: { data: metadata } });
+      if (error) throw new Error(error.message);
     } finally {
-      // Supprimer les données locales
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      setUser(null);
       setLoading(false);
     }
+  }, []);
+
+  const logout = useCallback(async () => {
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
+    setUser(null);
+    setSession(null);
+    localStorage.removeItem('user');
   }, []);
 
   const refreshUserProfile = useCallback(async () => {
-    await loadUserProfile();
+    if (isSupabaseConfigured) {
+      await loadUserProfile();
+    }
   }, [loadUserProfile]);
 
-  // ✅ Mémoriser les valeurs calculées pour éviter les recalculs
   const isAdmin = useMemo(() => user?.role === 'admin', [user]);
   const isAuthenticated = useMemo(() => {
-    const hasUser = !!user;
-    const hasToken = !!localStorage.getItem('authToken');
-    const authenticated = hasUser && hasToken;
+    if (!isSupabaseConfigured) return !!user;
+    return !!session && !!user;
+  }, [session, user]);
 
-    console.log('🔍 [AuthContext] isAuthenticated check:', {
-      hasUser,
-      hasToken,
-      authenticated,
-      user: user?.email
-    });
-
-    return authenticated;
-  }, [user]);
-
-  // ✅ Mémoriser la valeur du context pour éviter les re-renders inutiles
   const contextValue = useMemo(() => ({
     user,
+    session,
     isAdmin,
     login,
     logout,
+    signUp,
     isAuthenticated,
     loading,
     refreshUserProfile
-  }), [user, isAdmin, login, logout, isAuthenticated, loading, refreshUserProfile]);
+  }), [user, session, isAdmin, login, logout, signUp, isAuthenticated, loading, refreshUserProfile]);
 
   return (
     <AuthContext.Provider value={contextValue}>

@@ -19,7 +19,7 @@ interface MenuItem {
 
 // Mock loading hook
 const useLoading = () => ({
-  setIsLoadingCancelable: (loading: boolean) => console.log('Loading:', loading)
+  setIsLoadingCancelable: (_loading: boolean) => {}
 });
 
 export const LayoutDetailsFundCall: React.FC = () => {

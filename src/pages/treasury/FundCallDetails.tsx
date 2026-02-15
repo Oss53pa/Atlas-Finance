@@ -240,7 +240,7 @@ const FundCallDetails: React.FC = () => {
             <div className="h-6 w-px bg-[#E8E8E8]"></div>
 
             <div>
-              <h1 className="text-xl font-bold text-[#191919]">
+              <h1 className="text-lg font-bold text-[#191919]">
                 📋 Appel de Fonds {fundCallData.reference}
               </h1>
               <p className="text-sm text-[#767676]">
@@ -430,19 +430,19 @@ const FundCallDetails: React.FC = () => {
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-4 bg-[#B87333]/10 rounded-lg text-center">
                       <h5 className="font-medium text-[#B87333] mb-1">⚠️ Découvert Source</h5>
-                      <p className="text-xl font-bold text-[#B87333]">-64,051,588 FCFA</p>
+                      <p className="text-lg font-bold text-[#B87333]">-64,051,588 FCFA</p>
                       <p className="text-xs text-[#767676]">Nécessite couverture</p>
                     </div>
 
                     <div className="p-4 bg-[#6A8A82]/10 rounded-lg text-center">
                       <h5 className="font-medium text-[#6A8A82] mb-1">✅ Solde Destination</h5>
-                      <p className="text-xl font-bold text-[#6A8A82]">9,840,000 FCFA</p>
+                      <p className="text-lg font-bold text-[#6A8A82]">9,840,000 FCFA</p>
                       <p className="text-xs text-[#767676]">Après dépenses prévues</p>
                     </div>
 
                     <div className="p-4 bg-[#7A99AC]/10 rounded-lg text-center">
                       <h5 className="font-medium text-[#7A99AC] mb-1">📊 Délai Restant</h5>
-                      <p className="text-xl font-bold text-[#7A99AC]">6 jours</p>
+                      <p className="text-lg font-bold text-[#7A99AC]">6 jours</p>
                       <p className="text-xs text-[#767676]">Jusqu'à l'échéance</p>
                     </div>
                   </div>
@@ -1107,19 +1107,19 @@ const FundCallDetails: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-[#B87333]/10 p-4 rounded-lg text-center">
                     <h5 className="font-medium text-[#B87333] mb-1">💰 Total Demandé</h5>
-                    <p className="text-xl font-bold text-[#B87333]">0 FCFA</p>
+                    <p className="text-lg font-bold text-[#B87333]">0 FCFA</p>
                   </div>
                   <div className="bg-[#6A8A82]/10 p-4 rounded-lg text-center">
                     <h5 className="font-medium text-[#6A8A82] mb-1">✅ Total Approuvé</h5>
-                    <p className="text-xl font-bold text-[#6A8A82]">0 FCFA</p>
+                    <p className="text-lg font-bold text-[#6A8A82]">0 FCFA</p>
                   </div>
                   <div className="bg-[#7A99AC]/10 p-4 rounded-lg text-center">
                     <h5 className="font-medium text-[#7A99AC] mb-1">📊 Taux d'Approbation</h5>
-                    <p className="text-xl font-bold text-[#7A99AC]">0%</p>
+                    <p className="text-lg font-bold text-[#7A99AC]">0%</p>
                   </div>
                   <div className="bg-[#444444]/10 p-4 rounded-lg text-center">
                     <h5 className="font-medium text-[#444444] mb-1">🏷️ Nombre de Factures</h5>
-                    <p className="text-xl font-bold text-[#444444]">0</p>
+                    <p className="text-lg font-bold text-[#444444]">0</p>
                   </div>
                 </div>
 
@@ -1291,7 +1291,7 @@ const FundCallDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-[#191919]">⚙️ Configuration du Workflow</h3>
+              <h3 className="text-lg font-semibold text-[#191919]">⚙️ Configuration du Workflow</h3>
               <button
                 onClick={() => setShowValidatorConfig(false)}
                 className="text-gray-700 hover:text-gray-600 text-xl"
@@ -1302,7 +1302,6 @@ const FundCallDetails: React.FC = () => {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              console.log('Configuration workflow mise à jour');
               setShowValidatorConfig(false);
             }}>
               {/* Informations de la tâche */}

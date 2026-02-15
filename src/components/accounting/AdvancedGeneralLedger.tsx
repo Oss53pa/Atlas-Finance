@@ -201,7 +201,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           <div className="flex items-center space-x-4">
             <BookOpen className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]">Grand Livre Avancé</h1>
+              <h1 className="text-lg font-bold text-[#191919]">Grand Livre Avancé</h1>
               <p className="text-sm text-[#191919]/70">Consultation détaillée - Conforme SYSCOHADA</p>
             </div>
           </div>
@@ -780,7 +780,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => console.log('Page précédente')}
+                        onClick={() => {}}
                         disabled
                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -790,7 +790,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <span className="px-2 py-1 text-sm text-gray-700">...</span>
                       <span className="px-2 py-1 text-sm text-gray-700">25</span>
                       <button
-                        onClick={() => console.log('Page suivante')}
+                        onClick={() => {}}
                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
                       >
                         Suivant →
@@ -1151,7 +1151,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Comptes</p>
-                  <p className="text-2xl font-bold text-[#6A8A82]">{indicators.totalComptes}</p>
+                  <p className="text-lg font-bold text-[#6A8A82]">{indicators.totalComptes}</p>
                   <p className="text-xs text-gray-700">{t('accounting.chartOfAccounts')}</p>
                 </div>
                 <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -1164,7 +1164,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Comptes Actifs</p>
-                  <p className="text-2xl font-bold text-blue-600">{indicators.comptesActifs}</p>
+                  <p className="text-lg font-bold text-blue-600">{indicators.comptesActifs}</p>
                   <p className="text-xs text-gray-700">Avec mouvements</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1177,7 +1177,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Écritures</p>
-                  <p className="text-2xl font-bold text-green-600">{indicators.totalEcritures}</p>
+                  <p className="text-lg font-bold text-green-600">{indicators.totalEcritures}</p>
                   <p className="text-xs text-gray-700">Période actuelle</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -1190,7 +1190,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Moy. Écritures</p>
-                  <p className="text-2xl font-bold text-orange-600">{indicators.moyenneEcritures.toFixed(0)}</p>
+                  <p className="text-lg font-bold text-orange-600">{indicators.moyenneEcritures.toFixed(0)}</p>
                   <p className="text-xs text-gray-700">Par compte actif</p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -1377,13 +1377,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <div className="p-3 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-xl font-semibold text-gray-900">
+                          <h3 className="text-lg font-semibold text-gray-900">
                             Compte {account.compte}
                           </h3>
                           <p className="text-gray-600">{account.libelle}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-[#6A8A82]">
+                          <div className="text-lg font-bold text-[#6A8A82]">
                             {(account.soldeFermeture / 1000000).toFixed(1)}M XAF
                           </div>
                           <div className="text-sm text-gray-700">Solde actuel</div>
@@ -1826,7 +1826,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 <div className="flex items-center space-x-4">
                                   <div className="text-right">
                                     <div className="text-sm text-white/80">Solde actuel</div>
-                                    <div className="text-xl font-bold">
+                                    <div className="text-lg font-bold">
                                       {(compte.solde.debit - compte.solde.credit).toLocaleString('fr-FR')} FCFA
                                     </div>
                                     <div className="text-sm text-white/80">
@@ -2048,7 +2048,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-sm text-white/80">Solde actuel</div>
-                            <div className="text-xl font-bold">
+                            <div className="text-lg font-bold">
                               {(compte.solde.debit - compte.solde.credit).toLocaleString('fr-FR')} FCFA
                             </div>
                             <div className="text-sm text-white/80">
@@ -2457,7 +2457,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           {/* Tableau de bord IA */}
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-200 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-indigo-900 flex items-center">
+              <h3 className="text-lg font-semibold text-indigo-900 flex items-center">
                 <Brain className="w-6 h-6 mr-3" />
                 Intelligence Artificielle Comptable
               </h3>
@@ -2481,7 +2481,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <h4 className="text-sm font-medium text-indigo-900">Détection Anomalies</h4>
                   <AlertTriangle className="h-5 w-5 text-orange-500" />
                 </div>
-                <div className="text-2xl font-bold text-indigo-900">3</div>
+                <div className="text-lg font-bold text-indigo-900">3</div>
                 <div className="text-xs text-indigo-600">sur 1,247 écritures</div>
                 <div className="mt-2 text-xs text-orange-600">2 nécessitent attention</div>
               </div>
@@ -2491,7 +2491,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <h4 className="text-sm font-medium text-indigo-900">Patterns Identifiés</h4>
                   <TrendingUp className="h-5 w-5 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold text-indigo-900">127</div>
+                <div className="text-lg font-bold text-indigo-900">127</div>
                 <div className="text-xs text-indigo-600">motifs récurrents</div>
                 <div className="mt-2 text-xs text-green-600">+15% vs mois dernier</div>
               </div>
@@ -2501,7 +2501,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <h4 className="text-sm font-medium text-indigo-900">Score Conformité</h4>
                   <Award className="h-5 w-5 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold text-indigo-900">98.7%</div>
+                <div className="text-lg font-bold text-indigo-900">98.7%</div>
                 <div className="text-xs text-indigo-600">SYSCOHADA</div>
                 <div className="mt-2 text-xs text-green-600">Excellent niveau</div>
               </div>
@@ -2511,7 +2511,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <h4 className="text-sm font-medium text-indigo-900">Prédictions</h4>
                   <Target className="h-5 w-5 text-blue-500" />
                 </div>
-                <div className="text-2xl font-bold text-indigo-900">92%</div>
+                <div className="text-lg font-bold text-indigo-900">92%</div>
                 <div className="text-xs text-indigo-600">précision modèle</div>
                 <div className="mt-2 text-xs text-blue-600">5 alertes préventives</div>
               </div>
@@ -2542,7 +2542,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                     </div>
                     <button
-                      onClick={() => console.log('Voir anomalie critique')}
+                      onClick={() => {}}
                       className="text-orange-600 hover:text-orange-800"
                       title="Voir détails"
                     >
@@ -2566,7 +2566,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                     </div>
                     <button
-                      onClick={() => console.log('Voir pattern temporel')}
+                      onClick={() => {}}
                       className="text-yellow-600 hover:text-yellow-800"
                       title="Voir détails"
                     >
@@ -2722,7 +2722,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           {/* Espaces de travail collaboratifs */}
           <div className="bg-white border-b border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Users className="w-6 h-6 mr-3 text-orange-500" />
                 Espaces de Travail Collaboratifs
               </h3>
@@ -2975,17 +2975,17 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <BookOpen className="w-10 h-10 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">WiseBook Enterprise</h2>
+                      <h2 className="text-lg font-bold text-gray-900">Atlas Finance Enterprise</h2>
                       <p className="text-sm text-gray-600">123 Business Avenue</p>
                       <p className="text-sm text-gray-600">New York, NY 10001</p>
                       <p className="text-sm text-gray-600">Tel: +1 (555) 123-4567</p>
-                      <p className="text-sm text-gray-600">Email: info@wisebook.com</p>
+                      <p className="text-sm text-gray-600">Email: info@atlasfinance.com</p>
                     </div>
                   </div>
 
                   {/* Titre et période */}
                   <div className="text-right">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">GENERAL LEDGER</h1>
+                    <h1 className="text-lg font-bold text-gray-900 mb-2">GENERAL LEDGER</h1>
                     <p className="text-lg text-gray-700 font-semibold">
                       Period: {new Date(filters.dateDebut).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                       {' to '}
@@ -3103,7 +3103,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </div>
               ) : (
                 <div className="mb-6">
-                  <h2 className="text-xl font-bold mb-4 text-gray-800">ACCOUNTS SUMMARY</h2>
+                  <h2 className="text-lg font-bold mb-4 text-gray-800">ACCOUNTS SUMMARY</h2>
                   <table className="w-full border-2 border-gray-800">
                     <thead>
                       <tr className="bg-gray-800 text-white">
@@ -3195,8 +3195,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                 {/* Bottom bar */}
                 <div className="mt-6 pt-3 border-t border-gray-400 flex justify-between items-center text-xs text-gray-700">
                   <div>
-                    <p className="font-semibold">WiseBook Enterprise ERP System</p>
-                    <p>Version 2.0 | Licensed to: WiseBook Corporation</p>
+                    <p className="font-semibold">Atlas Finance Enterprise ERP System</p>
+                    <p>Version 2.0 | Licensed to: Atlas Finance Corporation</p>
                   </div>
                   <div className="text-center">
                     <p>Page 1 of 1</p>
@@ -3267,7 +3267,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Exporter le Grand Livre
             </h3>
 
@@ -3358,7 +3358,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showEmailModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Envoyer par Email
             </h3>
 
@@ -3422,7 +3422,6 @@ const AdvancedGeneralLedger: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Envoi email à:', emailTo);
                   setShowEmailModal(false);
                   alert('Email envoyé avec succès!');
                 }}
@@ -3440,7 +3439,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showDetailModal && selectedEntry && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Détails de l'écriture
             </h3>
 
@@ -3485,7 +3484,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             <div className="border-t pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">Solde après écriture</label>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {selectedEntry.solde.toLocaleString()}
               </p>
             </div>
@@ -3499,7 +3498,6 @@ const AdvancedGeneralLedger: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Imprimer détails');
                   document.body.classList.add('printing', 'print-landscape');
                   window.print();
                   setTimeout(() => {
@@ -3520,7 +3518,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showAnnotationModal && selectedEntry && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Ajouter une annotation
             </h3>
 
@@ -3558,7 +3556,6 @@ const AdvancedGeneralLedger: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Annotation ajoutée:', annotation);
                   setShowAnnotationModal(false);
                   setAnnotation('');
                   alert('Annotation ajoutée avec succès!');
@@ -3577,7 +3574,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Partager l'écriture
             </h3>
 
@@ -3634,7 +3631,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showAISettingsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Settings className="w-5 h-5 mr-2 text-indigo-600" />
               Paramètres Intelligence Artificielle
             </h3>
@@ -3702,7 +3699,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showNewWorkspaceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Créer un Nouvel Espace de Travail
             </h3>
 
@@ -3764,7 +3761,7 @@ const AdvancedGeneralLedger: React.FC = () => {
       {showJoinWorkspaceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Rejoindre l'espace: {selectedWorkspace}
             </h3>
 

@@ -18,8 +18,8 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Récupérer le thème sauvegardé ou utiliser le thème par défaut
   const [themeType, setThemeType] = useState<ThemeType>(() => {
-    const saved = localStorage.getItem('wisebook-theme') as ThemeType;
-    return saved && saved in themes ? saved : 'minimalist';
+    const saved = localStorage.getItem('atlas-finance-theme') as ThemeType;
+    return saved && saved in themes ? saved : 'atlasFinance';
   });
 
   const [theme, setThemeState] = useState<Theme>(themes[themeType] || defaultTheme);
@@ -28,7 +28,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     const root = document.documentElement;
     const cssVars = getThemeCSSVariables(theme);
-    
+
     Object.entries(cssVars).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
@@ -36,9 +36,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     // Appliquer les styles globaux
     root.style.backgroundColor = theme.colors.background;
     root.style.color = theme.colors.text.primary;
-    
+
     // Sauvegarder le choix
-    localStorage.setItem('wisebook-theme', themeType);
+    localStorage.setItem('atlas-finance-theme', themeType);
   }, [theme, themeType]);
 
   const setTheme = (type: ThemeType) => {

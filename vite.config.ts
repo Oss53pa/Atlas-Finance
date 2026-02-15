@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -5,6 +6,16 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/vitest-setup.ts'],
+    exclude: [
+      'node_modules/**',
+      '**/workspace/**',
+      'src/components/layout/__tests__/**',
+    ],
+  },
   root: process.cwd(),
   resolve: {
     alias: {
@@ -32,22 +43,29 @@ export default defineConfig({
     fs: {
       strict: false,
     },
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
-        changeOrigin: true,
-      },
-    },
   },
   build: {
     outDir: 'dist',
-    sourcemap: process.env.NODE_ENV !== 'production',
+    sourcemap: false,
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-label',
+          ],
+          'vendor-charts': ['recharts', 'chart.js', 'react-chartjs-2', 'd3'],
+          'vendor-data': ['dexie', '@supabase/supabase-js', '@tanstack/react-query'],
+          'vendor-xlsx': ['xlsx'],
+          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'vendor-utils': ['date-fns', 'decimal.js', 'uuid'],
+          'vendor-pdf': ['jspdf'],
         },
       },
     },

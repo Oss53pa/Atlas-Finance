@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - Helpers de Test pour Éléments Cliquables
+ * Atlas Finance - Helpers de Test pour Éléments Cliquables
  *
  * Helpers réutilisables pour tester les interactions et vérifier
  * que les actions attendues (modal, toast, navigation, etc.) s'exécutent correctement.

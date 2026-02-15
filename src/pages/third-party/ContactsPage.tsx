@@ -187,7 +187,7 @@ const ContactsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Contact className="mr-3 h-7 w-7" />
               Contacts
             </h1>
@@ -225,7 +225,7 @@ const ContactsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Contacts</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {contactsData?.count || 0}
                 </p>
               </div>
@@ -241,7 +241,7 @@ const ContactsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Contacts Clients</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {contactsData?.clients_count || 0}
                 </p>
               </div>
@@ -257,7 +257,7 @@ const ContactsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Contacts Fournisseurs</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {contactsData?.suppliers_count || 0}
                 </p>
               </div>
@@ -273,7 +273,7 @@ const ContactsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Prospects</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {contactsData?.prospects_count || 0}
                 </p>
               </div>

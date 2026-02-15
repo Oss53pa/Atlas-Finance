@@ -1,105 +1,74 @@
+/**
+ * Balance Service — Connected to Dexie IndexedDB.
+ * Computes trial balance from real journal entries and chart of accounts.
+ */
+import { db } from '../../../lib/db';
 import { BalanceAccount, BalanceFilters, BalanceTotals } from '../types/balance.types';
+
+// SYSCOHADA account class hierarchy
+const SYSCOHADA_CLASSES: Record<string, string> = {
+  '1': 'COMPTES DE RESSOURCES DURABLES',
+  '2': "COMPTES D'ACTIF IMMOBILISE",
+  '3': 'COMPTES DE STOCKS',
+  '4': 'COMPTES DE TIERS',
+  '5': 'COMPTES DE TRESORERIE',
+  '6': 'COMPTES DE CHARGES',
+  '7': 'COMPTES DE PRODUITS',
+  '8': 'COMPTES DES AUTRES CHARGES',
+  '9': 'COMPTES DE COMPTABILITE ANALYTIQUE',
+};
 
 class BalanceService {
   async getBalance(filters: BalanceFilters): Promise<BalanceAccount[]> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const entries = await db.journalEntries.toArray();
+    const accounts = await db.accounts.toArray();
 
-    return [
-      {
-        code: '1',
-        libelle: 'COMPTES DE RESSOURCES DURABLES',
-        niveau: 1,
-        soldeDebiteurAN: 0,
-        soldeCrediteurAN: 500000,
-        mouvementsDebit: 50000,
-        mouvementsCredit: 150000,
-        soldeDebiteur: 0,
-        soldeCrediteur: 600000,
-        isExpanded: true,
-        children: [
-          {
-            code: '10',
-            libelle: 'Capital',
-            niveau: 2,
-            parent: '1',
-            soldeDebiteurAN: 0,
-            soldeCrediteurAN: 500000,
-            mouvementsDebit: 0,
-            mouvementsCredit: 100000,
-            soldeDebiteur: 0,
-            soldeCrediteur: 600000,
-            isExpanded: false,
-            children: [
-              {
-                code: '101',
-                libelle: 'Capital social',
-                niveau: 3,
-                parent: '10',
-                soldeDebiteurAN: 0,
-                soldeCrediteurAN: 500000,
-                mouvementsDebit: 0,
-                mouvementsCredit: 100000,
-                soldeDebiteur: 0,
-                soldeCrediteur: 600000,
-                isExpanded: false
-              }
-            ]
-          }
-        ]
-      },
-      {
-        code: '2',
-        libelle: 'COMPTES D\'ACTIF IMMOBILISE',
-        niveau: 1,
-        soldeDebiteurAN: 850000,
-        soldeCrediteurAN: 0,
-        mouvementsDebit: 200000,
-        mouvementsCredit: 50000,
-        soldeDebiteur: 1000000,
-        soldeCrediteur: 0,
-        isExpanded: false,
-        children: []
-      },
-      {
-        code: '4',
-        libelle: 'COMPTES DE TIERS',
-        niveau: 1,
-        soldeDebiteurAN: 320000,
-        soldeCrediteurAN: 180000,
-        mouvementsDebit: 450000,
-        mouvementsCredit: 350000,
-        soldeDebiteur: 420000,
-        soldeCrediteur: 210000,
-        isExpanded: false,
-        children: []
-      },
-      {
-        code: '6',
-        libelle: 'COMPTES DE CHARGES',
-        niveau: 1,
-        soldeDebiteurAN: 0,
-        soldeCrediteurAN: 0,
-        mouvementsDebit: 580000,
-        mouvementsCredit: 0,
-        soldeDebiteur: 580000,
-        soldeCrediteur: 0,
-        isExpanded: false,
-        children: []
-      },
-      {
-        code: '7',
-        libelle: 'COMPTES DE PRODUITS',
-        niveau: 1,
-        soldeDebiteurAN: 0,
-        soldeCrediteurAN: 0,
-        mouvementsDebit: 0,
-        mouvementsCredit: 920000,
-        soldeDebiteur: 0,
-        soldeCrediteur: 920000,
-        isExpanded: false,
-        children: []
+    // Build account metadata map from chart of accounts
+    const accountMeta = new Map<string, { name: string; level: number; parentCode?: string }>();
+    for (const a of accounts) {
+      accountMeta.set(a.code, { name: a.name, level: a.level, parentCode: a.parentCode });
+    }
+
+    // Accumulate movements by account from journal entries
+    const movements = new Map<string, { debit: number; credit: number; name: string }>();
+
+    for (const entry of entries) {
+      if (entry.date < filters.period.from || entry.date > filters.period.to) continue;
+
+      for (const line of entry.lines) {
+        // Filter by search
+        if (filters.searchAccount) {
+          const q = filters.searchAccount.toLowerCase();
+          if (!line.accountCode.includes(q) && !line.accountName.toLowerCase().includes(q)) continue;
+        }
+
+        const existing = movements.get(line.accountCode) || { debit: 0, credit: 0, name: line.accountName };
+        existing.debit += line.debit;
+        existing.credit += line.credit;
+        if (!existing.name && line.accountName) existing.name = line.accountName;
+        movements.set(line.accountCode, existing);
       }
-    ];
+    }
+
+    // Also check chart of accounts for names
+    for (const [code, data] of movements) {
+      if (!data.name) {
+        const meta = accountMeta.get(code);
+        if (meta) data.name = meta.name;
+      }
+    }
+
+    // Skip zero balances if filter says so
+    if (!filters.showZeroBalance) {
+      for (const [code, data] of movements) {
+        if (data.debit === 0 && data.credit === 0) {
+          movements.delete(code);
+        }
+      }
+    }
+
+    // Build hierarchical balance based on displayLevel
+    return this.buildHierarchy(movements, filters.displayLevel);
   }
 
   calculateTotals(accounts: BalanceAccount[]): BalanceTotals {
@@ -109,7 +78,7 @@ class BalanceService {
       mouvementsDebit: 0,
       mouvementsCredit: 0,
       soldeDebiteur: 0,
-      soldeCrediteur: 0
+      soldeCrediteur: 0,
     };
 
     const addAccountTotals = (account: BalanceAccount) => {
@@ -130,8 +99,89 @@ class BalanceService {
   }
 
   async exportBalance(format: 'xlsx' | 'pdf', filters: BalanceFilters): Promise<Blob> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return new Blob(['mock export'], { type: 'application/octet-stream' });
+    const accounts = await this.getBalance(filters);
+
+    if (format === 'xlsx') {
+      // CSV export as fallback
+      const rows = ['Compte;Libelle;Debit AN;Credit AN;Mvt Debit;Mvt Credit;Solde Debit;Solde Credit'];
+      const flatten = (accs: BalanceAccount[]) => {
+        for (const a of accs) {
+          rows.push([
+            a.code, a.libelle,
+            a.soldeDebiteurAN, a.soldeCrediteurAN,
+            a.mouvementsDebit, a.mouvementsCredit,
+            a.soldeDebiteur, a.soldeCrediteur,
+          ].join(';'));
+          if (a.children) flatten(a.children);
+        }
+      };
+      flatten(accounts);
+      return new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    }
+
+    return new Blob(['Export balance'], { type: 'application/octet-stream' });
+  }
+
+  // ---- Private ----
+
+  private buildHierarchy(
+    movements: Map<string, { debit: number; credit: number; name: string }>,
+    displayLevel: number
+  ): BalanceAccount[] {
+    // Group accounts by class (level 1)
+    const classMap = new Map<string, BalanceAccount>();
+
+    for (const [code, data] of movements) {
+      const classCode = code.charAt(0);
+      const soldeNet = data.debit - data.credit;
+
+      // Leaf account
+      const leaf: BalanceAccount = {
+        code,
+        libelle: data.name || code,
+        niveau: code.length <= 3 ? code.length : 3,
+        parent: code.substring(0, code.length - 1),
+        soldeDebiteurAN: 0,
+        soldeCrediteurAN: 0,
+        mouvementsDebit: data.debit,
+        mouvementsCredit: data.credit,
+        soldeDebiteur: soldeNet > 0 ? soldeNet : 0,
+        soldeCrediteur: soldeNet < 0 ? Math.abs(soldeNet) : 0,
+        isExpanded: false,
+      };
+
+      // Ensure class-level node exists
+      if (!classMap.has(classCode)) {
+        classMap.set(classCode, {
+          code: classCode,
+          libelle: SYSCOHADA_CLASSES[classCode] || `Classe ${classCode}`,
+          niveau: 1,
+          soldeDebiteurAN: 0,
+          soldeCrediteurAN: 0,
+          mouvementsDebit: 0,
+          mouvementsCredit: 0,
+          soldeDebiteur: 0,
+          soldeCrediteur: 0,
+          isExpanded: true,
+          children: [],
+        });
+      }
+
+      const classNode = classMap.get(classCode)!;
+      classNode.mouvementsDebit += data.debit;
+      classNode.mouvementsCredit += data.credit;
+
+      const classSolde = classNode.mouvementsDebit - classNode.mouvementsCredit;
+      classNode.soldeDebiteur = classSolde > 0 ? classSolde : 0;
+      classNode.soldeCrediteur = classSolde < 0 ? Math.abs(classSolde) : 0;
+
+      if (displayLevel >= 2) {
+        classNode.children = classNode.children || [];
+        classNode.children.push(leaf);
+      }
+    }
+
+    return Array.from(classMap.values()).sort((a, b) => a.code.localeCompare(b.code));
   }
 }
 

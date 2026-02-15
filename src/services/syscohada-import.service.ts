@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - SYSCOHADA Import Service
+ * Atlas Finance - SYSCOHADA Import Service
  * Service complet pour l'import du plan comptable SYSCOHADA
  *
  * Fonctionnalités:

@@ -103,7 +103,7 @@ const ManagerDashboard: React.FC = () => {
       <header className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Dashboard Manager</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Dashboard Manager</h1>
             <p className="text-[var(--color-text-primary)]">Vue consolidée et pilotage</p>
           </div>
           <div className="flex items-center space-x-4">
@@ -182,7 +182,7 @@ const ManagerDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-3xl font-bold text-[var(--color-text-primary)]">{kpi.value}</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-text-primary)]">{kpi.value}</h3>
                   <p className="text-[var(--color-text-primary)] font-medium">{kpi.title}</p>
                   <p className="text-[var(--color-text-secondary)] text-sm">{kpi.description}</p>
                   <div className="flex items-center justify-between pt-2">

@@ -1,6 +1,6 @@
 /**
- * Module Mes Tâches avec Sidebar - Version WiseBook
- * Gestion des tâches avec navigation latérale et branding WiseBook
+ * Module Mes Tâches avec Sidebar - Version Atlas Finance
+ * Gestion des tâches avec navigation latérale et branding Atlas Finance
  */
 
 import React, { useState } from 'react';
@@ -248,7 +248,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               WB
             </div>
             <div>
-              <span className="font-bold text-lg text-gray-900">WiseBook</span>
+              <span className="font-bold text-lg text-gray-900">Atlas Finance</span>
               <p className="text-xs text-gray-700">Gestion des tâches</p>
             </div>
           </div>
@@ -366,7 +366,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">Utilisateur</p>
-                <p className="text-xs text-gray-700">user@wisebook.com</p>
+                <p className="text-xs text-gray-700">user@atlasfinance.com</p>
               </div>
             </div>
           </div>
@@ -379,7 +379,7 @@ const TasksModuleWithSidebar: React.FC = () => {
         <div className="bg-white border-b px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-6">
-              <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
+              <h1 className="text-lg font-semibold text-gray-900">{t('dashboard.title')}</h1>
               <select className="text-sm text-gray-600 border-0 focus:ring-0">
                 <option>Tâches quotidiennes</option>
                 <option>Tâches hebdomadaires</option>

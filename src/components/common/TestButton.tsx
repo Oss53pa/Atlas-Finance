@@ -7,7 +7,6 @@ import { toast } from 'react-hot-toast';
  */
 export const TestButton: React.FC<{ label: string }> = ({ label }) => {
   const handleClick = () => {
-    console.log('Button clicked:', label);
     toast.success(`Bouton "${label}" cliqué !`);
     alert(`Le bouton "${label}" fonctionne correctement !`);
   };

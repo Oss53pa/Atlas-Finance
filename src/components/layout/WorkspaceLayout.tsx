@@ -97,7 +97,7 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-[#191919]">WiseBook ERP</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Atlas Finance</h1>
                 <p className="text-xs text-[#767676]">v3.0 Professional</p>
               </div>
             </div>
@@ -125,14 +125,14 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
 
           {/* Actions utilisateur */}
           <div className="flex items-center space-x-3">
-            {/* Bouton WiseBook Complet bien visible */}
+            {/* Bouton Atlas Finance Complet bien visible */}
             <button 
               onClick={() => navigate('/executive')}
               className="px-4 py-2 rounded-lg text-white font-medium transition-all hover:shadow-md flex items-center space-x-2"
               style={{background: roleGradients[userRole]}}
             >
               <Home className="w-4 h-4" />
-              <span className="hidden sm:block text-sm">WiseBook</span>
+              <span className="hidden sm:block text-sm">Atlas Finance</span>
               <ExternalLink className="w-3 h-3" />
             </button>
 

@@ -132,7 +132,7 @@ export const DossierDetailModal: React.FC<DossierDetailModalProps> = ({ dossier 
               <DollarSign className="w-4 h-4 text-[#767676] mt-1" />
               <div className="flex-1">
                 <p className="text-sm text-[#767676]">Montant Total</p>
-                <p className="text-xl font-bold text-[#191919]">
+                <p className="text-lg font-bold text-[#191919]">
                   {formatCurrency(dossier.montantTotal)}
                 </p>
               </div>

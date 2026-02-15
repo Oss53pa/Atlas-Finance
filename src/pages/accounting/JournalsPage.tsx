@@ -18,7 +18,7 @@ interface Journal {
   id: string;
   code: string;
   libelle: string;
-  type: 'VT' | 'AC' | 'BQ' | 'CA' | 'OD';
+  type: 'VT' | 'AC' | 'BQ' | 'CA' | 'OD' | 'AN';
   entries: number;
   totalDebit: number;
   totalCredit: number;
@@ -115,12 +115,13 @@ const JournalsPage: React.FC = () => {
         { value: 'AC', label: 'AC' },
         { value: 'BQ', label: 'BQ' },
         { value: 'CA', label: 'CA' },
-        { value: 'OD', label: 'OD' }
+        { value: 'OD', label: 'OD' },
+        { value: 'AN', label: 'AN' }
       ],
       width: '40px',
       align: 'center',
       render: (item) => (
-        <span className="text-xs font-bold text-[#B87333]">{item.jnl}</span>
+        <span className="text-xs font-bold text-[var(--color-primary)]">{item.jnl}</span>
       )
     },
     {
@@ -168,7 +169,7 @@ const JournalsPage: React.FC = () => {
       width: '80px',
       align: 'center',
       render: (item) => (
-        <span className="text-xs font-mono text-[#6A8A82] font-semibold">{item.compte}</span>
+        <span className="text-xs font-mono text-[var(--color-primary)] font-semibold">{item.compte}</span>
       )
     },
     {
@@ -249,7 +250,7 @@ const JournalsPage: React.FC = () => {
       totalDebit: 0,
       totalCredit: 2450000,
       lastEntry: '2025-09-10',
-      color: '#B87333'
+      color: 'var(--color-primary)'
     },
     {
       id: '2',
@@ -260,7 +261,7 @@ const JournalsPage: React.FC = () => {
       totalDebit: 1890000,
       totalCredit: 0,
       lastEntry: '2025-09-09',
-      color: '#6A8A82'
+      color: 'var(--color-primary)'
     },
     {
       id: '3',
@@ -271,7 +272,7 @@ const JournalsPage: React.FC = () => {
       totalDebit: 890000,
       totalCredit: 1230000,
       lastEntry: '2025-09-11',
-      color: '#7A99AC'
+      color: 'var(--color-text-secondary)'
     },
     {
       id: '4',
@@ -282,7 +283,7 @@ const JournalsPage: React.FC = () => {
       totalDebit: 120000,
       totalCredit: 85000,
       lastEntry: '2025-09-08',
-      color: '#A86323'
+      color: 'var(--color-primary-hover)'
     },
     {
       id: '5',
@@ -293,23 +294,34 @@ const JournalsPage: React.FC = () => {
       totalDebit: 340000,
       totalCredit: 340000,
       lastEntry: '2025-09-07',
-      color: '#5A7A72'
+      color: 'var(--color-primary-hover)'
+    },
+    {
+      id: '6',
+      code: 'AN',
+      libelle: 'Journal A-Nouveau',
+      type: 'AN',
+      entries: 0,
+      totalDebit: 0,
+      totalCredit: 0,
+      lastEntry: '',
+      color: '#8B6DAF'
     }
   ];
 
   // Sous-journaux par journal principal
   const sousJournaux = {
     'VT': [
-      { id: 'VT01', code: 'VT01', libelle: 'Ventes Export', entries: 45, color: '#B87333' },
-      { id: 'VT02', code: 'VT02', libelle: 'Ventes Locales', entries: 78, color: '#B87333' }
+      { id: 'VT01', code: 'VT01', libelle: 'Ventes Export', entries: 45, color: 'var(--color-primary)' },
+      { id: 'VT02', code: 'VT02', libelle: 'Ventes Locales', entries: 78, color: 'var(--color-primary)' }
     ],
     'AC': [
-      { id: 'AC01', code: 'AC01', libelle: 'Achats Locaux', entries: 32, color: '#6A8A82' },
-      { id: 'AC02', code: 'AC02', libelle: 'Achats Import', entries: 25, color: '#6A8A82' }
+      { id: 'AC01', code: 'AC01', libelle: 'Achats Locaux', entries: 32, color: 'var(--color-primary)' },
+      { id: 'AC02', code: 'AC02', libelle: 'Achats Import', entries: 25, color: 'var(--color-primary)' }
     ],
     'BQ': [
-      { id: 'BQ01', code: 'BQ01', libelle: 'Banque SGBC', entries: 156, color: '#7A99AC' },
-      { id: 'BQ02', code: 'BQ02', libelle: 'Banque BOA', entries: 89, color: '#7A99AC' }
+      { id: 'BQ01', code: 'BQ01', libelle: 'Banque SGBC', entries: 156, color: 'var(--color-text-secondary)' },
+      { id: 'BQ02', code: 'BQ02', libelle: 'Banque BOA', entries: 89, color: 'var(--color-text-secondary)' }
     ]
   };
 
@@ -445,6 +457,12 @@ const JournalsPage: React.FC = () => {
           { mvt: '8', jnl: 'OD', date: '31/12/19', piece: 'OD001', echeance: '', compte: '681', compteLib: 'Dotations aux amortissements', libelle: 'Amortissement matériel', debit: '15,00', credit: '' },
           { mvt: '8', jnl: 'OD', date: '31/12/19', piece: 'OD001', echeance: '', compte: '281', compteLib: 'Amortissements matériel', libelle: 'Amortissement matériel', debit: '', credit: '15,00' }
         ];
+      case 'AN':
+        return [
+          { mvt: '9', jnl: 'AN', date: '01/01/20', piece: 'AN001', echeance: '', compte: '101', compteLib: 'Capital social', libelle: 'Report a nouveau capital', debit: '', credit: '500,00' },
+          { mvt: '9', jnl: 'AN', date: '01/01/20', piece: 'AN001', echeance: '', compte: '411', compteLib: 'Clients', libelle: 'Report a nouveau clients', debit: '150,00', credit: '' },
+          { mvt: '9', jnl: 'AN', date: '01/01/20', piece: 'AN001', echeance: '', compte: '512', compteLib: 'Banques', libelle: 'Report a nouveau banque', debit: '350,00', credit: '' }
+        ];
       case 'TOUS':
       default:
         return [
@@ -481,11 +499,11 @@ const JournalsPage: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#B87333] to-[#A86323] flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-lg bg-[var(--color-surface-hover)] flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-[var(--color-text-secondary)]" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Journaux Comptables</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Journaux Comptables</h1>
                 <p className="text-sm text-[#767676]">Gestion des journaux SYSCOHADA</p>
               </div>
             </div>
@@ -494,7 +512,7 @@ const JournalsPage: React.FC = () => {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm">Nouveau sous-journal</span>
@@ -515,7 +533,7 @@ const JournalsPage: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-[#B87333] text-[#B87333]'
+                      ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                       : 'border-transparent text-[#767676] hover:text-[#444444]'
                   }`}
                 >
@@ -546,7 +564,7 @@ const JournalsPage: React.FC = () => {
                         onClick={() => setViewMode('cards')}
                         className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
                           viewMode === 'cards'
-                            ? 'bg-white text-[#B87333] shadow-sm'
+                            ? 'bg-white text-[var(--color-primary)] shadow-sm'
                             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                         }`}
                       >
@@ -557,7 +575,7 @@ const JournalsPage: React.FC = () => {
                         onClick={() => setViewMode('table')}
                         className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
                           viewMode === 'table'
-                            ? 'bg-white text-[#B87333] shadow-sm'
+                            ? 'bg-white text-[var(--color-primary)] shadow-sm'
                             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                         }`}
                       >
@@ -573,39 +591,38 @@ const JournalsPage: React.FC = () => {
               {viewMode === 'cards' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Carte spéciale Journal tous mouvements */}
-                  <div className="bg-gradient-to-r from-[#6A8A82] to-[#7A99AC] rounded-lg border-2 border-[#6A8A82] p-6 hover:shadow-lg transition-all cursor-pointer text-white">
+                  <div className="bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] p-5 hover:shadow-md transition-all cursor-pointer">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-white font-bold text-lg backdrop-blur">
-                          <Archive className="w-6 h-6" />
+                        <div className="w-10 h-10 rounded-lg bg-[var(--color-surface-hover)] flex items-center justify-center">
+                          <Archive className="w-5 h-5 text-[var(--color-text-secondary)]" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-white text-sm">Journal tous mouvements</h3>
-                          <p className="text-xs text-white/80">Vue consolidée</p>
+                          <h3 className="font-semibold text-[var(--color-text-primary)] text-sm">Journal tous mouvements</h3>
+                          <p className="text-xs text-[var(--color-text-tertiary)]">Vue consolidée</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 rounded-lg bg-white/10 backdrop-blur">
-                          <p className="text-lg font-bold text-white">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
+                          <p className="text-sm font-bold text-[var(--color-text-primary)]">
                             {journaux.reduce((sum, j) => sum + j.entries, 0)}
                           </p>
-                          <p className="text-xs text-white/80">Total écritures</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)]">Total écritures</p>
                         </div>
-                        <div className="text-center p-3 rounded-lg bg-white/10 backdrop-blur">
-                          <p className="text-lg font-bold text-white">944,00€</p>
-                          <p className="text-xs text-white/80">Équilibré</p>
+                        <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
+                          <p className="text-sm font-bold text-[var(--color-text-primary)]">944,00€</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)]">Équilibré</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-white/20">
-                        <span className="text-xs text-white/70">Consolidation en temps réel</span>
+                      <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-light)]">
+                        <span className="text-xs text-[var(--color-text-tertiary)]">Consolidation en temps réel</span>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => {
-                              // Créer un journal spécial pour la vue consolidée
                               const journalTousMovements = {
                                 id: 'tous',
                                 code: 'TOUS',
@@ -615,12 +632,12 @@ const JournalsPage: React.FC = () => {
                                 totalDebit: 944,
                                 totalCredit: 944,
                                 lastEntry: '2025-09-11',
-                                color: '#6A8A82'
+                                color: '#737373'
                               };
                               setSelectedJournal(journalTousMovements);
                               setActiveTab('journal-view');
                             }}
-                            className="text-white/80 hover:text-white transition-colors"
+                            className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
                             title="Voir le journal consolidé"
                           >
                             <Eye className="w-4 h-4" />
@@ -636,12 +653,12 @@ const JournalsPage: React.FC = () => {
                                 totalDebit: 944,
                                 totalCredit: 944,
                                 lastEntry: '2025-09-11',
-                                color: '#6A8A82'
+                                color: '#737373'
                               };
                               setSelectedJournal(journalTousMovements);
                               setActiveTab('journal-view');
                             }}
-                            className="text-white/80 hover:text-white transition-colors"
+                            className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
                             title="Modifier les écritures"
                           >
                             <Edit className="w-4 h-4" />
@@ -655,47 +672,43 @@ const JournalsPage: React.FC = () => {
                   {journaux.map((journal) => (
                     <div
                       key={journal.id}
-                      className="bg-white rounded-lg border-2 border-[#E8E8E8] p-6 hover:border-[#B87333] hover:shadow-lg transition-all cursor-pointer"
-                      style={{borderLeftColor: journal.color, borderLeftWidth: '4px'}}
+                      className="bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] p-5 hover:shadow-md transition-all cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                          <div
-                            className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-                            style={{backgroundColor: journal.color}}
-                          >
+                          <div className="w-10 h-10 rounded-lg bg-[var(--color-surface-hover)] flex items-center justify-center text-[var(--color-text-secondary)] font-bold text-xs">
                             {journal.code}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-[#191919] text-sm">{journal.libelle}</h3>
-                            <p className="text-xs text-[#767676]">Type: {journal.type}</p>
+                            <h3 className="font-semibold text-[var(--color-text-primary)] text-sm">{journal.libelle}</h3>
+                            <p className="text-xs text-[var(--color-text-tertiary)]">Type: {journal.type}</p>
                           </div>
                         </div>
                       </div>
 
                       <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="text-center p-3 rounded-lg bg-[var(--color-surface-hover)]">
-                            <p className="text-lg font-bold text-[#191919]">{journal.entries}</p>
-                            <p className="text-xs text-[#767676]">Écritures</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
+                            <p className="text-sm font-bold text-[var(--color-text-primary)]">{journal.entries}</p>
+                            <p className="text-xs text-[var(--color-text-tertiary)]">Écritures</p>
                           </div>
-                          <div className="text-center p-3 rounded-lg bg-[var(--color-surface-hover)]">
-                            <p className="text-lg font-bold text-[#B87333]">
+                          <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
+                            <p className="text-sm font-bold text-[var(--color-text-primary)]">
                               {journal.totalCredit.toLocaleString()}€
                             </p>
-                            <p className="text-xs text-[#767676]">{t('accounting.credit')}</p>
+                            <p className="text-xs text-[var(--color-text-tertiary)]">{t('accounting.credit')}</p>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-light)]">
-                          <span className="text-xs text-[#767676]">Dernière écriture: {journal.lastEntry}</span>
+                          <span className="text-xs text-[var(--color-text-tertiary)]">Dernière écriture: {journal.lastEntry}</span>
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => {
                                 setSelectedJournal(journal);
                                 setActiveTab('journal-view');
                               }}
-                              className="text-[#6A8A82] hover:text-[#5A7A72] transition-colors"
+                              className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
                               title="Voir le journal"
                             >
                               <Eye className="w-4 h-4" />
@@ -705,7 +718,7 @@ const JournalsPage: React.FC = () => {
                                 setSelectedJournal(journal);
                                 setActiveTab('journal-view');
                               }}
-                              className="text-[#B87333] hover:text-[#A86323] transition-colors"
+                              className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
                               title="Modifier les écritures"
                             >
                               <Edit className="w-4 h-4" />
@@ -723,7 +736,7 @@ const JournalsPage: React.FC = () => {
                 <div className="bg-white rounded-lg border border-[#E8E8E8]">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-[#6A8A82]/10">
+                      <thead className="bg-[var(--color-surface-hover)]">
                         <tr>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Code</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">{t('accounting.label')}</th>
@@ -738,7 +751,7 @@ const JournalsPage: React.FC = () => {
                         {journaux.map((journal) => (
                           <React.Fragment key={journal.id}>
                             {/* Ligne du journal principal */}
-                            <tr className="hover:bg-[#6A8A82]/5">
+                            <tr className="hover:bg-[var(--color-surface-hover)]">
                               <td className="px-4 py-4">
                                 <div className="flex items-center space-x-3">
                                   {sousJournaux[journal.code as keyof typeof sousJournaux] && (
@@ -759,7 +772,7 @@ const JournalsPage: React.FC = () => {
                                   >
                                     {journal.code}
                                   </div>
-                                  <span className="font-mono font-bold text-[#B87333]">{journal.code}</span>
+                                  <span className="font-mono font-bold text-[var(--color-primary)]">{journal.code}</span>
                                 </div>
                               </td>
                               <td className="px-4 py-4">
@@ -792,7 +805,7 @@ const JournalsPage: React.FC = () => {
                                       setSelectedJournal(journal);
                                       setActiveTab('journal-view');
                                     }}
-                                    className="text-[#6A8A82] hover:text-[#5A7A72] transition-colors"
+                                    className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
                                     title="Voir le journal"
                                   >
                                     <Eye className="w-4 h-4" />
@@ -802,7 +815,7 @@ const JournalsPage: React.FC = () => {
                                       setSelectedJournal(journal);
                                       setActiveTab('journal-view');
                                     }}
-                                    className="text-[#B87333] hover:text-[#A86323] transition-colors"
+                                    className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
                                     title="Modifier les écritures"
                                   >
                                     <Edit className="w-4 h-4" />
@@ -854,7 +867,7 @@ const JournalsPage: React.FC = () => {
                                         setSelectedJournal(sousJournalAsJournal);
                                         setActiveTab('journal-view');
                                       }}
-                                      className="text-[#6A8A82] hover:text-[#5A7A72] transition-colors"
+                                      className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
                                       title="Voir le sous-journal"
                                     >
                                       <Eye className="w-3 h-3" />
@@ -871,7 +884,7 @@ const JournalsPage: React.FC = () => {
                                         setSelectedJournal(sousJournalAsJournal);
                                         setActiveTab('journal-view');
                                       }}
-                                      className="text-[#B87333] hover:text-[#A86323] transition-colors"
+                                      className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
                                       title="Modifier le sous-journal"
                                     >
                                       <Edit className="w-3 h-3" />
@@ -895,15 +908,15 @@ const JournalsPage: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-white rounded-lg border border-[#E8E8E8]">
                 {/* Header du journal réorganisé */}
-                <div className="bg-gradient-to-r from-[#6A8A82]/10 to-[#7A99AC]/10 border-b border-[var(--color-border)]">
+                <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
                   {/* Ligne 1: Titre + Actions principales */}
                   <div className="flex items-center justify-between p-4 pb-3">
                     <div className="flex items-center space-x-4">
-                      <h3 className="text-xl font-bold text-[#191919]">
+                      <h3 className="text-lg font-bold text-[#191919]">
                         <Archive className="w-5 h-5 mr-2" />
                         {selectedJournal?.code === 'TOUS' ? 'Journal tous mouvements' : `Journal ${selectedJournal?.code} - ${selectedJournal?.libelle}`}
                       </h3>
-                      <div className="px-3 py-1 bg-[#7A99AC] text-white rounded-lg text-sm font-medium">
+                      <div className="px-3 py-1 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg text-sm font-medium">
                         Devise: EUR
                       </div>
                     </div>
@@ -930,7 +943,7 @@ const JournalsPage: React.FC = () => {
                         <input
                           type="date"
                           defaultValue="2019-01-01"
-                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                         />
                       </div>
                       <div className="flex items-center space-x-2">
@@ -938,12 +951,12 @@ const JournalsPage: React.FC = () => {
                         <input
                           type="date"
                           defaultValue="2019-12-31"
-                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                         />
                       </div>
                       <div className="flex items-center space-x-2">
                         <label className="text-sm font-medium text-[var(--color-text-secondary)]">{t('accounting.journal')}</label>
-                        <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]">
+                        <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
                           <option>&lt;tout&gt;</option>
                           <option>VT</option>
                           <option>AC</option>
@@ -952,7 +965,7 @@ const JournalsPage: React.FC = () => {
                           <option>OD</option>
                         </select>
                       </div>
-                      <button className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg text-sm hover:bg-[#5A7A72] transition-colors font-medium">
+                      <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary-hover)] transition-colors font-medium">
                         Filtrer
                       </button>
                     </div>
@@ -981,7 +994,7 @@ const JournalsPage: React.FC = () => {
                   showPrintButton={false}
                   headerContent={
                     <div className="text-center mb-4">
-                      <h1 className="text-xl font-bold">Journal {selectedJournal?.code || 'TOUS'}</h1>
+                      <h1 className="text-lg font-bold">Journal {selectedJournal?.code || 'TOUS'}</h1>
                       <p className="text-sm text-[var(--color-text-secondary)]">
                         Généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')}
                       </p>
@@ -989,7 +1002,7 @@ const JournalsPage: React.FC = () => {
                   }
                   footerContent={
                     <div className="text-center text-xs text-[var(--color-text-tertiary)]">
-                      WiseBook - Logiciel de Comptabilité
+                      Atlas Finance - Logiciel de Comptabilité
                     </div>
                   }
                 >
@@ -1037,14 +1050,14 @@ const JournalsPage: React.FC = () => {
 
                 {/* Table récapitulative par compte (comme dans l'image) */}
                 <div className="mt-6 border-t border-[var(--color-border)]">
-                  <div className="flex items-center justify-between p-3 bg-[#7A99AC]/10">
-                    <h4 className="text-sm font-medium text-[#7A99AC] flex items-center space-x-2">
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-surface-hover)]">
+                    <h4 className="text-sm font-medium text-[var(--color-text-secondary)] flex items-center space-x-2">
                       <BarChart3 className="w-4 h-4" />
                       <span>Récapitulatif par compte</span>
                     </h4>
                     <button
                       onClick={() => setShowRecapTable(!showRecapTable)}
-                      className="px-3 py-1 bg-[#7A99AC] text-white rounded text-xs hover:bg-[#6A8A9C] transition-colors flex items-center space-x-1"
+                      className="px-3 py-1 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded text-xs hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-1"
                     >
                       <span>{showRecapTable ? 'Masquer' : 'Afficher'}</span>
                       {showRecapTable ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -1055,7 +1068,7 @@ const JournalsPage: React.FC = () => {
                     <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
                       <div className="overflow-y-auto max-h-60">
                         <table className="w-full text-sm border-collapse">
-                          <thead className="bg-[#7A99AC]/20 sticky top-0 z-10">
+                          <thead className="bg-[var(--color-surface-hover)] sticky top-0 z-10">
                             <tr className="text-xs">
                               <th className="px-2 py-2 text-left font-semibold border-r border-[var(--color-border)] w-[80px]">{t('accounting.account')}</th>
                               <th className="px-2 py-2 text-left font-semibold border-r border-[var(--color-border)] min-w-[250px]">Libellé du compte</th>
@@ -1075,8 +1088,8 @@ const JournalsPage: React.FC = () => {
                               { compte: '601', libelle: 'Achats stockés - Matières premières (et fournitures)', debit: '253,33', credit: '', soldeDebit: '253,33', soldeCredit: '' },
                               { compte: '701', libelle: 'Ventes de produits finis', debit: '', credit: '100,00', soldeDebit: '', soldeCredit: '100,00' }
                             ].map((compte, index) => (
-                              <tr key={index} className="hover:bg-[#7A99AC]/5 border-b border-[var(--color-border)]">
-                                <td className="px-2 py-1 text-xs font-mono text-[#B87333] font-bold border-r border-[var(--color-border)]">{compte.compte}</td>
+                              <tr key={index} className="hover:bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
+                                <td className="px-2 py-1 text-xs font-mono text-[var(--color-primary)] font-bold border-r border-[var(--color-border)]">{compte.compte}</td>
                                 <td className="px-2 py-1 text-xs border-r border-[var(--color-border)]">{compte.libelle}</td>
                                 <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-error)] border-r border-[var(--color-border)]">{compte.debit}</td>
                                 <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-success)] border-r border-[var(--color-border)]">{compte.credit}</td>
@@ -1084,8 +1097,8 @@ const JournalsPage: React.FC = () => {
                                 <td className="px-2 py-1 text-xs text-right font-medium text-[var(--color-success)]">{compte.soldeCredit}</td>
                               </tr>
                             ))}
-                            <tr className="bg-[#7A99AC]/20 font-bold border-t-2 border-[#7A99AC]">
-                              <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[#7A99AC] border-r border-[var(--color-border)]">TOTAL</td>
+                            <tr className="bg-[var(--color-surface-hover)] font-bold border-t-2 border-[var(--color-border)]">
+                              <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[var(--color-text-secondary)] border-r border-[var(--color-border)]">TOTAL</td>
                               <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">944,00</td>
                               <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)] border-r border-[var(--color-border)]">944,00</td>
                               <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">504,00</td>
@@ -1114,7 +1127,7 @@ const JournalsPage: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
                   <Plus className="w-5 h-5" />
                   <span>Création d'un Sous-journal</span>
                 </h3>
@@ -1136,13 +1149,14 @@ const JournalsPage: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Journal parent *</label>
-                  <select className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[#B87333]" required>
+                  <select className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" required>
                     <option value="">Choisir le journal principal</option>
                     <option value="VT">VT - Journal des Ventes</option>
                     <option value="AC">AC - Journal des Achats</option>
                     <option value="BQ">BQ - Journal de Banque</option>
                     <option value="CA">CA - Journal de Caisse</option>
                     <option value="OD">OD - Opérations Diverses</option>
+                    <option value="AN">AN - A-Nouveau</option>
                   </select>
                 </div>
 
@@ -1153,7 +1167,7 @@ const JournalsPage: React.FC = () => {
                       type="text"
                       placeholder="ex. VT01, AC01"
                       maxLength={5}
-                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[#B87333] font-mono"
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
                       required
                     />
                   </div>
@@ -1162,7 +1176,7 @@ const JournalsPage: React.FC = () => {
                     <input
                       type="text"
                       placeholder="ex. Ventes Export"
-                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[#B87333]"
+                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                       required
                     />
                   </div>
@@ -1179,7 +1193,7 @@ const JournalsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
                 >
                   Créer le sous-journal
                 </button>
@@ -1194,7 +1208,7 @@ const JournalsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
                 <Edit className="w-5 h-5" />
                 <span>Modifier l'écriture {selectedEntry.piece}</span>
               </h3>
@@ -1207,14 +1221,14 @@ const JournalsPage: React.FC = () => {
             </div>
 
             {/* Informations de l'écriture */}
-            <div className="bg-gradient-to-r from-[#6A8A82]/10 to-[#7A99AC]/10 rounded-lg p-4 mb-6">
+            <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 mb-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">N° Mouvement</label>
                   <input
                     type="text"
                     defaultValue={selectedEntry.mvt}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
                     readOnly
                   />
                 </div>
@@ -1223,7 +1237,7 @@ const JournalsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedEntry.jnl}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
                     readOnly
                   />
                 </div>
@@ -1232,7 +1246,7 @@ const JournalsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedEntry.date}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
               </div>
@@ -1243,7 +1257,7 @@ const JournalsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedEntry.piece}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
                   />
                 </div>
                 <div>
@@ -1251,7 +1265,7 @@ const JournalsPage: React.FC = () => {
                   <input
                     type="text"
                     defaultValue={selectedEntry.echeance}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
               </div>
@@ -1267,7 +1281,7 @@ const JournalsPage: React.FC = () => {
                   onClick={() => {
                     // Ajouter une nouvelle ligne vide
                   }}
-                  className="px-3 py-1 bg-[#6A8A82] text-white text-sm rounded-lg hover:bg-[#5A7A72] flex items-center space-x-1"
+                  className="px-3 py-1 bg-[var(--color-primary)] text-white text-sm rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-1"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Ajouter une ligne</span>
@@ -1396,7 +1410,7 @@ const JournalsPage: React.FC = () => {
                             const credit = parseFloat(line.credit?.replace(/\s/g, '').replace('-', '') || '0');
                             return sum + credit;
                           }, 0);
-                          return totalDebit === totalCredit ? (
+                          return Math.abs(totalDebit - totalCredit) < 0.01 ? (
                             <span className="text-[var(--color-success)] font-medium flex items-center justify-center">
                               <CheckCircle className="w-4 h-4 mr-1" />
                               Écriture équilibrée
@@ -1441,7 +1455,7 @@ const JournalsPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSaveEntry}
-                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
                 >
                   Enregistrer les modifications
                 </button>
@@ -1478,7 +1492,7 @@ const JournalsPage: React.FC = () => {
                   <CheckCircle className="w-10 h-10" style={{ color: 'var(--color-success)' }} />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-white text-center">
+              <h2 className="text-lg font-bold text-white text-center">
                 Écriture enregistrée avec succès !
               </h2>
               <p className="text-white/90 text-center mt-2">
@@ -1493,11 +1507,11 @@ const JournalsPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-semibold text-gray-700 uppercase">N° Pièce</label>
-                    <div className="text-2xl font-bold mt-1" style={{ color: 'var(--color-secondary)' }}>{savedEntry.piece}</div>
+                    <div className="text-lg font-bold mt-1" style={{ color: 'var(--color-secondary)' }}>{savedEntry.piece}</div>
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-700 uppercase">N° Écriture</label>
-                    <div className="text-2xl font-bold text-gray-800 mt-1">{savedEntry.mvt}</div>
+                    <div className="text-lg font-bold text-gray-800 mt-1">{savedEntry.mvt}</div>
                   </div>
                 </div>
 

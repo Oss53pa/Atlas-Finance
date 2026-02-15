@@ -176,7 +176,7 @@ function setupAutoCleanup(threshold: number) {
 
 function setupDevelopmentHelpers() {
   // Add performance helpers to window for debugging
-  (window as any).__WISEBOOK_PERFORMANCE__ = {
+  (window as any).__ATLAS_FINANCE_PERFORMANCE__ = {
     monitor: performanceMonitor,
     bundleAnalyzer,
     memoryOptimizer,
@@ -197,7 +197,7 @@ function setupDevelopmentHelpers() {
     },
   };
 
-  console.debug('Performance helpers available at window.__WISEBOOK_PERFORMANCE__');
+  console.debug('Performance helpers available at window.__ATLAS FINANCE_PERFORMANCE__');
 
   // Setup React DevTools profiler integration
   if ((window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__) {

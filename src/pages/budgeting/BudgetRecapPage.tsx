@@ -188,7 +188,7 @@ const BudgetRecapPage: React.FC = () => {
             </button>
 
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]">Budget Récap</h1>
+              <h1 className="text-lg font-bold text-[#191919]">Budget Récap</h1>
               <div className="flex items-center space-x-3 mt-1">
                 <span className="text-sm text-[#767676]">
                   {department || 'Tous les départements'}
@@ -242,7 +242,7 @@ const BudgetRecapPage: React.FC = () => {
 
       {/* Titre de la section */}
       <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] mb-4">
-        <h2 className="text-xl font-bold text-[#191919]">
+        <h2 className="text-lg font-bold text-[#191919]">
           {type === 'revenue' ? 'Revenus' : 'Dépenses'}
         </h2>
       </div>
@@ -370,13 +370,13 @@ const BudgetRecapPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <p className="text-xs text-[#767676] mb-2">Moyenne mensuelle</p>
-          <p className="text-xl font-bold text-[#B87333]">
+          <p className="text-lg font-bold text-[#B87333]">
             {formatAmount(Math.round(data.reduce((sum, row) => sum + row.total, 0) / 12))}
           </p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <p className="text-xs text-[#767676] mb-2">Mois le plus élevé</p>
-          <p className="text-xl font-bold text-green-600">
+          <p className="text-lg font-bold text-green-600">
             {(() => {
               let maxMonth = 'jan';
               let maxValue = 0;
@@ -397,7 +397,7 @@ const BudgetRecapPage: React.FC = () => {
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <p className="text-xs text-[#767676] mb-2">Mois le plus bas</p>
-          <p className="text-xl font-bold text-red-600">
+          <p className="text-lg font-bold text-red-600">
             {(() => {
               let minMonth = 'jan';
               let minValue = Infinity;
@@ -418,7 +418,7 @@ const BudgetRecapPage: React.FC = () => {
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <p className="text-xs text-[#767676] mb-2">Nombre de comptes</p>
-          <p className="text-xl font-bold text-[#191919]">
+          <p className="text-lg font-bold text-[#191919]">
             {data.length}
           </p>
         </div>

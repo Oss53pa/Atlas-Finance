@@ -218,7 +218,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       {/* Header avec contrôles */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
             Dashboard Comptabilité Client
           </h1>
           <p className="text-[var(--color-text-primary)] mt-1">
@@ -363,7 +363,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                           </div>
                           <div>
                             <p className="text-sm font-medium text-[var(--color-text-primary)]">{kpi.title}</p>
-                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{kpi.value}</p>
+                            <p className="text-lg font-bold text-[var(--color-text-primary)]">{kpi.value}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -508,7 +508,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <div className="grid gap-4 md:grid-cols-4 mb-6">
                     <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg border border-[var(--color-success-light)]">
                       <p className="text-sm font-medium text-[var(--color-success-darker)]">Courant (0-30j)</p>
-                      <p className="text-xl font-bold text-green-900">
+                      <p className="text-lg font-bold text-green-900">
                         {formatCurrency(agingData?.agingBreakdown?.current || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-success)] mt-1">
@@ -518,7 +518,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     
                     <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg border border-[var(--color-warning-light)]">
                       <p className="text-sm font-medium text-[var(--color-warning-dark)]">30-60 jours</p>
-                      <p className="text-xl font-bold text-yellow-900">
+                      <p className="text-lg font-bold text-yellow-900">
                         {formatCurrency(agingData?.agingBreakdown?.days_30_60 || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-warning)] mt-1">
@@ -528,7 +528,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     
                     <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg border border-[var(--color-warning-light)]">
                       <p className="text-sm font-medium text-[var(--color-warning-darker)]">60-90 jours</p>
-                      <p className="text-xl font-bold text-orange-900">
+                      <p className="text-lg font-bold text-orange-900">
                         {formatCurrency(agingData?.agingBreakdown?.days_60_90 || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-warning)] mt-1">
@@ -538,7 +538,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     
                     <div className="bg-[var(--color-error-lightest)] p-4 rounded-lg border border-[var(--color-error-light)]">
                       <p className="text-sm font-medium text-[var(--color-error-darker)]">Plus de 90j</p>
-                      <p className="text-xl font-bold text-red-900">
+                      <p className="text-lg font-bold text-red-900">
                         {formatCurrency(agingData?.agingBreakdown?.over_90 || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-error)] mt-1">
@@ -636,7 +636,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
                       <p className="text-sm font-medium text-[var(--color-primary-darker)]">Encaissement Attendu</p>
-                      <p className="text-xl font-bold text-[var(--color-primary-darker)]">
+                      <p className="text-lg font-bold text-[var(--color-primary-darker)]">
                         {formatCurrency(trendsData?.forecast?.totalExpected || 0)}
                       </p>
                       <p className="text-xs text-[var(--color-primary)] mt-1">
@@ -646,14 +646,14 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     
                     <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg">
                       <p className="text-sm font-medium text-[var(--color-success-darker)]">Probabilité Recouvrement</p>
-                      <p className="text-xl font-bold text-green-900">
+                      <p className="text-lg font-bold text-green-900">
                         {formatPercent(trendsData?.forecast?.probabilityRate || 0)}
                       </p>
                     </div>
                     
                     <div className="bg-[var(--color-warning-lightest)] p-4 rounded-lg">
                       <p className="text-sm font-medium text-[var(--color-warning-darker)]">Risque d'Impayé</p>
-                      <p className="text-xl font-bold text-orange-900">
+                      <p className="text-lg font-bold text-orange-900">
                         {formatCurrency(trendsData?.forecast?.riskAmount || 0)}
                       </p>
                     </div>
@@ -753,7 +753,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 {trendsData?.geographicBreakdown?.map((zone) => (
                   <div key={zone.region} className="p-4 border rounded-lg">
                     <h4 className="font-medium text-[var(--color-text-primary)]">{zone.region}</h4>
-                    <p className="text-2xl font-bold text-[var(--color-primary)] mt-2">
+                    <p className="text-lg font-bold text-[var(--color-primary)] mt-2">
                       {formatCurrency(zone.amount)}
                     </p>
                     <p className="text-sm text-[var(--color-text-secondary)]">

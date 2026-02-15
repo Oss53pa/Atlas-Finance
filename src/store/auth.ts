@@ -1,63 +1,57 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { User, AuthResponse } from '@/types';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  first_name?: string;
+  last_name?: string;
+  company?: string;
+  company_id?: string;
+  permissions?: string[];
+  photo_url?: string;
+}
 
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  
+
   // Actions
-  login: (authResponse: AuthResponse) => void;
+  setUser: (user: User | null) => void;
+  setAuthenticated: (authenticated: boolean) => void;
   logout: () => void;
-  refreshAccessToken: (newAccessToken: string) => void;
-  updateUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
-      accessToken: null,
-      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
 
-      login: (authResponse: AuthResponse) => {
+      setUser: (user: User | null) => {
         set({
-          user: authResponse.user,
-          accessToken: authResponse.accessToken,
-          refreshToken: authResponse.refreshToken,
-          isAuthenticated: true,
+          user,
+          isAuthenticated: !!user,
           isLoading: false,
         });
+      },
+
+      setAuthenticated: (authenticated: boolean) => {
+        set({ isAuthenticated: authenticated });
       },
 
       logout: () => {
         set({
           user: null,
-          accessToken: null,
-          refreshToken: null,
           isAuthenticated: false,
           isLoading: false,
         });
-        
-        // Clear all localStorage data
-        localStorage.removeItem('bookwise-auth-storage');
-        
-        // Redirect to login page
-        window.location.href = '/login';
-      },
-
-      refreshAccessToken: (newAccessToken: string) => {
-        set({ accessToken: newAccessToken });
-      },
-
-      updateUser: (user: User) => {
-        set({ user });
+        localStorage.removeItem('atlas-finance-auth-storage');
       },
 
       setLoading: (loading: boolean) => {
@@ -65,26 +59,12 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'bookwise-auth-storage',
+      name: 'atlas-finance-auth-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          // Validate token on app startup
-          const now = Date.now();
-          const tokenPayload = state.accessToken ? JSON.parse(atob(state.accessToken.split('.')[1])) : null;
-          
-          if (!tokenPayload || tokenPayload.exp * 1000 < now) {
-            // Token is expired, clear auth state
-            state.logout();
-          }
-        }
-      },
     }
   )
 );

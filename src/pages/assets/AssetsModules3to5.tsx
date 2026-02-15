@@ -286,7 +286,7 @@ export const renderAmortissementsIA = () => (
               <div className="flex items-center gap-3">
                 <Award className="w-8 h-8 text-green-600" />
                 <div>
-                  <p className="text-2xl font-bold text-green-900">94.2%</p>
+                  <p className="text-lg font-bold text-green-900">94.2%</p>
                   <p className="text-sm text-green-700">Précision des prédictions</p>
                 </div>
               </div>
@@ -295,7 +295,7 @@ export const renderAmortissementsIA = () => (
               <div className="flex items-center gap-3">
                 <Star className="w-8 h-8 text-blue-600" />
                 <div>
-                  <p className="text-2xl font-bold text-blue-900">156</p>
+                  <p className="text-lg font-bold text-blue-900">156</p>
                   <p className="text-sm text-blue-700">Optimisations appliquées</p>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export const renderAmortissementsIA = () => (
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-8 h-8 text-purple-600" />
                 <div>
-                  <p className="text-2xl font-bold text-purple-900">€245K</p>
+                  <p className="text-lg font-bold text-purple-900">€245K</p>
                   <p className="text-sm text-purple-700">Économies totales générées</p>
                 </div>
               </div>
@@ -1274,7 +1274,7 @@ export const renderInventaireAuto = () => {
               <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border-2 border-dashed border-blue-300">
                 <div className="text-center mb-6">
                   <QrCode className="w-20 h-20 text-blue-600 mx-auto mb-4" />
-                  <p className="text-xl font-semibold text-blue-900 mb-2">Scanner QR Code</p>
+                  <p className="text-lg font-semibold text-blue-900 mb-2">Scanner QR Code</p>
                   <p className="text-sm text-blue-700 mb-4">Positionnez le QR code dans le cadre</p>
                   <div className="w-48 h-48 mx-auto border-2 border-blue-400 rounded-lg flex items-center justify-center bg-black bg-opacity-10">
                     <div className="w-32 h-32 border border-blue-500 rounded">
@@ -1494,7 +1494,7 @@ export const renderInventaireAuto = () => {
                   <div className="p-4 bg-green-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-green-900">Taux de Précision</span>
-                      <span className="text-2xl font-bold text-green-900">98.5%</span>
+                      <span className="text-lg font-bold text-green-900">98.5%</span>
                     </div>
                     <div className="w-full bg-green-200 rounded-full h-2">
                       <div className="bg-green-600 h-2 rounded-full" style={{ width: '98.5%' }}></div>
@@ -1505,7 +1505,7 @@ export const renderInventaireAuto = () => {
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-blue-900">Couverture GPS</span>
-                      <span className="text-2xl font-bold text-blue-900">95.2%</span>
+                      <span className="text-lg font-bold text-blue-900">95.2%</span>
                     </div>
                     <div className="w-full bg-blue-200 rounded-full h-2">
                       <div className="bg-blue-600 h-2 rounded-full" style={{ width: '95.2%' }}></div>
@@ -1516,7 +1516,7 @@ export const renderInventaireAuto = () => {
                   <div className="p-4 bg-purple-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-purple-900">Temps Moyen/Actif</span>
-                      <span className="text-2xl font-bold text-purple-900">2.3min</span>
+                      <span className="text-lg font-bold text-purple-900">2.3min</span>
                     </div>
                     <div className="w-full bg-purple-200 rounded-full h-2">
                       <div className="bg-purple-600 h-2 rounded-full" style={{ width: '77%' }}></div>
@@ -1527,7 +1527,7 @@ export const renderInventaireAuto = () => {
                   <div className="p-4 bg-yellow-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-yellow-900">Productivité Équipe</span>
-                      <span className="text-2xl font-bold text-yellow-900">142%</span>
+                      <span className="text-lg font-bold text-yellow-900">142%</span>
                     </div>
                     <div className="w-full bg-yellow-200 rounded-full h-2">
                       <div className="bg-yellow-600 h-2 rounded-full" style={{ width: '100%' }}></div>

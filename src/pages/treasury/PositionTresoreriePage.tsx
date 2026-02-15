@@ -136,7 +136,7 @@ const PositionTresoreriePage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+              <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
                 <Wallet className="h-8 w-8 text-[#6A8A82] mr-3" />
                 Position Trésorerie Temps Réel
               </h1>
@@ -169,7 +169,7 @@ const PositionTresoreriePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <h3 className="text-lg font-medium opacity-90 mb-2">Position Totale</h3>
-              <p className="text-4xl font-bold">
+              <p className="text-lg font-bold">
                 {position.totalCash.toLocaleString()} XOF
               </p>
             </div>
@@ -181,7 +181,7 @@ const PositionTresoreriePage: React.FC = () => {
                 ) : (
                   <ArrowDownRight className="h-6 w-6 text-red-300 mr-2" />
                 )}
-                <p className="text-2xl font-bold">
+                <p className="text-lg font-bold">
                   {Math.abs(position.dailyVariation).toLocaleString()} XOF
                 </p>
               </div>
@@ -194,7 +194,7 @@ const PositionTresoreriePage: React.FC = () => {
                 ) : (
                   <ArrowDownRight className="h-6 w-6 text-red-300 mr-2" />
                 )}
-                <p className="text-2xl font-bold">
+                <p className="text-lg font-bold">
                   {Math.abs(position.weeklyForecast).toLocaleString()} XOF
                 </p>
               </div>
@@ -207,7 +207,7 @@ const PositionTresoreriePage: React.FC = () => {
                 ) : (
                   <ArrowDownRight className="h-6 w-6 text-red-300 mr-2" />
                 )}
-                <p className="text-2xl font-bold">
+                <p className="text-lg font-bold">
                   {Math.abs(position.monthlyForecast).toLocaleString()} XOF
                 </p>
               </div>
@@ -219,7 +219,7 @@ const PositionTresoreriePage: React.FC = () => {
           {/* Comptes bancaires */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Comptes Bancaires</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Comptes Bancaires</h2>
             </div>
             
             <div className="p-6 space-y-4">
@@ -258,7 +258,7 @@ const PositionTresoreriePage: React.FC = () => {
           {/* Mouvements du jour */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Mouvements du Jour</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Mouvements du Jour</h2>
             </div>
             
             <div className="p-6 space-y-3">

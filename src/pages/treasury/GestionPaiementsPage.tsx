@@ -273,7 +273,7 @@ const GestionPaiementsPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+              <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
                 <Send className="h-8 w-8 text-green-600 mr-3" />
                 Gestion des Paiements
               </h1>
@@ -305,7 +305,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.todayPayments}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.todayPayments}</p>
               <p className="text-gray-600 text-sm">{t('common.today')}</p>
             </div>
           </motion.div>
@@ -322,7 +322,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.pendingValidation}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.pendingValidation}</p>
               <p className="text-gray-600 text-sm">En validation</p>
             </div>
           </motion.div>
@@ -339,7 +339,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.executedToday}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.executedToday}</p>
               <p className="text-gray-600 text-sm">Exécutés</p>
             </div>
           </motion.div>
@@ -356,7 +356,7 @@ const GestionPaiementsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.failedPayments}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.failedPayments}</p>
               <p className="text-gray-600 text-sm">Échecs</p>
             </div>
           </motion.div>
@@ -384,7 +384,7 @@ const GestionPaiementsPage: React.FC = () => {
         {/* Moyens de paiement */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Moyens de Paiement</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Moyens de Paiement</h2>
           </div>
           
           <div className="p-6">
@@ -424,7 +424,7 @@ const GestionPaiementsPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Paiements</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Paiements</h2>
               <button
                 onClick={() => setShowPeriodModal(true)}
                 className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -557,7 +557,7 @@ const GestionPaiementsPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">Nouveau Paiement</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Nouveau Paiement</h2>
                   <button
                     onClick={() => setShowNewPaymentModal(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -704,7 +704,7 @@ const GestionPaiementsPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">Valider le paiement</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Valider le paiement</h2>
                   <button
                     onClick={() => setShowValidateModal(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -761,7 +761,7 @@ const GestionPaiementsPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">Relancer le paiement</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Relancer le paiement</h2>
                   <button
                     onClick={() => setShowRetryModal(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -818,7 +818,7 @@ const GestionPaiementsPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">Détails du paiement</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Détails du paiement</h2>
                   <button
                     onClick={() => setShowViewDetailModal(false)}
                     className="text-gray-400 hover:text-gray-600"

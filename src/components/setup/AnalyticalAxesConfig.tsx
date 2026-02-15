@@ -447,7 +447,7 @@ const AnalyticalAxesConfig: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <TargetIcon className="h-8 w-8 mr-3 text-indigo-600" />
               Axes Analytiques Multi-Dimensions
             </h1>
@@ -516,7 +516,7 @@ const AnalyticalAxesConfig: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-lg font-bold text-gray-900">{stat.value}</p>
                     <p className="text-sm text-gray-700">{stat.subtitle}</p>
                   </div>
                   <div className={`h-12 w-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
@@ -529,7 +529,7 @@ const AnalyticalAxesConfig: React.FC = () => {
 
           {/* Vue d'ensemble des axes */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Configuration des Axes</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Configuration des Axes</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {analyticalAxes.map((axis) => {
                 const Icon = getAxisIcon(axis.type);
@@ -632,7 +632,7 @@ const AnalyticalAxesConfig: React.FC = () => {
           {/* Liste des sections */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Sections Analytiques</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-6">Sections Analytiques</h2>
               
               <div className="space-y-4">
                 {analyticalAxes.map((axis) => (
@@ -796,7 +796,7 @@ const AnalyticalAxesConfig: React.FC = () => {
       {/* Vue règles de ventilation */}
       {viewMode === 'rules' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
             <CogIcon className="h-6 w-6 mr-2 text-indigo-600" />
             Règles de Ventilation
           </h2>

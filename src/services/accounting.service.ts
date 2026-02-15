@@ -1,5 +1,5 @@
 /**
- * SERVICE FRONTEND ACCOUNTING - WiseBook ERP v4.1.0
+ * SERVICE FRONTEND ACCOUNTING - Atlas Finance v4.1.0
  * BASE PATH: /api/v1/accounting/
  *
  * Alignement 100% avec backend Django REST Framework
@@ -311,7 +311,7 @@ class AccountingService {
    * Récupère l'exercice fiscal actif
    */
   async getActiveFiscalYear(companyId?: string): Promise<FiscalYear> {
-    const params: any = { is_active: true, page_size: 1 };
+    const params: Record<string, string | boolean | number> = { is_active: true, page_size: 1 };
     if (companyId) {
       params.company = companyId;
     }
@@ -375,7 +375,7 @@ class AccountingService {
    * Récupère les journaux par type
    */
   async getJournalsByType(type: string, companyId?: string): Promise<Journal[]> {
-    const params: any = { journal_type: type };
+    const params: Record<string, string> = { journal_type: type };
     if (companyId) {
       params.company = companyId;
     }
@@ -416,7 +416,7 @@ class AccountingService {
    * Récupère un compte par numéro
    */
   async getAccountByNumber(accountNumber: string, companyId?: string): Promise<ChartOfAccount> {
-    const params: any = { search: accountNumber };
+    const params: Record<string, string> = { search: accountNumber };
     if (companyId) {
       params.company = companyId;
     }

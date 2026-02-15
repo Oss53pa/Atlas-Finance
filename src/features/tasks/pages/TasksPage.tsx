@@ -34,7 +34,7 @@ const TasksPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#191919]">Gestion des Tâches</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Gestion des Tâches</h1>
           <p className="text-[#767676] mt-1">
             Planifiez, suivez et collaborez sur vos tâches
           </p>

@@ -304,7 +304,7 @@ const ConnexionsBancairesPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Building2 className="mr-3 h-7 w-7 text-[#6A8A82]" />
               Connexions Bancaires
             </h1>
@@ -348,7 +348,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Comptes Connectés</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-lg font-bold text-blue-700">
                     {connectedCount}/{connections.length}
                   </p>
                 </div>
@@ -370,7 +370,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Solde Total</p>
-                  <p className="text-2xl font-bold text-green-700">
+                  <p className="text-lg font-bold text-green-700">
                     {formatCurrency(totalBalance)}
                   </p>
                 </div>
@@ -392,7 +392,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Transactions</p>
-                  <p className="text-2xl font-bold text-purple-700">{totalTransactions}</p>
+                  <p className="text-lg font-bold text-purple-700">{totalTransactions}</p>
                 </div>
               </div>
             </CardContent>
@@ -412,7 +412,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Erreurs</p>
-                  <p className="text-2xl font-bold text-red-700">{errorCount}</p>
+                  <p className="text-lg font-bold text-red-700">{errorCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -483,7 +483,7 @@ const ConnexionsBancairesPage: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
                             <p className="text-sm font-medium text-gray-600">Solde Actuel</p>
-                            <p className={`text-xl font-bold ${
+                            <p className={`text-lg font-bold ${
                               connection.solde_actuel >= 0 ? 'text-green-700' : 'text-red-700'
                             }`}>
                               {formatCurrency(connection.solde_actuel)}

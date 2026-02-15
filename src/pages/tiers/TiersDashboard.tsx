@@ -160,7 +160,6 @@ const TiersDashboard: React.FC = () => {
   };
 
   const handleExport = () => {
-    console.log('Exporting dashboard data...');
   };
 
   const formatCurrency = (amount: number) => {
@@ -203,7 +202,7 @@ const TiersDashboard: React.FC = () => {
                 <Users className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Gestion des Tiers</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Gestion des Tiers</h1>
                 <p className="text-sm text-[#666666]">Management complet des relations commerciales</p>
               </div>
             </div>
@@ -277,7 +276,7 @@ const TiersDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Total Clients</p>
-                  <p className="text-2xl font-bold text-[#191919]">{kpis.totalClients}</p>
+                  <p className="text-lg font-bold text-[#191919]">{kpis.totalClients}</p>
                   <p className="text-xs text-[var(--color-success)]">+{kpis.nouveauxClientsMois} ce mois</p>
                 </div>
                 <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -290,7 +289,7 @@ const TiersDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">{t('navigation.suppliers')}</p>
-                  <p className="text-2xl font-bold text-[#191919]">{kpis.totalFournisseurs}</p>
+                  <p className="text-lg font-bold text-[#191919]">{kpis.totalFournisseurs}</p>
                   <p className="text-xs text-[#6A8A82]">Actifs</p>
                 </div>
                 <div className="w-10 h-10 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
@@ -303,7 +302,7 @@ const TiersDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">CA Total</p>
-                  <p className="text-2xl font-bold text-[#191919]">{formatCurrency(kpis.chiffreAffairesTotal)}</p>
+                  <p className="text-lg font-bold text-[#191919]">{formatCurrency(kpis.chiffreAffairesTotal)}</p>
                   <p className="text-xs text-[var(--color-success)]">+{kpis.croissanceCA}% vs mois dernier</p>
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-success-lighter)] rounded-lg flex items-center justify-center">
@@ -316,7 +315,7 @@ const TiersDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Encours Clients</p>
-                  <p className="text-2xl font-bold text-[#191919]">{formatCurrency(kpis.encoursClients)}</p>
+                  <p className="text-lg font-bold text-[#191919]">{formatCurrency(kpis.encoursClients)}</p>
                   <p className="text-xs text-[var(--color-warning)]">DSO: {kpis.dsoMoyen} jours</p>
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
@@ -329,7 +328,7 @@ const TiersDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Taux Recouvrement</p>
-                  <p className="text-2xl font-bold text-[#191919]">{kpis.tauxRecouvrement}%</p>
+                  <p className="text-lg font-bold text-[#191919]">{kpis.tauxRecouvrement}%</p>
                   <p className="text-xs text-[var(--color-error)]">{formatCurrency(kpis.impayesTotal)} d'impayés</p>
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-error-lighter)] rounded-lg flex items-center justify-center">

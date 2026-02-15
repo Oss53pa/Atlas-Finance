@@ -294,7 +294,7 @@ const LiasseFiscalePage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <FileCheck className="mr-3 h-7 w-7 text-blue-600" />
               Liasse Fiscale
             </h1>
@@ -398,7 +398,7 @@ const LiasseFiscalePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Documents</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-lg font-bold text-gray-900">
                     {completedDocs}/{totalDocs}
                   </p>
                   <Progress value={overallProgress} className="w-24 mt-1" />
@@ -421,7 +421,7 @@ const LiasseFiscalePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Obligatoires</p>
-                  <p className="text-2xl font-bold text-red-700">{obligatoryDocs}</p>
+                  <p className="text-lg font-bold text-red-700">{obligatoryDocs}</p>
                 </div>
               </div>
             </CardContent>
@@ -441,7 +441,7 @@ const LiasseFiscalePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Complétés</p>
-                  <p className="text-2xl font-bold text-green-700">{completedDocs}</p>
+                  <p className="text-lg font-bold text-green-700">{completedDocs}</p>
                 </div>
               </div>
             </CardContent>
@@ -609,7 +609,7 @@ const LiasseFiscalePage: React.FC = () => {
                         </Badge>
                       </div>
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-2xl font-bold text-gray-900">
+                        <span className="text-lg font-bold text-gray-900">
                           {ratio.unite === '%' ? formatPercentage(ratio.valeur) : ratio.valeur.toFixed(2)}
                         </span>
                         {ratio.unite !== '%' && (

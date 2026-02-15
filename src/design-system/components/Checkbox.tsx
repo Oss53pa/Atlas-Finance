@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Checkbox Component
+ * Atlas Finance Design System - Checkbox Component
  * Fully accessible checkbox with validation and custom styling
  */
 

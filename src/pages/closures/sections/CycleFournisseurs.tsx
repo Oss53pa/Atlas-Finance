@@ -340,7 +340,7 @@ const CycleFournisseurs: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Total Dettes</p>
-                <p className="text-2xl font-bold">{(kpis.totalDettes / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.totalDettes / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-error)] mt-1">+8% vs mois dernier</p>
               </div>
               <DollarSign className="w-8 h-8 text-[var(--color-error)]" />
@@ -353,7 +353,7 @@ const CycleFournisseurs: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Dettes Échues</p>
-                <p className="text-2xl font-bold">{(kpis.totalEchu / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.totalEchu / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-warning)] mt-1">À régler en priorité</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-orange-500" />
@@ -366,7 +366,7 @@ const CycleFournisseurs: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Commandes en cours</p>
-                <p className="text-2xl font-bold">{kpis.commandesEnCours}</p>
+                <p className="text-lg font-bold">{kpis.commandesEnCours}</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">En attente livraison</p>
               </div>
               <Package className="w-8 h-8 text-[var(--color-primary)]" />
@@ -379,7 +379,7 @@ const CycleFournisseurs: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Fournisseurs Actifs</p>
-                <p className="text-2xl font-bold">{kpis.nombreFournisseursActifs}</p>
+                <p className="text-lg font-bold">{kpis.nombreFournisseursActifs}</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">Contrats valides</p>
               </div>
               <Building className="w-8 h-8 text-[var(--color-success)]" />
@@ -419,27 +419,27 @@ const CycleFournisseurs: React.FC = () => {
                 <div className="grid grid-cols-5 gap-4">
                   <div className="text-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">En retard</p>
-                    <p className="text-xl font-bold text-[var(--color-error)]">12.5M</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">12.5M</p>
                     <p className="text-xs">3 factures</p>
                   </div>
                   <div className="text-center p-3 bg-orange-50 rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">Cette semaine</p>
-                    <p className="text-xl font-bold text-[var(--color-warning)]">25.8M</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">25.8M</p>
                     <p className="text-xs">7 factures</p>
                   </div>
                   <div className="text-center p-3 bg-[var(--color-warning-lightest)] rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">Semaine prochaine</p>
-                    <p className="text-xl font-bold text-[var(--color-warning)]">18.3M</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">18.3M</p>
                     <p className="text-xs">5 factures</p>
                   </div>
                   <div className="text-center p-3 bg-[var(--color-primary-lightest)] rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">Ce mois</p>
-                    <p className="text-xl font-bold text-[var(--color-primary)]">45.2M</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">45.2M</p>
                     <p className="text-xs">12 factures</p>
                   </div>
                   <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">Plus tard</p>
-                    <p className="text-xl font-bold text-[var(--color-success)]">28.9M</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">28.9M</p>
                     <p className="text-xs">8 factures</p>
                   </div>
                 </div>
@@ -914,7 +914,7 @@ const CycleFournisseurs: React.FC = () => {
                 <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
                   <Receipt className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de la Facture Fournisseur</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Détail de la Facture Fournisseur</h2>
               </div>
               <button
                 onClick={() => {

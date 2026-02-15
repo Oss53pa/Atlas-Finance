@@ -515,7 +515,7 @@ const ImportExportPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Database className="mr-3 h-7 w-7 text-blue-600" />
               Import / Export
             </h1>
@@ -562,7 +562,7 @@ const ImportExportPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Modèles Actifs</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-lg font-bold text-blue-700">
                     {activeTemplates}/{templates.length}
                   </p>
                 </div>
@@ -584,7 +584,7 @@ const ImportExportPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Imports</p>
-                  <p className="text-2xl font-bold text-green-700">{importTemplates}</p>
+                  <p className="text-lg font-bold text-green-700">{importTemplates}</p>
                 </div>
               </div>
             </CardContent>
@@ -604,7 +604,7 @@ const ImportExportPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Exports</p>
-                  <p className="text-2xl font-bold text-purple-700">{exportTemplates}</p>
+                  <p className="text-lg font-bold text-purple-700">{exportTemplates}</p>
                 </div>
               </div>
             </CardContent>
@@ -624,7 +624,7 @@ const ImportExportPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Exécutions</p>
-                  <p className="text-2xl font-bold text-orange-700">{totalExecutions}</p>
+                  <p className="text-lg font-bold text-orange-700">{totalExecutions}</p>
                 </div>
               </div>
             </CardContent>
@@ -1096,7 +1096,7 @@ const ImportExportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Nouveau Modèle d'Import/Export</h2>
+              <h2 className="text-lg font-bold text-gray-900">Nouveau Modèle d'Import/Export</h2>
               <button onClick={() => setShowCreateModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="h-6 w-6" />
               </button>
@@ -1191,7 +1191,7 @@ const ImportExportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-xl max-w-xl w-full m-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Lancer l'import/export</h2>
+              <h2 className="text-lg font-bold text-gray-900">Lancer l'import/export</h2>
               <button onClick={() => setShowExecuteModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="h-6 w-6" />
               </button>
@@ -1250,7 +1250,7 @@ const ImportExportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-xl max-w-xl w-full m-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Planifier l'exécution</h2>
+              <h2 className="text-lg font-bold text-gray-900">Planifier l'exécution</h2>
               <button onClick={() => setShowScheduleModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="h-6 w-6" />
               </button>
@@ -1311,7 +1311,7 @@ const ImportExportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto m-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Parcourir les fichiers</h2>
+              <h2 className="text-lg font-bold text-gray-900">Parcourir les fichiers</h2>
               <button onClick={() => setShowBrowseFilesModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="h-6 w-6" />
               </button>
@@ -1367,7 +1367,7 @@ const ImportExportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Détails du modèle</h2>
+              <h2 className="text-lg font-bold text-gray-900">Détails du modèle</h2>
               <button onClick={() => setShowViewModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="h-6 w-6" />
               </button>
@@ -1410,11 +1410,11 @@ const ImportExportPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <p className="text-sm text-gray-600">Exécutions totales</p>
-                  <p className="text-2xl font-bold text-blue-700">{selectedTemplate.execution_count}</p>
+                  <p className="text-lg font-bold text-blue-700">{selectedTemplate.execution_count}</p>
                 </div>
                 <div className="bg-green-50 p-3 rounded-lg">
                   <p className="text-sm text-gray-600">Taux de succès</p>
-                  <p className="text-2xl font-bold text-green-700">{selectedTemplate.success_rate}%</p>
+                  <p className="text-lg font-bold text-green-700">{selectedTemplate.success_rate}%</p>
                 </div>
               </div>
             </div>
@@ -1450,7 +1450,7 @@ const ImportExportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Modifier le modèle</h2>
+              <h2 className="text-lg font-bold text-gray-900">Modifier le modèle</h2>
               <button onClick={() => setShowEditModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="h-6 w-6" />
               </button>
@@ -1515,7 +1515,7 @@ const ImportExportPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Détails de l'exécution</h2>
+              <h2 className="text-lg font-bold text-gray-900">Détails de l'exécution</h2>
               <button onClick={() => setShowExecutionDetailsModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="h-6 w-6" />
               </button>
@@ -1590,15 +1590,15 @@ const ImportExportPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                   <p className="text-sm text-gray-600 mb-1">Traités</p>
-                  <p className="text-2xl font-bold text-blue-700">{selectedExecution.records_processed}</p>
+                  <p className="text-lg font-bold text-blue-700">{selectedExecution.records_processed}</p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg text-center">
                   <p className="text-sm text-gray-600 mb-1">Réussis</p>
-                  <p className="text-2xl font-bold text-green-700">{selectedExecution.records_successful}</p>
+                  <p className="text-lg font-bold text-green-700">{selectedExecution.records_successful}</p>
                 </div>
                 <div className="bg-red-50 p-4 rounded-lg text-center">
                   <p className="text-sm text-gray-600 mb-1">Échoués</p>
-                  <p className="text-2xl font-bold text-red-700">{selectedExecution.records_failed}</p>
+                  <p className="text-lg font-bold text-red-700">{selectedExecution.records_failed}</p>
                 </div>
               </div>
               {selectedExecution.records_processed > 0 && (

@@ -45,7 +45,7 @@ const MobileAppPage: React.FC = () => {
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState<{ id: number; name: string } | null>(null);
   const [settings, setSettings] = useState({
     minVersion: '2.0.0',
-    serverUrl: 'https://api.wisebook.com',
+    serverUrl: 'https://api.atlasfinance.com',
     cacheLimit: 500,
     debugMode: false,
     analytics: true
@@ -224,7 +224,7 @@ const MobileAppPage: React.FC = () => {
   const handleResetSettings = () => {
     setSettings({
       minVersion: '2.0.0',
-      serverUrl: 'https://api.wisebook.com',
+      serverUrl: 'https://api.atlasfinance.com',
       cacheLimit: 500,
       debugMode: false,
       analytics: true
@@ -269,7 +269,7 @@ const MobileAppPage: React.FC = () => {
                   <Smartphone className="w-8 h-8 text-[var(--color-primary)]" />
                   <span className="text-xs text-[var(--color-success)] font-medium">+8%</span>
                 </div>
-                <div className="text-2xl font-bold">247</div>
+                <div className="text-lg font-bold">247</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Utilisateurs actifs</div>
               </motion.div>
 
@@ -283,7 +283,7 @@ const MobileAppPage: React.FC = () => {
                   <Download className="w-8 h-8 text-[var(--color-success)]" />
                   <span className="text-xs text-[var(--color-success)] font-medium">v2.3.1</span>
                 </div>
-                <div className="text-2xl font-bold">1,234</div>
+                <div className="text-lg font-bold">1,234</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Téléchargements</div>
               </motion.div>
 
@@ -297,7 +297,7 @@ const MobileAppPage: React.FC = () => {
                   <Star className="w-8 h-8 text-[var(--color-warning)]" />
                   <span className="text-xs font-medium">4.8/5</span>
                 </div>
-                <div className="text-2xl font-bold">4.8</div>
+                <div className="text-lg font-bold">4.8</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Note moyenne</div>
               </motion.div>
 
@@ -311,7 +311,7 @@ const MobileAppPage: React.FC = () => {
                   <RefreshCw className="w-8 h-8 text-[var(--color-secondary)]" />
                   <span className="text-xs text-[var(--color-success)] font-medium">Active</span>
                 </div>
-                <div className="text-2xl font-bold">98.5%</div>
+                <div className="text-lg font-bold">98.5%</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Taux de synchronisation</div>
               </motion.div>
             </div>
@@ -871,8 +871,8 @@ const MobileAppPage: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Application Mobile</h1>
-        <p className="text-[var(--color-text-secondary)] mt-1">Gérez l'application mobile WiseBook et les appareils connectés</p>
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Application Mobile</h1>
+        <p className="text-[var(--color-text-secondary)] mt-1">Gérez l'application mobile Atlas Finance et les appareils connectés</p>
       </div>
 
       {/* Tabs */}
@@ -927,7 +927,7 @@ const MobileAppPage: React.FC = () => {
             </div>
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-600">
-                Scannez ce QR code avec l'application mobile WiseBook
+                Scannez ce QR code avec l'application mobile Atlas Finance
               </p>
               <p className="text-xs text-gray-700">
                 Code d'association : <span className="font-mono font-bold">WB-2024-XYZ-123</span>

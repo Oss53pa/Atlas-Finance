@@ -178,7 +178,7 @@ const CapitalizationModal: React.FC<CapitalizationModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
           <div>
-            <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+            <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
               Demande de Capitalisation
             </h2>
             <p className="text-sm text-[var(--color-text-secondary)] mt-1">

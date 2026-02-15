@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
@@ -48,7 +48,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState('dashboard');
-  const lastClickTime = useRef(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -246,6 +245,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       const moduleId = moduleMatch[1];
       const routeMapping: Record<string, string> = {
         'dashboard': 'dashboard',
+        'executive': 'dashboard',
         'accounting': 'accounting',
         'tiers': 'tiers',
         'third-party': 'tiers',
@@ -256,13 +256,18 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'control': 'control',
         'budgeting': 'control',
         'analytics': 'control',
+        'financial-analysis-advanced': 'control',
         'assets': 'assets',
         'reporting': 'reporting',
         'reports': 'reporting',
-        'financial': 'reporting',
+        'financial-statements': 'reporting',
         'closures': 'closures',
         'settings': 'settings',
-        'parameters': 'settings'
+        'parameters': 'settings',
+        'config': 'settings',
+        'security': 'settings',
+        'inventory': 'assets',
+        'taxation': 'reporting'
       };
       const newModule = routeMapping[moduleId] || 'dashboard';
       setSelectedModule(prev => prev !== newModule ? newModule : prev);
@@ -275,26 +280,19 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   }, [setTheme]);
 
   const handlePrimaryClick = useCallback((item: MenuItem) => {
-    // Debounce réduit à 50ms
-    const now = Date.now();
-    if (now - lastClickTime.current < 50) return;
-    lastClickTime.current = now;
-
     if (item.path) {
       navigate(item.path);
-    } else {
-      setSelectedModule(item.id);
     }
-  }, [navigate]);
+    setSelectedModule(item.id);
+    // Si le module a des sous-menus, naviguer vers le premier sous-menu
+    const subItems = secondaryMenuItems[item.id];
+    if (!item.path && subItems && subItems.length > 0 && subItems[0].path) {
+      navigate(subItems[0].path);
+    }
+  }, [navigate, secondaryMenuItems]);
 
   const handleSecondaryClick = useCallback((path: string | undefined) => {
     if (!path) return;
-
-    // Debounce réduit à 50ms pour éviter les double-clics accidentels
-    const now = Date.now();
-    if (now - lastClickTime.current < 50) return;
-    lastClickTime.current = now;
-
     navigate(path);
   }, [navigate]);
 
@@ -354,7 +352,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             </div>
             {!primaryCollapsed && (
               <div>
-                <h1 className="text-[var(--color-sidebar-text)] font-bold text-lg">WiseBook</h1>
+                <h1 className="text-[var(--color-sidebar-text)] font-bold text-lg">Atlas Finance</h1>
                 <p className="text-[var(--color-sidebar-text-secondary)] text-xs">ERP Next-Gen</p>
               </div>
             )}
@@ -387,7 +385,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 transition-all duration-200',
                 'hover:bg-[var(--color-sidebar-hover)] relative group',
-                isModuleActive(item.id) && 'bg-[var(--color-sidebar-active)] border-l-4 border-[var(--color-primary)]',
+                isModuleActive(item.id) && 'bg-[var(--color-sidebar-active-bg)] border-l-4 border-[var(--color-sidebar-active)]',
                 primaryCollapsed && 'justify-center'
               )}
               role="menuitem"
@@ -396,7 +394,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             >
               <div className={cn(
                 'transition-colors',
-                isModuleActive(item.id) ? 'text-[var(--color-primary)]' : 'text-[var(--color-sidebar-text-secondary)] group-hover:text-[var(--color-sidebar-text)]'
+                isModuleActive(item.id) ? 'text-[var(--color-sidebar-active)]' : 'text-[var(--color-sidebar-text-secondary)] group-hover:text-[var(--color-sidebar-text-hover)]'
               )}>
                 {item.icon}
               </div>
@@ -404,19 +402,19 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 <>
                   <span className={cn(
                     'flex-1 text-left text-sm font-medium transition-colors',
-                    isModuleActive(item.id) ? 'text-[var(--color-sidebar-text)]' : 'text-[var(--color-sidebar-text-secondary)] group-hover:text-[var(--color-sidebar-text)]'
+                    isModuleActive(item.id) ? 'text-[var(--color-sidebar-text-hover)]' : 'text-[var(--color-sidebar-text-secondary)] group-hover:text-[var(--color-sidebar-text-hover)]'
                   )}>
                     {item.label}
                   </span>
                   {item.badge && (
-                    <span className="px-2 py-0.5 text-xs bg-[var(--color-primary)] text-[var(--color-background)] rounded-full">
+                    <span className="px-2 py-0.5 text-xs bg-[var(--color-sidebar-active)] text-[var(--color-sidebar-bg)] rounded-full">
                       {item.badge}
                     </span>
                   )}
                 </>
               )}
               {primaryCollapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-[var(--color-sidebar-active)] text-[var(--color-sidebar-text)] text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
+                <div className="absolute left-full ml-2 px-2 py-1 bg-[var(--color-sidebar-hover)] text-[var(--color-sidebar-text-hover)] text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
                   {item.label}
                 </div>
               )}
@@ -436,7 +434,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             {!primaryCollapsed && (
               <div className="flex-1">
                 <p className="text-sm font-medium text-[var(--color-sidebar-text)]">Admin</p>
-                <p className="text-xs text-[var(--color-sidebar-text-secondary)]">admin@wisebook.com</p>
+                <p className="text-xs text-[var(--color-sidebar-text-secondary)]">admin@atlasfinance.com</p>
               </div>
             )}
           </div>
@@ -547,8 +545,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                   <span className="text-[var(--color-background)] font-bold text-xl">W</span>
                 </div>
                 <div>
-                  <h1 className="text-white font-bold text-lg">WiseBook</h1>
-                  <p className="text-gray-700 text-xs">ERP Next-Gen</p>
+                  <h1 className="text-white font-bold text-lg">Atlas Finance</h1>
+                  <p className="text-[var(--color-sidebar-text-secondary)] text-xs">ERP Next-Gen</p>
                 </div>
               </div>
               <button
@@ -574,20 +572,20 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                     className={cn(
                       'w-full flex items-center gap-3 px-4 py-3 transition-all duration-200',
                       'hover:bg-[var(--color-sidebar-hover)]',
-                      isModuleActive(item.id) && 'bg-[var(--color-sidebar-active)] border-l-4 border-[var(--color-primary)]'
+                      isModuleActive(item.id) && 'bg-[var(--color-sidebar-active-bg)] border-l-4 border-[var(--color-sidebar-active)]'
                     )}
                     role="menuitem"
                     aria-current={isModuleActive(item.id) ? 'page' : undefined}
                   >
                     <div className={cn(
                       'transition-colors',
-                      isModuleActive(item.id) ? 'text-[var(--color-primary)]' : 'text-[var(--color-sidebar-text-secondary)]'
+                      isModuleActive(item.id) ? 'text-[var(--color-sidebar-active)]' : 'text-[var(--color-sidebar-text-secondary)]'
                     )}>
                       {item.icon}
                     </div>
                     <span className={cn(
                       'flex-1 text-left text-sm font-medium',
-                      isModuleActive(item.id) ? 'text-[var(--color-sidebar-text)]' : 'text-[var(--color-sidebar-text-secondary)]'
+                      isModuleActive(item.id) ? 'text-[var(--color-sidebar-text-hover)]' : 'text-[var(--color-sidebar-text-secondary)]'
                     )}>
                       {item.label}
                     </span>
@@ -600,7 +598,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
 
                   {/* Mobile Submenu */}
                   {isModuleActive(item.id) && secondaryMenuItems[item.id] && (
-                    <div className="bg-[var(--color-sidebar-submenu-bg)] py-2">
+                    <div className="bg-[var(--color-sidebar-bg)] py-2">
                       {secondaryMenuItems[item.id].map((subItem) => (
                         <button
                           type="button"
@@ -612,12 +610,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                           className={cn(
                             'w-full flex items-center gap-3 pl-12 pr-4 py-2 text-sm',
                             'hover:bg-[var(--color-sidebar-hover)]',
-                            isActive(subItem.path || '') && 'bg-[var(--color-sidebar-active)] text-[var(--color-primary)]'
+                            isActive(subItem.path || '') && 'bg-[var(--color-sidebar-active-bg)] text-[var(--color-sidebar-active)]'
                           )}
                         >
                           {subItem.icon}
                           <span className={cn(
-                            isActive(subItem.path || '') ? 'text-[var(--color-primary)]' : 'text-[var(--color-sidebar-text-secondary)]'
+                            isActive(subItem.path || '') ? 'text-[var(--color-sidebar-active)]' : 'text-[var(--color-sidebar-text-secondary)]'
                           )}>
                             {subItem.label}
                           </span>
@@ -896,7 +894,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           role="main"
         >
           <div className="p-3 lg:p-4">
-            <Outlet />
+            <Outlet key={location.pathname} />
           </div>
         </main>
       </div>

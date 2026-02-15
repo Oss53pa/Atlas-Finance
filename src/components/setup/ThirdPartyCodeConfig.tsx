@@ -287,7 +287,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <HashtagIcon className="h-8 w-8 mr-3 text-indigo-600" />
               Codification Automatique des Tiers
             </h1>
@@ -497,7 +497,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
       {activeTab === 'collective' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Comptes Collectifs SYSCOHADA</h2>
+            <h2 className="text-lg font-bold text-gray-900">Comptes Collectifs SYSCOHADA</h2>
             <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
               <PlusIcon className="h-5 w-5" />
               <span>Nouveau Collectif</span>
@@ -555,7 +555,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
       {/* Onglet Configuration Pays */}
       {activeTab === 'countries' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
             <GlobeAltIcon className="h-6 w-6 mr-2 text-indigo-600" />
             Configuration par Pays
           </h2>
@@ -596,7 +596,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
                     <tr key={country.code} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
-                          <span className="text-2xl">{country.flag}</span>
+                          <span className="text-xl">{country.flag}</span>
                           <div>
                             <div className="font-medium text-gray-900">{country.name}</div>
                             <div className="text-sm text-gray-700">{country.code}</div>
@@ -653,7 +653,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
       {activeTab === 'preview' && (
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
               <SparklesIcon className="h-6 w-6 mr-2 text-indigo-600" />
               Aperçu Génération de Codes
             </h2>
@@ -706,7 +706,7 @@ const ThirdPartyCodeConfig: React.FC = () => {
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-lg p-6">
                   <div className="text-center">
                     <div className="text-sm text-indigo-600 mb-2">Code généré automatiquement:</div>
-                    <div className="text-3xl font-mono font-bold text-indigo-900 mb-4">
+                    <div className="text-xl font-mono font-bold text-indigo-900 mb-4">
                       {(() => {
                         const rule = codificationRules.find(r => r.type === previewType);
                         const country = countriesConfig.find(c => c.code === 'CM'); // Cameroun par défaut

@@ -1,5 +1,5 @@
 /**
- * Sidebar Moderne WiseBook
+ * Sidebar Moderne Atlas Finance
  * Navigation extensible avec modules et sous-modules
  */
 import React, { useState } from 'react';
@@ -209,7 +209,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
               <span className="text-white font-bold text-sm">W</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">WiseBook MODIFIÉ</h1>
+              <h1 className="text-lg font-bold text-white">Atlas Finance MODIFIÉ</h1>
               <p className="text-xs text-slate-300">NAVIGATION MISE À JOUR</p>
             </div>
           </div>

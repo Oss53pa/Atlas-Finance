@@ -245,7 +245,7 @@ const ModuleClotureComplet: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+              <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
                 <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
                 Clôture Comptable Périodique - Module Complet
               </h1>
@@ -318,7 +318,7 @@ const ModuleClotureComplet: React.FC = () => {
             {ongletActif === 'balances' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                     Balances Pré et Post-Clôture
                   </h2>
                   <div className="flex space-x-3">
@@ -344,23 +344,23 @@ const ModuleClotureComplet: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg">
                     <div className="text-sm text-[var(--color-primary)]">Comptes Actifs</div>
-                    <div className="text-2xl font-bold text-[var(--color-primary-darker)]">{balancePreCloture.length}</div>
+                    <div className="text-lg font-bold text-[var(--color-primary-darker)]">{balancePreCloture.length}</div>
                   </div>
                   <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg">
                     <div className="text-sm text-[var(--color-success)]">Total Débit</div>
-                    <div className="text-xl font-bold text-green-900">
+                    <div className="text-lg font-bold text-green-900">
                       {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.debit_total, 0))}
                     </div>
                   </div>
                   <div className="bg-[var(--color-error-lightest)] p-4 rounded-lg">
                     <div className="text-sm text-[var(--color-error)]">Total Crédit</div>
-                    <div className="text-xl font-bold text-red-900">
+                    <div className="text-lg font-bold text-red-900">
                       {formaterMontant(balancePreCloture.reduce((sum, b) => sum + b.credit_total, 0))}
                     </div>
                   </div>
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <div className="text-sm text-purple-600">Différence</div>
-                    <div className="text-xl font-bold text-purple-900">
+                    <div className="text-lg font-bold text-purple-900">
                       {formaterMontant(Math.abs(
                         balancePreCloture.reduce((sum, b) => sum + b.debit_total, 0) -
                         balancePreCloture.reduce((sum, b) => sum + b.credit_total, 0)
@@ -484,7 +484,7 @@ const ModuleClotureComplet: React.FC = () => {
             {ongletActif === 'provisions' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                     Provisions Créances Clients SYSCOHADA
                   </h2>
                   <button
@@ -593,7 +593,7 @@ const ModuleClotureComplet: React.FC = () => {
             {ongletActif === 'ecritures' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                     Journal de Clôture - Écritures Générées
                   </h2>
                   <button
@@ -668,7 +668,7 @@ const ModuleClotureComplet: React.FC = () => {
             {/* ONGLET CALENDRIER */}
             {ongletActif === 'calendrier' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Calendrier des Clôtures</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Calendrier des Clôtures</h2>
 
                 {/* Vue calendrier mensuel */}
                 <div className="bg-white border rounded-lg p-6">
@@ -797,7 +797,7 @@ const ModuleClotureComplet: React.FC = () => {
             {/* ONGLET EXPORTS */}
             {ongletActif === 'exports' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Exports et Rapports</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Exports et Rapports</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-white border rounded-lg p-6 text-center">

@@ -234,7 +234,7 @@ const VATTaxesConfig: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <PercentIcon className="h-8 w-8 mr-3 text-indigo-600" />
               Configuration TVA et Taxes
             </h1>
@@ -287,7 +287,7 @@ const VATTaxesConfig: React.FC = () => {
           {/* Taux de TVA configurés */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-lg font-bold text-gray-900">
                 Taux de TVA - Zone {selectedRegion} {getRegionFlag(selectedRegion)}
               </h2>
               <button
@@ -313,7 +313,7 @@ const VATTaxesConfig: React.FC = () => {
                       <span className="text-xs text-gray-700">{vatRate.code}</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`text-2xl font-bold ${getVATColor(vatRate.rate)}`}>
+                      <span className={`text-lg font-bold ${getVATColor(vatRate.rate)}`}>
                         {vatRate.rate}%
                       </span>
                       {vatRate.isDefault && (
@@ -445,7 +445,7 @@ const VATTaxesConfig: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Autres Taxes et Prélèvements</h2>
+              <h2 className="text-lg font-bold text-gray-900">Autres Taxes et Prélèvements</h2>
               <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
                 <PlusIcon className="h-5 w-5" />
                 <span>Nouvelle Taxe</span>
@@ -636,7 +636,7 @@ const VATTaxesConfig: React.FC = () => {
       {/* Onglet Automatisation */}
       {activeTab === 'automation' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
             <Cog6ToothIcon className="h-6 w-6 mr-2 text-indigo-600" />
             Automatisation Fiscale
           </h2>
@@ -738,7 +738,7 @@ const VATTaxesConfig: React.FC = () => {
       {/* Onglet Déclarations */}
       {activeTab === 'reporting' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
             <DocumentTextIcon className="h-6 w-6 mr-2 text-indigo-600" />
             Déclarations Fiscales Automatisées
           </h2>

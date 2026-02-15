@@ -257,7 +257,7 @@ const BudgetDetailPage: React.FC = () => {
             </button>
 
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]">Budget Détail</h1>
+              <h1 className="text-lg font-bold text-[#191919]">Budget Détail</h1>
               <div className="flex items-center space-x-3 mt-1">
                 <span className="text-sm text-[#767676]">
                   Compte : {compte} {description}
@@ -335,7 +335,7 @@ const BudgetDetailPage: React.FC = () => {
           </div>
           <div className="text-right">
             <p className="text-sm text-[#767676]">Total annuel</p>
-            <p className="text-2xl font-bold text-[#B87333]">
+            <p className="text-lg font-bold text-[#B87333]">
               {formatAmount(grandTotal)} FCFA
             </p>
           </div>
@@ -461,7 +461,6 @@ const BudgetDetailPage: React.FC = () => {
                         <button
                           onClick={() => {
                             if (confirm('Êtes-vous sûr de vouloir supprimer cette ligne ?')) {
-                              console.log('Deleting row:', row.compte);
                             }
                           }}
                           className="p-1 hover:bg-red-100 rounded"
@@ -555,7 +554,6 @@ const BudgetDetailPage: React.FC = () => {
                                 <button
                                   onClick={() => {
                                     if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-ligne ?')) {
-                                      console.log('Deleting sub-item:', subItem.description);
                                     }
                                   }}
                                   className="p-1 hover:bg-red-100 rounded"
@@ -606,7 +604,7 @@ const BudgetDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <p className="text-xs text-[#767676] mb-2">Trimestre le plus fort</p>
-          <p className="text-xl font-bold text-green-600">
+          <p className="text-lg font-bold text-green-600">
             Q3 - {formatAmount(monthlyTotals[6] + monthlyTotals[7] + monthlyTotals[8])}
           </p>
           <p className="text-xs text-[#767676] mt-1">Juillet - Septembre</p>
@@ -614,7 +612,7 @@ const BudgetDetailPage: React.FC = () => {
 
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <p className="text-xs text-[#767676] mb-2">Variation max</p>
-          <p className="text-xl font-bold text-[#B87333]">
+          <p className="text-lg font-bold text-[#B87333]">
             +{Math.round(((Math.max(...monthlyTotals) - Math.min(...monthlyTotals)) / Math.min(...monthlyTotals)) * 100)}%
           </p>
           <p className="text-xs text-[#767676] mt-1">Entre min et max mensuel</p>
@@ -622,7 +620,7 @@ const BudgetDetailPage: React.FC = () => {
 
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <p className="text-xs text-[#767676] mb-2">Nombre de sous-comptes</p>
-          <p className="text-xl font-bold text-[#191919]">
+          <p className="text-lg font-bold text-[#191919]">
             {detailData.length}
           </p>
           <p className="text-xs text-[#767676] mt-1">Comptes actifs</p>
@@ -694,7 +692,6 @@ const BudgetDetailPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Adding budget line for account:', selectedAccount);
                   setShowAddModal(false);
                   setSelectedAccount('');
                 }}
@@ -1019,7 +1016,6 @@ const BudgetDetailPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Saving budget values:', editValues);
                   setShowEditModal(false);
                   setEditingItem(null);
                   setEditValues({});

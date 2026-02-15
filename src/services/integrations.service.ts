@@ -1,5 +1,5 @@
 /**
- * Service Integrations WiseBook
+ * Service Integrations Atlas Finance
  * Intégrations bancaires et fiscales
  *
  * Fonctionnalités:

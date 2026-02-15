@@ -61,7 +61,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   // Focus input when chat opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      const timer = setTimeout(() => inputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -82,8 +83,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         ref={dragRef}
         className={`chat-widget-toggle ${className} ${isDragging ? 'dragging' : ''}`}
         onClick={onToggle}
-        aria-label="Ouvrir Paloma, votre assistante WiseBook"
-        title="Besoin d'aide ? Cliquez pour discuter avec Paloma, votre assistante WiseBook"
+        aria-label="Ouvrir Proph3t, votre assistante Atlas Finance"
+        title="Besoin d'aide ? Cliquez pour discuter avec Proph3t, votre assistante Atlas Finance"
         style={{
           position: 'fixed',
           left: `${position.x}px`,
@@ -92,8 +93,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         }}
       >
         <PalomaAvatar size="lg" showName={true} />
-        <span className="chat-widget-toggle__name">
-          Paloma
+        <span className="chat-widget-toggle__name proph3t-font">
+          Proph3t
         </span>
       </button>
     );
@@ -104,7 +105,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       ref={dragRef}
       className={`chat-widget ${className} ${isDragging ? 'dragging' : ''} ${isMinimized ? 'minimized' : ''}`}
       role="dialog"
-      aria-label="Assistant WiseBook"
+      aria-label="Assistant Atlas Finance"
       style={{
         position: 'fixed',
         left: `${position.x}px`,
@@ -115,16 +116,16 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       {/* Header */}
       <div className="chat-widget__header">
         <div className="chat-widget__header-info">
-          <div className="chat-widget__drag-handle" title="Déplacer Paloma">
+          <div className="chat-widget__drag-handle" title="Déplacer Proph3t">
             <Move size={16} className="drag-icon" />
           </div>
           <div className="chat-widget__avatar">
             <PalomaAvatar size="md" isTyping={isTyping} />
           </div>
           <div className="chat-widget__header-text">
-            <h3 className="chat-widget__title">Paloma</h3>
+            <h3 className="chat-widget__title proph3t-font">Proph3t</h3>
             <p className="chat-widget__subtitle">
-              {isTyping ? 'Paloma en train d\'écrire...' : 'Assistant WiseBook • En ligne'}
+              {isTyping ? 'Proph3t en train d\'écrire...' : 'Assistant Atlas Finance • En ligne'}
             </p>
           </div>
         </div>
@@ -199,7 +200,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         />
         <div className="chat-widget__footer-info">
           <span className="chat-widget__powered-by">
-            Propulsé par l'IA WiseBook
+            Propulsé par l'IA Atlas Finance
           </span>
         </div>
       </div>
@@ -223,7 +224,7 @@ const ChatIcon: React.FC = () => (
 // Icône supprimée - utilisation de lucide-react à la place
 
 const WisebookLogo: React.FC = () => (
-  <div className="wisebook-logo">
+  <div className="atlas-finance-logo">
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="32" height="32" rx="8" fill="#6A8A82"/>
       <path

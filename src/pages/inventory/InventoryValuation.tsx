@@ -447,7 +447,7 @@ const InventoryValuation: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory Valuation</h1>
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Inventory Valuation</h1>
           <p className="text-gray-600">
             International accounting standards compliant inventory valuation and impairment testing
           </p>
@@ -552,28 +552,28 @@ const InventoryValuation: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="text-center p-4 bg-[#6A8A82]/10 rounded-lg">
-              <div className="text-2xl font-bold text-[#6A8A82] mb-1">
+              <div className="text-lg font-bold text-[#6A8A82] mb-1">
                 <CurrencyDisplay amount={valuationData.totalInventoryValue} currency="USD" size="lg" />
               </div>
               <div className="text-sm text-[#6A8A82]">Total Inventory Value</div>
             </div>
 
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 mb-1">
+              <div className="text-lg font-bold text-green-600 mb-1">
                 <CurrencyDisplay amount={valuationData.totalMarketValue || 0} currency="USD" size="lg" />
               </div>
               <div className="text-sm text-green-800">Market Value</div>
             </div>
 
             <div className="text-center p-4 bg-red-50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600 mb-1">
+              <div className="text-lg font-bold text-red-600 mb-1">
                 <CurrencyDisplay amount={valuationData.totalImpairment || 0} currency="USD" size="lg" />
               </div>
               <div className="text-sm text-red-800">Impairment Loss</div>
             </div>
 
             <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-gray-600 mb-1">
+              <div className="text-lg font-bold text-gray-600 mb-1">
                 {valuationData.items.length.toLocaleString()}
               </div>
               <div className="text-sm text-gray-800">Items Valued</div>

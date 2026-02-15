@@ -67,14 +67,11 @@ const WorkspaceDashboard: React.FC = () => {
         break;
       case 'modal':
         // TODO: Implémenter la gestion des modals
-        console.log('Ouvrir modal:', action.action_target);
         break;
       case 'api_call':
         // TODO: Implémenter les appels API
-        console.log('Appel API:', action.action_target);
         break;
       default:
-        console.log('Action non gérée:', action);
     }
   };
 
@@ -120,7 +117,7 @@ const WorkspaceDashboard: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F7F3E9' }}>
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
-          <h2 className="text-xl font-bold mb-2" style={{ color: '#353A3B' }}>Erreur</h2>
+          <h2 className="text-lg font-bold mb-2" style={{ color: '#353A3B' }}>Erreur</h2>
           <p className="mb-4" style={{ color: '#7A8B8E' }}>{error || 'Impossible de charger le workspace'}</p>
           <button
             onClick={() => navigate('/dashboard')}
@@ -150,7 +147,7 @@ const WorkspaceDashboard: React.FC = () => {
                 <Briefcase size={32} style={{ color: '#FFFFFF' }} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold" style={{ color: '#353A3B' }}>
+                <h1 className="text-lg font-bold" style={{ color: '#353A3B' }}>
                   {workspace.name}
                 </h1>
                 <p style={{ color: '#7A8B8E' }}>{workspace.description}</p>
@@ -184,7 +181,7 @@ const WorkspaceDashboard: React.FC = () => {
         {/* Statistiques principales */}
         {statistics && statistics.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4" style={{ color: '#353A3B' }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: '#353A3B' }}>
               Statistiques clés
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -200,7 +197,7 @@ const WorkspaceDashboard: React.FC = () => {
                     </span>
                     {getTrendIcon(stat.trend_direction)}
                   </div>
-                  <div className="text-3xl font-bold mb-1" style={{ color: '#353A3B' }}>
+                  <div className="text-lg font-bold mb-1" style={{ color: '#353A3B' }}>
                     {formatValue(stat.stat_value, stat.stat_type)}
                   </div>
                   {stat.trend !== null && stat.trend !== undefined && (
@@ -229,7 +226,7 @@ const WorkspaceDashboard: React.FC = () => {
         {/* Actions rapides */}
         {quick_actions && quick_actions.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4" style={{ color: '#353A3B' }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: '#353A3B' }}>
               Actions rapides
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -268,7 +265,7 @@ const WorkspaceDashboard: React.FC = () => {
         {/* Widgets */}
         {widgets && widgets.length > 0 && (
           <div>
-            <h2 className="text-xl font-bold mb-4" style={{ color: '#353A3B' }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: '#353A3B' }}>
               <Grid size={24} className="inline mr-2" />
               Widgets personnalisés
             </h2>
@@ -319,7 +316,7 @@ const WorkspaceDashboard: React.FC = () => {
           (!quick_actions || quick_actions.length === 0) && (
             <div className="text-center py-16 bg-white rounded-xl" style={{ borderColor: '#D5D0CD' }}>
               <Bell size={48} className="mx-auto mb-4 opacity-30" style={{ color: '#7A8B8E' }} />
-              <h3 className="text-xl font-bold mb-2" style={{ color: '#353A3B' }}>
+              <h3 className="text-lg font-bold mb-2" style={{ color: '#353A3B' }}>
                 Workspace vide
               </h3>
               <p className="mb-6" style={{ color: '#7A8B8E' }}>

@@ -1,4 +1,4 @@
-// Configuration de l'API WiseBook
+// Configuration de l'API Atlas Finance
 const API_CONFIG = {
   // Utiliser le port 5000 pour le serveur API
   BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5000',

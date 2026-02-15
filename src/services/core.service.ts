@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - Core Service
+ * Atlas Finance - Core Service
  *
  * Gestion des entités de base (Devises, etc.).
  * Utilise les endpoints backend: /api/devises/

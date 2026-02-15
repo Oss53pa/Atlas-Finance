@@ -304,7 +304,7 @@ const ContactsModule: React.FC = () => {
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Gestion des Communications</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Gestion des Communications</h1>
                 <p className="text-sm text-[#666666]">Centralisation et suivi des communications avec les tiers</p>
               </div>
             </div>
@@ -533,7 +533,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Total Interactions</p>
-                  <p className="text-2xl font-bold text-[#191919]">{allInteractions.length}</p>
+                  <p className="text-lg font-bold text-[#191919]">{allInteractions.length}</p>
                 </div>
                 <MessageSquare className="w-8 h-8 text-[#6A8A82]" />
               </div>
@@ -542,7 +542,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Cette Semaine</p>
-                  <p className="text-2xl font-bold text-[#191919]">15</p>
+                  <p className="text-lg font-bold text-[#191919]">15</p>
                 </div>
                 <Calendar className="w-8 h-8 text-green-600" />
               </div>
@@ -551,7 +551,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">En Attente</p>
-                  <p className="text-2xl font-bold text-[#191919]">3</p>
+                  <p className="text-lg font-bold text-[#191919]">3</p>
                 </div>
                 <Clock className="w-8 h-8 text-orange-600" />
               </div>
@@ -560,7 +560,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Taux Réponse</p>
-                  <p className="text-2xl font-bold text-[#191919]">94%</p>
+                  <p className="text-lg font-bold text-[#191919]">94%</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-[#B87333]" />
               </div>
@@ -716,7 +716,7 @@ const ContactsModule: React.FC = () => {
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919]">Détails Contact</h2>
+                <h2 className="text-lg font-bold text-[#191919]">Détails Contact</h2>
                 <button
                   onClick={() => setSelectedContact(null)}
                   className="text-gray-700 hover:text-gray-600"
@@ -852,7 +852,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Entreprises</p>
-                  <p className="text-2xl font-bold text-[#191919]">
+                  <p className="text-lg font-bold text-[#191919]">
                     {[...new Set(mockContacts.map(c => c.tiers))].length}
                   </p>
                 </div>
@@ -863,7 +863,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Total Contacts</p>
-                  <p className="text-2xl font-bold text-[#191919]">{mockContacts.length}</p>
+                  <p className="text-lg font-bold text-[#191919]">{mockContacts.length}</p>
                 </div>
                 <Users className="w-8 h-8 text-green-600" />
               </div>
@@ -872,7 +872,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Contacts Principaux</p>
-                  <p className="text-2xl font-bold text-[#191919]">
+                  <p className="text-lg font-bold text-[#191919]">
                     {mockContacts.filter(c => c.isPrincipal).length}
                   </p>
                 </div>
@@ -883,7 +883,7 @@ const ContactsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Départements</p>
-                  <p className="text-2xl font-bold text-[#191919]">
+                  <p className="text-lg font-bold text-[#191919]">
                     {[...new Set(mockContacts.map(c => c.departement).filter(Boolean))].length}
                   </p>
                 </div>
@@ -1010,7 +1010,7 @@ const ContactsModule: React.FC = () => {
                           <div className="flex flex-col items-center mb-6">
                             <div className="relative">
                               <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg">
-                                <span className="text-xl font-bold text-white">
+                                <span className="text-lg font-bold text-white">
                                   {contactPrincipal.prenom[0]}{contactPrincipal.nom[0]}
                                 </span>
                               </div>
@@ -1846,7 +1846,6 @@ const ContactsModule: React.FC = () => {
                 <button
                   onClick={() => {
                     // Simuler la suppression
-                    console.log('Suppression du contact:', contactToDelete.id);
                     setShowDeleteModal(false);
                     setContactToDelete(null);
                     // Afficher un toast ou notification ici

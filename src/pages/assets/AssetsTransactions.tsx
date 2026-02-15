@@ -331,7 +331,7 @@ const AssetsTransactions: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
             Transactions d'Immobilisations
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -458,7 +458,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Acquisitions</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">12</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">12</p>
                 <p className="text-xs text-green-500 mt-1">+€450K</p>
               </div>
               <Plus className="w-8 h-8 text-green-500 opacity-20" />
@@ -471,7 +471,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Cessions</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">5</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">5</p>
                 <p className="text-xs text-red-500 mt-1">-€125K</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-500 opacity-20" />
@@ -484,7 +484,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Réévaluations</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">3</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">3</p>
                 <p className="text-xs text-purple-500 mt-1">+€280K</p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-500 opacity-20" />
@@ -497,7 +497,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">VNC totale</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">€4.2M</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€4.2M</p>
                 <p className="text-xs text-blue-500 mt-1">82% valeur</p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-500 opacity-20" />
@@ -510,7 +510,7 @@ const AssetsTransactions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">€920K</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€920K</p>
                 <p className="text-xs text-orange-500 mt-1">18% total</p>
               </div>
               <Clock className="w-8 h-8 text-orange-500 opacity-20" />
@@ -729,7 +729,6 @@ const AssetsTransactions: React.FC = () => {
         onClose={() => setShowPeriodModal(false)}
         onApply={(newDateRange) => {
           setDateRange(newDateRange);
-          console.log('Période sélectionnée dans AssetsTransactions:', newDateRange);
         }}
         initialDateRange={dateRange}
       />

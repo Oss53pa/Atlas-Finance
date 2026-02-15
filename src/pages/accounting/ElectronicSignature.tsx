@@ -351,7 +351,7 @@ const ElectronicSignature: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <Signature className="w-8 h-8 text-blue-600" />
             Signature Électronique
           </h1>
@@ -377,7 +377,7 @@ const ElectronicSignature: React.FC = () => {
             <span className="text-sm font-medium text-gray-600">Total Documents</span>
             <FileText className="w-5 h-5 text-gray-700" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+          <p className="text-lg font-bold text-gray-900">{stats.total}</p>
         </div>
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
@@ -385,7 +385,7 @@ const ElectronicSignature: React.FC = () => {
             <span className="text-sm font-medium text-green-700">Signés</span>
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
-          <p className="text-2xl font-bold text-green-700">{stats.signed}</p>
+          <p className="text-lg font-bold text-green-700">{stats.signed}</p>
         </div>
 
         <div className="bg-yellow-50 rounded-lg shadow p-4 border border-yellow-200">
@@ -393,7 +393,7 @@ const ElectronicSignature: React.FC = () => {
             <span className="text-sm font-medium text-yellow-700">{t('status.pending')}</span>
             <Clock className="w-5 h-5 text-yellow-500" />
           </div>
-          <p className="text-2xl font-bold text-yellow-700">{stats.pending}</p>
+          <p className="text-lg font-bold text-yellow-700">{stats.pending}</p>
         </div>
 
         <div className="bg-gray-50 rounded-lg shadow p-4 border border-gray-200">
@@ -401,7 +401,7 @@ const ElectronicSignature: React.FC = () => {
             <span className="text-sm font-medium text-gray-700">Brouillons</span>
             <Edit className="w-5 h-5 text-gray-700" />
           </div>
-          <p className="text-2xl font-bold text-gray-700">{stats.draft}</p>
+          <p className="text-lg font-bold text-gray-700">{stats.draft}</p>
         </div>
       </div>
 
@@ -620,7 +620,7 @@ const ElectronicSignature: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full">
             <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">Signer le document</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Signer le document</h2>
               <p className="text-sm text-gray-600 mt-1">{selectedDocument.name}</p>
             </div>
 

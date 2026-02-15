@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - Reports Service
+ * Atlas Finance - Reports Service
  * Service complet pour tous les rapports comptables SYSCOHADA
  *
  * Rapports disponibles:

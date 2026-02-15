@@ -46,7 +46,7 @@ const useSession = () => ({
 
 // Mock loading hook
 const useLoading = () => ({
-  setIsLoadingCancelable: (loading: boolean) => console.log('Loading:', loading)
+  setIsLoadingCancelable: (_loading: boolean) => {}
 });
 
 export const FundCallExpense: React.FC = () => {
@@ -77,7 +77,6 @@ export const FundCallExpense: React.FC = () => {
     try {
       // Mock API call - returns mock enabled users
       const mockEnabledUsers = [1, 2, 3]; // User IDs who can approve
-      console.log('Mock enabled users:', mockEnabledUsers);
       // handleChangeFundCallEnabledUser(mockEnabledUsers);
     } catch (error) {
       console.error("Error fetching data:", (error as AxiosError).message);
@@ -207,7 +206,6 @@ export const FundCallExpense: React.FC = () => {
         if (answer1) {
           try {
             // Mock save operation
-            console.log('Saving pre-approved invoices:', detailsFundCall.filter(d => d.is_pre_approved));
             await getFundCall();
             sweetAlertRef.current?.afficherAlerte('success', DICTIONNARY.EnregistrementEffectueAvecSucces[language]);
           } catch (error) {
@@ -233,7 +231,6 @@ export const FundCallExpense: React.FC = () => {
     if (answer) {
       try {
         // Mock save operation
-        console.log('Saving approved amount:', formData);
         sweetAlertRef.current?.afficherAlerte('success', DICTIONNARY.EnregistrementEffectueAvecSucces[language]);
       } catch (error) {
         sweetAlertRef.current?.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);

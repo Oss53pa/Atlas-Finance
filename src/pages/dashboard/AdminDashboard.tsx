@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { 
-  Settings, 
-  Users, 
-  Shield, 
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Settings,
+  Users,
+  Shield,
   Database,
   Activity,
   Server,
@@ -21,6 +21,7 @@ import {
   UserPlus,
   RefreshCw
 } from 'lucide-react';
+import { db } from '../../lib/db';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('system');
@@ -31,6 +32,35 @@ const AdminDashboard: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isBackingUp, setIsBackingUp] = useState(false);
+  const [liveMetrics, setLiveMetrics] = useState<{ entries: number; accounts: number; thirdParties: number; assets: number } | null>(null);
+  const [liveAuditLogs, setLiveAuditLogs] = useState<Array<{ time: string; event: string; user: string; ip: string; type: string }>>([]);
+
+  // Load real data from IndexedDB on mount
+  const loadLiveData = useCallback(async () => {
+    try {
+      const [entriesCount, accountsCount, tpCount, assetsCount, logs] = await Promise.all([
+        db.journalEntries.count(),
+        db.accounts.count(),
+        db.thirdParties.count(),
+        db.assets.count(),
+        db.auditLogs.orderBy('timestamp').reverse().limit(10).toArray(),
+      ]);
+      setLiveMetrics({ entries: entriesCount, accounts: accountsCount, thirdParties: tpCount, assets: assetsCount });
+      setLiveAuditLogs(logs.map(l => ({
+        time: new Date(l.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        event: l.action,
+        user: l.userId || 'system',
+        ip: 'local',
+        type: l.action.includes('ERROR') ? 'warning' : 'success',
+      })));
+    } catch {
+      // Fallback silently if DB not available
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLiveData();
+  }, [loadLiveData]);
 
   // New user form state
   const [newUser, setNewUser] = useState({
@@ -42,15 +72,33 @@ const AdminDashboard: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await loadLiveData();
     setIsRefreshing(false);
   };
 
   const handleBackup = async () => {
     setIsBackingUp(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      const data = {
+        journalEntries: await db.journalEntries.toArray(),
+        accounts: await db.accounts.toArray(),
+        thirdParties: await db.thirdParties.toArray(),
+        assets: await db.assets.toArray(),
+        settings: await db.settings.toArray(),
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `wisebook-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback
+    }
     setIsBackingUp(false);
-    alert('Sauvegarde effectuée avec succès !');
   };
 
   const handleCreateUser = () => {
@@ -84,38 +132,38 @@ const AdminDashboard: React.FC = () => {
     setSelectedUser(null);
   };
 
-  // Métriques système
+  // Metriques systeme — donnees reelles depuis IndexedDB
   const systemMetrics = [
     {
-      title: 'Utilisateurs Actifs',
-      value: '24',
-      change: '+3 cette semaine',
+      title: 'Ecritures comptables',
+      value: liveMetrics ? String(liveMetrics.entries) : '...',
+      change: 'Ecritures enregistrees',
       color: 'blue',
-      icon: Users,
+      icon: Database,
       status: 'normal'
     },
     {
-      title: 'CPU Usage',
-      value: '23%',
-      change: 'Optimal',
+      title: 'Comptes du plan',
+      value: liveMetrics ? String(liveMetrics.accounts) : '...',
+      change: 'Plan comptable SYSCOHADA',
       color: 'green',
-      icon: Cpu,
+      icon: Activity,
       status: 'good'
     },
     {
-      title: 'Stockage',
-      value: '68%',
-      change: '12GB disponibles',
+      title: 'Tiers',
+      value: liveMetrics ? String(liveMetrics.thirdParties) : '...',
+      change: 'Clients et fournisseurs',
       color: 'orange',
-      icon: HardDrive,
-      status: 'warning'
+      icon: Users,
+      status: liveMetrics && liveMetrics.thirdParties === 0 ? 'warning' : 'good'
     },
     {
-      title: 'Sécurité',
-      value: '100%',
-      change: 'Aucune menace',
+      title: 'Immobilisations',
+      value: liveMetrics ? String(liveMetrics.assets) : '...',
+      change: 'Actifs enregistres',
       color: 'green',
-      icon: Shield,
+      icon: HardDrive,
       status: 'good'
     }
   ];
@@ -127,11 +175,8 @@ const AdminDashboard: React.FC = () => {
     { id: 4, name: 'Pierre Durand', email: 'pierre@example.com', role: 'Admin', status: 'active', lastLogin: '30min' },
   ];
 
-  const securityLogs = [
-    { time: '10:45', event: 'Connexion réussie', user: 'marie@example.com', ip: '192.168.1.100', type: 'success' },
-    { time: '10:30', event: 'Tentative connexion échouée', user: 'unknown', ip: '203.45.67.89', type: 'warning' },
-    { time: '10:15', event: 'Modification permissions', user: 'pierre@example.com', ip: '192.168.1.105', type: 'info' },
-    { time: '09:45', event: 'Backup automatique', user: 'system', ip: 'localhost', type: 'success' },
+  const securityLogs = liveAuditLogs.length > 0 ? liveAuditLogs : [
+    { time: '--:--', event: 'Aucun evenement enregistre', user: 'system', ip: 'local', type: 'info' },
   ];
 
   const tabs = [
@@ -147,7 +192,7 @@ const AdminDashboard: React.FC = () => {
       <header className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Administration</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Administration</h1>
             <p className="text-[var(--color-text-primary)]">Gestion système et sécurité</p>
           </div>
           <div className="flex items-center space-x-4">
@@ -217,7 +262,7 @@ const AdminDashboard: React.FC = () => {
                       }`}></div>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{metric.value}</h3>
+                      <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-1">{metric.value}</h3>
                       <p className="text-[var(--color-text-primary)] text-sm mb-1">{metric.title}</p>
                       <p className="text-[var(--color-text-secondary)] text-xs">{metric.change}</p>
                     </div>
@@ -457,7 +502,7 @@ const AdminDashboard: React.FC = () => {
                   <div className="w-10 h-10 bg-[var(--color-info-lighter)] rounded-lg flex items-center justify-center">
                     <UserPlus className="w-5 h-5 text-[var(--color-info)]" />
                   </div>
-                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Nouvel Utilisateur</h2>
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvel Utilisateur</h2>
                 </div>
                 <button onClick={() => setShowNewUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
@@ -530,7 +575,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Détails Utilisateur</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Détails Utilisateur</h2>
                 <button onClick={() => setShowUserDetailModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </div>
@@ -583,7 +628,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Modifier Utilisateur</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Modifier Utilisateur</h2>
                 <button onClick={() => setShowEditUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </div>
@@ -653,7 +698,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-[var(--color-error)]">Supprimer Utilisateur</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-error)]">Supprimer Utilisateur</h2>
                 <button onClick={() => setShowDeleteUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </div>

@@ -341,7 +341,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <BrainIcon className="h-8 w-8 text-indigo-600" />
                   <div>
-                    <CardTitle className="text-2xl text-indigo-900">Assistant IA de Saisie</CardTitle>
+                    <CardTitle className="text-xl text-indigo-900">Assistant IA de Saisie</CardTitle>
                     <p className="text-indigo-700">Saisie intelligente avec suggestions automatiques</p>
                   </div>
                 </div>

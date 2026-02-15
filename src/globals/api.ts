@@ -1,6 +1,6 @@
-// API Configuration for WiseBook ERP
+// API Configuration for Atlas Finance
 export const addressIpApi = process.env.NODE_ENV === 'production'
-  ? 'https://api.wisebook.tech'
+  ? 'https://api.atlasfinance.tech'
   : 'http://127.0.0.1:8888';
 
 // Authenticated headers helper

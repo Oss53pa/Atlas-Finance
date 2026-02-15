@@ -79,7 +79,7 @@ const AssetMasterDataPage: React.FC = () => {
             icon={ArrowLeft}
             onClick={() => navigate('/assets')}
           />
-          <h1 className="text-xl font-bold text-[#191919]">Fiche Immobilisation</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Fiche Immobilisation</h1>
         </div>
         <div className="flex items-center gap-2">
           {editMode ? (

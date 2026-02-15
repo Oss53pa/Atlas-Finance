@@ -864,7 +864,7 @@ const ReportingSyscohada: React.FC = () => {
             >
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-neutral-800">
+                  <h3 className="text-lg font-semibold text-neutral-800">
                     {reportModal.mode === 'create' ? 'Nouveau Rapport SYSCOHADA' :
                      reportModal.mode === 'edit' ? 'Modifier le Rapport' : 'Détails du Rapport'}
                   </h3>

@@ -51,7 +51,7 @@ const PeriodicClosuresPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#191919]">Clôtures Périodiques</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Clôtures Périodiques</h1>
           <p className="text-[#767676] mt-1">
             Gestion des clôtures mensuelles, trimestrielles et annuelles conformes SYSCOHADA
           </p>
@@ -71,7 +71,7 @@ const PeriodicClosuresPage: React.FC = () => {
 
       <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-[#191919]">Périodes de Clôture</h2>
+          <h2 className="text-lg font-semibold text-[#191919]">Périodes de Clôture</h2>
           <Button variant="outline" icon={Download} size="sm">
             Exporter
           </Button>

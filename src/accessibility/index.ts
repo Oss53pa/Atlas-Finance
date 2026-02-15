@@ -1,5 +1,5 @@
 /**
- * WiseBook Accessibility System
+ * Atlas Finance Accessibility System
  * WCAG 2.1 AA Compliance Implementation
  */
 

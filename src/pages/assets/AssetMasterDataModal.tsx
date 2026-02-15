@@ -70,7 +70,7 @@ const AssetMasterDataModal: React.FC<AssetMasterDataModalProps> = ({
       <div className="bg-white rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">Asset Master Data - Nouvel Actif</h2>
+            <h2 className="text-lg font-bold">Asset Master Data - Nouvel Actif</h2>
             <button
               onClick={onClose}
               className="text-gray-700 hover:text-gray-600" aria-label="Fermer">

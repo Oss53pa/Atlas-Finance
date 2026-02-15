@@ -1,5 +1,5 @@
 /**
- * Gestion Multi-Sociétés WiseBook
+ * Gestion Multi-Sociétés Atlas Finance
  * Configuration selon EXP-PAR-002
  */
 import React, { useState } from 'react';
@@ -114,7 +114,7 @@ const MultiCompanyPage: React.FC = () => {
       {
         id: '1',
         code: 'HOLD001',
-        raisonSociale: 'GROUPE WISEBOOK HOLDING',
+        raisonSociale: 'GROUPE ATLAS FINANCE HOLDING',
         formeJuridique: 'SA',
         rccm: 'RC/YAO/2020/B/12345',
         nif: 'H071234567890P',
@@ -138,7 +138,7 @@ const MultiCompanyPage: React.FC = () => {
           {
             id: '2',
             code: 'FIL001',
-            raisonSociale: 'WISEBOOK CAMEROUN SA',
+            raisonSociale: 'ATLAS FINANCE CAMEROUN SA',
             formeJuridique: 'SA',
             rccm: 'RC/DLA/2021/B/67890',
             nif: 'F071234567891P',
@@ -163,7 +163,7 @@ const MultiCompanyPage: React.FC = () => {
               {
                 id: '3',
                 code: 'ETB001',
-                raisonSociale: 'WISEBOOK DOUALA',
+                raisonSociale: 'ATLAS FINANCE DOUALA',
                 formeJuridique: 'Établissement',
                 rccm: '',
                 nif: '',
@@ -190,7 +190,7 @@ const MultiCompanyPage: React.FC = () => {
           {
             id: '4',
             code: 'FIL002',
-            raisonSociale: 'WISEBOOK GABON SA',
+            raisonSociale: 'ATLAS FINANCE GABON SA',
             formeJuridique: 'SA',
             rccm: 'RC/LBV/2022/B/11111',
             nif: 'G071234567892P',
@@ -468,7 +468,7 @@ const MultiCompanyPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Utilisateurs</p>
-                      <p className="text-2xl font-bold">{company.stats.utilisateurs}</p>
+                      <p className="text-lg font-bold">{company.stats.utilisateurs}</p>
                     </div>
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
@@ -480,7 +480,7 @@ const MultiCompanyPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Écritures</p>
-                      <p className="text-2xl font-bold">{company.stats.ecritures.toLocaleString()}</p>
+                      <p className="text-lg font-bold">{company.stats.ecritures.toLocaleString()}</p>
                     </div>
                     <FileText className="h-8 w-8 text-green-600" />
                   </div>
@@ -492,7 +492,7 @@ const MultiCompanyPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">CA (XAF)</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-lg font-bold">
                         {(company.stats.ca / 1000000).toFixed(1)}M
                       </p>
                     </div>
@@ -605,7 +605,7 @@ const MultiCompanyPage: React.FC = () => {
       <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl p-8 mb-8 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-lg font-bold text-white flex items-center gap-3">
               <Building2 className="h-10 w-10" />
               Gestion Multi-Sociétés
             </h1>

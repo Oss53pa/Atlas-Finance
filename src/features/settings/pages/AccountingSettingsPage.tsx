@@ -102,7 +102,7 @@ const AccountingSettingsPage: React.FC = () => {
             onClick={() => navigate(-1)}
           />
           <div>
-            <h1 className="text-3xl font-bold text-[#191919]">Paramètres Comptables</h1>
+            <h1 className="text-lg font-bold text-[#191919]">Paramètres Comptables</h1>
             <p className="text-[#767676] mt-1">
               Configuration de votre système comptable
             </p>

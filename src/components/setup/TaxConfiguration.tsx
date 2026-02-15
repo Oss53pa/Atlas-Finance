@@ -163,7 +163,6 @@ const TaxConfiguration: React.FC = () => {
   };
 
   const onSubmit = (data: TaxFormData) => {
-    console.log('Configuration des taxes:', data);
     alert('Configuration enregistrée avec succès !');
   };
 
@@ -173,7 +172,7 @@ const TaxConfiguration: React.FC = () => {
       <div className="bg-[#6A8A82] rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white flex items-center">
+            <h1 className="text-lg font-bold text-white flex items-center">
               <CurrencyDollarIcon className="h-8 w-8 mr-3 text-white" />
               Configuration des Taxes et TVA
             </h1>

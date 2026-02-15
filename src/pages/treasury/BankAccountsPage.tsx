@@ -157,7 +157,7 @@ const BankAccountsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <CreditCard className="mr-3 h-7 w-7" />
               Comptes Bancaires
             </h1>
@@ -205,7 +205,7 @@ const BankAccountsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Comptes</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {accountsData?.count || 0}
                 </p>
               </div>
@@ -221,7 +221,7 @@ const BankAccountsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Solde Total</p>
-                <p className={`text-2xl font-bold ${getBalanceColor(accountsData?.total_balance || 0)}`}>
+                <p className={`text-lg font-bold ${getBalanceColor(accountsData?.total_balance || 0)}`}>
                   {formatCurrency(accountsData?.total_balance || 0)}
                 </p>
               </div>
@@ -237,7 +237,7 @@ const BankAccountsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Disponible</p>
-                <p className="text-2xl font-bold text-green-700">
+                <p className="text-lg font-bold text-green-700">
                   {formatCurrency(accountsData?.available_balance || 0)}
                 </p>
               </div>
@@ -253,7 +253,7 @@ const BankAccountsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Découverts</p>
-                <p className="text-2xl font-bold text-red-700">
+                <p className="text-lg font-bold text-red-700">
                   {formatCurrency(Math.abs(accountsData?.overdraft_total || 0))}
                 </p>
               </div>
@@ -535,7 +535,7 @@ const BankAccountsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Nouveau Compte Bancaire</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Nouveau Compte Bancaire</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-700 hover:text-gray-600"
@@ -788,7 +788,6 @@ const BankAccountsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Créer compte bancaire');
                   toast.success('Compte bancaire créé avec succès');
                   setShowCreateModal(false);
                 }}
@@ -811,7 +810,7 @@ const BankAccountsPage: React.FC = () => {
                   <Building className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{selectedAccount.libelle_compte}</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{selectedAccount.libelle_compte}</h2>
                   <p className="text-sm text-gray-600 font-mono">{selectedAccount.numero_compte}</p>
                 </div>
               </div>
@@ -919,13 +918,13 @@ const BankAccountsPage: React.FC = () => {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-xs font-medium text-gray-500">Solde Comptable</p>
-                    <p className={`text-xl font-bold ${getBalanceColor(selectedAccount.solde_comptable)}`}>
+                    <p className={`text-lg font-bold ${getBalanceColor(selectedAccount.solde_comptable)}`}>
                       {formatCurrency(selectedAccount.solde_comptable, selectedAccount.devise)}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-xs font-medium text-gray-500">Solde Banque</p>
-                    <p className={`text-xl font-bold ${getBalanceColor(selectedAccount.solde_banque)}`}>
+                    <p className={`text-lg font-bold ${getBalanceColor(selectedAccount.solde_banque)}`}>
                       {formatCurrency(selectedAccount.solde_banque, selectedAccount.devise)}
                     </p>
                   </div>
@@ -937,14 +936,14 @@ const BankAccountsPage: React.FC = () => {
                       ) : (
                         <CheckCircle className="w-4 h-4 mr-1" />
                       )}
-                      <span className="text-xl font-bold">
+                      <span className="text-lg font-bold">
                         {formatCurrency(Math.abs(selectedAccount.solde_comptable - selectedAccount.solde_banque), selectedAccount.devise)}
                       </span>
                     </div>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-xs font-medium text-gray-500">Plafond Autorisé</p>
-                    <p className="text-xl font-bold text-gray-700">
+                    <p className="text-lg font-bold text-gray-700">
                       {selectedAccount.plafond ? formatCurrency(selectedAccount.plafond, selectedAccount.devise) : 'Illimité'}
                     </p>
                   </div>
@@ -1007,7 +1006,7 @@ const BankAccountsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Modifier le Compte Bancaire</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Modifier le Compte Bancaire</h2>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="text-gray-700 hover:text-gray-600"
@@ -1110,7 +1109,7 @@ const BankAccountsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Importer des Comptes Bancaires</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Importer des Comptes Bancaires</h2>
               <button
                 onClick={() => setShowImportModal(false)}
                 className="text-gray-700 hover:text-gray-600"

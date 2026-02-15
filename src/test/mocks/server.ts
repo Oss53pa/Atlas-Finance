@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - Mock Service Worker Server
+ * Atlas Finance - Mock Service Worker Server
  *
  * Serveur de mocks pour les appels API dans les tests
  */
@@ -17,7 +17,7 @@ export const handlers = [
     return res(
       ctx.status(200),
       ctx.json({
-        user: { id: '1', email: 'test@wisebook.com', name: 'Test User' },
+        user: { id: '1', email: 'test@atlasfinance.com', name: 'Test User' },
         token: 'mock-jwt-token',
       })
     );

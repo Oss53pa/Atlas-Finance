@@ -338,7 +338,7 @@ const ChartOfAccountsPage: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-neutral-800">Plan Comptable SYSCOHADA - Structure Hiérarchique</h2>
+                <h2 className="text-lg font-bold text-neutral-800">Plan Comptable SYSCOHADA - Structure Hiérarchique</h2>
                 <div className="flex gap-2">
                   <ElegantButton variant="outline" size="sm" icon={TreePine}>
                     Vue Arbre
@@ -626,7 +626,7 @@ const ChartOfAccountsPage: React.FC = () => {
           >
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-neutral-800">Nouveau Compte SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-neutral-800">Nouveau Compte SYSCOHADA</h2>
                 <button
                   onClick={() => setShowNewAccountModal(false)}
                   className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -792,7 +792,7 @@ const ChartOfAccountsPage: React.FC = () => {
                     {selectedAccount.classe}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-neutral-800">{selectedAccount.libelle}</h2>
+                    <h2 className="text-lg font-bold text-neutral-800">{selectedAccount.libelle}</h2>
                     <p className="text-sm text-neutral-600 font-mono">{selectedAccount.code}</p>
                   </div>
                 </div>
@@ -829,11 +829,11 @@ const ChartOfAccountsPage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-medium text-neutral-500">Solde Débit</p>
-                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(selectedAccount.solde_debit)}</p>
+                    <p className="text-lg font-bold text-blue-600">{formatCurrency(selectedAccount.solde_debit)}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-500">Solde Crédit</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedAccount.solde_credit)}</p>
+                    <p className="text-lg font-bold text-green-600">{formatCurrency(selectedAccount.solde_credit)}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-neutral-500">Mouvements</p>
@@ -877,7 +877,7 @@ const ChartOfAccountsPage: React.FC = () => {
           >
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-neutral-800">Modifier le Compte</h2>
+                <h2 className="text-lg font-bold text-neutral-800">Modifier le Compte</h2>
                 <button
                   onClick={() => setShowEditAccountModal(false)}
                   className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -1047,7 +1047,7 @@ const ChartOfAccountsPage: React.FC = () => {
           >
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-neutral-800">Importer un Plan Comptable</h2>
+                <h2 className="text-lg font-bold text-neutral-800">Importer un Plan Comptable</h2>
                 <button
                   onClick={() => setShowImportModal(false)}
                   className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -1119,7 +1119,7 @@ const ChartOfAccountsPage: React.FC = () => {
           >
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-neutral-800">Filtres Avancés</h2>
+                <h2 className="text-lg font-bold text-neutral-800">Filtres Avancés</h2>
                 <button
                   onClick={() => setShowAdvancedFiltersModal(false)}
                   className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"

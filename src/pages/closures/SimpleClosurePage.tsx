@@ -206,7 +206,7 @@ const SimpleClosurePage: React.FC = () => {
       {/* En-tête simple */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
             Clôture Comptable Périodique
           </h1>

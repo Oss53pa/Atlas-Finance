@@ -216,7 +216,7 @@ const SIGDashboard: React.FC = () => {
       {/* Header avec contrôles */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">SIG - Soldes Intermédiaires de Gestion</h2>
+          <h2 className="text-lg font-bold text-gray-900">SIG - Soldes Intermédiaires de Gestion</h2>
           <p className="text-gray-600">Exercice {sigData.fiscalYear} • Calculé le {new Date(sigData.calculationDate).toLocaleDateString('fr-FR')}</p>
         </div>
         <div className="flex space-x-4">
@@ -247,7 +247,7 @@ const SIGDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Valeur Ajoutée</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(sigData.addedValue)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(sigData.addedValue)}</p>
               <p className="text-sm text-blue-600">{formatPercentage(sigData.addedValueRate)} du CA</p>
             </div>
             <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -260,7 +260,7 @@ const SIGDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">EBE</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(sigData.grossOperatingSurplus)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(sigData.grossOperatingSurplus)}</p>
               <p className="text-sm text-green-600">Capacité d'autofinancement</p>
             </div>
             <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -273,7 +273,7 @@ const SIGDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Résultat Net</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(sigData.finalNetResult)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(sigData.finalNetResult)}</p>
               <p className="text-sm text-purple-600">{formatPercentage(sigData.netMarginRate)} marge nette</p>
             </div>
             <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">

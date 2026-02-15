@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - API Endpoints Configuration
+ * Atlas Finance - API Endpoints Configuration
  *
  * Ce fichier centralise tous les endpoints API du backend.
  * Il remplace les anciens chemins hardcodés et permet une maintenance facile.

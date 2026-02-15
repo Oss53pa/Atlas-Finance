@@ -74,7 +74,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       return {
         id: '1',
         company: {
-          name: 'WISEBOOK SARL',
+          name: 'ATLAS FINANCE SARL',
           address: 'Yaoundé, Cameroun'
         },
         fiscalYear: '2024',
@@ -160,7 +160,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-[#ECECEC] p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919] flex items-center">
+            <h1 className="text-lg font-bold text-[#191919] flex items-center">
               <CurrencyDollarIcon className="h-6 w-6 mr-2 text-[#6A8A82]" />
               TABLEAU DES FLUX DE TRÉSORERIE (TAFIRE)
             </h1>
@@ -209,7 +209,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[#191919]/70">Flux d'Exploitation</p>
-              <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.operatingCashFlow)}`}>
+              <p className={`text-lg font-bold ${getFlowColor(cashFlowData.operatingCashFlow)}`}>
                 {formatCurrency(cashFlowData.operatingCashFlow)}
               </p>
               <p className="text-sm text-[#6A8A82]">CAF: {formatCurrency(cashFlowData.selfFinancingCapacity)}</p>
@@ -224,7 +224,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[#191919]/70">Flux d'Investissement</p>
-              <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.investmentCashFlow)}`}>
+              <p className={`text-lg font-bold ${getFlowColor(cashFlowData.investmentCashFlow)}`}>
                 {formatCurrency(cashFlowData.investmentCashFlow)}
               </p>
               <p className="text-sm text-[#6A8A82]">Acquisitions nettes</p>
@@ -239,7 +239,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[#191919]/70">Flux de Financement</p>
-              <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.financingCashFlow)}`}>
+              <p className={`text-lg font-bold ${getFlowColor(cashFlowData.financingCashFlow)}`}>
                 {formatCurrency(cashFlowData.financingCashFlow)}
               </p>
               <p className="text-sm text-[#B87333]">Emprunts nets</p>
@@ -254,7 +254,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[#191919]/70">Variation Trésorerie</p>
-              <p className={`text-2xl font-bold ${getFlowColor(cashFlowData.cashFlowVariation)}`}>
+              <p className={`text-lg font-bold ${getFlowColor(cashFlowData.cashFlowVariation)}`}>
                 {formatCurrency(cashFlowData.cashFlowVariation)}
               </p>
               <p className="text-sm text-[#B87333]">Total période</p>

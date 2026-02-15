@@ -241,8 +241,8 @@ const AssistantDemarragePage: React.FC = () => {
               <Rocket className="h-12 w-12 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Bienvenue dans WiseBook ERP
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                Bienvenue dans Atlas Finance
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Cet assistant vous guidera à travers les étapes essentielles pour configurer 
@@ -294,7 +294,7 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <Building2 className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Informations de l'Entreprise</h2>
+              <h2 className="text-lg font-bold text-gray-900">Informations de l'Entreprise</h2>
               <p className="text-gray-600">Saisissez les informations légales et administratives</p>
             </div>
 
@@ -499,7 +499,7 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <FileText className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Plan Comptable SYSCOHADA</h2>
+              <h2 className="text-lg font-bold text-gray-900">Plan Comptable SYSCOHADA</h2>
               <p className="text-gray-600">Sélectionnez le plan comptable adapté à votre activité</p>
             </div>
 
@@ -564,7 +564,7 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <Users className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Configuration des Utilisateurs</h2>
+              <h2 className="text-lg font-bold text-gray-900">Configuration des Utilisateurs</h2>
               <p className="text-gray-600">Créez les premiers utilisateurs de votre système</p>
             </div>
 
@@ -658,7 +658,7 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <CreditCard className="h-12 w-12 text-orange-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Configuration TVA et Taxes</h2>
+              <h2 className="text-lg font-bold text-gray-900">Configuration TVA et Taxes</h2>
               <p className="text-gray-600">Paramétrez les taux de TVA applicables à votre activité</p>
             </div>
 
@@ -774,7 +774,7 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <Shield className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">{t('settings.security')}</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('settings.security')}</h2>
               <p className="text-gray-600">Configurez les paramètres de sécurité de votre système</p>
             </div>
 
@@ -893,11 +893,11 @@ const AssistantDemarragePage: React.FC = () => {
               <CheckCircle className="h-12 w-12 text-green-600" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
                 Configuration Terminée !
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Félicitations ! Votre système WiseBook ERP est maintenant configuré et prêt à être utilisé.
+                Félicitations ! Votre système Atlas Finance est maintenant configuré et prêt à être utilisé.
               </p>
             </div>
 
@@ -946,7 +946,7 @@ const AssistantDemarragePage: React.FC = () => {
                 ) : (
                   <>
                     <Rocket className="mr-2 h-4 w-4" />
-                    Commencer à utiliser WiseBook
+                    Commencer à utiliser Atlas Finance
                   </>
                 )}
               </Button>
@@ -964,7 +964,7 @@ const AssistantDemarragePage: React.FC = () => {
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
               <Settings className="h-8 w-8 text-blue-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Étape en Construction</h2>
+            <h2 className="text-lg font-bold text-gray-900">Étape en Construction</h2>
             <p className="text-gray-600">Cette étape sera disponible prochainement.</p>
           </motion.div>
         );
@@ -978,7 +978,7 @@ const AssistantDemarragePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Assistant de Démarrage</h1>
+              <h1 className="text-lg font-bold text-gray-900">Assistant de Démarrage</h1>
               <p className="text-gray-600">
                 Étape {currentStep + 1} sur {setupSteps.length}
               </p>

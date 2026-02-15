@@ -9,7 +9,7 @@ import { ChatMessage, ChatSession, ChatContext, UserIntent } from '../types';
 import { intentRecognizer } from '../ai/intentRecognition';
 import { responseGenerator } from '../ai/responseGenerator';
 import { palomaAI } from '../ai/intelligentResponse';
-import { getContextualSuggestions, advancedSearch } from '../knowledge/wiseBookKnowledge';
+import { getContextualSuggestions, advancedSearch } from '../knowledge/atlasFinanceKnowledge';
 import { palomaMLManager } from '../ai/mlIntegration';
 import mlService from '../../../services/mlService';
 import { v4 as uuidv4 } from 'uuid';
@@ -579,7 +579,6 @@ export function useChatbot() {
 
       if (mlIntent) {
         // 🧠 Requête ML détectée - Utiliser les capacités d'apprentissage automatique
-        console.log('🤖 ML Intent détecté:', mlIntent.capability);
 
         try {
           responseMessage = await palomaMLManager.executeCapability(mlIntent.capability, mlIntent.params);
@@ -615,7 +614,7 @@ export function useChatbot() {
         responseMessage
       );
 
-      // Adapter la personnalité de Paloma selon l'état émotionnel
+      // Adapter la personnalité de Proph3t selon l'état émotionnel
       const adaptivePersonality = adaptPersonalityToContext(contextManager.getMemory().emotionalState);
 
       // Personnaliser la réponse selon le niveau d'expertise et l'état émotionnel
@@ -746,7 +745,6 @@ export function useChatbot() {
 
       case 'open-modal':
         // Ouvrir une modal - à implémenter selon le système de modales
-        console.log('Ouvrir modal:', action.payload.modal);
         break;
 
       case 'external-link':
@@ -871,11 +869,11 @@ function generateWelcomeMessage(): string {
   }
 
   const welcomeMessages = [
-    `${greeting} ! 👋 Je suis **Paloma**, votre assistante WiseBook dotée d'une intelligence artificielle !\n\n🧠 **Je maîtrise l'intégralité de WiseBook** :\n• Finance, Budget & Comptabilité\n• Stocks, Achats & Approvisionnements\n• Ventes, Factures & Recouvrement\n• RH, Paie & Gestion du personnel\n• Projets & Immobilisations\n\n🤖 **Mes capacités IA avancées** :\n• Recommandations comptables (Random Forest)\n• Prévisions de trésorerie (LSTM)\n• Analyse de risques clients (XGBoost)\n• Détection d'anomalies automatique\n\n💡 **Posez-moi n'importe quelle question**, je suis là pour vous guider !`,
+    `${greeting} ! 👋 Je suis **Proph3t**, votre assistante Atlas Finance dotée d'une intelligence artificielle !\n\n🧠 **Je maîtrise l'intégralité de Atlas Finance** :\n• Finance, Budget & Comptabilité\n• Stocks, Achats & Approvisionnements\n• Ventes, Factures & Recouvrement\n• RH, Paie & Gestion du personnel\n• Projets & Immobilisations\n\n🤖 **Mes capacités IA avancées** :\n• Recommandations comptables (Random Forest)\n• Prévisions de trésorerie (LSTM)\n• Analyse de risques clients (XGBoost)\n• Détection d'anomalies automatique\n\n💡 **Posez-moi n'importe quelle question**, je suis là pour vous guider !`,
 
-    `${greeting} ! ✨ **Paloma** à votre service, experte certifiée WiseBook !\n\n📚 **Ma base de connaissances couvre** :\n• Tous les processus métier\n• Configuration et paramétrage\n• Résolution de problèmes\n• Astuces et raccourcis\n• Rapports et analyses\n\n🧠 **Mes modèles d'apprentissage automatique** :\n• LSTM pour prédictions financières\n• Random Forest pour recommandations\n• XGBoost pour analyse de risques\n• Détection d'anomalies intelligente\n\n🎯 **Comment puis-je vous aider aujourd'hui ?**`,
+    `${greeting} ! ✨ **Proph3t** à votre service, experte certifiée Atlas Finance !\n\n📚 **Ma base de connaissances couvre** :\n• Tous les processus métier\n• Configuration et paramétrage\n• Résolution de problèmes\n• Astuces et raccourcis\n• Rapports et analyses\n\n🧠 **Mes modèles d'apprentissage automatique** :\n• LSTM pour prédictions financières\n• Random Forest pour recommandations\n• XGBoost pour analyse de risques\n• Détection d'anomalies intelligente\n\n🎯 **Comment puis-je vous aider aujourd'hui ?**`,
 
-    `${greeting} ! 🚀 C'est **Paloma**, votre IA spécialisée WiseBook !\n\n🔍 **Je peux vous aider à** :\n• Naviguer dans les modules\n• Créer et gérer vos données\n• Comprendre les fonctionnalités\n• Optimiser votre utilisation\n• Résoudre vos problèmes\n\n🤖 **Mes prédictions intelligentes** :\n• Suggérer les bons comptes comptables\n• Prévoir vos flux de trésorerie\n• Évaluer les risques clients\n• Détecter les transactions suspectes\n\n💬 **Dites-moi ce dont vous avez besoin !**`
+    `${greeting} ! 🚀 C'est **Proph3t**, votre IA spécialisée Atlas Finance !\n\n🔍 **Je peux vous aider à** :\n• Naviguer dans les modules\n• Créer et gérer vos données\n• Comprendre les fonctionnalités\n• Optimiser votre utilisation\n• Résoudre vos problèmes\n\n🤖 **Mes prédictions intelligentes** :\n• Suggérer les bons comptes comptables\n• Prévoir vos flux de trésorerie\n• Évaluer les risques clients\n• Détecter les transactions suspectes\n\n💬 **Dites-moi ce dont vous avez besoin !**`
   ];
 
   return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];

@@ -96,7 +96,7 @@ const SimpleLoansPage: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Emprunts</h1>
+          <h1 className="text-lg font-bold text-gray-900">Gestion des Emprunts</h1>
           <p className="text-gray-600">Suivi complet des financements bancaires</p>
         </div>
         <div className="flex space-x-4">
@@ -122,7 +122,7 @@ const SimpleLoansPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Emprunts</p>
-              <p className="text-2xl font-bold text-gray-900">{loans.length}</p>
+              <p className="text-lg font-bold text-gray-900">{loans.length}</p>
               <p className="text-sm text-[#6A8A82]">{loans.filter(l => l.status === 'ACTIVE').length} actifs</p>
             </div>
             <div className="h-12 w-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -135,7 +135,7 @@ const SimpleLoansPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Capital Emprunté</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(loans.reduce((sum, loan) => sum + loan.amount, 0))}
               </p>
               <p className="text-sm text-green-600">Total initial</p>
@@ -150,7 +150,7 @@ const SimpleLoansPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Solde Restant</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(loans.reduce((sum, loan) => sum + loan.remainingBalance, 0))}
               </p>
               <p className="text-sm text-[#B87333]">À rembourser</p>
@@ -165,7 +165,7 @@ const SimpleLoansPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Mensualités</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(loans.reduce((sum, loan) => sum + loan.monthlyPayment, 0))}
               </p>
               <p className="text-sm text-orange-600">Par mois</p>

@@ -273,7 +273,7 @@ const UsersPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Utilisateurs & Droits</h1>
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Utilisateurs & Droits</h1>
         <p className="text-[var(--color-text-secondary)] mt-2">Gestion des utilisateurs, rôles et permissions</p>
       </div>
 
@@ -284,7 +284,7 @@ const UsersPage: React.FC = () => {
             <Users className="w-10 h-10 text-[var(--color-info)]" />
             <span className="text-sm font-medium text-[var(--color-info)]">Total</span>
           </div>
-          <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.totalUsers}</p>
+          <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.totalUsers}</p>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">Utilisateurs</p>
         </div>
 
@@ -293,7 +293,7 @@ const UsersPage: React.FC = () => {
             <UserCheck className="w-10 h-10 text-[var(--color-success)]" />
             <span className="text-sm font-medium text-[var(--color-success)]">Actifs</span>
           </div>
-          <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.activeUsers}</p>
+          <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.activeUsers}</p>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">Utilisateurs actifs</p>
         </div>
 
@@ -302,7 +302,7 @@ const UsersPage: React.FC = () => {
             <UserX className="w-10 h-10 text-[var(--color-error)]" />
             <span className="text-sm font-medium text-[var(--color-error)]">Suspendus</span>
           </div>
-          <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.suspendedUsers}</p>
+          <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.suspendedUsers}</p>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">Comptes suspendus</p>
         </div>
 
@@ -311,7 +311,7 @@ const UsersPage: React.FC = () => {
             <Shield className="w-10 h-10 text-[var(--color-accent)]" />
             <span className="text-sm font-medium text-[var(--color-accent)]">Rôles</span>
           </div>
-          <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.totalRoles}</p>
+          <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.totalRoles}</p>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">Rôles définis</p>
         </div>
       </div>
@@ -382,7 +382,7 @@ const UsersPage: React.FC = () => {
           <div className="bg-[var(--color-surface)] rounded-lg shadow">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Liste des utilisateurs</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Liste des utilisateurs</h2>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <div className="relative">
@@ -552,7 +552,7 @@ const UsersPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-[var(--color-surface)] rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Gestion des rôles</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion des rôles</h2>
               <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg hover:bg-[var(--color-accent)]">
                 <Shield className="w-4 h-4" />
                 Nouveau rôle
@@ -615,7 +615,7 @@ const UsersPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-[var(--color-surface)] rounded-lg shadow">
             <div className="p-6 border-b border-[var(--color-border)]">
-              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Matrice des permissions</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Matrice des permissions</h2>
             </div>
 
             <div className="p-6">
@@ -648,7 +648,7 @@ const UsersPage: React.FC = () => {
           <div className="bg-[var(--color-surface)] rounded-lg shadow">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Journal d'activité</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Journal d'activité</h2>
                 <div className="flex gap-3">
                   <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>Toutes les actions</option>
@@ -705,12 +705,12 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Ajouter un Utilisateur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Ajouter un Utilisateur</h2>
               <button
                 onClick={() => setShowAddUserModal(false)}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -747,7 +747,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="email"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="jean.dupont@wisebook.com"
+                    placeholder="jean.dupont@atlasfinance.com"
                   />
                 </div>
 
@@ -873,12 +873,12 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Gérer les Permissions</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Gérer les Permissions</h2>
               <button
                 onClick={() => setShowPermissionsModal(false)}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -1036,7 +1036,7 @@ const UsersPage: React.FC = () => {
 
               <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
                 <span className="text-sm font-medium text-gray-700">Total des permissions actives:</span>
-                <span className="text-2xl font-bold text-blue-600">9 / 18</span>
+                <span className="text-lg font-bold text-blue-600">9 / 18</span>
               </div>
             </div>
 
@@ -1064,7 +1064,7 @@ const UsersPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full m-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Modifier l'utilisateur</h2>
+                <h2 className="text-lg font-bold text-gray-900">Modifier l'utilisateur</h2>
                 <button onClick={() => setShowEditUserModal(false)} className="text-gray-700 hover:text-gray-600">
                   <XCircle className="h-6 w-6" />
                 </button>

@@ -205,7 +205,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
       {/* Header avec statistiques globales */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900">
             Gestionnaire de Réconciliation
           </h2>
           <p className="text-gray-600">
@@ -245,7 +245,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-lg font-bold text-blue-600">
               {reconciliationStats?.totalUnreconciled || 0}
             </div>
             <p className="text-sm text-gray-600">Lignes à lettrer</p>
@@ -254,7 +254,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
         
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-lg font-bold text-green-600">
               {reconciliationStats?.todayReconciled || 0}
             </div>
             <p className="text-sm text-gray-600">Lettrées aujourd'hui</p>
@@ -263,7 +263,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
         
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-lg font-bold text-purple-600">
               {formatCurrency(reconciliationStats?.unreconciledAmount || 0)}
             </div>
             <p className="text-sm text-gray-600">Montant non lettré</p>
@@ -272,7 +272,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
         
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-indigo-600">
+            <div className="text-lg font-bold text-indigo-600">
               {reconciliationStats?.averageProcessingTime || 0}s
             </div>
             <p className="text-sm text-gray-600">Temps moyen</p>
@@ -619,7 +619,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                   value={reconciliationStats?.globalReconciliationRate || 0}
                   className="mb-2"
                 />
-                <p className="text-xl font-bold text-blue-600">
+                <p className="text-lg font-bold text-blue-600">
                   {(reconciliationStats?.globalReconciliationRate || 0).toFixed(1)}%
                 </p>
               </div>
@@ -632,7 +632,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
                   value={reconciliationStats?.aiAccuracy || 0}
                   className="mb-2"
                 />
-                <p className="text-xl font-bold text-green-600">
+                <p className="text-lg font-bold text-green-600">
                   {(reconciliationStats?.aiAccuracy || 0).toFixed(1)}%
                 </p>
                 <p className="text-xs text-gray-700">Précision algorithmes</p>
@@ -642,7 +642,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
             <div className="p-4 border rounded-lg">
               <h4 className="font-medium text-gray-800">Temps Traitement</h4>
               <div className="mt-2">
-                <p className="text-xl font-bold text-purple-600">
+                <p className="text-lg font-bold text-purple-600">
                   {reconciliationStats?.averageProcessingTime || 0}ms
                 </p>
                 <p className="text-xs text-gray-700">

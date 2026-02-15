@@ -373,7 +373,7 @@ const ReportsPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Rapports</h1>
+          <h1 className="text-lg font-bold text-gray-900">Rapports</h1>
           <p className="text-gray-600">Gestion et génération des rapports d'entreprise</p>
         </div>
         <div className="flex space-x-3">
@@ -397,7 +397,7 @@ const ReportsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Rapports</p>
-              <p className="text-2xl font-bold text-gray-900">{totalReports}</p>
+              <p className="text-lg font-bold text-gray-900">{totalReports}</p>
             </div>
             <div className="h-12 w-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
               <DocumentTextIcon className="h-6 w-6 text-[#6A8A82]" />
@@ -409,7 +409,7 @@ const ReportsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Rapports Actifs</p>
-              <p className="text-2xl font-bold text-green-600">{activeReports}</p>
+              <p className="text-lg font-bold text-green-600">{activeReports}</p>
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
               <PlayIcon className="h-6 w-6 text-green-600" />
@@ -421,7 +421,7 @@ const ReportsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Programmés</p>
-              <p className="text-2xl font-bold text-[#6A8A82]">{scheduledReports}</p>
+              <p className="text-lg font-bold text-[#6A8A82]">{scheduledReports}</p>
             </div>
             <div className="h-12 w-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
               <ClockIcon className="h-6 w-6 text-[#6A8A82]" />
@@ -433,7 +433,7 @@ const ReportsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Vues Totales</p>
-              <p className="text-2xl font-bold text-[#B87333]">{totalViews.toLocaleString()}</p>
+              <p className="text-lg font-bold text-[#B87333]">{totalViews.toLocaleString()}</p>
             </div>
             <div className="h-12 w-12 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
               <EyeIcon className="h-6 w-6 text-[#B87333]" />
@@ -771,12 +771,12 @@ const ReportsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Nouveau Rapport</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Nouveau Rapport</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -956,7 +956,7 @@ const ReportsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Détails du Rapport</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Détails du Rapport</h2>
               <button
                 onClick={() => {
                   setShowViewModal(false);
@@ -964,14 +964,14 @@ const ReportsPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
             <div className="p-6 space-y-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedReport.name}</h3>
+                  <h3 className="text-lg font-bold text-gray-900">{selectedReport.name}</h3>
                   <p className="text-gray-700 mt-1">{selectedReport.code}</p>
                 </div>
                 <div className="flex space-x-2">
@@ -1148,7 +1148,7 @@ const ReportsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Modifier le Rapport</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Modifier le Rapport</h2>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -1156,7 +1156,7 @@ const ReportsPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -1362,7 +1362,7 @@ const ReportsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Programmer le Rapport</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Programmer le Rapport</h2>
               <button
                 onClick={() => {
                   setShowScheduleModal(false);
@@ -1370,7 +1370,7 @@ const ReportsPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 

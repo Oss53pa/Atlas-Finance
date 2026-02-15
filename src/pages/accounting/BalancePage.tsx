@@ -9,7 +9,7 @@ const BalancePage: React.FC = () => {
   return (
     <div className="h-full p-6 bg-[var(--color-background)]">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Balance Comptable</h1>
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Balance Comptable</h1>
         <p className="text-[var(--color-text-secondary)] mt-1">Consultez et analysez la balance des comptes</p>
       </div>
 

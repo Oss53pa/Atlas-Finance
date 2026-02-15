@@ -152,11 +152,11 @@ export const PalomaAvatar: React.FC<PalomaAvatarProps> = ({
         )}
       </div>
 
-      {/* Nom Paloma bien visible */}
+      {/* Nom Proph3t bien visible */}
       {(showName || size === 'lg' || size === 'xl') && (
         <div className="paloma-name">
-          <span className="paloma-name__text">Paloma</span>
-          <span className="paloma-name__subtitle">Assistante WiseBook</span>
+          <span className="paloma-name__text proph3t-font">Proph3t</span>
+          <span className="paloma-name__subtitle">Assistante Atlas Finance</span>
         </div>
       )}
     </div>

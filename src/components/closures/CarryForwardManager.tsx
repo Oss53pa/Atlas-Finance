@@ -254,7 +254,7 @@ const CarryForwardManager: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Report à-Nouveaux & Ouverture N+1</h2>
+          <h2 className="text-lg font-bold text-gray-900">Report à-Nouveaux & Ouverture N+1</h2>
           <p className="text-gray-600">Gestion du passage d'exercice et continuité</p>
         </div>
         <div className="flex space-x-4">
@@ -312,23 +312,23 @@ const CarryForwardManager: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-600">Total Comptes</p>
-                  <p className="text-2xl font-bold text-blue-700">{carryForwards?.length || 0}</p>
+                  <p className="text-lg font-bold text-blue-700">{carryForwards?.length || 0}</p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-green-600">Validés</p>
-                  <p className="text-2xl font-bold text-green-700">
+                  <p className="text-lg font-bold text-green-700">
                     {carryForwards?.filter(cf => cf.isValidated).length || 0}
                   </p>
                 </div>
                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
                   <p className="text-sm text-yellow-600">En Attente</p>
-                  <p className="text-2xl font-bold text-yellow-700">
+                  <p className="text-lg font-bold text-yellow-700">
                     {carryForwards?.filter(cf => !cf.isValidated).length || 0}
                   </p>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <p className="text-sm text-purple-600">Avec Erreurs</p>
-                  <p className="text-2xl font-bold text-purple-700">
+                  <p className="text-lg font-bold text-purple-700">
                     {carryForwards?.filter(cf => cf.validationErrors.length > 0).length || 0}
                   </p>
                 </div>
@@ -476,7 +476,7 @@ const CarryForwardManager: React.FC = () => {
                   <h3 className="text-lg font-medium text-gray-900">Résultat à Affecter</h3>
                   <div className="p-6 bg-green-50 rounded-lg text-center">
                     <p className="text-sm text-green-600">Résultat Net de l'Exercice</p>
-                    <p className="text-3xl font-bold text-green-700">
+                    <p className="text-lg font-bold text-green-700">
                       {formatCurrency(resultAllocation.netResult)}
                     </p>
                     <p className="text-sm text-green-600 mt-1">
@@ -572,7 +572,7 @@ const CarryForwardManager: React.FC = () => {
                         {/* Valeur actuelle */}
                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                           <p className="text-sm text-gray-600">Valeur Actuelle</p>
-                          <p className="text-xl font-bold text-gray-900">
+                          <p className="text-lg font-bold text-gray-900">
                             {control.currentValue.toLocaleString('fr-FR', { 
                               minimumFractionDigits: control.metricName.includes('RATIO') ? 1 : 0,
                               maximumFractionDigits: control.metricName.includes('RATIO') ? 2 : 0

@@ -101,7 +101,7 @@ const SimplifiedLayout: React.FC = () => {
             </div>
             {sidebarOpen && (
               <div>
-                <h1 className="text-white font-bold text-lg">WiseBook</h1>
+                <h1 className="text-white font-bold text-lg">Atlas Finance</h1>
                 <p className="text-gray-700 text-xs">ERP Professionnel</p>
               </div>
             )}
@@ -172,7 +172,7 @@ const SimplifiedLayout: React.FC = () => {
             {sidebarOpen && (
               <div className="flex-1">
                 <p className="text-sm font-medium text-white">Admin</p>
-                <p className="text-xs text-gray-700">admin@wisebook.com</p>
+                <p className="text-xs text-gray-700">admin@atlasfinance.com</p>
               </div>
             )}
           </div>
@@ -189,7 +189,7 @@ const SimplifiedLayout: React.FC = () => {
                   <span className="text-white font-bold text-xl">W</span>
                 </div>
                 <div>
-                  <h1 className="text-white font-bold text-lg">WiseBook</h1>
+                  <h1 className="text-white font-bold text-lg">Atlas Finance</h1>
                   <p className="text-gray-700 text-xs">ERP Professionnel</p>
                 </div>
               </div>

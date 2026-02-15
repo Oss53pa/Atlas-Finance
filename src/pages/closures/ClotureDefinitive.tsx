@@ -12,7 +12,7 @@ const ClotureDefinitive: React.FC = () => {
     <div className="min-h-screen bg-[var(--color-background-secondary)]">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
             Module de Clôture Comptable Périodique - COMPLET
           </h1>
@@ -52,7 +52,7 @@ const ClotureDefinitive: React.FC = () => {
             {/* TYPES DE CLÔTURE */}
             {onglet === 'types' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold">Types de Clôture Supportés</h2>
+                <h2 className="text-lg font-semibold">Types de Clôture Supportés</h2>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   {[
                     { type: 'Mensuelle', desc: 'Suivi régulier opérations courantes', echeance: 'J+5', color: 'bg-[var(--color-primary-lightest)] border-[var(--color-primary-light)]' },
@@ -74,7 +74,7 @@ const ClotureDefinitive: React.FC = () => {
             {/* OPÉRATIONS RÉGULARISATION */}
             {onglet === 'regularisations' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold">Journal des Opérations à Régulariser</h2>
+                <h2 className="text-lg font-semibold">Journal des Opérations à Régulariser</h2>
                 <div className="overflow-x-auto">
                   <table className="min-w-full bg-white border">
                     <thead className="bg-[var(--color-background-secondary)]">
@@ -123,7 +123,7 @@ const ClotureDefinitive: React.FC = () => {
             {/* WORKFLOW */}
             {onglet === 'workflow' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold">Workflow de Validation Multi-Niveaux</h2>
+                <h2 className="text-lg font-semibold">Workflow de Validation Multi-Niveaux</h2>
                 <div className="flex items-center space-x-4">
                   {[
                     { niveau: 'Saisie', user: 'M. Dupont', statut: 'TERMINE' },
@@ -159,26 +159,26 @@ const ClotureDefinitive: React.FC = () => {
             {/* TABLEAU DE BORD */}
             {onglet === 'tableau-bord' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold">Indicateurs de Performance</h2>
+                <h2 className="text-lg font-semibold">Indicateurs de Performance</h2>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-[var(--color-primary-darker)]">78%</div>
+                    <div className="text-lg font-bold text-[var(--color-primary-darker)]">78%</div>
                     <div className="text-sm text-[var(--color-primary)]">Progression Globale</div>
                   </div>
                   <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-green-900">4.2j</div>
+                    <div className="text-lg font-bold text-green-900">4.2j</div>
                     <div className="text-sm text-[var(--color-success)]">Délai Moyen</div>
                   </div>
                   <div className="bg-orange-50 p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-orange-900">0.8%</div>
+                    <div className="text-lg font-bold text-orange-900">0.8%</div>
                     <div className="text-sm text-[var(--color-warning)]">Taux d'Erreur</div>
                   </div>
                   <div className="bg-purple-50 p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-purple-900">95%</div>
+                    <div className="text-lg font-bold text-purple-900">95%</div>
                     <div className="text-sm text-purple-600">Respect Échéances</div>
                   </div>
                   <div className="bg-[var(--color-error-lightest)] p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-red-900">85%</div>
+                    <div className="text-lg font-bold text-red-900">85%</div>
                     <div className="text-sm text-[var(--color-error)]">Charge Équipe</div>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ const ClotureDefinitive: React.FC = () => {
             {/* HISTORIQUE */}
             {onglet === 'historique' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold">Historique et Archivage</h2>
+                <h2 className="text-lg font-semibold">Historique et Archivage</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-medium mb-3">Archivage Automatique</h3>
@@ -251,7 +251,7 @@ const ClotureDefinitive: React.FC = () => {
               <div className="mt-4 p-4 bg-[var(--color-success-lighter)] rounded border border-green-300">
                 <div className="font-semibold text-green-900">DÉVELOPPEMENT TERMINÉ</div>
                 <div className="text-[var(--color-success-darker)] mt-1">
-                  Module de clôture comptable périodique WiseBook respecte intégralement le cahier des charges.
+                  Module de clôture comptable périodique Atlas Finance respecte intégralement le cahier des charges.
                   Toutes les exigences des sections A à G ont été implémentées.
                 </div>
               </div>

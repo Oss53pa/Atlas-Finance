@@ -8,7 +8,7 @@
 export const MOCK_DATA = {
   // Informations système
   systemInfo: {
-    name: 'WiseBook ERP',
+    name: 'Atlas Finance',
     version: '3.0.0',
     description: 'Système ERP Comptable et Financier SYSCOHADA',
     environment: 'development (DEMO)',

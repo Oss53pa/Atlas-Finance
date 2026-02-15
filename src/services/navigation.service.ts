@@ -1,5 +1,5 @@
 /**
- * Service Navigation WiseBook
+ * Service Navigation Atlas Finance
  * Gestion de la navigation dynamique et des menus
  *
  * Fonctionnalités:

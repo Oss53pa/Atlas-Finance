@@ -27,7 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // ✅ Charger l'utilisateur AVANT même que le composant existe
 const getUserFromStorage = (): User | null => {
   try {
-    const storedUser = localStorage.getItem('wisebook_user');
+    const storedUser = localStorage.getItem('atlas_finance_user');
     return storedUser ? JSON.parse(storedUser) : null;
   } catch {
     return null;
@@ -58,12 +58,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         permissions: profile.permissions
       };
       setUser(userData);
-      localStorage.setItem('wisebook_user', JSON.stringify(userData));
+      localStorage.setItem('atlas_finance_user', JSON.stringify(userData));
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
-      localStorage.removeItem('wisebook_access_token');
-      localStorage.removeItem('wisebook_refresh_token');
-      localStorage.removeItem('wisebook_user');
+      localStorage.removeItem('atlas_finance_access_token');
+      localStorage.removeItem('atlas_finance_refresh_token');
+      localStorage.removeItem('atlas_finance_user');
       setUser(null);
     } finally {
       setLoading(false);
@@ -75,10 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       const response = await authBackendService.login({ email, password });
       if (response.access) {
-        localStorage.setItem('wisebook_access_token', response.access);
+        localStorage.setItem('atlas_finance_access_token', response.access);
       }
       if (response.refresh) {
-        localStorage.setItem('wisebook_refresh_token', response.refresh);
+        localStorage.setItem('atlas_finance_refresh_token', response.refresh);
       }
       await loadUserProfile();
     } catch (error) {
@@ -95,9 +95,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     } finally {
-      localStorage.removeItem('wisebook_access_token');
-      localStorage.removeItem('wisebook_refresh_token');
-      localStorage.removeItem('wisebook_user');
+      localStorage.removeItem('atlas_finance_access_token');
+      localStorage.removeItem('atlas_finance_refresh_token');
+      localStorage.removeItem('atlas_finance_user');
       setUser(null);
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin: user?.role === 'admin',
     login,
     logout,
-    isAuthenticated: !!user && !!localStorage.getItem('wisebook_access_token'),
+    isAuthenticated: !!user && !!localStorage.getItem('atlas_finance_access_token'),
     loading,
     refreshUserProfile
   };

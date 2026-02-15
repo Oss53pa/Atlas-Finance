@@ -1,5 +1,5 @@
 /**
- * WiseBook Performance Optimization System
+ * Atlas Finance Performance Optimization System
  * Comprehensive performance monitoring and optimization
  */
 

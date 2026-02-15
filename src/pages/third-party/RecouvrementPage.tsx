@@ -133,7 +133,7 @@ const RecouvrementPage: React.FC = () => {
       <div className="container mx-auto px-4 py-6">
         {/* En-tête */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+          <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
             <DollarSign className="h-8 w-8 text-green-600 mr-3" />
             Recouvrement Intelligent
           </h1>
@@ -155,7 +155,7 @@ const RecouvrementPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {stats.totalOverdue.toLocaleString()} XOF
               </p>
               <p className="text-gray-600 text-sm">Créances échues</p>
@@ -174,7 +174,7 @@ const RecouvrementPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.customersOverdue}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.customersOverdue}</p>
               <p className="text-gray-600 text-sm">Clients en retard</p>
             </div>
           </motion.div>
@@ -191,7 +191,7 @@ const RecouvrementPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.averageDSO}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.averageDSO}</p>
               <p className="text-gray-600 text-sm">DSO moyen (jours)</p>
             </div>
           </motion.div>
@@ -208,7 +208,7 @@ const RecouvrementPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.recoveryRate}%</p>
+              <p className="text-lg font-bold text-gray-900">{stats.recoveryRate}%</p>
               <p className="text-gray-600 text-sm">Taux recouvrement</p>
             </div>
           </motion.div>
@@ -218,7 +218,7 @@ const RecouvrementPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Balance Âgée</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Balance Âgée</h2>
               <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Exporter
@@ -297,7 +297,7 @@ const RecouvrementPage: React.FC = () => {
         {/* Niveaux de relance */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Niveaux de Relance Automatisés</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Niveaux de Relance Automatisés</h2>
           </div>
 
           <div className="p-6">

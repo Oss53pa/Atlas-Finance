@@ -170,7 +170,7 @@ const AssetsJournal: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
             Journal des Immobilisations - {assetJournalConfig.company}
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -272,7 +272,7 @@ const AssetsJournal: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Écritures du mois</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">48</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">48</p>
               </div>
               <Book className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -284,7 +284,7 @@ const AssetsJournal: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Total débit</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">€242.5K</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€242.5K</p>
               </div>
               <ArrowUpRight className="w-8 h-8 text-green-500 opacity-50" />
             </div>
@@ -296,7 +296,7 @@ const AssetsJournal: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Total crédit</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">€242.5K</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€242.5K</p>
               </div>
               <ArrowDownLeft className="w-8 h-8 text-red-500 opacity-50" />
             </div>
@@ -308,7 +308,7 @@ const AssetsJournal: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">À valider</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">3</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">3</p>
               </div>
               <Clock className="w-8 h-8 text-yellow-500 opacity-50" />
             </div>
@@ -536,7 +536,6 @@ const AssetsJournal: React.FC = () => {
         onClose={() => setShowPeriodModal(false)}
         onApply={(newDateRange) => {
           setDateRange(newDateRange);
-          console.log('Période sélectionnée:', newDateRange);
         }}
         initialDateRange={dateRange}
       />

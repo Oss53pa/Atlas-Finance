@@ -286,7 +286,7 @@ const ClosurePage: React.FC = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Clôtures Périodiques</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Clôtures Périodiques</h1>
             <p className="text-[var(--color-text-primary)]">Orchestration des processus de clôture SYSCOHADA</p>
           </div>
           <div className="flex space-x-4">
@@ -491,21 +491,21 @@ const ClosurePage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-sm text-[var(--color-text-primary)]">Étapes Complétées</p>
-                        <p className="text-2xl font-bold text-[var(--color-success)]">
+                        <p className="text-lg font-bold text-[var(--color-success)]">
                           {procedure.etapes.filter(e => e.statut === 'COMPLETEE').length}
                         </p>
                         <p className="text-sm text-[var(--color-text-secondary)]">sur {procedure.etapes.length}</p>
                       </div>
                       <div>
                         <p className="text-sm text-[var(--color-text-primary)]">Anomalies</p>
-                        <p className="text-2xl font-bold text-[var(--color-warning)]">{procedure.nombreAnomalies}</p>
+                        <p className="text-lg font-bold text-[var(--color-warning)]">{procedure.nombreAnomalies}</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">
                           {procedure.nombreAnomaliesCritiques} critique(s)
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-[var(--color-text-primary)]">Équilibre Balance</p>
-                        <p className={`text-2xl font-bold ${procedure.ecartBalance === 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                        <p className={`text-lg font-bold ${procedure.ecartBalance === 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                           {procedure.ecartBalance.toFixed(2)} XAF
                         </p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Écart</p>

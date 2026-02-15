@@ -14,14 +14,13 @@ const TaxationDashboardPage: React.FC = () => {
   const { declarations, loading: declarationsLoading } = useDeclarations();
 
   const handleDeclarationClick = (declaration: DeclarationFiscale) => {
-    console.log('Declaration clicked:', declaration);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord Fiscalité</h1>
+          <h1 className="text-lg font-bold text-gray-900">Tableau de Bord Fiscalité</h1>
           <p className="mt-2 text-gray-600">
             Suivi des déclarations fiscales et obligations réglementaires
           </p>

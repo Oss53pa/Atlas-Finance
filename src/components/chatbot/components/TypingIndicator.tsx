@@ -20,7 +20,7 @@ export const TypingIndicator: React.FC = () => {
             <span className="typing-dot"></span>
           </div>
           <div className="typing-text">
-            Paloma réfléchit...
+            Proph3t réfléchit...
           </div>
         </div>
       </div>

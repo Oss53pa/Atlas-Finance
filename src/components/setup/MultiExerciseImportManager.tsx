@@ -220,7 +220,6 @@ const MultiExerciseImportManager: React.FC = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      console.log('Fichiers sélectionnés:', files);
       // Traitement des fichiers
     }
   };
@@ -244,7 +243,6 @@ const MultiExerciseImportManager: React.FC = () => {
   };
 
   const downloadTemplate = (systemId: string) => {
-    console.log(`Téléchargement du template pour ${systemId}`);
     // Télécharger le template Excel correspondant
   };
 
@@ -254,7 +252,7 @@ const MultiExerciseImportManager: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <DocumentArrowUpIcon className="h-8 w-8 mr-3 text-indigo-600" />
               Import Comptable Multi-Exercices
             </h1>
@@ -355,7 +353,7 @@ const MultiExerciseImportManager: React.FC = () => {
               {/* Étape 1: Sélection du système source */}
               {currentStep === 1 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     Sélectionnez votre système comptable actuel
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -370,7 +368,7 @@ const MultiExerciseImportManager: React.FC = () => {
                         }`}
                       >
                         <div className="flex items-start space-x-3">
-                          <div className="text-2xl">{system.icon}</div>
+                          <div className="text-xl">{system.icon}</div>
                           <div className="flex-1">
                             <h3 className="font-medium text-gray-900">{system.name}</h3>
                             <p className="text-sm text-gray-600 mt-1">{system.description}</p>
@@ -407,7 +405,7 @@ const MultiExerciseImportManager: React.FC = () => {
               {/* Étape 2: Sélection des exercices */}
               {currentStep === 2 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     Sélectionnez les exercices à importer
                   </h2>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -476,7 +474,7 @@ const MultiExerciseImportManager: React.FC = () => {
               {/* Étape 3: Types de données et fichiers */}
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     Sélectionnez les types de données à importer
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -539,7 +537,7 @@ const MultiExerciseImportManager: React.FC = () => {
               {/* Étape 4: Mapping des champs */}
               {currentStep === 4 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     Configuration du mapping des champs
                   </h2>
                   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -591,7 +589,7 @@ const MultiExerciseImportManager: React.FC = () => {
               {/* Étape 5: Validation */}
               {currentStep === 5 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     Validation avant import
                   </h2>
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -644,7 +642,7 @@ const MultiExerciseImportManager: React.FC = () => {
               {/* Étape 6: Import en cours */}
               {currentStep === 6 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     Import en cours...
                   </h2>
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -864,7 +862,7 @@ const MultiExerciseImportManager: React.FC = () => {
           {activeTab === 'mapping' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold text-gray-900">
                   Règles de mapping sauvegardées
                 </h2>
                 <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">

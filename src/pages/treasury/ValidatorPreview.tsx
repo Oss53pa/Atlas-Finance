@@ -169,7 +169,7 @@ const ValidatorPreview: React.FC = () => {
               💰
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#191919]">
+              <h1 className="text-lg font-bold text-[#191919]">
                 📋 Validation Appel de Fonds {fundCallData.reference}
               </h1>
               <p className="text-sm text-[#767676]">

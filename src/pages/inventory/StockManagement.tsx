@@ -60,7 +60,6 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle stock movement submission
-    console.log('Stock movement:', { type, stockLevel, formData });
     onClose();
   };
 
@@ -448,7 +447,7 @@ const StockManagement: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Stock Management</h1>
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Stock Management</h1>
           <p className="text-gray-600">
             Real-time stock levels and inventory movements across all locations
           </p>

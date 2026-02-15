@@ -37,8 +37,8 @@ const ClientDetailPage: React.FC = () => {
       <ClientHeader
         client={client}
         onBack={() => navigate('/clients')}
-        onEdit={() => console.log('Edit client')}
-        onExport={() => console.log('Export client')}
+        onEdit={() => {}}
+        onExport={() => {}}
         onPrint={() => window.print()}
       />
 

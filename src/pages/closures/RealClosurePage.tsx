@@ -77,7 +77,7 @@ const RealClosurePage: React.FC = () => {
       ];
 
       const simulatedResult: ClosureResult = {
-        company: 'WiseBook SARL',
+        company: 'Atlas Finance SARL',
         fiscal_year: 'Exercice 2024',
         closure_date: new Date().toISOString(),
         steps_completed: [],
@@ -148,7 +148,7 @@ const RealClosurePage: React.FC = () => {
 
     } catch (error) {
       setClosureResult({
-        company: 'WiseBook SARL',
+        company: 'Atlas Finance SARL',
         fiscal_year: 'Exercice 2024',
         closure_date: new Date().toISOString(),
         steps_completed: [],
@@ -254,7 +254,7 @@ const RealClosurePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center">
+              <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
                 <Calculator className="h-8 w-8 mr-3 text-[var(--color-primary)]" />
                 Clôture Comptable Réelle
               </h1>
@@ -369,7 +369,7 @@ const RealClosurePage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${closureResult.success ? 'text-green-900' : 'text-red-900'}`}>
+                  <div className={`text-lg font-bold ${closureResult.success ? 'text-green-900' : 'text-red-900'}`}>
                     {closureResult.total_entries_created}
                   </div>
                   <div className={`text-sm ${closureResult.success ? 'text-[var(--color-success-dark)]' : 'text-[var(--color-error-dark)]'}`}>
@@ -377,7 +377,7 @@ const RealClosurePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${closureResult.success ? 'text-green-900' : 'text-red-900'}`}>
+                  <div className={`text-lg font-bold ${closureResult.success ? 'text-green-900' : 'text-red-900'}`}>
                     {closureResult.steps_completed.length}/5
                   </div>
                   <div className={`text-sm ${closureResult.success ? 'text-[var(--color-success-dark)]' : 'text-[var(--color-error-dark)]'}`}>
@@ -385,7 +385,7 @@ const RealClosurePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className={`text-2xl font-bold ${closureResult.syscohada_compliant ? 'text-green-900' : 'text-yellow-900'}`}>
+                  <div className={`text-lg font-bold ${closureResult.syscohada_compliant ? 'text-green-900' : 'text-yellow-900'}`}>
                     {closureResult.syscohada_compliant ? '✓' : '⚠'}
                   </div>
                   <div className={`text-sm ${closureResult.syscohada_compliant ? 'text-[var(--color-success-dark)]' : 'text-[var(--color-warning-dark)]'}`}>

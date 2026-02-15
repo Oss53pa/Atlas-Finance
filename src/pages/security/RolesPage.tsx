@@ -317,7 +317,7 @@ const RolesPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion des Rôles</h1>
+          <h1 className="text-lg font-bold text-gray-900">Gestion des Rôles</h1>
           <p className="text-gray-600">Définition des rôles et attribution des permissions</p>
         </div>
         <button
@@ -335,7 +335,7 @@ const RolesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Rôles</p>
-              <p className="text-2xl font-bold text-gray-900">{totalRoles}</p>
+              <p className="text-lg font-bold text-gray-900">{totalRoles}</p>
             </div>
             <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <KeyIcon className="h-6 w-6 text-blue-600" />
@@ -347,7 +347,7 @@ const RolesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Rôles Système</p>
-              <p className="text-2xl font-bold text-red-600">{systemRoles}</p>
+              <p className="text-lg font-bold text-red-600">{systemRoles}</p>
             </div>
             <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
               <ShieldCheckIcon className="h-6 w-6 text-red-600" />
@@ -359,7 +359,7 @@ const RolesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Rôles Personnalisés</p>
-              <p className="text-2xl font-bold text-green-600">{customRoles}</p>
+              <p className="text-lg font-bold text-green-600">{customRoles}</p>
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
               <UserGroupIcon className="h-6 w-6 text-green-600" />
@@ -371,7 +371,7 @@ const RolesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Utilisateurs Assignés</p>
-              <p className="text-2xl font-bold text-purple-600">{totalUsers}</p>
+              <p className="text-lg font-bold text-purple-600">{totalUsers}</p>
             </div>
             <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <UserGroupIcon className="h-6 w-6 text-purple-600" />
@@ -515,11 +515,11 @@ const RolesPage: React.FC = () => {
               {/* Statistiques */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-indigo-600">{role.permissions.length}</div>
+                  <div className="text-lg font-bold text-indigo-600">{role.permissions.length}</div>
                   <div className="text-xs text-gray-700">Permissions</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{role.usersCount}</div>
+                  <div className="text-lg font-bold text-green-600">{role.usersCount}</div>
                   <div className="text-xs text-gray-700">Utilisateurs</div>
                 </div>
               </div>
@@ -611,12 +611,12 @@ const RolesPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Nouveau Rôle</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Nouveau Rôle</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -791,7 +791,7 @@ const RolesPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Détails du Rôle</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Détails du Rôle</h2>
               <button
                 onClick={() => {
                   setShowViewModal(false);
@@ -799,7 +799,7 @@ const RolesPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -810,7 +810,7 @@ const RolesPage: React.FC = () => {
                     {getCategoryIcon(selectedRole.category)}
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">{selectedRole.name}</h3>
+                    <h3 className="text-lg font-bold text-gray-900">{selectedRole.name}</h3>
                     <p className="text-gray-700 mt-1">{selectedRole.code}</p>
                   </div>
                 </div>
@@ -835,15 +835,15 @@ const RolesPage: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-6">
                 <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                  <div className="text-3xl font-bold text-indigo-600">{selectedRole.permissions.length}</div>
+                  <div className="text-lg font-bold text-indigo-600">{selectedRole.permissions.length}</div>
                   <div className="text-sm text-gray-600 mt-1">Permissions</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-3xl font-bold text-green-600">{selectedRole.usersCount}</div>
+                  <div className="text-lg font-bold text-green-600">{selectedRole.usersCount}</div>
                   <div className="text-sm text-gray-600 mt-1">Utilisateurs</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-3xl font-bold text-purple-600">
+                  <div className="text-lg font-bold text-purple-600">
                     {Object.keys(getPermissionsByModule(selectedRole.permissions)).length}
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Modules</div>
@@ -937,7 +937,7 @@ const RolesPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Modifier le Rôle</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Modifier le Rôle</h2>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -945,7 +945,7 @@ const RolesPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 

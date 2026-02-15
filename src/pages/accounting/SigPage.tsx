@@ -290,7 +290,7 @@ const SigPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-700">Chiffre d'Affaires</p>
-                <p className="text-2xl font-bold text-blue-900">
+                <p className="text-lg font-bold text-blue-900">
                   {formatCurrency(30000000)}
                 </p>
                 <p className="text-sm text-blue-600">+8.5% vs N-1</p>
@@ -305,7 +305,7 @@ const SigPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-700">EBE</p>
-                <p className="text-2xl font-bold text-green-900">
+                <p className="text-lg font-bold text-green-900">
                   {formatCurrency(7800000)}
                 </p>
                 <p className="text-sm text-green-600">26.0% du CA</p>
@@ -320,7 +320,7 @@ const SigPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-700">Résultat Net</p>
-                <p className="text-2xl font-bold text-purple-900">
+                <p className="text-lg font-bold text-purple-900">
                   {formatCurrency(4275000)}
                 </p>
                 <p className="text-sm text-purple-600">14.25% du CA</p>
@@ -335,7 +335,7 @@ const SigPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-amber-700">Valeur Ajoutée</p>
-                <p className="text-2xl font-bold text-amber-900">
+                <p className="text-lg font-bold text-amber-900">
                   {formatCurrency(12500000)}
                 </p>
                 <p className="text-sm text-amber-600">41.7% du CA</p>
@@ -431,7 +431,7 @@ const SigPage: React.FC = () => {
                       <div className="flex items-end justify-between">
                         <div>
                           <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold text-gray-900">
+                            <span className="text-lg font-bold text-gray-900">
                               {ratio.valeur_n.toFixed(ratio.unite === '%' ? 1 : 2)}
                             </span>
                             <span className="text-sm text-gray-700">{ratio.unite}</span>
@@ -488,7 +488,7 @@ const SigPage: React.FC = () => {
       <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl p-8 mb-8 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-lg font-bold text-white flex items-center gap-3">
               <Calculator className="h-10 w-10" />
               SIG & Ratios Financiers
             </h1>

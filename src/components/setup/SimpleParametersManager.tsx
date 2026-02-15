@@ -73,9 +73,9 @@ const SimpleParametersManager: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <CogIcon className="h-8 w-8 mr-3 text-indigo-600" />
-              Centre de Configuration WiseBook
+              Centre de Configuration Atlas Finance
             </h1>
             <p className="text-gray-600 mt-2">
               Configuration complète selon cahier des charges SYSCOHADA
@@ -94,7 +94,7 @@ const SimpleParametersManager: React.FC = () => {
                   <section.icon className={`h-8 w-8 text-${section.color}-600`} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{section.title}</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{section.title}</h2>
                   <p className="text-gray-600 text-sm">{section.description}</p>
                 </div>
               </div>
@@ -175,7 +175,7 @@ const SimpleParametersManager: React.FC = () => {
 
       {/* Accès rapide */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Accès Rapide Configuration</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Accès Rapide Configuration</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Assistant Démarrage', path: '/setup-wizard', color: 'blue' },
@@ -202,7 +202,7 @@ const SimpleParametersManager: React.FC = () => {
 
       {/* États financiers */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">États Financiers SYSCOHADA</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">États Financiers SYSCOHADA</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { label: 'Bilan SYSCOHADA', path: '/financial-statements/balance', description: 'Situation patrimoniale' },
@@ -223,7 +223,7 @@ const SimpleParametersManager: React.FC = () => {
 
       {/* Saisie avancée */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Saisie Comptable Avancée</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Saisie Comptable Avancée</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             onClick={() => window.location.href = '/accounting/entries-advanced'}

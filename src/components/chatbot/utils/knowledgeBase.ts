@@ -1,5 +1,5 @@
 /**
- * Knowledge Base for WiseBook Assistant
+ * Knowledge Base for Atlas Finance Assistant
  * Base de connaissances complète pour l'assistance utilisateur
  */
 
@@ -10,7 +10,7 @@ export const knowledgeBase: KnowledgeBaseEntry[] = [
   {
     id: 'dashboard-overview',
     title: 'Vue d\'ensemble du tableau de bord',
-    content: 'Le tableau de bord WiseBook vous donne un aperçu en temps réel de votre activité financière. Vous y trouverez les métriques clés, les graphiques de performance, les notifications importantes et les raccourcis vers les modules principaux.',
+    content: 'Le tableau de bord Atlas Finance vous donne un aperçu en temps réel de votre activité financière. Vous y trouverez les métriques clés, les graphiques de performance, les notifications importantes et les raccourcis vers les modules principaux.',
     category: 'dashboard',
     tags: ['tableau de bord', 'overview', 'accueil'],
     module: 'dashboard',

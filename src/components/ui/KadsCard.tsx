@@ -47,7 +47,7 @@ const KadsCard: React.FC<KadsCardProps> = ({
   return (
     <div 
       className={`
-        bg-white rounded-xl p-6 shadow-sm border border-[#D5D0CD] 
+        bg-white rounded-xl p-4 shadow-sm border border-[#D5D0CD]
         hover:shadow-lg transition-all duration-300 group
         ${onClick ? 'cursor-pointer hover:scale-105' : ''}
         ${className}
@@ -56,11 +56,11 @@ const KadsCard: React.FC<KadsCardProps> = ({
     >
       <div className="flex items-center justify-between mb-4">
         <div className={`
-          w-14 h-14 rounded-xl flex items-center justify-center 
+          w-10 h-10 rounded-xl flex items-center justify-center
           bg-gradient-to-r ${gradientClasses[color]}
           group-hover:shadow-md transition-shadow
         `}>
-          <IconComponent className="w-7 h-7 text-white" />
+          <IconComponent className="w-5 h-5 text-white" />
         </div>
         
         {change && (
@@ -76,7 +76,7 @@ const KadsCard: React.FC<KadsCardProps> = ({
       </div>
       
       <div className="space-y-2">
-        <h3 className="text-3xl font-bold text-[#353A3B]">{value}</h3>
+        <h3 className="text-lg font-bold text-[#353A3B]">{value}</h3>
         <p className="text-[#353A3B] opacity-80 font-medium">{title}</p>
         {description && (
           <p className="text-[#353A3B] opacity-60 text-sm">{description}</p>

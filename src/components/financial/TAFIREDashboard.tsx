@@ -229,7 +229,7 @@ const TAFIREDashboard: React.FC = () => {
       {/* Header avec contrôles */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">TAFIRE - Analyse des Flux</h2>
+          <h2 className="text-lg font-bold text-gray-900">TAFIRE - Analyse des Flux</h2>
           <p className="text-gray-600">
             Méthode {tafireData.calculationMethod === 'INDIRECT' ? 'Indirecte' : 'Directe'} • 
             Exercice {tafireData.fiscalYear} • 
@@ -264,7 +264,7 @@ const TAFIREDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">CAF</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(tafireData.selfFinancingCapacity)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(tafireData.selfFinancingCapacity)}</p>
             </div>
             <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
               <CurrencyDollarIcon className="h-6 w-6 text-green-600" />
@@ -282,7 +282,7 @@ const TAFIREDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Free Cash Flow</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(tafireData.freeCashFlow)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(tafireData.freeCashFlow)}</p>
             </div>
             <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <ChartBarIcon className="h-6 w-6 text-blue-600" />
@@ -300,7 +300,7 @@ const TAFIREDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Variation Trésorerie</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(tafireData.cashVariation)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(tafireData.cashVariation)}</p>
             </div>
             <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
               tafireData.cashVariation > 0 ? 'bg-green-100' : 'bg-red-100'
@@ -320,7 +320,7 @@ const TAFIREDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Score Qualité</p>
-              <p className="text-xl font-bold text-gray-900">{analysisData?.score || 0}/100</p>
+              <p className="text-lg font-bold text-gray-900">{analysisData?.score || 0}/100</p>
             </div>
             <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
               (analysisData?.score || 0) >= 80 ? 'bg-green-100' : 

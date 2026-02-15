@@ -1,5 +1,5 @@
 /**
- * Service Analytics WiseBook
+ * Service Analytics Atlas Finance
  * Comptabilité analytique multi-axes
  *
  * Fonctionnalités:

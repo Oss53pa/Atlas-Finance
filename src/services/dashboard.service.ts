@@ -1,5 +1,5 @@
 /**
- * Service Dashboard WiseBook
+ * Service Dashboard Atlas Finance
  * Tableau de bord exécutif et KPIs consolidés
  *
  * Fonctionnalités:
@@ -495,7 +495,7 @@ class DashboardService {
       Object.entries(theme).forEach(([key, value]) => {
         root.style.setProperty(`--${key}-color`, value);
       });
-      localStorage.setItem('wisebook-theme', themeId);
+      localStorage.setItem('atlas-finance-theme', themeId);
     }
 
     return { success: !!theme };
@@ -505,7 +505,7 @@ class DashboardService {
    * Récupère le thème actuel
    */
   getCurrentTheme(): string {
-    return localStorage.getItem('wisebook-theme') || 'corporate-blue';
+    return localStorage.getItem('atlas-finance-theme') || 'corporate-blue';
   }
 }
 

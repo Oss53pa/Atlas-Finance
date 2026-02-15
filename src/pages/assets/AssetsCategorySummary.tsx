@@ -515,7 +515,7 @@ const AssetsCategorySummary: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <p className="text-white/80 text-sm uppercase tracking-wide">Catégorie</p>
-            <h1 className="text-2xl font-bold">EMERGENCE PLAZA SA</h1>
+            <h1 className="text-lg font-bold">EMERGENCE PLAZA SA</h1>
             <h2 className="text-xl mt-1">Asset Category Summary</h2>
             <p className="text-sm text-white/80 mt-2">
               From {selectedPeriod.from} to {selectedPeriod.to}
@@ -541,7 +541,7 @@ const AssetsCategorySummary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Solde clôture actifs</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {formatNumber(totals.closingBalance)}
                 </p>
                 <p className="text-xs text-green-500 mt-1">489 986 155</p>
@@ -556,7 +556,7 @@ const AssetsCategorySummary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulés</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {formatNumber(totals.depClosingBalance)}
                 </p>
                 <p className="text-xs text-orange-500 mt-1">8 693 010</p>
@@ -571,7 +571,7 @@ const AssetsCategorySummary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">VNC totale</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {formatNumber(totals.closingCarryingValue)}
                 </p>
                 <p className="text-xs text-blue-500 mt-1">481 293 145</p>
@@ -586,7 +586,7 @@ const AssetsCategorySummary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Additions</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {formatNumber(totals.additions)}
                 </p>
                 <p className="text-xs text-purple-500 mt-1">27 520 151</p>
@@ -601,7 +601,7 @@ const AssetsCategorySummary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">Amort. du mois</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {formatNumber(totals.currentMonthDepTotal)}
                 </p>
                 <p className="text-xs text-red-500 mt-1">992 523</p>

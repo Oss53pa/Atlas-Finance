@@ -285,7 +285,7 @@ const TaxReportingPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-var(--color-text-primary) flex items-center">
+            <h1 className="text-lg font-bold text-var(--color-text-primary) flex items-center">
               <Receipt className="mr-3 h-7 w-7 text-var(--color-blue-primary)" />
               Reporting Fiscal
             </h1>
@@ -329,7 +329,7 @@ const TaxReportingPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">TVA à Payer</p>
-                  <p className="text-2xl font-bold text-var(--color-text-primary)">
+                  <p className="text-lg font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.tvaAPayer)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
@@ -367,7 +367,7 @@ const TaxReportingPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">IRPP</p>
-                  <p className="text-2xl font-bold text-var(--color-text-primary)">
+                  <p className="text-lg font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.irpp)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
@@ -402,7 +402,7 @@ const TaxReportingPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">IS</p>
-                  <p className="text-2xl font-bold text-var(--color-text-primary)">
+                  <p className="text-lg font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.is)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
@@ -437,7 +437,7 @@ const TaxReportingPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-var(--color-text-secondary)">Total Taxes</p>
-                  <p className="text-2xl font-bold text-var(--color-text-primary)">
+                  <p className="text-lg font-bold text-var(--color-text-primary)">
                     {formatCurrency(taxStats.totalTaxes)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
@@ -570,22 +570,22 @@ const TaxReportingPage: React.FC = () => {
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-var(--color-blue-primary)">38%</div>
+                    <div className="text-lg font-bold text-var(--color-blue-primary)">38%</div>
                     <div className="text-sm text-var(--color-text-secondary)">TVA</div>
                     <div className="text-xs text-gray-700">{formatCurrency(taxStats.tvaAPayer)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">25%</div>
+                    <div className="text-lg font-bold text-purple-600">25%</div>
                     <div className="text-sm text-var(--color-text-secondary)">IRPP</div>
                     <div className="text-xs text-gray-700">{formatCurrency(taxStats.irpp)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-var(--color-green-primary)">36%</div>
+                    <div className="text-lg font-bold text-var(--color-green-primary)">36%</div>
                     <div className="text-sm text-var(--color-text-secondary)">IS</div>
                     <div className="text-xs text-gray-700">{formatCurrency(taxStats.is)}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-var(--color-orange-primary)">1%</div>
+                    <div className="text-lg font-bold text-var(--color-orange-primary)">1%</div>
                     <div className="text-sm text-var(--color-text-secondary)">Autres</div>
                     <div className="text-xs text-gray-700">{formatCurrency(500000)}</div>
                   </div>
@@ -951,7 +951,7 @@ const TaxReportingPage: React.FC = () => {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-600">Déclaration</p>
                 <p className="font-semibold">{selectedDeclaration.type} - {selectedDeclaration.periode}</p>
-                <p className="text-2xl font-bold text-blue-700 mt-2">{formatCurrency(selectedDeclaration.montant)}</p>
+                <p className="text-lg font-bold text-blue-700 mt-2">{formatCurrency(selectedDeclaration.montant)}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Mode de paiement</label>

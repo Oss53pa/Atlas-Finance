@@ -226,7 +226,7 @@ const ClosureModulesIndex: React.FC = () => {
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center">
+                <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
                   <Lock className="h-8 w-8 mr-3 text-purple-600" />
                   Modules de Gestion des Clôtures
                 </h1>
@@ -235,7 +235,7 @@ const ClosureModulesIndex: React.FC = () => {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm text-[var(--color-text-primary)]">WiseBook v3.0</div>
+                <div className="text-sm text-[var(--color-text-primary)]">Atlas Finance v3.0</div>
                 <div className="text-lg font-bold text-purple-600">8 Modules Disponibles</div>
               </div>
             </div>
@@ -246,7 +246,7 @@ const ClosureModulesIndex: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-purple-600">Automatisation</p>
-                    <p className="text-2xl font-bold text-purple-900">89%</p>
+                    <p className="text-lg font-bold text-purple-900">89%</p>
                   </div>
                   <Bot className="h-8 w-8 text-purple-500" />
                 </div>
@@ -255,7 +255,7 @@ const ClosureModulesIndex: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-success)]">Gain de Temps</p>
-                    <p className="text-2xl font-bold text-green-900">-50%</p>
+                    <p className="text-lg font-bold text-green-900">-50%</p>
                   </div>
                   <Clock className="h-8 w-8 text-[var(--color-success)]" />
                 </div>
@@ -264,7 +264,7 @@ const ClosureModulesIndex: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-primary)]">Conformité</p>
-                    <p className="text-2xl font-bold text-[var(--color-primary-darker)]">98.7%</p>
+                    <p className="text-lg font-bold text-[var(--color-primary-darker)]">98.7%</p>
                   </div>
                   <Shield className="h-8 w-8 text-[var(--color-primary)]" />
                 </div>
@@ -273,7 +273,7 @@ const ClosureModulesIndex: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-warning)]">Utilisateurs</p>
-                    <p className="text-2xl font-bold text-orange-900">50+</p>
+                    <p className="text-lg font-bold text-orange-900">50+</p>
                   </div>
                   <Users className="h-8 w-8 text-orange-500" />
                 </div>
@@ -336,7 +336,7 @@ const ClosureModulesIndex: React.FC = () => {
 
         {/* Section raccourcis rapides */}
         <div className="mt-12 bg-white rounded-xl border border-[var(--color-border)] p-6">
-          <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6 flex items-center">
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6 flex items-center">
             <Zap className="h-6 w-6 mr-3 text-yellow-500" />
             Accès Rapides
           </h2>
@@ -457,7 +457,7 @@ const ClosureModulesIndex: React.FC = () => {
         {/* Documentation et formation */}
         <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-[var(--color-primary-light)] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-[var(--color-primary-darker)] flex items-center">
+            <h2 className="text-lg font-semibold text-[var(--color-primary-darker)] flex items-center">
               <FileText className="h-6 w-6 mr-3" />
               Documentation & Formation
             </h2>
@@ -512,12 +512,12 @@ const ClosureModulesIndex: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                   📚 Guide Utilisateur - Clôtures Comptables
                 </h3>
                 <button
                   onClick={() => setShowUserGuideModal(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-500 hover:text-gray-700 text-xl"
                 >
                   &times;
                 </button>
@@ -527,7 +527,7 @@ const ClosureModulesIndex: React.FC = () => {
               <section>
                 <h4 className="font-semibold text-lg text-[var(--color-primary-darker)] mb-3">1. Vue d'ensemble</h4>
                 <p className="text-gray-600 mb-2">
-                  Le module de clôture comptable WiseBook automatise les processus de clôture périodique
+                  Le module de clôture comptable Atlas Finance automatise les processus de clôture périodique
                   conformément aux normes SYSCOHADA pour la zone CEMAC.
                 </p>
               </section>
@@ -594,12 +594,12 @@ const ClosureModulesIndex: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                   🎓 Formation SYSCOHADA - E-Learning
                 </h3>
                 <button
                   onClick={() => setShowTrainingModal(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-500 hover:text-gray-700 text-xl"
                 >
                   &times;
                 </button>
@@ -666,12 +666,12 @@ const ClosureModulesIndex: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                   🛠️ Contacter le Support Technique
                 </h3>
                 <button
                   onClick={() => setShowSupportModal(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-500 hover:text-gray-700 text-xl"
                 >
                   &times;
                 </button>

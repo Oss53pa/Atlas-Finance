@@ -986,7 +986,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
         <div className="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
                 {currentClass.nom}
               </h1>
               <p className="text-[var(--color-text-secondary)] text-sm mt-1">
@@ -1059,17 +1059,17 @@ const PlanSYSCOHADAPage: React.FC = () => {
               {
                 icon: Eye,
                 label: 'Voir détails',
-                onClick: (compte: Compte) => console.log('View', compte)
+                onClick: (_compte: Compte) => {}
               },
               {
                 icon: Edit,
                 label: t('common.edit'),
-                onClick: (compte: Compte) => console.log('Edit', compte)
+                onClick: (_compte: Compte) => {}
               },
               {
                 icon: Copy,
                 label: 'Dupliquer',
-                onClick: (compte: Compte) => console.log('Copy', compte)
+                onClick: (_compte: Compte) => {}
               }
             ]}
             emptyMessage="Aucun compte trouvé"
@@ -1152,7 +1152,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Plus className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Nouveau Compte SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-gray-900">Nouveau Compte SYSCOHADA</h2>
               </div>
               <button
                 onClick={() => {

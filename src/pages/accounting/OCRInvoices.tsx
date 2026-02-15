@@ -164,7 +164,7 @@ const OCRInvoices: React.FC = () => {
         supplierTaxId: 'M012345678901A',
         supplierEmail: 'contact@techsolutions.cm',
         supplierPhone: '+237 233 456 789',
-        customerName: 'WISEBOOK ENTERPRISE',
+        customerName: 'ATLAS FINANCE ENTERPRISE',
         customerAddress: 'Rue du Commerce, Yaoundé, Cameroun',
         customerTaxId: 'M098765432109B',
         subtotal: 5000000,
@@ -404,7 +404,6 @@ const OCRInvoices: React.FC = () => {
     );
 
     // Create accounting entry
-    console.log('Creating accounting entry for invoice:', invoice.id);
   };
 
   const rejectInvoice = (invoice: ScannedInvoice, reason: string) => {
@@ -462,11 +461,19 @@ const OCRInvoices: React.FC = () => {
     <div className="flex h-full bg-[var(--color-background)]">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
+        {/* OCR Service Notice */}
+        <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center space-x-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">OCR — Apercu de la fonctionnalite</p>
+            <p className="text-xs text-amber-600">L'extraction OCR necessite un service externe (Mindee, Google Vision, etc.). Les donnees ci-dessous sont illustratives.</p>
+          </div>
+        </div>
         {/* Header */}
         <div className="bg-[var(--color-surface)] border-b border-[var(--color-border)] px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-3">
+              <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-3">
                 <ScanLine className="w-8 h-8 text-[var(--color-primary)]" />
                 OCR Factures Intelligent
               </h1>
@@ -622,7 +629,7 @@ const OCRInvoices: React.FC = () => {
                   <div className="w-20 h-20 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center mx-auto mb-4">
                     <Upload className="w-10 h-10 text-[var(--color-primary)]" />
                   </div>
-                  <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
                     Glissez vos factures ici
                   </h3>
                   <p className="text-[var(--color-text-secondary)] mb-4">
@@ -909,7 +916,7 @@ const OCRInvoices: React.FC = () => {
                     <h3 className="font-semibold text-[var(--color-text-primary)]">Volume mensuel</h3>
                     <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />
                   </div>
-                  <div className="text-3xl font-bold text-[var(--color-text-primary)]">234</div>
+                  <div className="text-lg font-bold text-[var(--color-text-primary)]">234</div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
                     +12% vs mois dernier
                   </p>
@@ -929,7 +936,7 @@ const OCRInvoices: React.FC = () => {
                     <h3 className="font-semibold text-[var(--color-text-primary)]">Montant total</h3>
                     <DollarSign className="w-5 h-5 text-[var(--color-primary)]" />
                   </div>
-                  <div className="text-3xl font-bold text-[var(--color-text-primary)]">
+                  <div className="text-lg font-bold text-[var(--color-text-primary)]">
                     {formatCurrency(stats.totalAmount)}
                   </div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
@@ -973,7 +980,7 @@ const OCRInvoices: React.FC = () => {
                     <h3 className="font-semibold text-[var(--color-text-primary)]">Performance IA</h3>
                     <Brain className="w-5 h-5 text-[var(--color-accent)]" />
                   </div>
-                  <div className="text-3xl font-bold text-[var(--color-text-primary)]">
+                  <div className="text-lg font-bold text-[var(--color-text-primary)]">
                     {stats.averageConfidence}%
                   </div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
@@ -1045,7 +1052,7 @@ const OCRInvoices: React.FC = () => {
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
                   {selectedInvoice.extractedData.documentNumber}
                 </h2>
                 <p className="text-sm text-[var(--color-text-secondary)] mt-1">

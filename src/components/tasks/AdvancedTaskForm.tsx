@@ -217,8 +217,8 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-card rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col border shadow-lg">
         {/* Header */}
-        <div className="px-6 py-4 border-b flex justify-between items-center bg-gradient-to-r from-wisebook-primary to-wisebook-secondary text-wisebook-light">
-          <h2 className="text-xl font-bold">
+        <div className="px-6 py-4 border-b flex justify-between items-center bg-gradient-to-r from-primary to-secondary text-white">
+          <h2 className="text-lg font-bold">
             {mode === 'create' ? 'Créer une nouvelle tâche' : 'Modifier la tâche'}
           </h2>
           <button onClick={onClose} className="hover:bg-white/10 p-2 rounded-lg transition-colors" aria-label="Fermer">
@@ -242,7 +242,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${
                   activeTab === tab.id
-                    ? 'border-b-2 border-wisebook-primary text-wisebook-primary bg-card'
+                    ? 'border-b-2 border-primary text-primary bg-card'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -268,7 +268,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     placeholder="Entrez le titre de la tâche"
                     required
                   />
@@ -282,7 +282,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     rows={4}
                     placeholder="Description détaillée de la tâche"
                   />
@@ -297,7 +297,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                     <select
                       value={formData.priority}
                       onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     >
                       <option value="low">Basse</option>
                       <option value="medium">Moyenne</option>
@@ -313,7 +313,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     >
                       <option value="todo">À faire</option>
                       <option value="in-progress">En cours</option>
@@ -334,13 +334,13 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       {formData.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="px-3 py-1 bg-wisebook-primary/20 text-wisebook-primary rounded-full text-sm flex items-center gap-1"
+                          className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm flex items-center gap-1"
                         >
                           {tag}
                           <button
                             type="button"
                             onClick={() => removeTag(tag)}
-                            className="hover:bg-wisebook-primary/30 rounded-full p-0.5"
+                            className="hover:bg-primary/30 rounded-full p-0.5"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -359,7 +359,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       <button
                         type="button"
                         onClick={() => addTag(newTag)}
-                        className="px-3 py-1 bg-wisebook-primary text-wisebook-light rounded-lg text-sm hover:bg-wisebook-primary-hover"
+                        className="px-3 py-1 bg-primary text-white rounded-lg text-sm hover:bg-primary-hover"
                       >
                         Ajouter
                       </button>
@@ -397,7 +397,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                     >
                       {formData.assignedTo ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-wisebook-primary rounded-full flex items-center justify-center text-wisebook-light text-sm">
+                          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm">
                             {formData.assignedTo.name.split(' ').map(n => n[0]).join('')}
                           </div>
                           <div>
@@ -435,7 +435,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                               }}
                               className="w-full px-3 py-2 text-left hover:bg-muted/50 flex items-center gap-2"
                             >
-                              <div className="w-8 h-8 bg-wisebook-primary rounded-full flex items-center justify-center text-wisebook-light text-sm">
+                              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm">
                                 {user.name.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div>
@@ -463,7 +463,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                             key={user.id}
                             className="flex items-center gap-2 px-3 py-1 bg-muted rounded-lg"
                           >
-                            <div className="w-6 h-6 bg-wisebook-primary rounded-full flex items-center justify-center text-wisebook-light text-xs">
+                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs">
                               {user.name.split(' ').map(n => n[0]).join('')}
                             </div>
                             <span className="text-sm">{user.name}</span>
@@ -507,7 +507,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                                 onClick={() => addContributor(user)}
                                 className="w-full px-2 py-1 text-left hover:bg-muted/50 flex items-center gap-2 text-sm"
                               >
-                                <div className="w-6 h-6 bg-wisebook-primary rounded-full flex items-center justify-center text-wisebook-light text-xs">
+                                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs">
                                   {user.name.split(' ').map(n => n[0]).join('')}
                                 </div>
                                 <span>{user.name}</span>
@@ -530,7 +530,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       const team = availableTeams.find(t => t.id === e.target.value) || null;
                       setFormData(prev => ({ ...prev, team }));
                     }}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                   >
                     <option value="">Aucune équipe</option>
                     {availableTeams.map((team) => (
@@ -555,7 +555,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       type="date"
                       value={formData.startDate}
                       onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     />
                   </div>
 
@@ -567,7 +567,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       type="date"
                       value={formData.dueDate}
                       onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -588,7 +588,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                     <select
                       value={formData.recurrencePattern || 'monthly'}
                       onChange={(e) => setFormData(prev => ({ ...prev, recurrencePattern: e.target.value as any }))}
-                      className="mt-2 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="mt-2 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     >
                       <option value="daily">Quotidien</option>
                       <option value="weekly">Hebdomadaire</option>
@@ -616,7 +616,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                   </div>
                   <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-wisebook-primary transition-all"
+                      className="h-full bg-primary transition-all"
                       style={{ width: `${formData.progress}%` }}
                     />
                   </div>
@@ -636,7 +636,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       type="number"
                       value={formData.estimatedHours}
                       onChange={(e) => setFormData(prev => ({ ...prev, estimatedHours: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       min="0"
                       step="0.5"
                     />
@@ -650,7 +650,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       type="number"
                       value={formData.actualHours}
                       onChange={(e) => setFormData(prev => ({ ...prev, actualHours: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       min="0"
                       step="0.5"
                     />
@@ -666,7 +666,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       type="number"
                       value={formData.budget}
                       onChange={(e) => setFormData(prev => ({ ...prev, budget: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       min="0"
                       step="100"
                     />
@@ -680,7 +680,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                       type="number"
                       value={formData.actualCost}
                       onChange={(e) => setFormData(prev => ({ ...prev, actualCost: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-wisebook-primary"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                       min="0"
                       step="100"
                     />
@@ -779,7 +779,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
             </button>
             <button
               onClick={handleSubmit}
-              className="px-4 py-2 bg-wisebook-primary text-wisebook-light rounded-lg hover:bg-wisebook-primary-hover flex items-center gap-2" aria-label="Valider">
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2" aria-label="Valider">
               <CheckCircle className="w-4 h-4" />
               {mode === 'create' ? 'Créer la tâche' : 'Enregistrer les modifications'}
             </button>

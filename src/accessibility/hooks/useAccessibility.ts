@@ -83,31 +83,42 @@ export function useAccessibility(): AccessibilityState & AccessibilityActions {
       }));
 
       // Listen for changes
-      mediaQuery.addEventListener('change', (e) => {
+      const onMotionChange = (e: MediaQueryListEvent) => {
         setMotionPreferences(prev => ({
           ...prev,
           reduceMotion: e.matches,
           animationDuration: e.matches ? 0 : 300,
           transitionDuration: e.matches ? 0 : 200,
         }));
-      });
+      };
 
-      contrastQuery.addEventListener('change', (e) => {
+      const onContrastChange = (e: MediaQueryListEvent) => {
         setContrastPreferences(prev => ({
           ...prev,
           highContrast: e.matches,
         }));
-      });
+      };
 
-      colorSchemeQuery.addEventListener('change', (e) => {
+      const onColorSchemeChange = (e: MediaQueryListEvent) => {
         setContrastPreferences(prev => ({
           ...prev,
           colorScheme: e.matches ? 'dark' : 'light',
         }));
-      });
+      };
+
+      mediaQuery.addEventListener('change', onMotionChange);
+      contrastQuery.addEventListener('change', onContrastChange);
+      colorSchemeQuery.addEventListener('change', onColorSchemeChange);
+
+      return () => {
+        mediaQuery.removeEventListener('change', onMotionChange);
+        contrastQuery.removeEventListener('change', onContrastChange);
+        colorSchemeQuery.removeEventListener('change', onColorSchemeChange);
+      };
     };
 
-    detectSystemPreferences();
+    const cleanup = detectSystemPreferences();
+    return cleanup;
   }, []);
 
   // Detect screen reader usage

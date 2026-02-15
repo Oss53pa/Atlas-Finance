@@ -137,7 +137,7 @@ const AdvancedBalance: React.FC = () => {
         showPrintButton={false}
         headerContent={
           <div className="text-center mb-4">
-            <h2 className="text-xl font-bold">Balance Avancée</h2>
+            <h2 className="text-lg font-bold">Balance Avancée</h2>
             <p className="text-sm text-gray-600">Conforme SYSCOHADA - {dateRange.start} au {dateRange.end}</p>
           </div>
         }
@@ -148,7 +148,7 @@ const AdvancedBalance: React.FC = () => {
           <div className="flex items-center space-x-4">
             <BarChart3 className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]">Balance Avancée</h1>
+              <h1 className="text-lg font-bold text-[#191919]">Balance Avancée</h1>
               <p className="text-sm text-[#191919]/70">Tableau de bord interactif - Conforme SYSCOHADA</p>
             </div>
           </div>
@@ -379,7 +379,7 @@ const AdvancedBalance: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#191919]/70">Total Débit</p>
-                  <p className="text-2xl font-bold text-blue-600">{(indicators.totalDebit / 1000000).toFixed(1)}M</p>
+                  <p className="text-lg font-bold text-blue-600">{(indicators.totalDebit / 1000000).toFixed(1)}M</p>
                   <p className="text-xs text-[#191919]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -392,7 +392,7 @@ const AdvancedBalance: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#191919]/70">Total Crédit</p>
-                  <p className="text-2xl font-bold text-green-600">{(indicators.totalCredit / 1000000).toFixed(1)}M</p>
+                  <p className="text-lg font-bold text-green-600">{(indicators.totalCredit / 1000000).toFixed(1)}M</p>
                   <p className="text-xs text-[#191919]/50">XAF</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -405,7 +405,7 @@ const AdvancedBalance: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#191919]/70">Taux d'Équilibre</p>
-                  <p className={`text-2xl font-bold ${indicators.tauxEquilibre > 98 ? 'text-green-600' : 'text-orange-600'}`}>
+                  <p className={`text-lg font-bold ${indicators.tauxEquilibre > 98 ? 'text-green-600' : 'text-orange-600'}`}>
                     {indicators.tauxEquilibre.toFixed(1)}%
                   </p>
                   <p className="text-xs text-gray-700">
@@ -425,7 +425,7 @@ const AdvancedBalance: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#191919]/70">Comptes Actifs</p>
-                  <p className="text-2xl font-bold text-[#6A8A82]">{mockBalanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
+                  <p className="text-lg font-bold text-[#6A8A82]">{mockBalanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
                   <p className="text-xs text-gray-700">sur {mockBalanceData.length} total</p>
                 </div>
                 <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -957,7 +957,7 @@ const AdvancedBalance: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <h1 className="text-xl font-bold text-[#191919]">BALANCE GÉNÉRALE</h1>
+                <h1 className="text-lg font-bold text-[#191919]">BALANCE GÉNÉRALE</h1>
                 <p className="text-[#191919]/70">Période du {filters.dateDebut} au {filters.dateFin}</p>
                 <p className="text-[#191919]/50 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')} - Conforme SYSCOHADA</p>
               </div>
@@ -1026,7 +1026,7 @@ const AdvancedBalance: React.FC = () => {
               {/* Pied de page */}
               <div className="mt-8 pt-4 border-t border-[#ECECEC] flex justify-between items-center text-xs text-[#191919]/50">
                 <div>
-                  <p>WiseBook ERP - Balance Générale</p>
+                  <p>Atlas Finance - Balance Générale</p>
                   <p>Système conforme SYSCOHADA</p>
                 </div>
                 <div className="text-right">

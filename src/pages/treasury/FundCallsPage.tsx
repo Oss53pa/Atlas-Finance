@@ -1,5 +1,5 @@
 /**
- * Module Appels de Fonds WiseBook
+ * Module Appels de Fonds Atlas Finance
  * Interface complète avec workflow de validation selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
@@ -336,7 +336,7 @@ const FundCallsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total à Payer</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-lg font-bold text-red-600">
                   {formatCurrency(totalOutstanding)}
                 </p>
                 <p className="text-sm text-gray-700">{payables?.length} factures</p>
@@ -351,7 +351,7 @@ const FundCallsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Sélectionné</p>
-                <p className="text-2xl font-bold text-[#6A8A82]">
+                <p className="text-lg font-bold text-[#6A8A82]">
                   {formatCurrency(selectedAmount)}
                 </p>
                 <p className="text-sm text-gray-700">{proposedPayments.length} éléments</p>
@@ -366,7 +366,7 @@ const FundCallsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">En Retard</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-lg font-bold text-orange-600">
                   {payables?.filter(p => p.arrearsAging > 0).length || 0}
                 </p>
                 <p className="text-sm text-gray-700">
@@ -384,7 +384,7 @@ const FundCallsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Critiques</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-lg font-bold text-red-600">
                   {payables?.filter(p => p.priority === 'CRITICAL').length || 0}
                 </p>
                 <p className="text-sm text-gray-700">Paiement urgent</p>
@@ -873,7 +873,7 @@ const FundCallsPage: React.FC = () => {
       <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl p-8 mb-8 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-lg font-bold text-white flex items-center gap-3">
               <CreditCard className="h-10 w-10" />
               Appels de Fonds
             </h1>

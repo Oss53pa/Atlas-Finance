@@ -58,7 +58,7 @@ const ClotureComptableFinal: React.FC = () => {
     <div className="min-h-screen bg-[var(--color-background-secondary)]">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
             Module de Clôture Comptable Périodique
           </h1>
@@ -71,7 +71,7 @@ const ClotureComptableFinal: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Types de Clôture Supportés */}
         <div className="bg-white rounded-lg border mb-6 p-6">
-          <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">Types de Clôture Supportés</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Types de Clôture Supportés</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {[
@@ -200,7 +200,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET OPÉRATIONS DE RÉGULARISATION */}
             {ongletActif === 'regularisations' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">B. Opérations de Régularisation</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">B. Opérations de Régularisation</h2>
 
                 {/* Journal des Opérations à Régulariser */}
                 <div className="bg-white border rounded-lg p-6">
@@ -559,7 +559,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET OPÉRATIONS SPÉCIALISÉES */}
             {ongletActif === 'specialisees' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">D. Opérations de Clôture Spécialisées</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">D. Opérations de Clôture Spécialisées</h2>
 
                 {/* Rapprochements et Contrôles */}
                 <div className="bg-white border rounded-lg p-6">
@@ -736,7 +736,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET ÉTATS FINANCIERS */}
             {ongletActif === 'etats-financiers' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">États Financiers</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">États Financiers</h2>
 
                 {/* Génération automatique */}
                 <div className="bg-white border rounded-lg p-6">
@@ -842,7 +842,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET TABLEAU DE BORD */}
             {ongletActif === 'tableau-bord' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">F. Tableau de Bord et Reporting</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">F. Tableau de Bord et Reporting</h2>
 
                 {/* Indicateurs de Performance */}
                 <div className="bg-white border rounded-lg p-6">
@@ -850,27 +850,27 @@ const ClotureComptableFinal: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                     <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-[var(--color-primary-darker)]">78%</div>
+                      <div className="text-lg font-bold text-[var(--color-primary-darker)]">78%</div>
                       <div className="text-sm text-[var(--color-primary)]">Progression Globale</div>
                       <div className="text-xs text-[var(--color-primary)] mt-1">Temps réel</div>
                     </div>
                     <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-green-900">4.2j</div>
+                      <div className="text-lg font-bold text-green-900">4.2j</div>
                       <div className="text-sm text-[var(--color-success)]">Délai Moyen</div>
                       <div className="text-xs text-[var(--color-success)] mt-1">Par étape</div>
                     </div>
                     <div className="bg-orange-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-orange-900">0.8%</div>
+                      <div className="text-lg font-bold text-orange-900">0.8%</div>
                       <div className="text-sm text-[var(--color-warning)]">Taux d'Erreur</div>
                       <div className="text-xs text-orange-500 mt-1">Et de rejet</div>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-purple-900">95%</div>
+                      <div className="text-lg font-bold text-purple-900">95%</div>
                       <div className="text-sm text-purple-600">Respect Échéances</div>
                       <div className="text-xs text-purple-500 mt-1">J+5 mensuel</div>
                     </div>
                     <div className="bg-[var(--color-error-lightest)] p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-red-900">85%</div>
+                      <div className="text-lg font-bold text-red-900">85%</div>
                       <div className="text-sm text-[var(--color-error)]">Charge Équipe</div>
                       <div className="text-xs text-[var(--color-error)] mt-1">Par équipe</div>
                     </div>
@@ -1002,7 +1002,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET HISTORIQUE ET ARCHIVAGE */}
             {ongletActif === 'historique' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">G. Historique et Archivage</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">G. Historique et Archivage</h2>
 
                 {/* Conservation des Données */}
                 <div className="bg-white border rounded-lg p-6">
@@ -1216,7 +1216,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET PARAMÉTRAGE */}
             {ongletActif === 'parametrage' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">E. Paramétrage et Automatisation</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">E. Paramétrage et Automatisation</h2>
 
                 {/* Règles de Gestion Configurables */}
                 <div className="bg-white border rounded-lg p-6">
@@ -1407,7 +1407,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET CYCLE DE CLÔTURE */}
             {ongletActif === 'cycle' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Gestion du Cycle de Clôture</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion du Cycle de Clôture</h2>
 
                 {/* Création et Configuration d'Exercice/Période */}
                 <div className="bg-white border rounded-lg p-6">
@@ -1688,7 +1688,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET WORKFLOW */}
             {ongletActif === 'workflow' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Workflow de Validation Avancé</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Workflow de Validation Avancé</h2>
 
                 {/* Processus Multi-Niveaux */}
                 <div className="bg-white border rounded-lg p-6">
@@ -1990,7 +1990,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET BALANCES */}
             {ongletActif === 'balances' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Balance Pré-Clôture</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Balance Pré-Clôture</h2>
 
                 <div className="overflow-x-auto">
                   <table className="min-w-full bg-white border">
@@ -2032,7 +2032,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET PROVISIONS */}
             {ongletActif === 'provisions' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Provisions Créances - Validation Requise</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Provisions Créances - Validation Requise</h2>
 
                 <div className="overflow-x-auto">
                   <table className="min-w-full bg-white border">
@@ -2107,7 +2107,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET ÉCRITURES */}
             {ongletActif === 'ecritures' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Journal de Clôture</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Journal de Clôture</h2>
 
                 {ecritures.length > 0 ? (
                   <div className="space-y-4">
@@ -2158,7 +2158,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET CALENDRIER */}
             {ongletActif === 'calendrier' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Calendrier des Clôtures</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Calendrier des Clôtures</h2>
 
                 <div className="grid grid-cols-7 gap-2">
                   {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((jour) => (
@@ -2226,7 +2226,7 @@ const ClotureComptableFinal: React.FC = () => {
             {/* ONGLET EXPORTS */}
             {ongletActif === 'exports' && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Exports et Rapports</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Exports et Rapports</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-white border rounded-lg p-6 text-center">

@@ -203,22 +203,18 @@ const CustomReportsPage: React.FC = () => {
   };
 
   const handleSaveReport = (data: any) => {
-    console.log('Sauvegarde du rapport:', data);
     toast.success('Rapport modifié avec succès');
   };
 
   const handleSaveSchedule = (data: any) => {
-    console.log('Sauvegarde de la planification:', data);
     toast.success('Planification modifiée avec succès');
   };
 
   const handlePlaySchedule = (schedule: any) => {
-    console.log('Lancement de la planification:', schedule);
     toast.success('Planification lancée');
   };
 
   const handlePauseExecution = (execution: any) => {
-    console.log("Pause de l'exécution:", execution);
     toast.success("Exécution mise en pause");
   };
 
@@ -412,7 +408,7 @@ const CustomReportsPage: React.FC = () => {
       <div className="bg-[var(--color-background-primary)] rounded-lg p-6 border border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Tableau de Bord des Rapports</h2>
+            <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Tableau de Bord des Rapports</h2>
             <p className="text-sm text-[var(--color-text-secondary)] mt-1">Gestion et suivi de vos rapports</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -438,7 +434,7 @@ const CustomReportsPage: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Rapports en cours</span>
                 <Activity className="w-4 h-4 text-[var(--color-blue-primary)]" />
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.enCours}</p>
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.enCours}</p>
               <p className="text-xs text-[var(--color-red-primary)] mt-1">{stats.enRetard} en retard</p>
             </CardContent>
           </Card>
@@ -449,7 +445,7 @@ const CustomReportsPage: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Rapports terminés</span>
                 <CheckCircle className="w-4 h-4 text-[var(--color-green-primary)]" />
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.termines}</p>
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.termines}</p>
               <p className="text-xs text-[var(--color-green-primary)] mt-1">Ce mois: {stats.terminesCeMois}</p>
             </CardContent>
           </Card>
@@ -460,7 +456,7 @@ const CustomReportsPage: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Sessions ouvertes</span>
                 <Users className="w-4 h-4 text-[var(--color-purple-primary)]" />
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.sessionsOuvertes}</p>
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.sessionsOuvertes}</p>
               <p className="text-xs text-[var(--color-purple-primary)] mt-1">{stats.utilisateursActifs} utilisateurs actifs</p>
             </CardContent>
           </Card>
@@ -471,7 +467,7 @@ const CustomReportsPage: React.FC = () => {
                 <span className="text-sm text-[var(--color-text-secondary)]">Planifiés</span>
                 <Calendar className="w-4 h-4 text-[var(--color-orange-primary)]" />
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.planifies}</p>
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.planifies}</p>
               <p className="text-xs text-[var(--color-orange-primary)] mt-1">Prochaine: dans {stats.prochainDans}</p>
             </CardContent>
           </Card>
@@ -1045,19 +1041,19 @@ const CustomReportsPage: React.FC = () => {
                     <h4 className="text-base font-semibold text-[var(--color-text-primary)] mb-4">Statistiques d'Utilisation</h4>
                     <div className="grid grid-cols-4 gap-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">12</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">12</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Modèles prédéfinis</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">464</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">464</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Utilisations totales</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">89%</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">89%</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Taux d'adoption</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">92%</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">92%</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Satisfaction</p>
                       </div>
                     </div>
@@ -1152,19 +1148,19 @@ const CustomReportsPage: React.FC = () => {
                     <h4 className="text-base font-semibold text-[var(--color-text-primary)] mb-4">Mes Statistiques</h4>
                     <div className="grid grid-cols-4 gap-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">3</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">3</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Modèles créés</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">25</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">25</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Utilisations totales</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">2</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">2</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Modèles partagés</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">85%</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">85%</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Satisfaction moyenne</p>
                       </div>
                     </div>
@@ -1205,19 +1201,19 @@ const CustomReportsPage: React.FC = () => {
               {/* Statistiques rapides */}
               <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="bg-[var(--color-blue-light)] rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--color-blue-primary)]">12</p>
+                  <p className="text-lg font-bold text-[var(--color-blue-primary)]">12</p>
                   <p className="text-sm text-blue-700">Planifiés</p>
                 </div>
                 <div className="bg-[var(--color-green-light)] rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--color-green-primary)]">8</p>
+                  <p className="text-lg font-bold text-[var(--color-green-primary)]">8</p>
                   <p className="text-sm text-green-700">Actifs</p>
                 </div>
                 <div className="bg-[var(--color-orange-light)] rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--color-orange-primary)]">3</p>
+                  <p className="text-lg font-bold text-[var(--color-orange-primary)]">3</p>
                   <p className="text-sm text-orange-700">En pause</p>
                 </div>
                 <div className="bg-[var(--color-purple-light)] rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--color-purple-primary)]">1</p>
+                  <p className="text-lg font-bold text-[var(--color-purple-primary)]">1</p>
                   <p className="text-sm text-purple-700">{t('common.error')}</p>
                 </div>
               </div>
@@ -1527,19 +1523,19 @@ const CustomReportsPage: React.FC = () => {
                     <h4 className="text-base font-semibold text-[var(--color-text-primary)] mb-4">Statistiques des Exécutions</h4>
                     <div className="grid grid-cols-4 gap-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-primary)]">247</p>
+                        <p className="text-lg font-bold text-[var(--color-primary)]">247</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Exécutions totales</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-green-primary)]">98.2%</p>
+                        <p className="text-lg font-bold text-[var(--color-green-primary)]">98.2%</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Taux de succès</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-blue-primary)]">2.3 min</p>
+                        <p className="text-lg font-bold text-[var(--color-blue-primary)]">2.3 min</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Durée moyenne</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-[var(--color-purple-primary)]">156</p>
+                        <p className="text-lg font-bold text-[var(--color-purple-primary)]">156</p>
                         <p className="text-sm text-[var(--color-text-secondary)]">Destinataires touchés</p>
                       </div>
                     </div>
@@ -1583,7 +1579,7 @@ const CustomReportsPage: React.FC = () => {
                     <TrendingUp className="w-8 h-8 text-[var(--color-blue-primary)]" />
                     <span className="text-sm text-[var(--color-green-primary)] font-medium">+12%</span>
                   </div>
-                  <p className="text-2xl font-bold text-blue-900">247</p>
+                  <p className="text-lg font-bold text-blue-900">247</p>
                   <p className="text-sm text-blue-700">Rapports générés</p>
                   <p className="text-xs text-[var(--color-blue-primary)] mt-1">ce mois</p>
                 </div>
@@ -1593,7 +1589,7 @@ const CustomReportsPage: React.FC = () => {
                     <Clock className="w-8 h-8 text-[var(--color-green-primary)]" />
                     <span className="text-sm text-[var(--color-green-primary)] font-medium">-8%</span>
                   </div>
-                  <p className="text-2xl font-bold text-green-900">2.3 min</p>
+                  <p className="text-lg font-bold text-green-900">2.3 min</p>
                   <p className="text-sm text-green-700">Temps moyen</p>
                   <p className="text-xs text-[var(--color-green-primary)] mt-1">génération</p>
                 </div>
@@ -1603,7 +1599,7 @@ const CustomReportsPage: React.FC = () => {
                     <CheckCircle className="w-8 h-8 text-[var(--color-purple-primary)]" />
                     <span className="text-sm text-[var(--color-green-primary)] font-medium">+5%</span>
                   </div>
-                  <p className="text-2xl font-bold text-purple-900">98.2%</p>
+                  <p className="text-lg font-bold text-purple-900">98.2%</p>
                   <p className="text-sm text-purple-700">Taux de réussite</p>
                   <p className="text-xs text-[var(--color-purple-primary)] mt-1">exécutions</p>
                 </div>
@@ -1613,7 +1609,7 @@ const CustomReportsPage: React.FC = () => {
                     <Users className="w-8 h-8 text-[var(--color-orange-primary)]" />
                     <span className="text-sm text-[var(--color-green-primary)] font-medium">+18%</span>
                   </div>
-                  <p className="text-2xl font-bold text-orange-900">24</p>
+                  <p className="text-lg font-bold text-orange-900">24</p>
                   <p className="text-sm text-orange-700">Utilisateurs actifs</p>
                   <p className="text-xs text-[var(--color-orange-primary)] mt-1">ce mois</p>
                 </div>
@@ -1726,7 +1722,7 @@ const CustomReportsPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Clock className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Planifier un Rapport</h2>
+                <h2 className="text-lg font-bold text-gray-900">Planifier un Rapport</h2>
               </div>
               <button
                 onClick={() => {

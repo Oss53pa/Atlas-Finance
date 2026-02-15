@@ -58,7 +58,7 @@ const AssetsDashboard: React.FC = () => {
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
             <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-xl font-semibold text-neutral-700">Chargement du tableau de bord...</p>
+            <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord...</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -143,7 +143,7 @@ const AssetsDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Nombre d'Actifs</p>
-                  <p className="text-xl font-bold text-neutral-900">
+                  <p className="text-lg font-bold text-neutral-900">
                     {dashboardData?.nombre_actifs || 0}
                   </p>
                 </div>
@@ -163,7 +163,7 @@ const AssetsDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Taux d'Amortissement</p>
-                  <p className="text-xl font-bold text-neutral-900">
+                  <p className="text-lg font-bold text-neutral-900">
                     {formatPercentage(dashboardData?.taux_amortissement_moyen || 0)}
                   </p>
                 </div>
@@ -183,7 +183,7 @@ const AssetsDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Âge Moyen</p>
-                  <p className="text-xl font-bold text-neutral-900">
+                  <p className="text-lg font-bold text-neutral-900">
                     {dashboardData?.age_moyen || 0} ans
                   </p>
                 </div>
@@ -227,7 +227,7 @@ const AssetsDashboard: React.FC = () => {
                 <PieChart className="h-6 w-6 text-[var(--color-info)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Répartition par Catégorie</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Répartition par Catégorie</h2>
                 <p className="text-neutral-600">Valeur et nombre d'actifs</p>
               </div>
             </div>
@@ -269,7 +269,7 @@ const AssetsDashboard: React.FC = () => {
                 <TrendingDown className="h-6 w-6 text-[var(--color-warning)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Derniers Amortissements</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Derniers Amortissements</h2>
                 <p className="text-neutral-600">Dotations récentes</p>
               </div>
             </div>
@@ -318,7 +318,7 @@ const AssetsDashboard: React.FC = () => {
                 <AlertCircle className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">État des Immobilisations</h2>
+                <h2 className="text-lg font-bold text-neutral-900">État des Immobilisations</h2>
                 <p className="text-neutral-600">Suivi détaillé par actif</p>
               </div>
             </div>
@@ -420,7 +420,7 @@ const AssetsDashboard: React.FC = () => {
         {/* Quick Actions */}
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Actions Rapides</h2>
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">Actions Rapides</h2>
             <p className="text-neutral-600">Gestion des immobilisations et amortissements</p>
           </div>
           <div className="grid gap-6 md:grid-cols-4">

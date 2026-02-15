@@ -91,7 +91,7 @@ const KPICard: React.FC<KPICardProps> = ({
           </div>
           <div>
             <p className="text-sm font-medium text-[var(--color-text-primary)]">{title}</p>
-            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+            <p className="text-lg font-bold text-[var(--color-text-primary)]">
               {formatValue(value)}
             </p>
           </div>
@@ -190,7 +190,7 @@ const InventoryDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">Inventory Dashboard</h1>
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Inventory Dashboard</h1>
           <p className="text-[var(--color-text-primary)]">
             Real-time inventory analytics and key performance indicators
           </p>
@@ -496,7 +496,7 @@ const InventoryDashboard: React.FC = () => {
         <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">ABC Analysis Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-6 bg-[#6A8A82]/10 rounded-lg">
-            <div className="text-2xl font-bold text-[#6A8A82] mb-2">
+            <div className="text-lg font-bold text-[#6A8A82] mb-2">
               {mockABCAnalysis.summary.classA.items}
             </div>
             <div className="text-sm text-[#6A8A82] font-medium mb-1">Class A Items</div>
@@ -506,7 +506,7 @@ const InventoryDashboard: React.FC = () => {
           </div>
 
           <div className="text-center p-6 bg-[var(--color-success-lightest)] rounded-lg">
-            <div className="text-2xl font-bold text-[var(--color-success)] mb-2">
+            <div className="text-lg font-bold text-[var(--color-success)] mb-2">
               {mockABCAnalysis.summary.classB.items}
             </div>
             <div className="text-sm text-[var(--color-success-darker)] font-medium mb-1">Class B Items</div>
@@ -516,7 +516,7 @@ const InventoryDashboard: React.FC = () => {
           </div>
 
           <div className="text-center p-6 bg-[var(--color-warning-lightest)] rounded-lg">
-            <div className="text-2xl font-bold text-[var(--color-warning)] mb-2">
+            <div className="text-lg font-bold text-[var(--color-warning)] mb-2">
               {mockABCAnalysis.summary.classC.items}
             </div>
             <div className="text-sm text-[var(--color-warning-dark)] font-medium mb-1">Class C Items</div>

@@ -1,6 +1,6 @@
 /**
- * Intégration ML Backend pour Paloma
- * Connecte Paloma aux modèles d'apprentissage automatique
+ * Intégration ML Backend pour Proph3t
+ * Connecte Proph3t aux modèles d'apprentissage automatique
  */
 
 import mlService, {
@@ -17,9 +17,9 @@ export interface MLCapability {
 }
 
 /**
- * Gestionnaire des capacités ML de Paloma
+ * Gestionnaire des capacités ML de Proph3t
  */
-export class PalomaMLManager {
+export class Proph3tMLManager {
   private capabilities: Map<string, MLCapability> = new Map();
 
   constructor() {
@@ -27,7 +27,7 @@ export class PalomaMLManager {
   }
 
   /**
-   * Initialise toutes les capacités ML de Paloma
+   * Initialise toutes les capacités ML de Proph3t
    */
   private initializeCapabilities() {
     // 1. Recommandations de comptes comptables
@@ -81,7 +81,7 @@ export class PalomaMLManager {
         tiers: params.tiers
       });
 
-      let response = "Super ! 💰 Paloma a analysé votre transaction avec son IA Random Forest !\n\n";
+      let response = "Super ! 💰 Proph3t a analysé votre transaction avec son IA Random Forest !\n\n";
       response += "📊 **Recommandations de comptes:**\n\n";
 
       recommendations.forEach((rec, index) => {
@@ -93,12 +93,12 @@ export class PalomaMLManager {
         response += `   Confiance: ${confidence}% ${bar}\n\n`;
       });
 
-      response += "✨ Paloma recommande d'utiliser le premier compte avec la plus haute confiance !\n";
+      response += "✨ Proph3t recommande d'utiliser le premier compte avec la plus haute confiance !\n";
       response += "💡 Astuce: Plus vous validez, plus l'IA apprend et s'améliore !";
 
       return response;
     } catch (error) {
-      return "Oops ! 😅 Paloma a eu un petit souci avec l'IA... Le modèle Random Forest n'est peut-être pas encore entraîné. Voulez-vous que je lance l'entraînement ?";
+      return "Oops ! 😅 Proph3t a eu un petit souci avec l'IA... Le modèle Random Forest n'est peut-être pas encore entraîné. Voulez-vous que je lance l'entraînement ?";
     }
   }
 
@@ -116,7 +116,7 @@ export class PalomaMLManager {
 
       const forecasts = await mlService.getTreasuryForecast(historical, periods);
 
-      let response = "Génial ! 📈 Paloma a prédit votre trésorerie avec son réseau LSTM !\n\n";
+      let response = "Génial ! 📈 Proph3t a prédit votre trésorerie avec son réseau LSTM !\n\n";
       response += `🔮 **Prévisions sur ${periods} jours:**\n\n`;
 
       // Montre les 7 premiers jours
@@ -133,7 +133,7 @@ export class PalomaMLManager {
       const trendEmoji = avgForecast > historical[0].solde ? '🟢' : '🔴';
 
       response += `\n${trendEmoji} **Tendance ${trend}**: ${this.formatCurrency(avgForecast)} en moyenne\n`;
-      response += "\n💡 Paloma conseille: ";
+      response += "\n💡 Proph3t conseille: ";
 
       if (avgForecast < historical[0].solde * 0.8) {
         response += "Attention, votre trésorerie va baisser ! Prévoyez des rentrées d'argent.";
@@ -145,7 +145,7 @@ export class PalomaMLManager {
 
       return response;
     } catch (error) {
-      return "Oh là là ! 🔧 Le modèle LSTM de prédiction n'est pas encore prêt. Voulez-vous que Paloma le prépare pour vous ?";
+      return "Oh là là ! 🔧 Le modèle LSTM de prédiction n'est pas encore prêt. Voulez-vous que Proph3t le prépare pour vous ?";
     }
   }
 
@@ -168,7 +168,7 @@ export class PalomaMLManager {
 
       const riskScore = await mlService.analyzeClientRisk(clientData);
 
-      let response = "Analyse terminée ! 🎯 Paloma a évalué le risque avec XGBoost !\n\n";
+      let response = "Analyse terminée ! 🎯 Proph3t a évalué le risque avec XGBoost !\n\n";
       response += `📊 **Client ${params.client_name || params.client_id}:**\n\n`;
 
       // Score visuel
@@ -189,7 +189,7 @@ export class PalomaMLManager {
       response += `${categoryEmoji[riskScore.risk_category]} **Catégorie**: ${riskScore.risk_category}\n\n`;
 
       // Recommandations
-      response += "💡 **Recommandations Paloma:**\n";
+      response += "💡 **Recommandations Proph3t:**\n";
 
       switch (riskScore.risk_category) {
         case 'Faible':
@@ -225,10 +225,10 @@ export class PalomaMLManager {
       const anomalies = await mlService.getRecentAnomalies(days);
 
       if (anomalies.length === 0) {
-        return `Parfait ! ✅ Aucune anomalie détectée sur les ${days} derniers jours.\n\nPaloma veille sur vos données ! 🛡️`;
+        return `Parfait ! ✅ Aucune anomalie détectée sur les ${days} derniers jours.\n\nProph3t veille sur vos données ! 🛡️`;
       }
 
-      let response = `Attention ! 🚨 Paloma a détecté ${anomalies.length} anomalie(s) :\n\n`;
+      let response = `Attention ! 🚨 Proph3t a détecté ${anomalies.length} anomalie(s) :\n\n`;
 
       // Groupe par sévérité
       const critical = anomalies.filter(a => a.severite === 'CRITIQUE');
@@ -255,11 +255,11 @@ export class PalomaMLManager {
         response += `🟡 **MOYEN** (${medium.length})\n\n`;
       }
 
-      response += "💡 Paloma recommande de traiter d'abord les anomalies critiques !";
+      response += "💡 Proph3t recommande de traiter d'abord les anomalies critiques !";
 
       return response;
     } catch (error) {
-      return "Hmm... 🤔 Paloma ne peut pas accéder aux détections d'anomalies pour le moment.";
+      return "Hmm... 🤔 Proph3t ne peut pas accéder aux détections d'anomalies pour le moment.";
     }
   }
 
@@ -270,7 +270,7 @@ export class PalomaMLManager {
     try {
       const dashboard = await mlService.getDashboard();
 
-      let response = "Voici le Dashboard IA de WiseBook ! 🤖✨\n\n";
+      let response = "Voici le Dashboard IA de Atlas Finance ! 🤖✨\n\n";
       response += "📊 **Vue d'ensemble:**\n";
       response += `   • Modèles actifs: ${dashboard.summary.active_models}/${dashboard.summary.total_models}\n`;
       response += `   • Modèles prêts: ${dashboard.summary.ready_models}\n`;
@@ -297,11 +297,11 @@ export class PalomaMLManager {
         });
       }
 
-      response += "\n✨ Tous les modèles de Paloma sont opérationnels !";
+      response += "\n✨ Tous les modèles de Proph3t sont opérationnels !";
 
       return response;
     } catch (error) {
-      return "Oops ! 📊 Paloma ne peut pas charger le dashboard ML pour le moment.";
+      return "Oops ! 📊 Proph3t ne peut pas charger le dashboard ML pour le moment.";
     }
   }
 
@@ -312,13 +312,13 @@ export class PalomaMLManager {
     const capability = this.capabilities.get(capabilityName);
 
     if (!capability) {
-      return `Désolée ! 😅 Paloma ne connaît pas cette capacité IA: "${capabilityName}"`;
+      return `Désolée ! 😅 Proph3t ne connaît pas cette capacité IA: "${capabilityName}"`;
     }
 
     try {
       return await capability.action(params);
     } catch (error) {
-      return `Oups ! 🔧 Paloma a rencontré une erreur: ${error}`;
+      return `Oups ! 🔧 Proph3t a rencontré une erreur: ${error}`;
     }
   }
 
@@ -421,6 +421,6 @@ export class PalomaMLManager {
 }
 
 // Instance singleton
-export const palomaMLManager = new PalomaMLManager();
+export const palomaMLManager = new Proph3tMLManager();
 
 export default palomaMLManager;

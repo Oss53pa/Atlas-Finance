@@ -251,14 +251,14 @@ const CompanySetupWizard: React.FC = () => {
         <div className="bg-[#6A8A82] rounded-lg shadow-lg border border-gray-200 mb-8 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-white flex items-center">
+              <h1 className="text-lg font-bold text-white flex items-center">
                 <SparklesIcon className="h-8 w-8 mr-3 text-white" />
-                Assistant de Configuration WiseBook
+                Assistant de Configuration Atlas Finance
               </h1>
               <p className="text-[#F0F3F2] mt-2">Configuration complète en 4 étapes selon SYSCOHADA</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white">Étape {currentStep}/4</div>
+              <div className="text-lg font-bold text-white">Étape {currentStep}/4</div>
               <div className="text-sm text-[#F0F3F2]">
                 {Math.round((currentStep / steps.length) * 100)}% complété
               </div>
@@ -328,7 +328,7 @@ const CompanySetupWizard: React.FC = () => {
           {/* Étape 1: Informations Entreprise */}
           {currentStep === 1 && (
             <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
                 <BuildingOfficeIcon className="h-6 w-6 mr-2 text-blue-600" />
                 Informations de l'Entreprise
               </h2>
@@ -349,7 +349,7 @@ const CompanySetupWizard: React.FC = () => {
                           <input
                             {...field}
                             type="text"
-                            placeholder="WISEBOOK SARL"
+                            placeholder="ATLAS FINANCE SARL"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         )}
@@ -619,7 +619,7 @@ const CompanySetupWizard: React.FC = () => {
                           <input
                             {...field}
                             type="email"
-                            placeholder="contact@wisebook.cm"
+                            placeholder="contact@atlasfinance.com"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                           />
                         )}
@@ -638,7 +638,7 @@ const CompanySetupWizard: React.FC = () => {
                           <input
                             {...field}
                             type="url"
-                            placeholder="https://www.wisebook.cm"
+                            placeholder="https://www.atlasfinance.com"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                           />
                         )}
@@ -850,7 +850,7 @@ const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any
   control, errors, watchedValues
 }) => (
   <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
-    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+    <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
       <CalculatorIcon className="h-6 w-6 mr-2 text-green-600" />
       Configuration Comptable SYSCOHADA
     </h2>
@@ -1159,7 +1159,7 @@ const FiscalYearConfigStep: React.FC<{ control: any; errors: any; watchedValues:
   control, errors, watchedValues
 }) => (
   <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
-    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+    <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
       <CalendarIcon className="h-6 w-6 mr-2 text-purple-600" />
       Exercice Comptable
     </h2>
@@ -1314,7 +1314,7 @@ const ImportDataStep: React.FC<{ control: any; errors: any; watchedValues: any }
   control, errors, watchedValues
 }) => (
   <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
-    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+    <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
       <DocumentArrowUpIcon className="h-6 w-6 mr-2 text-orange-600" />
       Import Données Existantes
     </h2>

@@ -183,7 +183,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919]">
+            <h1 className="text-lg font-bold text-[#191919]">
               Dashboard Trésorerie
             </h1>
             <div className="flex items-center space-x-2 mt-1">
@@ -303,7 +303,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                           </div>
                           <div>
                             <p className="text-sm font-medium text-[#191919]/70">{kpi.title}</p>
-                            <p className="text-xl font-bold text-[#191919]">{kpi.value}</p>
+                            <p className="text-lg font-bold text-[#191919]">{kpi.value}</p>
                             <p className="text-xs text-[#191919]/50">{kpi.subValue}</p>
                           </div>
                         </div>
@@ -517,7 +517,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {fundCallsDashboard?.summary?.active_calls || 0}
                 </div>
                 <p className="text-sm text-[#191919]/70">Appels actifs</p>
@@ -526,7 +526,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {formatCurrency(fundCallsDashboard?.summary?.total_amount_called || 0)}
                 </div>
                 <p className="text-sm text-[#191919]/70">Montant total appelé</p>
@@ -535,7 +535,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-2xl font-bold text-[var(--color-success)]">
+                <div className="text-lg font-bold text-[var(--color-success)]">
                   {formatCurrency(fundCallsDashboard?.summary?.total_amount_received || 0)}
                 </div>
                 <p className="text-sm text-[#191919]/70">Montant reçu</p>
@@ -587,7 +587,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold text-[#6A8A82]">
+                          <p className="text-lg font-bold text-[#6A8A82]">
                             {formatCurrency(call.amount_needed)}
                           </p>
                           <p className="text-sm text-[var(--color-success)]">
@@ -702,7 +702,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-[#6A8A82]">
+                    <div className="text-lg font-bold text-[#6A8A82]">
                       {(performanceMetrics?.overall_performance_score || 0).toFixed(1)}%
                     </div>
                     <Badge className={`

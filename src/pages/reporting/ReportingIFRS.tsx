@@ -232,7 +232,7 @@ const ReportingIFRS: React.FC = () => {
   const mockEntities: ConsolidationEntity[] = [
     {
       id: '1',
-      name: 'WiseBook France SAS',
+      name: 'Atlas Finance France SAS',
       country: 'France',
       currency: 'EUR',
       ownership: 100,
@@ -244,7 +244,7 @@ const ReportingIFRS: React.FC = () => {
     },
     {
       id: '2',
-      name: 'WiseBook UK Ltd',
+      name: 'Atlas Finance UK Ltd',
       country: 'Royaume-Uni',
       currency: 'GBP',
       ownership: 75,
@@ -795,7 +795,7 @@ const ReportingIFRS: React.FC = () => {
             >
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-neutral-800">
+                  <h3 className="text-lg font-semibold text-neutral-800">
                     {reportModal.mode === 'create' ? 'Nouveau Rapport IFRS' :
                      reportModal.mode === 'edit' ? 'Modifier le Rapport' : 'Détails du Rapport'}
                   </h3>

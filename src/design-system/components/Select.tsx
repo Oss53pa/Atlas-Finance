@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Select Component
+ * Atlas Finance Design System - Select Component
  * Fully accessible select with validation and custom styling
  */
 

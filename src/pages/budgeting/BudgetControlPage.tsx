@@ -238,7 +238,7 @@ const BudgetControlPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contrôle Budgétaire</h1>
+          <h1 className="text-lg font-bold text-gray-900">Contrôle Budgétaire</h1>
           <p className="text-gray-600">Suivi des écarts et analyse des performances</p>
         </div>
         <div className="flex space-x-3">
@@ -262,7 +262,7 @@ const BudgetControlPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Budget Total</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalBudgeted)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalBudgeted)}</p>
             </div>
             <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <BanknotesIcon className="h-6 w-6 text-blue-600" />
@@ -274,7 +274,7 @@ const BudgetControlPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Réalisé</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalActual)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalActual)}</p>
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
               <ChartBarIcon className="h-6 w-6 text-green-600" />
@@ -286,7 +286,7 @@ const BudgetControlPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Écart</p>
-              <p className={`text-2xl font-bold ${getVarianceColor(totalVariance)}`}>
+              <p className={`text-lg font-bold ${getVarianceColor(totalVariance)}`}>
                 {formatCurrency(Math.abs(totalVariance))}
               </p>
               <p className={`text-sm ${getVarianceColor(totalVariance)}`}>
@@ -306,7 +306,7 @@ const BudgetControlPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Budgets Suivis</p>
-              <p className="text-2xl font-bold text-gray-900">{budgetControls.length}</p>
+              <p className="text-lg font-bold text-gray-900">{budgetControls.length}</p>
             </div>
             <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <CalendarIcon className="h-6 w-6 text-orange-600" />

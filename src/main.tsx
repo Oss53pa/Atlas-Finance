@@ -29,7 +29,7 @@ const hideLoader = () => {
 // Rendu de l'application - les CSS sont DÉJÀ chargés de manière synchrone
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter future={{ v7_relativeSplatPath: true }}>
       <App />
       <Toaster position="top-right" />
     </BrowserRouter>

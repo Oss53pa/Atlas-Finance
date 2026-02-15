@@ -265,7 +265,7 @@ export const renderInventaireAuto = () => (
           <div className="p-4 bg-green-50 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-green-900">298</p>
+                <p className="text-lg font-bold text-green-900">298</p>
                 <p className="text-sm text-green-700">Actifs scannés</p>
               </div>
               <QrCode className="w-8 h-8 text-green-600" />
@@ -274,7 +274,7 @@ export const renderInventaireAuto = () => (
           <div className="p-4 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-blue-900">342</p>
+                <p className="text-lg font-bold text-blue-900">342</p>
                 <p className="text-sm text-blue-700">Total actifs</p>
               </div>
               <Database className="w-8 h-8 text-blue-600" />
@@ -283,7 +283,7 @@ export const renderInventaireAuto = () => (
           <div className="p-4 bg-red-50 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-red-900">5</p>
+                <p className="text-lg font-bold text-red-900">5</p>
                 <p className="text-sm text-red-700">Anomalies</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -292,7 +292,7 @@ export const renderInventaireAuto = () => (
           <div className="p-4 bg-purple-50 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-purple-900">87%</p>
+                <p className="text-lg font-bold text-purple-900">87%</p>
                 <p className="text-sm text-purple-700">Progression</p>
               </div>
               <Activity className="w-8 h-8 text-purple-600" />

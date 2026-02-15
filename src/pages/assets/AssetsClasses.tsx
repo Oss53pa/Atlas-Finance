@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Palette WiseBook appliquée
+import React, { useState } from 'react'; // Palette Atlas Finance appliquée
 import {
   Layers, Search, Plus, Edit2, Settings, BarChart3,
   TrendingUp, DollarSign, Activity, Info, ChevronDown,
@@ -136,7 +136,7 @@ const AssetsClasses: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
             Classes Comptables d'Immobilisations
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -204,7 +204,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Total classes</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">6</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">6</p>
               </div>
               <Layers className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -216,7 +216,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Comptes actifs</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">27</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">27</p>
               </div>
               <Activity className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -228,7 +228,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Valeur totale</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">€6.1M</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">€6.1M</p>
               </div>
               <DollarSign className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -240,7 +240,7 @@ const AssetsClasses: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Actifs liés</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">615</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">615</p>
               </div>
               <BarChart3 className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>

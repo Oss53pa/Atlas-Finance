@@ -227,7 +227,7 @@ const FinancialAnalysisPage: React.FC = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analyse Financière Avancée</h1>
+            <h1 className="text-lg font-bold text-gray-900">Analyse Financière Avancée</h1>
             <p className="text-gray-600">TAFIRE, SIG, Bilan Fonctionnel et Ratios SYSCOHADA</p>
           </div>
           <div className="flex space-x-4">
@@ -284,7 +284,7 @@ const FinancialAnalysisPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Résultat Net</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(financialData?.sig.netResult || 0)}</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(financialData?.sig.netResult || 0)}</p>
                   <p className="text-sm text-green-600 flex items-center">
                     <ArrowUpIcon className="h-4 w-4 mr-1" />
                     {formatNumber(financialData?.sig.netMarginRate || 0)}% marge
@@ -300,7 +300,7 @@ const FinancialAnalysisPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Free Cash Flow</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(financialData?.tafire.freeCashFlow || 0)}</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(financialData?.tafire.freeCashFlow || 0)}</p>
                   <p className="text-sm text-blue-600">CAF: {formatCurrency(financialData?.tafire.selfFinancingCapacity || 0)}</p>
                 </div>
                 <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -313,7 +313,7 @@ const FinancialAnalysisPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">FRNG</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(financialData?.functionalBalance.workingCapitalFund || 0)}</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(financialData?.functionalBalance.workingCapitalFund || 0)}</p>
                   <p className="text-sm text-purple-600">BFR: {formatCurrency(financialData?.functionalBalance.totalWorkingCapitalNeed || 0)}</p>
                 </div>
                 <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -326,7 +326,7 @@ const FinancialAnalysisPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">ROE</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatNumber(financialData?.ratios.find(r => r.name === 'ROE')?.value || 0)}%</p>
+                  <p className="text-lg font-bold text-gray-900">{formatNumber(financialData?.ratios.find(r => r.name === 'ROE')?.value || 0)}%</p>
                   <p className="text-sm text-orange-600">Ref: 10%</p>
                 </div>
                 <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -418,19 +418,19 @@ const FinancialAnalysisPage: React.FC = () => {
         <div className="space-y-8">
           {/* En-tête TAFIRE */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">TAFIRE - Tableau Financier des Ressources et Emplois</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">TAFIRE - Tableau Financier des Ressources et Emplois</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <p className="text-sm text-green-600 font-medium">Flux d'Exploitation</p>
-                <p className="text-2xl font-bold text-green-700">{formatCurrency(financialData?.tafire.operatingCashFlow || 0)}</p>
+                <p className="text-lg font-bold text-green-700">{formatCurrency(financialData?.tafire.operatingCashFlow || 0)}</p>
               </div>
               <div className="text-center p-4 bg-red-50 rounded-lg">
                 <p className="text-sm text-red-600 font-medium">Flux d'Investissement</p>
-                <p className="text-2xl font-bold text-red-700">{formatCurrency(financialData?.tafire.investmentCashFlow || 0)}</p>
+                <p className="text-lg font-bold text-red-700">{formatCurrency(financialData?.tafire.investmentCashFlow || 0)}</p>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-600 font-medium">Flux de Financement</p>
-                <p className="text-2xl font-bold text-blue-700">{formatCurrency(financialData?.tafire.financingCashFlow || 0)}</p>
+                <p className="text-lg font-bold text-blue-700">{formatCurrency(financialData?.tafire.financingCashFlow || 0)}</p>
               </div>
             </div>
           </div>
@@ -501,19 +501,19 @@ const FinancialAnalysisPage: React.FC = () => {
         <div className="space-y-8">
           {/* Prévisions de trésorerie */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Cash Flow Prévisionnel</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Cash Flow Prévisionnel</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-600 font-medium">Burn Rate Mensuel</p>
-                <p className="text-2xl font-bold text-blue-700">{formatCurrency(financialData.cashFlowForecast.burnRate)}</p>
+                <p className="text-lg font-bold text-blue-700">{formatCurrency(financialData.cashFlowForecast.burnRate)}</p>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <p className="text-sm text-green-600 font-medium">Runway</p>
-                <p className="text-2xl font-bold text-green-700">{formatNumber(financialData.cashFlowForecast.runway)} mois</p>
+                <p className="text-lg font-bold text-green-700">{formatNumber(financialData.cashFlowForecast.runway)} mois</p>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <p className="text-sm text-purple-600 font-medium">Scénarios</p>
-                <p className="text-2xl font-bold text-purple-700">{financialData.cashFlowForecast.scenarios.length}</p>
+                <p className="text-lg font-bold text-purple-700">{financialData.cashFlowForecast.scenarios.length}</p>
               </div>
             </div>
 

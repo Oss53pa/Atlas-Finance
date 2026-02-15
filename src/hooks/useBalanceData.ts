@@ -283,12 +283,10 @@ export const useBalanceData = (filters: BalanceFilters) => {
   // Export functions
   const exportToExcel = () => {
     // Logic pour export Excel
-    console.log('Export vers Excel...', filteredData);
   };
 
   const exportToPDF = () => {
     // Logic pour export PDF
-    console.log('Export vers PDF...', filteredData);
   };
 
   const exportToCSV = () => {

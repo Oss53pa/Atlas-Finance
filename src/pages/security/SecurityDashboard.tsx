@@ -63,7 +63,7 @@ const SecurityDashboard: React.FC = () => {
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
             <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-xl font-semibold text-neutral-700">Chargement du module sécurité...</p>
+            <p className="text-lg font-semibold text-neutral-700">Chargement du module sécurité...</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -179,7 +179,7 @@ const SecurityDashboard: React.FC = () => {
                   <Activity className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-neutral-900">Événements de Sécurité Récents</h2>
+                  <h2 className="text-lg font-bold text-neutral-900">Événements de Sécurité Récents</h2>
                   <p className="text-neutral-600">{recentEvents?.length || 0} récents</p>
                 </div>
               </div>
@@ -258,7 +258,7 @@ const SecurityDashboard: React.FC = () => {
                 <AlertTriangle className="h-6 w-6 text-[var(--color-error)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Alertes de Sécurité</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Alertes de Sécurité</h2>
                 <p className="text-neutral-600">Surveillance active</p>
               </div>
             </div>
@@ -325,7 +325,7 @@ const SecurityDashboard: React.FC = () => {
                 <Users className="h-6 w-6 text-[var(--color-info)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Activité des Utilisateurs (24h)</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Activité des Utilisateurs (24h)</h2>
                 <p className="text-neutral-600">Métriques d'utilisation du système</p>
               </div>
             </div>
@@ -346,7 +346,7 @@ const SecurityDashboard: React.FC = () => {
                     <span className="text-sm font-semibold text-[var(--color-primary-darker)]">Connexions</span>
                     <UserCheck className="h-4 w-4 text-[var(--color-primary)]" />
                   </div>
-                  <p className="text-2xl font-bold text-[var(--color-primary-darker)]">
+                  <p className="text-lg font-bold text-[var(--color-primary-darker)]">
                     {userActivity.connexions_24h}
                   </p>
                 </motion.div>
@@ -361,7 +361,7 @@ const SecurityDashboard: React.FC = () => {
                     <span className="text-sm font-semibold text-red-900">Échecs</span>
                     <AlertTriangle className="h-4 w-4 text-[var(--color-error)]" />
                   </div>
-                  <p className="text-2xl font-bold text-red-900">
+                  <p className="text-lg font-bold text-red-900">
                     {userActivity.echecs_connexion_24h}
                   </p>
                 </motion.div>
@@ -376,7 +376,7 @@ const SecurityDashboard: React.FC = () => {
                     <span className="text-sm font-semibold text-emerald-900">Actions</span>
                     <Activity className="h-4 w-4 text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-bold text-emerald-900">
+                  <p className="text-lg font-bold text-emerald-900">
                     {userActivity.actions_24h}
                   </p>
                 </motion.div>
@@ -391,7 +391,7 @@ const SecurityDashboard: React.FC = () => {
                     <span className="text-sm font-semibold text-purple-900">Temps moyen</span>
                     <Clock className="h-4 w-4 text-[var(--color-info)]" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-900">
+                  <p className="text-lg font-bold text-purple-900">
                     {userActivity.duree_moyenne_session}
                   </p>
                 </motion.div>
@@ -403,7 +403,7 @@ const SecurityDashboard: React.FC = () => {
         {/* Quick Actions - Security */}
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">
               Actions Rapides - Sécurité
             </h2>
             <p className="text-neutral-600">Gestion de la sécurité et de l'administration</p>

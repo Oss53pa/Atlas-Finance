@@ -50,7 +50,7 @@ const BudgetingDashboard: React.FC = () => {
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
             <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-xl font-semibold text-neutral-700">Chargement du tableau de bord...</p>
+            <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord...</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -166,7 +166,7 @@ const BudgetingDashboard: React.FC = () => {
                     <PieChart className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-neutral-900">Performance par Catégorie</h2>
+                    <h2 className="text-lg font-bold text-neutral-900">Performance par Catégorie</h2>
                     <p className="text-neutral-600">Analyse détaillée des réalisations</p>
                   </div>
                 </div>
@@ -184,7 +184,7 @@ const BudgetingDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-xl font-bold text-emerald-700">102%</p>
+                    <p className="text-lg font-bold text-emerald-700">102%</p>
                     <p className="text-sm text-neutral-600">Objectif dépassé de 2%</p>
                     <div className="w-full bg-emerald-100 rounded-full h-2">
                       <div className="bg-emerald-500 h-2 rounded-full w-full"></div>
@@ -200,7 +200,7 @@ const BudgetingDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-xl font-bold text-[var(--color-primary-dark)]">94%</p>
+                    <p className="text-lg font-bold text-[var(--color-primary-dark)]">94%</p>
                     <p className="text-sm text-neutral-600">Sous contrôle</p>
                     <div className="w-full bg-[var(--color-primary-lighter)] rounded-full h-2">
                       <div className="bg-[var(--color-primary)] h-2 rounded-full w-[94%]"></div>
@@ -216,7 +216,7 @@ const BudgetingDashboard: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <p className="text-xl font-bold text-amber-700">67%</p>
+                    <p className="text-lg font-bold text-amber-700">67%</p>
                     <p className="text-sm text-neutral-600">En retard</p>
                     <div className="w-full bg-amber-100 rounded-full h-2">
                       <div className="bg-amber-500 h-2 rounded-full w-[67%]"></div>
@@ -241,7 +241,7 @@ const BudgetingDashboard: React.FC = () => {
                   <Zap className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-neutral-900">Actions Rapides</h2>
+                  <h2 className="text-lg font-bold text-neutral-900">Actions Rapides</h2>
                   <p className="text-neutral-600">Accès direct aux fonctionnalités essentielles</p>
                 </div>
               </div>
@@ -333,7 +333,7 @@ const BudgetingDashboard: React.FC = () => {
                     <BarChart3 className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-neutral-900">Exécution Budgétaire</h2>
+                    <h2 className="text-lg font-bold text-neutral-900">Exécution Budgétaire</h2>
                     <p className="text-neutral-600">Suivi détaillé par poste</p>
                   </div>
                 </div>

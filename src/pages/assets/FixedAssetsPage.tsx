@@ -289,7 +289,7 @@ const FixedAssetsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Building className="mr-3 h-7 w-7" />
               Immobilisations Corporelles
             </h1>
@@ -339,7 +339,7 @@ const FixedAssetsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Actifs</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {assetsData?.count || 0}
                 </p>
               </div>
@@ -355,7 +355,7 @@ const FixedAssetsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Valeur Totale</p>
-                <p className="text-2xl font-bold text-green-700">
+                <p className="text-lg font-bold text-green-700">
                   {formatCurrency(assetsData?.total_value || 0)}
                 </p>
               </div>
@@ -371,7 +371,7 @@ const FixedAssetsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Amortissements</p>
-                <p className="text-2xl font-bold text-purple-700">
+                <p className="text-lg font-bold text-purple-700">
                   {formatCurrency(assetsData?.total_depreciation || 0)}
                 </p>
               </div>
@@ -387,7 +387,7 @@ const FixedAssetsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">En Maintenance</p>
-                <p className="text-2xl font-bold text-red-700">
+                <p className="text-lg font-bold text-red-700">
                   {assetsData?.maintenance_count || 0}
                 </p>
               </div>
@@ -670,7 +670,7 @@ const FixedAssetsPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Building className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Nouvel Actif Immobilisé</h2>
+                <h2 className="text-lg font-bold text-gray-900">Nouvel Actif Immobilisé</h2>
               </div>
               <button
                 onClick={() => {

@@ -160,7 +160,7 @@ const GrandLivre: React.FC = () => {
           <div className="flex items-center space-x-3">
             <BookOpen className="w-6 h-6 text-[#6A8A82]" />
             <div>
-              <h2 className="text-xl font-bold text-[#191919]">{t('accounting.generalLedger')}</h2>
+              <h2 className="text-lg font-bold text-[#191919]">{t('accounting.generalLedger')}</h2>
               <p className="text-sm text-[#191919]/70">Vue détaillée des mouvements par compte</p>
             </div>
           </div>
@@ -444,19 +444,19 @@ const GrandLivre: React.FC = () => {
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center p-3 bg-red-50 rounded-lg">
             <p className="text-sm text-[#191919]/70">Total Débits</p>
-            <p className="text-xl font-bold text-red-600">{formatAmount(totals.totalDebit)}</p>
+            <p className="text-lg font-bold text-red-600">{formatAmount(totals.totalDebit)}</p>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
             <p className="text-sm text-[#191919]/70">Total Crédits</p>
-            <p className="text-xl font-bold text-green-600">{formatAmount(totals.totalCredit)}</p>
+            <p className="text-lg font-bold text-green-600">{formatAmount(totals.totalCredit)}</p>
           </div>
           <div className="text-center p-3 bg-orange-50 rounded-lg">
             <p className="text-sm text-[#191919]/70">Solde Débiteur</p>
-            <p className="text-xl font-bold text-orange-600">{formatAmount(totals.soldeDebiteur)}</p>
+            <p className="text-lg font-bold text-orange-600">{formatAmount(totals.soldeDebiteur)}</p>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-[#191919]/70">Solde Créditeur</p>
-            <p className="text-xl font-bold text-blue-600">{formatAmount(totals.soldeCrediteur)}</p>
+            <p className="text-lg font-bold text-blue-600">{formatAmount(totals.soldeCrediteur)}</p>
           </div>
         </div>
       </div>

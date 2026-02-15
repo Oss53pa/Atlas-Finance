@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'; // Palette WiseBook appliquée
+import React, { useState, useMemo } from 'react'; // Palette Atlas Finance appliquée
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import AssetForm from '../../components/assets/AssetForm';
@@ -1960,7 +1960,7 @@ const AssetsRegistry: React.FC = () => {
             >
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-neutral-800">
+                  <h3 className="text-lg font-semibold text-neutral-800">
                     {assetModal.mode === 'create' ? 'Nouvel Actif' :
                      assetModal.mode === 'edit' ? 'Modifier l\'Actif' : 'Détails de l\'Actif'}
                   </h3>

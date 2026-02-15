@@ -352,7 +352,7 @@ const CashFlowPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <TrendingUp className="mr-3 h-7 w-7" />
               Tableau de Flux de Trésorerie
             </h1>
@@ -416,7 +416,7 @@ const CashFlowPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Solde Initial</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {formatCurrency(cashFlowData?.solde_initial || 0, filters.devise)}
                 </p>
               </div>
@@ -432,7 +432,7 @@ const CashFlowPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Entrées</p>
-                <p className="text-2xl font-bold text-green-700">
+                <p className="text-lg font-bold text-green-700">
                   {formatCurrency(cashFlowData?.total_entrees || 0, filters.devise)}
                 </p>
               </div>
@@ -448,7 +448,7 @@ const CashFlowPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Sorties</p>
-                <p className="text-2xl font-bold text-red-700">
+                <p className="text-lg font-bold text-red-700">
                   {formatCurrency(cashFlowData?.total_sorties || 0, filters.devise)}
                 </p>
               </div>
@@ -464,7 +464,7 @@ const CashFlowPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Solde Final</p>
-                <p className={`text-2xl font-bold ${
+                <p className={`text-lg font-bold ${
                   (cashFlowData?.solde_final || 0) >= 0 ? 'text-green-700' : 'text-red-700'
                 }`}>
                   {formatCurrency(cashFlowData?.solde_final || 0, filters.devise)}
@@ -482,7 +482,7 @@ const CashFlowPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Flux Net</p>
-                <p className={`text-2xl font-bold ${
+                <p className={`text-lg font-bold ${
                   (cashFlowData?.flux_net || 0) >= 0 ? 'text-green-700' : 'text-red-700'
                 }`}>
                   {formatCurrency(cashFlowData?.flux_net || 0, filters.devise)}
@@ -503,7 +503,7 @@ const CashFlowPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Rotation Moyenne</p>
-                <p className="text-2xl font-bold text-blue-700">
+                <p className="text-lg font-bold text-blue-700">
                   {cashFlowData?.rotation_moyenne || 0} jours
                 </p>
               </div>
@@ -519,7 +519,7 @@ const CashFlowPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Couverture</p>
-                <p className="text-2xl font-bold text-purple-700">
+                <p className="text-lg font-bold text-purple-700">
                   {cashFlowData?.jours_couverture || 0} jours
                 </p>
               </div>

@@ -43,11 +43,22 @@ const PeriodicClosuresModule: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('workflow');
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['gestion', 'operations']);
   const [closureStatus, setClosureStatus] = useState('in_progress'); // in_progress, completed, validated
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Onglets de navigation
+  const tabs = [
+    { id: 'workflow', label: 'Workflow IA', icon: Bot },
+    { id: 'controles', label: 'Contrôles', icon: CheckSquare },
+    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+  ];
+
+  // Status du workflow IA
+  const [workflowStatus, setWorkflowStatus] = useState<'ready' | 'running' | 'paused' | 'completed'>('ready');
 
   // Données de progression pour chaque section
   const [sectionProgress, setSectionProgress] = useState({
@@ -382,7 +393,7 @@ const PeriodicClosuresModule: React.FC = () => {
               </button>
 
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Gestion de Clôture Comptable Périodique</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Gestion de Clôture Comptable Périodique</h1>
                 <div className="flex items-center gap-4">
                   <p className="text-sm text-[#767676]">Conforme OHADA/SYSCOHADA</p>
                   <button
@@ -450,7 +461,7 @@ const PeriodicClosuresModule: React.FC = () => {
                       <Bot className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-[#191919]">🤖 Workflow IA - Clôture Automatisée</h3>
+                      <h3 className="text-lg font-bold text-[#191919]">🤖 Workflow IA - Clôture Automatisée</h3>
                       <p className="text-[#767676]">Intelligence Artificielle pour l'automatisation complète des clôtures SYSCOHADA</p>
                     </div>
                   </div>
@@ -901,7 +912,7 @@ const PeriodicClosuresModule: React.FC = () => {
                     <Brain className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-[#191919]">🧠 Analytics IA - Intelligence Financière</h3>
+                    <h3 className="text-lg font-bold text-[#191919]">🧠 Analytics IA - Intelligence Financière</h3>
                     <p className="text-[#767676]">Analyses prédictives et insights avancés pour la performance des clôtures</p>
                   </div>
                 </div>
@@ -913,7 +924,7 @@ const PeriodicClosuresModule: React.FC = () => {
                       <span className="text-sm font-medium text-[var(--color-success-darker)]">Gain Temps</span>
                       <TrendingUp className="w-4 h-4 text-[var(--color-success)]" />
                     </div>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">-62%</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">-62%</p>
                     <p className="text-xs text-[var(--color-success-dark)]">vs méthode manuelle</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-[var(--color-primary-light)]">
@@ -921,7 +932,7 @@ const PeriodicClosuresModule: React.FC = () => {
                       <span className="text-sm font-medium text-[var(--color-primary-darker)]">Précision</span>
                       <Award className="w-4 h-4 text-[var(--color-primary)]" />
                     </div>
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">98.7%</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">98.7%</p>
                     <p className="text-xs text-[var(--color-primary-dark)]">score qualité</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-purple-200">
@@ -929,7 +940,7 @@ const PeriodicClosuresModule: React.FC = () => {
                       <span className="text-sm font-medium text-purple-800">Automatisation</span>
                       <Bot className="w-4 h-4 text-purple-600" />
                     </div>
-                    <p className="text-2xl font-bold text-purple-600">89%</p>
+                    <p className="text-lg font-bold text-purple-600">89%</p>
                     <p className="text-xs text-purple-700">tâches automatisées</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-orange-200">
@@ -937,7 +948,7 @@ const PeriodicClosuresModule: React.FC = () => {
                       <span className="text-sm font-medium text-orange-800">Conformité</span>
                       <Shield className="w-4 h-4 text-[var(--color-warning)]" />
                     </div>
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">100%</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">100%</p>
                     <p className="text-xs text-[var(--color-warning-dark)]">SYSCOHADA</p>
                   </div>
                 </div>

@@ -309,7 +309,7 @@ const FinancialStatementsView: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-600">Total Actif</p>
-                <p className="text-2xl font-bold text-blue-900">2.5M €</p>
+                <p className="text-lg font-bold text-blue-900">2.5M €</p>
               </div>
               <DocumentChartBarIcon className="h-8 w-8 text-blue-500" />
             </div>
@@ -320,7 +320,7 @@ const FinancialStatementsView: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600">Résultat Net</p>
-                <p className="text-2xl font-bold text-green-900">150K €</p>
+                <p className="text-lg font-bold text-green-900">150K €</p>
               </div>
               <CalculatorIcon className="h-8 w-8 text-green-500" />
             </div>
@@ -331,7 +331,7 @@ const FinancialStatementsView: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-purple-600">ROE</p>
-                <p className="text-2xl font-bold text-purple-900">15.2%</p>
+                <p className="text-lg font-bold text-purple-900">15.2%</p>
               </div>
               <DocumentChartBarIcon className="h-8 w-8 text-purple-500" />
             </div>
@@ -342,7 +342,7 @@ const FinancialStatementsView: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-yellow-600">Liquidité</p>
-                <p className="text-2xl font-bold text-yellow-900">1.8</p>
+                <p className="text-lg font-bold text-yellow-900">1.8</p>
               </div>
               <DocumentChartBarIcon className="h-8 w-8 text-yellow-500" />
             </div>
@@ -376,7 +376,7 @@ const FinancialStatementsView: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">États Financiers SYSCOHADA</h1>
+          <h1 className="text-lg font-bold text-gray-900">États Financiers SYSCOHADA</h1>
           <p className="mt-1 text-gray-600">
             Bilan, Compte de Résultat et TAFIRE conformes aux normes OHADA
           </p>

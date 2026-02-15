@@ -7,7 +7,7 @@ export default function NotFoundPage() {
   return (
     <>
       <Helmet>
-        <title>404 - Page non trouvée | WiseBook</title>
+        <title>404 - Page non trouvée | Atlas Finance</title>
       </Helmet>
 
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
@@ -19,7 +19,7 @@ export default function NotFoundPage() {
             <div className="w-24 h-1 bg-blue-600 dark:bg-blue-500 mx-auto mb-8"></div>
           </div>
 
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             Page non trouvée
           </h2>
 

@@ -509,11 +509,9 @@ const AssetsMaintenance: React.FC = () => {
     try {
       if (maintenanceModal.mode === 'create') {
         // Create new maintenance record
-        console.log('Creating maintenance:', formData);
         alert('Maintenance créée avec succès!');
       } else if (maintenanceModal.mode === 'edit') {
         // Update existing maintenance record
-        console.log('Updating maintenance:', formData);
         alert('Maintenance mise à jour avec succès!');
       }
       setMaintenanceModal({ isOpen: false, mode: 'view' });
@@ -1050,7 +1048,7 @@ const AssetsMaintenance: React.FC = () => {
             >
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-neutral-800">
+                  <h3 className="text-lg font-semibold text-neutral-800">
                     {maintenanceModal.mode === 'create' ? 'Nouvelle Maintenance' :
                      maintenanceModal.mode === 'edit' ? 'Modifier la Maintenance' :
                      maintenanceModal.mode === 'schedule' ? 'Planifier Maintenance' :

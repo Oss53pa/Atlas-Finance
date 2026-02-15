@@ -613,7 +613,7 @@ const MultiCurrency: React.FC = () => {
 
                       <div className="space-y-2">
                         <div className="flex justify-between items-end">
-                          <span className="text-2xl font-bold text-neutral-800">{rate.rate.toFixed(4)}</span>
+                          <span className="text-lg font-bold text-neutral-800">{rate.rate.toFixed(4)}</span>
                           <div className="flex items-center space-x-1">
                             {rate.change24h > 0 ? (
                               <ArrowUpRight className="h-4 w-4 text-green-600" />
@@ -751,7 +751,7 @@ const MultiCurrency: React.FC = () => {
             >
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-neutral-800">
+                  <h3 className="text-lg font-semibold text-neutral-800">
                     {currencyModal.mode === 'hedge' ? 'Nouvelle Couverture' :
                      currencyModal.mode === 'convert' ? 'Conversion de Devise' : 'Détails de la Position'}
                   </h3>

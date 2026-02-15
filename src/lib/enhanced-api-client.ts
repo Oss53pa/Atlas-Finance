@@ -1,5 +1,5 @@
 /**
- * Enhanced API Client for WiseBook
+ * Enhanced API Client for Atlas Finance
  *
  * Features:
  * - JWT Authentication with auto-refresh

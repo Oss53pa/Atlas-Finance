@@ -311,7 +311,7 @@ const RatiosFinanciersPage: React.FC = () => {
       <div className="container mx-auto px-4 py-6">
         {/* En-tête */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+          <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
             <PieChart className="h-8 w-8 text-blue-600 mr-3" />
             Ratios Financiers SYSCOHADA
           </h1>
@@ -372,7 +372,7 @@ const RatiosFinanciersPage: React.FC = () => {
 
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-3xl font-bold text-gray-900">
+                      <span className="text-lg font-bold text-gray-900">
                         {typeof ratio.value === 'number' ? ratio.value.toLocaleString() : ratio.value}
                         {ratio.category === 'rentabilite' || ratio.formula.includes('%') ? '%' : ''}
                       </span>

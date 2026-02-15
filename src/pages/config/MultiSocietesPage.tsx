@@ -109,7 +109,7 @@ const MultiSocietesPage: React.FC = () => {
     {
       id: '1',
       code: 'WB001',
-      name: 'WiseBook Holding SA',
+      name: 'Atlas Finance Holding SA',
       legal_form: 'SA',
       rccm: 'CI-ABJ-2024-B-12345',
       nif: '0987654321',
@@ -117,7 +117,7 @@ const MultiSocietesPage: React.FC = () => {
       city: 'Abidjan',
       country: 'CI',
       phone: '+225 20 30 40 50',
-      email: 'contact@wisebook-holding.com',
+      email: 'contact@atlasfinance-holding.com',
       currency: 'XOF',
       fiscal_year_start: '01-01',
       status: 'active',
@@ -131,7 +131,7 @@ const MultiSocietesPage: React.FC = () => {
     {
       id: '2',
       code: 'WB002',
-      name: 'WiseBook Services SARL',
+      name: 'Atlas Finance Services SARL',
       legal_form: 'SARL',
       rccm: 'CI-ABJ-2024-B-12346',
       nif: '0987654322',
@@ -139,7 +139,7 @@ const MultiSocietesPage: React.FC = () => {
       city: 'Abidjan',
       country: 'CI',
       phone: '+225 21 30 40 50',
-      email: 'services@wisebook.com',
+      email: 'services@atlasfinance.com',
       currency: 'XOF',
       fiscal_year_start: '01-01',
       status: 'active',
@@ -154,7 +154,7 @@ const MultiSocietesPage: React.FC = () => {
     {
       id: '3',
       code: 'WB003',
-      name: 'WiseBook Sénégal SA',
+      name: 'Atlas Finance Sénégal SA',
       legal_form: 'SA',
       rccm: 'SN-DKR-2024-B-001',
       nif: '1234567890',
@@ -162,7 +162,7 @@ const MultiSocietesPage: React.FC = () => {
       city: 'Dakar',
       country: 'SN',
       phone: '+221 33 123 45 67',
-      email: 'senegal@wisebook.com',
+      email: 'senegal@atlasfinance.com',
       currency: 'XOF',
       fiscal_year_start: '01-01',
       status: 'active',
@@ -177,7 +177,7 @@ const MultiSocietesPage: React.FC = () => {
     {
       id: '4',
       code: 'WB004',
-      name: 'WiseBook Tech SARL',
+      name: 'Atlas Finance Tech SARL',
       legal_form: 'SARL',
       rccm: 'CI-ABJ-2024-B-12347',
       nif: '0987654323',
@@ -185,7 +185,7 @@ const MultiSocietesPage: React.FC = () => {
       city: 'Abidjan',
       country: 'CI',
       phone: '+225 22 30 40 50',
-      email: 'tech@wisebook.com',
+      email: 'tech@atlasfinance.com',
       currency: 'XOF',
       fiscal_year_start: '01-01',
       status: 'inactive',
@@ -203,8 +203,8 @@ const MultiSocietesPage: React.FC = () => {
   const mockGroups: ConsolidationGroup[] = [
     {
       id: '1',
-      name: 'Groupe WiseBook',
-      parent_company: 'WiseBook Holding SA',
+      name: 'Groupe Atlas Finance',
+      parent_company: 'Atlas Finance Holding SA',
       subsidiaries: ['WB002', 'WB003'],
       consolidation_type: 'full',
       consolidation_percentage: 100,
@@ -214,7 +214,7 @@ const MultiSocietesPage: React.FC = () => {
     {
       id: '2',
       name: 'Filiales Techniques',
-      parent_company: 'WiseBook Services SARL',
+      parent_company: 'Atlas Finance Services SARL',
       subsidiaries: ['WB004'],
       consolidation_type: 'proportional',
       consolidation_percentage: 75,
@@ -334,7 +334,7 @@ const MultiSocietesPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Building2 className="mr-3 h-7 w-7 text-blue-600" />
               Gestion Multi-Sociétés
             </h1>
@@ -376,7 +376,7 @@ const MultiSocietesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Sociétés Actives</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-lg font-bold text-blue-700">
                     {activeCompanies}/{companies.length}
                   </p>
                 </div>
@@ -398,7 +398,7 @@ const MultiSocietesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Utilisateurs Total</p>
-                  <p className="text-2xl font-bold text-green-700">{totalUsers}</p>
+                  <p className="text-lg font-bold text-green-700">{totalUsers}</p>
                 </div>
               </div>
             </CardContent>
@@ -418,7 +418,7 @@ const MultiSocietesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Transactions</p>
-                  <p className="text-2xl font-bold text-purple-700">{totalTransactions.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-purple-700">{totalTransactions.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -438,7 +438,7 @@ const MultiSocietesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pays</p>
-                  <p className="text-2xl font-bold text-orange-700">
+                  <p className="text-lg font-bold text-orange-700">
                     {[...new Set(companies.map(c => c.country))].length}
                   </p>
                 </div>

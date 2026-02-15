@@ -422,7 +422,7 @@ const AssetsSummary: React.FC = () => {
 
     // Titre
     pdf.setFontSize(20);
-    pdf.text('Synthèse des Actifs - WiseBook ERP', pageWidth / 2, yPos, { align: 'center' });
+    pdf.text('Synthèse des Actifs - Atlas Finance', pageWidth / 2, yPos, { align: 'center' });
     yPos += 20;
 
     // Date
@@ -509,7 +509,7 @@ const AssetsSummary: React.FC = () => {
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-slate-600">{kpi.title}</h3>
-              <p className="text-2xl font-bold text-slate-900">{kpi.value}</p>
+              <p className="text-lg font-bold text-slate-900">{kpi.value}</p>
               <p className="text-xs text-slate-500">{kpi.changeLabel}</p>
               {kpi.description && (
                 <p className="text-xs text-slate-400 mt-2">{kpi.description}</p>
@@ -528,7 +528,7 @@ const AssetsSummary: React.FC = () => {
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h2 className="text-xl font-bold mb-2">Analyse Rapide</h2>
+            <h2 className="text-lg font-bold mb-2">Analyse Rapide</h2>
             <p className="text-white/70">
               Points clés à retenir sur votre patrimoine d'actifs
             </p>
@@ -582,7 +582,7 @@ const AssetsSummary: React.FC = () => {
         {/* Répartition par catégories - Graphique */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-lg font-bold text-slate-900">
               Répartition par Catégories
             </h2>
             <PieChart className="w-5 h-5 text-slate-500" />
@@ -616,7 +616,7 @@ const AssetsSummary: React.FC = () => {
         {/* Liste détaillée des catégories */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-lg font-bold text-slate-900">
               Détail par Catégorie
             </h2>
             <BarChart3 className="w-5 h-5 text-slate-500" />
@@ -722,7 +722,7 @@ const AssetsSummary: React.FC = () => {
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-slate-600">{kpi.title}</h3>
-              <p className="text-2xl font-bold text-slate-900">{kpi.value}</p>
+              <p className="text-lg font-bold text-slate-900">{kpi.value}</p>
               <p className="text-xs text-slate-500">{kpi.changeLabel}</p>
               {kpi.description && (
                 <p className="text-xs text-slate-400 mt-2">{kpi.description}</p>
@@ -740,7 +740,7 @@ const AssetsSummary: React.FC = () => {
         className="bg-white rounded-xl shadow-lg p-6 border border-slate-200"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-lg font-bold text-slate-900">
             Évolution Financière des Actifs
           </h2>
           <LineChart className="w-5 h-5 text-slate-500" />
@@ -802,7 +802,7 @@ const AssetsSummary: React.FC = () => {
         className="bg-white rounded-xl shadow-lg p-6 border border-slate-200"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-lg font-bold text-slate-900">
             Répartition Géographique
           </h2>
           <MapPin className="w-5 h-5 text-slate-500" />
@@ -865,7 +865,7 @@ const AssetsSummary: React.FC = () => {
         className="bg-white rounded-xl shadow-lg p-6 border border-slate-200"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-lg font-bold text-slate-900">
             Distribution par Valeur
           </h2>
           <BarChart3 className="w-5 h-5 text-slate-500" />
@@ -898,7 +898,7 @@ const AssetsSummary: React.FC = () => {
         className="bg-white rounded-xl shadow-lg p-6 border border-slate-200"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-lg font-bold text-slate-900">
             Maintenance - Vue d'ensemble
           </h2>
           <Wrench className="w-5 h-5 text-slate-500" />
@@ -907,15 +907,15 @@ const AssetsSummary: React.FC = () => {
         {/* Indicateurs maintenance */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 rounded-lg bg-red-50 border border-red-200">
-            <div className="text-2xl font-bold text-red-600">{overdueMaintenanceCount}</div>
+            <div className="text-lg font-bold text-red-600">{overdueMaintenanceCount}</div>
             <div className="text-sm text-red-600">En retard</div>
           </div>
           <div className="text-center p-4 rounded-lg bg-orange-50 border border-orange-200">
-            <div className="text-2xl font-bold text-orange-600">{criticalMaintenanceCount}</div>
+            <div className="text-lg font-bold text-orange-600">{criticalMaintenanceCount}</div>
             <div className="text-sm text-orange-600">Critique</div>
           </div>
           <div className="text-center p-4 rounded-lg bg-[#6A8A82]/10 border border-[#6A8A82]/20">
-            <div className="text-2xl font-bold text-[#6A8A82]">
+            <div className="text-lg font-bold text-[#6A8A82]">
               {totalMaintenanceCost.toLocaleString()} €
             </div>
             <div className="text-sm text-[#6A8A82]">Coût total</div>
@@ -970,7 +970,7 @@ const AssetsSummary: React.FC = () => {
         className="bg-white rounded-xl shadow-lg p-6 border border-slate-200"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-lg font-bold text-slate-900">
             Toutes les Maintenances
           </h2>
           <Calendar className="w-5 h-5 text-slate-500" />
@@ -1034,7 +1034,7 @@ const AssetsSummary: React.FC = () => {
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-lg font-bold text-slate-900 mb-2">
                 Synthèse des Actifs
               </h1>
               <p className="text-slate-600">

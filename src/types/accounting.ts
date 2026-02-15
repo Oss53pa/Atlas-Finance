@@ -1,5 +1,5 @@
 /**
- * Types comptables WiseBook
+ * Types comptables Atlas Finance
  * Importés depuis les types partagés backend
  */
 

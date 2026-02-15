@@ -241,7 +241,7 @@ const AnalyticalAxesPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Layers className="mr-3 h-7 w-7" />
               Axes Analytiques
             </h1>
@@ -279,7 +279,7 @@ const AnalyticalAxesPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Axes</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {axesData?.count || 0}
                 </p>
               </div>
@@ -295,7 +295,7 @@ const AnalyticalAxesPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Axes Actifs</p>
-                <p className="text-2xl font-bold text-green-700">
+                <p className="text-lg font-bold text-green-700">
                   {axesData?.active_count || 0}
                 </p>
               </div>
@@ -311,7 +311,7 @@ const AnalyticalAxesPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Centres Associés</p>
-                <p className="text-2xl font-bold text-purple-700">
+                <p className="text-lg font-bold text-purple-700">
                   {axesData?.total_centers || 0}
                 </p>
               </div>
@@ -327,7 +327,7 @@ const AnalyticalAxesPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Ventilations</p>
-                <p className="text-2xl font-bold text-orange-700">
+                <p className="text-lg font-bold text-orange-700">
                   {axesData?.total_allocations || 0}
                 </p>
               </div>
@@ -639,7 +639,7 @@ const AnalyticalAxesPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Layers className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   {selectedAxe ? 'Modifier l\'Axe Analytique' : 'Nouvel Axe Analytique'}
                 </h2>
               </div>

@@ -1,5 +1,5 @@
 /**
- * WiseBook Chatbot - Export principal
+ * Atlas Finance Chatbot - Export principal
  * Assistant IA intelligent pour l'aide utilisateur
  */
 

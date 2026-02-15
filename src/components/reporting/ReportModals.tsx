@@ -58,7 +58,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
                 <Eye className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#191919]">Détails du Rapport</h2>
+                <h2 className="text-lg font-bold text-[#191919]">Détails du Rapport</h2>
                 <p className="text-sm text-[#767676]">Informations complètes</p>
               </div>
             </div>
@@ -269,7 +269,7 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
               </button>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`https://wisebook.app/rapports/${rapport.id}`);
+                  navigator.clipboard.writeText(`https://atlasfinance.app/rapports/${rapport.id}`);
                   toast.success('Lien copié !');
                 }}
                 className="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -358,7 +358,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
                 <Edit className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#191919]">Modifier le Rapport</h2>
+                <h2 className="text-lg font-bold text-[#191919]">Modifier le Rapport</h2>
                 <p className="text-sm text-[#767676]">ID: RPT-{rapport.id}</p>
               </div>
             </div>
@@ -581,7 +581,7 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen
                 <Download className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#191919]">Télécharger le Rapport</h2>
+                <h2 className="text-lg font-bold text-[#191919]">Télécharger le Rapport</h2>
                 <p className="text-sm text-[#767676]">Choisissez vos options d'export</p>
               </div>
             </div>
@@ -738,7 +738,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://wisebook.app/${type}s/${item.id}`);
+    navigator.clipboard.writeText(`https://atlasfinance.app/${type}s/${item.id}`);
     toast.success('Lien copié dans le presse-papier');
   };
 
@@ -753,7 +753,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
                 <Share2 className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#191919]">Partager</h2>
+                <h2 className="text-lg font-bold text-[#191919]">Partager</h2>
                 <p className="text-sm text-[#767676]">{item.nom || item.name}</p>
               </div>
             </div>
@@ -770,7 +770,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
             <label className="block text-sm font-bold text-[#191919] mb-2">Lien de partage</label>
             <div className="flex gap-2">
               <div className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 truncate">
-                https://wisebook.app/{type}s/{item.id}
+                https://atlasfinance.app/{type}s/{item.id}
               </div>
               <button
                 onClick={handleCopyLink}
@@ -906,7 +906,7 @@ export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ is
                 <Settings className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[#191919]">Paramètres de Planification</h2>
+                <h2 className="text-lg font-bold text-[#191919]">Paramètres de Planification</h2>
                 <p className="text-sm text-[#767676]">{schedule.rapport}</p>
               </div>
             </div>

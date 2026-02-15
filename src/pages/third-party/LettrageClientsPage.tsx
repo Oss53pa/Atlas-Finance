@@ -95,7 +95,6 @@ const LettrageClientsPage: React.FC = () => {
   const handleManualMatch = () => {
     if (selectedTransactions.length === 2) {
       // Logique de lettrage manuel
-      console.log('Lettrage manuel:', selectedTransactions);
       setSelectedTransactions([]);
     }
   };
@@ -150,7 +149,7 @@ const LettrageClientsPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+              <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
                 <Link className="h-8 w-8 text-blue-600 mr-3" />
                 Lettrage Clients
               </h1>
@@ -185,7 +184,7 @@ const LettrageClientsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalTransactions}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.totalTransactions}</p>
               <p className="text-gray-600 text-sm">Total transactions</p>
             </div>
           </motion.div>
@@ -202,7 +201,7 @@ const LettrageClientsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.matchedTransactions}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.matchedTransactions}</p>
               <p className="text-gray-600 text-sm">Transactions lettrées</p>
             </div>
           </motion.div>
@@ -219,7 +218,7 @@ const LettrageClientsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {stats.unmatchedAmount.toLocaleString()} XOF
               </p>
               <p className="text-gray-600 text-sm">Montant non lettré</p>
@@ -238,7 +237,7 @@ const LettrageClientsPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.partialMatches}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.partialMatches}</p>
               <p className="text-gray-600 text-sm">Lettrages partiels</p>
             </div>
           </motion.div>
@@ -280,7 +279,7 @@ const LettrageClientsPage: React.FC = () => {
         {/* Liste des transactions */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Transactions</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Transactions</h2>
           </div>
 
           <div className="p-6">

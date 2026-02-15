@@ -357,7 +357,7 @@ const ValidationFinale: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Progression Globale</p>
-                <p className="text-2xl font-bold">{kpis.progressionGlobale}%</p>
+                <p className="text-lg font-bold">{kpis.progressionGlobale}%</p>
                 <Progress value={kpis.progressionGlobale} className="mt-2" />
               </div>
               <Target className="w-8 h-8 text-[var(--color-primary)]" />
@@ -370,7 +370,7 @@ const ValidationFinale: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Étapes Complètes</p>
-                <p className="text-2xl font-bold">{kpis.etapesCompletes}/{kpis.totalEtapes}</p>
+                <p className="text-lg font-bold">{kpis.etapesCompletes}/{kpis.totalEtapes}</p>
                 <p className="text-xs text-[var(--color-success)]">{Math.round((kpis.etapesCompletes / kpis.totalEtapes) * 100)}% terminées</p>
               </div>
               <CheckSquare className="w-8 h-8 text-[var(--color-success)]" />
@@ -383,7 +383,7 @@ const ValidationFinale: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Approbations Pendantes</p>
-                <p className="text-2xl font-bold">{kpis.approbationsPendantes}</p>
+                <p className="text-lg font-bold">{kpis.approbationsPendantes}</p>
                 <p className="text-xs text-[var(--color-warning)]">En attente validation</p>
               </div>
               <Users className="w-8 h-8 text-orange-500" />
@@ -396,7 +396,7 @@ const ValidationFinale: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Temps Restant</p>
-                <p className="text-2xl font-bold">{kpis.tempsRestant}j</p>
+                <p className="text-lg font-bold">{kpis.tempsRestant}j</p>
                 <p className="text-xs text-[var(--color-error)]">Échéance proche</p>
               </div>
               <Clock className="w-8 h-8 text-[var(--color-error)]" />
@@ -629,19 +629,19 @@ const ValidationFinale: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-4 gap-4 text-center">
                   <div className="p-3 bg-[var(--color-success-lightest)] rounded-lg">
-                    <p className="text-2xl font-bold text-[var(--color-success)]">12</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">12</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Réussis</p>
                   </div>
                   <div className="p-3 bg-[var(--color-error-lightest)] rounded-lg">
-                    <p className="text-2xl font-bold text-[var(--color-error)]">2</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">2</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Échecs</p>
                   </div>
                   <div className="p-3 bg-[var(--color-warning-lightest)] rounded-lg">
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">3</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">3</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Alertes</p>
                   </div>
                   <div className="p-3 bg-[var(--color-primary-lightest)] rounded-lg">
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">5</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">5</p>
                     <p className="text-sm text-[var(--color-text-primary)]">{t('status.inProgress')}</p>
                   </div>
                 </div>
@@ -712,15 +712,15 @@ const ValidationFinale: React.FC = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg text-center">
-                    <p className="text-2xl font-bold text-[var(--color-success)]">1</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">1</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Approuvées</p>
                   </div>
                   <div className="p-4 bg-orange-50 rounded-lg text-center">
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">2</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">2</p>
                     <p className="text-sm text-[var(--color-text-primary)]">{t('status.pending')}</p>
                   </div>
                   <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg text-center">
-                    <p className="text-2xl font-bold text-[var(--color-error)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">0</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Refusées</p>
                   </div>
                 </div>
@@ -868,7 +868,7 @@ const ValidationFinale: React.FC = () => {
                 <div className="bg-[var(--color-success-lighter)] text-[var(--color-success)] p-2 rounded-lg">
                   <Shield className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Validation Finale de Clôture</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Validation Finale de Clôture</h2>
               </div>
               <button
                 onClick={() => {

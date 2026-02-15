@@ -1,5 +1,5 @@
 /**
- * Assistant de Migration Sage vers WiseBook
+ * Assistant de Migration Sage vers Atlas Finance
  * Interface complète avec mapping intelligent et prévisualisation
  */
 import React, { useState, useEffect } from 'react';
@@ -239,8 +239,8 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
     <div className={`max-w-6xl mx-auto space-y-6 ${className}`}>
       {/* Header avec progression */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Migration Sage vers WiseBook
+        <h1 className="text-lg font-bold text-gray-900 mb-2">
+          Migration Sage vers Atlas Finance
         </h1>
         <p className="text-gray-600 mb-6">
           Assistant de migration intelligent avec mapping automatique SYSCOHADA
@@ -297,7 +297,7 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
               <div>
                 <label className="block text-sm font-medium mb-2">Nom de la migration</label>
                 <Input
-                  placeholder="Migration Sage vers WiseBook"
+                  placeholder="Migration Sage vers Atlas Finance"
                   value={migrationConfig.migration_name}
                   onChange={(e) => setMigrationConfig({
                     ...migrationConfig,
@@ -709,28 +709,28 @@ const SageMigrationWizard: React.FC<SageMigrationWizardProps> = ({
             {/* Résumé validation */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-lg font-bold text-blue-600">
                   {validationResults.summary?.total_accounts || 0}
                 </div>
                 <p className="text-sm text-gray-600">Comptes à migrer</p>
               </div>
               
               <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-lg font-bold text-green-600">
                   {validationResults.summary?.total_entries || 0}
                 </div>
                 <p className="text-sm text-gray-600">Écritures à migrer</p>
               </div>
               
               <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-lg font-bold text-purple-600">
                   {formatCurrency(validationResults.summary?.total_amount || 0)}
                 </div>
                 <p className="text-sm text-gray-600">Montant total</p>
               </div>
               
               <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
+                <div className="text-lg font-bold text-orange-600">
                   {validationResults.estimated_time || 0} min
                 </div>
                 <p className="text-sm text-gray-600">Temps estimé</p>

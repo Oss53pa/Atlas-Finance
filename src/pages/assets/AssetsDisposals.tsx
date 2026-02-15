@@ -961,7 +961,7 @@ const AssetsDisposals: React.FC = () => {
             >
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900">
                     {disposalModal.mode === 'create' ? 'Nouvelle Sortie d\'Actif' :
                      disposalModal.mode === 'edit' ? 'Modifier la Sortie' :
                      disposalModal.mode === 'approve' ? 'Approuver la Sortie' :

@@ -238,7 +238,7 @@ const TasksModule: React.FC = () => {
       <div className="bg-white border-b px-6 py-4">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Mes Tâches</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Mes Tâches</h2>
             <p className="text-sm text-gray-700 mt-1">
               {tasks.length} tâches • {tasksByStatus['in-progress'].length} en cours
             </p>

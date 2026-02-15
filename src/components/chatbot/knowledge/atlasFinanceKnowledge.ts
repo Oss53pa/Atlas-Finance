@@ -1,5 +1,5 @@
 /**
- * Base de Connaissances WiseBook
+ * Base de Connaissances Atlas Finance
  * Documentation complète du système pour Paloma
  */
 
@@ -17,7 +17,7 @@ export interface KnowledgeEntry {
   permissions?: string[];
 }
 
-export const wiseBookKnowledge: KnowledgeEntry[] = [
+export const atlasFinanceKnowledge: KnowledgeEntry[] = [
   // ========== MODULES PRINCIPAUX ==========
 
   // Module Finance & Comptabilité
@@ -27,7 +27,7 @@ export const wiseBookKnowledge: KnowledgeEntry[] = [
     title: 'Module Finance et Comptabilité',
     description: 'Gestion complète de la comptabilité et des finances',
     keywords: ['finance', 'comptabilité', 'comptable', 'argent', 'financier'],
-    content: `Le module Finance de WiseBook permet de gérer l'ensemble de votre comptabilité d'entreprise :
+    content: `Le module Finance de Atlas Finance permet de gérer l'ensemble de votre comptabilité d'entreprise :
     - Plan comptable complet
     - Saisie des écritures comptables
     - Gestion des journaux
@@ -47,7 +47,7 @@ export const wiseBookKnowledge: KnowledgeEntry[] = [
     title: 'Créer un budget',
     description: 'Comment créer et gérer un budget prévisionnel',
     keywords: ['budget', 'prévisionnel', 'planification', 'créer budget', 'nouveau budget'],
-    content: `Pour créer un nouveau budget dans WiseBook :
+    content: `Pour créer un nouveau budget dans Atlas Finance :
     1. Allez dans Finance > Budgétisation
     2. Cliquez sur "Nouveau Budget"
     3. Remplissez les informations :
@@ -332,7 +332,7 @@ export const wiseBookKnowledge: KnowledgeEntry[] = [
     title: 'Rapports et Tableaux de bord',
     description: 'Génération de rapports et analyses',
     keywords: ['rapport', 'reporting', 'tableau de bord', 'dashboard', 'analyse'],
-    content: `WiseBook propose :
+    content: `Atlas Finance propose :
     - Tableaux de bord personnalisables
     - Rapports standards et personnalisés
     - Export multi-formats (PDF, Excel, CSV)
@@ -494,7 +494,7 @@ export const wiseBookKnowledge: KnowledgeEntry[] = [
     title: 'API REST',
     description: 'Intégration via API REST',
     keywords: ['api', 'rest', 'intégration', 'webhook', 'automatisation'],
-    content: `L'API WiseBook permet :
+    content: `L'API Atlas Finance permet :
     - Accès lecture/écriture aux données
     - Authentification OAuth2
     - Webhooks pour événements
@@ -509,7 +509,7 @@ export const wiseBookKnowledge: KnowledgeEntry[] = [
 export const knowledgeIndex = new Map<string, string[]>();
 
 // Construire l'index enrichi au chargement
-wiseBookKnowledge.forEach(entry => {
+atlasFinanceKnowledge.forEach(entry => {
   const words = [
     ...entry.keywords,
     ...entry.title.toLowerCase().split(' '),
@@ -668,7 +668,7 @@ export class AdvancedKnowledgeSearch {
     const results: SearchResult[] = [];
 
     // Scorer chaque entrée
-    for (const entry of wiseBookKnowledge) {
+    for (const entry of atlasFinanceKnowledge) {
       const result = this.scoreEntry(entry, queryWords, defaultOptions);
       if (result.score >= defaultOptions.threshold!) {
         results.push(result);
@@ -765,7 +765,7 @@ export class AdvancedKnowledgeSearch {
     const suggestions = new Set<string>();
 
     // Suggestions basées sur les mots-clés fréquents
-    for (const entry of wiseBookKnowledge) {
+    for (const entry of atlasFinanceKnowledge) {
       for (const keyword of entry.keywords) {
         for (const word of words) {
           if (keyword.startsWith(word) && keyword.length > word.length) {
@@ -821,7 +821,7 @@ export function multiModalSearch(options: {
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   maxResults?: number;
 }): KnowledgeEntry[] {
-  let results = wiseBookKnowledge;
+  let results = atlasFinanceKnowledge;
 
   // Filtre par requête texte
   if (options.textQuery) {
@@ -856,7 +856,7 @@ export function multiModalSearch(options: {
 
 // Fonction de recherche par catégorie
 export function searchByCategory(category: string, subcategory?: string): KnowledgeEntry[] {
-  return wiseBookKnowledge.filter(entry => {
+  return atlasFinanceKnowledge.filter(entry => {
     const categoryMatch = entry.category.toLowerCase() === category.toLowerCase();
     const subcategoryMatch = !subcategory || entry.subcategory?.toLowerCase() === subcategory.toLowerCase();
     return categoryMatch && subcategoryMatch;
@@ -865,7 +865,7 @@ export function searchByCategory(category: string, subcategory?: string): Knowle
 
 // Fonction de recherche par tags
 export function searchByKeywords(keywords: string[]): KnowledgeEntry[] {
-  return wiseBookKnowledge.filter(entry =>
+  return atlasFinanceKnowledge.filter(entry =>
     keywords.some(keyword =>
       entry.keywords.some(entryKeyword =>
         entryKeyword.toLowerCase().includes(keyword.toLowerCase())
@@ -877,7 +877,7 @@ export function searchByKeywords(keywords: string[]): KnowledgeEntry[] {
 // Obtenir les suggestions contextuelles améliorées
 export function getContextualSuggestions(currentPath: string, userQuery?: string): string[] {
   // Suggestions basées sur le chemin actuel
-  const pathSuggestions = wiseBookKnowledge
+  const pathSuggestions = atlasFinanceKnowledge
     .filter(entry => currentPath.includes(entry.navigationPath?.split('/')[1] || ''))
     .slice(0, 3)
     .map(e => e.title);
@@ -899,9 +899,9 @@ export function getSmartSuggestions(): string[] {
 // Fonction pour obtenir des statistiques de recherche
 export function getSearchStats(): any {
   return {
-    totalEntries: wiseBookKnowledge.length,
-    categories: [...new Set(wiseBookKnowledge.map(e => e.category))],
-    subcategories: [...new Set(wiseBookKnowledge.map(e => e.subcategory).filter(Boolean))],
-    totalKeywords: wiseBookKnowledge.reduce((acc, e) => acc + e.keywords.length, 0)
+    totalEntries: atlasFinanceKnowledge.length,
+    categories: [...new Set(atlasFinanceKnowledge.map(e => e.category))],
+    subcategories: [...new Set(atlasFinanceKnowledge.map(e => e.subcategory).filter(Boolean))],
+    totalKeywords: atlasFinanceKnowledge.reduce((acc, e) => acc + e.keywords.length, 0)
   };
 }
