@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Input Component
+ * Atlas Finance Design System - Input Component
  * Fully accessible input with validation and error states
  */
 

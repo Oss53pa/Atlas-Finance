@@ -39,7 +39,7 @@ const ReportsPage: React.FC = () => {
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">États Financiers</h1>
+                <h1 className="text-lg font-bold text-[#191919]">États Financiers</h1>
                 <p className="text-sm text-[#767676]">Grand Livre, Balance et Rapports</p>
               </div>
             </div>

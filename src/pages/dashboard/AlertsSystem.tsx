@@ -196,7 +196,6 @@ const AlertsSystem: React.FC = () => {
         // Jouer un son si activé
         if (soundEnabled && newAlert.type === 'critical') {
           // Simuler un son d'alerte
-          console.log('🔔 Alerte critique!');
         }
       }
     }, 30000); // Toutes les 30 secondes
@@ -277,7 +276,7 @@ const AlertsSystem: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Centre d'Alertes Intelligentes</h1>
+          <h1 className="text-lg font-bold text-gray-900">Centre d'Alertes Intelligentes</h1>
           <p className="text-gray-600 mt-1">Surveillance proactive et gestion des anomalies</p>
         </div>
 
@@ -309,7 +308,7 @@ const AlertsSystem: React.FC = () => {
             <span className="text-sm font-medium text-gray-600">Total Alertes</span>
             <Bell className="w-5 h-5 text-gray-700" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+          <p className="text-lg font-bold text-gray-900">{stats.total}</p>
           <p className="text-xs text-gray-700 mt-1">Dernières 24h</p>
         </div>
 
@@ -318,7 +317,7 @@ const AlertsSystem: React.FC = () => {
             <span className="text-sm font-medium text-red-700">Critiques</span>
             <XCircle className="w-5 h-5 text-red-500" />
           </div>
-          <p className="text-2xl font-bold text-red-700">{stats.critical}</p>
+          <p className="text-lg font-bold text-red-700">{stats.critical}</p>
           <p className="text-xs text-red-600 mt-1">Action immédiate</p>
         </div>
 
@@ -327,7 +326,7 @@ const AlertsSystem: React.FC = () => {
             <span className="text-sm font-medium text-amber-700">Avertissements</span>
             <AlertTriangle className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-amber-700">{stats.warning}</p>
+          <p className="text-lg font-bold text-amber-700">{stats.warning}</p>
           <p className="text-xs text-amber-600 mt-1">À surveiller</p>
         </div>
 
@@ -336,7 +335,7 @@ const AlertsSystem: React.FC = () => {
             <span className="text-sm font-medium text-[#588075]">{t('status.inProgress')}</span>
             <Clock className="w-5 h-5 text-[#78998F]" />
           </div>
-          <p className="text-2xl font-bold text-[#588075]">{stats.acknowledged}</p>
+          <p className="text-lg font-bold text-[#588075]">{stats.acknowledged}</p>
           <p className="text-xs text-[#6A8A82] mt-1">Traitement</p>
         </div>
 
@@ -345,7 +344,7 @@ const AlertsSystem: React.FC = () => {
             <span className="text-sm font-medium text-green-700">Résolues</span>
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
-          <p className="text-2xl font-bold text-green-700">{stats.resolved}</p>
+          <p className="text-lg font-bold text-green-700">{stats.resolved}</p>
           <p className="text-xs text-green-600 mt-1">{t('common.today')}</p>
         </div>
       </div>

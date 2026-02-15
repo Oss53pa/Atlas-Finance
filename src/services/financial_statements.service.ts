@@ -1,5 +1,5 @@
 /**
- * Service Financial Statements WiseBook
+ * Service Financial Statements Atlas Finance
  * Génération automatique des états financiers SYSCOHADA
  *
  * Fonctionnalités:

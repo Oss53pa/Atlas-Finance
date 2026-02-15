@@ -248,7 +248,6 @@ const EnhancedCompanyConfiguration: React.FC = () => {
   };
 
   const onSubmit = (data: CompanyFormData) => {
-    console.log('Configuration entreprise:', data);
     toast.success('Configuration enregistrée avec succès !', {
       duration: 4000,
       position: 'top-right',
@@ -270,7 +269,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
       <div className="bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)] mb-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <BuildingOfficeIcon className="h-8 w-8 mr-3 text-[var(--color-primary)]" />
               Configuration de l'Entreprise
             </h1>
@@ -326,7 +325,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="text"
-                        placeholder="WISEBOOK SARL"
+                        placeholder="ATLAS FINANCE SARL"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -347,7 +346,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="text"
-                        placeholder="WiseBook Pro"
+                        placeholder="Atlas Finance Pro"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -858,7 +857,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="email"
-                        placeholder="contact@wisebook.cm"
+                        placeholder="contact@atlasfinance.com"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -879,7 +878,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="email"
-                        placeholder="comptabilite@wisebook.cm"
+                        placeholder="comptabilite@atlasfinance.com"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -897,7 +896,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                       <input
                         {...field}
                         type="url"
-                        placeholder="https://www.wisebook.cm"
+                        placeholder="https://www.atlasfinance.com"
                         className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                       />
                     )}
@@ -920,7 +919,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <input
                           {...field}
                           type="text"
-                          placeholder="facebook.com/wisebook"
+                          placeholder="facebook.com/atlasfinance"
                           className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
@@ -938,7 +937,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <input
                           {...field}
                           type="text"
-                          placeholder="linkedin.com/company/wisebook"
+                          placeholder="linkedin.com/company/atlasfinance"
                           className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}
@@ -956,7 +955,7 @@ const EnhancedCompanyConfiguration: React.FC = () => {
                         <input
                           {...field}
                           type="text"
-                          placeholder="@wisebook"
+                          placeholder="@atlasfinance"
                           className="w-full px-4 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-info)]"
                         />
                       )}

@@ -310,7 +310,7 @@ const CompteResultatPage: React.FC = () => {
             </button>
             <div className="h-6 w-px bg-[#E8E8E8]" />
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]">États Financiers Mensuels SYSCOHADA</h1>
+              <h1 className="text-lg font-bold text-[#191919]">États Financiers Mensuels SYSCOHADA</h1>
               <p className="text-sm text-[#767676]">Tableaux financiers mensualisés de janvier à décembre 2024</p>
             </div>
           </div>
@@ -357,7 +357,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">BILAN SYSCOHADA - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">BILAN SYSCOHADA - Exercice 2024</h2>
                 <p className="text-[#767676]">Données mensualisées de janvier à décembre</p>
               </div>
 
@@ -532,7 +532,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan-fonctionnel' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">BILAN FONCTIONNEL - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">BILAN FONCTIONNEL - Exercice 2024</h2>
                 <p className="text-[#767676]">Analyse fonctionnelle des emplois et ressources mensualisée</p>
               </div>
 
@@ -623,7 +623,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">COMPTE DE RÉSULTAT - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">COMPTE DE RÉSULTAT - Exercice 2024</h2>
                 <p className="text-[#767676]">Produits et charges mensualisés</p>
               </div>
 
@@ -819,7 +819,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'tableau-financement' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">TABLEAU DE FINANCEMENT - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">TABLEAU DE FINANCEMENT - Exercice 2024</h2>
                 <p className="text-[#767676]">Analyse des flux financiers mensualisée</p>
               </div>
 
@@ -909,7 +909,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'flux-tresorerie' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">TABLEAU FLUX TRÉSORERIE - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">TABLEAU FLUX TRÉSORERIE - Exercice 2024</h2>
                 <p className="text-[#767676]">Flux de trésorerie par activité mensualisés</p>
               </div>
 
@@ -1021,7 +1021,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'sig' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">SIG (SOLDES INTERMÉDIAIRES) - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">SIG (SOLDES INTERMÉDIAIRES) - Exercice 2024</h2>
                 <p className="text-[#767676]">Formation du résultat mensualisée</p>
               </div>
 
@@ -1094,7 +1094,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'ratios' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">RATIOS FINANCIERS - Exercice 2024</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">RATIOS FINANCIERS - Exercice 2024</h2>
                 <p className="text-[#767676]">Indicateurs de performance mensualisés</p>
               </div>
 
@@ -1240,7 +1240,7 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'export' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-[#191919] mb-2">Export États Financiers Mensuels</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">Export États Financiers Mensuels</h2>
                 <p className="text-[#767676]">Téléchargement des tableaux pour l'exercice 2024</p>
               </div>
 
@@ -1282,7 +1282,7 @@ const CompteResultatPage: React.FC = () => {
             {/* En-tête du modal */}
             <div className="bg-[#B87333] text-white p-6 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold">
+                <h2 className="text-lg font-bold">
                   {selectedDetail.type === 'sous-comptes' ? 'Sous-comptes' : 'Détail des transactions'}
                 </h2>
                 <p className="text-sm opacity-90">

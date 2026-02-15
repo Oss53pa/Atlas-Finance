@@ -481,7 +481,7 @@ const ParametragePeriodes: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Périodes Actives</p>
-                <p className="text-2xl font-bold">{kpis.periodesActives}</p>
+                <p className="text-lg font-bold">{kpis.periodesActives}</p>
                 <p className="text-xs text-[var(--color-primary)]">En cours de traitement</p>
               </div>
               <Activity className="w-8 h-8 text-[var(--color-primary)]" />
@@ -494,7 +494,7 @@ const ParametragePeriodes: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Prochaine Échéance</p>
-                <p className="text-2xl font-bold">{kpis.joursRestants}j</p>
+                <p className="text-lg font-bold">{kpis.joursRestants}j</p>
                 <p className="text-xs text-[var(--color-warning)]">{kpis.prochainEcheance}</p>
               </div>
               <Timer className="w-8 h-8 text-orange-500" />
@@ -507,7 +507,7 @@ const ParametragePeriodes: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">En Retard</p>
-                <p className="text-2xl font-bold">{kpis.periodesEnRetard}</p>
+                <p className="text-lg font-bold">{kpis.periodesEnRetard}</p>
                 <p className="text-xs text-[var(--color-error)]">Attention requise</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-[var(--color-error)]" />
@@ -520,7 +520,7 @@ const ParametragePeriodes: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Automatisation</p>
-                <p className="text-2xl font-bold">{kpis.automatisationTaux}%</p>
+                <p className="text-lg font-bold">{kpis.automatisationTaux}%</p>
                 <Progress value={kpis.automatisationTaux} className="mt-2" />
               </div>
               <Settings className="w-8 h-8 text-[var(--color-success)]" />
@@ -1254,7 +1254,7 @@ const ParametragePeriodes: React.FC = () => {
                 <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
                   <Calendar className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Nouvelle Période de Clôture</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Nouvelle Période de Clôture</h2>
               </div>
               <button
                 onClick={() => {

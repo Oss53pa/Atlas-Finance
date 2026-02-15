@@ -211,7 +211,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
               Analyse Financière Approfondie
             </h1>
             <p className="text-[var(--color-text-secondary)] mt-1">
@@ -252,7 +252,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
               <span className="text-sm text-[var(--color-text-secondary)]">Chiffre d'Affaires</span>
               <DollarSign className="w-4 h-4 text-[var(--color-success)]" />
             </div>
-            <div className="text-xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.revenue.current)}
             </div>
             <div className={`text-xs mt-1 flex items-center gap-1 ${getVarianceColor(financialMetrics.revenue.variance)}`}>
@@ -266,7 +266,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
               <span className="text-sm text-[var(--color-text-secondary)]">Marge Brute</span>
               <Percent className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
-            <div className="text-xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {financialMetrics.profit.grossMargin}%
             </div>
             <div className="text-xs text-[var(--color-text-secondary)] mt-1">
@@ -279,7 +279,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
               <span className="text-sm text-[var(--color-text-secondary)]">EBITDA</span>
               <TrendingUp className="w-4 h-4 text-[var(--color-info)]" />
             </div>
-            <div className="text-xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.profit.ebitda)}
             </div>
             <div className="text-xs text-[var(--color-text-secondary)] mt-1">
@@ -292,7 +292,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
               <span className="text-sm text-[var(--color-text-secondary)]">Cash Flow Net</span>
               <PiggyBank className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
-            <div className="text-xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.cashflow.net)}
             </div>
             <div className="text-xs text-[var(--color-text-secondary)] mt-1">
@@ -305,7 +305,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
               <span className="text-sm text-[var(--color-text-secondary)]">BFR</span>
               <Wallet className="w-4 h-4 text-[var(--color-info)]" />
             </div>
-            <div className="text-xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.ratios.workingCapital)}
             </div>
             <div className="text-xs text-[var(--color-text-secondary)] mt-1">

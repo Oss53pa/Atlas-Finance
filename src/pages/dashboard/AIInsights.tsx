@@ -182,9 +182,13 @@ const AIInsights: React.FC = () => {
     { x: 160, y: 14, category: 'C' }
   ];
 
+  const [aiServiceAvailable] = useState(false);
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // TODO: Replace with real AI service call when backend is ready
+    // const data = await aiService.getPredictions({ model: selectedModel, horizon: timeHorizon });
+    await new Promise(resolve => setTimeout(resolve, 1000));
     setRefreshing(false);
   };
 
@@ -217,7 +221,7 @@ const AIInsights: React.FC = () => {
         <div className="flex items-center gap-3 mb-4">
           <Brain className="w-8 h-8" />
           <div>
-            <h2 className="text-xl font-semibold">Performance des Modèles IA</h2>
+            <h2 className="text-lg font-semibold">Performance des Modèles IA</h2>
             <p className="text-white/80">Précision et fiabilité en temps réel</p>
           </div>
         </div>
@@ -227,7 +231,7 @@ const AIInsights: React.FC = () => {
               <Target className="w-5 h-5" />
               <span className="text-sm opacity-90">Précision Globale</span>
             </div>
-            <p className="text-3xl font-bold">92%</p>
+            <p className="text-lg font-bold">92%</p>
             <p className="text-sm opacity-75 mt-1">Sur 30 jours</p>
           </div>
           <div>
@@ -235,7 +239,7 @@ const AIInsights: React.FC = () => {
               <Sparkles className="w-5 h-5" />
               <span className="text-sm opacity-90">Insights Générés</span>
             </div>
-            <p className="text-3xl font-bold">156</p>
+            <p className="text-lg font-bold">156</p>
             <p className="text-sm opacity-75 mt-1">Ce mois</p>
           </div>
           <div>
@@ -243,7 +247,7 @@ const AIInsights: React.FC = () => {
               <DollarSign className="w-5 h-5" />
               <span className="text-sm opacity-90">Valeur Créée</span>
             </div>
-            <p className="text-3xl font-bold">1.2M DH</p>
+            <p className="text-lg font-bold">1.2M DH</p>
             <p className="text-sm opacity-75 mt-1">Économies + Opportunités</p>
           </div>
         </div>
@@ -263,7 +267,7 @@ const AIInsights: React.FC = () => {
 
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-lg font-bold text-gray-900">
                   {prediction.type === 'revenue' || prediction.type === 'cashflow'
                     ? `${prediction.value.toLocaleString()} DH`
                     : `${prediction.value} unités`}
@@ -502,42 +506,42 @@ const AIInsights: React.FC = () => {
             <div className="w-12 h-12 mx-auto bg-[#6A8A82]/20 rounded-lg flex items-center justify-center mb-2">
               <Target className="w-6 h-6 text-[#6A8A82]" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">94.2%</div>
+            <div className="text-lg font-bold text-gray-900">94.2%</div>
             <div className="text-sm text-gray-900">Précision Prédictions</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-green-100 to-green-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#D1FAE5] rounded-lg flex items-center justify-center mb-2">
               <CheckCircle className="w-6 h-6 text-[#10B981]" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">98.1%</div>
+            <div className="text-lg font-bold text-gray-900">98.1%</div>
             <div className="text-sm text-gray-900">Disponibilité Système</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-[#B87333]/10 to-[#B87333]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#B87333]/20 rounded-lg flex items-center justify-center mb-2">
               <Clock className="w-6 h-6 text-[#B87333]" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">1.2s</div>
+            <div className="text-lg font-bold text-gray-900">1.2s</div>
             <div className="text-sm text-gray-900">Temps de Réponse</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#D1DDD9] rounded-lg flex items-center justify-center mb-2">
               <Activity className="w-6 h-6 text-[#78998F]" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">24/7</div>
+            <div className="text-lg font-bold text-gray-900">24/7</div>
             <div className="text-sm text-gray-900">Surveillance Active</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#DBEAFE] rounded-lg flex items-center justify-center mb-2">
               <Shield className="w-6 h-6 text-[#3B82F6]" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">100%</div>
+            <div className="text-lg font-bold text-gray-900">100%</div>
             <div className="text-sm text-gray-900">Sécurité Données</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-orange-100 to-orange-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-amber-200 rounded-lg flex items-center justify-center mb-2">
               <Cpu className="w-6 h-6 text-[#F59E0B]" />
             </div>
-            <div className="text-2xl font-bold text-gray-900">85%</div>
+            <div className="text-lg font-bold text-gray-900">85%</div>
             <div className="text-sm text-gray-900">Efficacité CPU</div>
           </div>
         </div>
@@ -547,10 +551,20 @@ const AIInsights: React.FC = () => {
 
   return (
     <div className="p-6">
+      {/* AI Service Status Banner */}
+      {!aiServiceAvailable && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center space-x-3">
+          <Info className="w-5 h-5 text-blue-500 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-blue-800">Donnees de demonstration</p>
+            <p className="text-xs text-blue-600">Les insights IA affichent des donnees illustratives. Connectez un service IA pour des analyses reelles.</p>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">IA Insights & Analyses Prédictives</h1>
+          <h1 className="text-lg font-bold text-gray-900">IA Insights & Analyses Prédictives</h1>
           <p className="text-gray-900 mt-2">Intelligence artificielle avancée pour la prise de décision stratégique</p>
         </div>
         <div className="flex items-center gap-3">

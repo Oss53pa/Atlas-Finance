@@ -89,7 +89,7 @@ const MultiCompanyManager: React.FC = () => {
         {
           id: 'groupe-1',
           code: 'GROUPE',
-          raisonSociale: 'WISEBOOK GROUPE SA',
+          raisonSociale: 'ATLAS FINANCE GROUPE SA',
           formeJuridique: 'SA',
           rccm: 'RC/YAE/2020/A/001',
           nif: 'M051234567890',
@@ -125,7 +125,7 @@ const MultiCompanyManager: React.FC = () => {
             {
               id: 'holding-1',
               code: 'HOLD',
-              raisonSociale: 'WISEBOOK HOLDING SA',
+              raisonSociale: 'ATLAS FINANCE HOLDING SA',
               formeJuridique: 'SA',
               rccm: 'RC/YAE/2020/A/002',
               nif: 'M051234567891',
@@ -161,7 +161,7 @@ const MultiCompanyManager: React.FC = () => {
             {
               id: 'filiale-1',
               code: 'FIL1',
-              raisonSociale: 'WISEBOOK CAMEROUN SARL',
+              raisonSociale: 'ATLAS FINANCE CAMEROUN SARL',
               formeJuridique: 'SARL',
               rccm: 'RC/YAE/2021/B/003',
               nif: 'M051234567892',
@@ -402,7 +402,7 @@ const MultiCompanyManager: React.FC = () => {
       <div className="bg-[#6A8A82] rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white flex items-center">
+            <h1 className="text-lg font-bold text-white flex items-center">
               <BuildingOfficeIcon className="h-8 w-8 mr-3 text-white" />
               Gestion Multi-Sociétés
             </h1>
@@ -461,7 +461,7 @@ const MultiCompanyManager: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
               </div>
               <div className={`h-12 w-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
                 <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
@@ -477,7 +477,7 @@ const MultiCompanyManager: React.FC = () => {
           {/* Arbre des entités */}
           <div className="lg:col-span-2">
             <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-[#191919] mb-4">Structure Organisationnelle</h2>
+              <h2 className="text-lg font-bold text-[#191919] mb-4">Structure Organisationnelle</h2>
               <div className="space-y-2">
                 {companies.map(company => renderCompanyTree(company))}
               </div>
@@ -598,7 +598,7 @@ const MultiCompanyManager: React.FC = () => {
       {viewMode === 'consolidation' && (
         <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-[#191919] flex items-center">
+            <h2 className="text-lg font-bold text-[#191919] flex items-center">
               <ArrowPathIcon className="h-6 w-6 mr-2 text-blue-600" />
               Règles de Consolidation
             </h2>

@@ -114,7 +114,7 @@ const ComptableDashboard: React.FC = () => {
       <header className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Espace Comptable</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Espace Comptable</h1>
             <p className="text-[var(--color-text-primary)]">Tableau de bord opérationnel</p>
           </div>
           <div className="flex items-center space-x-4">
@@ -185,7 +185,7 @@ const ComptableDashboard: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{metric.value}</h3>
+                      <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-1">{metric.value}</h3>
                       <p className="text-[var(--color-text-primary)] text-sm mb-1">{metric.title}</p>
                       <p className="text-[var(--color-text-secondary)] text-xs">{metric.description}</p>
                     </div>
@@ -320,7 +320,7 @@ const ComptableDashboard: React.FC = () => {
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Plus className="w-5 h-5 text-blue-600" />
                   </div>
-                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Nouvelle Écriture Comptable</h2>
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvelle Écriture Comptable</h2>
                 </div>
                 <button onClick={() => setShowNewEntryModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
@@ -432,7 +432,7 @@ const ComptableDashboard: React.FC = () => {
                   <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                     <Filter className="w-5 h-5 text-gray-600" />
                   </div>
-                  <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Filtres avancés</h2>
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Filtres avancés</h2>
                 </div>
                 <button onClick={() => setShowFilterModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>

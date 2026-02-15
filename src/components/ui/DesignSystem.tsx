@@ -2,12 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 
-// Design System unifié pour WiseBook ERP
+// Design System unifié pour Atlas Finance
 // Palette de couleurs cohérente et élégante
 
 export const designTokens = {
   colors: {
-    // Système de couleurs WiseBook inspiré du design moderne chaud
+    // Système de couleurs Atlas Finance inspiré du design moderne chaud
     primary: {
       50: '#fefdf7',   // Crème très clair
       100: '#fef7e6',  // Beige très clair
@@ -179,30 +179,30 @@ export const KPICard: React.FC<KPICardProps> = ({
   const colorVariants = {
     primary: {
       bg: 'bg-white/90',
-      icon: 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      icon: 'bg-neutral-100 text-neutral-700',
       text: 'text-[#191919]',
-      accent: 'text-[#6A8A82]',
+      accent: 'text-neutral-700',
       border: 'border-[#D9D9D9]/40'
     },
     success: {
       bg: 'bg-white/90',
-      icon: 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      icon: 'bg-neutral-100 text-neutral-700',
       text: 'text-[#191919]',
-      accent: 'text-[#6A8A82]',
+      accent: 'text-neutral-700',
       border: 'border-[#D9D9D9]/40'
     },
     warning: {
       bg: 'bg-white/90',
-      icon: 'bg-[#B87333]/10 text-[#B87333]',
+      icon: 'bg-neutral-100 text-neutral-600',
       text: 'text-[#191919]',
-      accent: 'text-[#B87333]',
+      accent: 'text-neutral-600',
       border: 'border-[#D9D9D9]/40'
     },
     error: {
       bg: 'bg-white/90',
-      icon: 'bg-[#B85450]/10 text-[#B85450]',
+      icon: 'bg-neutral-100 text-neutral-600',
       text: 'text-[#191919]',
-      accent: 'text-[#B85450]',
+      accent: 'text-neutral-600',
       border: 'border-[#D9D9D9]/40'
     },
     neutral: {
@@ -236,7 +236,7 @@ export const KPICard: React.FC<KPICardProps> = ({
               <h3 className="text-xs font-medium tracking-wide text-neutral-500 uppercase mb-2">
                 {title}
               </h3>
-              <p className={`text-2xl font-bold ${variant.text} leading-none`}>
+              <p className={`text-lg font-bold ${variant.text} leading-none`}>
                 {value}
               </p>
             </div>
@@ -305,19 +305,19 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   action,
   className = ''
 }) => (
-  <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-8 ${className}`}>
-    <div className="flex items-center space-x-4">
+  <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 mb-6 ${className}`}>
+    <div className="flex items-center space-x-3">
       {Icon && (
-        <div className="p-3 bg-gradient-to-br from-[#6A8A82] to-[#5A7A72] rounded-2xl shadow-lg">
-          <Icon className="h-8 w-8 text-white" />
+        <div className="p-2.5 bg-gradient-to-br from-[#6A8A82] to-[#5A7A72] rounded-xl shadow-md">
+          <Icon className="h-5 w-5 text-white" />
         </div>
       )}
       <div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 leading-tight">
+        <h1 className="text-lg sm:text-xl font-bold text-neutral-900 leading-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-neutral-600 mt-2 text-lg">{subtitle}</p>
+          <p className="text-neutral-500 mt-1 text-sm">{subtitle}</p>
         )}
       </div>
     </div>
@@ -355,9 +355,9 @@ export const ElegantButton: React.FC<ElegantButtonProps> = ({
   };
 
   const sizes = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg'
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-5 py-2.5 text-sm',
+    lg: 'px-6 py-3 text-base'
   };
 
   return (
@@ -425,7 +425,7 @@ export const ModernChartCard: React.FC<ModernChartCardProps> = ({
               <Icon className="h-5 w-5 text-neutral-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-neutral-800">{title}</h2>
+              <h2 className="text-base font-semibold text-neutral-800">{title}</h2>
               {subtitle && (
                 <p className="text-sm text-neutral-500 mt-0.5">{subtitle}</p>
               )}

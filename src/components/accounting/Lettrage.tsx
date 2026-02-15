@@ -276,7 +276,6 @@ const Lettrage: React.FC = () => {
     setLettrageHistory(prev => [newHistory, ...prev]);
 
     // Notification de succès
-    console.log(`Lettrage ${newCode} appliqué avec succès`);
     setSelectedEntries(new Set());
   }, [selectedEntries, mockEntries]);
 
@@ -294,11 +293,9 @@ const Lettrage: React.FC = () => {
     };
 
     setLettrageHistory(prev => [newHistory, ...prev]);
-    console.log(`Délettrage du code ${code} effectué`);
   }, [mockEntries]);
 
   const runAutoLettrage = useCallback(() => {
-    console.log('Lancement du lettrage automatique avec config:', autoLettrageConfig);
     // Logique de lettrage automatique ici
     // Simulation d'un résultat
     setTimeout(() => {
@@ -365,7 +362,7 @@ const Lettrage: React.FC = () => {
           <div className="flex items-center space-x-4">
             <Link2 className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Module de Lettrage</h1>
+              <h1 className="text-lg font-bold text-gray-900">Module de Lettrage</h1>
               <p className="text-sm text-gray-600">Rapprochement et lettrage des comptes - Conforme SYSCOHADA</p>
             </div>
           </div>
@@ -529,7 +526,7 @@ const Lettrage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total comptes</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalComptes}</p>
+                  <p className="text-lg font-bold text-gray-900">{stats.totalComptes}</p>
                   <p className="text-xs text-gray-700 mt-1">{stats.totalEcritures} écritures</p>
                 </div>
                 <Database className="w-8 h-8 text-gray-700" />
@@ -539,7 +536,7 @@ const Lettrage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Non lettrées</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.ecrituresNonLettrees}</p>
+                  <p className="text-lg font-bold text-orange-600">{stats.ecrituresNonLettrees}</p>
                   <p className="text-xs text-orange-500 mt-1">
                     {stats.montantNonLettre.toLocaleString('fr-FR')} FCFA
                   </p>
@@ -551,7 +548,7 @@ const Lettrage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Lettrées</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.ecrituresLettrees}</p>
+                  <p className="text-lg font-bold text-green-600">{stats.ecrituresLettrees}</p>
                   <p className="text-xs text-green-500 mt-1">Complètement</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-400" />
@@ -561,7 +558,7 @@ const Lettrage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Taux lettrage</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-lg font-bold text-blue-600">
                     {stats.tauxLettrage.toFixed(1)}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
@@ -1184,7 +1181,7 @@ const Lettrage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => console.log('Configuration sauvegardée:', autoLettrageConfig)}
+                  onClick={() => {}}
                   className="w-full px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
                 >
                   <Save className="w-4 h-4 mr-2 inline" />

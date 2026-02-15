@@ -1,5 +1,5 @@
 /**
- * Layout Moderne WiseBook
+ * Layout Moderne Atlas Finance
  * Interface optimisée sans scroll inutile + Sidebar extensible
  */
 import React, { useState } from 'react';
@@ -37,7 +37,7 @@ const ModernLayout: React.FC<ModernLayoutProps> = ({ children }) => {
               </div>
               
               <div className="text-sm text-[#F0F3F2]/80">
-                Société: <span className="font-semibold text-[#F0F3F2]">SARL DEMO WISEBOOK</span>
+                Société: <span className="font-semibold text-[#F0F3F2]">SARL DEMO ATLAS FINANCE</span>
               </div>
             </div>
             
@@ -55,7 +55,7 @@ const ModernLayout: React.FC<ModernLayoutProps> = ({ children }) => {
                 </div>
                 <div className="hidden md:block">
                   <p className="text-sm font-semibold text-[#F0F3F2]">Administrateur</p>
-                  <p className="text-xs text-[#F0F3F2]/70">admin@wisebook.com</p>
+                  <p className="text-xs text-[#F0F3F2]/70">admin@atlasfinance.com</p>
                 </div>
                 <button className="p-1 text-[#F0F3F2]/70 hover:text-[#F0F3F2]">
                   <LogOut className="h-4 w-4" />

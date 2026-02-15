@@ -1,5 +1,5 @@
 /**
- * Service Budget WiseBook
+ * Service Budget Atlas Finance
  * Gestion budgétaire intelligente avec IA, dashboards et alertes automatiques
  *
  * Fonctionnalités:

@@ -65,7 +65,7 @@ const GeneralLedgerPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#191919]">Grand Livre</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Grand Livre</h1>
           <p className="text-[#767676] mt-1">
             Consultation du grand livre général et auxiliaires
           </p>
@@ -153,7 +153,7 @@ const GeneralLedgerPage: React.FC = () => {
 
       {activeTab === 'accounts' && (
         <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-          <h2 className="text-xl font-semibold text-[#191919] mb-4">
+          <h2 className="text-lg font-semibold text-[#191919] mb-4">
             Comptes Mouvementés
           </h2>
           <LedgerAccountsTable
@@ -182,7 +182,7 @@ const GeneralLedgerPage: React.FC = () => {
           {searchResults && (
             <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#191919]">
                   Résultats ({searchResults.totalResults})
                 </h2>
                 <p className="text-sm text-[#767676]">

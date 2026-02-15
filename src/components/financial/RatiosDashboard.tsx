@@ -287,7 +287,7 @@ const RatiosDashboard: React.FC = () => {
       {/* Header avec contrôles */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Ratios Financiers SYSCOHADA</h2>
+          <h2 className="text-lg font-bold text-gray-900">Ratios Financiers SYSCOHADA</h2>
           <p className="text-gray-600">
             Analyse complète des ratios avec benchmarks sectoriels • 
             Score global: {ratiosSummary?.globalScore || 0}/100
@@ -334,7 +334,7 @@ const RatiosDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Score Global</p>
-              <p className="text-2xl font-bold text-gray-900">{ratiosSummary?.globalScore || 0}/100</p>
+              <p className="text-lg font-bold text-gray-900">{ratiosSummary?.globalScore || 0}/100</p>
               <p className="text-sm text-green-600">Performance élevée</p>
             </div>
             <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -347,7 +347,7 @@ const RatiosDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Ratios Analysés</p>
-              <p className="text-2xl font-bold text-gray-900">{ratiosSummary?.totalRatios || 0}</p>
+              <p className="text-lg font-bold text-gray-900">{ratiosSummary?.totalRatios || 0}</p>
               <p className="text-sm text-blue-600">Toutes catégories</p>
             </div>
             <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -360,7 +360,7 @@ const RatiosDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Alertes Actives</p>
-              <p className="text-2xl font-bold text-gray-900">{ratiosSummary?.alertRatios || 0}</p>
+              <p className="text-lg font-bold text-gray-900">{ratiosSummary?.alertRatios || 0}</p>
               <p className="text-sm text-red-600">À surveiller</p>
             </div>
             <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -373,7 +373,7 @@ const RatiosDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Tendance</p>
-              <p className="text-2xl font-bold text-green-600">↗</p>
+              <p className="text-lg font-bold text-green-600">↗</p>
               <p className="text-sm text-green-600">En amélioration</p>
             </div>
             <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -407,7 +407,7 @@ const RatiosDashboard: React.FC = () => {
 
               <div className="space-y-3">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-bold text-gray-900">
+                  <span className="text-lg font-bold text-gray-900">
                     {formatNumber(ratio.valeur, ratio.unite === 'jours' ? 0 : 1)}
                   </span>
                   <span className="text-sm text-gray-700">{ratio.unite}</span>

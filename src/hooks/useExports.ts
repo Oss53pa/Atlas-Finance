@@ -121,7 +121,6 @@ export const useExports = (
         // Si l'export est immédiatement complété, proposer le téléchargement
         if (newExport.status === 'completed' && newExport.file_url) {
           // Notification de succès
-          console.log('Export créé avec succès:', newExport.file_name);
         } else if (newExport.status === 'failed') {
           setError(newExport.error_message || 'Erreur lors de la génération');
         }

@@ -20,7 +20,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'workspace' | 'tasks' | 'chat' | 'profile' | 'settings' | 'help'>('workspace');
 
-  const wiseBookLinks = [
+  const atlasFinanceLinks = [
     { id: 'entries', label: "Saisie ecritures", icon: FileText, badge: '5', path: '/accounting/entries' },
     { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
     { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
@@ -36,13 +36,13 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const renderProfile = () => (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Mon Profil</h2>
+        <h2 className="text-lg font-bold">Mon Profil</h2>
         <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded-lg">Retour</button>
       </div>
       <div className="bg-white rounded-xl p-6 border">
         <div className="flex items-start space-x-6">
           <div className="w-24 h-24 rounded-full bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] flex items-center justify-center"><User className="w-12 h-12 text-white" /></div>
-          <div><h3 className="text-xl font-bold">{userData.name}</h3><p className="text-[#6A8A82]">{userData.role}</p><p className="text-sm text-gray-500">{userData.department}</p></div>
+          <div><h3 className="text-lg font-bold">{userData.name}</h3><p className="text-[#6A8A82]">{userData.role}</p><p className="text-sm text-gray-500">{userData.department}</p></div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-6">
@@ -63,7 +63,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const renderSettings = () => (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Parametres</h2>
+        <h2 className="text-lg font-bold">Parametres</h2>
         <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded-lg">Retour</button>
       </div>
       <div className="bg-white rounded-xl p-6 border">
@@ -90,11 +90,11 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const renderHelp = () => (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Aide</h2>
+        <h2 className="text-lg font-bold">Aide</h2>
         <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded-lg">Retour</button>
       </div>
       <div className="bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-xl p-8 text-white">
-        <h3 className="text-xl font-bold mb-4">Comment pouvons-nous vous aider?</h3>
+        <h3 className="text-lg font-bold mb-4">Comment pouvons-nous vous aider?</h3>
         <div className="relative"><Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Rechercher..." className="w-full pl-12 pr-4 py-3 rounded-lg text-black" /></div>
       </div>
       <div className="grid grid-cols-3 gap-4">
@@ -118,12 +118,12 @@ const ComptableWorkspaceFinal: React.FC = () => {
         {[{title:'Ecritures',value:'47',icon:FileText,color:'#6A8A82',change:'+12%',up:true},{title:'En attente',value:'8',icon:Clock,color:'#B87333',change:'-3%',up:false},{title:'Lettrage',value:'156',icon:CheckCircle,color:'#7A99AC',change:'+23%',up:true},{title:'Tresorerie',value:'2.4M',icon:DollarSign,color:'#6A8A82',change:'+8%',up:true}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
             <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:m.color+'20'}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
-            <h3 className="text-2xl font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
+            <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
           </div>
         ))}
       </div>
       <div className="bg-white rounded-lg p-6 border-2 border-[#6A8A82]">
-        <div className="flex justify-between mb-4"><h2 className="text-lg font-semibold">Acces WiseBook</h2><button onClick={() => navigate('/executive')} className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg flex items-center space-x-2"><Home className="w-4 h-4" /><span>WISEBOOK</span></button></div>
+        <div className="flex justify-between mb-4"><h2 className="text-lg font-semibold">Acces Atlas Finance</h2><button onClick={() => navigate('/executive')} className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg flex items-center space-x-2"><Home className="w-4 h-4" /><span>ATLAS FINANCE</span></button></div>
         <div className="grid grid-cols-4 gap-3">
           {[{label:'Nouvelle ecriture',icon:Plus,path:'/accounting/entries',color:'#6A8A82'},{label:'Lettrage',icon:Zap,path:'/accounting/lettrage',color:'#B87333'},{label:'Balance',icon:BarChart3,path:'/accounting/balance',color:'#7A99AC'},{label:'SYSCOHADA',icon:TrendingUp,path:'/financial-statements',color:'#6A8A82'}].map((a,i) => (
             <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border-2 border-dashed border-[#6A8A82]/50 hover:border-[#6A8A82]">
@@ -176,12 +176,12 @@ const ComptableWorkspaceFinal: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button onClick={() => navigate('/login')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Retour</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
-            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">WiseBook ERP</h1><p className="text-xs text-gray-500">v3.0</p></div></div>
+            <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">Atlas Finance</h1><p className="text-xs text-gray-500">v3.0</p></div></div>
             <div className="hidden md:flex items-center space-x-2 px-3 py-1 rounded-lg bg-green-50"><Calculator className="w-4 h-4 text-[#6A8A82]" /><span className="text-sm font-medium text-[#6A8A82]">Espace Comptable</span></div>
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/executive')} className="px-6 py-2 bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-lg text-white font-bold flex items-center space-x-2"><Home className="w-5 h-5" /><span>WISEBOOK</span><ExternalLink className="w-4 h-4" /></button>
+            <button onClick={() => navigate('/executive')} className="px-6 py-2 bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-lg text-white font-bold flex items-center space-x-2"><Home className="w-5 h-5" /><span>ATLAS FINANCE</span><ExternalLink className="w-4 h-4" /></button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /><span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#6A8A82] rounded-full flex items-center justify-center">5</span></button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
@@ -206,7 +206,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
       <div className="flex">
         <aside className={`${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'} lg:w-64 bg-white border-r min-h-[calc(100vh-73px)] transition-all`}>
           <div className="p-4">
-            <button onClick={() => navigate('/executive')} className="w-full p-4 bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-lg text-white mb-6"><div className="flex items-center justify-center space-x-2 mb-2"><Home className="w-5 h-5" /><ExternalLink className="w-4 h-4" /></div><div className="text-sm font-semibold">WiseBook Complet</div></button>
+            <button onClick={() => navigate('/executive')} className="w-full p-4 bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-lg text-white mb-6"><div className="flex items-center justify-center space-x-2 mb-2"><Home className="w-5 h-5" /><ExternalLink className="w-4 h-4" /></div><div className="text-sm font-semibold">Atlas Finance Complet</div></button>
 
             {/* Mon espace */}
             <div className="border-b mb-4 pb-4"><div className="text-xs font-semibold text-gray-500 uppercase mb-3">Mon espace</div>
@@ -230,7 +230,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
             {/* Modules */}
             <div className="text-xs font-semibold text-gray-500 uppercase mb-3">Modules Comptables</div>
             <div className="space-y-1">
-              {wiseBookLinks.map(item => (
+              {atlasFinanceLinks.map(item => (
                 <button key={item.id} onClick={() => navigate(item.path)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-gray-600 hover:text-[#6A8A82] hover:bg-gray-50">
                   <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm">{item.label}</span></div>
                   {item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{item.badge}</span>}

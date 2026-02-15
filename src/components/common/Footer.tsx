@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
       <div className="container-fluid">
         <div className="row">
           <div className="col-md-6">
-            <p className="mb-0">&copy; 2025 WiseBook ERP - Praedium Tech</p>
+            <p className="mb-0">&copy; 2025 Atlas Finance - Praedium Tech</p>
           </div>
           <div className="col-md-6 text-md-end">
             <p className="mb-0">Version 3.0.0</p>

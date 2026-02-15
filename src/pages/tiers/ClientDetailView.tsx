@@ -454,7 +454,6 @@ const ClientDetailView: React.FC = () => {
   };
 
   const handleSaveClient = () => {
-    console.log('Données sauvegardées:', editFormData);
     // Ici, on ferait un appel API pour sauvegarder les modifications
     setShowEditModal(false);
   };
@@ -480,7 +479,7 @@ const ClientDetailView: React.FC = () => {
                 <Building className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">{clientDetail.nom}</h1>
+                <h1 className="text-lg font-bold text-[#191919]">{clientDetail.nom}</h1>
                 <p className="text-sm text-[#666666]">Code: {clientDetail.code} • {clientDetail.secteurActivite}</p>
               </div>
             </div>
@@ -551,7 +550,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">CA Annuel</p>
-                  <p className="text-2xl font-bold text-[#191919]">{formatCurrency(clientDetail.financier.chiffreAffairesAnnuel)}</p>
+                  <p className="text-lg font-bold text-[#191919]">{formatCurrency(clientDetail.financier.chiffreAffairesAnnuel)}</p>
                   <p className="text-xs text-green-600">+8.5% vs N-1</p>
                 </div>
                 <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -564,7 +563,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Encours Client</p>
-                  <p className="text-2xl font-bold text-[#191919]">{formatCurrency(clientDetail.financier.encours)}</p>
+                  <p className="text-lg font-bold text-[#191919]">{formatCurrency(clientDetail.financier.encours)}</p>
                   <p className="text-xs text-orange-600">DSO: {clientDetail.financier.dso} jours</p>
                 </div>
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -577,7 +576,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Marge Nette</p>
-                  <p className="text-2xl font-bold text-[#191919]">{clientDetail.analyses.rentabilite.margeNette}%</p>
+                  <p className="text-lg font-bold text-[#191919]">{clientDetail.analyses.rentabilite.margeNette}%</p>
                   <p className="text-xs text-[#B87333]">ROI: {clientDetail.analyses.rentabilite.roiClient}%</p>
                 </div>
                 <div className="w-10 h-10 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
@@ -590,7 +589,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Respect Échéances</p>
-                  <p className="text-2xl font-bold text-[#191919]">{clientDetail.analyses.performance.respectEcheances}%</p>
+                  <p className="text-lg font-bold text-[#191919]">{clientDetail.analyses.performance.respectEcheances}%</p>
                   <p className="text-xs text-green-600">Excellent payeur</p>
                 </div>
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -883,7 +882,7 @@ const ClientDetailView: React.FC = () => {
                   <ResponsiveContainer width="100%" height={200}>
                     <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: clientDetail.financier.scoreRisque}]}>
                       <RadialBar dataKey="value" cornerRadius={10} fill="#6A8A82" />
-                      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-xl font-bold fill-[#191919]">
+                      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[#191919]">
                         {clientDetail.financier.scoreRisque}/100
                       </text>
                     </RadialBarChart>
@@ -935,19 +934,19 @@ const ClientDetailView: React.FC = () => {
             <h3 className="text-lg font-semibold text-[#191919] mb-4">Performance de Paiement</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                <div className="text-2xl font-bold text-green-700">{clientDetail.analyses.performance.respectEcheances}%</div>
+                <div className="text-lg font-bold text-green-700">{clientDetail.analyses.performance.respectEcheances}%</div>
                 <div className="text-sm text-green-600">Respect Échéances</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                <div className="text-2xl font-bold text-blue-700">{clientDetail.analyses.performance.delaiPaiementMoyen}j</div>
+                <div className="text-lg font-bold text-blue-700">{clientDetail.analyses.performance.delaiPaiementMoyen}j</div>
                 <div className="text-sm text-blue-600">Délai Moyen</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
-                <div className="text-2xl font-bold text-orange-700">{clientDetail.analyses.performance.frequenceRetards}</div>
+                <div className="text-lg font-bold text-orange-700">{clientDetail.analyses.performance.frequenceRetards}</div>
                 <div className="text-sm text-orange-600">Retards/Mois</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                <div className="text-2xl font-bold text-purple-700">{clientDetail.analyses.performance.utilisationEscompte}%</div>
+                <div className="text-lg font-bold text-purple-700">{clientDetail.analyses.performance.utilisationEscompte}%</div>
                 <div className="text-sm text-purple-600">Utilisation Escompte</div>
               </div>
             </div>
@@ -1303,19 +1302,19 @@ const ClientDetailView: React.FC = () => {
             {/* Statistiques Documents */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                <div className="text-2xl font-bold text-blue-700">24</div>
+                <div className="text-lg font-bold text-blue-700">24</div>
                 <div className="text-sm text-blue-600">Documents Total</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                <div className="text-2xl font-bold text-green-700">8</div>
+                <div className="text-lg font-bold text-green-700">8</div>
                 <div className="text-sm text-green-600">Contrats</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
-                <div className="text-2xl font-bold text-orange-700">12</div>
+                <div className="text-lg font-bold text-orange-700">12</div>
                 <div className="text-sm text-orange-600">Factures</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                <div className="text-2xl font-bold text-purple-700">4</div>
+                <div className="text-lg font-bold text-purple-700">4</div>
                 <div className="text-sm text-purple-600">Correspondances</div>
               </div>
             </div>
@@ -1528,7 +1527,7 @@ const ClientDetailView: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="flex-1 p-2 bg-gray-50 rounded text-xs text-[#666666] truncate">
-                        https://wisebook.cm/share/contracts/cli001...
+                        https://atlasfinance.com/share/contracts/cli001...
                       </div>
                       <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
                         <Link className="w-4 h-4" />
@@ -1542,7 +1541,7 @@ const ClientDetailView: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="flex-1 p-2 bg-gray-50 rounded text-xs text-[#666666] truncate">
-                        https://wisebook.cm/share/invoices/cli001...
+                        https://atlasfinance.com/share/invoices/cli001...
                       </div>
                       <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
                         <Link className="w-4 h-4" />
@@ -1590,7 +1589,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Interactions ce mois</p>
-                  <p className="text-2xl font-bold text-[#191919]">28</p>
+                  <p className="text-lg font-bold text-[#191919]">28</p>
                   <p className="text-xs text-green-600">+12% vs mois dernier</p>
                 </div>
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1603,7 +1602,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Dernière activité</p>
-                  <p className="text-2xl font-bold text-[#191919]">2h</p>
+                  <p className="text-lg font-bold text-[#191919]">2h</p>
                   <p className="text-xs text-[#666666]">Facture créée</p>
                 </div>
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -1616,7 +1615,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Communications</p>
-                  <p className="text-2xl font-bold text-[#191919]">14</p>
+                  <p className="text-lg font-bold text-[#191919]">14</p>
                   <p className="text-xs text-[#666666]">Emails + Appels</p>
                 </div>
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -1629,7 +1628,7 @@ const ClientDetailView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Modifications</p>
-                  <p className="text-2xl font-bold text-[#191919]">8</p>
+                  <p className="text-lg font-bold text-[#191919]">8</p>
                   <p className="text-xs text-[#666666]">Données client</p>
                 </div>
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -1938,7 +1937,7 @@ const ClientDetailView: React.FC = () => {
             <div className="bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] px-6 py-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Edit className="w-6 h-6 text-white" />
-                <h2 className="text-xl font-bold text-white">Modifier le client - {clientDetail.code}</h2>
+                <h2 className="text-lg font-bold text-white">Modifier le client - {clientDetail.code}</h2>
               </div>
               <button
                 onClick={() => setShowEditModal(false)}

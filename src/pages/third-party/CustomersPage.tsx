@@ -160,7 +160,7 @@ const CustomersPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Users className="mr-3 h-7 w-7" />
               Clients
             </h1>
@@ -198,7 +198,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Clients</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {customersData?.count || 0}
                 </p>
               </div>
@@ -214,7 +214,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Clients Actifs</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {customersData?.active_count || 0}
                 </p>
               </div>
@@ -230,7 +230,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">CA Total</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {formatCurrency(customersData?.total_ca || 0)}
                 </p>
               </div>
@@ -246,7 +246,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Impayés</p>
-                <p className="text-2xl font-bold text-red-700">
+                <p className="text-lg font-bold text-red-700">
                   {formatCurrency(customersData?.total_unpaid || 0)}
                 </p>
               </div>

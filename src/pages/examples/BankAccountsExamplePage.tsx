@@ -193,7 +193,7 @@ const BankAccountsExamplePage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <CreditCard className="mr-3 h-7 w-7" />
               Comptes Bancaires (Exemple)
             </h1>
@@ -231,7 +231,7 @@ const BankAccountsExamplePage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Comptes</p>
-                <p className="text-2xl font-bold text-gray-900">{accountsData?.count || 0}</p>
+                <p className="text-lg font-bold text-gray-900">{accountsData?.count || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -245,7 +245,7 @@ const BankAccountsExamplePage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Comptes Actifs</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {activeAccounts?.length || 0}
                 </p>
               </div>
@@ -411,7 +411,7 @@ const BankAccountsExamplePage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Solde du compte sélectionné</p>
-                <p className="text-2xl font-bold text-blue-700">
+                <p className="text-lg font-bold text-blue-700">
                   {formatCurrency(accountBalance.solde)}
                 </p>
                 <p className="text-xs text-gray-700">Au {accountBalance.date}</p>

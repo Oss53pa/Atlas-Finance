@@ -43,7 +43,7 @@ const LedgerEntryDetails: React.FC<LedgerEntryDetailsProps> = ({ entry, onClose 
       <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Détails de l'écriture</h2>
+          <h2 className="text-lg font-bold text-gray-900">Détails de l'écriture</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">
@@ -79,13 +79,13 @@ const LedgerEntryDetails: React.FC<LedgerEntryDetailsProps> = ({ entry, onClose 
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
               <label className="text-xs font-medium text-green-700 uppercase">{t('accounting.debit')}</label>
-              <div className="mt-2 text-2xl font-bold text-green-900">
+              <div className="mt-2 text-lg font-bold text-green-900">
                 {parseFloat(entry.debit_amount) > 0 ? formatAmount(entry.debit_amount) : '-'}
               </div>
             </div>
             <div className="p-4 bg-red-50 rounded-lg border border-red-200">
               <label className="text-xs font-medium text-red-700 uppercase">{t('accounting.credit')}</label>
-              <div className="mt-2 text-2xl font-bold text-red-900">
+              <div className="mt-2 text-lg font-bold text-red-900">
                 {parseFloat(entry.credit_amount) > 0 ? formatAmount(entry.credit_amount) : '-'}
               </div>
             </div>

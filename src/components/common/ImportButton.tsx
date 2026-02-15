@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Upload, RefreshCw } from 'lucide-react';
 import { Button } from '../ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
@@ -46,6 +46,11 @@ export const ImportButton: React.FC<ImportButtonProps> = ({
     validateData: true,
     testMode: false
   });
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, []);
 
   const handleImport = () => {
     if (selectedFiles.length === 0) {
@@ -59,12 +64,13 @@ export const ImportButton: React.FC<ImportButtonProps> = ({
       onImport(selectedFiles, options);
     } else {
       // Import par défaut
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         toast.success(`Import de ${selectedFiles.length} fichier(s) lancé !`);
         setIsImporting(false);
         setShowModal(false);
         setSelectedFiles([]);
       }, 2000);
+      timerRef.current = timer;
     }
   };
 

@@ -18,7 +18,7 @@ interface SEOHeadProps {
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = 'WiseBook ERP - Système de Gestion Comptable SYSCOHADA',
+  title = 'Atlas Finance - Système de Gestion Comptable SYSCOHADA',
   description = 'Solution ERP complète pour la gestion comptable et financière conforme aux normes SYSCOHADA. Multi-devises, multi-sociétés, avec tableau de bord intelligent.',
   keywords = [
     'ERP',
@@ -32,16 +32,16 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     'multi-devises',
     'OHADA',
   ],
-  image = '/images/wisebook-og-image.png',
-  url = 'https://wisebook.cm',
+  image = '/images/atlas-finance-og-image.png',
+  url = 'https://atlasfinance.com',
   type = 'website',
-  author = 'WiseBook Team',
+  author = 'Atlas Finance Team',
   publishedTime,
   modifiedTime,
 }) => {
-  const fullTitle = title.includes('WiseBook') ? title : `${title} | WiseBook ERP`;
-  const fullUrl = url.startsWith('http') ? url : `https://wisebook.cm${url}`;
-  const fullImage = image.startsWith('http') ? image : `https://wisebook.cm${image}`;
+  const fullTitle = title.includes('Atlas Finance') ? title : `${title} | Atlas Finance`;
+  const fullUrl = url.startsWith('http') ? url : `https://atlasfinance.com${url}`;
+  const fullImage = image.startsWith('http') ? image : `https://atlasfinance.com${image}`;
 
   return (
     <Helmet>
@@ -59,7 +59,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={fullImage} />
-      <meta property="og:site_name" content="WiseBook ERP" />
+      <meta property="og:site_name" content="Atlas Finance" />
       <meta property="og:locale" content="fr_FR" />
 
       {publishedTime && (
@@ -105,7 +105,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         {JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'SoftwareApplication',
-          name: 'WiseBook ERP',
+          name: 'Atlas Finance',
           applicationCategory: 'BusinessApplication',
           operatingSystem: 'Web',
           description: description,
@@ -113,7 +113,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
           image: fullImage,
           author: {
             '@type': 'Organization',
-            name: 'WiseBook',
+            name: 'Atlas Finance',
           },
           offers: {
             '@type': 'Offer',
@@ -133,18 +133,18 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         {JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'Organization',
-          name: 'WiseBook',
-          url: 'https://wisebook.cm',
-          logo: `https://wisebook.cm/logo.png`,
+          name: 'Atlas Finance',
+          url: 'https://atlasfinance.com',
+          logo: `https://atlasfinance.com/logo.png`,
           description: 'Solution ERP pour la gestion d\'entreprise en Afrique',
           address: {
             '@type': 'PostalAddress',
             addressCountry: 'CM',
           },
           sameAs: [
-            'https://facebook.com/wisebook',
-            'https://twitter.com/wisebook',
-            'https://linkedin.com/company/wisebook',
+            'https://facebook.com/atlasfinance',
+            'https://twitter.com/atlasfinance',
+            'https://linkedin.com/company/atlasfinance',
           ],
         })}
       </script>

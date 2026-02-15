@@ -1,5 +1,5 @@
 /**
- * Module Fournisseur - Dashboard Principal WiseBook
+ * Module Fournisseur - Dashboard Principal Atlas Finance
  * Interface moderne conforme au cahier des charges sections 2.1-2.5
  * Gestion complète des fournisseurs avec échéances et lettrage
  */
@@ -260,7 +260,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Total Fournisseurs</p>
-                <p className="text-3xl font-bold text-[var(--color-text-primary)]">{stats.total_fournisseurs}</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.total_fournisseurs}</p>
               </div>
               <Building2 className="h-8 w-8 text-[var(--color-primary)]" />
             </div>
@@ -277,7 +277,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Encours Total</p>
-                <p className="text-3xl font-bold text-[var(--color-text-primary)]">
+                <p className="text-lg font-bold text-[var(--color-text-primary)]">
                   {formaterMontant(stats.encours_total)}
                 </p>
               </div>
@@ -296,7 +296,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Performance Moyenne</p>
-                <p className="text-3xl font-bold text-[var(--color-text-primary)]">
+                <p className="text-lg font-bold text-[var(--color-text-primary)]">
                   {Math.round(stats.performance_moyenne)}%
                 </p>
               </div>
@@ -313,7 +313,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Fournisseurs Bloqués</p>
-                <p className="text-3xl font-bold text-[var(--color-error)]">{stats.fournisseurs_bloques}</p>
+                <p className="text-lg font-bold text-[var(--color-error)]">{stats.fournisseurs_bloques}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-[var(--color-error)]" />
             </div>
@@ -341,7 +341,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-primary)]">{t('common.today')}</p>
-                <p className="text-2xl font-bold">{echeances.aujourd_hui.nombre}</p>
+                <p className="text-lg font-bold">{echeances.aujourd_hui.nombre}</p>
                 <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.aujourd_hui.montant_total)}
                 </p>
@@ -356,7 +356,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-success)]">Cette Semaine</p>
-                <p className="text-2xl font-bold">{echeances.cette_semaine.nombre}</p>
+                <p className="text-lg font-bold">{echeances.cette_semaine.nombre}</p>
                 <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.cette_semaine.montant_total)}
                 </p>
@@ -371,7 +371,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-warning)]">Ce Mois</p>
-                <p className="text-2xl font-bold">{echeances.ce_mois.nombre}</p>
+                <p className="text-lg font-bold">{echeances.ce_mois.nombre}</p>
                 <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.ce_mois.montant_total)}
                 </p>
@@ -386,7 +386,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-error)]">En Retard</p>
-                <p className="text-2xl font-bold">{echeances.en_retard.nombre}</p>
+                <p className="text-lg font-bold">{echeances.en_retard.nombre}</p>
                 <p className="text-xs text-[var(--color-text-primary)]">
                   {formaterMontant(echeances.en_retard.montant_total)}
                 </p>
@@ -674,11 +674,11 @@ const ModernSupplierDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
             Module Fournisseur
           </h1>
           <p className="text-[var(--color-text-primary)] mt-2">
-            Gestion complète des fournisseurs - WiseBook
+            Gestion complète des fournisseurs - Atlas Finance
           </p>
         </div>
 
@@ -787,7 +787,7 @@ const ModernSupplierDashboard: React.FC = () => {
                   <Building2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{selectedSupplier.legal_name}</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{selectedSupplier.legal_name}</h2>
                   <p className="text-sm text-gray-600">{selectedSupplier.code}</p>
                 </div>
               </div>
@@ -864,7 +864,7 @@ const ModernSupplierDashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Performance Globale</p>
-                    <p className="text-xl font-bold text-[var(--color-success)]">
+                    <p className="text-lg font-bold text-[var(--color-success)]">
                       {Math.round(selectedSupplier.overall_performance)}%
                     </p>
                   </div>
@@ -877,7 +877,7 @@ const ModernSupplierDashboard: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-sm font-medium text-gray-500">Encours Total</p>
-                    <p className="text-xl font-bold text-[var(--color-primary)]">
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
                       {formaterMontant(selectedSupplier.current_outstanding)}
                     </p>
                   </div>
@@ -940,7 +940,7 @@ const ModernSupplierDashboard: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Modifier le Fournisseur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Modifier le Fournisseur</h2>
               <button onClick={() => setShowEditModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="w-6 h-6" />
               </button>

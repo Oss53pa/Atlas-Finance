@@ -894,7 +894,7 @@ const FinancialStatements: React.FC = () => {
             >
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-neutral-800">
+                  <h3 className="text-lg font-semibold text-neutral-800">
                     {statementModal.mode === 'create' ? 'Nouvel État Financier' :
                      statementModal.mode === 'edit' ? 'Modifier l\'État' : 'Détails de l\'État Financier'}
                   </h3>

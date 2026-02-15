@@ -262,7 +262,7 @@ const DoubleSidebar: React.FC = () => {
                   <span className="text-white font-bold text-lg">W</span>
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold">WiseBook ERP</h1>
+                  <h1 className="text-lg font-bold">Atlas Finance</h1>
                   <p className="text-xs text-slate-400">SYSCOHADA</p>
                 </div>
               </div>
@@ -273,7 +273,7 @@ const DoubleSidebar: React.FC = () => {
                   <span className="text-white font-bold text-lg">W</span>
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold">WiseBook ERP</h1>
+                  <h1 className="text-lg font-bold">Atlas Finance</h1>
                   <p className="text-xs text-slate-400">SYSCOHADA</p>
                 </div>
               </div>

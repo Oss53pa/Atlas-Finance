@@ -275,7 +275,7 @@ const RatiosView: React.FC = () => {
           </div>
           <p className="text-sm text-gray-600 mb-1">{ratio.formule}</p>
           <div className="flex items-center space-x-4">
-            <span className="text-2xl font-bold text-blue-600">
+            <span className="text-lg font-bold text-blue-600">
               {formatValue(ratio.valeur, ratio.unite)}
             </span>
             {getAlertBadge(ratio.niveauAlerte)}
@@ -441,7 +441,7 @@ const RatiosView: React.FC = () => {
   const renderBenchmark = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Analyse Comparative Sectorielle
         </h3>
 
@@ -586,7 +586,7 @@ const RatiosView: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ratios Financiers</h1>
+          <h1 className="text-lg font-bold text-gray-900">Ratios Financiers</h1>
           <p className="mt-1 text-gray-600">
             Analyse de la structure, liquidité, rentabilité et solvabilité
           </p>

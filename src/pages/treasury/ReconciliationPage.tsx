@@ -218,7 +218,7 @@ const ReconciliationPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <GitCompare className="mr-3 h-7 w-7" />
               Rapprochement Bancaire
             </h1>
@@ -279,7 +279,7 @@ const ReconciliationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Rapprochés</p>
-                <p className="text-2xl font-bold text-green-700">
+                <p className="text-lg font-bold text-green-700">
                   {reconciliationData?.matched_count || 0}
                 </p>
               </div>
@@ -295,7 +295,7 @@ const ReconciliationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Non rapprochés</p>
-                <p className="text-2xl font-bold text-red-700">
+                <p className="text-lg font-bold text-red-700">
                   {reconciliationData?.unmatched_count || 0}
                 </p>
               </div>
@@ -311,7 +311,7 @@ const ReconciliationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Écarts</p>
-                <p className="text-2xl font-bold text-yellow-700">
+                <p className="text-lg font-bold text-yellow-700">
                   {formatCurrency(Math.abs(reconciliationData?.total_difference || 0))}
                 </p>
               </div>
@@ -327,7 +327,7 @@ const ReconciliationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Taux Rapprochement</p>
-                <p className="text-2xl font-bold text-[#6A8A82]">
+                <p className="text-lg font-bold text-[#6A8A82]">
                   {reconciliationData?.match_rate ? `${reconciliationData.match_rate}%` : '0%'}
                 </p>
               </div>
@@ -694,7 +694,7 @@ const ReconciliationPage: React.FC = () => {
                   <GitCompare className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Détail du Rapprochement</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Détail du Rapprochement</h2>
                   <p className="text-sm text-gray-600">{selectedItem.libelle}</p>
                 </div>
               </div>
@@ -721,7 +721,7 @@ const ReconciliationPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Montant Comptable</p>
-                    <p className={`text-xl font-bold ${selectedItem.montant_comptable >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-lg font-bold ${selectedItem.montant_comptable >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(selectedItem.montant_comptable)}
                     </p>
                   </div>
@@ -743,7 +743,7 @@ const ReconciliationPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Montant Banque</p>
-                    <p className={`text-xl font-bold ${selectedItem.montant_banque >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-lg font-bold ${selectedItem.montant_banque >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(selectedItem.montant_banque)}
                     </p>
                   </div>

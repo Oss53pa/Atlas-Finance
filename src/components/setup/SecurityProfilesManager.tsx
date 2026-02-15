@@ -364,7 +364,7 @@ const SecurityProfilesManager: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <ShieldCheckIcon className="h-8 w-8 mr-3 text-indigo-600" />
               Profils de Sécurité Avancés
             </h1>
@@ -399,7 +399,7 @@ const SecurityProfilesManager: React.FC = () => {
         <div className="space-y-6">
           {/* Profils prédéfinis */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Profils Prédéfinis</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Profils Prédéfinis</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {securityProfiles.map((profile) => {
                 const Icon = getProfileIcon(profile.level);
@@ -496,7 +496,7 @@ const SecurityProfilesManager: React.FC = () => {
       {/* Vue Matrice CRUD */}
       {viewMode === 'matrix' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Matrice des Droits (CRUD)</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Matrice des Droits (CRUD)</h2>
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

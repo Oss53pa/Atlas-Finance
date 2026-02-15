@@ -1,3 +1,11 @@
+/**
+ * Closures Service — Connected to Dexie IndexedDB.
+ * Manages closure sessions, provisions, amortissements, and closure entries.
+ * Conforme SYSCOHADA révisé.
+ */
+import { Money, money } from '../../../utils/money';
+import { db, logAudit } from '../../../lib/db';
+import type { DBClosureSession, DBProvision } from '../../../lib/db';
 import {
   ClotureSession,
   BalanceAccount,
@@ -8,195 +16,455 @@ import {
   ClotureType,
 } from '../types/closures.types';
 
+// ============================================================================
+// PROVISION AGING RULES (SYSCOHADA)
+// ============================================================================
+const AGING_RULES = [
+  { maxDays: 90, rate: 0 },
+  { maxDays: 180, rate: 25 },
+  { maxDays: 270, rate: 50 },
+  { maxDays: 360, rate: 75 },
+  { maxDays: Infinity, rate: 100 },
+];
+
+function getProvisionRate(ancienneteJours: number): number {
+  for (const rule of AGING_RULES) {
+    if (ancienneteJours <= rule.maxDays) return rule.rate;
+  }
+  return 100;
+}
+
+// ============================================================================
+// SERVICE
+// ============================================================================
+
 class ClosuresService {
+  /**
+   * Get all closure sessions from Dexie.
+   */
   async getSessions(): Promise<ClotureSession[]> {
-    return Promise.resolve([
-      {
-        id: 1,
-        type: 'MENSUELLE',
-        periode: 'Janvier 2025',
-        exercice: '2025',
-        dateDebut: '2025-01-01',
-        dateFin: '2025-01-31',
-        dateCreation: '2025-02-01',
-        statut: 'EN_COURS',
-        creePar: 'Admin',
-        progression: 65,
-      },
-      {
-        id: 2,
-        type: 'ANNUELLE',
-        periode: 'Exercice 2024',
-        exercice: '2024',
-        dateDebut: '2024-01-01',
-        dateFin: '2024-12-31',
-        dateCreation: '2025-01-15',
-        statut: 'VALIDEE',
-        creePar: 'Comptable',
-        progression: 100,
-      },
-    ]);
+    const sessions = await db.closureSessions.toArray();
+    if (sessions.length === 0) return [];
+    return sessions
+      .sort((a, b) => b.dateCreation.localeCompare(a.dateCreation))
+      .map(s => ({ ...s }));
   }
 
+  /**
+   * Create a new closure session.
+   */
   async createSession(session: Omit<ClotureSession, 'id'>): Promise<ClotureSession> {
-    return Promise.resolve({
-      ...session,
-      id: Date.now(),
-    });
+    const id = crypto.randomUUID();
+    const newSession: DBClosureSession = {
+      id,
+      type: session.type as DBClosureSession['type'],
+      periode: session.periode,
+      exercice: session.exercice,
+      dateDebut: session.dateDebut,
+      dateFin: session.dateFin,
+      dateCreation: session.dateCreation || new Date().toISOString(),
+      statut: 'EN_COURS',
+      creePar: session.creePar || 'system',
+      progression: 0,
+    };
+
+    await db.closureSessions.add(newSession);
+
+    await logAudit(
+      'CLOSURE_SESSION_CREATE',
+      'closureSession',
+      id,
+      `Création session ${session.type} — ${session.periode}`
+    );
+
+    return { ...newSession };
   }
 
+  /**
+   * Get balance snapshot for a closure session period from real journal entries.
+   */
   async getBalance(sessionId: string | number): Promise<BalanceAccount[]> {
-    return Promise.resolve([
-      {
-        compte: '101000',
-        libelle: 'Capital social',
-        debit: 0,
-        credit: 10000000,
-        soldeDebiteur: 0,
-        soldeCrediteur: 10000000,
-      },
-      {
-        compte: '411001',
-        libelle: 'Client ABC Corp',
-        debit: 1500000,
-        credit: 1200000,
-        soldeDebiteur: 300000,
-        soldeCrediteur: 0,
-      },
-      {
-        compte: '512100',
-        libelle: 'Banque BCEAO',
-        debit: 5200000,
-        credit: 4800000,
-        soldeDebiteur: 400000,
-        soldeCrediteur: 0,
-      },
-    ]);
+    const session = await db.closureSessions.get(String(sessionId));
+    if (!session) return [];
+
+    const entries = await db.journalEntries
+      .where('date')
+      .between(session.dateDebut, session.dateFin, true, true)
+      .filter(e => e.status === 'validated' || e.status === 'posted')
+      .toArray();
+
+    const balances = new Map<string, { name: string; debit: number; credit: number }>();
+
+    for (const entry of entries) {
+      for (const line of entry.lines) {
+        const existing = balances.get(line.accountCode) || {
+          name: line.accountName,
+          debit: 0,
+          credit: 0,
+        };
+        existing.debit += line.debit;
+        existing.credit += line.credit;
+        balances.set(line.accountCode, existing);
+      }
+    }
+
+    const result: BalanceAccount[] = [];
+    for (const [code, data] of balances) {
+      const net = money(data.debit).subtract(money(data.credit));
+      const netValue = net.toNumber();
+      result.push({
+        compte: code,
+        libelle: data.name,
+        debit: data.debit,
+        credit: data.credit,
+        soldeDebiteur: netValue > 0 ? netValue : 0,
+        soldeCrediteur: netValue < 0 ? Math.abs(netValue) : 0,
+      });
+    }
+
+    return result.sort((a, b) => a.compte.localeCompare(b.compte));
   }
 
+  /**
+   * Compute provisions for doubtful debts based on aging analysis.
+   * Scans 411xxx client accounts for overdue debit balances.
+   */
   async getProvisions(sessionId: string | number): Promise<Provision[]> {
-    return Promise.resolve([
-      {
-        id: 1,
-        compteClient: '411001',
-        client: 'Client ABC Corp',
-        solde: 300000,
-        anciennete: 210,
-        tauxProvision: 50,
-        montantProvision: 150000,
+    // First check if provisions are already stored
+    const stored = await db.provisions
+      .where('sessionId')
+      .equals(String(sessionId))
+      .toArray();
+    if (stored.length > 0) {
+      return stored.map(p => ({ ...p, id: p.id }));
+    }
+
+    // Compute from journal entries
+    const session = await db.closureSessions.get(String(sessionId));
+    if (!session) return [];
+
+    const entries = await db.journalEntries
+      .where('date')
+      .between(session.dateDebut, session.dateFin, true, true)
+      .filter(e => e.status === 'validated' || e.status === 'posted')
+      .toArray();
+
+    // Find 411xxx client accounts with debit balances
+    const clientBalances = new Map<string, { name: string; debit: number; credit: number; earliestDate: string }>();
+
+    for (const entry of entries) {
+      for (const line of entry.lines) {
+        if (!line.accountCode.startsWith('411')) continue;
+        const existing = clientBalances.get(line.accountCode) || {
+          name: line.accountName || line.thirdPartyName || 'Client',
+          debit: 0,
+          credit: 0,
+          earliestDate: entry.date,
+        };
+        existing.debit += line.debit;
+        existing.credit += line.credit;
+        if (entry.date < existing.earliestDate) {
+          existing.earliestDate = entry.date;
+        }
+        clientBalances.set(line.accountCode, existing);
+      }
+    }
+
+    const provisions: Provision[] = [];
+    const now = new Date(session.dateFin);
+
+    for (const [code, data] of clientBalances) {
+      const solde = money(data.debit).subtract(money(data.credit)).toNumber();
+      if (solde <= 0) continue; // Only debit balances (amounts owed)
+
+      const earliest = new Date(data.earliestDate);
+      const anciennete = Math.floor((now.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24));
+      const taux = getProvisionRate(anciennete);
+
+      if (taux === 0) continue; // No provision needed
+
+      const montant = money(solde).multiply(taux).divide(100).toNumber();
+      const provision: Provision = {
+        id: crypto.randomUUID(),
+        compteClient: code,
+        client: data.name,
+        solde,
+        anciennete,
+        tauxProvision: taux,
+        montantProvision: montant,
         statut: 'PROPOSEE',
-        dateProposition: '2025-01-31',
-      },
-      {
-        id: 2,
-        compteClient: '411002',
-        client: 'Client XYZ Ltd',
-        solde: 200000,
-        anciennete: 400,
-        tauxProvision: 100,
-        montantProvision: 200000,
-        statut: 'PROPOSEE',
-        dateProposition: '2025-01-31',
-      },
-    ]);
+        dateProposition: session.dateFin,
+      };
+
+      provisions.push(provision);
+
+      // Store in DB
+      await db.provisions.add({
+        ...provision,
+        id: String(provision.id),
+        sessionId: String(sessionId),
+      });
+    }
+
+    return provisions;
   }
 
+  /**
+   * Validate or reject a provision.
+   */
   async validerProvision(
     provisionId: string | number,
     action: 'VALIDER' | 'REJETER'
   ): Promise<Provision> {
-    return Promise.resolve({
-      id: provisionId,
-      compteClient: '411001',
-      client: 'Client',
-      solde: 300000,
-      anciennete: 210,
-      tauxProvision: 50,
-      montantProvision: 150000,
-      statut: action === 'VALIDER' ? 'VALIDEE' : 'REJETEE',
-      dateProposition: '2025-01-31',
-      dateValidation: new Date().toISOString(),
+    const id = String(provisionId);
+    const provision = await db.provisions.get(id);
+    if (!provision) throw new Error(`Provision ${id} introuvable`);
+
+    const newStatut = action === 'VALIDER' ? 'VALIDEE' : 'REJETEE';
+    const dateValidation = new Date().toISOString();
+
+    await db.provisions.update(id, {
+      statut: newStatut,
+      dateValidation,
     });
+
+    await logAudit(
+      'PROVISION_' + action,
+      'provision',
+      id,
+      `Provision ${provision.compteClient}: ${action} (${provision.montantProvision})`
+    );
+
+    return {
+      ...provision,
+      statut: newStatut as Provision['statut'],
+      dateValidation,
+    };
   }
 
+  /**
+   * Compute depreciation (amortissements) from assets table.
+   */
   async getAmortissements(sessionId: string | number): Promise<Amortissement[]> {
-    return Promise.resolve([
-      {
-        id: 1,
-        immobilisation: '245000',
-        libelleImmobilisation: 'Matériel informatique',
-        valeurAcquisition: 5000000,
-        amortissementCumule: 2000000,
-        dotationExercice: 1000000,
-        tauxAmortissement: 20,
+    const session = await db.closureSessions.get(String(sessionId));
+    if (!session) return [];
+
+    const assets = await db.assets.where('status').equals('active').toArray();
+    const result: Amortissement[] = [];
+
+    for (const asset of assets) {
+      if (asset.acquisitionDate > session.dateFin) continue;
+
+      const acqDate = new Date(asset.acquisitionDate);
+      const endDate = new Date(session.dateFin);
+      const yearsElapsed = (endDate.getTime() - acqDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+      const taux = 100 / asset.usefulLifeYears;
+
+      // Annual depreciation (linear)
+      const dotationAnnuelle = money(asset.acquisitionValue)
+        .subtract(money(asset.residualValue))
+        .divide(asset.usefulLifeYears)
+        .toNumber();
+
+      // Cumulated depreciation
+      const maxDepreciation = money(asset.acquisitionValue).subtract(money(asset.residualValue)).toNumber();
+      const amortissementCumule = Math.min(
+        money(dotationAnnuelle).multiply(Math.floor(yearsElapsed)).toNumber(),
+        maxDepreciation
+      );
+
+      // Current year dotation
+      const dotationExercice = amortissementCumule >= maxDepreciation ? 0 : dotationAnnuelle;
+
+      result.push({
+        id: asset.id,
+        immobilisation: asset.accountCode,
+        libelleImmobilisation: asset.name,
+        valeurAcquisition: asset.acquisitionValue,
+        amortissementCumule,
+        dotationExercice,
+        tauxAmortissement: taux,
         statut: 'CALCULE',
-      },
-    ]);
+      });
+    }
+
+    return result;
   }
 
+  /**
+   * Get closure entries (OD journal entries in the session period with CL- prefix).
+   */
   async getEcritures(sessionId: string | number): Promise<EcritureCloture[]> {
-    return Promise.resolve([
-      {
-        id: 1,
-        numero: 'CL-000001',
-        date: '2025-01-31',
-        libelle: 'Provision créances douteuses - Client ABC',
-        compteDebit: '491100',
-        compteCredit: '4911',
-        montant: 150000,
-        statut: 'VALIDEE',
-        typeOperation: 'PROVISION',
-      },
-    ]);
+    const session = await db.closureSessions.get(String(sessionId));
+    if (!session) return [];
+
+    const entries = await db.journalEntries
+      .where('journal')
+      .equals('OD')
+      .filter(e =>
+        e.date >= session.dateDebut &&
+        e.date <= session.dateFin &&
+        e.entryNumber.startsWith('CL-')
+      )
+      .toArray();
+
+    return entries.map(e => ({
+      id: e.id,
+      numero: e.entryNumber,
+      date: e.date,
+      libelle: e.label,
+      compteDebit: e.lines[0]?.accountCode || '',
+      compteCredit: e.lines[1]?.accountCode || '',
+      montant: e.totalDebit,
+      statut: e.status === 'validated' ? 'VALIDEE' as const : 'BROUILLON' as const,
+      typeOperation: this.detectOperationType(e.label),
+    }));
   }
 
-  async createEcriture(
-    ecriture: Omit<EcritureCloture, 'id'>
-  ): Promise<EcritureCloture> {
-    return Promise.resolve({
-      ...ecriture,
-      id: Date.now(),
+  private detectOperationType(label: string): EcritureCloture['typeOperation'] {
+    const lower = label.toLowerCase();
+    if (lower.includes('provision')) return 'PROVISION';
+    if (lower.includes('amortissement') || lower.includes('dotation')) return 'AMORTISSEMENT';
+    if (lower.includes('régul') || lower.includes('cca') || lower.includes('fnp') || lower.includes('fae')) return 'REGULARISATION';
+    return 'AUTRE';
+  }
+
+  /**
+   * Create a closure journal entry (OD journal with CL- prefix).
+   */
+  async createEcriture(ecriture: Omit<EcritureCloture, 'id'>): Promise<EcritureCloture> {
+    const id = crypto.randomUUID();
+
+    await db.journalEntries.add({
+      id,
+      entryNumber: ecriture.numero,
+      journal: 'OD',
+      date: ecriture.date,
+      reference: 'CLOTURE',
+      label: ecriture.libelle,
+      status: 'draft',
+      lines: [
+        {
+          id: crypto.randomUUID(),
+          accountCode: ecriture.compteDebit,
+          accountName: ecriture.compteDebit,
+          label: ecriture.libelle,
+          debit: ecriture.montant,
+          credit: 0,
+        },
+        {
+          id: crypto.randomUUID(),
+          accountCode: ecriture.compteCredit,
+          accountName: ecriture.compteCredit,
+          label: ecriture.libelle,
+          debit: 0,
+          credit: ecriture.montant,
+        },
+      ],
+      totalDebit: ecriture.montant,
+      totalCredit: ecriture.montant,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: 'system',
     });
+
+    await logAudit(
+      'CLOSURE_ENTRY_CREATE',
+      'journalEntry',
+      id,
+      `Écriture de clôture: ${ecriture.libelle} — ${ecriture.montant}`
+    );
+
+    return { ...ecriture, id };
   }
 
+  /**
+   * Validate a closure entry (change status to validated).
+   */
   async validerEcriture(ecritureId: string | number): Promise<EcritureCloture> {
-    return Promise.resolve({
-      id: ecritureId,
-      numero: 'CL-000001',
-      date: '2025-01-31',
-      libelle: 'Test',
-      compteDebit: '491100',
-      compteCredit: '4911',
-      montant: 150000,
+    const id = String(ecritureId);
+    const entry = await db.journalEntries.get(id);
+    if (!entry) throw new Error(`Écriture ${id} introuvable`);
+
+    await db.journalEntries.update(id, {
+      status: 'validated',
+      updatedAt: new Date().toISOString(),
+    });
+
+    await logAudit(
+      'CLOSURE_ENTRY_VALIDATE',
+      'journalEntry',
+      id,
+      `Validation écriture clôture ${entry.entryNumber}`
+    );
+
+    return {
+      id,
+      numero: entry.entryNumber,
+      date: entry.date,
+      libelle: entry.label,
+      compteDebit: entry.lines[0]?.accountCode || '',
+      compteCredit: entry.lines[1]?.accountCode || '',
+      montant: entry.totalDebit,
       statut: 'VALIDEE',
-      typeOperation: 'PROVISION',
-    });
+      typeOperation: this.detectOperationType(entry.label),
+    };
   }
 
+  /**
+   * Compute closure session statistics from real data.
+   */
   async getStats(sessionId: string | number): Promise<ClotureStats> {
-    return Promise.resolve({
-      totalProvisions: 2,
-      totalAmortissements: 5,
-      totalRegularisations: 3,
-      totalEcritures: 10,
-      ecrituresValidees: 7,
-      ecrituresEnAttente: 3,
-    });
+    const sid = String(sessionId);
+
+    const provisions = await db.provisions.where('sessionId').equals(sid).toArray();
+    const amortissements = await this.getAmortissements(sessionId);
+    const ecritures = await this.getEcritures(sessionId);
+
+    const regularisations = ecritures.filter(e => e.typeOperation === 'REGULARISATION').length;
+
+    return {
+      totalProvisions: provisions.length,
+      totalAmortissements: amortissements.length,
+      totalRegularisations: regularisations,
+      totalEcritures: ecritures.length,
+      ecrituresValidees: ecritures.filter(e => e.statut === 'VALIDEE' || e.statut === 'COMPTABILISEE').length,
+      ecrituresEnAttente: ecritures.filter(e => e.statut === 'BROUILLON').length,
+    };
   }
 
+  /**
+   * Close a session: set status to CLOTUREE, progression to 100.
+   */
   async cloturerSession(sessionId: string | number): Promise<ClotureSession> {
-    return Promise.resolve({
-      id: sessionId,
-      type: 'MENSUELLE',
-      periode: 'Janvier 2025',
-      exercice: '2025',
-      dateDebut: '2025-01-01',
-      dateFin: '2025-01-31',
-      dateCreation: '2025-02-01',
+    const id = String(sessionId);
+    const session = await db.closureSessions.get(id);
+    if (!session) throw new Error(`Session ${id} introuvable`);
+
+    await db.closureSessions.update(id, {
       statut: 'CLOTUREE',
-      creePar: 'Admin',
       progression: 100,
     });
+
+    await logAudit(
+      'CLOSURE_SESSION_CLOSE',
+      'closureSession',
+      id,
+      `Clôture session ${session.type} — ${session.periode}`
+    );
+
+    return {
+      ...session,
+      statut: 'CLOTUREE',
+      progression: 100,
+    };
+  }
+
+  /**
+   * Update session progression percentage.
+   */
+  async updateProgression(sessionId: string | number, progression: number): Promise<void> {
+    await db.closureSessions.update(String(sessionId), { progression });
   }
 }
 

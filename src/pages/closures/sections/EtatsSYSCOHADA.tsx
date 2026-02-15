@@ -594,7 +594,7 @@ const EtatsSYSCOHADA: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Total Actif</p>
-                <p className="text-2xl font-bold">{(kpis.totalActif / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.totalActif / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">+57% vs N-1</p>
               </div>
               <Building className="w-8 h-8 text-[var(--color-primary)]" />
@@ -607,7 +607,7 @@ const EtatsSYSCOHADA: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
-                <p className="text-2xl font-bold text-[var(--color-success)]">{(kpis.resultatNet / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold text-[var(--color-success)]">{(kpis.resultatNet / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">+34.7% vs N-1</p>
               </div>
               <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
@@ -620,7 +620,7 @@ const EtatsSYSCOHADA: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">États Générés</p>
-                <p className="text-2xl font-bold">{kpis.etatsGeneres}</p>
+                <p className="text-lg font-bold">{kpis.etatsGeneres}</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.etatsConformes} conformes SYSCOHADA</p>
               </div>
               <FileText className="w-8 h-8 text-purple-500" />
@@ -633,7 +633,7 @@ const EtatsSYSCOHADA: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Conformité</p>
-                <p className="text-2xl font-bold">{kpis.tauxConformite.toFixed(0)}%</p>
+                <p className="text-lg font-bold">{kpis.tauxConformite.toFixed(0)}%</p>
                 <Progress value={kpis.tauxConformite} className="mt-2" />
               </div>
               <Award className="w-8 h-8 text-yellow-500" />
@@ -714,24 +714,24 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-[var(--color-primary-lightest)] rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">CA 2024</p>
-                      <p className="text-2xl font-bold text-[var(--color-primary)]">450M</p>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">450M</p>
                       <p className="text-xs text-[var(--color-success)]">+18.4%</p>
                     </div>
                     <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
-                      <p className="text-2xl font-bold text-[var(--color-success)]">48.5M</p>
+                      <p className="text-lg font-bold text-[var(--color-success)]">48.5M</p>
                       <p className="text-xs text-[var(--color-success)]">+34.7%</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-purple-50 rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">ROE</p>
-                      <p className="text-2xl font-bold text-purple-600">17.7%</p>
+                      <p className="text-lg font-bold text-purple-600">17.7%</p>
                       <p className="text-xs text-[var(--color-success)]">+1.7pt</p>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Endettement</p>
-                      <p className="text-2xl font-bold text-[var(--color-warning)]">59%</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">59%</p>
                       <p className="text-xs text-[var(--color-error)]">+14pt</p>
                     </div>
                   </div>
@@ -1135,19 +1135,19 @@ const EtatsSYSCOHADA: React.FC = () => {
                       <div className="grid grid-cols-3 gap-4 mt-3">
                         <div className="text-center">
                           <p className="text-sm text-[var(--color-text-primary)]">Valeur Actuelle</p>
-                          <p className={`text-xl font-bold ${getRatioStatutColor(ratio.statut)}`}>
+                          <p className={`text-lg font-bold ${getRatioStatutColor(ratio.statut)}`}>
                             {ratio.valeur.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
                         <div className="text-center">
                           <p className="text-sm text-[var(--color-text-primary)]">Valeur N-1</p>
-                          <p className="text-xl font-bold text-[var(--color-text-primary)]">
+                          <p className="text-lg font-bold text-[var(--color-text-primary)]">
                             {ratio.valeurPrecedente.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
                         <div className="text-center">
                           <p className="text-sm text-[var(--color-text-primary)]">Seuil</p>
-                          <p className="text-xl font-bold text-[var(--color-primary)]">
+                          <p className="text-lg font-bold text-[var(--color-primary)]">
                             {ratio.seuil?.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
@@ -1403,7 +1403,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div>
                   <h4 className="font-medium mb-3">Événements Significatifs</h4>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Investissements:</strong> Acquisition ERP WiseBook (85M FCFA)</p>
+                    <p><strong>Investissements:</strong> Acquisition ERP Atlas Finance (85M FCFA)</p>
                     <p><strong>Financement:</strong> Emprunt bancaire SGBCI (60M FCFA)</p>
                     <p><strong>Provisionnement:</strong> Provision litige commercial (8M FCFA)</p>
                     <p><strong>HAO:</strong> Subvention FDFP comptabilisée (15M FCFA)</p>
@@ -1570,7 +1570,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div className="bg-emerald-100 text-emerald-600 p-2 rounded-lg">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Génération États SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Génération États SYSCOHADA</h2>
               </div>
               <button
                 onClick={() => {

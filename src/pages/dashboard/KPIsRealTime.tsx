@@ -166,7 +166,7 @@ const KPIsRealTime: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">KPIs Temps Réel</h1>
+          <h1 className="text-lg font-bold text-gray-900">KPIs Temps Réel</h1>
           <p className="text-gray-600 mt-1">Surveillance en direct des indicateurs clés</p>
         </div>
 
@@ -247,7 +247,7 @@ const KPIsRealTime: React.FC = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-600">{kpi.name}</h3>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-2xl font-bold text-gray-900">
+                  <span className="text-lg font-bold text-gray-900">
                     {kpi.value}
                   </span>
                   <span className="text-sm text-gray-700">{kpi.unit}</span>

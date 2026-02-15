@@ -273,7 +273,7 @@ const EcheancesFiscalesPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Calendar className="mr-3 h-7 w-7 text-blue-600" />
               Échéances Fiscales
             </h1>
@@ -313,7 +313,7 @@ const EcheancesFiscalesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Urgent</p>
-                  <p className="text-2xl font-bold text-orange-700">{urgentCount}</p>
+                  <p className="text-lg font-bold text-orange-700">{urgentCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -333,7 +333,7 @@ const EcheancesFiscalesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">En Retard</p>
-                  <p className="text-2xl font-bold text-red-700">{overdueCount}</p>
+                  <p className="text-lg font-bold text-red-700">{overdueCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -353,7 +353,7 @@ const EcheancesFiscalesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">À Venir</p>
-                  <p className="text-2xl font-bold text-blue-700">{upcomingCount}</p>
+                  <p className="text-lg font-bold text-blue-700">{upcomingCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -373,7 +373,7 @@ const EcheancesFiscalesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Estimé</p>
-                  <p className="text-2xl font-bold text-green-700">
+                  <p className="text-lg font-bold text-green-700">
                     {formatCurrency(totalAmount)}
                   </p>
                 </div>

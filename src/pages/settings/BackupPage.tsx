@@ -210,7 +210,7 @@ const BackupPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <HardDrive className="mr-3 h-7 w-7 text-[var(--color-info)]" />
               Sauvegardes & Restauration
             </h1>
@@ -708,7 +708,7 @@ const BackupPage: React.FC = () => {
                 <div>
                   <Label>Emplacement des sauvegardes locales</Label>
                   <div className="flex space-x-2 mt-2">
-                    <Input defaultValue="/var/backups/wisebook" readOnly />
+                    <Input defaultValue="/var/backups/atlasfinance" readOnly />
                     <Button
                       variant="outline"
                       onClick={() => setShowFolderPicker(true)}
@@ -1087,7 +1087,7 @@ const BackupPage: React.FC = () => {
           <div className="space-y-4 py-4">
             <div>
               <Label>Chemin du dossier</Label>
-              <Input defaultValue="/var/backups/wisebook" className="mt-2" />
+              <Input defaultValue="/var/backups/atlasfinance" className="mt-2" />
             </div>
 
             <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
@@ -1098,7 +1098,7 @@ const BackupPage: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer ml-4">
                   <FolderOpen className="h-4 w-4" />
-                  <span className="text-sm">wisebook/</span>
+                  <span className="text-sm">atlasfinance/</span>
                 </div>
                 <div className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
                   <FolderOpen className="h-4 w-4" />

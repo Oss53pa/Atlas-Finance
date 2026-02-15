@@ -117,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="flex h-16 items-center justify-between border-b px-6">
             <div className="flex items-center space-x-2">
               <BookOpen className="h-8 w-8 text-primary" />
-              <h1 className="text-xl font-bold">BookWise</h1>
+              <h1 className="text-lg font-bold">BookWise</h1>
             </div>
             <button
               onClick={onClose}

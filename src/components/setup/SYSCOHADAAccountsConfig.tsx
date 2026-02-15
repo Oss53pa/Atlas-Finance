@@ -553,7 +553,7 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
       <div className="bg-[#6A8A82] rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white flex items-center">
+            <h1 className="text-lg font-bold text-white flex items-center">
               <CalculatorIcon className="h-8 w-8 mr-3 text-white" />
               Configuration Plan SYSCOHADA Révisé
             </h1>
@@ -582,7 +582,7 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
 
       {/* Classes SYSCOHADA */}
       <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-[#191919] mb-4">Classes de Comptes SYSCOHADA</h2>
+        <h2 className="text-lg font-bold text-[#191919] mb-4">Classes de Comptes SYSCOHADA</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <button
             onClick={() => setSelectedClass('all')}
@@ -696,7 +696,7 @@ const SYSCOHADAAccountsConfig: React.FC = () => {
         {/* Liste/Arbre des comptes */}
         <div className="lg:col-span-2">
           <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-[#191919] mb-4">
+            <h2 className="text-lg font-bold text-[#191919] mb-4">
               {selectedClass === 'all' ? 'Plan Comptable Complet' : `Classe ${selectedClass}`}
             </h2>
             

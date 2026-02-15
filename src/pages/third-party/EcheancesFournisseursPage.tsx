@@ -154,7 +154,7 @@ const EcheancesFournisseursPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+              <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
                 <Clock className="h-8 w-8 text-orange-600 mr-3" />
                 Échéances Fournisseurs
               </h1>
@@ -185,7 +185,7 @@ const EcheancesFournisseursPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {stats.totalDue.toLocaleString()} XOF
               </p>
               <p className="text-gray-600 text-sm">Total à payer</p>
@@ -204,7 +204,7 @@ const EcheancesFournisseursPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {stats.dueThisWeek.toLocaleString()} XOF
               </p>
               <p className="text-gray-600 text-sm">Échéances 7 jours</p>
@@ -223,7 +223,7 @@ const EcheancesFournisseursPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {stats.potentialSavings.toLocaleString()} XOF
               </p>
               <p className="text-gray-600 text-sm">Économies escomptes</p>
@@ -256,7 +256,7 @@ const EcheancesFournisseursPage: React.FC = () => {
         {/* Liste des échéances */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Échéances à venir</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Échéances à venir</h2>
           </div>
 
           <div className="p-6">

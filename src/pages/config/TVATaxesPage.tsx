@@ -413,7 +413,7 @@ const TVATaxesPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <CreditCard className="mr-3 h-7 w-7 text-blue-600" />
               Configuration TVA et Taxes
             </h1>
@@ -462,7 +462,7 @@ const TVATaxesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Taux Actifs</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-lg font-bold text-blue-700">
                     {activeTaxes}/{taxRates.length}
                   </p>
                 </div>
@@ -484,7 +484,7 @@ const TVATaxesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Taux TVA</p>
-                  <p className="text-2xl font-bold text-green-700">{tvaRates}</p>
+                  <p className="text-lg font-bold text-green-700">{tvaRates}</p>
                 </div>
               </div>
             </CardContent>
@@ -504,7 +504,7 @@ const TVATaxesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Utilisations</p>
-                  <p className="text-2xl font-bold text-purple-700">{totalUsage.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-purple-700">{totalUsage.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -524,7 +524,7 @@ const TVATaxesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Exonérations</p>
-                  <p className="text-2xl font-bold text-orange-700">{exemptions.length}</p>
+                  <p className="text-lg font-bold text-orange-700">{exemptions.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -683,7 +683,7 @@ const TVATaxesPage: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="text-right">
-                                <span className="text-xl font-bold text-blue-600">
+                                <span className="text-lg font-bold text-blue-600">
                                   {formatPercentage(rate.taux)}
                                 </span>
                               </div>

@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Component Index
+ * Atlas Finance Design System - Component Index
  * Central export file for all design system components
  */
 

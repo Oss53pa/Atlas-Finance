@@ -1,5 +1,5 @@
 /**
- * Assistant de Configuration Initial WiseBook
+ * Assistant de Configuration Initial Atlas Finance
  * Paramétrage complet selon EXP-PAR-001 à EXP-PAR-010
  */
 import React, { useState } from 'react';
@@ -888,7 +888,7 @@ const SetupWizardPage: React.FC = () => {
           <div className="max-w-6xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Assistant de Configuration WiseBook</h1>
+                <h1 className="text-lg font-bold text-gray-900">Assistant de Configuration Atlas Finance</h1>
                 <p className="text-gray-600">Paramétrage initial selon les normes SYSCOHADA</p>
               </div>
               <Badge variant="outline" className="text-sm">

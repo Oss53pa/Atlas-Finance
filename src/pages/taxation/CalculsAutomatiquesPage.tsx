@@ -241,7 +241,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Calculator className="mr-3 h-7 w-7 text-blue-600" />
               Calculs Automatiques
             </h1>
@@ -285,7 +285,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Calculs Réalisés</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-lg font-bold text-gray-900">
                     {totalCalculated}/{calculations.length}
                   </p>
                 </div>
@@ -307,7 +307,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Taxes</p>
-                  <p className="text-2xl font-bold text-green-700">
+                  <p className="text-lg font-bold text-green-700">
                     {formatCurrency(totalAmount)}
                   </p>
                 </div>
@@ -329,7 +329,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">TVA Nette</p>
-                  <p className="text-2xl font-bold text-red-700">
+                  <p className="text-lg font-bold text-red-700">
                     {formatCurrency(tvaNet)}
                   </p>
                 </div>
@@ -351,7 +351,7 @@ const CalculsAutomatiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Règles Actives</p>
-                  <p className="text-2xl font-bold text-purple-700">
+                  <p className="text-lg font-bold text-purple-700">
                     {rules.filter(r => r.actif).length}
                   </p>
                 </div>

@@ -1,5 +1,5 @@
 /**
- * SERVICE FRONTEND PARAMETERS - WiseBook ERP v4.1.0
+ * SERVICE FRONTEND PARAMETERS - Atlas Finance v4.1.0
  * BASE PATH: /api/v1/parameters/
  *
  * Alignement 100% avec backend Django REST Framework

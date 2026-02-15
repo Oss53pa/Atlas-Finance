@@ -1,5 +1,5 @@
 /**
- * Auth Backend Service - WiseBook ERP
+ * Auth Backend Service - Atlas Finance
  * Handles authentication with Django backend
  */
 import apiService from './api.service';

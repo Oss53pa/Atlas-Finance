@@ -328,7 +328,7 @@ const ProspectsModule: React.FC = () => {
                 <Target className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Gestion des Prospects</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Gestion des Prospects</h1>
                 <p className="text-sm text-[#666666]">Pipeline commercial et suivi des opportunités</p>
               </div>
             </div>
@@ -406,7 +406,7 @@ const ProspectsModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Prospects Actifs</p>
-              <p className="text-2xl font-bold text-[#191919]">{mockProspects.length}</p>
+              <p className="text-lg font-bold text-[#191919]">{mockProspects.length}</p>
               <p className="text-xs text-[#6A8A82]">+12 ce mois</p>
             </div>
             <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -419,7 +419,7 @@ const ProspectsModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Taux Conversion</p>
-              <p className="text-2xl font-bold text-[#191919]">{analytics.conversionRate}%</p>
+              <p className="text-lg font-bold text-[#191919]">{analytics.conversionRate}%</p>
               <p className="text-xs text-green-600">+2.3% vs mois dernier</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -432,7 +432,7 @@ const ProspectsModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Pipeline Valeur</p>
-              <p className="text-2xl font-bold text-[#191919]">{formatCurrency(22500000)}</p>
+              <p className="text-lg font-bold text-[#191919]">{formatCurrency(22500000)}</p>
               <p className="text-xs text-[#B87333]">68 opportunités</p>
             </div>
             <div className="w-10 h-10 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
@@ -445,7 +445,7 @@ const ProspectsModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Cycle de Vente</p>
-              <p className="text-2xl font-bold text-[#191919]">{analytics.tempsConversionMoyen}j</p>
+              <p className="text-lg font-bold text-[#191919]">{analytics.tempsConversionMoyen}j</p>
               <p className="text-xs text-orange-600">-5j vs moyenne</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -469,7 +469,7 @@ const ProspectsModule: React.FC = () => {
                          backgroundColor: COLORS[index],
                          height: `${Math.max(80, (stade.nombre / 25) * 120)}px`
                        }}>
-                    <div className="text-xl font-bold">{stade.nombre}</div>
+                    <div className="text-lg font-bold">{stade.nombre}</div>
                     <div className="text-sm opacity-90">{formatCurrency(stade.valeur)}</div>
                   </div>
                   <p className="text-sm font-medium text-[#444444]">{stade.stade}</p>

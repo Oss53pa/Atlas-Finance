@@ -19,34 +19,34 @@ export interface StatCardProps {
 
 const colorVariants = {
   primary: {
-    bg: 'bg-[#6A8A82]/10',
-    text: 'text-[#6A8A82]',
-    icon: 'text-[#6A8A82]',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-700',
+    icon: 'text-neutral-700',
   },
   secondary: {
-    bg: 'bg-[#B87333]/10',
-    text: 'text-[#B87333]',
-    icon: 'text-[#B87333]',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-600',
+    icon: 'text-neutral-600',
   },
   success: {
-    bg: 'bg-[#6A8A82]/10',
-    text: 'text-[#6A8A82]',
-    icon: 'text-[#6A8A82]',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-700',
+    icon: 'text-neutral-700',
   },
   warning: {
-    bg: 'bg-[#B87333]/10',
-    text: 'text-[#B87333]',
-    icon: 'text-[#B87333]',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-600',
+    icon: 'text-neutral-600',
   },
   error: {
-    bg: 'bg-[#B85450]/10',
-    text: 'text-[#B85450]',
-    icon: 'text-[#B85450]',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-600',
+    icon: 'text-neutral-600',
   },
   info: {
-    bg: 'bg-[#7A99AC]/10',
-    text: 'text-[#7A99AC]',
-    icon: 'text-[#7A99AC]',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-600',
+    icon: 'text-neutral-600',
   },
 };
 
@@ -65,7 +65,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   if (loading) {
     return (
-      <div className={`bg-white rounded-lg border border-[#D9D9D9] p-6 ${className}`}>
+      <div className={`bg-white rounded-lg border border-[#D9D9D9] p-4 ${className}`}>
         <div className="animate-pulse space-y-3">
           <div className="h-4 bg-[#ECECEC] rounded w-1/2" />
           <div className="h-8 bg-[#ECECEC] rounded w-3/4" />
@@ -78,7 +78,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       className={`
-        bg-white rounded-lg border border-[#D9D9D9] p-6
+        bg-white rounded-lg border border-[#D9D9D9] p-4
         hover:shadow-md transition-all duration-200
         ${onClick ? 'cursor-pointer' : ''}
         ${className}
@@ -90,7 +90,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           <p className="text-xs font-medium text-[#767676] uppercase tracking-wider mb-2">
             {title}
           </p>
-          <p className="text-3xl font-bold text-[#191919]">
+          <p className="text-lg font-bold text-[#191919]">
             {value}
           </p>
         </div>
@@ -109,7 +109,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           <div
             className={`
               inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium
-              ${trend.isPositive ? 'bg-[#6A8A82]/10 text-[#6A8A82]' : 'bg-[#B85450]/10 text-[#B85450]'}
+              ${trend.isPositive ? 'bg-neutral-100 text-neutral-700' : 'bg-neutral-100 text-neutral-500'}
             `}
           >
             {trend.isPositive ? (

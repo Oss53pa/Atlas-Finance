@@ -101,7 +101,7 @@ const FinancialStatementsIndexPage: React.FC = () => {
                   <Calculator className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-neutral-900">Conformité OHADA 2017</h2>
+                  <h2 className="text-lg font-bold text-neutral-900">Conformité OHADA 2017</h2>
                   <p className="text-neutral-600">États financiers certifiés pour l'Afrique</p>
                 </div>
               </div>

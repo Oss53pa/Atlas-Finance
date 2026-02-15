@@ -1,5 +1,5 @@
 /**
- * Dashboard Principal Executive WiseBook
+ * Dashboard Principal Executive Atlas Finance
  * Vue d'ensemble consolidée tous modules selon cahier des charges
  */
 import React, { useState, useEffect, useMemo } from 'react';
@@ -215,8 +215,8 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               <span className="text-white font-bold text-lg">W</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
-                WiseBook Executive
+              <h1 className="text-lg font-bold text-[#191919]" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
+                Atlas Finance Executive
               </h1>
               <p className="text-[#191919]/70">
                 Vue d'ensemble consolidée • Temps réel
@@ -332,7 +332,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                         <p className="text-sm font-medium text-[#191919]/70 uppercase tracking-wide">
                           {kpi.title}
                         </p>
-                        <p className="text-2xl font-bold text-[#191919] mt-1">
+                        <p className="text-lg font-bold text-[#191919] mt-1">
                           {kpi.value}
                         </p>
                         {kpi.subValue && (
@@ -496,7 +496,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {formatCurrency(consolidatedKPIs?.cashPosition || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
@@ -527,7 +527,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-[var(--color-success)]">
+                <div className="text-lg font-bold text-[var(--color-success)]">
                   {formatCurrency(consolidatedKPIs?.totalReceivables || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
@@ -556,7 +556,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-[#B87333]">
+                <div className="text-lg font-bold text-[#B87333]">
                   {formatCurrency(consolidatedKPIs?.totalPayables || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
@@ -583,7 +583,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {formatPercent(consolidatedKPIs?.operatingMargin || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
@@ -686,7 +686,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <Clock className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-2xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {operationalMetrics?.processing_times?.average_entry_time || 0}s
                 </div>
                 <p className="text-sm text-[#191919]/70">Temps Saisie Écriture</p>
@@ -697,7 +697,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <CheckCircle className="h-8 w-8 text-[var(--color-success)] mx-auto mb-2" />
-                <div className="text-2xl font-bold text-[var(--color-success)]">
+                <div className="text-lg font-bold text-[var(--color-success)]">
                   {operationalMetrics?.automation_rates?.reconciliation || 0}%
                 </div>
                 <p className="text-sm text-[#191919]/70">Lettrage Auto</p>
@@ -708,7 +708,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <Target className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-2xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {operationalMetrics?.performance_scores?.overall_system || 0}%
                 </div>
                 <p className="text-sm text-[#191919]/70">Performance Système</p>
@@ -719,7 +719,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <Shield className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-2xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   99.9%
                 </div>
                 <p className="text-sm text-[#191919]/70">Disponibilité</p>
@@ -733,7 +733,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2" />
-                WiseBook vs Concurrence
+                Atlas Finance vs Concurrence
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -742,7 +742,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-2">Métrique</th>
-                      <th className="text-center py-2">WiseBook</th>
+                      <th className="text-center py-2">Atlas Finance</th>
                       <th className="text-center py-2">SAP</th>
                       <th className="text-center py-2">Oracle</th>
                       <th className="text-center py-2">Sage</th>
@@ -827,7 +827,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="space-y-4">
                   <h4 className="font-semibold text-[#191919]">Score Global</h4>
                   <div className="text-center p-6 bg-[#ECECEC] rounded-lg border border-[#ECECEC]">
-                    <div className="text-4xl font-bold text-[#6A8A82] mb-2">
+                    <div className="text-lg font-bold text-[#6A8A82] mb-2">
                       {performanceBenchmark?.global_score?.toFixed(1) || 0}%
                     </div>
                     <p className="text-[#6A8A82] font-medium">Excellence Opérationnelle</p>
@@ -878,7 +878,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
         </div>
         
         <div className="text-right">
-          <p className="font-medium">WiseBook v3.0 - Production Ready</p>
+          <p className="font-medium">Atlas Finance v3.0 - Production Ready</p>
           <p className="text-xs">
             Dernière maj: {formatDate(new Date())} • 
             Praedium Tech © 2024

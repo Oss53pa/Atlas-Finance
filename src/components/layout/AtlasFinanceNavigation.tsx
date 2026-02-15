@@ -1,5 +1,5 @@
 /**
- * Navigation Intelligente WiseBook
+ * Navigation Intelligente Atlas Finance
  * Menu adaptatif avec notifications et raccourcis contextuels
  */
 import React, { useState, useMemo } from 'react';
@@ -61,7 +61,7 @@ interface NavItem {
   description?: string;
 }
 
-const WiseBookNavigation: React.FC<NavigationProps> = ({
+const AtlasFinanceNavigation: React.FC<NavigationProps> = ({
   companyId,
   currentUser,
   className = ''
@@ -87,7 +87,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
     queryFn: () => dashboardService.getRecentActivities({ companyId, limit: 5 }),
   });
 
-  // Structure de navigation WiseBook
+  // Structure de navigation Atlas Finance
   const navigationStructure: NavItem[] = [
     {
       id: 'dashboard',
@@ -453,7 +453,7 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
-              WiseBook
+              Atlas Finance
             </h2>
             <p className="text-xs text-gray-700">ERP Comptable SYSCOHADA</p>
           </div>
@@ -672,4 +672,4 @@ const WiseBookNavigation: React.FC<NavigationProps> = ({
   );
 };
 
-export default WiseBookNavigation;
+export default AtlasFinanceNavigation;

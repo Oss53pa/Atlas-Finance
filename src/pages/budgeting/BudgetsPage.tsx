@@ -230,7 +230,7 @@ const BudgetsPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Budgets</h1>
+          <h1 className="text-lg font-bold text-gray-900">Budgets</h1>
           <p className="text-gray-600">Gestion des budgets par département et projet</p>
         </div>
         <button
@@ -248,7 +248,7 @@ const BudgetsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Budgets Actifs</p>
-              <p className="text-2xl font-bold text-gray-900">{activeBudgets.length}</p>
+              <p className="text-lg font-bold text-gray-900">{activeBudgets.length}</p>
             </div>
             <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <CalendarIcon className="h-6 w-6 text-blue-600" />
@@ -260,7 +260,7 @@ const BudgetsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Montant Total</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalBudgetAmount)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalBudgetAmount)}</p>
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
               <BanknotesIcon className="h-6 w-6 text-green-600" />
@@ -272,7 +272,7 @@ const BudgetsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Montant Consommé</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalConsumed)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(totalConsumed)}</p>
             </div>
             <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <ChartBarIcon className="h-6 w-6 text-orange-600" />
@@ -284,7 +284,7 @@ const BudgetsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Taux Moyen</p>
-              <p className={`text-2xl font-bold ${getConsumptionColor(averageConsumption)}`}>
+              <p className={`text-lg font-bold ${getConsumptionColor(averageConsumption)}`}>
                 {averageConsumption.toFixed(1)}%
               </p>
             </div>
@@ -584,7 +584,7 @@ const BudgetsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Créer un nouveau budget</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Créer un nouveau budget</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-700 hover:text-gray-600"
@@ -746,7 +746,6 @@ const BudgetsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Créer budget');
                   setShowCreateModal(false);
                 }}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
@@ -763,7 +762,7 @@ const BudgetsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Modifier le budget</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Modifier le budget</h2>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="text-gray-700 hover:text-gray-600"
@@ -914,7 +913,6 @@ const BudgetsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log('Modifier budget', selectedBudget.id);
                   setShowEditModal(false);
                 }}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
@@ -932,7 +930,7 @@ const BudgetsPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{selectedBudget.name}</h2>
+                <h2 className="text-lg font-semibold text-gray-900">{selectedBudget.name}</h2>
                 <p className="text-sm text-gray-700 mt-1">Code: {selectedBudget.code}</p>
               </div>
               <button
@@ -950,13 +948,13 @@ const BudgetsPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="text-sm text-blue-600 font-medium mb-1">Montant Total</div>
-                  <div className="text-2xl font-bold text-blue-900">
+                  <div className="text-lg font-bold text-blue-900">
                     {selectedBudget.totalAmount.toLocaleString()} {selectedBudget.currency}
                   </div>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg">
                   <div className="text-sm text-orange-600 font-medium mb-1">Consommé</div>
-                  <div className="text-2xl font-bold text-orange-900">
+                  <div className="text-lg font-bold text-orange-900">
                     {selectedBudget.consumedAmount.toLocaleString()} {selectedBudget.currency}
                   </div>
                   <div className="text-xs text-orange-600 mt-1">
@@ -965,7 +963,7 @@ const BudgetsPage: React.FC = () => {
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
                   <div className="text-sm text-green-600 font-medium mb-1">Restant</div>
-                  <div className="text-2xl font-bold text-green-900">
+                  <div className="text-lg font-bold text-green-900">
                     {selectedBudget.remainingAmount.toLocaleString()} {selectedBudget.currency}
                   </div>
                 </div>

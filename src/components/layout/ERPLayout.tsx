@@ -50,7 +50,7 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
             </div>
             <div>
               <h1 className="text-lg font-bold" style={{color: '#353A3B', fontFamily: 'Sometype Mono, sans-serif', fontWeight: '700'}}>
-                WiseBook ERP
+                Atlas Finance
               </h1>
               <p className="text-xs" style={{color: '#7A8B8E', fontWeight: '500'}}>
                 Version 3.0.0

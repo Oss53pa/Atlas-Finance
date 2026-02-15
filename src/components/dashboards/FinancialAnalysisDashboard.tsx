@@ -1,5 +1,5 @@
 /**
- * Dashboard Analyse Financière Avancée WiseBook
+ * Dashboard Analyse Financière Avancée Atlas Finance
  * TAFIRE, SIG et ratios SYSCOHADA selon EXF-AF-001 à EXF-AF-007
  */
 import React, { useState, useMemo } from 'react';
@@ -133,7 +133,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#191919]">
+          <h1 className="text-lg font-bold text-[#191919]">
             Analyse Financière Avancée
           </h1>
           <p className="text-[#191919]/70 mt-1">
@@ -176,7 +176,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <TrendingUp className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {formatCurrency(tafireData?.self_financing_capacity || 0)}
                 </div>
                 <p className="text-sm text-[#191919]/70">Capacité d'Autofinancement</p>
@@ -186,7 +186,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <Activity className="h-8 w-8 text-[var(--color-success)] mx-auto mb-2" />
-                <div className="text-xl font-bold text-[var(--color-success)]">
+                <div className="text-lg font-bold text-[var(--color-success)]">
                   {formatCurrency(tafireData?.operating_cash_surplus || 0)}
                 </div>
                 <p className="text-sm text-[#191919]/70">Flux d'Exploitation (ETE)</p>
@@ -196,7 +196,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <Target className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {formatCurrency(tafireData?.free_cash_flow || 0)}
                 </div>
                 <p className="text-sm text-[#191919]/70">Free Cash Flow</p>
@@ -206,7 +206,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
             <Card>
               <CardContent className="p-4 text-center">
                 <DollarSign className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-xl font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#6A8A82]">
                   {formatCurrency(tafireData?.cash_variation || 0)}
                 </div>
                 <p className="text-sm text-[#191919]/70">Variation Trésorerie</p>
@@ -491,7 +491,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                   </div>
                   
                   <div className="text-center mb-3">
-                    <div className="text-2xl font-bold text-[#6A8A82]">
+                    <div className="text-lg font-bold text-[#6A8A82]">
                       {ratio.value}{ratio.unit}
                     </div>
                     <p className="text-sm text-[#191919]/50">
@@ -529,7 +529,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-[#6A8A82] mb-2">
+                  <div className="text-lg font-bold text-[#6A8A82] mb-2">
                     {ratiosData?.overall_score?.toFixed(0) || 0}%
                   </div>
                   <p className="text-[#191919]/70 mb-4">Score Global</p>

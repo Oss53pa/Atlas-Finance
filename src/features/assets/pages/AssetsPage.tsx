@@ -76,7 +76,7 @@ const AssetsPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#191919]">Gestion des Immobilisations</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Gestion des Immobilisations</h1>
           <p className="text-[#767676] mt-1">
             Suivi et gestion des actifs immobilisés
           </p>
@@ -172,7 +172,7 @@ const AssetsPage: React.FC = () => {
       {activeTab === 'maintenances' && (
         <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-[#191919]">
+            <h2 className="text-lg font-semibold text-[#191919]">
               Maintenances Planifiées
             </h2>
             <Button icon={Plus} size="sm">

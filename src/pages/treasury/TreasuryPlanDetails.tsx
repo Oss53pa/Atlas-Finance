@@ -197,14 +197,14 @@ const TreasuryPlanDetails: React.FC = () => {
             >
               ← Retour aux Plans de Trésorerie
             </button>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">📋 {planData.name}</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">📋 {planData.name}</h1>
             <p className="text-sm text-[var(--color-text-secondary)]">
               Auteur: {planData.author} • Période: {planData.period}
             </p>
           </div>
           <div className="text-right">
             <div className="text-sm text-gray-600">Solde Initial</div>
-            <div className="text-xl font-bold text-red-600">
+            <div className="text-lg font-bold text-red-600">
               {new Intl.NumberFormat('fr-FR').format(planData.initialBalance)}
             </div>
           </div>
@@ -1522,7 +1522,7 @@ const TreasuryPlanDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 📋 Transaction - {transactionType === 'encaissement' ? 'Encaissement' : 'Décaissement'}
               </h3>
               <button
@@ -1671,7 +1671,7 @@ const TreasuryPlanDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 📋 {detailModalData.title}
               </h3>
               <button
@@ -1686,13 +1686,13 @@ const TreasuryPlanDetails: React.FC = () => {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--color-text-primary)]">{detailModalData.invoices.length}</div>
+                  <div className="text-lg font-bold text-[var(--color-text-primary)]">{detailModalData.invoices.length}</div>
                   <div className="text-sm text-gray-600">
                     {detailModalData.type === 'client' ? 'Factures clients' : 'Factures fournisseurs'}
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-lg font-bold text-green-600">
                     {new Intl.NumberFormat('fr-FR').format(
                       detailModalData.invoices.reduce((sum, inv) => sum + inv.montant, 0)
                     )}
@@ -1700,13 +1700,13 @@ const TreasuryPlanDetails: React.FC = () => {
                   <div className="text-sm text-gray-600">Total CFA</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#6A8A82]">
+                  <div className="text-lg font-bold text-[#6A8A82]">
                     {detailModalData.invoices.filter(inv => inv.statut === 'Validée' || inv.statut === 'En cours').length}
                   </div>
                   <div className="text-sm text-gray-600">En cours/Validées</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">
+                  <div className="text-lg font-bold text-orange-600">
                     {detailModalData.invoices.filter(inv => inv.statut === 'En attente' || inv.statut === 'À payer').length}
                   </div>
                   <div className="text-sm text-gray-600">En attente/À payer</div>

@@ -214,7 +214,7 @@ const ReportsANouveauModule: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919]">Reports à Nouveau</h1>
+            <h1 className="text-lg font-bold text-[#191919]">Reports à Nouveau</h1>
             <p className="text-[#767676]">Gestion des reports et ouverture d'exercice</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -290,35 +290,35 @@ const ReportsANouveauModule: React.FC = () => {
             <span className="text-[#767676] text-sm">Total comptes</span>
             <FileText className="w-4 h-4 text-[#767676]" />
           </div>
-          <p className="text-2xl font-bold text-[#191919]">{stats.totalComptes}</p>
+          <p className="text-lg font-bold text-[#191919]">{stats.totalComptes}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#767676] text-sm">Validés</span>
             <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
           </div>
-          <p className="text-2xl font-bold text-[var(--color-success)]">{stats.comptesValides}</p>
+          <p className="text-lg font-bold text-[var(--color-success)]">{stats.comptesValides}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#767676] text-sm">À vérifier</span>
             <AlertCircle className="w-4 h-4 text-[var(--color-warning)]" />
           </div>
-          <p className="text-2xl font-bold text-[var(--color-warning)]">{stats.comptesAVerifier}</p>
+          <p className="text-lg font-bold text-[var(--color-warning)]">{stats.comptesAVerifier}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#767676] text-sm">En erreur</span>
             <AlertTriangle className="w-4 h-4 text-[var(--color-error)]" />
           </div>
-          <p className="text-2xl font-bold text-[var(--color-error)]">{stats.comptesEnErreur}</p>
+          <p className="text-lg font-bold text-[var(--color-error)]">{stats.comptesEnErreur}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#767676] text-sm">Écart total</span>
             <DollarSign className="w-4 h-4 text-[#767676]" />
           </div>
-          <p className="text-2xl font-bold text-[#191919]">
+          <p className="text-lg font-bold text-[#191919]">
             {stats.ecartTotal.toLocaleString('fr-FR')}
           </p>
         </div>
@@ -683,13 +683,13 @@ const ReportsANouveauModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <p className="text-xs text-blue-700 mb-1">Solde Exercice N-1 (Clôture)</p>
-                    <p className="text-2xl font-bold text-blue-900 font-mono">
+                    <p className="text-lg font-bold text-blue-900 font-mono">
                       {selectedCompte.soldeN1.toLocaleString('fr-FR')} <span className="text-sm font-normal">FCFA</span>
                     </p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <p className="text-xs text-green-700 mb-1">Solde Exercice N (Ouverture)</p>
-                    <p className="text-2xl font-bold text-green-900 font-mono">
+                    <p className="text-lg font-bold text-green-900 font-mono">
                       {selectedCompte.soldeN.toLocaleString('fr-FR')} <span className="text-sm font-normal">FCFA</span>
                     </p>
                   </div>
@@ -768,7 +768,7 @@ const ReportsANouveauModule: React.FC = () => {
                       : 'bg-red-50 border-red-200'
                   }`}>
                     <p className="text-xs text-[#767676] mb-1">Écart Détecté</p>
-                    <p className={`text-xl font-bold font-mono ${
+                    <p className={`text-lg font-bold font-mono ${
                       selectedCompte.ecart === 0 ? 'text-green-700' : 'text-red-700'
                     }`}>
                       {selectedCompte.ecart.toLocaleString('fr-FR')} FCFA
@@ -776,7 +776,7 @@ const ReportsANouveauModule: React.FC = () => {
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <p className="text-xs text-[#767676] mb-1">Variation (%)</p>
-                    <p className="text-xl font-bold text-[#191919]">
+                    <p className="text-lg font-bold text-[#191919]">
                       {selectedCompte.soldeN1 !== 0
                         ? ((selectedCompte.soldeN - selectedCompte.soldeN1) / selectedCompte.soldeN1 * 100).toFixed(2)
                         : '0.00'} %

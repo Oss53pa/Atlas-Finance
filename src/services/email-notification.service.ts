@@ -202,7 +202,7 @@ class EmailNotificationService {
       template,
       recipient,
       variables: {
-        company_name: companyInfo?.name || 'WiseBook ERP',
+        company_name: companyInfo?.name || 'Atlas Finance',
         client_name: recipient.name,
         invoice_number: invoiceData.invoiceNumber,
         amount: invoiceData.amount,
@@ -277,7 +277,7 @@ class EmailNotificationService {
       template,
       recipient,
       variables: {
-        company_name: companyInfo?.name || 'WiseBook ERP',
+        company_name: companyInfo?.name || 'Atlas Finance',
         client_name: recipient.name,
         invoice_number: reminderData.invoiceNumber,
         amount: reminderData.amount,
@@ -340,7 +340,7 @@ class EmailNotificationService {
       template,
       recipient,
       variables: {
-        company_name: companyInfo?.name || 'WiseBook ERP',
+        company_name: companyInfo?.name || 'Atlas Finance',
         client_name: recipient.name,
         notification_title: notificationData.title,
         message: notificationData.message,

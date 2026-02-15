@@ -31,7 +31,7 @@ export default function MaintenancePage({
   return (
     <>
       <Helmet>
-        <title>Maintenance en cours | WiseBook</title>
+        <title>Maintenance en cours | Atlas Finance</title>
       </Helmet>
 
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 px-4">
@@ -60,12 +60,12 @@ export default function MaintenancePage({
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Maintenance en cours
           </h1>
 
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            {message || `Nous effectuons actuellement des améliorations sur WiseBook pour vous offrir une meilleure expérience.`}
+            {message || `Nous effectuons actuellement des améliorations sur Atlas Finance pour vous offrir une meilleure expérience.`}
           </p>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 mb-8 border border-gray-200 dark:border-gray-700">
@@ -127,7 +127,7 @@ export default function MaintenancePage({
           <div className="text-sm text-gray-700 dark:text-gray-700">
             <p className="mb-2">Merci pour votre patience</p>
             <p>
-              Questions ? <a href="mailto:support@wisebook.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@wisebook.com</a>
+              Questions ? <a href="mailto:support@atlasfinance.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@atlasfinance.com</a>
             </p>
           </div>
         </div>

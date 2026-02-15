@@ -66,7 +66,7 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">{movement.movementNumber}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{movement.movementNumber}</h3>
               <p className="text-gray-600">{movement.subType}</p>
             </div>
             <button
@@ -405,7 +405,7 @@ const InventoryMovements: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Inventory Movements</h1>
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Inventory Movements</h1>
           <p className="text-gray-600">
             Track all inventory transactions including receipts, issues, transfers, and adjustments
           </p>
@@ -430,7 +430,7 @@ const InventoryMovements: React.FC = () => {
           <div className="flex items-center gap-3">
             <ArrowUpDown className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">{movements.length}</p>
+              <p className="text-lg font-bold text-gray-900">{movements.length}</p>
               <p className="text-sm text-gray-600">Total Movements</p>
             </div>
           </div>
@@ -440,7 +440,7 @@ const InventoryMovements: React.FC = () => {
           <div className="flex items-center gap-3">
             <ArrowDown className="w-8 h-8 text-green-600" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {movements.filter(m => m.type === 'receipt').length}
               </p>
               <p className="text-sm text-gray-600">Receipts</p>
@@ -452,7 +452,7 @@ const InventoryMovements: React.FC = () => {
           <div className="flex items-center gap-3">
             <ArrowUp className="w-8 h-8 text-red-600" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {movements.filter(m => m.type === 'issue').length}
               </p>
               <p className="text-sm text-gray-600">Issues</p>
@@ -464,7 +464,7 @@ const InventoryMovements: React.FC = () => {
           <div className="flex items-center gap-3">
             <ArrowRight className="w-8 h-8 text-purple-600" />
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {movements.filter(m => m.type === 'transfer').length}
               </p>
               <p className="text-sm text-gray-600">Transfers</p>

@@ -500,7 +500,7 @@ const FournisseurDetailView: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Volume Achats</p>
-              <p className="text-2xl font-bold text-[#191919]">{formatCurrency(fournisseurDetail.financier.volumeAchatsAnnuel)}</p>
+              <p className="text-lg font-bold text-[#191919]">{formatCurrency(fournisseurDetail.financier.volumeAchatsAnnuel)}</p>
               <p className="text-xs text-green-600">+{fournisseurDetail.analyses.achats.evolutionVolume}% vs N-1</p>
             </div>
             <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -513,7 +513,7 @@ const FournisseurDetailView: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Encours Fournisseur</p>
-              <p className="text-2xl font-bold text-[#191919]">{formatCurrency(fournisseurDetail.financier.encoursActuel)}</p>
+              <p className="text-lg font-bold text-[#191919]">{formatCurrency(fournisseurDetail.financier.encoursActuel)}</p>
               <p className="text-xs text-orange-600">DPO: {fournisseurDetail.financier.dpo} jours</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -526,7 +526,7 @@ const FournisseurDetailView: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Score Performance</p>
-              <p className="text-2xl font-bold text-[#191919]">{fournisseurDetail.analyses.performance.tauxServiceLevel}%</p>
+              <p className="text-lg font-bold text-[#191919]">{fournisseurDetail.analyses.performance.tauxServiceLevel}%</p>
               <p className="text-xs text-[#B87333]">Qualité: {fournisseurDetail.analyses.performance.qualiteProduits}%</p>
             </div>
             <div className="w-10 h-10 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
@@ -539,7 +539,7 @@ const FournisseurDetailView: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Conformité</p>
-              <p className="text-2xl font-bold text-[#191919]">{fournisseurDetail.conformite.scoreConformite}%</p>
+              <p className="text-lg font-bold text-[#191919]">{fournisseurDetail.conformite.scoreConformite}%</p>
               <p className="text-xs text-green-600">Toutes attestations OK</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -871,7 +871,7 @@ const FournisseurDetailView: React.FC = () => {
               <ResponsiveContainer width="100%" height={200}>
                 <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: fournisseurDetail.financier.scoreRisque}]}>
                   <RadialBar dataKey="value" cornerRadius={10} fill="#6A8A82" />
-                  <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-xl font-bold fill-[#191919]">
+                  <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[#191919]">
                     {fournisseurDetail.financier.scoreRisque}/100
                   </text>
                 </RadialBarChart>
@@ -1104,19 +1104,19 @@ const FournisseurDetailView: React.FC = () => {
         {/* Statistiques Documents */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-            <div className="text-2xl font-bold text-blue-700">18</div>
+            <div className="text-lg font-bold text-blue-700">18</div>
             <div className="text-sm text-blue-600">Documents Total</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-            <div className="text-2xl font-bold text-green-700">5</div>
+            <div className="text-lg font-bold text-green-700">5</div>
             <div className="text-sm text-green-600">Contrats</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
-            <div className="text-2xl font-bold text-orange-700">8</div>
+            <div className="text-lg font-bold text-orange-700">8</div>
             <div className="text-sm text-orange-600">Factures</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-            <div className="text-2xl font-bold text-purple-700">5</div>
+            <div className="text-lg font-bold text-purple-700">5</div>
             <div className="text-sm text-purple-600">Attestations</div>
           </div>
         </div>
@@ -1198,7 +1198,7 @@ const FournisseurDetailView: React.FC = () => {
             <ResponsiveContainer width="100%" height={200}>
               <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: fournisseurDetail.conformite.scoreConformite}]}>
                 <RadialBar dataKey="value" cornerRadius={10} fill="#6A8A82" />
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-2xl font-bold fill-[#191919]">
+                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[#191919]">
                   {fournisseurDetail.conformite.scoreConformite}%
                 </text>
               </RadialBarChart>
@@ -1401,7 +1401,7 @@ const FournisseurDetailView: React.FC = () => {
                 <Building className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">{fournisseurDetail.raisonSociale}</h1>
+                <h1 className="text-lg font-bold text-[#191919]">{fournisseurDetail.raisonSociale}</h1>
                 <p className="text-sm text-[#666666]">Code: {fournisseurDetail.code} • {fournisseurDetail.secteurActivite}</p>
               </div>
             </div>
@@ -1488,7 +1488,7 @@ const FournisseurDetailView: React.FC = () => {
                 <h3 className="text-lg font-semibold text-[#191919]">Lettrage Automatique</h3>
                 <button
                   onClick={() => setShowLettrageModal(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-500 hover:text-gray-700 text-xl"
                 >
                   &times;
                 </button>
@@ -1552,7 +1552,7 @@ const FournisseurDetailView: React.FC = () => {
                 <h3 className="text-lg font-semibold text-[#191919]">Enregistrer le Paiement</h3>
                 <button
                   onClick={() => setShowPaymentModal(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-500 hover:text-gray-700 text-xl"
                 >
                   &times;
                 </button>
@@ -1562,7 +1562,7 @@ const FournisseurDetailView: React.FC = () => {
               <div className="bg-[#6A8A82]/10 p-4 rounded-lg">
                 <p className="text-sm text-[#6A8A82]">Facture</p>
                 <p className="font-semibold text-[#191919]">{selectedEcheance.numeroFacture}</p>
-                <p className="text-2xl font-bold text-[#6A8A82] mt-2">
+                <p className="text-lg font-bold text-[#6A8A82] mt-2">
                   {selectedEcheance.montantRestant.toLocaleString('fr-FR')} XOF
                 </p>
                 <p className="text-sm text-gray-500">

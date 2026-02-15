@@ -913,7 +913,7 @@ const AccountingSettingsPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `wisebook-settings-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `atlasfinance-settings-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1108,7 +1108,7 @@ const AccountingSettingsPage: React.FC = () => {
               <Calculator className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
                 Paramètres de Comptabilité
               </h1>
               <p className="text-[var(--color-text-secondary)]">
@@ -1491,7 +1491,7 @@ const AccountingSettingsPage: React.FC = () => {
                     </div>
                     <div className="mt-3 pt-3 border-t border-blue-200">
                       <button
-                        onClick={() => window.open('https://docs.wisebook.com/settings', '_blank')}
+                        onClick={() => window.open('https://docs.atlasfinance.com/settings', '_blank')}
                         className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                       >
                         <ExternalLink className="w-3 h-3" />
@@ -1579,12 +1579,12 @@ const AccountingSettingsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Importer des Paramètres</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Importer des Paramètres</h2>
               <button
                 onClick={() => setShowImportModal(false)}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -1693,12 +1693,12 @@ const AccountingSettingsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Exporter des Paramètres</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Exporter des Paramètres</h2>
               <button
                 onClick={() => setShowExportModal(false)}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -1808,7 +1808,7 @@ const AccountingSettingsPage: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  defaultValue={`wisebook_settings_${new Date().toISOString().split('T')[0]}`}
+                  defaultValue={`atlasfinance_settings_${new Date().toISOString().split('T')[0]}`}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>

@@ -343,7 +343,7 @@ const EntriesPage: React.FC = () => {
                 <FileText className="w-5 h-5 text-[#6A8A82]" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Écritures Comptables</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Écritures Comptables</h1>
                 <p className="text-sm text-[#767676]">Saisie et gestion des écritures SYSCOHADA</p>
               </div>
             </div>
@@ -532,7 +532,7 @@ const EntriesPage: React.FC = () => {
                 {/* Header */}
                 <div className="p-6 border-b border-[#E8E8E8] bg-gradient-to-r from-[#6A8A82]/10 to-[#B87333]/10">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-[#191919]">
+                    <h2 className="text-lg font-bold text-[#191919]">
                       Détails de l'écriture {selectedEntry.numero}
                     </h2>
                     <button
@@ -686,7 +686,7 @@ const EntriesPage: React.FC = () => {
                 {/* Header */}
                 <div className="p-6 border-b border-[#E8E8E8]">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-[#191919]">Créer un modèle de saisie</h2>
+                    <h2 className="text-lg font-bold text-[#191919]">Créer un modèle de saisie</h2>
                     <button
                       onClick={() => setShowTemplateModal(false)}
                       className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"

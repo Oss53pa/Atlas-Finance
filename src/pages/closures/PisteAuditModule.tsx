@@ -231,7 +231,7 @@ const PisteAuditModule: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919]">Piste d'Audit</h1>
+            <h1 className="text-lg font-bold text-[#191919]">Piste d'Audit</h1>
             <p className="text-[#767676]">Traçabilité complète des actions et modifications</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -261,28 +261,28 @@ const PisteAuditModule: React.FC = () => {
               <span className="text-xs text-[#767676]">Total actions</span>
               <Activity className="w-4 h-4 text-[#767676]" />
             </div>
-            <p className="text-2xl font-bold text-[#191919]">{stats.totalActions}</p>
+            <p className="text-lg font-bold text-[#191919]">{stats.totalActions}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#767676]">{t('common.today')}</span>
               <Clock className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
-            <p className="text-2xl font-bold text-[var(--color-primary)]">{stats.actionsAujourdhui}</p>
+            <p className="text-lg font-bold text-[var(--color-primary)]">{stats.actionsAujourdhui}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#767676]">Utilisateurs actifs</span>
               <User className="w-4 h-4 text-[var(--color-success)]" />
             </div>
-            <p className="text-2xl font-bold text-[var(--color-success)]">{stats.utilisateursActifs}</p>
+            <p className="text-lg font-bold text-[var(--color-success)]">{stats.utilisateursActifs}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#767676]">Anomalies</span>
               <AlertCircle className="w-4 h-4 text-[var(--color-error)]" />
             </div>
-            <p className="text-2xl font-bold text-[var(--color-error)]">{stats.anomaliesDetectees}</p>
+            <p className="text-lg font-bold text-[var(--color-error)]">{stats.anomaliesDetectees}</p>
           </div>
         </div>
       </div>

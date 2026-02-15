@@ -246,7 +246,7 @@ const FinancialStatements: React.FC = () => {
           <div className="flex items-center space-x-4">
             <FileText className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]">États Financiers SYSCOHADA</h1>
+              <h1 className="text-lg font-bold text-[#191919]">États Financiers SYSCOHADA</h1>
               <p className="text-sm text-[#191919]/70">Bilan, Compte de Résultat et analyses conformes OHADA</p>
             </div>
           </div>
@@ -507,7 +507,7 @@ const FinancialStatements: React.FC = () => {
           {/* En-tête du Bilan */}
           <div className="bg-[#F0F3F2] rounded-lg border border-[#ECECEC] p-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-[#191919]">BILAN AU 31 DÉCEMBRE 2024</h2>
+              <h2 className="text-lg font-bold text-[#191919]">BILAN AU 31 DÉCEMBRE 2024</h2>
               <p className="text-lg text-gray-700 mt-2">ENTREPRISE XYZ SARL</p>
               <p className="text-sm text-[#191919]/70">Exercice clos le 31/12/2024</p>
               <p className="text-sm text-gray-700 mt-1">(Montants en FCFA)</p>
@@ -967,7 +967,7 @@ const FinancialStatements: React.FC = () => {
           {/* En-tête du Bilan Fonctionnel */}
           <div className="bg-[#F0F3F2] rounded-lg border border-[#ECECEC] p-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-[#191919]">BILAN FONCTIONNEL</h2>
+              <h2 className="text-lg font-bold text-[#191919]">BILAN FONCTIONNEL</h2>
               <p className="text-lg text-gray-700 mt-2">ENTREPRISE XYZ SARL</p>
               <p className="text-sm text-[#191919]/70">Au 31 décembre 2024</p>
               <p className="text-sm text-gray-700 mt-1">(Montants en milliers de FCFA)</p>
@@ -1450,7 +1450,7 @@ const FinancialStatements: React.FC = () => {
                 <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#6A8A82]/20">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-gray-700">Fonds de Roulement Net Global (FRNG)</span>
-                    <span className="text-xl font-bold text-[#6A8A82]">39 000</span>
+                    <span className="text-lg font-bold text-[#6A8A82]">39 000</span>
                   </div>
                   <div className="text-sm text-[#191919]/70">
                     Ressources Stables - Emplois Stables
@@ -1463,7 +1463,7 @@ const FinancialStatements: React.FC = () => {
                 <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#6A8A82]/20">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-gray-700">Besoin en Fonds de Roulement d'Exploitation (BFRE)</span>
-                    <span className="text-xl font-bold text-[#6A8A82]">28 500</span>
+                    <span className="text-lg font-bold text-[#6A8A82]">28 500</span>
                   </div>
                   <div className="text-sm text-[#191919]/70">
                     ACE - PCE
@@ -1476,7 +1476,7 @@ const FinancialStatements: React.FC = () => {
                 <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#6A8A82]/20">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-gray-700">Besoin en Fonds de Roulement Hors Exploitation (BFRHE)</span>
-                    <span className="text-xl font-bold text-[#6A8A82]">2 500</span>
+                    <span className="text-lg font-bold text-[#6A8A82]">2 500</span>
                   </div>
                   <div className="text-sm text-[#191919]/70">
                     ACHE - PCHE
@@ -1489,7 +1489,7 @@ const FinancialStatements: React.FC = () => {
                 <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#6A8A82]/20">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-gray-700">Besoin en Fonds de Roulement Total (BFR)</span>
-                    <span className="text-xl font-bold text-[#6A8A82]">31 000</span>
+                    <span className="text-lg font-bold text-[#6A8A82]">31 000</span>
                   </div>
                   <div className="text-sm text-[#191919]/70">
                     BFRE + BFRHE
@@ -1502,7 +1502,7 @@ const FinancialStatements: React.FC = () => {
                 <div className="bg-[#F0F3F2] rounded-lg p-4 border border-[#6A8A82]/20">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-gray-700">Trésorerie Nette</span>
-                    <span className="text-xl font-bold text-[#6A8A82]">8 000</span>
+                    <span className="text-lg font-bold text-[#6A8A82]">8 000</span>
                   </div>
                   <div className="text-sm text-[#191919]/70">
                     Trésorerie Active - Trésorerie Passive
@@ -1541,7 +1541,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm">Emplois Stables</span>
                       <div className="font-bold text-[#6A8A82]">53 000</div>
                     </div>
-                    <span className="text-2xl font-bold text-gray-700">=</span>
+                    <span className="text-lg font-bold text-gray-700">=</span>
                     <div className="bg-[#6A8A82]/20 px-3 py-2 rounded border border-[#6A8A82]">
                       <span className="text-sm font-semibold">FRNG</span>
                       <div className="font-bold text-[#6A8A82]">39 000</div>
@@ -1553,12 +1553,12 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold">FRNG</span>
                       <div className="font-bold text-[#6A8A82]">39 000</div>
                     </div>
-                    <span className="text-2xl font-bold text-gray-700">-</span>
+                    <span className="text-lg font-bold text-gray-700">-</span>
                     <div className="bg-orange-50 px-3 py-2 rounded border border-orange-200">
                       <span className="text-sm font-semibold">BFR</span>
                       <div className="font-bold text-orange-600">31 000</div>
                     </div>
-                    <span className="text-2xl font-bold text-gray-700">=</span>
+                    <span className="text-lg font-bold text-gray-700">=</span>
                     <div className="bg-green-50 px-3 py-2 rounded border-2 border-green-500">
                       <span className="text-sm font-semibold">Trésorerie Nette</span>
                       <div className="font-bold text-green-600">8 000</div>
@@ -1577,7 +1577,7 @@ const FinancialStatements: React.FC = () => {
           {/* En-tête du Compte de Résultat */}
           <div className="bg-[#F0F3F2] rounded-lg border border-[#ECECEC] p-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-[#191919]">COMPTE DE RÉSULTAT</h2>
+              <h2 className="text-lg font-bold text-[#191919]">COMPTE DE RÉSULTAT</h2>
               <p className="text-lg text-gray-700 mt-2">ENTREPRISE XYZ SARL</p>
               <p className="text-sm text-[#191919]/70">Exercice du 01/01/2024 au 31/12/2024</p>
               <p className="text-sm text-gray-700 mt-1">(Montants en FCFA)</p>
@@ -2027,7 +2027,7 @@ const FinancialStatements: React.FC = () => {
               <div className="p-4 bg-[#6A8A82]/20 rounded-lg border-2 border-green-300">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-base font-bold text-[#191919]/90">8. Résultat Net</span>
-                  <span className="text-xl font-bold text-[#6A8A82]">
+                  <span className="text-lg font-bold text-[#6A8A82]">
                     {(sig.resultatNet / 1000000).toFixed(1)}M FCFA
                   </span>
                 </div>
@@ -2043,7 +2043,7 @@ const FinancialStatements: React.FC = () => {
               <div className="p-4 bg-[#6A8A82]/15 rounded-lg border-2 border-purple-300">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-base font-bold text-[#191919]/90">9. Capacité d'Autofinancement (CAF)</span>
-                  <span className="text-xl font-bold text-[#6A8A82]">
+                  <span className="text-lg font-bold text-[#6A8A82]">
                     {(sig.capaciteAutofinancement / 1000000).toFixed(1)}M FCFA
                   </span>
                 </div>
@@ -2154,7 +2154,7 @@ const FinancialStatements: React.FC = () => {
                   <div className="p-4 bg-[#6A8A82]/20 rounded-lg border-2 border-green-300">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-base font-bold text-[#191919]/90">7. Résultat Net</span>
-                      <span className="text-xl font-bold text-[#6A8A82]">
+                      <span className="text-lg font-bold text-[#6A8A82]">
                         {(sig.resultatNet / 1000000).toFixed(1)}M FCFA
                       </span>
                     </div>
@@ -2183,7 +2183,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Ratio d'autonomie financière</span>
                       <Shield className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.autonomieFinanciere.toFixed(1)}%</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.autonomieFinanciere.toFixed(1)}%</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Capitaux propres / Total du passif</p>
                     <p className="text-sm text-gray-700">Indique la capacité à se financer sans dettes.</p>
                     <div className="mt-3 text-xs">
@@ -2202,7 +2202,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Ratio d'endettement</span>
                       <TrendingDown className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.endettement.toFixed(1)}%</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.endettement.toFixed(1)}%</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Dettes financières / Capitaux propres</p>
                     <p className="text-sm text-gray-700">Mesure le poids de la dette par rapport aux fonds propres.</p>
                     <div className="mt-3 text-xs">
@@ -2221,7 +2221,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Couverture des immobilisations</span>
                       <Database className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.couvertureEmplois.toFixed(1)}%</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.couvertureEmplois.toFixed(1)}%</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Ressources stables / Actifs immobilisés</p>
                     <p className="text-sm text-gray-700">Vérifie si les immobilisations sont financées par des capitaux permanents.</p>
                     <div className="mt-3 text-xs">
@@ -2253,7 +2253,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Liquidité générale</span>
                       <Activity className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.liquiditeGenerale.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.liquiditeGenerale.toFixed(2)}</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Actif circulant / Passif circulant</p>
                     <p className="text-sm text-gray-700 mb-3">Mesure la capacité à honorer les dettes à court terme avec l'actif circulant.</p>
                     <div className="mt-3 text-xs">
@@ -2273,7 +2273,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Liquidité réduite (Quick ratio)</span>
                       <Zap className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.liquiditeReduite.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.liquiditeReduite.toFixed(2)}</p>
                     <p className="text-xs text-[#191919]/70 mb-3">(Actif circulant – Stocks) / Passif circulant</p>
                     <p className="text-sm text-gray-700 mb-3">Mesure la liquidité en excluant les stocks (moins liquides).</p>
                     <div className="mt-3 text-xs">
@@ -2293,7 +2293,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Trésorerie nette</span>
                       <Wallet className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{((8000000) / 1000000).toFixed(1)}M FCFA</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{((8000000) / 1000000).toFixed(1)}M FCFA</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Trésorerie active – Trésorerie passive</p>
                     <p className="text-sm text-gray-700 mb-3">Indique la liquidité immédiatement disponible.</p>
                     <div className="mt-3 text-xs">
@@ -2313,7 +2313,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Solvabilité générale</span>
                       <Shield className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{((104500000 / 36000000)).toFixed(2)}</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{((104500000 / 36000000)).toFixed(2)}</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Total de l'actif / Total des dettes</p>
                     <p className="text-sm text-gray-700 mb-3">Mesure la capacité à rembourser toutes les dettes avec les actifs.</p>
                     <div className="mt-3 text-xs">
@@ -2347,7 +2347,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">ROA (Return on Assets)</span>
                       <Target className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.roa.toFixed(1)}%</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.roa.toFixed(1)}%</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Résultat net / Total actif</p>
                     <p className="text-sm text-gray-700 mb-3">Mesure l'efficacité de l'utilisation des actifs.</p>
                     <div className="mt-3 text-xs">
@@ -2367,7 +2367,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">ROE (Return on Equity)</span>
                       <TrendingUp className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.roe.toFixed(1)}%</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.roe.toFixed(1)}%</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Résultat net / Capitaux propres</p>
                     <p className="text-sm text-gray-700 mb-3">Évalue la rentabilité pour les actionnaires.</p>
                     <div className="mt-3 text-xs">
@@ -2387,7 +2387,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Marge nette</span>
                       <DollarSign className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.rentabiliteCommerciale.toFixed(1)}%</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.rentabiliteCommerciale.toFixed(1)}%</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Résultat net / Chiffre d'affaires</p>
                     <p className="text-sm text-gray-700 mb-3">Indique la capacité à convertir les ventes en profit net.</p>
                     <div className="mt-3 text-xs">
@@ -2407,7 +2407,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Rentabilité économique</span>
                       <BarChart3 className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.rentabiliteEconomique.toFixed(1)}%</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.rentabiliteEconomique.toFixed(1)}%</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Résultat d'exploitation / Total actif</p>
                     <p className="text-sm text-gray-700 mb-3">Mesure la performance opérationnelle indépendamment du financement.</p>
                     <div className="mt-3 text-xs">
@@ -2441,7 +2441,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Rotation des stocks</span>
                       <BarChart3 className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.rotationStocks.toFixed(1)}</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.rotationStocks.toFixed(1)}</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Coût des ventes / Stock moyen</p>
                     <p className="text-sm text-gray-700">Indique le nombre de fois où les stocks sont renouvelés dans l'année.</p>
                     <div className="mt-3 text-xs">
@@ -2461,7 +2461,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Délai clients</span>
                       <Clock className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{Math.round(ratios.delaiReglementClients)}</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{Math.round(ratios.delaiReglementClients)}</p>
                     <p className="text-xs text-[#191919]/70 mb-3">(Créances clients × 360) / CA TTC</p>
                     <p className="text-sm text-gray-700">Temps moyen de recouvrement des créances clients en jours.</p>
                     <div className="mt-3 text-xs">
@@ -2481,7 +2481,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Délai fournisseurs</span>
                       <Calendar className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{Math.round(ratios.delaiReglementFournisseurs)}</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{Math.round(ratios.delaiReglementFournisseurs)}</p>
                     <p className="text-xs text-[#191919]/70 mb-3">(Dettes fournisseurs × 360) / Achats TTC</p>
                     <p className="text-sm text-gray-700">Délai moyen de paiement des fournisseurs en jours.</p>
                     <div className="mt-3 text-xs">
@@ -2501,7 +2501,7 @@ const FinancialStatements: React.FC = () => {
                       <span className="text-sm font-semibold text-gray-700">Rotation de l'actif</span>
                       <RefreshCw className="w-5 h-5 text-[#6A8A82]" />
                     </div>
-                    <p className="text-3xl font-bold text-[#6A8A82] mb-2">{ratios.rotationActifs.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-[#6A8A82] mb-2">{ratios.rotationActifs.toFixed(2)}</p>
                     <p className="text-xs text-[#191919]/70 mb-3">Chiffre d'affaires / Total actif</p>
                     <p className="text-sm text-gray-700">Efficacité d'utilisation des actifs pour générer du CA.</p>
                     <div className="mt-3 text-xs">
@@ -2527,7 +2527,7 @@ const FinancialStatements: React.FC = () => {
           {/* En-tête du TFT */}
           <div className="bg-[#F0F3F2] rounded-lg border border-[#ECECEC] p-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-[#191919]">TABLEAU DE FLUX DE TRÉSORERIE</h2>
+              <h2 className="text-lg font-bold text-[#191919]">TABLEAU DE FLUX DE TRÉSORERIE</h2>
               <p className="text-lg text-gray-700 mt-2">ENTREPRISE XYZ SARL</p>
               <p className="text-sm text-[#191919]/70">Exercice clos le 31 décembre 2024</p>
               <p className="text-sm text-gray-700 mt-1">(Montants en milliers de FCFA)</p>
@@ -2771,7 +2771,7 @@ const FinancialStatements: React.FC = () => {
           {/* En-tête du Tableau de Financement */}
           <div className="bg-[#F0F3F2] rounded-lg border border-[#ECECEC] p-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-[#191919]">TABLEAU DE FINANCEMENT (TAFIRE)</h2>
+              <h2 className="text-lg font-bold text-[#191919]">TABLEAU DE FINANCEMENT (TAFIRE)</h2>
               <p className="text-lg text-gray-700 mt-2">ENTREPRISE XYZ SARL</p>
               <p className="text-sm text-[#191919]/70">Exercice clos le 31 décembre 2024</p>
               <p className="text-sm text-gray-700 mt-1">(Montants en milliers de FCFA)</p>
@@ -3059,15 +3059,15 @@ const FinancialStatements: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-sm text-[#191919]/70">Total Ressources</p>
-                    <p className="text-2xl font-bold text-[#6A8A82]">16 600</p>
+                    <p className="text-lg font-bold text-[#6A8A82]">16 600</p>
                   </div>
                   <div>
                     <p className="text-sm text-[#191919]/70">Total Emplois</p>
-                    <p className="text-2xl font-bold text-[#6A8A82]">14 700</p>
+                    <p className="text-lg font-bold text-[#6A8A82]">14 700</p>
                   </div>
                   <div className="bg-[#6A8A82]/20 p-4 rounded">
                     <p className="text-sm text-[#191919]/70">Variation FDR</p>
-                    <p className="text-2xl font-bold text-[#6A8A82]">+1 900</p>
+                    <p className="text-lg font-bold text-[#6A8A82]">+1 900</p>
                     <p className="text-xs text-gray-700 mt-1">FDR ↑</p>
                   </div>
                 </div>
@@ -3178,19 +3178,19 @@ const FinancialStatements: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
                     <div>
                       <p className="text-sm text-[#191919]/70">Variation du FDR</p>
-                      <p className="text-xl font-bold text-[#6A8A82]">+1 900</p>
+                      <p className="text-lg font-bold text-[#6A8A82]">+1 900</p>
                     </div>
                     <div>
                       <p className="text-sm text-[#191919]/70">Variation du BFG</p>
-                      <p className="text-xl font-bold text-[#6A8A82]">-4 000</p>
+                      <p className="text-lg font-bold text-[#6A8A82]">-4 000</p>
                     </div>
                     <div>
                       <p className="text-sm text-[#191919]/70">=</p>
-                      <p className="text-xl font-bold text-[#191919]">=</p>
+                      <p className="text-lg font-bold text-[#191919]">=</p>
                     </div>
                     <div className="bg-[#6A8A82]/20 p-3 rounded">
                       <p className="text-sm text-[#191919]/70">Variation de la Trésorerie</p>
-                      <p className="text-xl font-bold text-[#6A8A82]">-1 400 ✓</p>
+                      <p className="text-lg font-bold text-[#6A8A82]">-1 400 ✓</p>
                     </div>
                   </div>
                   <p className="text-center text-sm text-[#191919]/70 mt-2">+1 900 - 4 000 = -1 400</p>
@@ -3278,13 +3278,13 @@ const FinancialStatements: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#191919]/70">Taux de CAF</p>
-                  <p className="text-2xl font-bold text-[#6A8A82]">
+                  <p className="text-lg font-bold text-[#6A8A82]">
                     {((sig.capaciteAutofinancement / compteResultat.chiffreAffaires) * 100).toFixed(1)}%
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-[#191919]/70">Autofinancement</p>
-                  <p className="text-2xl font-bold text-[#6A8A82]">
+                  <p className="text-lg font-bold text-[#6A8A82]">
                     {((sig.capaciteAutofinancement - 2000000) / 1000000).toFixed(1)}M FCFA
                   </p>
                   <p className="text-xs text-gray-700">CAF - Dividendes</p>

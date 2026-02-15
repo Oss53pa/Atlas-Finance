@@ -41,7 +41,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         case 'open-modal':
           // À implémenter selon le système de modales
-          console.log('Ouvrir modal:', action.payload.modal);
           break;
 
         case 'external-link':

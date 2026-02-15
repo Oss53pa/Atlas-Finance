@@ -43,6 +43,6 @@ export const InventoryModuleInfo = {
     'Automated reorder management'
   ],
   compliance: ['IFRS IAS 2', 'US GAAP ASC 330', 'SYSCOHADA', 'SOX'],
-  author: 'WiseBook ERP Team',
+  author: 'Atlas Finance Team',
   lastUpdated: '2024-01-30'
 };

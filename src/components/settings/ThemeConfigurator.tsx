@@ -1,5 +1,5 @@
 /**
- * Configurateur de Thèmes Clarity WiseBook
+ * Configurateur de Thèmes Clarity Atlas Finance
  * Interface de personnalisation des thèmes selon cahier des charges 6.1.2
  */
 import React, { useState, useEffect } from 'react';
@@ -173,8 +173,8 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
     });
     
     // Sauvegarde
-    localStorage.setItem('wisebook-theme', theme.id);
-    localStorage.setItem('wisebook-theme-config', JSON.stringify(theme.colors));
+    localStorage.setItem('atlas-finance-theme', theme.id);
+    localStorage.setItem('atlas-finance-theme-config', JSON.stringify(theme.colors));
     
     setSelectedTheme(theme.id);
     onThemeChange?.(theme.id);
@@ -216,7 +216,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `wisebook-theme-${selectedTheme}.json`;
+    link.download = `atlas-finance-theme-${selectedTheme}.json`;
     link.click();
   };
 
@@ -225,12 +225,12 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
+          <h2 className="text-lg font-bold text-gray-900 flex items-center">
             <Palette className="h-6 w-6 mr-3" />
             Configurateur de Thèmes Clarity
           </h2>
           <p className="text-gray-600 mt-1">
-            Personnalisation complète de l'interface WiseBook
+            Personnalisation complète de l'interface Atlas Finance
           </p>
         </div>
         
@@ -366,7 +366,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                         <p className="font-medium" style={{ color: customColors.text }}>
                           Position Trésorerie
                         </p>
-                        <p className="text-2xl font-bold" style={{ color: customColors.primary }}>
+                        <p className="text-lg font-bold" style={{ color: customColors.primary }}>
                           3 850 000 XAF
                         </p>
                       </div>
@@ -375,7 +375,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                       className="px-3 py-1 rounded text-white text-sm text-center"
                       style={{ backgroundColor: customColors.secondary }}
                     >
-                      Exemple widget WiseBook
+                      Exemple widget Atlas Finance
                     </div>
                   </div>
 
@@ -439,7 +439,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Eye className="h-5 w-5 mr-2" />
-                Aperçu Interface WiseBook
+                Aperçu Interface Atlas Finance
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -453,7 +453,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-600">{t('navigation.treasury')}</p>
-                        <p className="text-xl font-bold">3 850 000 XAF</p>
+                        <p className="text-lg font-bold">3 850 000 XAF</p>
                       </div>
                     </div>
                   </div>
@@ -465,7 +465,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-600">Créances</p>
-                        <p className="text-xl font-bold">2 400 000 XAF</p>
+                        <p className="text-lg font-bold">2 400 000 XAF</p>
                       </div>
                     </div>
                   </div>
@@ -477,7 +477,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-600">Dettes</p>
-                        <p className="text-xl font-bold">1 800 000 XAF</p>
+                        <p className="text-lg font-bold">1 800 000 XAF</p>
                       </div>
                     </div>
                   </div>
@@ -485,7 +485,7 @@ const ThemeConfigurator: React.FC<ThemeConfiguratorProps> = ({
 
                 {/* Simulation navigation */}
                 <div className="clarity-card p-4">
-                  <h4 className="font-semibold mb-3">Navigation WiseBook</h4>
+                  <h4 className="font-semibold mb-3">Navigation Atlas Finance</h4>
                   <div className="space-y-2">
                     <div className="clarity-nav-item active p-2 rounded flex items-center space-x-3">
                       <Home className="h-4 w-4" />

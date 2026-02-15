@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Main Export File
+ * Atlas Finance Design System - Main Export File
  * Complete design system with theme and components
  */
 
@@ -29,10 +29,10 @@ export const DESIGN_SYSTEM_VERSION = '1.0.0';
 import { theme } from './theme';
 import Components from './components';
 
-export const WiseBookDesignSystem = {
+export const AtlasFinanceDesignSystem = {
   version: DESIGN_SYSTEM_VERSION,
   theme,
   components: Components,
 };
 
-export default WiseBookDesignSystem;
+export default AtlasFinanceDesignSystem;

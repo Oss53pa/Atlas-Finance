@@ -55,7 +55,7 @@ const AnalyticsDashboard: React.FC = () => {
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
             <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-xl font-semibold text-neutral-700">Chargement du tableau de bord analytique...</p>
+            <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord analytique...</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -154,7 +154,7 @@ const AnalyticsDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Axes Analytiques</p>
-                  <p className="text-xl font-bold text-neutral-900">
+                  <p className="text-lg font-bold text-neutral-900">
                     {dashboardData?.nombre_axes || 0}
                   </p>
                 </div>
@@ -174,7 +174,7 @@ const AnalyticsDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Centres de Coûts</p>
-                  <p className="text-xl font-bold text-neutral-900">
+                  <p className="text-lg font-bold text-neutral-900">
                     {dashboardData?.nombre_centres || 0}
                   </p>
                 </div>
@@ -194,7 +194,7 @@ const AnalyticsDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-neutral-600">Écritures Ventilées</p>
-                  <p className="text-xl font-bold text-neutral-900">
+                  <p className="text-lg font-bold text-neutral-900">
                     {dashboardData?.ecritures_ventilees || 0}
                   </p>
                 </div>
@@ -238,7 +238,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <TrendingUp className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Top Centres de Coûts</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Top Centres de Coûts</h2>
                 <p className="text-neutral-600">Meilleure performance</p>
               </div>
             </div>
@@ -283,7 +283,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <PieChart className="h-6 w-6 text-[var(--color-info)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Répartition des Coûts</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Répartition des Coûts</h2>
                 <p className="text-neutral-600">Par catégorie</p>
               </div>
             </div>
@@ -323,7 +323,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <Calendar className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Dernières Ventilations Analytiques</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Dernières Ventilations Analytiques</h2>
                 <p className="text-neutral-600">Activité récente</p>
               </div>
             </div>
@@ -404,7 +404,7 @@ const AnalyticsDashboard: React.FC = () => {
         {/* Quick Actions */}
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Actions Rapides</h2>
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">Actions Rapides</h2>
             <p className="text-neutral-600">Gestion de la comptabilité analytique</p>
           </div>
           <div className="grid gap-6 md:grid-cols-4">
@@ -482,7 +482,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <Target className="h-6 w-6 text-[var(--color-warning)]" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Indicateurs de Performance</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Indicateurs de Performance</h2>
                 <p className="text-neutral-600">Métriques clés</p>
               </div>
             </div>
@@ -501,7 +501,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <span className="text-sm font-semibold text-emerald-900">Rentabilité Globale</span>
                 <TrendingUp className="h-4 w-4 text-emerald-600" />
               </div>
-              <p className="text-2xl font-bold text-emerald-700">
+              <p className="text-lg font-bold text-emerald-700">
                 {formatPercentage(dashboardData?.rentabilite_globale || 0)}
               </p>
               <p className="text-sm text-emerald-600 mt-1">
@@ -519,7 +519,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <span className="text-sm font-semibold text-[var(--color-primary-darker)]">Productivité</span>
                 <BarChart3 className="h-4 w-4 text-[var(--color-primary)]" />
               </div>
-              <p className="text-2xl font-bold text-[var(--color-primary-dark)]">
+              <p className="text-lg font-bold text-[var(--color-primary-dark)]">
                 {dashboardData?.indice_productivite || 0}
               </p>
               <p className="text-sm text-[var(--color-primary)] mt-1">
@@ -537,7 +537,7 @@ const AnalyticsDashboard: React.FC = () => {
                 <span className="text-sm font-semibold text-purple-900">Efficacité</span>
                 <Target className="h-4 w-4 text-[var(--color-info)]" />
               </div>
-              <p className="text-2xl font-bold text-[var(--color-info-dark)]">
+              <p className="text-lg font-bold text-[var(--color-info-dark)]">
                 {formatPercentage(dashboardData?.taux_efficacite || 0)}
               </p>
               <p className="text-sm text-[var(--color-info)] mt-1">

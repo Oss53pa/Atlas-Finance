@@ -37,7 +37,7 @@ const PermissionsPage: React.FC = () => {
                 <Key className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Gestion des Permissions</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Gestion des Permissions</h1>
                 <p className="text-sm text-[#767676]">Contrôle d'accès RBAC</p>
               </div>
             </div>

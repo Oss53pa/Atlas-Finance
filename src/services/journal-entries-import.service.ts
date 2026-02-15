@@ -1,5 +1,5 @@
 /**
- * WiseBook ERP - Journal Entries Import Service
+ * Atlas Finance - Journal Entries Import Service
  * Service pour l'import en masse d'écritures comptables
  *
  * Fonctionnalités:

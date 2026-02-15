@@ -39,7 +39,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
           />
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-[#191919]">{client.nom}</h1>
+              <h1 className="text-lg font-bold text-[#191919]">{client.nom}</h1>
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatutBadge(client.statut)}`}>
                 {client.statut}
               </span>

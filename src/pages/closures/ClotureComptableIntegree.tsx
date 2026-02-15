@@ -1,5 +1,5 @@
 /**
- * Module de Gestion de Clôture Comptable Périodique WiseBook
+ * Module de Gestion de Clôture Comptable Périodique Atlas Finance
  * Interface intégrée au système comptable existant
  * Respecte exactement le cahier des charges fourni sections A-G
  */
@@ -23,7 +23,7 @@ import {
   Calculator, PieChart, BarChart, LineChart
 } from 'lucide-react';
 
-// Types selon le système WiseBook existant
+// Types selon le système Atlas Finance existant
 interface Company {
   id: string;
   name: string;
@@ -108,7 +108,7 @@ const ClotureComptableIntegree: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Chargement initial - Exercices disponibles depuis WiseBook
+  // Chargement initial - Exercices disponibles depuis Atlas Finance
   useEffect(() => {
     chargerExercicesDisponibles();
   }, []);
@@ -128,7 +128,7 @@ const ClotureComptableIntegree: React.FC = () => {
         setError('Erreur lors du chargement des exercices');
       }
     } catch (error) {
-      setError('Erreur de connexion au système WiseBook');
+      setError('Erreur de connexion au système Atlas Finance');
       console.error('Erreur exercices:', error);
     }
   };
@@ -318,7 +318,7 @@ const ClotureComptableIntegree: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Clôtures Actives</p>
-                    <p className="text-2xl font-bold">3</p>
+                    <p className="text-lg font-bold">3</p>
                   </div>
                   <Clock className="h-8 w-8 text-[var(--color-primary)]" />
                 </div>
@@ -330,7 +330,7 @@ const ClotureComptableIntegree: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Progression Moyenne</p>
-                    <p className="text-2xl font-bold">{indicateurs.progression_globale || 0}%</p>
+                    <p className="text-lg font-bold">{indicateurs.progression_globale || 0}%</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-[var(--color-success)]" />
                 </div>
@@ -342,7 +342,7 @@ const ClotureComptableIntegree: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Délai Moyen</p>
-                    <p className="text-2xl font-bold">{indicateurs.delai_moyen_jours || 0}j</p>
+                    <p className="text-lg font-bold">{indicateurs.delai_moyen_jours || 0}j</p>
                   </div>
                   <Calendar className="h-8 w-8 text-orange-500" />
                 </div>
@@ -354,7 +354,7 @@ const ClotureComptableIntegree: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Taux d'Erreur</p>
-                    <p className="text-2xl font-bold">{indicateurs.taux_erreur || 0}%</p>
+                    <p className="text-lg font-bold">{indicateurs.taux_erreur || 0}%</p>
                   </div>
                   <AlertCircle className="h-8 w-8 text-[var(--color-error)]" />
                 </div>
@@ -610,11 +610,11 @@ const ClotureComptableIntegree: React.FC = () => {
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
           Module de Gestion de Clôture Comptable Périodique
         </h1>
         <p className="text-[var(--color-text-primary)] mt-2">
-          Système intégré WiseBook - Conforme SYSCOHADA
+          Système intégré Atlas Finance - Conforme SYSCOHADA
         </p>
       </div>
 

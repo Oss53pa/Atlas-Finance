@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Card Component
+ * Atlas Finance Design System - Card Component
  * Flexible card component for consistent layouts and content organization
  */
 

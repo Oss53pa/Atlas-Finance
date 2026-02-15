@@ -339,7 +339,7 @@ const DepreciationPage: React.FC = () => {
       <div className="border-b border-var(--color-border) pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <TrendingDown className="mr-3 h-7 w-7" />
               Amortissements
             </h1>
@@ -423,7 +423,7 @@ const DepreciationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-var(--color-text-secondary)">Total Période</p>
-                <p className="text-2xl font-bold text-blue-700">
+                <p className="text-lg font-bold text-blue-700">
                   {formatCurrency(depreciationData?.total_periode || 0)}
                 </p>
               </div>
@@ -439,7 +439,7 @@ const DepreciationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-var(--color-text-secondary)">Comptabilisés</p>
-                <p className="text-2xl font-bold text-green-700">
+                <p className="text-lg font-bold text-green-700">
                   {formatCurrency(depreciationData?.total_comptabilise || 0)}
                 </p>
               </div>
@@ -455,7 +455,7 @@ const DepreciationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-var(--color-text-secondary)">{t('status.pending')}</p>
-                <p className="text-2xl font-bold text-yellow-700">
+                <p className="text-lg font-bold text-yellow-700">
                   {formatCurrency(depreciationData?.total_en_attente || 0)}
                 </p>
               </div>
@@ -471,7 +471,7 @@ const DepreciationPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-var(--color-text-secondary)">Nb. Opérations</p>
-                <p className="text-2xl font-bold text-purple-700">
+                <p className="text-lg font-bold text-purple-700">
                   {depreciationData?.count || 0}
                 </p>
               </div>
@@ -795,7 +795,7 @@ const DepreciationPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Plus className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Nouvel Amortissement Manuel</h2>
+                <h2 className="text-lg font-bold text-gray-900">Nouvel Amortissement Manuel</h2>
               </div>
               <button
                 onClick={() => {
@@ -1010,7 +1010,7 @@ const DepreciationPage: React.FC = () => {
                 <div className="bg-green-100 text-green-600 p-2 rounded-lg">
                   <CheckCircle className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Comptabiliser l'amortissement</h2>
+                <h2 className="text-lg font-bold text-gray-900">Comptabiliser l'amortissement</h2>
               </div>
             </div>
             <div className="p-6">
@@ -1076,7 +1076,7 @@ const DepreciationPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Edit className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Modifier l'amortissement</h2>
+                <h2 className="text-lg font-bold text-gray-900">Modifier l'amortissement</h2>
               </div>
               <button
                 onClick={() => {

@@ -593,7 +593,7 @@ const InventairePhysiquePage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <ClipboardList className="mr-2 h-6 w-6 text-[#6A8A82]" />
               Inventaire Physique
             </h1>

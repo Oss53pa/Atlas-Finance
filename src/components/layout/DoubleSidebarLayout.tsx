@@ -46,7 +46,7 @@ const DoubleSidebarLayout: React.FC = () => {
                   </button>
                 )}
                 <nav className="flex items-center space-x-2 text-sm">
-                  <span className="text-gray-700">WiseBook</span>
+                  <span className="text-gray-700">Atlas Finance</span>
                   <span className="text-gray-700">/</span>
                   <span className="text-gray-900 font-medium">
                     {location.pathname.split('/').filter(Boolean).join(' / ') || 'Dashboard'}

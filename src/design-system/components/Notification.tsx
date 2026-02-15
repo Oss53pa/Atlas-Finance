@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Notification Component
+ * Atlas Finance Design System - Notification Component
  * Toast notification system with positioning and animation
  */
 

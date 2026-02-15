@@ -309,7 +309,7 @@ const ImportExportPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <ArrowUpDown className="mr-3 h-7 w-7 text-[var(--color-info)]" />
               Import / Export de Données
             </h1>
@@ -962,7 +962,7 @@ const ImportExportPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Rapport d'import détaillé</h2>
+                <h2 className="text-lg font-bold text-gray-900">Rapport d'import détaillé</h2>
                 <button onClick={() => setShowReportModal(false)} className="text-gray-700 hover:text-gray-600">
                   <X className="h-6 w-6" />
                 </button>
@@ -1039,11 +1039,11 @@ const ImportExportPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-blue-50 p-4 rounded-lg text-center">
                     <p className="text-sm text-gray-600 mb-1">Traités</p>
-                    <p className="text-2xl font-bold text-blue-700">{selectedJob.recordsProcessed}</p>
+                    <p className="text-lg font-bold text-blue-700">{selectedJob.recordsProcessed}</p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg text-center">
                     <p className="text-sm text-gray-600 mb-1">Total</p>
-                    <p className="text-2xl font-bold text-green-700">{selectedJob.recordsTotal}</p>
+                    <p className="text-lg font-bold text-green-700">{selectedJob.recordsTotal}</p>
                   </div>
                 </div>
                 <div className="mt-3">
@@ -1108,7 +1108,7 @@ const ImportExportPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-xl w-full m-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Planifier un export automatique</h2>
+                <h2 className="text-lg font-bold text-gray-900">Planifier un export automatique</h2>
                 <button onClick={() => setShowScheduleModal(false)} className="text-gray-700 hover:text-gray-600">
                   <X className="h-6 w-6" />
                 </button>
@@ -1180,7 +1180,7 @@ const ImportExportPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Paramètres d'Import/Export</h2>
+                <h2 className="text-lg font-bold text-gray-900">Paramètres d'Import/Export</h2>
                 <button onClick={() => setShowSettingsModal(false)} className="text-gray-700 hover:text-gray-600">
                   <X className="h-6 w-6" />
                 </button>
@@ -1273,7 +1273,7 @@ const ImportExportPage: React.FC = () => {
                   {React.createElement(selectedModuleDetails.icon, {
                     className: `h-6 w-6 text-${selectedModuleDetails.color}-600`
                   })}
-                  <h2 className="text-xl font-bold text-gray-900">{selectedModuleDetails.name}</h2>
+                  <h2 className="text-lg font-bold text-gray-900">{selectedModuleDetails.name}</h2>
                 </div>
                 <button onClick={() => setShowModuleDetailsModal(false)} className="text-gray-700 hover:text-gray-600">
                   <X className="h-6 w-6" />

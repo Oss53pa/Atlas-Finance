@@ -5,7 +5,8 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate('/login', { replace: true });
+    // Dev mode: skip login, go straight to dashboard
+    navigate('/dashboard', { replace: true });
   }, [navigate]);
 
   return null;

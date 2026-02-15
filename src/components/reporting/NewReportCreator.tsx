@@ -61,7 +61,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
   const [reportTitle, setReportTitle] = useState('Rapport Financier 2025');
   const [reportSubtitle, setReportSubtitle] = useState('Analyse Trimestrielle');
   const [reportPeriod, setReportPeriod] = useState('T1 2025');
-  const [companyName, setCompanyName] = useState('WiseBook Entreprise');
+  const [companyName, setCompanyName] = useState('Atlas Finance Entreprise');
   const [primaryColor, setPrimaryColor] = useState('#6A8A82');
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
@@ -74,9 +74,9 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
   });
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backCoverSummary, setBackCoverSummary] = useState('Ce rapport présente une analyse complète de la période');
-  const [contactEmail, setContactEmail] = useState('contact@wisebook.com');
+  const [contactEmail, setContactEmail] = useState('contact@atlasfinance.com');
   const [contactPhone, setContactPhone] = useState('+33 1 23 45 67 89');
-  const [contactWebsite, setContactWebsite] = useState('www.wisebook.com');
+  const [contactWebsite, setContactWebsite] = useState('www.atlasfinance.com');
   const [backCoverStyle, setBackCoverStyle] = useState('professional');
   const [showStats, setShowStats] = useState(true);
   const [showContact, setShowContact] = useState(true);
@@ -464,11 +464,11 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                       <Building2 className="w-8 h-8 text-gray-700" />
                     </div>
 
-                    <h1 className="text-4xl font-bold text-center mb-4" style={{ color: primaryColor }}>
+                    <h1 className="text-lg font-bold text-center mb-4" style={{ color: primaryColor }}>
                       {reportTitle}
                     </h1>
 
-                    <h2 className="text-2xl text-gray-700 text-center mb-6">
+                    <h2 className="text-xl text-gray-700 text-center mb-6">
                       {reportSubtitle}
                     </h2>
 
@@ -629,7 +629,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                       <div className="w-32 h-20 bg-gray-200 rounded flex items-center justify-center mx-auto mb-6">
                         <Building2 className="w-8 h-8 text-gray-700" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-2" style={{ color: primaryColor }}>
+                      <h2 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>
                         {companyName}
                       </h2>
                     </div>
@@ -646,13 +646,13 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                         <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto mt-8">
                           <div className="text-center p-4 border rounded-lg">
                             <h4 className="font-medium text-gray-700">Sections</h4>
-                            <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+                            <p className="text-lg font-bold" style={{ color: primaryColor }}>
                               {sections.filter(s => s.title !== 'Page de garde').length}
                             </p>
                           </div>
                           <div className="text-center p-4 border rounded-lg">
                             <h4 className="font-medium text-gray-700">Pages</h4>
-                            <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+                            <p className="text-lg font-bold" style={{ color: primaryColor }}>
                               {sections.filter(s => s.title !== 'Page de garde').length + 2}
                             </p>
                           </div>
@@ -813,12 +813,12 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                   <Building2 className="w-8 h-8 text-gray-700" />
                 </div>
 
-                <h1 className={`text-4xl font-bold text-center mb-4 ${backgroundImage ? 'text-white' : ''}`}
+                <h1 className={`text-lg font-bold text-center mb-4 ${backgroundImage ? 'text-white' : ''}`}
                     style={{ color: backgroundImage ? 'white' : primaryColor }}>
                   {reportTitle}
                 </h1>
 
-                <h2 className={`text-2xl text-center mb-6 ${backgroundImage ? 'text-gray-100' : 'text-gray-700'}`}>
+                <h2 className={`text-xl text-center mb-6 ${backgroundImage ? 'text-gray-100' : 'text-gray-700'}`}>
                   {reportSubtitle}
                 </h2>
 
@@ -846,7 +846,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
           <div className="bg-white rounded-lg shadow-lg overflow-hidden print:shadow-none print:rounded-none page-break-after">
             <div className="min-h-[297mm] flex flex-col">
               <div className="p-8 flex-1">
-                <h1 className="text-3xl font-bold mb-8" style={{ color: primaryColor }}>
+                <h1 className="text-lg font-bold mb-8" style={{ color: primaryColor }}>
                   Sommaire
                 </h1>
 
@@ -893,7 +893,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
             <div key={section.id} className="bg-white rounded-lg shadow-lg overflow-hidden print:shadow-none print:rounded-none page-break-after">
               <div className="min-h-[297mm] flex flex-col">
                 <div className="p-8 flex-1">
-                  <h1 className="text-2xl font-bold mb-6" style={{ color: primaryColor }}>
+                  <h1 className="text-lg font-bold mb-6" style={{ color: primaryColor }}>
                     {idx + 1}. {section.title}
                   </h1>
 
@@ -950,11 +950,11 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                             <div className="p-6">
                               <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                  <div className="text-2xl font-bold text-blue-800">€42.5K</div>
+                                  <div className="text-lg font-bold text-blue-800">€42.5K</div>
                                   <div className="text-sm text-blue-600">Chiffre d&apos;affaires</div>
                                 </div>
                                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                  <div className="text-2xl font-bold text-green-800">+15%</div>
+                                  <div className="text-lg font-bold text-green-800">+15%</div>
                                   <div className="text-sm text-green-600">Croissance</div>
                                 </div>
                               </div>
@@ -984,7 +984,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                   {/* Sous-sections */}
                   {section.children?.map((child, childIdx) => (
                     <div key={child.id} className="mb-8">
-                      <h2 className="text-xl font-semibold mb-4" style={{ color: primaryColor }}>
+                      <h2 className="text-lg font-semibold mb-4" style={{ color: primaryColor }}>
                         {idx + 1}.{childIdx + 1} {child.title}
                       </h2>
 
@@ -1048,7 +1048,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                   <div className="w-32 h-20 bg-gray-200 rounded flex items-center justify-center mx-auto mb-6">
                     <Building2 className="w-8 h-8 text-gray-700" />
                   </div>
-                  <h2 className="text-2xl font-bold mb-2" style={{ color: primaryColor }}>
+                  <h2 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>
                     {companyName}
                   </h2>
                 </div>
@@ -1066,13 +1066,13 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                     <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto mt-8">
                       <div className="text-center p-4 border rounded-lg">
                         <h4 className="font-medium text-gray-700">Sections</h4>
-                        <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+                        <p className="text-lg font-bold" style={{ color: primaryColor }}>
                           {sections.filter(s => s.title !== 'Page de garde').length}
                         </p>
                       </div>
                       <div className="text-center p-4 border rounded-lg">
                         <h4 className="font-medium text-gray-700">Pages</h4>
-                        <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+                        <p className="text-lg font-bold" style={{ color: primaryColor }}>
                           {sections.filter(s => s.title !== 'Page de garde').length + 2}
                         </p>
                       </div>
@@ -1218,7 +1218,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
         <div className="flex-1 flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h2 className="text-xl font-bold">Nouveau Rapport</h2>
+              <h2 className="text-lg font-bold">Nouveau Rapport</h2>
               <div className="flex items-center space-x-1">
                 <button
                   onClick={() => setActiveView('cover')}
@@ -1606,7 +1606,6 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
                                   <button
                                     onClick={() => {
                                       // Prévisualisation
-                                      console.log('Prévisualisation de:', item.name);
                                     }}
                                     className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
                                     title="Prévisualiser"

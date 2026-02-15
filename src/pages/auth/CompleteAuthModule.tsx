@@ -134,7 +134,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR001',
       username: 'admin',
-      email: 'admin@wisebook.com',
+      email: 'admin@atlasfinance.com',
       fullName: 'Administrateur Système',
       role: 'Super Admin',
       department: 'IT',
@@ -163,7 +163,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR002',
       username: 'comptable1',
-      email: 'comptable@wisebook.com',
+      email: 'comptable@atlasfinance.com',
       fullName: 'Marie Kouassi',
       role: 'Comptable',
       department: 'Finance',
@@ -180,7 +180,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR003',
       username: 'manager1',
-      email: 'manager@wisebook.com',
+      email: 'manager@atlasfinance.com',
       fullName: 'Jean Konan',
       role: 'Manager',
       department: 'Commercial',
@@ -195,7 +195,7 @@ const CompleteAuthModule: React.FC = () => {
     {
       id: 'USR004',
       username: 'user_locked',
-      email: 'locked@wisebook.com',
+      email: 'locked@atlasfinance.com',
       fullName: 'Paul Yao',
       role: 'Utilisateur',
       department: 'Operations',
@@ -519,7 +519,7 @@ const CompleteAuthModule: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">
               Module Authentification & Sécurité
             </h1>
             <p className="text-[var(--color-text-secondary)]">
@@ -583,7 +583,7 @@ const CompleteAuthModule: React.FC = () => {
                 </div>
                 <span className="text-xs text-[var(--color-success)]">{stats.activeUsers} actifs</span>
               </div>
-              <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.totalUsers}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -598,7 +598,7 @@ const CompleteAuthModule: React.FC = () => {
                 </div>
                 <span className="text-xs text-[var(--color-text-secondary)]">En ligne</span>
               </div>
-              <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.activeSessions}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -613,7 +613,7 @@ const CompleteAuthModule: React.FC = () => {
                 </div>
                 <span className="text-xs text-[var(--color-success)]">{stats.twoFactorPercent.toFixed(0)}%</span>
               </div>
-              <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.twoFactorUsers}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -628,7 +628,7 @@ const CompleteAuthModule: React.FC = () => {
                 </div>
                 <span className="text-xs text-[var(--color-error)]">{stats.lockedUsers} verrouillés</span>
               </div>
-              <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.criticalAlerts}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -1014,7 +1014,7 @@ const CompleteAuthModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 {editingUser ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
               </h2>
               <button
@@ -1176,7 +1176,7 @@ const CompleteAuthModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 {editingRole ? 'Modifier le rôle' : 'Nouveau rôle'}
               </h2>
               <button
@@ -1358,7 +1358,7 @@ const CompleteAuthModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 Gérer les Permissions
               </h2>
               <button
@@ -1563,7 +1563,7 @@ const CompleteAuthModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 Réinitialiser le mot de passe
               </h2>
               <button

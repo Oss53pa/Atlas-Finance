@@ -49,7 +49,6 @@ const CapitalizationDemo: React.FC = () => {
   };
 
   const handleSubmitCapitalization = (data: any) => {
-    console.log('Demande de capitalisation soumise:', data);
     // Ici on enverrait les données au backend
     alert('Demande de capitalisation soumise avec succès !');
   };
@@ -58,7 +57,7 @@ const CapitalizationDemo: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
           Démonstration - Modal de Capitalisation
         </h1>
         <p className="text-sm text-[var(--color-text-secondary)] mt-1">

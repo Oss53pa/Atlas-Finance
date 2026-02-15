@@ -1,5 +1,5 @@
 /**
- * INVENTAIRE COMPLET DES ENDPOINTS API - WISEBOOK ERP v3.0
+ * INVENTAIRE COMPLET DES ENDPOINTS API - ATLAS FINANCE v3.0
  *
  * Ce fichier recense TOUS les endpoints backend Django REST disponibles
  * Généré le: 27 Septembre 2025
@@ -1139,7 +1139,4 @@ export const API_STATS = {
 
 // Export pour debug
 if (import.meta.env.DEV) {
-  console.log('📊 API Inventory Stats:', API_STATS);
-  console.log(`✅ ${API_STATS.totalEndpoints} endpoints catalogués`);
-  console.log(`📦 ${API_STATS.modules} modules API`);
 }

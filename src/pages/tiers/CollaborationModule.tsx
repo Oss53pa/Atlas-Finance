@@ -34,7 +34,7 @@ const CollaborationModule: React.FC = () => {
       isOnline: true,
       participants: [
         { id: 'u1', name: 'Jean MAMBOU', role: 'Directeur Commercial', avatar: 'JM' },
-        { id: 'u2', name: 'Marie Kouam', role: 'Commercial WiseBook', avatar: 'MK' }
+        { id: 'u2', name: 'Marie Kouam', role: 'Commercial Atlas Finance', avatar: 'MK' }
       ],
       tiersInfo: {
         type: 'CLIENT',
@@ -126,7 +126,7 @@ const CollaborationModule: React.FC = () => {
       isOnline: true,
       participants: [
         { id: 'u5', name: 'Martin NKOMO', role: 'Directeur Commercial', avatar: 'MN' },
-        { id: 'u6', name: 'Jean Akono', role: 'Acheteur WiseBook', avatar: 'JA' }
+        { id: 'u6', name: 'Jean Akono', role: 'Acheteur Atlas Finance', avatar: 'JA' }
       ],
       tiersInfo: {
         type: 'FOURNISSEUR',
@@ -334,7 +334,7 @@ const CollaborationModule: React.FC = () => {
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Chat & Collaboration</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Chat & Collaboration</h1>
                 <p className="text-sm text-[#666666]">Communication en temps réel et collaboration équipe</p>
               </div>
             </div>
@@ -601,7 +601,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Collaborations Actives</p>
-                  <p className="text-2xl font-bold text-[#191919]">12</p>
+                  <p className="text-lg font-bold text-[#191919]">12</p>
                 </div>
                 <Users className="w-8 h-8 text-[#6A8A82]" />
               </div>
@@ -610,7 +610,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Tâches en Cours</p>
-                  <p className="text-2xl font-bold text-[#191919]">28</p>
+                  <p className="text-lg font-bold text-[#191919]">28</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
@@ -619,7 +619,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Échéances Cette Semaine</p>
-                  <p className="text-2xl font-bold text-[#191919]">5</p>
+                  <p className="text-lg font-bold text-[#191919]">5</p>
                 </div>
                 <Clock className="w-8 h-8 text-orange-600" />
               </div>
@@ -628,7 +628,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Taux Completion</p>
-                  <p className="text-2xl font-bold text-[#191919]">78%</p>
+                  <p className="text-lg font-bold text-[#191919]">78%</p>
                 </div>
                 <Target className="w-8 h-8 text-[#B87333]" />
               </div>
@@ -772,7 +772,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Messages Total</p>
-                  <p className="text-2xl font-bold text-[#191919]">{analyticsData.statistiques.totalMessages}</p>
+                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.totalMessages}</p>
                 </div>
                 <MessageSquare className="w-8 h-8 text-[#6A8A82]" />
               </div>
@@ -781,7 +781,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Messages Aujourd'hui</p>
-                  <p className="text-2xl font-bold text-[#191919]">{analyticsData.statistiques.messagesAujourdhui}</p>
+                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.messagesAujourdhui}</p>
                 </div>
                 <Activity className="w-8 h-8 text-green-600" />
               </div>
@@ -790,7 +790,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Collaborations Actives</p>
-                  <p className="text-2xl font-bold text-[#191919]">{analyticsData.statistiques.collaborationsActives}</p>
+                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.collaborationsActives}</p>
                 </div>
                 <Users className="w-8 h-8 text-[#B87333]" />
               </div>
@@ -799,7 +799,7 @@ const CollaborationModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Taux Réponse</p>
-                  <p className="text-2xl font-bold text-[#191919]">{analyticsData.statistiques.tauxReponse}%</p>
+                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.tauxReponse}%</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-orange-600" />
               </div>
@@ -855,7 +855,7 @@ const CollaborationModule: React.FC = () => {
               {analyticsData.tempsReponse.map((item, index) => (
                 <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
                   <p className="text-sm text-[#666666] mb-2">{item.periode}</p>
-                  <p className="text-2xl font-bold text-[#191919]">{item.count}</p>
+                  <p className="text-lg font-bold text-[#191919]">{item.count}</p>
                   <p className="text-sm text-[#666666]">messages</p>
                 </div>
               ))}

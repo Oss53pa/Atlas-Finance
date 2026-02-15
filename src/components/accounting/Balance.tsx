@@ -573,7 +573,7 @@ const Balance: React.FC = () => {
         showPrintButton={false}
         headerContent={
           <div className="text-center mb-4">
-            <h1 className="text-xl font-bold">Balance Comptable</h1>
+            <h1 className="text-lg font-bold">Balance Comptable</h1>
             <p>Période: {dateRange.start} au {dateRange.end}</p>
           </div>
         }
@@ -584,7 +584,7 @@ const Balance: React.FC = () => {
           <div className="flex items-center space-x-3">
             <Scale className="w-6 h-6 text-[#6A8A82]" />
             <div>
-              <h2 className="text-xl font-bold text-[#191919]">Balance Générale</h2>
+              <h2 className="text-lg font-bold text-[#191919]">Balance Générale</h2>
               <p className="text-sm text-[#191919]/70">Vue synthétique des comptes</p>
             </div>
           </div>

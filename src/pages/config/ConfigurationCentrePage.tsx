@@ -320,12 +320,12 @@ const ConfigurationCentrePage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Settings className="mr-3 h-7 w-7 text-blue-600" />
               Centre de Configuration
             </h1>
             <p className="mt-2 text-gray-600">
-              Gérez tous les paramètres et configurations de votre système WiseBook
+              Gérez tous les paramètres et configurations de votre système Atlas Finance
             </p>
           </div>
           <div className="flex space-x-3">
@@ -360,7 +360,7 @@ const ConfigurationCentrePage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Configuration Globale</p>
                   <div className="flex items-center space-x-2">
-                    <p className="text-2xl font-bold text-blue-700">{overallCompletion}%</p>
+                    <p className="text-lg font-bold text-blue-700">{overallCompletion}%</p>
                     <Progress value={overallCompletion} className="w-16 h-2" />
                   </div>
                 </div>
@@ -382,7 +382,7 @@ const ConfigurationCentrePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Modules Configurés</p>
-                  <p className="text-2xl font-bold text-green-700">
+                  <p className="text-lg font-bold text-green-700">
                     {configuredCount}/{modules.length}
                   </p>
                 </div>
@@ -404,7 +404,7 @@ const ConfigurationCentrePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Partiellement Configurés</p>
-                  <p className="text-2xl font-bold text-orange-700">{partialCount}</p>
+                  <p className="text-lg font-bold text-orange-700">{partialCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -424,7 +424,7 @@ const ConfigurationCentrePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Non Configurés</p>
-                  <p className="text-2xl font-bold text-red-700">{notConfiguredCount}</p>
+                  <p className="text-lg font-bold text-red-700">{notConfiguredCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -668,7 +668,7 @@ const ConfigurationCentrePage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-purple-700">Modèles Actifs</p>
-                          <p className="text-2xl font-bold text-purple-900">4/6</p>
+                          <p className="text-lg font-bold text-purple-900">4/6</p>
                         </div>
                         <Cpu className="h-8 w-8 text-purple-600" />
                       </div>
@@ -677,7 +677,7 @@ const ConfigurationCentrePage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-green-700">Précision Moyenne</p>
-                          <p className="text-2xl font-bold text-green-900">92.4%</p>
+                          <p className="text-lg font-bold text-green-900">92.4%</p>
                         </div>
                         <TrendingUp className="h-8 w-8 text-green-600" />
                       </div>
@@ -686,7 +686,7 @@ const ConfigurationCentrePage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-blue-700">Prédictions/Jour</p>
-                          <p className="text-2xl font-bold text-blue-900">1,247</p>
+                          <p className="text-lg font-bold text-blue-900">1,247</p>
                         </div>
                         <Activity className="h-8 w-8 text-blue-600" />
                       </div>

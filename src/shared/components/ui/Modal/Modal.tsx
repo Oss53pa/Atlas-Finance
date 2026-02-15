@@ -13,7 +13,7 @@ const sizeClasses = {
 
 export const ModalHeader: React.FC<ModalHeaderProps> = ({ title, onClose, showCloseButton = true }) => (
   <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8E8E8]">
-    {title && <h2 className="text-xl font-semibold text-[#191919]">{title}</h2>}
+    {title && <h2 className="text-lg font-semibold text-[#191919]">{title}</h2>}
     {showCloseButton && onClose && (
       <button
         onClick={onClose}

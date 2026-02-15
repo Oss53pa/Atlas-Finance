@@ -210,7 +210,7 @@ const PartenairesModule: React.FC = () => {
       chiffreAffairesAnnuel: 2450000,
       commissionRate: 15,
       scorePerformance: 94,
-      certifications: ['WiseBook Certified Partner', 'Advanced Implementation', 'Technical Support'],
+      certifications: ['Atlas Finance Certified Partner', 'Advanced Implementation', 'Technical Support'],
       contact: {
         nom: 'MVONDO',
         prenom: 'Patrick',
@@ -270,7 +270,7 @@ const PartenairesModule: React.FC = () => {
       chiffreAffairesAnnuel: 1850000,
       commissionRate: 12,
       scorePerformance: 88,
-      certifications: ['WiseBook Certified Consultant', 'Business Process'],
+      certifications: ['Atlas Finance Certified Consultant', 'Business Process'],
       contact: {
         nom: 'KONGO',
         prenom: 'Marie',
@@ -308,7 +308,7 @@ const PartenairesModule: React.FC = () => {
           id: 'h2',
           date: '2024-09-10',
           type: 'FORMATION',
-          description: 'Formation WiseBook Advanced pour 8 consultants',
+          description: 'Formation Atlas Finance Advanced pour 8 consultants',
           responsable: 'Marie KONGO'
         }
       ],
@@ -328,7 +328,7 @@ const PartenairesModule: React.FC = () => {
       chiffreAffairesAnnuel: 950000,
       commissionRate: 10,
       scorePerformance: 75,
-      certifications: ['WiseBook Reseller'],
+      certifications: ['Atlas Finance Reseller'],
       contact: {
         nom: 'ONDO',
         prenom: 'Jean-Claude',
@@ -500,7 +500,7 @@ const PartenairesModule: React.FC = () => {
                 <Handshake className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">Gestion des Partenaires</h1>
+                <h1 className="text-lg font-bold text-[#191919]">Gestion des Partenaires</h1>
                 <p className="text-sm text-[#666666]">Écosystème et réseau de partenaires stratégiques</p>
               </div>
             </div>
@@ -578,7 +578,7 @@ const PartenairesModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Partenaires Actifs</p>
-              <p className="text-2xl font-bold text-[#191919]">{mockPartenaires.length}</p>
+              <p className="text-lg font-bold text-[#191919]">{mockPartenaires.length}</p>
               <p className="text-xs text-[#6A8A82]">Écosystème global</p>
             </div>
             <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
@@ -591,7 +591,7 @@ const PartenairesModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Performance Globale</p>
-              <p className="text-2xl font-bold text-[#191919]">{analytics.performanceGlobale}%</p>
+              <p className="text-lg font-bold text-[#191919]">{analytics.performanceGlobale}%</p>
               <p className="text-xs text-green-600">+5.2% vs trimestre</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -604,7 +604,7 @@ const PartenairesModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">CA Partenaires</p>
-              <p className="text-2xl font-bold text-[#191919]">{formatCurrency(14700000)}</p>
+              <p className="text-lg font-bold text-[#191919]">{formatCurrency(14700000)}</p>
               <p className="text-xs text-[#B87333]">+{analytics.croissanceChiffre}% YoY</p>
             </div>
             <div className="w-10 h-10 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
@@ -617,7 +617,7 @@ const PartenairesModule: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[#666666]">Satisfaction</p>
-              <p className="text-2xl font-bold text-[#191919]">{analytics.satisfactionMoyenne}/5</p>
+              <p className="text-lg font-bold text-[#191919]">{analytics.satisfactionMoyenne}/5</p>
               <p className="text-xs text-orange-600">{analytics.tauxRenouvellement}% renouvellement</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -848,7 +848,7 @@ const PartenairesModule: React.FC = () => {
                 <div className="bg-green-100 text-green-600 p-2 rounded-lg">
                   <Handshake className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Nouveau Partenaire</h2>
+                <h2 className="text-lg font-bold text-gray-900">Nouveau Partenaire</h2>
               </div>
               <button
                 onClick={() => {

@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Modal Component
+ * Atlas Finance Design System - Modal Component
  * Fully accessible modal with focus management and ARIA attributes
  */
 

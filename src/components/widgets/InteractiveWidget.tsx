@@ -1,5 +1,5 @@
 /**
- * Widget Interactif Configurable WiseBook
+ * Widget Interactif Configurable Atlas Finance
  * Widgets drag & drop avec personnalisation selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
@@ -181,7 +181,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-lg font-bold text-gray-900">
               {dataSource.includes('treasury') || dataSource.includes('customer') || dataSource.includes('supplier') 
                 ? formatCurrency(widgetData.value)
                 : widgetData.value}
@@ -298,7 +298,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
     return (
       <div className="p-4 text-center">
         <Activity className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-        <div className="text-xl font-bold text-blue-600">98.5%</div>
+        <div className="text-lg font-bold text-blue-600">98.5%</div>
         <p className="text-sm text-gray-600">Performance Système</p>
         <Progress value={98.5} className="mt-2 h-1" />
       </div>
@@ -406,8 +406,8 @@ export const WidgetFactory = {
   })
 };
 
-// Widgets prédéfinis WiseBook
-export const WiseBookWidgets = {
+// Widgets prédéfinis Atlas Finance
+export const AtlasFinanceWidgets = {
   treasury: {
     position: WidgetFactory.createKPIWidget({
       id: 'treasury-position',

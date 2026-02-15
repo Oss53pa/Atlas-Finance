@@ -1,4 +1,4 @@
-// International Inventory Management Types for WiseBook ERP
+// International Inventory Management Types for Atlas Finance
 // Compliant with IFRS IAS 2, US GAAP ASC 330, and SYSCOHADA
 
 export interface Currency {

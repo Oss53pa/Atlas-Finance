@@ -112,7 +112,7 @@ class ErrorBoundary extends Component<Props, State> {
               </svg>
             </div>
 
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-4">
               Oups ! Une erreur est survenue
             </h1>
 

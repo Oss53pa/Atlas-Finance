@@ -64,7 +64,7 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
             </div>
           )}
           <div>
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{title}</h3>
+            <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{title}</h3>
             {subtitle && (
               <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{subtitle}</p>
             )}
@@ -151,7 +151,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-[var(--color-text-secondary)]">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-[var(--color-text-primary)]">{value}</p>
+          <p className="mt-2 text-lg font-bold text-[var(--color-text-primary)]">{value}</p>
           {change && (
             <div className="mt-3 flex items-center gap-2">
               <span className={cn(

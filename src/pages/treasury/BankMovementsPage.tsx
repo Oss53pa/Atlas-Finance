@@ -89,7 +89,6 @@ const BankMovementsPage: React.FC = () => {
       interval = setInterval(() => {
         setLastUpdate(new Date());
         // Ici on pourrait faire un appel API pour rafraîchir les données
-        console.log('Auto-refresh des données bancaires à', new Date().toLocaleTimeString());
       }, 30000); // 30 secondes
     }
 
@@ -103,7 +102,6 @@ const BankMovementsPage: React.FC = () => {
   const manualRefresh = () => {
     setLastUpdate(new Date());
     // Simulation du rafraîchissement
-    console.log('Rafraîchissement manuel à', new Date().toLocaleTimeString());
   };
 
   const showOperationsDetail = (date: string, type: 'daily' | 'monthly', data: any) => {
@@ -117,7 +115,7 @@ const BankMovementsPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">💰 Mouvements Bancaires</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">💰 Mouvements Bancaires</h1>
             <p className="text-sm text-[var(--color-text-secondary)]">Gestion des flux de trésorerie</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -175,7 +173,7 @@ const BankMovementsPage: React.FC = () => {
           <div className="bg-gradient-to-r from-[#6A8A82] to-[#7A99AC] rounded-lg p-4 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold mb-1">📈 Dashboard CashFlow</h2>
+                <h2 className="text-lg font-bold mb-1">📈 Dashboard CashFlow</h2>
                 <p className="text-white/80 text-sm">Vue d'ensemble en temps réel</p>
               </div>
               <div>
@@ -272,12 +270,12 @@ const BankMovementsPage: React.FC = () => {
                         <div>
                           <div className="text-sm font-medium text-white/90">Balance {selectedAccount === 'all' ? 'Globale' : 'Compte'}</div>
                         </div>
-                        <div className="text-2xl">💳</div>
+                        <div className="text-xl">💳</div>
                       </div>
 
                       {/* Montant principal */}
                       <div className="mb-6">
-                        <div className="text-3xl font-bold text-white mb-1">
+                        <div className="text-lg font-bold text-white mb-1">
                           {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().balance)}
                         </div>
                         <div className="text-xs text-white/70">{getSelectedAccountData().name}</div>
@@ -409,7 +407,7 @@ const BankMovementsPage: React.FC = () => {
                     <div className="w-4 h-4 bg-green-500 rounded-full"></div>
                     <h4 className="font-medium text-green-800">Prévisions Entrées</h4>
                   </div>
-                  <div className={`text-2xl font-bold ${getSelectedScenarioData().color}`}>
+                  <div className={`text-lg font-bold ${getSelectedScenarioData().color}`}>
                     {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().forecastIncoming)}
                   </div>
                   <div className="text-sm text-green-700 mt-1">
@@ -423,7 +421,7 @@ const BankMovementsPage: React.FC = () => {
                     <div className="w-4 h-4 bg-red-500 rounded-full"></div>
                     <h4 className="font-medium text-red-800">Prévisions Sorties</h4>
                   </div>
-                  <div className={`text-2xl font-bold ${getSelectedScenarioData().color}`}>
+                  <div className={`text-lg font-bold ${getSelectedScenarioData().color}`}>
                     {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().forecastOutcoming)}
                   </div>
                   <div className="text-sm text-red-700 mt-1">
@@ -437,7 +435,7 @@ const BankMovementsPage: React.FC = () => {
                     <div className="w-4 h-4 bg-[#B87333] rounded-full"></div>
                     <h4 className="font-medium text-[#B87333]">Balance Prévisionnelle</h4>
                   </div>
-                  <div className={`text-2xl font-bold ${getSelectedScenarioData().color}`}>
+                  <div className={`text-lg font-bold ${getSelectedScenarioData().color}`}>
                     {new Intl.NumberFormat('fr-FR').format(getSelectedAccountData().landingForecast)}
                   </div>
                   <div className="text-sm text-[#B87333] mt-1">
@@ -505,7 +503,7 @@ const BankMovementsPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">📈 Banking Sums Up</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">📈 Banking Sums Up</h2>
               <select className="px-3 py-1 border border-gray-300 rounded text-sm">
                 <option>[Tous les comptes]</option>
               </select>
@@ -648,7 +646,7 @@ const BankMovementsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 📋 Détail des Opérations - {selectedOperations.date}
               </h3>
               <button

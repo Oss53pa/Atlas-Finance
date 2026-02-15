@@ -70,8 +70,8 @@ const AccountingDashboard: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
-            <div className="w-20 h-20 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-xl font-semibold text-neutral-700">Chargement du module comptabilité...</p>
+            <div className="w-20 h-20 border-4 border-[var(--color-border)] border-t-[var(--color-primary)] rounded-full animate-spin"></div>
+            <p className="text-lg font-semibold text-neutral-700">Chargement du module comptabilité...</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -166,13 +166,13 @@ const AccountingDashboard: React.FC = () => {
           >
             <ColorfulBarChart
               data={[
-                { label: 'Classe 1', value: 15750, color: 'bg-yellow-400' },
-                { label: 'Classe 2', value: 12300, color: 'bg-orange-400' },
-                { label: 'Classe 3', value: 8950, color: 'bg-amber-400' },
-                { label: 'Classe 4', value: 18200, color: 'bg-[var(--color-warning)]' },
-                { label: 'Classe 5', value: 6450, color: 'bg-[var(--color-warning)]' },
-                { label: 'Classe 6', value: 11800, color: 'bg-amber-500' },
-                { label: 'Classe 7', value: 14100, color: 'bg-[var(--color-warning)]' }
+                { label: 'Classe 1', value: 15750, color: 'bg-neutral-800' },
+                { label: 'Classe 2', value: 12300, color: 'bg-neutral-700' },
+                { label: 'Classe 3', value: 8950, color: 'bg-neutral-600' },
+                { label: 'Classe 4', value: 18200, color: 'bg-neutral-500' },
+                { label: 'Classe 5', value: 6450, color: 'bg-neutral-400' },
+                { label: 'Classe 6', value: 11800, color: 'bg-neutral-600' },
+                { label: 'Classe 7', value: 14100, color: 'bg-neutral-500' }
               ]}
               height={200}
             />
@@ -189,7 +189,7 @@ const AccountingDashboard: React.FC = () => {
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-neutral-900">
+                  <h2 className="text-lg font-bold text-neutral-900">
                     Écritures Récentes
                   </h2>
                   <p className="text-neutral-600">Saisie IA intelligente</p>
@@ -205,7 +205,7 @@ const AccountingDashboard: React.FC = () => {
             </div>
             {isLoadingEntries ? (
               <div className="flex justify-center items-center py-16">
-                <div className="w-12 h-12 border-4 border-[var(--color-primary-light)] border-t-blue-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-[var(--color-border)] border-t-[var(--color-primary)] rounded-full animate-spin"></div>
               </div>
             ) : (
               <div className="space-y-6">
@@ -214,7 +214,7 @@ const AccountingDashboard: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="group flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-blue-300 hover:shadow-lg transition-all duration-300"
+                  className="group flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-white/90">
@@ -233,7 +233,7 @@ const AccountingDashboard: React.FC = () => {
                     <p className="font-bold text-neutral-900 text-lg">
                       {formatCurrency(2750000)}
                     </p>
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-700">
                       Validée IA
                     </span>
                   </div>
@@ -243,7 +243,7 @@ const AccountingDashboard: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="group flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-blue-300 hover:shadow-lg transition-all duration-300"
+                  className="group flex items-center justify-between p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-white/90">
@@ -293,7 +293,7 @@ const AccountingDashboard: React.FC = () => {
                 <BarChart3 className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">
+                <h2 className="text-lg font-bold text-neutral-900">
                   Balance SYSCOHADA
                 </h2>
                 <p className="text-neutral-600">Classes 1-7 détaillées</p>
@@ -301,27 +301,22 @@ const AccountingDashboard: React.FC = () => {
             </div>
             {isLoadingBalance ? (
               <div className="flex justify-center items-center py-16">
-                <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-[var(--color-border)] border-t-[var(--color-primary)] rounded-full animate-spin"></div>
               </div>
             ) : (
               <div className="space-y-4">
                 {[
-                  { label: 'ACTIF (Classes 1-5)', value: balanceSummary?.total_actif || 15750000000, desc: 'Immobilisations, Stocks, Créances, Trésorerie', color: 'blue' },
-                  { label: 'PASSIF (Classes 1-4)', value: balanceSummary?.total_passif || 15750000000, desc: 'Capitaux propres, Provisions, Dettes', color: 'neutral' },
-                  { label: 'CHARGES (Classe 6)', value: balanceSummary?.total_charges || 8950000000, desc: 'Achats, Services, Personnel, Finances', color: 'red' },
-                  { label: 'PRODUITS (Classe 7)', value: balanceSummary?.total_produits || 12450000000, desc: 'Ventes, Production, Produits accessoires', color: 'emerald' }
+                  { label: 'ACTIF (Classes 1-5)', value: balanceSummary?.total_actif || 15750000000, desc: 'Immobilisations, Stocks, Créances, Trésorerie' },
+                  { label: 'PASSIF (Classes 1-4)', value: balanceSummary?.total_passif || 15750000000, desc: 'Capitaux propres, Provisions, Dettes' },
+                  { label: 'CHARGES (Classe 6)', value: balanceSummary?.total_charges || 8950000000, desc: 'Achats, Services, Personnel, Finances' },
+                  { label: 'PRODUITS (Classe 7)', value: balanceSummary?.total_produits || 12450000000, desc: 'Ventes, Production, Produits accessoires' }
                 ].map((item, index) => (
-                  <motion.div 
+                  <motion.div
                     key={item.label}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`p-6 rounded-2xl border ${
-                      item.color === 'blue' ? 'bg-[var(--color-primary-lightest)]/80 border-[var(--color-primary-light)]/60' :
-                      item.color === 'neutral' ? 'bg-neutral-50/80 border-neutral-200/60' :
-                      item.color === 'red' ? 'bg-[var(--color-error-lightest)]/80 border-[var(--color-error-light)]/60' :
-                      'bg-emerald-50/80 border-emerald-200/60'
-                    }`}
+                    className="p-6 rounded-2xl border bg-neutral-50/80 border-neutral-200/60"
                   >
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-semibold text-neutral-900">{item.label}</span>
@@ -353,7 +348,7 @@ const AccountingDashboard: React.FC = () => {
         {/* Actions Rapides SYSCOHADA */}
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">
               Fonctionnalités SYSCOHADA
             </h2>
             <p className="text-neutral-600">ERP Comptable conforme aux normes africaines - Actions rapides</p>
@@ -365,7 +360,7 @@ const AccountingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-white/90">
                   <Book size={24} />
@@ -397,7 +392,7 @@ const AccountingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-emerald-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-white/90">
                   <TrendingUp size={24} />
@@ -413,7 +408,7 @@ const AccountingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-amber-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-white/90">
                   <BarChart3 size={24} />
@@ -429,7 +424,7 @@ const AccountingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-purple-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-white/90">
                   <PieChart size={24} />
@@ -445,7 +440,7 @@ const AccountingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-indigo-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-white/90">
                   <Users size={24} />
@@ -461,7 +456,7 @@ const AccountingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-green-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-white/90">
                   <DollarSign size={24} />
@@ -477,7 +472,7 @@ const AccountingDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="group p-6 border border-neutral-200 rounded-2xl hover:border-pink-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group p-6 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 <div className="flex items-center justify-center w-12 h-12 bg-white/90">
                   <Calendar size={24} />

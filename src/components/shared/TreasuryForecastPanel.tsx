@@ -156,7 +156,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
       {/* Header avec contrôles */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900">
             Prévisions de Trésorerie Consolidées
           </h2>
           <p className="text-gray-600">
@@ -239,7 +239,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 <TrendingUp className="h-5 w-5 text-green-600 mr-2" />
                 <span className="text-sm font-medium text-gray-600">Encaissements Prévus</span>
               </div>
-              <div className="text-xl font-bold text-green-600">
+              <div className="text-lg font-bold text-green-600">
                 {formatCurrency(forecastSummary.totalInflows)}
               </div>
             </CardContent>
@@ -251,7 +251,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 <TrendingDown className="h-5 w-5 text-red-600 mr-2" />
                 <span className="text-sm font-medium text-gray-600">Décaissements Prévus</span>
               </div>
-              <div className="text-xl font-bold text-red-600">
+              <div className="text-lg font-bold text-red-600">
                 {formatCurrency(forecastSummary.totalOutflows)}
               </div>
             </CardContent>
@@ -263,7 +263,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 <DollarSign className="h-5 w-5 text-blue-600 mr-2" />
                 <span className="text-sm font-medium text-gray-600">Cash Flow Net</span>
               </div>
-              <div className={`text-xl font-bold ${forecastSummary.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`text-lg font-bold ${forecastSummary.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {forecastSummary.netCashFlow >= 0 ? '+' : ''}{formatCurrency(forecastSummary.netCashFlow)}
               </div>
             </CardContent>
@@ -275,7 +275,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
                 <Target className="h-5 w-5 text-purple-600 mr-2" />
                 <span className="text-sm font-medium text-gray-600">Position Finale</span>
               </div>
-              <div className={`text-xl font-bold ${forecastSummary.finalPosition >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`text-lg font-bold ${forecastSummary.finalPosition >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(forecastSummary.finalPosition)}
               </div>
               <div className="mt-1">
@@ -604,7 +604,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
           <div className="grid gap-4 md:grid-cols-3">
             <div className="text-center p-4 border rounded-lg">
               <p className="text-sm font-medium text-gray-600">Temps Génération Prévisions</p>
-              <p className="text-xl font-bold text-blue-600">
+              <p className="text-lg font-bold text-blue-600">
                 {cashFlowForecast?.performance_metrics?.generation_time_ms || 0}ms
               </p>
               <p className="text-xs text-gray-700">
@@ -614,7 +614,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
             
             <div className="text-center p-4 border rounded-lg">
               <p className="text-sm font-medium text-gray-600">Précision Prévisions</p>
-              <p className="text-xl font-bold text-green-600">
+              <p className="text-lg font-bold text-green-600">
                 {formatPercent(cashFlowForecast?.performance_metrics?.forecast_accuracy || 0)}
               </p>
               <p className="text-xs text-gray-700">
@@ -624,7 +624,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
             
             <div className="text-center p-4 border rounded-lg">
               <p className="text-sm font-medium text-gray-600">Couverture Données</p>
-              <p className="text-xl font-bold text-purple-600">
+              <p className="text-lg font-bold text-purple-600">
                 {formatPercent(cashFlowForecast?.performance_metrics?.data_coverage || 0)}
               </p>
               <p className="text-xs text-gray-700">

@@ -36,7 +36,7 @@ const FinancialStatementsPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#191919]">États Financiers SYSCOHADA</h1>
+          <h1 className="text-lg font-bold text-[#191919]">États Financiers SYSCOHADA</h1>
           <p className="text-[#767676] mt-1">
             Bilan, Compte de Résultat et Ratios Financiers
           </p>

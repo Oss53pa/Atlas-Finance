@@ -1,9 +1,9 @@
 /**
- * Système de Réponse Intelligente pour Paloma
+ * Système de Réponse Intelligente pour Proph3t
  * Génération de réponses basées sur la compréhension contextuelle
  */
 
-import { searchKnowledge, KnowledgeEntry, wiseBookKnowledge } from '../knowledge/wiseBookKnowledge';
+import { searchKnowledge, KnowledgeEntry, atlasFinanceKnowledge } from '../knowledge/atlasFinanceKnowledge';
 import { palomaLearningSystem } from './learningSystem';
 
 export interface IntelligentResponse {
@@ -139,7 +139,7 @@ export class IntelligentResponseGenerator {
 
     // Si pas assez de résultats, chercher par similarité
     if (results.length < 3) {
-      const allEntries = wiseBookKnowledge;
+      const allEntries = atlasFinanceKnowledge;
       const scored = allEntries.map(entry => ({
         entry,
         score: this.analyzer.calculateRelevance(query, entry)
@@ -352,7 +352,7 @@ export class IntelligentResponseGenerator {
     );
 
     if (closeModule) {
-      const moduleEntries = wiseBookKnowledge.filter(e =>
+      const moduleEntries = atlasFinanceKnowledge.filter(e =>
         e.category === closeModule
       ).slice(0, 3);
 
@@ -394,7 +394,7 @@ export class IntelligentResponseGenerator {
   }
 
   private formatTopicName(topicId: string): string {
-    const entry = wiseBookKnowledge.find(e => e.id === topicId);
+    const entry = atlasFinanceKnowledge.find(e => e.id === topicId);
     return entry ? entry.title : topicId.replace('-', ' ');
   }
 
@@ -403,7 +403,7 @@ export class IntelligentResponseGenerator {
 
     if (entry.relatedTopics) {
       entry.relatedTopics.forEach(topicId => {
-        const related = wiseBookKnowledge.find(e => e.id === topicId);
+        const related = atlasFinanceKnowledge.find(e => e.id === topicId);
         if (related) {
           suggestions.push(related.title);
         }
@@ -427,7 +427,7 @@ export class IntelligentResponseGenerator {
     results.forEach(r => {
       if (r.relatedTopics) {
         r.relatedTopics.forEach(t => {
-          const entry = wiseBookKnowledge.find(e => e.id === t);
+          const entry = atlasFinanceKnowledge.find(e => e.id === t);
           if (entry) {
             allSuggestions.add(entry.title);
           }

@@ -382,7 +382,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
         showPrintButton={false}
         headerContent={
           <div className="text-center mb-4">
-            <h2 className="text-xl font-bold">États Financiers SYSCOHADA</h2>
+            <h2 className="text-lg font-bold">États Financiers SYSCOHADA</h2>
             <p className="text-sm text-gray-600">{tabs.find(t => t.id === activeTab)?.label || 'Bilan'}</p>
           </div>
         }
@@ -400,7 +400,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
             </button>
             <div className="h-6 w-px bg-[#E8E8E8]" />
             <div>
-              <h1 className="text-2xl font-bold text-[#191919]">États Financiers SYSCOHADA</h1>
+              <h1 className="text-lg font-bold text-[#191919]">États Financiers SYSCOHADA</h1>
               <p className="text-sm text-[#767676]">Présentation normalisée selon le référentiel SYSCOHADA</p>
             </div>
           </div>
@@ -450,7 +450,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">BILAN SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">BILAN SYSCOHADA</h2>
                 <p className="text-[#767676]">Exercice du 01/01/2024 au 31/12/2024</p>
               </div>
 
@@ -664,7 +664,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">COMPTE DE RÉSULTAT SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">COMPTE DE RÉSULTAT SYSCOHADA</h2>
                 <p className="text-[#767676]">Exercice du 01/01/2024 au 31/12/2024</p>
               </div>
 
@@ -741,12 +741,12 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-6">
                     <div className="p-4 border border-[#E8E8E8] rounded">
                       <p className="text-[#767676] font-medium mb-2">Exercice N</p>
-                      <p className="text-2xl font-bold text-[#191919]">1 140 000 €</p>
+                      <p className="text-lg font-bold text-[#191919]">1 140 000 €</p>
                       <p className="text-sm text-[#767676] mt-1">(Bénéfice)</p>
                     </div>
                     <div className="p-4 border border-[#E8E8E8] rounded">
                       <p className="text-[#767676] font-medium mb-2">Exercice N-1</p>
-                      <p className="text-2xl font-bold text-[#191919]">935 000 €</p>
+                      <p className="text-lg font-bold text-[#191919]">935 000 €</p>
                       <p className="text-sm text-[#767676] mt-1">(Bénéfice)</p>
                     </div>
                   </div>
@@ -759,7 +759,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'bilan-fonctionnel' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">BILAN FONCTIONNEL</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">BILAN FONCTIONNEL</h2>
                 <p className="text-[#767676]">Analyse par fonction économique</p>
               </div>
 
@@ -839,17 +839,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 border border-[#E8E8E8] rounded text-center">
                     <h4 className="font-semibold text-[#191919] mb-2">Fonds de Roulement Net Global</h4>
-                    <p className="text-2xl font-bold text-[#191919]">770 000 €</p>
+                    <p className="text-lg font-bold text-[#191919]">770 000 €</p>
                     <p className="text-sm text-[#767676]">Ressources stables - Emplois stables</p>
                   </div>
                   <div className="p-4 border border-[#E8E8E8] rounded text-center">
                     <h4 className="font-semibold text-[#191919] mb-2">Besoin en Fonds de Roulement</h4>
-                    <p className="text-2xl font-bold text-[#191919]">1 265 000 €</p>
+                    <p className="text-lg font-bold text-[#191919]">1 265 000 €</p>
                     <p className="text-sm text-[#767676]">AC exploitation - PC exploitation</p>
                   </div>
                   <div className="p-4 border border-[#E8E8E8] rounded text-center">
                     <h4 className="font-semibold text-[#191919] mb-2">Trésorerie Nette</h4>
-                    <p className="text-2xl font-bold text-red-600">-495 000 €</p>
+                    <p className="text-lg font-bold text-red-600">-495 000 €</p>
                     <p className="text-sm text-[#767676]">FRNG - BFR</p>
                   </div>
                 </div>
@@ -861,7 +861,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'sig' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">SOLDES INTERMÉDIAIRES DE GESTION</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">SOLDES INTERMÉDIAIRES DE GESTION</h2>
                 <p className="text-[#767676]">Analyse de la formation du résultat</p>
               </div>
 
@@ -893,17 +893,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
                   <h4 className="font-bold text-[#191919] mb-2">Taux de marge commerciale</h4>
-                  <p className="text-2xl font-bold text-[#191919]">38.8%</p>
+                  <p className="text-lg font-bold text-[#191919]">38.8%</p>
                   <p className="text-sm text-[#767676]">Marge / CA marchandises</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
                   <h4 className="font-bold text-[#191919] mb-2">Taux de valeur ajoutée</h4>
-                  <p className="text-2xl font-bold text-[#191919]">38.6%</p>
+                  <p className="text-lg font-bold text-[#191919]">38.6%</p>
                   <p className="text-sm text-[#767676]">VA / Production</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
                   <h4 className="font-bold text-[#191919] mb-2">Taux de rentabilité</h4>
-                  <p className="text-2xl font-bold text-[#191919]">4.1%</p>
+                  <p className="text-lg font-bold text-[#191919]">4.1%</p>
                   <p className="text-sm text-[#767676]">Résultat / CA total</p>
                 </div>
               </div>
@@ -914,7 +914,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'ratios' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">RATIOS FINANCIERS</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">RATIOS FINANCIERS</h2>
                 <p className="text-[#767676]">Analyse de la situation financière</p>
               </div>
 
@@ -967,7 +967,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'tableau-financement' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">TABLEAU DE FINANCEMENT SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">TABLEAU DE FINANCEMENT SYSCOHADA</h2>
                 <p className="text-[#767676]">Analyse des ressources et emplois de fonds</p>
               </div>
 
@@ -1073,7 +1073,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 <div className="flex justify-center">
                   <div className="p-6 border border-[#E8E8E8] rounded-lg">
                     <p className="text-[#767676] font-medium mb-2">Ressources - Emplois</p>
-                    <p className="text-3xl font-bold text-[#191919]">+125 000 €</p>
+                    <p className="text-lg font-bold text-[#191919]">+125 000 €</p>
                     <p className="text-sm text-[#767676] mt-2">Augmentation du fonds de roulement</p>
                   </div>
                 </div>
@@ -1085,7 +1085,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'flux-tresorerie' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">TABLEAU DE FLUX DE TRÉSORERIE</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">TABLEAU DE FLUX DE TRÉSORERIE</h2>
                 <p className="text-[#767676]">Flux de trésorerie par activité selon SYSCOHADA</p>
               </div>
 
@@ -1219,15 +1219,15 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                     <div className="p-4 border border-[#E8E8E8] rounded">
                       <p className="text-[#767676] font-medium mb-2">Trésorerie début d'exercice</p>
-                      <p className="text-xl font-bold text-[#191919]">600 000 €</p>
+                      <p className="text-lg font-bold text-[#191919]">600 000 €</p>
                     </div>
                     <div className="p-4 border border-[#E8E8E8] rounded">
                       <p className="text-[#767676] font-medium mb-2">Variation nette</p>
-                      <p className="text-xl font-bold text-[#191919]">+285 000 €</p>
+                      <p className="text-lg font-bold text-[#191919]">+285 000 €</p>
                     </div>
                     <div className="p-4 border border-[#E8E8E8] rounded">
                       <p className="text-[#767676] font-medium mb-2">Trésorerie fin d'exercice</p>
-                      <p className="text-xl font-bold text-[#191919]">885 000 €</p>
+                      <p className="text-lg font-bold text-[#191919]">885 000 €</p>
                     </div>
                   </div>
                 </div>
@@ -1239,7 +1239,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'export' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-[#191919] mb-2">EXPORT DES ÉTATS FINANCIERS</h2>
+                <h2 className="text-lg font-bold text-[#191919] mb-2">EXPORT DES ÉTATS FINANCIERS</h2>
                 <p className="text-[#767676]">Téléchargement et impression des documents</p>
               </div>
 
@@ -1292,7 +1292,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-[#E8E8E8]">
-              <h2 className="text-xl font-bold text-[#191919]">{selectedDetail.title}</h2>
+              <h2 className="text-lg font-bold text-[#191919]">{selectedDetail.title}</h2>
               <button
                 onClick={closeModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">

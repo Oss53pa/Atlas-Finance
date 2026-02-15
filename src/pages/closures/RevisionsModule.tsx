@@ -762,7 +762,7 @@ const RevisionsModule: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919] flex items-center gap-3">
+            <h1 className="text-lg font-bold text-[#191919] flex items-center gap-3">
               <FileSearch className="w-7 h-7 text-[#6A8A82]" />
               Module de Révisions Comptables
             </h1>
@@ -826,7 +826,7 @@ const RevisionsModule: React.FC = () => {
               <span className="text-sm text-blue-700">Total Points</span>
               <FileSearch className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-2xl font-bold text-blue-900">{stats.total}</p>
+            <p className="text-lg font-bold text-blue-900">{stats.total}</p>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
@@ -834,7 +834,7 @@ const RevisionsModule: React.FC = () => {
               <span className="text-sm text-orange-700">En cours</span>
               <Clock className="w-5 h-5 text-orange-600" />
             </div>
-            <p className="text-2xl font-bold text-orange-900">{stats.enCours}</p>
+            <p className="text-lg font-bold text-orange-900">{stats.enCours}</p>
           </div>
 
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
@@ -842,7 +842,7 @@ const RevisionsModule: React.FC = () => {
               <span className="text-sm text-green-700">Validées</span>
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
-            <p className="text-2xl font-bold text-green-900">{stats.validees}</p>
+            <p className="text-lg font-bold text-green-900">{stats.validees}</p>
           </div>
 
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
@@ -850,7 +850,7 @@ const RevisionsModule: React.FC = () => {
               <span className="text-sm text-red-700">Critiques</span>
               <AlertOctagon className="w-5 h-5 text-red-600" />
             </div>
-            <p className="text-2xl font-bold text-red-900">{stats.critiques}</p>
+            <p className="text-lg font-bold text-red-900">{stats.critiques}</p>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
@@ -874,7 +874,7 @@ const RevisionsModule: React.FC = () => {
               <span className="text-sm text-indigo-700">Complétion</span>
               <Activity className="w-5 h-5 text-indigo-600" />
             </div>
-            <p className="text-2xl font-bold text-indigo-900">{stats.tauxCompletion}%</p>
+            <p className="text-lg font-bold text-indigo-900">{stats.tauxCompletion}%</p>
             <Progress value={stats.tauxCompletion} className="h-1 mt-2" />
           </div>
         </div>
@@ -1324,19 +1324,19 @@ const RevisionsModule: React.FC = () => {
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                 <p className="text-sm text-orange-700">PAJE Proposés</p>
-                <p className="text-2xl font-bold text-orange-900">
+                <p className="text-lg font-bold text-orange-900">
                   {revisions.filter(r => r.ecritureProposee?.statut === 'propose').length}
                 </p>
               </div>
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <p className="text-sm text-green-700">AAJE Acceptés</p>
-                <p className="text-2xl font-bold text-green-900">
+                <p className="text-lg font-bold text-green-900">
                   {revisions.filter(r => r.ecritureProposee?.statut === 'accepte').length}
                 </p>
               </div>
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <p className="text-sm text-blue-700">Comptabilisés</p>
-                <p className="text-2xl font-bold text-blue-900">
+                <p className="text-lg font-bold text-blue-900">
                   {revisions.filter(r => r.ecritureProposee?.statut === 'comptabilise').length}
                 </p>
               </div>
@@ -1502,7 +1502,7 @@ const RevisionsModule: React.FC = () => {
                   }`}
                 >
                   <p className="text-xs text-[#767676] mb-1">{ratio.nom}</p>
-                  <p className="text-xl font-bold text-[#191919]">{ratio.valeur}</p>
+                  <p className="text-lg font-bold text-[#191919]">{ratio.valeur}</p>
                   <p className="text-xs text-[#767676]">Norme: {ratio.norme}</p>
                 </div>
               ))}
@@ -1522,7 +1522,7 @@ const RevisionsModule: React.FC = () => {
                   <FileSearch className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#191919]">Détail de la Révision</h2>
+                  <h2 className="text-lg font-bold text-[#191919]">Détail de la Révision</h2>
                   <p className="text-sm text-[#767676]">{selectedRevision.id} - {selectedRevision.referentiel}</p>
                 </div>
               </div>
@@ -1588,7 +1588,7 @@ const RevisionsModule: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-xs text-[#767676] mb-1">Montant</p>
-                          <p className="text-xl font-bold text-[#191919]">{formatMontant(selectedRevision.montant)}</p>
+                          <p className="text-lg font-bold text-[#191919]">{formatMontant(selectedRevision.montant)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-[#767676] mb-1">Impact</p>
@@ -1812,7 +1812,7 @@ const RevisionsModule: React.FC = () => {
                   <Layers className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#191919]">Lead Schedule - {selectedLeadSchedule.cycle}</h2>
+                  <h2 className="text-lg font-bold text-[#191919]">Lead Schedule - {selectedLeadSchedule.cycle}</h2>
                   <p className="text-sm text-[#767676]">Feuille de travail principale</p>
                 </div>
               </div>
@@ -1830,15 +1830,15 @@ const RevisionsModule: React.FC = () => {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <p className="text-xs text-[#767676]">Solde N-1</p>
-                    <p className="text-xl font-bold">{formatMontant(selectedLeadSchedule.soldePrecedent)}</p>
+                    <p className="text-lg font-bold">{formatMontant(selectedLeadSchedule.soldePrecedent)}</p>
                   </div>
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <p className="text-xs text-[#767676]">Solde N</p>
-                    <p className="text-xl font-bold">{formatMontant(selectedLeadSchedule.soldeActuel)}</p>
+                    <p className="text-lg font-bold">{formatMontant(selectedLeadSchedule.soldeActuel)}</p>
                   </div>
                   <div className={`p-4 rounded-lg ${selectedLeadSchedule.variation >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
                     <p className="text-xs text-[#767676]">Variation</p>
-                    <p className={`text-xl font-bold ${selectedLeadSchedule.variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-lg font-bold ${selectedLeadSchedule.variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {selectedLeadSchedule.variation >= 0 ? '+' : ''}{selectedLeadSchedule.variationPourcent}%
                     </p>
                   </div>
@@ -1950,7 +1950,7 @@ const RevisionsModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <h2 className="text-xl font-bold text-[#191919]">Nouvelle Révision Comptable</h2>
+              <h2 className="text-lg font-bold text-[#191919]">Nouvelle Révision Comptable</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -2115,7 +2115,7 @@ const RevisionsModule: React.FC = () => {
                     <Scale className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-[#191919]">Créer une Écriture d'Ajustement</h2>
+                    <h2 className="text-lg font-bold text-[#191919]">Créer une Écriture d'Ajustement</h2>
                     <p className="text-sm text-[#767676]">
                       Révision: {selectedRevision.id} - {selectedRevision.compte} {selectedRevision.libelleCompte}
                     </p>
@@ -2425,7 +2425,7 @@ const RevisionsModule: React.FC = () => {
                     <Edit className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-[#191919]">Modifier la Révision</h2>
+                    <h2 className="text-lg font-bold text-[#191919]">Modifier la Révision</h2>
                     <p className="text-sm text-[#767676]">{selectedRevision.id}</p>
                   </div>
                 </div>

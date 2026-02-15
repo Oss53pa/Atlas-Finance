@@ -457,7 +457,7 @@ const ProfilsSecuritePage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Shield className="mr-3 h-7 w-7 text-blue-600" />
               Profils de Sécurité
             </h1>
@@ -496,7 +496,7 @@ const ProfilsSecuritePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Profils Actifs</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-lg font-bold text-blue-700">
                     {activeProfiles}/{profiles.length}
                   </p>
                 </div>
@@ -518,7 +518,7 @@ const ProfilsSecuritePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Utilisateurs Gérés</p>
-                  <p className="text-2xl font-bold text-green-700">{totalUsers}</p>
+                  <p className="text-lg font-bold text-green-700">{totalUsers}</p>
                 </div>
               </div>
             </CardContent>
@@ -538,7 +538,7 @@ const ProfilsSecuritePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Profils Système</p>
-                  <p className="text-2xl font-bold text-purple-700">{systemProfiles}</p>
+                  <p className="text-lg font-bold text-purple-700">{systemProfiles}</p>
                 </div>
               </div>
             </CardContent>
@@ -558,7 +558,7 @@ const ProfilsSecuritePage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Profils Personnalisés</p>
-                  <p className="text-2xl font-bold text-orange-700">{customProfiles}</p>
+                  <p className="text-lg font-bold text-orange-700">{customProfiles}</p>
                 </div>
               </div>
             </CardContent>

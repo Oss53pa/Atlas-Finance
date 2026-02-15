@@ -270,7 +270,6 @@ const CollaborationModule: React.FC = () => {
     if (!message.trim()) return;
 
     // Logique d'envoi du message
-    console.log('Envoi du message:', message);
     setMessage('');
   };
 

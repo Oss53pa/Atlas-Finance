@@ -1,5 +1,5 @@
-/* WiseBook V3.0 - Styles de base optimisés */
-@import url('https://fonts.googleapis.com/css2?family=Sometype+Mono:wght@400;500;600;700&display=swap');
+/* Atlas Finance - Styles de base optimisés */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Grand+Hotel&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,7 +7,7 @@
 
 /* Empêcher le flash de contenu non stylisé (FOUC) */
 html {
-  font-family: 'Sometype Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: 'Exo 2', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -15,8 +15,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background-color: #f1f5f9;
-  color: #353A3B;
+  background-color: #fafafa;
+  color: #171717;
   min-height: 100vh;
 }
 
@@ -30,7 +30,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #7A8B8E 0%, #353A3B 100%);
+  background: linear-gradient(135deg, #e5e5e5 0%, #171717 100%);
 }
 
 .loading-spinner {

@@ -59,7 +59,7 @@ const TrackChangePage: React.FC = () => {
       module: 'Notifications',
       action: 'Ajout',
       description: 'Ajout d\'un email de notification',
-      details: 'Email: admin@wisebook.com',
+      details: 'Email: admin@atlasfinance.com',
       status: 'success'
     },
     {
@@ -125,7 +125,7 @@ const TrackChangePage: React.FC = () => {
     <div className="w-full space-y-6 animate-fadeIn">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
           <History className="w-8 h-8" />
           Suivi des Modifications
         </h1>
@@ -408,7 +408,7 @@ const TrackChangePage: React.FC = () => {
         <ModernCard>
           <CardBody>
             <div className="text-center">
-              <div className="text-3xl font-bold text-[var(--color-primary)]">
+              <div className="text-lg font-bold text-[var(--color-primary)]">
                 {changeLogs.length}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -421,7 +421,7 @@ const TrackChangePage: React.FC = () => {
         <ModernCard>
           <CardBody>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-lg font-bold text-green-600">
                 {changeLogs.filter(l => l.action === 'Ajout').length}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -434,7 +434,7 @@ const TrackChangePage: React.FC = () => {
         <ModernCard>
           <CardBody>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">
+              <div className="text-lg font-bold text-orange-600">
                 {changeLogs.filter(l => l.action === 'Modification').length}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -447,7 +447,7 @@ const TrackChangePage: React.FC = () => {
         <ModernCard>
           <CardBody>
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-600">
+              <div className="text-lg font-bold text-red-600">
                 {changeLogs.filter(l => l.action === 'Suppression').length}
               </div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -477,7 +477,7 @@ const TrackChangePage: React.FC = () => {
                   }`} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détails de l'action</h2>
+                  <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Détails de l'action</h2>
                   <p className="text-sm text-[var(--color-text-secondary)]">#{selectedLog.id}</p>
                 </div>
               </div>

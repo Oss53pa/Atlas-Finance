@@ -326,7 +326,7 @@ const ControlePeriodes: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-[#191919] flex items-center space-x-2">
+            <h2 className="text-lg font-bold text-[#191919] flex items-center space-x-2">
               <Shield className="w-6 h-6 text-[#6A8A82]" />
               <span>Contrôle des Périodes de Clôture</span>
             </h2>
@@ -353,42 +353,42 @@ const ControlePeriodes: React.FC = () => {
               <span className="text-sm text-[var(--color-text-primary)]">Total</span>
               <Calendar className="w-4 h-4 text-[var(--color-text-secondary)]" />
             </div>
-            <p className="text-2xl font-bold">{stats.totalPeriodes}</p>
+            <p className="text-lg font-bold">{stats.totalPeriodes}</p>
           </div>
           <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-success-dark)]">Ouvertes</span>
               <PlayCircle className="w-4 h-4 text-[var(--color-success)]" />
             </div>
-            <p className="text-2xl font-bold text-[var(--color-success-darker)]">{stats.ouvertes}</p>
+            <p className="text-lg font-bold text-[var(--color-success-darker)]">{stats.ouvertes}</p>
           </div>
           <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-warning-dark)]">En clôture</span>
               <PauseCircle className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
-            <p className="text-2xl font-bold text-yellow-800">{stats.enCloture}</p>
+            <p className="text-lg font-bold text-yellow-800">{stats.enCloture}</p>
           </div>
           <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-primary-dark)]">Fermées</span>
               <StopCircle className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
-            <p className="text-2xl font-bold text-[var(--color-primary-darker)]">{stats.fermees}</p>
+            <p className="text-lg font-bold text-[var(--color-primary-darker)]">{stats.fermees}</p>
           </div>
           <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-error-dark)]">Verrouillées</span>
               <Lock className="w-4 h-4 text-[var(--color-error)]" />
             </div>
-            <p className="text-2xl font-bold text-red-800">{stats.verrouillees}</p>
+            <p className="text-lg font-bold text-red-800">{stats.verrouillees}</p>
           </div>
           <div className="p-4 bg-orange-50 rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--color-warning-dark)]">Retards</span>
               <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
-            <p className="text-2xl font-bold text-orange-800">{stats.retards}</p>
+            <p className="text-lg font-bold text-orange-800">{stats.retards}</p>
           </div>
         </div>
       </div>

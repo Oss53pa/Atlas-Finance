@@ -430,7 +430,7 @@ const GestionStocks: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Valeur Stock Total</p>
-                <p className="text-2xl font-bold">{(kpis.valeurTotaleStock / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.valeurTotaleStock / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">+5% vs mois dernier</p>
               </div>
               <Warehouse className="w-8 h-8 text-[var(--color-primary)]" />
@@ -443,7 +443,7 @@ const GestionStocks: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Articles Critiques</p>
-                <p className="text-2xl font-bold text-[var(--color-error)]">{kpis.nbArticlesCritiques}</p>
+                <p className="text-lg font-bold text-[var(--color-error)]">{kpis.nbArticlesCritiques}</p>
                 <p className="text-xs text-[var(--color-text-secondary)] mt-1">Réapprovisionnement urgent</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-[var(--color-error)]" />
@@ -456,7 +456,7 @@ const GestionStocks: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Rotation Moyenne</p>
-                <p className="text-2xl font-bold">{kpis.rotationMoyenne.toFixed(1)}x</p>
+                <p className="text-lg font-bold">{kpis.rotationMoyenne.toFixed(1)}x</p>
                 <Progress value={kpis.rotationMoyenne * 10} className="mt-2" />
               </div>
               <RefreshCw className="w-8 h-8 text-[var(--color-success)]" />
@@ -469,7 +469,7 @@ const GestionStocks: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Taux Couverture</p>
-                <p className="text-2xl font-bold">{kpis.tauxCouverture.toFixed(1)}%</p>
+                <p className="text-lg font-bold">{kpis.tauxCouverture.toFixed(1)}%</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">Objectif: 95%</p>
               </div>
               <Target className="w-8 h-8 text-purple-500" />
@@ -539,7 +539,7 @@ const GestionStocks: React.FC = () => {
                       <p className="text-sm text-[var(--color-text-primary)]">Articles consommables</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-[var(--color-success)]">12</p>
+                      <p className="text-lg font-bold text-[var(--color-success)]">12</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">articles</p>
                     </div>
                   </div>
@@ -549,7 +549,7 @@ const GestionStocks: React.FC = () => {
                       <p className="text-sm text-[var(--color-text-primary)]">Équipements standards</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-[var(--color-warning)]">25</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">25</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">articles</p>
                     </div>
                   </div>
@@ -559,7 +559,7 @@ const GestionStocks: React.FC = () => {
                       <p className="text-sm text-[var(--color-text-primary)]">{t('navigation.assets')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-[var(--color-error)]">8</p>
+                      <p className="text-lg font-bold text-[var(--color-error)]">8</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">articles</p>
                     </div>
                   </div>
@@ -579,7 +579,7 @@ const GestionStocks: React.FC = () => {
                   return (
                     <div key={mois} className="text-center p-3 border rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">{mois}</p>
-                      <p className="text-xl font-bold">{valeurs[index]}M</p>
+                      <p className="text-lg font-bold">{valeurs[index]}M</p>
                       <div className="w-full bg-[var(--color-border)] rounded-full h-2 mt-2">
                         <div
                           className="bg-[var(--color-primary)] h-2 rounded-full"
@@ -729,7 +729,7 @@ const GestionStocks: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Entrées du Jour</p>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">3</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">3</p>
                   </div>
                   <ArrowUpRight className="w-6 h-6 text-[var(--color-success)]" />
                 </div>
@@ -740,7 +740,7 @@ const GestionStocks: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Sorties du Jour</p>
-                    <p className="text-2xl font-bold text-[var(--color-error)]">8</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">8</p>
                   </div>
                   <ArrowDownRight className="w-6 h-6 text-[var(--color-error)]" />
                 </div>
@@ -751,7 +751,7 @@ const GestionStocks: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Ajustements</p>
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">2</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">2</p>
                   </div>
                   <Edit className="w-6 h-6 text-orange-500" />
                 </div>
@@ -762,7 +762,7 @@ const GestionStocks: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">En Attente</p>
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">1</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">1</p>
                   </div>
                   <Clock className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
@@ -874,7 +874,7 @@ const GestionStocks: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Inventaire en Cours</p>
-                    <p className="text-2xl font-bold">1</p>
+                    <p className="text-lg font-bold">1</p>
                     <p className="text-xs text-[var(--color-primary)] mt-1">45% complété</p>
                   </div>
                   <Activity className="w-8 h-8 text-[var(--color-primary)]" />
@@ -886,7 +886,7 @@ const GestionStocks: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Écart Moyen</p>
-                    <p className="text-2xl font-bold">-1.2%</p>
+                    <p className="text-lg font-bold">-1.2%</p>
                     <p className="text-xs text-[var(--color-success)] mt-1">Dans la norme</p>
                   </div>
                   <Calculator className="w-8 h-8 text-[var(--color-success)]" />
@@ -898,7 +898,7 @@ const GestionStocks: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Dernier Inventaire</p>
-                    <p className="text-2xl font-bold">5j</p>
+                    <p className="text-lg font-bold">5j</p>
                     <p className="text-xs text-[var(--color-text-primary)] mt-1">INV-2024-12</p>
                   </div>
                   <Calendar className="w-8 h-8 text-purple-500" />
@@ -999,7 +999,7 @@ const GestionStocks: React.FC = () => {
                       <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">65%</Badge>
                     </div>
                     <p className="text-sm text-[var(--color-text-primary)]">Premier Entré, Premier Sorti</p>
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">16.5M FCFA</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">16.5M FCFA</p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-center mb-2">
@@ -1007,7 +1007,7 @@ const GestionStocks: React.FC = () => {
                       <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">30%</Badge>
                     </div>
                     <p className="text-sm text-[var(--color-text-primary)]">Coût Moyen Unitaire Pondéré</p>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">7.6M FCFA</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">7.6M FCFA</p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-center mb-2">
@@ -1015,7 +1015,7 @@ const GestionStocks: React.FC = () => {
                       <Badge className="bg-[var(--color-warning-lighter)] text-orange-800">5%</Badge>
                     </div>
                     <p className="text-sm text-[var(--color-text-primary)]">Dernier Entré, Premier Sorti</p>
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">1.4M FCFA</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">1.4M FCFA</p>
                   </div>
                 </div>
               </CardContent>
@@ -1039,14 +1039,14 @@ const GestionStocks: React.FC = () => {
                         <p className="font-medium">Obsolescence</p>
                         <p className="text-sm text-[var(--color-text-primary)]">8 articles concernés</p>
                       </div>
-                      <p className="text-xl font-bold text-[var(--color-warning)]">540K</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">540K</p>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-[var(--color-error-lightest)] rounded">
                       <div>
                         <p className="font-medium">Dépréciation</p>
                         <p className="text-sm text-[var(--color-text-primary)]">3 articles concernés</p>
                       </div>
-                      <p className="text-xl font-bold text-[var(--color-error)]">275K</p>
+                      <p className="text-lg font-bold text-[var(--color-error)]">275K</p>
                     </div>
                   </div>
                   <button
@@ -1084,7 +1084,7 @@ const GestionStocks: React.FC = () => {
                   </div>
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Économies Fiscales</h4>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">245K FCFA</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">245K FCFA</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Provisions déductibles</p>
                   </div>
                 </div>
@@ -1124,7 +1124,7 @@ const GestionStocks: React.FC = () => {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <p className="text-sm text-[var(--color-text-primary)]">Demande prévue</p>
-                              <p className="text-xl font-bold">{prevision.demandePrevue}</p>
+                              <p className="text-lg font-bold">{prevision.demandePrevue}</p>
                             </div>
                             <div>
                               <p className="text-sm text-[var(--color-text-primary)]">Fiabilité</p>

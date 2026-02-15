@@ -70,7 +70,7 @@ const UsersPage: React.FC = () => {
           id: '1',
           firstName: 'Marie',
           lastName: 'Dubois',
-          email: 'marie.dubois@wisebook.com',
+          email: 'marie.dubois@atlasfinance.com',
           phone: '+225 01 23 45 67',
           status: 'active',
           role: 'Administrateur',
@@ -89,7 +89,7 @@ const UsersPage: React.FC = () => {
           id: '2',
           firstName: 'Jean',
           lastName: 'Kouassi',
-          email: 'jean.kouassi@wisebook.com',
+          email: 'jean.kouassi@atlasfinance.com',
           phone: '+225 02 34 56 78',
           status: 'active',
           role: 'Manager Commercial',
@@ -108,7 +108,7 @@ const UsersPage: React.FC = () => {
           id: '3',
           firstName: 'Paul',
           lastName: 'Martin',
-          email: 'paul.martin@wisebook.com',
+          email: 'paul.martin@atlasfinance.com',
           phone: '+225 03 45 67 89',
           status: 'active',
           role: 'Contrôleur de Gestion',
@@ -127,7 +127,7 @@ const UsersPage: React.FC = () => {
           id: '4',
           firstName: 'Sophie',
           lastName: 'Koné',
-          email: 'sophie.kone@wisebook.com',
+          email: 'sophie.kone@atlasfinance.com',
           phone: '+225 04 56 78 90',
           status: 'locked',
           role: 'RH Manager',
@@ -146,7 +146,7 @@ const UsersPage: React.FC = () => {
           id: '5',
           firstName: 'Ahmed',
           lastName: 'Diallo',
-          email: 'ahmed.diallo@wisebook.com',
+          email: 'ahmed.diallo@atlasfinance.com',
           phone: '+225 05 67 89 01',
           status: 'inactive',
           role: 'Comptable',
@@ -165,7 +165,7 @@ const UsersPage: React.FC = () => {
           id: '6',
           firstName: 'Fatima',
           lastName: 'Traoré',
-          email: 'fatima.traore@wisebook.com',
+          email: 'fatima.traore@atlasfinance.com',
           phone: '+225 06 78 90 12',
           status: 'active',
           role: 'Analyste Financier',
@@ -330,7 +330,7 @@ const UsersPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+          <h1 className="text-lg font-bold text-gray-900">Gestion des Utilisateurs</h1>
           <p className="text-gray-600">Administration des comptes utilisateurs et permissions</p>
         </div>
         <button
@@ -348,7 +348,7 @@ const UsersPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Utilisateurs</p>
-              <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
+              <p className="text-lg font-bold text-gray-900">{totalUsers}</p>
             </div>
             <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <UserIcon className="h-6 w-6 text-blue-600" />
@@ -360,7 +360,7 @@ const UsersPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Utilisateurs Actifs</p>
-              <p className="text-2xl font-bold text-green-600">{activeUsers}</p>
+              <p className="text-lg font-bold text-green-600">{activeUsers}</p>
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
               <CheckCircleIcon className="h-6 w-6 text-green-600" />
@@ -372,7 +372,7 @@ const UsersPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Comptes Verrouillés</p>
-              <p className="text-2xl font-bold text-red-600">{lockedUsers}</p>
+              <p className="text-lg font-bold text-red-600">{lockedUsers}</p>
             </div>
             <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
               <LockClosedIcon className="h-6 w-6 text-red-600" />
@@ -384,7 +384,7 @@ const UsersPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Non Vérifiés</p>
-              <p className="text-2xl font-bold text-orange-600">{unverifiedUsers}</p>
+              <p className="text-lg font-bold text-orange-600">{unverifiedUsers}</p>
             </div>
             <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <XCircleIcon className="h-6 w-6 text-orange-600" />
@@ -742,12 +742,12 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Nouvel Utilisateur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Nouvel Utilisateur</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -784,7 +784,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="email"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="marie.dubois@wisebook.com"
+                    placeholder="marie.dubois@atlasfinance.com"
                   />
                 </div>
 
@@ -914,7 +914,7 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Détails de l'Utilisateur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Détails de l'Utilisateur</h2>
               <button
                 onClick={() => {
                   setShowViewModal(false);
@@ -922,7 +922,7 @@ const UsersPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -933,7 +933,7 @@ const UsersPage: React.FC = () => {
                     <UserIcon className="h-10 w-10 text-gray-600" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-900">
                       {selectedUser.firstName} {selectedUser.lastName}
                     </h3>
                     <p className="text-gray-700">{selectedUser.email}</p>
@@ -1099,7 +1099,7 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-semibold text-gray-900">Modifier l'Utilisateur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Modifier l'Utilisateur</h2>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -1107,7 +1107,7 @@ const UsersPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 
@@ -1267,7 +1267,7 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Gérer les Permissions</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Gérer les Permissions</h2>
               <button
                 onClick={() => {
                   setShowPermissionsModal(false);
@@ -1275,7 +1275,7 @@ const UsersPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-700"
               >
-                <span className="text-2xl">&times;</span>
+                <span className="text-xl">&times;</span>
               </button>
             </div>
 

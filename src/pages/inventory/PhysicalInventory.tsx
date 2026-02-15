@@ -127,7 +127,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
       <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">Create Physical Count</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Create Physical Count</h3>
             <button
               onClick={onClose}
               className="text-gray-700 hover:text-gray-600"
@@ -357,7 +357,7 @@ const CountDetailsModal: React.FC<CountDetailsModalProps> = ({
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">{count.countNumber}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{count.countNumber}</h3>
               <p className="text-gray-600">{location?.name}</p>
             </div>
             <button
@@ -371,23 +371,23 @@ const CountDetailsModal: React.FC<CountDetailsModalProps> = ({
           {/* Status and Progress */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-[#6A8A82]/10 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-[#6A8A82]">{count.items.length}</div>
+              <div className="text-lg font-bold text-[#6A8A82]">{count.items.length}</div>
               <div className="text-sm text-[#6A8A82]">Total Items</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-lg font-bold text-green-600">
                 {count.items.filter(item => item.countedQuantity !== undefined).length}
               </div>
               <div className="text-sm text-green-800">Counted</div>
             </div>
             <div className="bg-yellow-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-lg font-bold text-yellow-600">
                 {count.items.filter(item => item.variance && Math.abs(item.variance) > 0).length}
               </div>
               <div className="text-sm text-yellow-800">Variances</div>
             </div>
             <div className="bg-purple-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">{completionRate.toFixed(0)}%</div>
+              <div className="text-lg font-bold text-purple-600">{completionRate.toFixed(0)}%</div>
               <div className="text-sm text-purple-800">Progress</div>
             </div>
           </div>
@@ -557,7 +557,7 @@ const PhysicalInventory: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Inventaire Physique</h1>
+          <h1 className="text-lg font-bold text-gray-900 mb-1">Inventaire Physique</h1>
           <div className="text-sm text-gray-600 flex items-center gap-4">
             <span>Inventaire Annuel 2024</span>
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">

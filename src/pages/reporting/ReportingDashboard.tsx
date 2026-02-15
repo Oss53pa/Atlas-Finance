@@ -139,7 +139,7 @@ const ReportingDashboard: React.FC = () => {
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
             <div className="w-20 h-20 border-4 border-[#6A8A82]/20 border-t-[#6A8A82] rounded-full animate-spin"></div>
-            <p className="text-xl font-semibold text-neutral-700">Chargement du tableau de bord reporting...</p>
+            <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord reporting...</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -245,7 +245,7 @@ const ReportingDashboard: React.FC = () => {
                   <FileText className="h-6 w-6 text-[#6A8A82]" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-neutral-900">Rapports Récents</h2>
+                  <h2 className="text-lg font-bold text-neutral-900">Rapports Récents</h2>
                   <p className="text-neutral-600">Derniers rapports générés</p>
                 </div>
               </div>
@@ -316,7 +316,7 @@ const ReportingDashboard: React.FC = () => {
                 <TrendingUp className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Statistiques</h2>
+                <h2 className="text-lg font-bold text-neutral-900">Statistiques</h2>
                 <p className="text-neutral-600">Performance reporting</p>
               </div>
             </div>
@@ -369,7 +369,7 @@ const ReportingDashboard: React.FC = () => {
         {/* Quick Actions */}
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">Actions Rapides</h2>
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">Actions Rapides</h2>
             <p className="text-neutral-600">Gestion des rapports et tableaux de bord</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

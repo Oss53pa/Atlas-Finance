@@ -659,7 +659,6 @@ const ClientsModule: React.FC = () => {
   };
 
   const handleSaveNewClient = () => {
-    console.log('Nouveau client:', newClient);
     handleCloseNewClientModal();
   };
 
@@ -668,11 +667,9 @@ const ClientsModule: React.FC = () => {
   };
 
   const handleEditClient = (clientId: string) => {
-    console.log('Modifier client:', clientId);
   };
 
   const handleDeleteClient = (clientId: string) => {
-    console.log('Supprimer client:', clientId);
   };
 
   // Générer code client automatique
@@ -734,7 +731,7 @@ const ClientsModule: React.FC = () => {
     <div className="p-6 space-y-6">
       {/* Header avec navigation */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E8E8E8]">
-        <h2 className="text-2xl font-bold text-[#191919] mb-6">Gestion des Clients</h2>
+        <h2 className="text-lg font-bold text-[#191919] mb-6">Gestion des Clients</h2>
 
         {/* Navigation Tabs */}
         <div className="flex space-x-1 mt-6 bg-gray-100 rounded-lg p-1">
@@ -768,7 +765,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-purple-600 font-medium">Total Encours</p>
-                  <p className="text-2xl font-bold text-purple-800">{formatCurrency(totalEncours)}</p>
+                  <p className="text-lg font-bold text-purple-800">{formatCurrency(totalEncours)}</p>
                   <p className="text-xs text-purple-600 mt-1">Sur {clientsActifs} clients actifs</p>
                 </div>
                 <Euro className="w-8 h-8 text-purple-400" />
@@ -779,7 +776,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600 font-medium">Chiffre d'Affaires</p>
-                  <p className="text-2xl font-bold text-blue-800">{formatCurrency(totalCA)}</p>
+                  <p className="text-lg font-bold text-blue-800">{formatCurrency(totalCA)}</p>
                   <p className="text-xs text-blue-600 mt-1">Année en cours</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-blue-400" />
@@ -790,7 +787,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600 font-medium">DSO Moyen</p>
-                  <p className="text-2xl font-bold text-green-800">{moyenneDSO} jours</p>
+                  <p className="text-lg font-bold text-green-800">{moyenneDSO} jours</p>
                   <p className="text-xs text-green-600 mt-1">Délai encaissement</p>
                 </div>
                 <Clock className="w-8 h-8 text-green-400" />
@@ -801,7 +798,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-orange-600 font-medium">Alertes</p>
-                  <p className="text-2xl font-bold text-orange-800">{clients.reduce((sum, c) => sum + c.alertes, 0)}</p>
+                  <p className="text-lg font-bold text-orange-800">{clients.reduce((sum, c) => sum + c.alertes, 0)}</p>
                   <p className="text-xs text-orange-600 mt-1">À traiter</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-orange-400" />
@@ -1091,7 +1088,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between mb-2">
                 <Wallet className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-xl font-bold text-[#191919]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
+              <p className="text-lg font-bold text-[#191919]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
               <p className="text-xs text-[#666666]">Total Créances</p>
             </div>
 
@@ -1100,7 +1097,7 @@ const ClientsModule: React.FC = () => {
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <span className="text-xs text-green-600">{((totauxBalanceAgee.nonEchu / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
-              <p className="text-xl font-bold text-green-800">{formatCurrency(totauxBalanceAgee.nonEchu)}</p>
+              <p className="text-lg font-bold text-green-800">{formatCurrency(totauxBalanceAgee.nonEchu)}</p>
               <p className="text-xs text-green-600">Non Échu</p>
             </div>
 
@@ -1109,7 +1106,7 @@ const ClientsModule: React.FC = () => {
                 <Clock className="w-5 h-5 text-yellow-600" />
                 <span className="text-xs text-yellow-600">{((totauxBalanceAgee.echu0_30 / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
-              <p className="text-xl font-bold text-yellow-800">{formatCurrency(totauxBalanceAgee.echu0_30)}</p>
+              <p className="text-lg font-bold text-yellow-800">{formatCurrency(totauxBalanceAgee.echu0_30)}</p>
               <p className="text-xs text-yellow-600">0-30 jours</p>
             </div>
 
@@ -1118,7 +1115,7 @@ const ClientsModule: React.FC = () => {
                 <AlertTriangle className="w-5 h-5 text-orange-600" />
                 <span className="text-xs text-orange-600">{((totauxBalanceAgee.echu31_60 / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
-              <p className="text-xl font-bold text-orange-800">{formatCurrency(totauxBalanceAgee.echu31_60)}</p>
+              <p className="text-lg font-bold text-orange-800">{formatCurrency(totauxBalanceAgee.echu31_60)}</p>
               <p className="text-xs text-orange-600">31-60 jours</p>
             </div>
 
@@ -1127,7 +1124,7 @@ const ClientsModule: React.FC = () => {
                 <AlertOctagon className="w-5 h-5 text-red-600" />
                 <span className="text-xs text-red-600">{(((totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90) / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
-              <p className="text-xl font-bold text-red-800">{formatCurrency(totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90)}</p>
+              <p className="text-lg font-bold text-red-800">{formatCurrency(totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90)}</p>
               <p className="text-xs text-red-600">+60 jours</p>
             </div>
 
@@ -1135,7 +1132,7 @@ const ClientsModule: React.FC = () => {
               <div className="flex items-center justify-between mb-2">
                 <Shield className="w-5 h-5 text-purple-600" />
               </div>
-              <p className="text-xl font-bold text-purple-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
+              <p className="text-lg font-bold text-purple-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
               <p className="text-xs text-purple-600">Provisions</p>
             </div>
           </div>
@@ -1419,7 +1416,7 @@ const ClientsModule: React.FC = () => {
                   <div className="bg-red-50 rounded-lg p-4 border border-red-200">
                     <div className="flex items-center justify-between">
                       <AlertOctagon className="w-8 h-8 text-red-600" />
-                      <span className="text-2xl font-bold text-red-800">
+                      <span className="text-lg font-bold text-red-800">
                         {balanceAgeeData.filter(i => i.echuPlus90 > 0).length}
                       </span>
                     </div>
@@ -1428,7 +1425,7 @@ const ClientsModule: React.FC = () => {
                   <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                     <div className="flex items-center justify-between">
                       <AlertTriangle className="w-8 h-8 text-orange-600" />
-                      <span className="text-2xl font-bold text-orange-800">
+                      <span className="text-lg font-bold text-orange-800">
                         {balanceAgeeData.filter(i => i.echu61_90 > 0).length}
                       </span>
                     </div>
@@ -1437,7 +1434,7 @@ const ClientsModule: React.FC = () => {
                   <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                     <div className="flex items-center justify-between">
                       <Clock className="w-8 h-8 text-yellow-600" />
-                      <span className="text-2xl font-bold text-yellow-800">
+                      <span className="text-lg font-bold text-yellow-800">
                         {balanceAgeeData.filter(i => i.echu31_60 > 0).length}
                       </span>
                     </div>
@@ -1446,7 +1443,7 @@ const ClientsModule: React.FC = () => {
                   <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
                     <div className="flex items-center justify-between">
                       <Shield className="w-8 h-8 text-purple-600" />
-                      <span className="text-2xl font-bold text-purple-800">
+                      <span className="text-lg font-bold text-purple-800">
                         {formatCurrency(totauxBalanceAgee.provision)}
                       </span>
                     </div>
@@ -1695,7 +1692,7 @@ const ClientsModule: React.FC = () => {
                 <Building className="w-5 h-5 text-[#6A8A82]" />
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">+12%</span>
               </div>
-              <p className="text-2xl font-bold text-[#191919]">110</p>
+              <p className="text-lg font-bold text-[#191919]">110</p>
               <p className="text-sm text-[#666666]">Clients Actifs</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronUp className="w-3 h-3 text-green-500 mr-1" />
@@ -1708,7 +1705,7 @@ const ClientsModule: React.FC = () => {
                 <DollarSign className="w-5 h-5 text-purple-600" />
                 <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">+18%</span>
               </div>
-              <p className="text-2xl font-bold text-[#191919]">69.7M</p>
+              <p className="text-lg font-bold text-[#191919]">69.7M</p>
               <p className="text-sm text-[#666666]">CA Total</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <TrendingUp className="w-3 h-3 text-purple-500 mr-1" />
@@ -1721,7 +1718,7 @@ const ClientsModule: React.FC = () => {
                 <Clock className="w-5 h-5 text-blue-600" />
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">-5j</span>
               </div>
-              <p className="text-2xl font-bold text-[#191919]">38j</p>
+              <p className="text-lg font-bold text-[#191919]">38j</p>
               <p className="text-sm text-[#666666]">DSO Moyen</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronDown className="w-3 h-3 text-green-500 mr-1" />
@@ -1734,7 +1731,7 @@ const ClientsModule: React.FC = () => {
                 <Target className="w-5 h-5 text-orange-600" />
                 <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">89%</span>
               </div>
-              <p className="text-2xl font-bold text-[#191919]">89%</p>
+              <p className="text-lg font-bold text-[#191919]">89%</p>
               <p className="text-sm text-[#666666]">Taux Recouvrement</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <Info className="w-3 h-3 text-orange-500 mr-1" />
@@ -1747,7 +1744,7 @@ const ClientsModule: React.FC = () => {
                 <Shield className="w-5 h-5 text-green-600" />
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">85%</span>
               </div>
-              <p className="text-2xl font-bold text-[#191919]">4.1/5</p>
+              <p className="text-lg font-bold text-[#191919]">4.1/5</p>
               <p className="text-sm text-[#666666]">Score Fidélité</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <Award className="w-3 h-3 text-green-500 mr-1" />
@@ -2001,21 +1998,21 @@ const ClientsModule: React.FC = () => {
 
                 <div className="text-right text-xs text-gray-700 pr-2">DSO Élevé</div>
                 <div className="bg-yellow-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-yellow-800">8</p>
+                  <p className="text-lg font-bold text-yellow-800">8</p>
                   <p className="text-xs text-yellow-600">À surveiller</p>
                 </div>
                 <div className="bg-red-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-red-800">5</p>
+                  <p className="text-lg font-bold text-red-800">5</p>
                   <p className="text-xs text-red-600">Critiques</p>
                 </div>
 
                 <div className="text-right text-xs text-gray-700 pr-2">DSO Normal</div>
                 <div className="bg-green-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-green-800">72</p>
+                  <p className="text-lg font-bold text-green-800">72</p>
                   <p className="text-xs text-green-600">Sains</p>
                 </div>
                 <div className="bg-orange-100 p-4 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-orange-800">25</p>
+                  <p className="text-lg font-bold text-orange-800">25</p>
                   <p className="text-xs text-orange-600">Stratégiques</p>
                 </div>
               </div>
@@ -2032,7 +2029,7 @@ const ClientsModule: React.FC = () => {
           <div className="bg-gradient-to-r from-[#6A8A82] to-[#7A99AC] rounded-lg p-6 text-white">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-xl font-bold">Insights & Prédictions Clients</h3>
+                <h3 className="text-lg font-bold">Insights & Prédictions Clients</h3>
                 <p className="text-sm opacity-90 mt-1">Analyse prédictive basée sur l'historique</p>
               </div>
               <Database className="w-8 h-8 opacity-50" />
@@ -2043,7 +2040,7 @@ const ClientsModule: React.FC = () => {
                   <TrendingUp className="w-5 h-5" />
                   <span className="text-xs bg-white/20 px-2 py-1 rounded">Croissance</span>
                 </div>
-                <p className="text-2xl font-bold">+18%</p>
+                <p className="text-lg font-bold">+18%</p>
                 <p className="text-sm opacity-90">CA prévu T2 2025</p>
               </div>
               <div className="bg-white/10 backdrop-blur rounded-lg p-4">
@@ -2051,7 +2048,7 @@ const ClientsModule: React.FC = () => {
                   <AlertOctagon className="w-5 h-5" />
                   <span className="text-xs bg-white/20 px-2 py-1 rounded">Risque</span>
                 </div>
-                <p className="text-2xl font-bold">5</p>
+                <p className="text-lg font-bold">5</p>
                 <p className="text-sm opacity-90">Clients à risque de perte</p>
               </div>
               <div className="bg-white/10 backdrop-blur rounded-lg p-4">
@@ -2059,7 +2056,7 @@ const ClientsModule: React.FC = () => {
                   <Timer className="w-5 h-5" />
                   <span className="text-xs bg-white/20 px-2 py-1 rounded">Relances</span>
                 </div>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-lg font-bold">12</p>
                 <p className="text-sm opacity-90">Relances à effectuer</p>
               </div>
               <div className="bg-white/10 backdrop-blur rounded-lg p-4">
@@ -2067,7 +2064,7 @@ const ClientsModule: React.FC = () => {
                   <Globe className="w-5 h-5" />
                   <span className="text-xs bg-white/20 px-2 py-1 rounded">Prospection</span>
                 </div>
-                <p className="text-2xl font-bold">8</p>
+                <p className="text-lg font-bold">8</p>
                 <p className="text-sm opacity-90">Nouveaux clients potentiels</p>
               </div>
             </div>
@@ -2082,7 +2079,7 @@ const ClientsModule: React.FC = () => {
             <div className="p-6 border-b border-[#E8E8E8]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-[#191919]">Nouveau Client</h3>
+                  <h3 className="text-lg font-bold text-[#191919]">Nouveau Client</h3>
                   <p className="text-sm text-[#666666]">Étape {formStep} sur 4</p>
                 </div>
                 <button type="button" onClick={handleCloseNewClientModal} className="p-2 hover:bg-gray-100 rounded-full">

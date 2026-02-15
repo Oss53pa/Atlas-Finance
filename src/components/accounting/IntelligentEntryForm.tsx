@@ -616,15 +616,15 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div className="text-center">
                 <p className="text-gray-700">HT</p>
-                <p className="text-xl font-bold">{saisieRapide.montantHT.toFixed(2)} €</p>
+                <p className="text-lg font-bold">{saisieRapide.montantHT.toFixed(2)} €</p>
               </div>
               <div className="text-center">
                 <p className="text-gray-700">TVA ({saisieRapide.tauxTVA}%)</p>
-                <p className="text-xl font-bold text-blue-600">{saisieRapide.montantTVA.toFixed(2)} €</p>
+                <p className="text-lg font-bold text-blue-600">{saisieRapide.montantTVA.toFixed(2)} €</p>
               </div>
               <div className="text-center">
                 <p className="text-gray-700">TTC</p>
-                <p className="text-xl font-bold text-green-600">{saisieRapide.montantTTC.toFixed(2)} €</p>
+                <p className="text-lg font-bold text-green-600">{saisieRapide.montantTTC.toFixed(2)} €</p>
               </div>
             </div>
           </div>
@@ -858,7 +858,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
       {/* Barre d'outils */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900">
             Nouvelle écriture - Journal {journalType.label}
           </h2>
           <div className="flex items-center gap-2">

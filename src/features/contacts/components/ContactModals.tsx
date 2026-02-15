@@ -191,7 +191,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h2 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <User className="mr-3 h-6 w-6" />
             Nouveau Contact
           </h2>
@@ -683,7 +683,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h2 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <User className="mr-3 h-6 w-6" />
             Modifier le Contact - {contact.prenom} {contact.nom}
           </h2>
@@ -941,7 +941,7 @@ export const ContactDetailModal: React.FC<ContactDetailModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h2 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <User className="mr-3 h-6 w-6" />
             Détails du Contact
           </h2>
@@ -968,7 +968,7 @@ export const ContactDetailModal: React.FC<ContactDetailModalProps> = ({
             <CardContent className="space-y-3">
               <div>
                 <p className="text-sm font-medium text-gray-700">Nom Complet</p>
-                <p className="text-xl font-bold text-[var(--color-text-primary)]">
+                <p className="text-lg font-bold text-[var(--color-text-primary)]">
                   {contact.civilite} {contact.prenom} {contact.nom}
                 </p>
               </div>

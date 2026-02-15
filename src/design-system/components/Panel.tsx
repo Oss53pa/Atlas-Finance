@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Panel Component
+ * Atlas Finance Design System - Panel Component
  * Flexible panel component for layout sections and content areas
  */
 

@@ -698,7 +698,7 @@ const RapprochementBancaire: React.FC = () => {
           <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#191919]">
+                <h2 className="text-lg font-bold text-[#191919]">
                   {selectedTab === 'banques' && 'Rapprochement Bancaire'}
                   {selectedTab === 'cb' && 'Rapprochement Cartes Bancaires'}
                   {selectedTab === 'mobile' && 'Rapprochement Mobile Money'}
@@ -809,28 +809,28 @@ const RapprochementBancaire: React.FC = () => {
                   <span className="text-sm text-[var(--color-success-dark)]">Rapprochés</span>
                   <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                 </div>
-                <p className="text-2xl font-bold text-[var(--color-success-darker)]">{stats.rapproches}</p>
+                <p className="text-lg font-bold text-[var(--color-success-darker)]">{stats.rapproches}</p>
               </div>
               <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg border border-yellow-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-[var(--color-warning-dark)]">{t('status.pending')}</span>
                   <Clock className="w-4 h-4 text-[var(--color-warning)]" />
                 </div>
-                <p className="text-2xl font-bold text-yellow-800">{stats.enAttente}</p>
+                <p className="text-lg font-bold text-yellow-800">{stats.enAttente}</p>
               </div>
               <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg border border-[var(--color-error-light)]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-[var(--color-error-dark)]">Écarts</span>
                   <AlertTriangle className="w-4 h-4 text-[var(--color-error)]" />
                 </div>
-                <p className="text-2xl font-bold text-red-800">{stats.ecarts}</p>
+                <p className="text-lg font-bold text-red-800">{stats.ecarts}</p>
               </div>
               <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg border border-[var(--color-primary-light)]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-[var(--color-primary-dark)]">Taux rapprochement</span>
                   <TrendingUp className="w-4 h-4 text-[var(--color-primary)]" />
                 </div>
-                <p className="text-2xl font-bold text-[var(--color-primary-darker)]">{stats.tauxRapprochement}%</p>
+                <p className="text-lg font-bold text-[var(--color-primary-darker)]">{stats.tauxRapprochement}%</p>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <div className="flex items-center justify-between mb-2">
@@ -1110,7 +1110,7 @@ const RapprochementBancaire: React.FC = () => {
                 <div className="bg-cyan-100 text-cyan-600 p-2 rounded-lg">
                   <Upload className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Import Relevé Bancaire</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Import Relevé Bancaire</h2>
               </div>
               <button
                 onClick={() => {
@@ -1370,7 +1370,7 @@ const RapprochementBancaire: React.FC = () => {
                 <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de l'Opération Bancaire</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Détail de l'Opération Bancaire</h2>
               </div>
               <button
                 onClick={() => {

@@ -1,5 +1,5 @@
 /**
- * Service Assets WiseBook
+ * Service Assets Atlas Finance
  * Gestion des immobilisations et amortissements
  *
  * Fonctionnalités:

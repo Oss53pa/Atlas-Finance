@@ -393,7 +393,7 @@ const CodificationTiersPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Hash className="mr-3 h-7 w-7 text-blue-600" />
               Codification des Tiers
             </h1>
@@ -435,7 +435,7 @@ const CodificationTiersPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Règles Actives</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-lg font-bold text-blue-700">
                     {activeRules}/{codingRules.length}
                   </p>
                 </div>
@@ -457,7 +457,7 @@ const CodificationTiersPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Génération Auto</p>
-                  <p className="text-2xl font-bold text-green-700">{autoRules}</p>
+                  <p className="text-lg font-bold text-green-700">{autoRules}</p>
                 </div>
               </div>
             </CardContent>
@@ -477,7 +477,7 @@ const CodificationTiersPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Codes Générés</p>
-                  <p className="text-2xl font-bold text-purple-700">{totalUsage}</p>
+                  <p className="text-lg font-bold text-purple-700">{totalUsage}</p>
                 </div>
               </div>
             </CardContent>
@@ -497,7 +497,7 @@ const CodificationTiersPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Catégories</p>
-                  <p className="text-2xl font-bold text-orange-700">{categories.length}</p>
+                  <p className="text-lg font-bold text-orange-700">{categories.length}</p>
                 </div>
               </div>
             </CardContent>

@@ -47,14 +47,10 @@ export const DiagnosticPanel: React.FC = () => {
   };
 
   const testModal = () => {
-    console.log('🧪 Test Modal - État avant:', testModalOpen);
     setTestModalOpen(true);
-    console.log('🧪 Test Modal - setTestModalOpen(true) appelé');
 
     setTimeout(() => {
-      console.log('🧪 Test Modal - État après:', testModalOpen);
       const modalInDOM = document.querySelector('[role="dialog"]');
-      console.log('🧪 Modal dans DOM:', !!modalInDOM);
       if (!modalInDOM) {
         alert('❌ Le modal ne s\'affiche pas dans le DOM!\nVérifiez la console pour plus de détails.');
       }
@@ -99,19 +95,12 @@ export const DiagnosticPanel: React.FC = () => {
 
           <Button
             onClick={() => {
-              console.log('📋 État de tous les éléments avec z-index:');
-              document.querySelectorAll('[class*="z-"]').forEach(el => {
-                console.log({
-                  element: el,
-                  computed: window.getComputedStyle(el).zIndex,
-                  class: el.className
-                });
-              });
+              document.querySelectorAll('[class*="z-"]').forEach(() => {});
             }}
             variant="outline"
             className="w-full"
           >
-            🔬 Inspecter les z-index (console)
+            🔬 Inspecter les z-index
           </Button>
         </div>
 

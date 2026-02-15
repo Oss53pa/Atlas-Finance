@@ -679,7 +679,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2 flex items-center">
+              <h1 className="text-lg font-bold text-[var(--color-text-primary)] mb-2 flex items-center">
                 <Bot className="h-8 w-8 text-purple-600 mr-3" />
                 Clôtures Automatisées Nouvelle Génération
               </h1>
@@ -691,11 +691,11 @@ const CloturesPeriodiquesPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="bg-purple-50 p-3 rounded-lg">
                   <div className="text-sm text-purple-600">Gain Temps</div>
-                  <div className="text-xl font-bold text-purple-900">-50%</div>
+                  <div className="text-lg font-bold text-purple-900">-50%</div>
                 </div>
                 <div className="bg-[var(--color-success-lightest)] p-3 rounded-lg">
                   <div className="text-sm text-[var(--color-success)]">Erreurs</div>
-                  <div className="text-xl font-bold text-green-900">-90%</div>
+                  <div className="text-lg font-bold text-green-900">-90%</div>
                 </div>
               </div>
               <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
@@ -767,7 +767,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
         {/* Tableau de Bord Temps Réel Workflow Intelligent */}
         <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-[var(--color-primary-light)] p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-[var(--color-primary-darker)] flex items-center">
+            <h2 className="text-lg font-semibold text-[var(--color-primary-darker)] flex items-center">
               <Workflow className="w-6 h-6 mr-3" />
               Cockpit de Clôture Temps Réel
             </h2>
@@ -788,7 +788,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
                 <h4 className="text-sm font-medium text-[var(--color-primary-darker)]">Workflows Actifs</h4>
                 <Activity className="h-5 w-5 text-[var(--color-primary)]" />
               </div>
-              <div className="text-2xl font-bold text-[var(--color-primary-darker)]">2</div>
+              <div className="text-lg font-bold text-[var(--color-primary-darker)]">2</div>
               <div className="text-xs text-[var(--color-primary)]">En cours d'exécution</div>
               <div className="mt-2">
                 <div className="flex items-center space-x-1 text-xs text-[var(--color-success)]">
@@ -803,7 +803,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
                 <h4 className="text-sm font-medium text-[var(--color-primary-darker)]">Contrôles IA</h4>
                 <Brain className="h-5 w-5 text-purple-500" />
               </div>
-              <div className="text-2xl font-bold text-[var(--color-primary-darker)]">247</div>
+              <div className="text-lg font-bold text-[var(--color-primary-darker)]">247</div>
               <div className="text-xs text-[var(--color-primary)]">Exécutés aujourd'hui</div>
               <div className="mt-2">
                 <div className="flex items-center space-x-1 text-xs text-[var(--color-success)]">
@@ -818,7 +818,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
                 <h4 className="text-sm font-medium text-[var(--color-primary-darker)]">Économies</h4>
                 <TrendingUp className="h-5 w-5 text-[var(--color-success)]" />
               </div>
-              <div className="text-2xl font-bold text-[var(--color-primary-darker)]">47h</div>
+              <div className="text-lg font-bold text-[var(--color-primary-darker)]">47h</div>
               <div className="text-xs text-[var(--color-primary)]">Temps économisé ce mois</div>
               <div className="mt-2">
                 <div className="flex items-center space-x-1 text-xs text-[var(--color-success)]">
@@ -833,7 +833,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
                 <h4 className="text-sm font-medium text-[var(--color-primary-darker)]">Équipes</h4>
                 <Users className="h-5 w-5 text-orange-500" />
               </div>
-              <div className="text-2xl font-bold text-[var(--color-primary-darker)]">12</div>
+              <div className="text-lg font-bold text-[var(--color-primary-darker)]">12</div>
               <div className="text-xs text-[var(--color-primary)]">Collaborateurs actifs</div>
               <div className="mt-2">
                 <div className="flex items-center space-x-1 text-xs text-[var(--color-warning)]">
@@ -948,7 +948,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg">
                   <h4 className="font-medium text-[var(--color-text-primary)] mb-2">Provisions Clients</h4>
-                  <div className="text-2xl font-bold text-[var(--color-success)]">
+                  <div className="text-lg font-bold text-[var(--color-success)]">
                     {realProvisions.length > 0
                       ? `${realProvisions.reduce((sum, p) => sum + parseFloat(p.provision_amount), 0).toLocaleString()} XOF`
                       : '0 XOF'
@@ -959,7 +959,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
 
                 <div className="bg-white p-4 rounded-lg">
                   <h4 className="font-medium text-[var(--color-text-primary)] mb-2">Amortissements</h4>
-                  <div className="text-2xl font-bold text-[var(--color-primary)]">
+                  <div className="text-lg font-bold text-[var(--color-primary)]">
                     {realDepreciation.length > 0
                       ? `${realDepreciation.reduce((sum, d) => sum + parseFloat(d.annual_depreciation), 0).toLocaleString()} XOF`
                       : '0 XOF'
@@ -970,7 +970,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
 
                 <div className="bg-white p-4 rounded-lg">
                   <h4 className="font-medium text-[var(--color-text-primary)] mb-2">{t('accounting.balance')}</h4>
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-lg font-bold text-purple-600">
                     {realTrialBalance.length > 0 ? `${realTrialBalance.length} comptes` : 'Non générée'}
                   </div>
                   <div className="text-sm text-[var(--color-text-primary)]">
@@ -1162,7 +1162,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
                 <div className="p-6 border-b border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                      <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                         Clôture {selectedPeriodData.period}
                       </h2>
                       <p className="text-[var(--color-text-primary)]">
@@ -1447,7 +1447,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
         {activeTab === 'workflows' && (
           <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)] p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center">
                 <GitBranch className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
                 Designer de Workflow BPMN 2.0
               </h2>
@@ -1533,7 +1533,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
         {activeTab === 'formulas' && (
           <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)] p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center">
                 <Calculator className="h-6 w-6 mr-3 text-[var(--color-success)]" />
                 Éditeur de Formules Avancé
               </h2>
@@ -1627,7 +1627,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
         {activeTab === 'consolidation' && (
           <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)] p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center">
                 <Building className="h-6 w-6 mr-3 text-indigo-600" />
                 Consolidation Multi-Sociétés
               </h2>
@@ -1640,11 +1640,11 @@ const CloturesPeriodiquesPage: React.FC = () => {
             {/* Périmètres de consolidation */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="border border-[var(--color-border)] rounded-lg p-4">
-                <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Groupe WiseBook SARL</h4>
+                <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Groupe Atlas Finance SARL</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-[var(--color-text-primary)]">Société mère</span>
-                    <span className="font-medium">WiseBook SARL (100%)</span>
+                    <span className="font-medium">Atlas Finance SARL (100%)</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--color-text-primary)]">Filiales</span>
@@ -1713,7 +1713,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
         {activeTab === 'archive' && (
           <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)] p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center">
                 <Database className="h-6 w-6 mr-3 text-[var(--color-text-primary)]" />
                 Archivage à Valeur Probante
               </h2>

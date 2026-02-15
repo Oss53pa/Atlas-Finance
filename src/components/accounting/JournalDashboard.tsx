@@ -100,7 +100,7 @@ const JournalDashboard: React.FC = () => {
       {/* Header avec sélecteur de période */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#191919]">Dashboard Journaux Comptables</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Dashboard Journaux Comptables</h1>
           <p className="text-sm text-[#767676] mt-1">Vue d'ensemble de l'activité comptable</p>
         </div>
         <div className="flex items-center space-x-3">
@@ -156,7 +156,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">Écritures du jour</p>
-                      <p className="text-2xl font-bold text-[#191919] mt-1">{todaySummary.totalEntries}</p>
+                      <p className="text-lg font-bold text-[#191919] mt-1">{todaySummary.totalEntries}</p>
                     </div>
                     <FileText className="w-8 h-8 text-[#6A8A82]" />
                   </div>
@@ -166,7 +166,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">Total Débits</p>
-                      <p className="text-xl font-bold text-red-600 mt-1">
+                      <p className="text-lg font-bold text-red-600 mt-1">
                         {formatAmount(todaySummary.totalDebit)}
                       </p>
                     </div>
@@ -178,7 +178,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">Total Crédits</p>
-                      <p className="text-xl font-bold text-green-600 mt-1">
+                      <p className="text-lg font-bold text-green-600 mt-1">
                         {formatAmount(todaySummary.totalCredit)}
                       </p>
                     </div>
@@ -190,7 +190,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">{t('accounting.balance')}</p>
-                      <p className={`text-xl font-bold mt-1 ${todaySummary.isBalanced ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`text-lg font-bold mt-1 ${todaySummary.isBalanced ? 'text-green-600' : 'text-red-600'}`}>
                         {todaySummary.isBalanced ? 'Équilibrée' : 'Déséquilibrée'}
                       </p>
                     </div>
@@ -206,7 +206,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">{t('status.pending')}</p>
-                      <p className="text-2xl font-bold text-orange-600 mt-1">{todaySummary.pendingValidation}</p>
+                      <p className="text-lg font-bold text-orange-600 mt-1">{todaySummary.pendingValidation}</p>
                     </div>
                     <Clock className="w-8 h-8 text-orange-500" />
                   </div>
@@ -320,7 +320,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">Solde Caisse</p>
-                      <p className="text-xl font-bold text-[#191919] mt-1">
+                      <p className="text-lg font-bold text-[#191919] mt-1">
                         {formatAmount(treasuryData.cashBalance)}
                       </p>
                     </div>
@@ -332,7 +332,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">Solde Banque</p>
-                      <p className="text-xl font-bold text-[#191919] mt-1">
+                      <p className="text-lg font-bold text-[#191919] mt-1">
                         {formatAmount(treasuryData.bankBalance)}
                       </p>
                     </div>
@@ -344,7 +344,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">Encaissements du jour</p>
-                      <p className="text-xl font-bold text-green-600 mt-1">
+                      <p className="text-lg font-bold text-green-600 mt-1">
                         {formatAmount(treasuryData.dailyIn)}
                       </p>
                     </div>
@@ -356,7 +356,7 @@ const JournalDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#767676]">Décaissements du jour</p>
-                      <p className="text-xl font-bold text-red-600 mt-1">
+                      <p className="text-lg font-bold text-red-600 mt-1">
                         {formatAmount(treasuryData.dailyOut)}
                       </p>
                     </div>
@@ -396,7 +396,7 @@ const JournalDashboard: React.FC = () => {
                     <div className="mb-2">
                       <Clock className="w-10 h-10 text-[#6A8A82] mx-auto" />
                     </div>
-                    <p className="text-2xl font-bold text-[#191919]">{kpis.avgValidationTime}h</p>
+                    <p className="text-lg font-bold text-[#191919]">{kpis.avgValidationTime}h</p>
                     <p className="text-sm text-[#767676] mt-1">Temps moyen de validation</p>
                   </div>
 
@@ -404,7 +404,7 @@ const JournalDashboard: React.FC = () => {
                     <div className="mb-2">
                       <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
                     </div>
-                    <p className="text-2xl font-bold text-green-600">{kpis.complianceRate}%</p>
+                    <p className="text-lg font-bold text-green-600">{kpis.complianceRate}%</p>
                     <p className="text-sm text-[#767676] mt-1">Taux de conformité</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -420,7 +420,7 @@ const JournalDashboard: React.FC = () => {
                     <div className="mb-2">
                       <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
                     </div>
-                    <p className="text-2xl font-bold text-red-600">{kpis.errorRate}%</p>
+                    <p className="text-lg font-bold text-red-600">{kpis.errorRate}%</p>
                     <p className="text-sm text-[#767676] mt-1">Taux d'erreur</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -436,7 +436,7 @@ const JournalDashboard: React.FC = () => {
                     <div className="mb-2">
                       <Activity className="w-10 h-10 text-[#B87333] mx-auto" />
                     </div>
-                    <p className="text-2xl font-bold text-[#B87333]">{kpis.automationRate}%</p>
+                    <p className="text-lg font-bold text-[#B87333]">{kpis.automationRate}%</p>
                     <p className="text-sm text-[#767676] mt-1">Taux d'automatisation</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -454,19 +454,19 @@ const JournalDashboard: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
                   <h4 className="text-sm font-semibold text-blue-900 mb-3">Flux Net de Trésorerie</h4>
-                  <p className="text-2xl font-bold text-blue-700">+{formatAmount(treasuryData.netFlow)}</p>
+                  <p className="text-lg font-bold text-blue-700">+{formatAmount(treasuryData.netFlow)}</p>
                   <p className="text-xs text-blue-600 mt-2">↑ 12% vs semaine dernière</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
                   <h4 className="text-sm font-semibold text-green-900 mb-3">Solde Total Disponible</h4>
-                  <p className="text-2xl font-bold text-green-700">{formatAmount(treasuryData.totalBalance)}</p>
+                  <p className="text-lg font-bold text-green-700">{formatAmount(treasuryData.totalBalance)}</p>
                   <p className="text-xs text-green-600 mt-2">Caisse + Banque</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
                   <h4 className="text-sm font-semibold text-purple-900 mb-3">Prévisions à 30 jours</h4>
-                  <p className="text-2xl font-bold text-purple-700">{formatAmount(8500000)}</p>
+                  <p className="text-lg font-bold text-purple-700">{formatAmount(8500000)}</p>
                   <p className="text-xs text-purple-600 mt-2">Basé sur les tendances actuelles</p>
                 </div>
               </div>

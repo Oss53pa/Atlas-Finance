@@ -407,7 +407,7 @@ const OfflineModePage: React.FC = () => {
           <div className="flex items-center space-x-3">
             <WifiOff className="h-8 w-8 text-[var(--color-primary)]" />
             <div>
-              <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Mode Hors-Ligne</h1>
+              <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Mode Hors-Ligne</h1>
               <p className="text-gray-600">Gestion des données et synchronisation offline</p>
             </div>
           </div>
@@ -456,7 +456,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">État du système</p>
-                    <p className={`text-2xl font-bold ${offlineMode ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
+                    <p className={`text-lg font-bold ${offlineMode ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
                       {offlineMode ? 'Hors ligne' : 'En ligne'}
                     </p>
                   </div>
@@ -474,7 +474,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Espace utilisé</p>
-                    <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                    <p className="text-lg font-bold text-[var(--color-text-primary)]">
                       {(storageMetrics.used / 1024).toFixed(1)} GB
                     </p>
                   </div>
@@ -497,7 +497,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">{t('status.pending')}</p>
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">
+                    <p className="text-lg font-bold text-[var(--color-warning)]">
                       {syncOperations.filter(op => op.status === 'pending').length}
                     </p>
                   </div>
@@ -511,7 +511,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Conflits</p>
-                    <p className="text-2xl font-bold text-[var(--color-error)]">
+                    <p className="text-lg font-bold text-[var(--color-error)]">
                       {conflicts.filter(c => c.status === 'pending').length}
                     </p>
                   </div>
@@ -903,7 +903,7 @@ const OfflineModePage: React.FC = () => {
 
                 <div>
                   <Label>Serveur de test</Label>
-                  <Input defaultValue="https://api.wisebook.com/ping" />
+                  <Input defaultValue="https://api.atlasfinance.com/ping" />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -1276,7 +1276,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="bg-[#6A8A82] bg-opacity-10 p-2 rounded-lg">
                   <GitMerge className="w-5 h-5 text-[#6A8A82]" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Résolution Manuelle du Conflit</h2>
+                <h2 className="text-lg font-bold text-gray-900">Résolution Manuelle du Conflit</h2>
               </div>
               <button
                 onClick={() => {

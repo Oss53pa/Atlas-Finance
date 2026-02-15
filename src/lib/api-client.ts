@@ -1,5 +1,5 @@
 /**
- * CLIENT API ROBUSTE - WISEBOOK ERP
+ * CLIENT API ROBUSTE - ATLAS FINANCE
  *
  * Client Axios configuré avec:
  * - Intercepteurs authentification JWT
@@ -27,7 +27,7 @@ export interface ApiError {
   status?: number;
   code?: string;
   errors?: Record<string, string[]>;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface QueryParams {
   page_size?: number;
   ordering?: string;
   search?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
 }
 
 /**
@@ -58,8 +58,8 @@ class ApiClient {
   private axiosInstance: AxiosInstance;
   private isRefreshing: boolean = false;
   private failedQueue: Array<{
-    resolve: (value?: any) => void;
-    reject: (error?: any) => void;
+    resolve: (value?: unknown) => void;
+    reject: (error?: unknown) => void;
   }> = [];
 
   constructor() {
@@ -85,7 +85,6 @@ class ApiClient {
         if (isDemoMode() && config.url && hasMockData(config.url)) {
           const mockData = getMockData(config.url);
 
-          console.log('🎭 [MODE DÉMO] Retour de données mockées pour:', config.url);
 
           // Retourner une promesse résolue avec des données mockées
           return Promise.reject({
@@ -111,15 +110,7 @@ class ApiClient {
           config.headers.Authorization = `Bearer ${token}`;
         }
 
-        // Log en développement
-        if (import.meta.env.DEV) {
-          console.log('🚀 API Request:', {
-            method: config.method?.toUpperCase(),
-            url: config.url,
-            params: config.params,
-            data: config.data,
-          });
-        }
+        // Dev logging removed for production cleanliness
 
         return config;
       },
@@ -132,21 +123,13 @@ class ApiClient {
     // Intercepteur de réponse - Gestion des erreurs
     this.axiosInstance.interceptors.response.use(
       (response) => {
-        // Log succès en développement
-        if (import.meta.env.DEV) {
-          console.log('✅ API Response:', {
-            status: response.status,
-            url: response.config.url,
-            data: response.data,
-          });
-        }
+        // Dev logging removed for production cleanliness
 
         return response;
       },
-      async (error: any) => {
+      async (error: AxiosError & { _isMockResponse?: boolean; response?: AxiosResponse }) => {
         // MODE DÉMO : Gérer les réponses mockées
-        if (error._isMockResponse) {
-          console.log('✅ [MODE DÉMO] Données mockées retournées avec succès');
+        if ((error as Record<string, unknown>)._isMockResponse) {
           return Promise.resolve(error.response);
         }
 
@@ -226,9 +209,9 @@ class ApiClient {
       const apiError: ApiError = {
         message: this.extractErrorMessage(response.data),
         status: response.status,
-        code: (response.data as any)?.code,
-        errors: (response.data as any)?.errors,
-        details: response.data,
+        code: (response.data as Record<string, unknown>)?.code as string | undefined,
+        errors: (response.data as Record<string, unknown>)?.errors as Record<string, string[]> | undefined,
+        details: response.data as Record<string, unknown>,
       };
 
       // Afficher toast selon le type d'erreur
@@ -265,17 +248,20 @@ class ApiClient {
   /**
    * Extraction du message d'erreur
    */
-  private extractErrorMessage(data: any): string {
+  private extractErrorMessage(data: unknown): string {
     if (typeof data === 'string') return data;
-    if (data?.message) return data.message;
-    if (data?.detail) return data.detail;
-    if (data?.error) return data.error;
+    if (data && typeof data === 'object') {
+      const d = data as Record<string, unknown>;
+      if (typeof d.message === 'string') return d.message;
+      if (typeof d.detail === 'string') return d.detail;
+      if (typeof d.error === 'string') return d.error;
 
-    // Erreurs de validation Django
-    if (data?.errors && typeof data.errors === 'object') {
-      const firstError = Object.values(data.errors)[0];
-      if (Array.isArray(firstError)) {
-        return firstError[0] as string;
+      // Erreurs de validation Django
+      if (d.errors && typeof d.errors === 'object') {
+        const firstError = Object.values(d.errors)[0];
+        if (Array.isArray(firstError) && typeof firstError[0] === 'string') {
+          return firstError[0];
+        }
       }
     }
 
@@ -359,7 +345,7 @@ class ApiClient {
   /**
    * GET Request
    */
-  async get<T = any>(url: string, params?: QueryParams, config?: AxiosRequestConfig): Promise<T> {
+  async get<T = unknown>(url: string, params?: QueryParams, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.get<T>(url, {
       params,
       ...config,
@@ -370,7 +356,7 @@ class ApiClient {
   /**
    * POST Request
    */
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.post<T>(url, data, config);
     return response.data;
   }
@@ -378,7 +364,7 @@ class ApiClient {
   /**
    * PUT Request
    */
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.put<T>(url, data, config);
     return response.data;
   }
@@ -386,7 +372,7 @@ class ApiClient {
   /**
    * PATCH Request
    */
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.patch<T>(url, data, config);
     return response.data;
   }
@@ -394,7 +380,7 @@ class ApiClient {
   /**
    * DELETE Request
    */
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.delete<T>(url, config);
     return response.data;
   }
@@ -402,7 +388,7 @@ class ApiClient {
   /**
    * GET Request avec pagination
    */
-  async getPaginated<T = any>(
+  async getPaginated<T = unknown>(
     url: string,
     params?: QueryParams,
     config?: AxiosRequestConfig

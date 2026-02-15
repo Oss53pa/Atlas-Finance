@@ -183,7 +183,7 @@ const Immobilisations: React.FC = () => {
     {
       id: '2',
       code: 'IMM002',
-      designation: 'Logiciel ERP WiseBook',
+      designation: 'Logiciel ERP Atlas Finance',
       categorie: 'incorporelle',
       sousCategorie: 'Logiciels',
       dateAcquisition: '2023-01-10',
@@ -196,7 +196,7 @@ const Immobilisations: React.FC = () => {
       methodeAmortissement: 'lineaire',
       tauxAmortissement: 33.33,
       amortissementAnnuel: 28333333,
-      fournisseur: 'WiseBook Solutions',
+      fournisseur: 'Atlas Finance Solutions',
       localisation: 'Serveurs Cloud',
       responsable: 'Direction Informatique',
       etatPhysique: 'excellent',
@@ -445,7 +445,7 @@ const Immobilisations: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Valeur Brute Totale</p>
-                <p className="text-2xl font-bold">{(kpis.valeurBruteTotale / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.valeurBruteTotale / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.nombreImmobilisations} immobilisations</p>
               </div>
               <Building className="w-8 h-8 text-[var(--color-primary)]" />
@@ -458,7 +458,7 @@ const Immobilisations: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Valeur Nette</p>
-                <p className="text-2xl font-bold">{(kpis.valeurNetteTotale / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.valeurNetteTotale / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">Après amortissements</p>
               </div>
               <Calculator className="w-8 h-8 text-[var(--color-success)]" />
@@ -471,7 +471,7 @@ const Immobilisations: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Taux Amortissement</p>
-                <p className="text-2xl font-bold">{kpis.tauxAmortissementMoyen.toFixed(1)}%</p>
+                <p className="text-lg font-bold">{kpis.tauxAmortissementMoyen.toFixed(1)}%</p>
                 <Progress value={kpis.tauxAmortissementMoyen} className="mt-2" />
               </div>
               <TrendingDown className="w-8 h-8 text-orange-500" />
@@ -484,7 +484,7 @@ const Immobilisations: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Dotations Annuelles</p>
-                <p className="text-2xl font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-text-primary)] mt-1">Exercice 2024</p>
               </div>
               <Calendar className="w-8 h-8 text-purple-500" />
@@ -541,7 +541,7 @@ const Immobilisations: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-[var(--color-primary)]">510M</p>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">510M</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">85% du total</p>
                     </div>
                   </div>
@@ -554,7 +554,7 @@ const Immobilisations: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-[var(--color-warning)]">85M</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">85M</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">14% du total</p>
                     </div>
                   </div>
@@ -567,7 +567,7 @@ const Immobilisations: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-[var(--color-warning)]">0M</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">0M</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">0% du total</p>
                     </div>
                   </div>
@@ -590,11 +590,11 @@ const Immobilisations: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Amortissements Cumulés</p>
-                      <p className="text-2xl font-bold">{(kpis.amortissementsCumules / 1000000).toFixed(1)}M</p>
+                      <p className="text-lg font-bold">{(kpis.amortissementsCumules / 1000000).toFixed(1)}M</p>
                     </div>
                     <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
-                      <p className="text-2xl font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M</p>
+                      <p className="text-lg font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M</p>
                     </div>
                   </div>
                 </div>
@@ -618,7 +618,7 @@ const Immobilisations: React.FC = () => {
                   <div key={index} className="text-center p-3 border rounded">
                     <div className={`w-full h-2 ${item.color} rounded mb-2`} />
                     <p className="font-medium">{item.duree}</p>
-                    <p className="text-2xl font-bold">{item.nb}</p>
+                    <p className="text-lg font-bold">{item.nb}</p>
                     <p className="text-xs text-[var(--color-text-secondary)]">{item.categorie}</p>
                   </div>
                 ))}
@@ -772,7 +772,7 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Méthode Linéaire</p>
-                    <p className="text-2xl font-bold">3</p>
+                    <p className="text-lg font-bold">3</p>
                     <p className="text-xs text-[var(--color-success)] mt-1">75% des immobilisations</p>
                   </div>
                   <Calculator className="w-8 h-8 text-[var(--color-success)]" />
@@ -784,7 +784,7 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Méthode Dégressive</p>
-                    <p className="text-2xl font-bold">1</p>
+                    <p className="text-lg font-bold">1</p>
                     <p className="text-xs text-[var(--color-primary)] mt-1">25% des immobilisations</p>
                   </div>
                   <TrendingDown className="w-8 h-8 text-[var(--color-primary)]" />
@@ -796,7 +796,7 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Unité d'Œuvre</p>
-                    <p className="text-2xl font-bold">0</p>
+                    <p className="text-lg font-bold">0</p>
                     <p className="text-xs text-[var(--color-text-primary)] mt-1">0% des immobilisations</p>
                   </div>
                   <Settings className="w-8 h-8 text-[var(--color-text-secondary)]" />
@@ -882,7 +882,7 @@ const Immobilisations: React.FC = () => {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold">{dotation}M FCFA</p>
+                          <p className="text-lg font-bold">{dotation}M FCFA</p>
                           <p className="text-sm text-[var(--color-text-secondary)]">
                             {annee === '2024' ? '4 immobilisations' : '3 immobilisations'}
                           </p>
@@ -912,7 +912,7 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Acquisitions 2024</p>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">0</p>
                   </div>
                   <ArrowUpRight className="w-6 h-6 text-[var(--color-success)]" />
                 </div>
@@ -923,7 +923,7 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Cessions 2024</p>
-                    <p className="text-2xl font-bold text-[var(--color-error)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">0</p>
                   </div>
                   <ArrowDownRight className="w-6 h-6 text-[var(--color-error)]" />
                 </div>
@@ -934,7 +934,7 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">4</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">4</p>
                   </div>
                   <TrendingDown className="w-6 h-6 text-[var(--color-primary)]" />
                 </div>
@@ -945,7 +945,7 @@ const Immobilisations: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Réévaluations</p>
-                    <p className="text-2xl font-bold text-purple-600">0</p>
+                    <p className="text-lg font-bold text-purple-600">0</p>
                   </div>
                   <TrendingUp className="w-6 h-6 text-purple-500" />
                 </div>
@@ -1033,7 +1033,7 @@ const Immobilisations: React.FC = () => {
                       <span className="text-sm text-[var(--color-text-secondary)]">Conformes</span>
                     </div>
                     <p className="font-medium">Aucune Dépréciation</p>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">4</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">4</p>
                     <p className="text-sm text-[var(--color-text-primary)]">immobilisations testées</p>
                   </div>
                   <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
@@ -1042,7 +1042,7 @@ const Immobilisations: React.FC = () => {
                       <span className="text-sm text-[var(--color-text-secondary)]">À surveiller</span>
                     </div>
                     <p className="font-medium">Risque Modéré</p>
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">0</p>
                     <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
                   </div>
                   <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
@@ -1051,7 +1051,7 @@ const Immobilisations: React.FC = () => {
                       <span className="text-sm text-[var(--color-text-secondary)]">Dépréciées</span>
                     </div>
                     <p className="font-medium">Dépréciation Requise</p>
-                    <p className="text-2xl font-bold text-[var(--color-error)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">0</p>
                     <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
                   </div>
                 </div>
@@ -1189,15 +1189,15 @@ const Immobilisations: React.FC = () => {
 
                 <div className="grid grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
-                    <p className="text-2xl font-bold text-[var(--color-success)]">98%</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">98%</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Taux de Conformité Global</p>
                   </div>
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">0</p>
+                    <p className="text-lg font-bold text-[var(--color-primary)]">0</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Non-conformités Critiques</p>
                   </div>
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
-                    <p className="text-2xl font-bold text-[var(--color-warning)]">1</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">1</p>
                     <p className="text-sm text-[var(--color-text-primary)]">Points d'Amélioration</p>
                   </div>
                 </div>
@@ -1215,7 +1215,7 @@ const Immobilisations: React.FC = () => {
               <div className="flex items-center space-x-4">
                 {getCategorieIcon(selectedImmobilisation.categorie, selectedImmobilisation.sousCategorie)}
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{selectedImmobilisation.designation}</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{selectedImmobilisation.designation}</h2>
                   <p className="text-sm text-gray-600">{selectedImmobilisation.code}</p>
                 </div>
               </div>
@@ -1303,25 +1303,25 @@ const Immobilisations: React.FC = () => {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-sm font-medium text-gray-500">Valeur d'Acquisition</p>
-                    <p className="text-xl font-bold text-[var(--color-primary)]">
+                    <p className="text-lg font-bold text-[var(--color-primary)]">
                       {(selectedImmobilisation.valeurAcquisition / 1000000).toFixed(1)}M FCFA
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-sm font-medium text-gray-500">Valeur Brute</p>
-                    <p className="text-xl font-bold">
+                    <p className="text-lg font-bold">
                       {(selectedImmobilisation.valeurBrute / 1000000).toFixed(1)}M FCFA
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-sm font-medium text-gray-500">Amortissements Cumulés</p>
-                    <p className="text-xl font-bold text-[var(--color-error)]">
+                    <p className="text-lg font-bold text-[var(--color-error)]">
                       -{(selectedImmobilisation.amortissementsCumules / 1000000).toFixed(1)}M FCFA
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
                     <p className="text-sm font-medium text-gray-500">Valeur Nette Comptable</p>
-                    <p className="text-xl font-bold text-[var(--color-success)]">
+                    <p className="text-lg font-bold text-[var(--color-success)]">
                       {(selectedImmobilisation.valeurNette / 1000000).toFixed(1)}M FCFA
                     </p>
                   </div>
@@ -1426,7 +1426,7 @@ const Immobilisations: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Modifier l'Immobilisation</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Modifier l'Immobilisation</h2>
               <button onClick={() => setShowEditModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="w-6 h-6" />
               </button>

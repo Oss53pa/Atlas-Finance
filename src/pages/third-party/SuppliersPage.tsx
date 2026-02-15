@@ -182,7 +182,7 @@ const SuppliersPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Truck className="mr-3 h-7 w-7" />
               Fournisseurs
             </h1>
@@ -220,7 +220,7 @@ const SuppliersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Fournisseurs</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {suppliersData?.count || 0}
                 </p>
               </div>
@@ -236,7 +236,7 @@ const SuppliersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Fournisseurs Actifs</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {suppliersData?.active_count || 0}
                 </p>
               </div>
@@ -252,7 +252,7 @@ const SuppliersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Achats Annuels</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {formatCurrency(suppliersData?.total_purchases || 0)}
                 </p>
               </div>
@@ -268,7 +268,7 @@ const SuppliersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Dettes</p>
-                <p className="text-2xl font-bold text-red-700">
+                <p className="text-lg font-bold text-red-700">
                   {formatCurrency(suppliersData?.total_debt || 0)}
                 </p>
               </div>

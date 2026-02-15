@@ -593,7 +593,7 @@ const TreasuryPositions: React.FC = () => {
             >
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-neutral-800">
+                  <h3 className="text-lg font-semibold text-neutral-800">
                     {positionModal.mode === 'create' ? 'Nouveau Compte' :
                      positionModal.mode === 'edit' ? 'Modifier le Compte' : 'Détails du Compte'}
                   </h3>

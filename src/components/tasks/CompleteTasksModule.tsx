@@ -248,7 +248,7 @@ const CompleteTasksModule: React.FC = () => {
           type: 'email',
           beforeDays: 2,
           beforeHours: 0,
-          recipients: ['marie.martin@wisebook.com']
+          recipients: ['marie.martin@atlasfinance.com']
         }
       ]
     },
@@ -735,7 +735,7 @@ const CompleteTasksModule: React.FC = () => {
         <div className="px-6 pt-4">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Gestion des Tâches</h2>
+              <h2 className="text-lg font-bold text-gray-900">Gestion des Tâches</h2>
               <p className="text-sm text-gray-700 mt-1">
                 {statistics.total} tâches • {statistics.inProgress} en cours • {statistics.overdue} en retard
               </p>
@@ -894,35 +894,35 @@ const CompleteTasksModule: React.FC = () => {
         <div className="bg-white border-b px-6 py-4">
           <div className="grid grid-cols-8 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{statistics.total}</div>
+              <div className="text-lg font-bold text-gray-900">{statistics.total}</div>
               <div className="text-xs text-gray-700">Total</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{statistics.completed}</div>
+              <div className="text-lg font-bold text-green-600">{statistics.completed}</div>
               <div className="text-xs text-gray-700">Terminées</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#6A8A82]">{statistics.inProgress}</div>
+              <div className="text-lg font-bold text-[#6A8A82]">{statistics.inProgress}</div>
               <div className="text-xs text-gray-700">{t('status.inProgress')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{statistics.overdue}</div>
+              <div className="text-lg font-bold text-red-600">{statistics.overdue}</div>
               <div className="text-xs text-gray-700">En retard</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{statistics.highPriority}</div>
+              <div className="text-lg font-bold text-orange-600">{statistics.highPriority}</div>
               <div className="text-xs text-gray-700">Prioritaires</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{statistics.completionRate}%</div>
+              <div className="text-lg font-bold text-blue-600">{statistics.completionRate}%</div>
               <div className="text-xs text-gray-700">Complété</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{statistics.totalHours}h</div>
+              <div className="text-lg font-bold text-purple-600">{statistics.totalHours}h</div>
               <div className="text-xs text-gray-700">Heures</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-[#B87333]">{statistics.avgProgress}%</div>
+              <div className="text-lg font-bold text-[#B87333]">{statistics.avgProgress}%</div>
               <div className="text-xs text-gray-700">Progrès moy.</div>
             </div>
           </div>
@@ -976,7 +976,7 @@ const CompleteTasksModule: React.FC = () => {
       {showNewTask && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Créer une nouvelle tâche</h3>
+            <h3 className="text-lg font-bold mb-4">Créer une nouvelle tâche</h3>
 
             <div className="space-y-4">
               <div>

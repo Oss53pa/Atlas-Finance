@@ -526,7 +526,7 @@ const IAConfigPage: React.FC = () => {
         </CardHeader>
         <CardBody>
           <p className="text-[var(--color-text-secondary)] mb-6">
-            Le système WiseBook combine intelligemment règles métier déterministes et intelligence artificielle probabiliste pour une détection optimale des anomalies et recommandations précises.
+            Le système Atlas Finance combine intelligemment règles métier déterministes et intelligence artificielle probabiliste pour une détection optimale des anomalies et recommandations précises.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1004,7 +1004,7 @@ const IAConfigPage: React.FC = () => {
         <CardBody>
           <div className="space-y-4">
             <p className="text-[var(--color-text-secondary)]">
-              Les modèles d'IA de WiseBook s'améliorent constamment grâce à l'apprentissage continu basé sur vos données et votre feedback.
+              Les modèles d'IA de Atlas Finance s'améliorent constamment grâce à l'apprentissage continu basé sur vos données et votre feedback.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -1184,17 +1184,17 @@ const IAConfigPage: React.FC = () => {
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)]">
-              <p className="text-3xl font-bold text-[var(--color-primary)]">92.4%</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">92.4%</p>
               <p className="text-sm text-[var(--color-text-secondary)] mt-1">Précision Moyenne</p>
               <p className="text-xs text-[var(--color-success)] mt-1">+2.1% ce mois</p>
             </div>
             <div className="text-center p-4 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)]">
-              <p className="text-3xl font-bold text-[var(--color-primary)]">15,247</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">15,247</p>
               <p className="text-sm text-[var(--color-text-secondary)] mt-1">Feedbacks Collectés</p>
               <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Ce trimestre</p>
             </div>
             <div className="text-center p-4 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)]">
-              <p className="text-3xl font-bold text-[var(--color-primary)]">7j</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">7j</p>
               <p className="text-sm text-[var(--color-text-secondary)] mt-1">Fréquence de Mise à Jour</p>
               <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Automatique</p>
             </div>
@@ -1208,7 +1208,7 @@ const IAConfigPage: React.FC = () => {
     <div className="w-full space-y-6 animate-fadeIn">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-3">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-3">
             <Brain className="w-8 h-8 text-[var(--color-primary)]" />
             Configuration IA & Algorithmes
           </h1>
@@ -1308,7 +1308,7 @@ const IAConfigPage: React.FC = () => {
           <CardBody className="p-6">
             <div className="flex items-center justify-between mb-2">
               <Activity className="w-8 h-8 text-white opacity-80" />
-              <span className="text-2xl font-bold text-white">{activeAlgorithms.length}/{allAlgorithms.length}</span>
+              <span className="text-lg font-bold text-white">{activeAlgorithms.length}/{allAlgorithms.length}</span>
             </div>
             <p className="text-sm text-white opacity-90">Modèles Actifs</p>
           </CardBody>
@@ -1317,7 +1317,7 @@ const IAConfigPage: React.FC = () => {
           <CardBody className="p-6">
             <div className="flex items-center justify-between mb-2">
               <TrendingUp className="w-8 h-8 text-white opacity-80" />
-              <span className="text-2xl font-bold text-white">92.4%</span>
+              <span className="text-lg font-bold text-white">92.4%</span>
             </div>
             <p className="text-sm text-white opacity-90">Précision Moyenne</p>
           </CardBody>
@@ -1326,7 +1326,7 @@ const IAConfigPage: React.FC = () => {
           <CardBody className="p-6">
             <div className="flex items-center justify-between mb-2">
               <Zap className="w-8 h-8 text-white opacity-80" />
-              <span className="text-2xl font-bold text-white">1,247</span>
+              <span className="text-lg font-bold text-white">1,247</span>
             </div>
             <p className="text-sm text-white opacity-90">Prédictions/jour</p>
           </CardBody>
@@ -1345,7 +1345,7 @@ const IAConfigPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Brain className="w-7 h-7 text-[var(--color-primary)]" />
-                    <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                    <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
                       {algorithmDetails[selectedAlgo].name}
                     </h2>
                   </div>
@@ -1364,7 +1364,7 @@ const IAConfigPage: React.FC = () => {
                     <CardBody className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <Brain className="w-6 h-6 text-white opacity-80" />
-                        <span className="text-xl font-bold text-white">{algorithmDetails[selectedAlgo].type}</span>
+                        <span className="text-lg font-bold text-white">{algorithmDetails[selectedAlgo].type}</span>
                       </div>
                       <p className="text-xs text-white opacity-90">Type d'Algorithme</p>
                     </CardBody>
@@ -1373,7 +1373,7 @@ const IAConfigPage: React.FC = () => {
                     <CardBody className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <BarChart3 className="w-6 h-6 text-white opacity-80" />
-                        <span className="text-xl font-bold text-white">{algorithmDetails[selectedAlgo].accuracy}</span>
+                        <span className="text-lg font-bold text-white">{algorithmDetails[selectedAlgo].accuracy}</span>
                       </div>
                       <p className="text-xs text-white opacity-90">Précision</p>
                     </CardBody>
@@ -1382,7 +1382,7 @@ const IAConfigPage: React.FC = () => {
                     <CardBody className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <TrendingUp className="w-6 h-6 text-white opacity-80" />
-                        <span className="text-xl font-bold text-white">
+                        <span className="text-lg font-bold text-white">
                           {selectedAlgo === 'LSTM' && algorithmDetails[selectedAlgo].trainingData}
                           {selectedAlgo === 'IsolationForest' && algorithmDetails[selectedAlgo].detected}
                           {selectedAlgo === 'RandomForest' && algorithmDetails[selectedAlgo].adoption}

@@ -66,7 +66,7 @@ const AssetsClassificationSettings: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
             Paramètres de Comptabilité - Immobilisations
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -146,7 +146,7 @@ const AssetsClassificationSettings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Total catégories</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {classifications.length}
                 </p>
               </div>
@@ -160,7 +160,7 @@ const AssetsClassificationSettings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Classes d'actifs</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {assetClasses.length}
                 </p>
               </div>
@@ -174,7 +174,7 @@ const AssetsClassificationSettings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Taux moyen</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {Math.round(
                     classifications
                       .filter(c => c.defaultDepreciationRate > 0)
@@ -193,7 +193,7 @@ const AssetsClassificationSettings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)]">Durée moyenne</p>
-                <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {Math.round(
                     classifications
                       .filter(c => c.defaultUsefulLife > 0)

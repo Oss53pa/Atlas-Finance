@@ -533,7 +533,7 @@ const DocumentsArchives: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-[#191919] flex items-center space-x-2">
+            <h2 className="text-lg font-bold text-[#191919] flex items-center space-x-2">
               <FolderArchive className="w-6 h-6 text-[#6A8A82]" />
               <span>Archives Documentaires des Clôtures</span>
             </h2>
@@ -561,7 +561,7 @@ const DocumentsArchives: React.FC = () => {
               <span className="text-sm text-[var(--color-primary-dark)]">Dossiers</span>
               <FolderOpen className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
-            <p className="text-2xl font-bold text-[var(--color-primary-darker)]">{stats.totalDossiers}</p>
+            <p className="text-lg font-bold text-[var(--color-primary-darker)]">{stats.totalDossiers}</p>
             <p className="text-xs text-[var(--color-primary)] mt-1">{stats.dossiersValides} validés</p>
           </div>
           <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg border border-[var(--color-success-light)]">
@@ -569,7 +569,7 @@ const DocumentsArchives: React.FC = () => {
               <span className="text-sm text-[var(--color-success-dark)]">Documents</span>
               <FileText className="w-4 h-4 text-[var(--color-success)]" />
             </div>
-            <p className="text-2xl font-bold text-[var(--color-success-darker)]">{stats.totalDocuments}</p>
+            <p className="text-lg font-bold text-[var(--color-success-darker)]">{stats.totalDocuments}</p>
             <p className="text-xs text-[var(--color-success)] mt-1">{stats.documentsConformes} conformes</p>
           </div>
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
@@ -577,7 +577,7 @@ const DocumentsArchives: React.FC = () => {
               <span className="text-sm text-purple-700">Conformité</span>
               <Shield className="w-4 h-4 text-purple-600" />
             </div>
-            <p className="text-2xl font-bold text-purple-800">{stats.tauxConformite}%</p>
+            <p className="text-lg font-bold text-purple-800">{stats.tauxConformite}%</p>
             <p className="text-xs text-purple-600 mt-1">SYSCOHADA</p>
           </div>
           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
@@ -593,7 +593,7 @@ const DocumentsArchives: React.FC = () => {
               <span className="text-sm text-indigo-700">Sécurité</span>
               <Lock className="w-4 h-4 text-indigo-600" />
             </div>
-            <p className="text-2xl font-bold text-indigo-800">256-bit</p>
+            <p className="text-lg font-bold text-indigo-800">256-bit</p>
             <p className="text-xs text-indigo-600 mt-1">Chiffrement AES</p>
           </div>
           <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
@@ -941,7 +941,7 @@ const DocumentsArchives: React.FC = () => {
                 <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
                   <Upload className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Téléverser Document</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Téléverser Document</h2>
               </div>
               <button
                 onClick={() => {

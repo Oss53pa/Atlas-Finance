@@ -239,7 +239,6 @@ const CreatePlanTresorerieForms: React.FC<CreatePlanTresorerieForms> = (props) =
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Plan de trésorerie créé:', formData);
         // Ici, vous ajouteriez l'appel API pour sauvegarder
         props.hide();
     };

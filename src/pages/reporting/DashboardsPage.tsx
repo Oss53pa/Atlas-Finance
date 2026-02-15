@@ -339,7 +339,7 @@ const DashboardsPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Tableaux de Bord</h1>
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Tableaux de Bord</h1>
           <p className="text-[var(--color-text-primary)]">Créez et gérez vos tableaux de bord personnalisés</p>
         </div>
         <div className="flex space-x-3">
@@ -366,7 +366,7 @@ const DashboardsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[var(--color-text-primary)]">Total Tableaux</p>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">{totalDashboards}</p>
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">{totalDashboards}</p>
             </div>
             <div className="h-12 w-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
               <ChartBarIcon className="h-6 w-6 text-[#6A8A82]" />
@@ -378,7 +378,7 @@ const DashboardsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[var(--color-text-primary)]">Actifs</p>
-              <p className="text-2xl font-bold text-[var(--color-success)]">{activeDashboards}</p>
+              <p className="text-lg font-bold text-[var(--color-success)]">{activeDashboards}</p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-success-lighter)] rounded-lg flex items-center justify-center">
               <EyeIcon className="h-6 w-6 text-[var(--color-success)]" />
@@ -390,7 +390,7 @@ const DashboardsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[var(--color-text-primary)]">Partagés</p>
-              <p className="text-2xl font-bold text-[#B87333]">{sharedDashboards}</p>
+              <p className="text-lg font-bold text-[#B87333]">{sharedDashboards}</p>
             </div>
             <div className="h-12 w-12 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
               <ShareIcon className="h-6 w-6 text-[#B87333]" />
@@ -402,7 +402,7 @@ const DashboardsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[var(--color-text-primary)]">Vues Totales</p>
-              <p className="text-2xl font-bold text-[var(--color-warning)]">{totalViews.toLocaleString()}</p>
+              <p className="text-lg font-bold text-[var(--color-warning)]">{totalViews.toLocaleString()}</p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
               <ClockIcon className="h-6 w-6 text-[var(--color-warning)]" />
@@ -588,11 +588,11 @@ const DashboardsPage: React.FC = () => {
                 {/* Statistiques */}
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-[#6A8A82]">{dashboard.widgetCount}</div>
+                    <div className="text-lg font-bold text-[#6A8A82]">{dashboard.widgetCount}</div>
                     <div className="text-xs text-[var(--color-text-secondary)]">Widgets</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-[var(--color-success)]">{dashboard.views}</div>
+                    <div className="text-lg font-bold text-[var(--color-success)]">{dashboard.views}</div>
                     <div className="text-xs text-[var(--color-text-secondary)]">Vues</div>
                   </div>
                   <div className="text-center">
@@ -804,7 +804,7 @@ const DashboardsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Créer un Dashboard</h2>
+              <h2 className="text-lg font-semibold">Créer un Dashboard</h2>
               <button onClick={() => setShowCreateModal(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -855,7 +855,7 @@ const DashboardsPage: React.FC = () => {
             </div>
             <div className="flex justify-end space-x-3 p-6 border-t">
               <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
-              <button onClick={() => { console.log('Create dashboard'); setShowCreateModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-indigo-700">{t('actions.create')}</button>
+              <button onClick={() => { setShowCreateModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-indigo-700">{t('actions.create')}</button>
             </div>
           </div>
         </div>
@@ -867,7 +867,7 @@ const DashboardsPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
               <div>
-                <h2 className="text-xl font-semibold">{selectedDashboard.name}</h2>
+                <h2 className="text-lg font-semibold">{selectedDashboard.name}</h2>
                 <p className="text-sm text-[var(--color-text-secondary)] mt-1">{selectedDashboard.description}</p>
               </div>
               <button onClick={() => setShowViewModal(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
@@ -922,7 +922,7 @@ const DashboardsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Modifier le Dashboard</h2>
+              <h2 className="text-lg font-semibold">Modifier le Dashboard</h2>
               <button onClick={() => setShowEditModal(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -990,7 +990,7 @@ const DashboardsPage: React.FC = () => {
             </div>
             <div className="flex justify-end space-x-3 p-6 border-t">
               <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
-              <button onClick={() => { console.log('Save dashboard'); setShowEditModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-indigo-700">{t('actions.save')}</button>
+              <button onClick={() => { setShowEditModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-indigo-700">{t('actions.save')}</button>
             </div>
           </div>
         </div>
@@ -1001,7 +1001,7 @@ const DashboardsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Partager le Dashboard</h2>
+              <h2 className="text-lg font-semibold">Partager le Dashboard</h2>
               <button onClick={() => setShowShareModal(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1050,7 +1050,7 @@ const DashboardsPage: React.FC = () => {
             </div>
             <div className="flex justify-end space-x-3 p-6 border-t">
               <button onClick={() => setShowShareModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
-              <button onClick={() => { console.log('Share dashboard'); setShowShareModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-indigo-700">Partager</button>
+              <button onClick={() => { setShowShareModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-indigo-700">Partager</button>
             </div>
           </div>
         </div>

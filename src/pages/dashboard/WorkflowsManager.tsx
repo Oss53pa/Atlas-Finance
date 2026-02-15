@@ -352,17 +352,14 @@ const WorkflowsManager: React.FC = () => {
   };
 
   const handleApprove = (approvalId: string) => {
-    console.log('Approving:', approvalId);
     // Logique d'approbation
   };
 
   const handleReject = (approvalId: string) => {
-    console.log('Rejecting:', approvalId);
     // Logique de rejet
   };
 
   const handleEscalate = (approvalId: string) => {
-    console.log('Escalating:', approvalId);
     // Logique d'escalade
   };
 
@@ -386,7 +383,7 @@ const WorkflowsManager: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <GitBranch className="w-8 h-8 text-[#6A8A82]" />
             Workflows & Approbations
           </h1>
@@ -412,7 +409,7 @@ const WorkflowsManager: React.FC = () => {
             <span className="text-sm font-medium text-gray-600">Workflows Actifs</span>
             <Activity className="w-5 h-5 text-[#78998F]" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.activeWorkflows}</p>
+          <p className="text-lg font-bold text-gray-900">{stats.activeWorkflows}</p>
           <p className="text-xs text-gray-700 mt-1">En cours d'exécution</p>
         </div>
 
@@ -421,7 +418,7 @@ const WorkflowsManager: React.FC = () => {
             <span className="text-sm font-medium text-amber-700">En Attente</span>
             <Clock className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-amber-700">{stats.pendingApprovals}</p>
+          <p className="text-lg font-bold text-amber-700">{stats.pendingApprovals}</p>
           <p className="text-xs text-amber-600 mt-1">Approbations requises</p>
         </div>
 
@@ -430,7 +427,7 @@ const WorkflowsManager: React.FC = () => {
             <span className="text-sm font-medium text-green-700">Complétés</span>
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
-          <p className="text-2xl font-bold text-green-700">{stats.completedToday}</p>
+          <p className="text-lg font-bold text-green-700">{stats.completedToday}</p>
           <p className="text-xs text-green-600 mt-1">{t('common.today')}</p>
         </div>
 
@@ -439,7 +436,7 @@ const WorkflowsManager: React.FC = () => {
             <span className="text-sm font-medium text-gray-600">Temps Moyen</span>
             <Timer className="w-5 h-5 text-gray-700" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.avgCompletionTime}</p>
+          <p className="text-lg font-bold text-gray-900">{stats.avgCompletionTime}</p>
           <p className="text-xs text-gray-700 mt-1">Par workflow</p>
         </div>
       </div>

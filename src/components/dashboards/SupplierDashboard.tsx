@@ -207,7 +207,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
       {/* Header avec contrôles */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
             Dashboard Comptabilité Fournisseur
           </h1>
           <p className="text-[var(--color-text-primary)] mt-1">
@@ -336,7 +336,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                           </div>
                           <div>
                             <p className="text-sm font-medium text-[var(--color-text-primary)]">{kpi.title}</p>
-                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{kpi.value}</p>
+                            <p className="text-lg font-bold text-[var(--color-text-primary)]">{kpi.value}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -465,19 +465,19 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                   <div className="grid gap-4 md:grid-cols-3 mb-6">
                     <div className="bg-[var(--color-success-lightest)] p-4 rounded-lg border border-[var(--color-success-light)]">
                       <p className="text-sm font-medium text-[var(--color-success-darker)]">Économies Potentielles</p>
-                      <p className="text-xl font-bold text-green-900">
+                      <p className="text-lg font-bold text-green-900">
                         {formatCurrency(paymentOptimization?.totalPotentialSavings || 0)}
                       </p>
                     </div>
                     <div className="bg-[var(--color-primary-lightest)] p-4 rounded-lg border border-[var(--color-primary-light)]">
                       <p className="text-sm font-medium text-[var(--color-primary-darker)]">Montant à Payer</p>
-                      <p className="text-xl font-bold text-[var(--color-primary-darker)]">
+                      <p className="text-lg font-bold text-[var(--color-primary-darker)]">
                         {formatCurrency(paymentOptimization?.totalPaymentAmount || 0)}
                       </p>
                     </div>
                     <div className="bg-[var(--color-info-lightest)] p-4 rounded-lg border border-purple-200">
                       <p className="text-sm font-medium text-[var(--color-info-darker)]">ROI Optimisation</p>
-                      <p className="text-xl font-bold text-purple-900">
+                      <p className="text-lg font-bold text-purple-900">
                         {formatPercent(paymentOptimization?.optimizationROI || 0)}
                       </p>
                     </div>
@@ -648,7 +648,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-[var(--color-primary)]">
+                  <div className="text-lg font-bold text-[var(--color-primary)]">
                     {formatPercent(kpiData?.conformityRate || 0)}
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-1">Factures Conformes</p>
@@ -656,7 +656,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 </div>
                 
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-[var(--color-success)]">
+                  <div className="text-lg font-bold text-[var(--color-success)]">
                     {kpiData?.processingTime || 0}h
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-1">Délai Moyen</p>
@@ -664,7 +664,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 </div>
                 
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-[var(--color-info)]">
+                  <div className="text-lg font-bold text-[var(--color-info)]">
                     {formatPercent(kpiData?.automationRate || 0)}
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-1">Automatisation</p>
@@ -672,7 +672,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 </div>
                 
                 <div className="text-center p-4">
-                  <div className="text-2xl font-bold text-[var(--color-info)]">
+                  <div className="text-lg font-bold text-[var(--color-info)]">
                     {formatPercent(kpiData?.contractCompliance || 0)}
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-1">Respect Contrats</p>

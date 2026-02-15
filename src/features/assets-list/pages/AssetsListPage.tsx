@@ -30,7 +30,6 @@ const AssetsListPage: React.FC = () => {
   };
 
   const handleRowClick = (asset: AssetData) => {
-    console.log('Asset clicked:', asset);
   };
 
   const handleResetFilters = () => {
@@ -41,7 +40,7 @@ const AssetsListPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Registre des Immobilisations</h1>
+          <h1 className="text-lg font-bold text-gray-900">Registre des Immobilisations</h1>
           <p className="mt-2 text-gray-600">
             Gestion complète du registre des immobilisations corporelles
           </p>

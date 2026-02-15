@@ -10,7 +10,7 @@ const CycleGestionSection: React.FC<CycleGestionSectionProps> = ({ periodId, onC
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Cycle de Gestion</h2>
+        <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Cycle de Gestion</h2>
         <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
           <Settings className="w-4 h-4 inline mr-1" />
           En cours

@@ -1,5 +1,5 @@
 /**
- * WiseBook Design System - Table Component
+ * Atlas Finance Design System - Table Component
  * Comprehensive table component with sorting, filtering, and pagination
  */
 

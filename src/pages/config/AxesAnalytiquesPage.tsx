@@ -632,7 +632,7 @@ const AxesAnalytiquesPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <BarChart3 className="mr-3 h-7 w-7 text-blue-600" />
               Axes Analytiques
             </h1>
@@ -674,7 +674,7 @@ const AxesAnalytiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Axes Actifs</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                  <p className="text-lg font-bold text-blue-700">
                     {activeAxes}/{axes.length}
                   </p>
                 </div>
@@ -696,7 +696,7 @@ const AxesAnalytiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Axes Obligatoires</p>
-                  <p className="text-2xl font-bold text-green-700">{mandatoryAxes}</p>
+                  <p className="text-lg font-bold text-green-700">{mandatoryAxes}</p>
                 </div>
               </div>
             </CardContent>
@@ -716,7 +716,7 @@ const AxesAnalytiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Transactions</p>
-                  <p className="text-2xl font-bold text-purple-700">{totalTransactions.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-purple-700">{totalTransactions.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -736,7 +736,7 @@ const AxesAnalytiquesPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Montant Total</p>
-                  <p className="text-2xl font-bold text-orange-700">
+                  <p className="text-lg font-bold text-orange-700">
                     {formatCurrency(totalAmount)}
                   </p>
                 </div>
@@ -1045,7 +1045,7 @@ const AxesAnalytiquesPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center">
                 <Plus className="mr-2 h-6 w-6 text-blue-600" />
                 Créer un nouveau code analytique
               </h2>

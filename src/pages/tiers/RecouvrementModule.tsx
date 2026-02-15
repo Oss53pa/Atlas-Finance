@@ -720,7 +720,7 @@ Service Contentieux
     ]
   };
 
-  // Données d'intégration WiseBook - Flux entrants
+  // Données d'intégration Atlas Finance - Flux entrants
   const integrationData = {
     // Flux depuis Comptabilité
     comptabilite: {
@@ -831,7 +831,7 @@ Service Contentieux
 
   // Notifications multi-canaux
   const notificationsEnCours = [
-    { type: 'Email', destinataire: 'directeur.financier@wisebook.ci', sujet: 'Validation transfert contentieux - 2.5M FCFA', statut: 'Envoyé', heure: '09:15' },
+    { type: 'Email', destinataire: 'directeur.financier@atlasfinance.ci', sujet: 'Validation transfert contentieux - 2.5M FCFA', statut: 'Envoyé', heure: '09:15' },
     { type: 'SMS', destinataire: '+225 07 12 34 56 78', message: 'Rappel: Échéance paiement aujourd\'hui', statut: 'Envoyé', heure: '08:30' },
     { type: 'Dashboard', destinataire: 'Marie Diallo', alerte: 'Nouveau dossier contentieux assigné', statut: 'Non lu', heure: '09:20' },
     { type: 'Push Mobile', destinataire: 'Jean Kouassi', message: 'Client a effectué un paiement partiel', statut: 'Livré', heure: '09:10' }
@@ -861,7 +861,7 @@ Service Contentieux
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#666666]">Créances Totales</p>
-                      <p className="text-2xl font-bold text-[#191919]">
+                      <p className="text-lg font-bold text-[#191919]">
                         {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
                       </p>
                       <p className="text-xs text-[#666666] mt-1">{analyticsData.statistiques.nombreCreances} dossiers</p>
@@ -877,7 +877,7 @@ Service Contentieux
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#666666]">Recouvré ce mois</p>
-                      <p className="text-2xl font-bold text-[#191919]">
+                      <p className="text-lg font-bold text-[#191919]">
                         {formatCurrency(analyticsData.statistiques.montantRecouvre)}
                       </p>
                       <p className="text-xs text-green-600 mt-1">↑ +12% vs mois précédent</p>
@@ -893,7 +893,7 @@ Service Contentieux
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#666666]">Taux de succès</p>
-                      <p className="text-2xl font-bold text-[#191919]">
+                      <p className="text-lg font-bold text-[#191919]">
                         {analyticsData.statistiques.tauxRecouvrement}%
                       </p>
                       <p className="text-xs text-blue-600 mt-1">Objectif: 85%</p>
@@ -909,7 +909,7 @@ Service Contentieux
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#666666]">Délai moyen</p>
-                      <p className="text-2xl font-bold text-[#191919]">
+                      <p className="text-lg font-bold text-[#191919]">
                         {analyticsData.statistiques.delaiMoyenRecouvrement}j
                       </p>
                       <p className="text-xs text-orange-600 mt-1">{analyticsData.statistiques.creancesEnRetard} en retard</p>
@@ -926,7 +926,7 @@ Service Contentieux
               {/* Panel des intégrations en temps réel */}
               <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Flux de Données WiseBook</h3>
+                  <h3 className="text-lg font-semibold text-[#191919]">Flux de Données Atlas Finance</h3>
                   <div className="flex items-center space-x-2 text-sm text-green-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span>Synchronisation active</span>
@@ -1025,7 +1025,7 @@ Service Contentieux
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-blue-800">Nouvelles créances</p>
-                        <p className="text-2xl font-bold text-blue-900">8</p>
+                        <p className="text-lg font-bold text-blue-900">8</p>
                       </div>
                       <Plus className="w-6 h-6 text-blue-600" />
                     </div>
@@ -1034,7 +1034,7 @@ Service Contentieux
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-green-800">Recouvrements réalisés</p>
-                        <p className="text-2xl font-bold text-green-900">12</p>
+                        <p className="text-lg font-bold text-green-900">12</p>
                       </div>
                       <CheckCircle className="w-6 h-6 text-green-600" />
                     </div>
@@ -1043,7 +1043,7 @@ Service Contentieux
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-orange-800">Actions en attente</p>
-                        <p className="text-2xl font-bold text-orange-900">5</p>
+                        <p className="text-lg font-bold text-orange-900">5</p>
                       </div>
                       <Clock className="w-6 h-6 text-orange-600" />
                     </div>
@@ -1405,7 +1405,7 @@ Service Contentieux
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-[#191919] mb-2">{formatCurrency(1250000)}</div>
+                    <div className="text-lg font-bold text-[#191919] mb-2">{formatCurrency(1250000)}</div>
                     <div className="text-sm text-gray-600 mb-1">Créances ce mois</div>
                     <div className="flex items-center justify-center text-sm">
                       <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -1414,7 +1414,7 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-[#191919] mb-2">{formatCurrency(980000)}</div>
+                    <div className="text-lg font-bold text-[#191919] mb-2">{formatCurrency(980000)}</div>
                     <div className="text-sm text-gray-600 mb-1">Montant recouvré</div>
                     <div className="flex items-center justify-center text-sm">
                       <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -1423,7 +1423,7 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-[#191919] mb-2">78.4%</div>
+                    <div className="text-lg font-bold text-[#191919] mb-2">78.4%</div>
                     <div className="text-sm text-gray-600 mb-1">Taux de succès</div>
                     <div className="flex items-center justify-center text-sm">
                       <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
@@ -1466,7 +1466,7 @@ Service Contentieux
                       <div className="text-sm text-gray-600">Notre performance vs secteur</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-green-600">78.4%</div>
+                      <div className="text-lg font-bold text-green-600">78.4%</div>
                       <div className="text-sm text-gray-600">Secteur: 72.1%</div>
                     </div>
                   </div>
@@ -1476,7 +1476,7 @@ Service Contentieux
                       <div className="text-sm text-gray-600">Notre performance vs secteur</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">18j</div>
+                      <div className="text-lg font-bold text-blue-600">18j</div>
                       <div className="text-sm text-gray-600">Secteur: 24j</div>
                     </div>
                   </div>
@@ -1486,7 +1486,7 @@ Service Contentieux
                       <div className="text-sm text-gray-600">Notre performance vs secteur</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-yellow-600">{formatCurrency(15000)}</div>
+                      <div className="text-lg font-bold text-yellow-600">{formatCurrency(15000)}</div>
                       <div className="text-sm text-gray-600">Secteur: {formatCurrency(18500)}</div>
                     </div>
                   </div>
@@ -1603,7 +1603,7 @@ Service Contentieux
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-center">
                       <div className="text-lg font-semibold text-green-800 mb-2">Scénario Optimiste</div>
-                      <div className="text-2xl font-bold text-green-900 mb-1">{formatCurrency(1850000)}</div>
+                      <div className="text-lg font-bold text-green-900 mb-1">{formatCurrency(1850000)}</div>
                       <div className="text-sm text-green-600">Recouvrement 6 mois</div>
                       <div className="mt-3 text-xs text-green-700">
                         • Taux succès: 85%<br/>
@@ -1615,7 +1615,7 @@ Service Contentieux
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="text-center">
                       <div className="text-lg font-semibold text-blue-800 mb-2">Scénario Réaliste</div>
-                      <div className="text-2xl font-bold text-blue-900 mb-1">{formatCurrency(1650000)}</div>
+                      <div className="text-lg font-bold text-blue-900 mb-1">{formatCurrency(1650000)}</div>
                       <div className="text-sm text-blue-600">Recouvrement 6 mois</div>
                       <div className="mt-3 text-xs text-blue-700">
                         • Taux succès: 78%<br/>
@@ -1627,7 +1627,7 @@ Service Contentieux
                   <div className="p-4 bg-red-50 rounded-lg border border-red-200">
                     <div className="text-center">
                       <div className="text-lg font-semibold text-red-800 mb-2">Scénario Pessimiste</div>
-                      <div className="text-2xl font-bold text-red-900 mb-1">{formatCurrency(1420000)}</div>
+                      <div className="text-lg font-bold text-red-900 mb-1">{formatCurrency(1420000)}</div>
                       <div className="text-sm text-red-600">Recouvrement 6 mois</div>
                       <div className="mt-3 text-xs text-red-700">
                         • Taux succès: 68%<br/>
@@ -3233,7 +3233,7 @@ Service Contentieux
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#191919]">
+                  <h2 className="text-lg font-semibold text-[#191919]">
                     Modifier Dossier Contentieux
                   </h2>
                   <p className="text-gray-600 mt-1">
@@ -3806,7 +3806,7 @@ Service Contentieux
                           </div>
                           <div className="flex justify-between items-center pt-3 border-t border-orange-200">
                             <span className="font-medium text-gray-700">MONTANT TOTAL:</span>
-                            <span className="text-xl font-bold text-orange-600">
+                            <span className="text-lg font-bold text-orange-600">
                               {getTotalDepenses().toLocaleString()} FCFA
                             </span>
                           </div>
@@ -4138,29 +4138,29 @@ Service Contentieux
                         <h4 className="font-medium text-gray-800 mb-3">Résumé du suivi</h4>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                           <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-2xl font-bold text-gray-700">{suiviEtapes.length}</div>
+                            <div className="text-lg font-bold text-gray-700">{suiviEtapes.length}</div>
                             <div className="text-xs text-gray-500">Total étapes</div>
                           </div>
                           <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-2xl font-bold text-green-600">
+                            <div className="text-lg font-bold text-green-600">
                               {suiviEtapes.filter(e => e.resultat === 'reussi').length}
                             </div>
                             <div className="text-xs text-gray-500">Réussies</div>
                           </div>
                           <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-2xl font-bold text-red-600">
+                            <div className="text-lg font-bold text-red-600">
                               {suiviEtapes.filter(e => e.resultat === 'echoue').length}
                             </div>
                             <div className="text-xs text-gray-500">Échouées</div>
                           </div>
                           <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-2xl font-bold text-yellow-600">
+                            <div className="text-lg font-bold text-yellow-600">
                               {suiviEtapes.filter(e => e.resultat === 'reporte').length}
                             </div>
                             <div className="text-xs text-gray-500">Reportées</div>
                           </div>
                           <div className="bg-white p-3 rounded-lg border">
-                            <div className="text-2xl font-bold text-gray-500">
+                            <div className="text-lg font-bold text-gray-500">
                               {suiviEtapes.filter(e => e.resultat === 'en_attente').length}
                             </div>
                             <div className="text-xs text-gray-500">En attente</div>
@@ -4251,7 +4251,7 @@ Service Contentieux
             <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-indigo-600">
                 <div className="text-white">
-                  <h2 className="text-xl font-semibold flex items-center">
+                  <h2 className="text-lg font-semibold flex items-center">
                     <Activity className="w-6 h-6 mr-2" />
                     Workflow de Procédure Contentieux
                   </h2>
@@ -4522,7 +4522,7 @@ Service Contentieux
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#191919]">
+                  <h2 className="text-lg font-semibold text-[#191919]">
                     Détail Exécution - {selectedExecutionDossier.reference}
                   </h2>
                   <p className="text-gray-600 mt-1">Client: {selectedExecutionDossier.client}</p>
@@ -4712,7 +4712,7 @@ Service Contentieux
                 <span>Retour aux dossiers contentieux</span>
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-lg font-bold text-gray-900">
                   Dossier Contentieux {selectedContentieuxDetail.numeroRef}
                 </h1>
                 <p className="text-gray-600">{selectedContentieuxDetail.client}</p>
@@ -5126,7 +5126,7 @@ Service Contentieux
           dateCreation: '2023-11-15',
           statut: 'final',
           taille: '458 KB',
-          auteur: 'WiseBook Auto',
+          auteur: 'Atlas Finance Auto',
           description: 'Facture N°FAC-2023-1156'
         },
         {
@@ -5311,7 +5311,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Actes Procédure</p>
-                  <p className="text-2xl font-bold text-blue-900">{documentsContentieux.filter(d => d.type === 'procedure').length}</p>
+                  <p className="text-lg font-bold text-blue-900">{documentsContentieux.filter(d => d.type === 'procedure').length}</p>
                 </div>
                 <Scale className="w-8 h-8 text-blue-600" />
               </div>
@@ -5320,7 +5320,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Pièces Justificatives</p>
-                  <p className="text-2xl font-bold text-green-900">{documentsContentieux.filter(d => d.type === 'justificatif').length}</p>
+                  <p className="text-lg font-bold text-green-900">{documentsContentieux.filter(d => d.type === 'justificatif').length}</p>
                 </div>
                 <FileText className="w-8 h-8 text-green-600" />
               </div>
@@ -5329,7 +5329,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-orange-600">Actes Huissier</p>
-                  <p className="text-2xl font-bold text-orange-900">{documentsContentieux.filter(d => d.type === 'huissier').length}</p>
+                  <p className="text-lg font-bold text-orange-900">{documentsContentieux.filter(d => d.type === 'huissier').length}</p>
                 </div>
                 <Gavel className="w-8 h-8 text-orange-600" />
               </div>
@@ -5338,7 +5338,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-purple-600">Expertises</p>
-                  <p className="text-2xl font-bold text-purple-900">{documentsContentieux.filter(d => d.type === 'expertise').length}</p>
+                  <p className="text-lg font-bold text-purple-900">{documentsContentieux.filter(d => d.type === 'expertise').length}</p>
                 </div>
                 <Calculator className="w-8 h-8 text-purple-600" />
               </div>
@@ -5503,7 +5503,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Total Frais</p>
-                  <p className="text-xl font-bold text-blue-900">{(totalFrais).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-blue-900">{(totalFrais).toLocaleString()} FCFA</p>
                 </div>
                 <Wallet className="w-8 h-8 text-blue-600" />
               </div>
@@ -5512,7 +5512,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Payés</p>
-                  <p className="text-xl font-bold text-green-900">{(fraisPayes).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-green-900">{(fraisPayes).toLocaleString()} FCFA</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
@@ -5521,7 +5521,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-orange-600">À Payer</p>
-                  <p className="text-xl font-bold text-orange-900">{(fraisFactures).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-orange-900">{(fraisFactures).toLocaleString()} FCFA</p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-orange-600" />
               </div>
@@ -5530,7 +5530,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-purple-600">Imputables</p>
-                  <p className="text-xl font-bold text-purple-900">{(fraisImputables).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-purple-900">{(fraisImputables).toLocaleString()} FCFA</p>
                 </div>
                 <RefreshCw className="w-8 h-8 text-purple-600" />
               </div>
@@ -5885,7 +5885,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Messages</p>
-                  <p className="text-2xl font-bold text-blue-900">{correspondances.length}</p>
+                  <p className="text-lg font-bold text-blue-900">{correspondances.length}</p>
                 </div>
                 <MessageSquare className="w-8 h-8 text-blue-600" />
               </div>
@@ -5894,7 +5894,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-red-600">Non lus</p>
-                  <p className="text-2xl font-bold text-red-900">{correspondances.filter(c => c.statut === 'non_lu').length}</p>
+                  <p className="text-lg font-bold text-red-900">{correspondances.filter(c => c.statut === 'non_lu').length}</p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
@@ -5903,7 +5903,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-orange-600">Haute priorité</p>
-                  <p className="text-2xl font-bold text-orange-900">{correspondances.filter(c => c.priorite === 'haute').length}</p>
+                  <p className="text-lg font-bold text-orange-900">{correspondances.filter(c => c.priorite === 'haute').length}</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-orange-600" />
               </div>
@@ -5912,7 +5912,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Correspondants</p>
-                  <p className="text-2xl font-bold text-green-900">{correspondantsUniques.length}</p>
+                  <p className="text-lg font-bold text-green-900">{correspondantsUniques.length}</p>
                 </div>
                 <Users className="w-8 h-8 text-green-600" />
               </div>
@@ -6278,7 +6278,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Montant Recouvré</p>
-                  <p className="text-xl font-bold text-green-900">{totalRecouvert.toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-green-900">{totalRecouvert.toLocaleString()} FCFA</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-600" />
               </div>
@@ -6287,7 +6287,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-orange-600">Mesures Actives</p>
-                  <p className="text-2xl font-bold text-orange-900">{mesuresActives}</p>
+                  <p className="text-lg font-bold text-orange-900">{mesuresActives}</p>
                 </div>
                 <Activity className="w-8 h-8 text-orange-600" />
               </div>
@@ -6296,7 +6296,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Total Mesures</p>
-                  <p className="text-2xl font-bold text-blue-900">{mesuresExecution.length}</p>
+                  <p className="text-lg font-bold text-blue-900">{mesuresExecution.length}</p>
                 </div>
                 <Target className="w-8 h-8 text-blue-600" />
               </div>
@@ -6305,7 +6305,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-purple-600">Taux Succès</p>
-                  <p className="text-2xl font-bold text-purple-900">
+                  <p className="text-lg font-bold text-purple-900">
                     {Math.round((totalRecouvert / 2500000) * 100)}%
                   </p>
                 </div>
@@ -6637,7 +6637,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Taux de Recouvrement</p>
-                  <p className="text-3xl font-bold text-green-900">{tauxRecouvrement.toFixed(1)}%</p>
+                  <p className="text-lg font-bold text-green-900">{tauxRecouvrement.toFixed(1)}%</p>
                   <p className="text-xs text-green-600 mt-1">Objectif: 80%</p>
                 </div>
                 <Target className="w-10 h-10 text-green-600" />
@@ -6647,7 +6647,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Montant Recouvré</p>
-                  <p className="text-2xl font-bold text-blue-900">{montantRecouvert.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-blue-900">{montantRecouvert.toLocaleString()}</p>
                   <p className="text-xs text-blue-600 mt-1">/ {montantInitial.toLocaleString()} FCFA</p>
                 </div>
                 <DollarSign className="w-10 h-10 text-blue-600" />
@@ -6657,7 +6657,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-purple-600">Rentabilité</p>
-                  <p className="text-2xl font-bold text-purple-900">{rentabilite.toFixed(1)}%</p>
+                  <p className="text-lg font-bold text-purple-900">{rentabilite.toFixed(1)}%</p>
                   <p className="text-xs text-purple-600 mt-1">ROI excellent</p>
                 </div>
                 <TrendingUp className="w-10 h-10 text-purple-600" />
@@ -6667,7 +6667,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-orange-600">Durée</p>
-                  <p className="text-2xl font-bold text-orange-900">{analyseRentabilite.dureeRecouvrement}</p>
+                  <p className="text-lg font-bold text-orange-900">{analyseRentabilite.dureeRecouvrement}</p>
                   <p className="text-xs text-orange-600 mt-1">jours</p>
                 </div>
                 <Clock className="w-10 h-10 text-orange-600" />
@@ -6832,7 +6832,7 @@ Service Contentieux
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold text-gray-900">Bénéfice Net</span>
-                <span className="text-2xl font-bold text-green-600">{beneficeNet.toLocaleString()} FCFA</span>
+                <span className="text-lg font-bold text-green-600">{beneficeNet.toLocaleString()} FCFA</span>
               </div>
               <p className="text-sm text-gray-700 mt-1">
                 Rentabilité: {rentabilite.toFixed(1)}% | Efficacité: {tauxRecouvrement.toFixed(1)}%
@@ -6936,7 +6936,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Performance Globale</p>
-                    <p className="text-2xl font-bold text-[#191919]">73%</p>
+                    <p className="text-lg font-bold text-[#191919]">73%</p>
                     <p className="text-xs text-green-600">+5% vs mois dernier</p>
                   </div>
                   <Target className="w-8 h-8 text-blue-600" />
@@ -6946,7 +6946,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Taux Transfert Amiable→Contentieux</p>
-                    <p className="text-2xl font-bold text-[#191919]">18%</p>
+                    <p className="text-lg font-bold text-[#191919]">18%</p>
                     <p className="text-xs text-orange-600">↑ 2% ce mois</p>
                   </div>
                   <RefreshCw className="w-8 h-8 text-orange-600" />
@@ -6956,7 +6956,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">ROI Contentieux</p>
-                    <p className="text-2xl font-bold text-green-600">3.2x</p>
+                    <p className="text-lg font-bold text-green-600">3.2x</p>
                     <p className="text-xs text-gray-600">Coût vs Recouvrement</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-600" />
@@ -6966,7 +6966,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Délai Moyen</p>
-                    <p className="text-2xl font-bold text-[#191919]">127j</p>
+                    <p className="text-lg font-bold text-[#191919]">127j</p>
                     <p className="text-xs text-gray-600">Transfert → Jugement</p>
                   </div>
                   <Clock className="w-8 h-8 text-purple-600" />
@@ -7277,7 +7277,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Budget Total Contentieux</p>
-                    <p className="text-2xl font-bold text-[#191919]">15M FCFA</p>
+                    <p className="text-lg font-bold text-[#191919]">15M FCFA</p>
                     <p className="text-xs text-gray-600">Année 2024</p>
                   </div>
                   <Wallet className="w-8 h-8 text-blue-600" />
@@ -7287,7 +7287,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Dépenses Engagées</p>
-                    <p className="text-2xl font-bold text-orange-600">8.7M FCFA</p>
+                    <p className="text-lg font-bold text-orange-600">8.7M FCFA</p>
                     <p className="text-xs text-gray-600">58% du budget</p>
                   </div>
                   <CreditCard className="w-8 h-8 text-orange-600" />
@@ -7297,7 +7297,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Montants Recouvrés</p>
-                    <p className="text-2xl font-bold text-green-600">27.8M FCFA</p>
+                    <p className="text-lg font-bold text-green-600">27.8M FCFA</p>
                     <p className="text-xs text-green-600">ROI: 3.2x</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-600" />
@@ -7419,7 +7419,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Jugements à exécuter</p>
-                    <p className="text-2xl font-bold text-[#191919]">8</p>
+                    <p className="text-lg font-bold text-[#191919]">8</p>
                   </div>
                   <Gavel className="w-8 h-8 text-purple-600" />
                 </div>
@@ -7428,7 +7428,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Saisies en cours</p>
-                    <p className="text-2xl font-bold text-orange-600">5</p>
+                    <p className="text-lg font-bold text-orange-600">5</p>
                   </div>
                   <Lock className="w-8 h-8 text-orange-600" />
                 </div>
@@ -7437,7 +7437,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Montants saisis</p>
-                    <p className="text-2xl font-bold text-green-600">12.3M</p>
+                    <p className="text-lg font-bold text-green-600">12.3M</p>
                   </div>
                   <Coins className="w-8 h-8 text-green-600" />
                 </div>
@@ -7446,7 +7446,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Taux d'exécution</p>
-                    <p className="text-2xl font-bold text-[#191919]">62%</p>
+                    <p className="text-lg font-bold text-[#191919]">62%</p>
                   </div>
                   <CheckSquare className="w-8 h-8 text-blue-600" />
                 </div>
@@ -7548,19 +7548,19 @@ Service Contentieux
               <h3 className="text-lg font-semibold text-[#191919] mb-4">Indicateurs de Performance - Vue Consolidée</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-3xl font-bold text-[#191919]">82%</p>
+                  <p className="text-lg font-bold text-[#191919]">82%</p>
                   <p className="text-sm text-gray-600 mt-1">Taux succès amiable</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-3xl font-bold text-[#191919]">67%</p>
+                  <p className="text-lg font-bold text-[#191919]">67%</p>
                   <p className="text-sm text-gray-600 mt-1">Taux succès contentieux</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-3xl font-bold text-green-600">3.2x</p>
+                  <p className="text-lg font-bold text-green-600">3.2x</p>
                   <p className="text-sm text-gray-600 mt-1">ROI global</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-3xl font-bold text-[#191919]">45j</p>
+                  <p className="text-lg font-bold text-[#191919]">45j</p>
                   <p className="text-sm text-gray-600 mt-1">Délai moyen amiable</p>
                 </div>
               </div>
@@ -7692,7 +7692,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Dossiers actifs</p>
-                    <p className="text-2xl font-bold text-[#191919]">12</p>
+                    <p className="text-lg font-bold text-[#191919]">12</p>
                   </div>
                   <Scale className="w-8 h-8 text-orange-600" />
                 </div>
@@ -7701,7 +7701,7 @@ Service Contentieux
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#666666]">Montant en contentieux</p>
-                    <p className="text-2xl font-bold text-[#191919]">28.4M</p>
+                    <p className="text-lg font-bold text-[#191919]">28.4M</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-red-600" />
                 </div>
@@ -7710,7 +7710,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Taux de succès</p>
-                  <p className="text-2xl font-bold text-green-600">67%</p>
+                  <p className="text-lg font-bold text-green-600">67%</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
               </div>
@@ -7719,7 +7719,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Audiences ce mois</p>
-                  <p className="text-2xl font-bold text-[#191919]">8</p>
+                  <p className="text-lg font-bold text-[#191919]">8</p>
                 </div>
                 <Calendar className="w-8 h-8 text-blue-600" />
               </div>
@@ -7903,7 +7903,7 @@ Service Contentieux
                   >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
-                  <h2 className="text-2xl font-bold text-[#191919]">
+                  <h2 className="text-lg font-bold text-[#191919]">
                     Dossier Contentieux {selectedContentieux.numeroRef}
                   </h2>
                 </div>
@@ -8206,7 +8206,7 @@ Service Contentieux
                 <DollarSign className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#191919]">{t('thirdParty.collection')}</h1>
+                <h1 className="text-lg font-bold text-[#191919]">{t('thirdParty.collection')}</h1>
                 <p className="text-sm text-[#666666]">Gestion des créances et processus de recouvrement</p>
               </div>
             </div>
@@ -8256,7 +8256,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Créances Totales</p>
-                  <p className="text-2xl font-bold text-[#191919]">
+                  <p className="text-lg font-bold text-[#191919]">
                     {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
                   </p>
                 </div>
@@ -8267,7 +8267,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Montant Recouvré</p>
-                  <p className="text-2xl font-bold text-[#191919]">
+                  <p className="text-lg font-bold text-[#191919]">
                     {formatCurrency(analyticsData.statistiques.montantRecouvre)}
                   </p>
                 </div>
@@ -8278,7 +8278,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Taux Recouvrement</p>
-                  <p className="text-2xl font-bold text-[#191919]">
+                  <p className="text-lg font-bold text-[#191919]">
                     {analyticsData.statistiques.tauxRecouvrement}%
                   </p>
                 </div>
@@ -8289,7 +8289,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#666666]">Délai Moyen</p>
-                  <p className="text-2xl font-bold text-[#191919]">
+                  <p className="text-lg font-bold text-[#191919]">
                     {analyticsData.statistiques.delaiMoyenRecouvrement}j
                   </p>
                 </div>
@@ -8604,7 +8604,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919]">
+                <h2 className="text-lg font-bold text-[#191919]">
                   Détail Créance - {selectedCreance.clientNom}
                 </h2>
                 <button
@@ -8850,27 +8850,27 @@ Service Contentieux
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="text-sm text-blue-600 font-medium">Total Relances</div>
-              <div className="text-2xl font-bold text-blue-900">248</div>
+              <div className="text-lg font-bold text-blue-900">248</div>
               <div className="text-xs text-blue-600 mt-1">Ce mois</div>
             </div>
             <div className="bg-yellow-50 rounded-lg p-4">
               <div className="text-sm text-yellow-600 font-medium">En Attente</div>
-              <div className="text-2xl font-bold text-yellow-900">32</div>
+              <div className="text-lg font-bold text-yellow-900">32</div>
               <div className="text-xs text-yellow-600 mt-1">À envoyer</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4">
               <div className="text-sm text-green-600 font-medium">Taux de Réponse</div>
-              <div className="text-2xl font-bold text-green-900">65%</div>
+              <div className="text-lg font-bold text-green-900">65%</div>
               <div className="text-xs text-green-600 mt-1">Sur 7 jours</div>
             </div>
             <div className="bg-purple-50 rounded-lg p-4">
               <div className="text-sm text-purple-600 font-medium">Clients Relancés</div>
-              <div className="text-2xl font-bold text-purple-900">87</div>
+              <div className="text-lg font-bold text-purple-900">87</div>
               <div className="text-xs text-purple-600 mt-1">Ce mois</div>
             </div>
             <div className="bg-red-50 rounded-lg p-4">
               <div className="text-sm text-red-600 font-medium">Sans Réponse</div>
-              <div className="text-2xl font-bold text-red-900">15</div>
+              <div className="text-lg font-bold text-red-900">15</div>
               <div className="text-xs text-red-600 mt-1">+3 relances</div>
             </div>
           </div>
@@ -8907,7 +8907,7 @@ Service Contentieux
               <div>
             <div className="p-6 border-b border-[#E8E8E8]">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-[#191919]">Historique des Relances par Client</h2>
+                <h2 className="text-lg font-semibold text-[#191919]">Historique des Relances par Client</h2>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -9606,7 +9606,7 @@ Service Contentieux
                                       <p style={{ backgroundColor: '#fff3cd', padding: '10px', marginTop: '15px', borderRadius: '5px' }}>
                                         <strong>Pour éviter ces poursuites, contactez immédiatement notre service:</strong><br/>
                                         ☎️ Tél: +242 06 XXX XX XX<br/>
-                                        ✉️ Email: contentieux@wisebook.com
+                                        ✉️ Email: contentieux@atlasfinance.com
                                       </p>
                                     </>
                                   )}
@@ -9649,16 +9649,16 @@ Service Contentieux
                                   <p style={{ fontSize: '14px', color: '#333' }}>
                                     Cordialement,<br/>
                                     <strong>{selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? 'Service Juridique et Contentieux' : 'Service Comptabilité'}</strong><br/>
-                                    WiseBook ERP
+                                    Atlas Finance
                                   </p>
                                 </div>
                               </div>
 
                               {/* Pied de page */}
                               <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderTop: '1px solid #dee2e6', fontSize: '11px', color: '#666' }}>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>WiseBook ERP - Solutions de gestion d'entreprise</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>Atlas Finance - Solutions de gestion d'entreprise</p>
                                 <p style={{ margin: '5px 0' }}>📍 123 Avenue de la République, Brazzaville, Congo</p>
-                                <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@wisebook.com | 🌐 www.wisebook.com</p>
+                                <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@atlasfinance.com | 🌐 www.atlasfinance.com</p>
                                 <p style={{ margin: '10px 0 5px 0', fontSize: '10px', color: '#999' }}>
                                   Ce message et toutes les pièces jointes sont confidentiels et établis à l'intention exclusive de ses destinataires.
                                 </p>
@@ -9824,7 +9824,7 @@ Service Contentieux
                 <FileText className="w-8 h-8 text-blue-500" />
                 <span className="text-sm font-medium text-blue-600">Total</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {mockDossiers.length}
               </p>
               <p className="text-sm text-gray-600 mt-1">Dossiers actifs</p>
@@ -9835,7 +9835,7 @@ Service Contentieux
                 <AlertTriangle className="w-8 h-8 text-purple-500" />
                 <span className="text-sm font-medium text-purple-600">Judiciaire</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {mockDossiers.filter(d => d.typeRecouvrement === 'judiciaire').length}
               </p>
               <p className="text-sm text-gray-600 mt-1">En procédure judiciaire</p>
@@ -9846,7 +9846,7 @@ Service Contentieux
                 <DollarSign className="w-8 h-8 text-green-500" />
                 <span className="text-sm font-medium text-green-600">Montant</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(mockDossiers.reduce((sum, d) => sum + d.montantTotal, 0))}
               </p>
               <p className="text-sm text-gray-600 mt-1">Total en recouvrement</p>
@@ -9857,7 +9857,7 @@ Service Contentieux
                 <Clock className="w-8 h-8 text-orange-500" />
                 <span className="text-sm font-medium text-orange-600">Urgent</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg font-bold text-gray-900">
                 {mockDossiers.filter(d => d.statut === 'juridique').length}
               </p>
               <p className="text-sm text-gray-600 mt-1">Dossiers urgents</p>
@@ -10174,7 +10174,7 @@ Service Contentieux
                 <span>Retour à la liste</span>
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-lg font-bold text-gray-900">
                   Dossier {selectedDossierDetail.numeroRef}
                 </h1>
                 <p className="text-gray-600">{selectedDossierDetail.client}</p>
@@ -10578,12 +10578,12 @@ Service Contentieux
 
                       <div className="text-center mb-4">
                         <div className="text-sm text-gray-600">Nbre de factures</div>
-                        <div className="text-2xl font-bold text-gray-900">{selectedDossierDetail.nombreFactures}</div>
+                        <div className="text-lg font-bold text-gray-900">{selectedDossierDetail.nombreFactures}</div>
                       </div>
 
                       <div className="text-center">
                         <div className="text-sm text-gray-600">Total créances</div>
-                        <div className="text-2xl font-bold text-gray-900">{selectedDossierDetail.montantTotal.toLocaleString()}</div>
+                        <div className="text-lg font-bold text-gray-900">{selectedDossierDetail.montantTotal.toLocaleString()}</div>
                       </div>
                     </div>
 
@@ -10618,12 +10618,12 @@ Service Contentieux
 
                       <div className="text-center mb-4">
                         <div className="text-sm text-gray-600">Taux</div>
-                        <div className="text-2xl font-bold text-gray-900">0 %</div>
+                        <div className="text-lg font-bold text-gray-900">0 %</div>
                       </div>
 
                       <div className="text-center">
                         <div className="text-sm text-gray-600">Total des retards de paiement</div>
-                        <div className="text-2xl font-bold text-gray-900">0</div>
+                        <div className="text-lg font-bold text-gray-900">0</div>
                       </div>
                     </div>
 
@@ -10639,12 +10639,12 @@ Service Contentieux
 
                       <div className="text-center mb-4">
                         <div className="text-sm text-gray-600">% du chiffre d'affaires total</div>
-                        <div className="text-2xl font-bold text-gray-900">0 %</div>
+                        <div className="text-lg font-bold text-gray-900">0 %</div>
                       </div>
 
                       <div className="text-center">
                         <div className="text-sm text-gray-600">% des créances</div>
-                        <div className="text-2xl font-bold text-gray-900">0 %</div>
+                        <div className="text-lg font-bold text-gray-900">0 %</div>
                       </div>
                     </div>
                   </div>
@@ -10675,7 +10675,7 @@ Service Contentieux
 
                       <div className="mt-6 h-32 flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-4xl font-bold text-gray-300">0</div>
+                          <div className="text-lg font-bold text-gray-300">0</div>
                           <div className="text-sm text-gray-700">Jours</div>
                         </div>
                       </div>
@@ -10904,25 +10904,25 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Débit</div>
-                      <div className="text-2xl font-bold text-blue-900">
+                      <div className="text-lg font-bold text-blue-900">
                         {(5000 + 6000 + 5000).toLocaleString()} FCFA
                       </div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Total Crédit</div>
-                      <div className="text-2xl font-bold text-green-900">
+                      <div className="text-lg font-bold text-green-900">
                         {(2000).toLocaleString()} FCFA
                       </div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Solde Total</div>
-                      <div className="text-2xl font-bold text-orange-900">
+                      <div className="text-lg font-bold text-orange-900">
                         {(5000 + 6000 + 3000).toLocaleString()} FCFA
                       </div>
                     </div>
                     <div className="bg-red-50 rounded-lg p-4">
                       <div className="text-sm text-red-600 font-medium">Factures en retard</div>
-                      <div className="text-2xl font-bold text-red-900">
+                      <div className="text-lg font-bold text-red-900">
                         2
                       </div>
                     </div>
@@ -11098,23 +11098,23 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Contrats Actifs</div>
-                      <div className="text-2xl font-bold text-blue-900">1</div>
+                      <div className="text-lg font-bold text-blue-900">1</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Loyer Mensuel Total</div>
-                      <div className="text-2xl font-bold text-green-900">
+                      <div className="text-lg font-bold text-green-900">
                         850,000 FCFA
                       </div>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
                       <div className="text-sm text-purple-600 font-medium">Charges Mensuelles</div>
-                      <div className="text-2xl font-bold text-purple-900">
+                      <div className="text-lg font-bold text-purple-900">
                         125,000 FCFA
                       </div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Total Mensuel</div>
-                      <div className="text-2xl font-bold text-orange-900">
+                      <div className="text-lg font-bold text-orange-900">
                         975,000 FCFA
                       </div>
                     </div>
@@ -11280,11 +11280,11 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Relances</div>
-                      <div className="text-2xl font-bold text-blue-900">5</div>
+                      <div className="text-lg font-bold text-blue-900">5</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Relances Réussies</div>
-                      <div className="text-2xl font-bold text-green-900">4</div>
+                      <div className="text-lg font-bold text-green-900">4</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Dernière Relance</div>
@@ -11292,7 +11292,7 @@ Service Contentieux
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
                       <div className="text-sm text-purple-600 font-medium">Taux de Réussite</div>
-                      <div className="text-2xl font-bold text-purple-900">80%</div>
+                      <div className="text-lg font-bold text-purple-900">80%</div>
                     </div>
                   </div>
                 </div>
@@ -11461,17 +11461,17 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Total Encaissé</div>
-                      <div className="text-2xl font-bold text-green-900">11,500 FCFA</div>
+                      <div className="text-lg font-bold text-green-900">11,500 FCFA</div>
                       <div className="text-xs text-green-600 mt-1">Paiements validés</div>
                     </div>
                     <div className="bg-yellow-50 rounded-lg p-4">
                       <div className="text-sm text-yellow-600 font-medium">En Attente</div>
-                      <div className="text-2xl font-bold text-yellow-900">3,000 FCFA</div>
+                      <div className="text-lg font-bold text-yellow-900">3,000 FCFA</div>
                       <div className="text-xs text-yellow-600 mt-1">À valider</div>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Nombre de Transactions</div>
-                      <div className="text-2xl font-bold text-blue-900">5</div>
+                      <div className="text-lg font-bold text-blue-900">5</div>
                       <div className="text-xs text-blue-600 mt-1">Total depuis l'ouverture</div>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
@@ -11577,22 +11577,22 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-red-50 rounded-lg p-4">
                       <div className="text-sm text-red-600 font-medium">Total Pénalités</div>
-                      <div className="text-2xl font-bold text-red-900">750 FCFA</div>
+                      <div className="text-lg font-bold text-red-900">750 FCFA</div>
                       <div className="text-xs text-red-600 mt-1">Sur créances en retard</div>
                     </div>
                     <div className="bg-yellow-50 rounded-lg p-4">
                       <div className="text-sm text-yellow-600 font-medium">En Attente Validation</div>
-                      <div className="text-2xl font-bold text-yellow-900">250 FCFA</div>
+                      <div className="text-lg font-bold text-yellow-900">250 FCFA</div>
                       <div className="text-xs text-yellow-600 mt-1">2 dossiers</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Validées</div>
-                      <div className="text-2xl font-bold text-green-900">500 FCFA</div>
+                      <div className="text-lg font-bold text-green-900">500 FCFA</div>
                       <div className="text-xs text-green-600 mt-1">Envoyées à facturation</div>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Taux Moyen</div>
-                      <div className="text-2xl font-bold text-blue-900">4.5%</div>
+                      <div className="text-lg font-bold text-blue-900">4.5%</div>
                       <div className="text-xs text-blue-600 mt-1">Taux appliqué</div>
                     </div>
                   </div>
@@ -11879,17 +11879,17 @@ Service Contentieux
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="p-4 border border-gray-200 rounded-lg">
                         <h5 className="font-medium text-gray-900 mb-2">Retard 0-30 jours</h5>
-                        <div className="text-2xl font-bold text-yellow-600">3.0%</div>
+                        <div className="text-lg font-bold text-yellow-600">3.0%</div>
                         <div className="text-sm text-gray-600">Taux standard</div>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg">
                         <h5 className="font-medium text-gray-900 mb-2">Retard 31-60 jours</h5>
-                        <div className="text-2xl font-bold text-orange-600">4.5%</div>
+                        <div className="text-lg font-bold text-orange-600">4.5%</div>
                         <div className="text-sm text-gray-600">Taux majoré</div>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg">
                         <h5 className="font-medium text-gray-900 mb-2">Retard 60+ jours</h5>
-                        <div className="text-2xl font-bold text-red-600">6.0%</div>
+                        <div className="text-lg font-bold text-red-600">6.0%</div>
                         <div className="text-sm text-gray-600">Taux maximum</div>
                       </div>
                     </div>
@@ -11911,22 +11911,22 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Plans Actifs</div>
-                      <div className="text-2xl font-bold text-blue-900">2</div>
+                      <div className="text-lg font-bold text-blue-900">2</div>
                       <div className="text-xs text-blue-600 mt-1">{t('status.inProgress')}</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Montant Total</div>
-                      <div className="text-2xl font-bold text-green-900">18,500 FCFA</div>
+                      <div className="text-lg font-bold text-green-900">18,500 FCFA</div>
                       <div className="text-xs text-green-600 mt-1">À rembourser</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Paiements Mensuels</div>
-                      <div className="text-2xl font-bold text-orange-900">3,200 FCFA</div>
+                      <div className="text-lg font-bold text-orange-900">3,200 FCFA</div>
                       <div className="text-xs text-orange-600 mt-1">Moyenne</div>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
                       <div className="text-sm text-purple-600 font-medium">Taux Respect</div>
-                      <div className="text-2xl font-bold text-purple-900">85%</div>
+                      <div className="text-lg font-bold text-purple-900">85%</div>
                       <div className="text-xs text-purple-600 mt-1">Paiements à temps</div>
                     </div>
                   </div>
@@ -12264,12 +12264,12 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Actions</div>
-                      <div className="text-2xl font-bold text-blue-900">23</div>
+                      <div className="text-lg font-bold text-blue-900">23</div>
                       <div className="text-xs text-blue-600 mt-1">Depuis ouverture</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Actions Réussies</div>
-                      <div className="text-2xl font-bold text-green-900">18</div>
+                      <div className="text-lg font-bold text-green-900">18</div>
                       <div className="text-xs text-green-600 mt-1">78% de réussite</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
@@ -12279,7 +12279,7 @@ Service Contentieux
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
                       <div className="text-sm text-purple-600 font-medium">Temps Moyen</div>
-                      <div className="text-2xl font-bold text-purple-900">3.2j</div>
+                      <div className="text-lg font-bold text-purple-900">3.2j</div>
                       <div className="text-xs text-purple-600 mt-1">Entre actions</div>
                     </div>
                   </div>
@@ -12595,22 +12595,22 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Documents</div>
-                      <div className="text-2xl font-bold text-blue-900">15</div>
+                      <div className="text-lg font-bold text-blue-900">15</div>
                       <div className="text-xs text-blue-600 mt-1">Tous types</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Factures</div>
-                      <div className="text-2xl font-bold text-green-900">6</div>
+                      <div className="text-lg font-bold text-green-900">6</div>
                       <div className="text-xs text-green-600 mt-1">Documents officiels</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Correspondances</div>
-                      <div className="text-2xl font-bold text-orange-900">7</div>
+                      <div className="text-lg font-bold text-orange-900">7</div>
                       <div className="text-xs text-orange-600 mt-1">Emails, courriers</div>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
                       <div className="text-sm text-purple-600 font-medium">Taille Totale</div>
-                      <div className="text-2xl font-bold text-purple-900">23 MB</div>
+                      <div className="text-lg font-bold text-purple-900">23 MB</div>
                       <div className="text-xs text-purple-600 mt-1">Espace utilisé</div>
                     </div>
                   </div>
@@ -12850,34 +12850,34 @@ Service Contentieux
           {/* En-tête avec statistiques */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Suivi Global des Plans de Remboursement</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Suivi Global des Plans de Remboursement</h2>
             </div>
 
             {/* KPIs globaux */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="bg-blue-50 rounded-lg p-4">
                 <div className="text-sm text-blue-600 font-medium">Plans Actifs</div>
-                <div className="text-2xl font-bold text-blue-900">12</div>
+                <div className="text-lg font-bold text-blue-900">12</div>
                 <div className="text-xs text-blue-600 mt-1">{t('status.inProgress')}</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
                 <div className="text-sm text-green-600 font-medium">Taux de Respect</div>
-                <div className="text-2xl font-bold text-green-900">78%</div>
+                <div className="text-lg font-bold text-green-900">78%</div>
                 <div className="text-xs text-green-600 mt-1">Paiements à temps</div>
               </div>
               <div className="bg-orange-50 rounded-lg p-4">
                 <div className="text-sm text-orange-600 font-medium">Montant Total</div>
-                <div className="text-2xl font-bold text-orange-900">485,000 FCFA</div>
+                <div className="text-lg font-bold text-orange-900">485,000 FCFA</div>
                 <div className="text-xs text-orange-600 mt-1">Sous plan</div>
               </div>
               <div className="bg-red-50 rounded-lg p-4">
                 <div className="text-sm text-red-600 font-medium">En Retard</div>
-                <div className="text-2xl font-bold text-red-900">3</div>
+                <div className="text-lg font-bold text-red-900">3</div>
                 <div className="text-xs text-red-600 mt-1">Plans non respectés</div>
               </div>
               <div className="bg-purple-50 rounded-lg p-4">
                 <div className="text-sm text-purple-600 font-medium">À Échéance</div>
-                <div className="text-2xl font-bold text-purple-900">5</div>
+                <div className="text-lg font-bold text-purple-900">5</div>
                 <div className="text-xs text-purple-600 mt-1">Cette semaine</div>
               </div>
             </div>
@@ -13321,7 +13321,7 @@ Service Contentieux
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Résumé du Dossier {selectedDossierSummary.numeroRef}
               </h3>
               <button
@@ -13457,7 +13457,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919]">
+                <h2 className="text-lg font-bold text-[#191919]">
                   Transfert vers le Contentieux
                 </h2>
                 <button
@@ -13471,7 +13471,7 @@ Service Contentieux
                       validationStatus: 'pending'
                     });
                   }}
-                  className="text-gray-700 hover:text-gray-600 text-2xl"
+                  className="text-gray-700 hover:text-gray-600 text-xl"
                 >
                   ×
                 </button>
@@ -13702,7 +13702,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#191919] flex items-center">
                   <FileText className="w-6 h-6 mr-2 text-blue-600" />
                   Rapport Mensuel Consolidé
                 </h2>
@@ -13823,7 +13823,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#191919] flex items-center">
                   <BarChart3 className="w-6 h-6 mr-2 text-green-600" />
                   Analyse ROI Détaillée
                 </h2>
@@ -13878,17 +13878,17 @@ Service Contentieux
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-[#191919] mb-2">ROI Global</h4>
-                    <p className="text-3xl font-bold text-green-600">3.2x</p>
+                    <p className="text-lg font-bold text-green-600">3.2x</p>
                     <p className="text-sm text-gray-600">+15% vs période précédente</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-[#191919] mb-2">Coût par €1 recouvré</h4>
-                    <p className="text-3xl font-bold text-orange-600">0.31€</p>
+                    <p className="text-lg font-bold text-orange-600">0.31€</p>
                     <p className="text-sm text-gray-600">-8% vs objectif</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-[#191919] mb-2">Break-even délai</h4>
-                    <p className="text-3xl font-bold text-blue-600">45j</p>
+                    <p className="text-lg font-bold text-blue-600">45j</p>
                     <p className="text-sm text-gray-600">Délai d'amortissement</p>
                   </div>
                 </div>
@@ -13954,7 +13954,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#191919] flex items-center">
                   <Users className="w-6 h-6 mr-2 text-orange-600" />
                   Performance des Équipes
                 </h2>
@@ -14022,19 +14022,19 @@ Service Contentieux
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
                     <h4 className="font-semibold text-[#191919] mb-2">Productivité moyenne</h4>
-                    <p className="text-2xl font-bold text-orange-600">66 dossiers/mois</p>
+                    <p className="text-lg font-bold text-orange-600">66 dossiers/mois</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
                     <h4 className="font-semibold text-[#191919] mb-2">Taux succès équipe</h4>
-                    <p className="text-2xl font-bold text-green-600">83.5%</p>
+                    <p className="text-lg font-bold text-green-600">83.5%</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
                     <h4 className="font-semibold text-[#191919] mb-2">Formation requise</h4>
-                    <p className="text-2xl font-bold text-red-600">2 agents</p>
+                    <p className="text-lg font-bold text-red-600">2 agents</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
                     <h4 className="font-semibold text-[#191919] mb-2">Charge de travail</h4>
-                    <p className="text-2xl font-bold text-blue-600">87%</p>
+                    <p className="text-lg font-bold text-blue-600">87%</p>
                   </div>
                 </div>
 
@@ -14084,7 +14084,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#191919] flex items-center">
                   <TrendingUp className="w-6 h-6 mr-2 text-purple-600" />
                   Prévisions de Trésorerie
                 </h2>
@@ -14134,7 +14134,7 @@ Service Contentieux
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-[#191919] mb-2">Mois +1</h4>
-                    <p className="text-2xl font-bold text-green-600">2.1M€</p>
+                    <p className="text-lg font-bold text-green-600">2.1M€</p>
                     <p className="text-sm text-gray-600">Encaissements prévus</p>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs">
@@ -14145,7 +14145,7 @@ Service Contentieux
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-[#191919] mb-2">Mois +2</h4>
-                    <p className="text-2xl font-bold text-blue-600">1.8M€</p>
+                    <p className="text-lg font-bold text-blue-600">1.8M€</p>
                     <p className="text-sm text-gray-600">Encaissements prévus</p>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs">
@@ -14156,7 +14156,7 @@ Service Contentieux
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-[#191919] mb-2">Mois +3</h4>
-                    <p className="text-2xl font-bold text-orange-600">1.5M€</p>
+                    <p className="text-lg font-bold text-orange-600">1.5M€</p>
                     <p className="text-sm text-gray-600">Encaissements prévus</p>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs">
@@ -14213,7 +14213,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#191919] flex items-center">
                   <AlertTriangle className="w-6 h-6 mr-2 text-red-600" />
                   Dossiers à Risque & Alertes
                 </h2>
@@ -14349,7 +14349,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#191919] flex items-center">
                   <Download className="w-6 h-6 mr-2 text-gray-600" />
                   Export Personnalisé
                 </h2>
@@ -14500,7 +14500,7 @@ Service Contentieux
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-xl font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#191919]">
                   Détail Plan de Remboursement - {selectedPlan.reference}
                 </h2>
                 <p className="text-gray-600 mt-1">Client: {selectedPlan.client}</p>
@@ -14647,7 +14647,7 @@ Service Contentieux
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-xl font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#191919]">
                   Enregistrer un Paiement
                 </h2>
                 <p className="text-gray-600 mt-1">Plan: {selectedPlan.reference} - {selectedPlan.client}</p>
@@ -14796,7 +14796,7 @@ Service Contentieux
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-xl font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#191919]">
                   Relance Plan de Remboursement
                 </h2>
                 <p className="text-gray-600 mt-1">Plan: {selectedPlan.reference} - {selectedPlan.client}</p>
@@ -14950,7 +14950,7 @@ L'équipe recouvrement`}
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-xl font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#191919]">
                   Nouvelle Action de Recouvrement
                 </h2>
                 {selectedCreance && (
@@ -15184,7 +15184,7 @@ L'équipe recouvrement`}
                 <div className="bg-red-100 text-red-600 p-2 rounded-lg">
                   <Gavel className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Transfert Contentieux</h2>
+                <h2 className="text-lg font-bold text-gray-900">Transfert Contentieux</h2>
               </div>
               <button
                 onClick={() => {

@@ -291,7 +291,7 @@ const RecouvrementDashboard: React.FC = () => {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">{t('thirdParty.collection')}</h1>
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{t('thirdParty.collection')}</h1>
         <p className="text-[var(--color-text-primary)] mt-2">Gestion et suivi du recouvrement des créances clients</p>
       </div>
 
@@ -332,7 +332,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <DollarSign className="w-10 h-10 text-[var(--color-primary)]" />
                 <span className="text-sm font-medium text-[var(--color-primary)]">Total</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.totalCreances.toLocaleString()} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Créances totales</p>
@@ -345,7 +345,7 @@ const RecouvrementDashboard: React.FC = () => {
                   {stats.tauxRecouvrement}%
                 </span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.totalRecouvre.toLocaleString()} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant recouvré</p>
@@ -358,7 +358,7 @@ const RecouvrementDashboard: React.FC = () => {
                   {stats.creancesEnRetard}
                 </span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.totalRestant.toLocaleString()} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant restant</p>
@@ -371,7 +371,7 @@ const RecouvrementDashboard: React.FC = () => {
                   {stats.creancesCritiques}
                 </span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {stats.creancesCritiques}
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Créances critiques</p>
@@ -382,7 +382,7 @@ const RecouvrementDashboard: React.FC = () => {
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Créances clients</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Créances clients</h2>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <div className="relative">
@@ -568,7 +568,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <Briefcase className="w-8 h-8 text-[var(--color-primary)]" />
                 <span className="text-sm font-medium text-[var(--color-primary)]">Total</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.length}
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Dossiers actifs</p>
@@ -579,7 +579,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <Scale className="w-8 h-8 text-purple-500" />
                 <span className="text-sm font-medium text-[var(--color-info)]">Judiciaire</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.filter(d => d.typeRecouvrement === 'judiciaire').length}
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">En procédure judiciaire</p>
@@ -590,7 +590,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <DollarSign className="w-8 h-8 text-[var(--color-success)]" />
                 <span className="text-sm font-medium text-[var(--color-success)]">Montant</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.reduce((sum, d) => sum + d.montantTotal, 0).toLocaleString()} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Total en recouvrement</p>
@@ -601,7 +601,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <AlertTriangle className="w-8 h-8 text-orange-500" />
                 <span className="text-sm font-medium text-[var(--color-warning)]">Suspendus</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {dossiersRecouvrement.filter(d => d.statut === 'suspendu').length}
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Dossiers suspendus</p>
@@ -633,7 +633,7 @@ const RecouvrementDashboard: React.FC = () => {
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Dossiers en cours</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Dossiers en cours</h2>
                 <div className="flex items-center gap-3">
                   <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>Tous les types</option>
@@ -848,7 +848,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <Archive className="w-8 h-8 text-[var(--color-text-secondary)]" />
                 <span className="text-sm font-medium text-[var(--color-text-primary)]">Total</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {radiations.length}
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Demandes de radiation</p>
@@ -859,7 +859,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <XCircle className="w-8 h-8 text-[var(--color-error)]" />
                 <span className="text-sm font-medium text-[var(--color-error)]">Radié</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {radiations.reduce((sum, r) => sum + r.montantRadie, 0).toLocaleString()} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant total radié</p>
@@ -870,7 +870,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <CheckSquare className="w-8 h-8 text-[var(--color-success)]" />
                 <span className="text-sm font-medium text-[var(--color-success)]">Approuvées</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {radiations.filter(r => r.statut === 'approuvee').length}
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Radiations approuvées</p>
@@ -881,7 +881,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <Clock className="w-8 h-8 text-yellow-500" />
                 <span className="text-sm font-medium text-[var(--color-warning)]">{t('status.pending')}</span>
               </div>
-              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+              <p className="text-lg font-bold text-[var(--color-text-primary)]">
                 {radiations.filter(r => r.statut === 'en_attente').length}
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">En attente d'approbation</p>
@@ -909,7 +909,7 @@ const RecouvrementDashboard: React.FC = () => {
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Demandes de radiation</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Demandes de radiation</h2>
                 <div className="flex items-center gap-3">
                   <select className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>Tous les motifs</option>

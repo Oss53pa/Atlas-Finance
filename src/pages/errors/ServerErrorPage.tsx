@@ -11,7 +11,7 @@ export default function ServerErrorPage() {
   return (
     <>
       <Helmet>
-        <title>500 - Erreur serveur | WiseBook</title>
+        <title>500 - Erreur serveur | Atlas Finance</title>
       </Helmet>
 
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 px-4">
@@ -38,7 +38,7 @@ export default function ServerErrorPage() {
             <div className="w-24 h-1 bg-red-600 dark:bg-red-500 mx-auto mb-8"></div>
           </div>
 
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             Erreur serveur
           </h2>
 

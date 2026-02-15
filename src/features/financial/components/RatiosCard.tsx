@@ -86,7 +86,7 @@ export const RatiosCard: React.FC<RatiosCardProps> = ({ ratios, loading }) => {
               </span>
             </div>
             <h4 className="text-sm text-[#767676] mb-1">{card.title}</h4>
-            <p className={`text-2xl font-bold ${status.color}`}>
+            <p className={`text-lg font-bold ${status.color}`}>
               {formatPercent(card.value / 100)}
             </p>
             <p className="text-xs text-[#767676] mt-2">{card.description}</p>

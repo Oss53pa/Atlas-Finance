@@ -522,7 +522,7 @@ const IAAssistant: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Précision IA</p>
-                <p className="text-2xl font-bold text-[var(--color-success)]">{kpis.precisionsIA}%</p>
+                <p className="text-lg font-bold text-[var(--color-success)]">{kpis.precisionsIA}%</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">+2.1% ce mois</p>
               </div>
               <Brain className="w-8 h-8 text-purple-500" />
@@ -535,7 +535,7 @@ const IAAssistant: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Analyses Actives</p>
-                <p className="text-2xl font-bold">{kpis.analysesNonTraitees}</p>
+                <p className="text-lg font-bold">{kpis.analysesNonTraitees}</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">Détections automatiques</p>
               </div>
               <Activity className="w-8 h-8 text-[var(--color-primary)]" />
@@ -548,7 +548,7 @@ const IAAssistant: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Temps Réponse</p>
-                <p className="text-2xl font-bold">{kpis.tempsReponse}s</p>
+                <p className="text-lg font-bold">{kpis.tempsReponse}s</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">-0.3s vs objectif</p>
               </div>
               <Zap className="w-8 h-8 text-yellow-500" />
@@ -561,7 +561,7 @@ const IAAssistant: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Économies IA</p>
-                <p className="text-2xl font-bold text-[var(--color-success)]">{kpis.impactEconomies}h</p>
+                <p className="text-lg font-bold text-[var(--color-success)]">{kpis.impactEconomies}h</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">Ce mois</p>
               </div>
               <Target className="w-8 h-8 text-[var(--color-success)]" />
@@ -1052,14 +1052,14 @@ const IAAssistant: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-[var(--color-text-primary)]">Valeur Actuelle</p>
-                          <p className="text-2xl font-bold">
+                          <p className="text-lg font-bold">
                             {metrique.valeur} {metrique.unite}
                           </p>
                         </div>
                         {metrique.objectif && (
                           <div>
                             <p className="text-sm text-[var(--color-text-primary)]">Objectif</p>
-                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                            <p className="text-lg font-bold text-[var(--color-text-primary)]">
                               {metrique.objectif} {metrique.unite}
                             </p>
                           </div>
@@ -1094,22 +1094,22 @@ const IAAssistant: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-[var(--color-primary-lightest)] rounded-lg">
                       <Cpu className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-[var(--color-primary)]">87%</p>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">87%</p>
                       <p className="text-sm text-[var(--color-text-primary)]">Utilisation CPU</p>
                     </div>
                     <div className="text-center p-4 bg-[var(--color-success-lightest)] rounded-lg">
                       <Database className="w-8 h-8 text-[var(--color-success)] mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-[var(--color-success)]">2.1GB</p>
+                      <p className="text-lg font-bold text-[var(--color-success)]">2.1GB</p>
                       <p className="text-sm text-[var(--color-text-primary)]">Mémoire Utilisée</p>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <Network className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-purple-600">127</p>
+                      <p className="text-lg font-bold text-purple-600">127</p>
                       <p className="text-sm text-[var(--color-text-primary)]">Requêtes/min</p>
                     </div>
                     <div className="text-center p-4 bg-[var(--color-warning-lightest)] rounded-lg">
                       <Activity className="w-8 h-8 text-[var(--color-warning)] mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-[var(--color-warning)]">99.9%</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">99.9%</p>
                       <p className="text-sm text-[var(--color-text-primary)]">Disponibilité</p>
                     </div>
                   </div>

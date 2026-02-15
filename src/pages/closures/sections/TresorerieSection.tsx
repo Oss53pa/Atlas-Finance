@@ -24,7 +24,7 @@ const TresorerieSection: React.FC<TresorerieSectionProps> = ({ periodId, onCompl
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Tresorerie - Cloture</h2>
+        <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Tresorerie - Cloture</h2>
         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
           <CheckCircle className="w-4 h-4 inline mr-1" />
           Rapproche
@@ -37,28 +37,28 @@ const TresorerieSection: React.FC<TresorerieSectionProps> = ({ periodId, onCompl
             <Banknote className="w-5 h-5 text-blue-500" />
             <span className="text-sm text-gray-600">Solde Initial</span>
           </div>
-          <p className="text-xl font-bold">{formatMontant(tresorerieData.soldeInitial)}</p>
+          <p className="text-lg font-bold">{formatMontant(tresorerieData.soldeInitial)}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5 text-green-500" />
             <span className="text-sm text-gray-600">Encaissements</span>
           </div>
-          <p className="text-xl font-bold text-green-600">+{formatMontant(tresorerieData.encaissements)}</p>
+          <p className="text-lg font-bold text-green-600">+{formatMontant(tresorerieData.encaissements)}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5 text-red-500 rotate-180" />
             <span className="text-sm text-gray-600">Decaissements</span>
           </div>
-          <p className="text-xl font-bold text-red-600">-{formatMontant(tresorerieData.decaissements)}</p>
+          <p className="text-lg font-bold text-red-600">-{formatMontant(tresorerieData.decaissements)}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border">
           <div className="flex items-center gap-2 mb-2">
             <Banknote className="w-5 h-5 text-[var(--color-primary)]" />
             <span className="text-sm text-gray-600">Solde Final</span>
           </div>
-          <p className="text-xl font-bold text-[var(--color-primary)]">{formatMontant(tresorerieData.soldeFinal)}</p>
+          <p className="text-lg font-bold text-[var(--color-primary)]">{formatMontant(tresorerieData.soldeFinal)}</p>
         </div>
       </div>
 
@@ -66,15 +66,15 @@ const TresorerieSection: React.FC<TresorerieSectionProps> = ({ periodId, onCompl
         <h3 className="text-lg font-semibold mb-4">Etat des rapprochements bancaires</h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="p-4 bg-green-50 rounded-lg">
-            <p className="text-2xl font-bold text-green-600">{tresorerieData.comptesRapproches}</p>
+            <p className="text-lg font-bold text-green-600">{tresorerieData.comptesRapproches}</p>
             <p className="text-sm text-gray-600">Comptes rapproches</p>
           </div>
           <div className="p-4 bg-yellow-50 rounded-lg">
-            <p className="text-2xl font-bold text-yellow-600">{tresorerieData.comptesEnAttente}</p>
+            <p className="text-lg font-bold text-yellow-600">{tresorerieData.comptesEnAttente}</p>
             <p className="text-sm text-gray-600">En attente</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold">{formatMontant(tresorerieData.ecartRapprochement)}</p>
+            <p className="text-lg font-bold">{formatMontant(tresorerieData.ecartRapprochement)}</p>
             <p className="text-sm text-gray-600">Ecart total</p>
           </div>
         </div>

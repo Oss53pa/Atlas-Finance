@@ -243,7 +243,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
         showPrintButton={false}
         headerContent={
           <div className="text-center mb-4">
-            <h2 className="text-xl font-bold">États Financiers</h2>
+            <h2 className="text-lg font-bold">États Financiers</h2>
             <div className="flex items-center gap-4">
               <p className="text-sm text-gray-600">Conforme {config.norme}</p>
               <button
@@ -266,7 +266,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
           <div className="flex items-center space-x-4">
             <FileText className="w-8 h-8 text-[#6A8A82]" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">États Financiers</h1>
+              <h1 className="text-lg font-bold text-gray-900">États Financiers</h1>
               <p className="text-sm text-gray-600">Reporting financier complet - Conforme {config.norme}</p>
             </div>
           </div>
@@ -351,7 +351,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Chiffre d'Affaires</p>
-                  <p className="text-2xl font-bold text-[#6A8A82]">
+                  <p className="text-lg font-bold text-[#6A8A82]">
                     {(compteResultatData.produits.chiffreAffaires / 1000000).toFixed(1)}M
                   </p>
                   <p className="text-xs text-gray-700">XAF</p>
@@ -366,7 +366,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Résultat Net</p>
-                  <p className={`text-2xl font-bold ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-lg font-bold ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {(sigData.resultatNet / 1000000).toFixed(1)}M
                   </p>
                   <p className="text-xs text-gray-700">
@@ -386,7 +386,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Autonomie Financière</p>
-                  <p className={`text-2xl font-bold ${ratiosData.structure.autonomieFinanciere > 30 ? 'text-green-600' : 'text-orange-600'}`}>
+                  <p className={`text-lg font-bold ${ratiosData.structure.autonomieFinanciere > 30 ? 'text-green-600' : 'text-orange-600'}`}>
                     {ratiosData.structure.autonomieFinanciere.toFixed(1)}%
                   </p>
                   <p className="text-xs text-gray-700">
@@ -403,7 +403,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Liquidité Générale</p>
-                  <p className={`text-2xl font-bold ${ratiosData.liquidite.liquiditeGenerale > 1 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-lg font-bold ${ratiosData.liquidite.liquiditeGenerale > 1 ? 'text-green-600' : 'text-red-600'}`}>
                     {ratiosData.liquidite.liquiditeGenerale.toFixed(2)}
                   </p>
                   <p className="text-xs text-gray-700">
@@ -963,8 +963,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
           {/* Résultat net */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
-              <div className={`text-4xl font-bold mb-2 ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
+              <div className={`text-lg font-bold mb-2 ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {sigData.resultatNet.toLocaleString()} XAF
               </div>
               <div className={`text-lg ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -1075,7 +1075,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="bg-gray-100 p-4 rounded-lg border-2 border-gray-300">
                 <div className="text-center">
                   <h4 className="font-bold text-gray-900 mb-2">VARIATION DE TRÉSORERIE</h4>
-                  <div className="text-2xl font-bold text-[#6A8A82]">+2 400 000 XAF</div>
+                  <div className="text-lg font-bold text-[#6A8A82]">+2 400 000 XAF</div>
                   <div className="text-sm text-gray-600 mt-1">
                     Trésorerie début: 4 400 000 XAF → Trésorerie fin: 6 800 000 XAF
                   </div>
@@ -1373,7 +1373,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <FileText className="w-8 h-8 text-gray-700" />
                   </div>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">ÉTATS FINANCIERS</h1>
+                <h1 className="text-lg font-bold text-gray-900">ÉTATS FINANCIERS</h1>
                 <p className="text-gray-600">Exercice {dateRange.startDate || '2025'} - Conforme {config.norme}</p>
                 <p className="text-gray-700 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')}</p>
               </div>
@@ -1403,7 +1403,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               {/* Pied de page */}
               <div className="mt-8 pt-4 border-t border-gray-300 flex justify-between items-center text-xs text-gray-700">
                 <div>
-                  <p>WiseBook ERP - États Financiers</p>
+                  <p>Atlas Finance - États Financiers</p>
                   <p>Système conforme {config.norme}</p>
                 </div>
                 <div className="text-right">

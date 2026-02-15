@@ -92,11 +92,11 @@ const AssetFormsComparison: React.FC = () => {
         {/* Stats */}
         <div className="flex items-center space-x-4 mb-4">
           <div className="text-center">
-            <p className="text-2xl font-bold" style={{ color: form.color }}>{form.fields}</p>
+            <p className="text-lg font-bold" style={{ color: form.color }}>{form.fields}</p>
             <p className="text-xs text-[#767676]">Champs</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-[#444444]">{form.sections}</p>
+            <p className="text-lg font-bold text-[#444444]">{form.sections}</p>
             <p className="text-xs text-[#767676]">Sections</p>
           </div>
         </div>
@@ -132,7 +132,6 @@ const AssetFormsComparison: React.FC = () => {
             className="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center space-x-2 hover:bg-gray-50 border border-gray-200"
             onClick={(e) => {
               e.stopPropagation();
-              console.log('Edit form:', form.id);
             }}
           >
             <Edit className="w-4 h-4" />
@@ -142,7 +141,6 @@ const AssetFormsComparison: React.FC = () => {
             className="p-2 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
             onClick={(e) => {
               e.stopPropagation();
-              console.log('Clone form:', form.id);
             }}
           >
             <Copy className="w-4 h-4 text-gray-700" />
@@ -158,7 +156,7 @@ const AssetFormsComparison: React.FC = () => {
       <div className="bg-white border-b border-[#E8E8E8] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919]">Comparaison des Formulaires d'Actifs</h1>
+            <h1 className="text-lg font-bold text-[#191919]">Comparaison des Formulaires d'Actifs</h1>
             <p className="text-sm text-[#767676] mt-1">
               Choisissez le formulaire adapté à vos besoins
             </p>
@@ -280,7 +278,7 @@ const AssetFormsComparison: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
             <div className="sticky top-0 bg-white border-b border-[#E8E8E8] px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-[#191919]">
+              <h2 className="text-lg font-bold text-[#191919]">
                 {forms.find(f => f.id === selectedForm)?.name}
               </h2>
               <button

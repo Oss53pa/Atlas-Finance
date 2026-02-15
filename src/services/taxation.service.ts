@@ -1,5 +1,5 @@
 /**
- * SERVICE FRONTEND TAXATION - WiseBook ERP v4.1.0
+ * SERVICE FRONTEND TAXATION - Atlas Finance v4.1.0
  * BASE PATH: /api/v1/taxation/
  *
  * Alignement 100% avec backend Django REST Framework

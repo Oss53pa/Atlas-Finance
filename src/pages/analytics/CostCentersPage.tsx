@@ -271,7 +271,7 @@ const CostCentersPage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Users className="mr-3 h-7 w-7" />
               Centres de Coûts
             </h1>
@@ -309,7 +309,7 @@ const CostCentersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Centres</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-lg font-bold text-gray-900">
                   {centersData?.count || 0}
                 </p>
               </div>
@@ -325,7 +325,7 @@ const CostCentersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Centres Actifs</p>
-                <p className="text-2xl font-bold text-green-700">
+                <p className="text-lg font-bold text-green-700">
                   {centersData?.active_count || 0}
                 </p>
               </div>
@@ -341,7 +341,7 @@ const CostCentersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Coûts Totaux</p>
-                <p className="text-2xl font-bold text-purple-700">
+                <p className="text-lg font-bold text-purple-700">
                   {formatCurrency(centersData?.total_costs || 0)}
                 </p>
               </div>
@@ -357,7 +357,7 @@ const CostCentersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Performance Moy.</p>
-                <p className="text-2xl font-bold text-orange-700">
+                <p className="text-lg font-bold text-orange-700">
                   {formatPercentage(centersData?.average_performance || 0)}
                 </p>
               </div>
@@ -678,7 +678,7 @@ const CostCentersPage: React.FC = () => {
                 <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
                   <Target className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Nouveau Centre de Coûts
                 </h2>
               </div>

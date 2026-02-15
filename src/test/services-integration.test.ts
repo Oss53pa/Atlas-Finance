@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import accountingService from '@/services/accounting.service';
 import securityService from '@/services/security.service';
-import thirdPartyService from '@/services/thirdparty.service';
+import { thirdPartyService, thirdPartyAddressService, thirdPartyContactService } from '@/services/third-party.service';
 import coreService from '@/services/core.service';
 import API_ENDPOINTS from '@/config/apiEndpoints';
 
@@ -44,15 +44,15 @@ describe('Phase 1 - Services Integration', () => {
   describe('Accounting Service', () => {
     it('should have all required methods', () => {
       expect(typeof accountingService.getCompanies).toBe('function');
-      expect(typeof accountingService.getCompany).toBe('function');
+      expect(typeof accountingService.getCompanyById).toBe('function');
       expect(typeof accountingService.createCompany).toBe('function');
       expect(typeof accountingService.updateCompany).toBe('function');
       expect(typeof accountingService.deleteCompany).toBe('function');
 
       expect(typeof accountingService.getFiscalYears).toBe('function');
       expect(typeof accountingService.getJournals).toBe('function');
-      expect(typeof accountingService.getAccounts).toBe('function');
-      expect(typeof accountingService.getEntries).toBe('function');
+      expect(typeof accountingService.getChartOfAccounts).toBe('function');
+      expect(typeof accountingService.getJournalEntries).toBe('function');
       expect(typeof accountingService.createJournalEntry).toBe('function');
     });
   });
@@ -110,17 +110,17 @@ describe('Phase 1 - Services Integration', () => {
 
   describe('Third Party Service', () => {
     it('should have all required methods', () => {
-      expect(typeof thirdPartyService.getThirdParties).toBe('function');
-      expect(typeof thirdPartyService.getThirdParty).toBe('function');
-      expect(typeof thirdPartyService.createThirdParty).toBe('function');
-      expect(typeof thirdPartyService.updateThirdParty).toBe('function');
-      expect(typeof thirdPartyService.deleteThirdParty).toBe('function');
+      expect(typeof thirdPartyService.getAll).toBe('function');
+      expect(typeof thirdPartyService.getById).toBe('function');
+      expect(typeof thirdPartyService.create).toBe('function');
+      expect(typeof thirdPartyService.update).toBe('function');
+      expect(typeof thirdPartyService.delete).toBe('function');
 
-      expect(typeof thirdPartyService.getAddresses).toBe('function');
-      expect(typeof thirdPartyService.getContacts).toBe('function');
+      expect(typeof thirdPartyAddressService.getAll).toBe('function');
+      expect(typeof thirdPartyContactService.getAll).toBe('function');
 
       // Backward compatibility
-      expect(typeof thirdPartyService.getCustomers).toBe('function');
+      expect(typeof thirdPartyService.getClients).toBe('function');
       expect(typeof thirdPartyService.getSuppliers).toBe('function');
     });
   });

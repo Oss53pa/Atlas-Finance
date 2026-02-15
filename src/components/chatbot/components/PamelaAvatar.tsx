@@ -156,7 +156,7 @@ export const PamelaAvatar: React.FC<PamelaAvatarProps> = ({
       {(showName || size === 'lg' || size === 'xl') && (
         <div className="pamela-name">
           <span className="pamela-name__text">Pamela</span>
-          <span className="pamela-name__subtitle">Assistante WiseBook</span>
+          <span className="pamela-name__subtitle">Assistante Atlas Finance</span>
         </div>
       )}
     </div>

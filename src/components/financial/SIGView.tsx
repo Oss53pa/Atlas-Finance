@@ -200,7 +200,7 @@ const SIGView: React.FC = () => {
         <div className="bg-white rounded-lg border p-6">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900">
                 SIG - {currentSIG.period}
               </h3>
               <p className="text-gray-600 mt-1">
@@ -361,7 +361,7 @@ const SIGView: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Évolution des SIG - Comparaison N vs N-1
           </h3>
 
@@ -521,7 +521,7 @@ const SIGView: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Soldes Intermédiaires de Gestion (SIG)</h1>
+          <h1 className="text-lg font-bold text-gray-900">Soldes Intermédiaires de Gestion (SIG)</h1>
           <p className="mt-1 text-gray-600">
             Analyse des 9 soldes intermédiaires selon les normes SYSCOHADA
           </p>

@@ -162,7 +162,7 @@ const WorkspaceCustomization: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F7F3E9' }}>
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <h2 className="text-xl font-bold mb-4" style={{ color: '#353A3B' }}>Erreur</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#353A3B' }}>Erreur</h2>
           <p className="mb-4" style={{ color: '#7A8B8E' }}>{error || 'Impossible de charger'}</p>
           <button
             onClick={() => navigate('/workspace')}
@@ -190,7 +190,7 @@ const WorkspaceCustomization: React.FC = () => {
                 <ArrowLeft size={24} style={{ color: '#353A3B' }} />
               </button>
               <div>
-                <h1 className="text-3xl font-bold" style={{ color: '#353A3B' }}>
+                <h1 className="text-lg font-bold" style={{ color: '#353A3B' }}>
                   <Settings size={32} className="inline mr-2" />
                   Personnaliser mon Workspace
                 </h1>
@@ -231,7 +231,7 @@ const WorkspaceCustomization: React.FC = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Préférences d'affichage */}
         <div className="bg-white p-6 rounded-xl shadow-sm mb-8" style={{ borderColor: '#D5D0CD' }}>
-          <h2 className="text-xl font-bold mb-4" style={{ color: '#353A3B' }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#353A3B' }}>
             Préférences d'Affichage
           </h2>
 
@@ -287,7 +287,7 @@ const WorkspaceCustomization: React.FC = () => {
         {/* Gestion des Widgets */}
         <div className="bg-white p-6 rounded-xl shadow-sm" style={{ borderColor: '#D5D0CD' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold" style={{ color: '#353A3B' }}>
+            <h2 className="text-lg font-bold" style={{ color: '#353A3B' }}>
               <Grid size={24} className="inline mr-2" />
               Widgets
             </h2>

@@ -108,7 +108,7 @@ const APIIntegrationsPage: React.FC = () => {
   const webhooks = [
     {
       id: 1,
-      url: 'https://app.wisebook.com/webhooks/invoices',
+      url: 'https://app.atlasfinance.com/webhooks/invoices',
       events: ['invoice.created', 'invoice.paid', 'invoice.overdue'],
       status: 'active',
       created: '2024-01-10',
@@ -117,7 +117,7 @@ const APIIntegrationsPage: React.FC = () => {
     },
     {
       id: 2,
-      url: 'https://slack.com/api/wisebook-notifications',
+      url: 'https://slack.com/api/atlasfinance-notifications',
       events: ['payment.received', 'payment.failed'],
       status: 'active',
       created: '2024-02-05',
@@ -126,7 +126,7 @@ const APIIntegrationsPage: React.FC = () => {
     },
     {
       id: 3,
-      url: 'https://zapier.com/hooks/wisebook/accounting',
+      url: 'https://zapier.com/hooks/atlasfinance/accounting',
       events: ['account.created', 'account.updated'],
       status: 'inactive',
       created: '2023-11-20',
@@ -209,7 +209,7 @@ const APIIntegrationsPage: React.FC = () => {
       status: 200,
       duration: '245ms',
       ip: '192.168.1.45',
-      userAgent: 'WiseBook Mobile/2.1.0'
+      userAgent: 'Atlas Finance Mobile/2.1.0'
     },
     {
       id: 2,
@@ -251,7 +251,7 @@ const APIIntegrationsPage: React.FC = () => {
       status: 200,
       duration: '1.2s',
       ip: '192.168.1.45',
-      userAgent: 'WiseBook Desktop/3.0.1'
+      userAgent: 'Atlas Finance Desktop/3.0.1'
     }
   ];
 
@@ -370,7 +370,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <Zap className="w-8 h-8 text-[var(--color-primary)]" />
                   <span className="text-xs text-green-500 font-medium">+12%</span>
                 </div>
-                <div className="text-2xl font-bold">45,230</div>
+                <div className="text-lg font-bold">45,230</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Requêtes API / jour</div>
               </motion.div>
 
@@ -384,7 +384,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <Activity className="w-8 h-8 text-[var(--color-success)]" />
                   <span className="text-xs text-green-500 font-medium">99.9%</span>
                 </div>
-                <div className="text-2xl font-bold">245ms</div>
+                <div className="text-lg font-bold">245ms</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Temps de réponse moyen</div>
               </motion.div>
 
@@ -398,7 +398,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <Link className="w-8 h-8 text-[var(--color-secondary)]" />
                   <span className="text-xs text-green-500 font-medium">Active</span>
                 </div>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-lg font-bold">12</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Intégrations actives</div>
               </motion.div>
 
@@ -412,7 +412,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <Shield className="w-8 h-8 text-[var(--color-warning)]" />
                   <span className="text-xs text-green-500 font-medium">Sécurisé</span>
                 </div>
-                <div className="text-2xl font-bold">3</div>
+                <div className="text-lg font-bold">3</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Clés API actives</div>
               </motion.div>
             </div>
@@ -716,7 +716,7 @@ const APIIntegrationsPage: React.FC = () => {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{integration.icon}</span>
+                      <span className="text-xl">{integration.icon}</span>
                       <div>
                         <h4 className="font-semibold">{integration.name}</h4>
                         <span className="text-xs text-[var(--color-text-tertiary)]">{integration.category}</span>
@@ -877,7 +877,7 @@ const APIIntegrationsPage: React.FC = () => {
                     <Download className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                   </button>
                   <button
-                    onClick={() => window.open('https://api.wisebook.com/playground', '_blank')}
+                    onClick={() => window.open('https://api.atlasfinance.com/playground', '_blank')}
                     className="w-full flex items-center justify-between p-2 hover:bg-[var(--color-surface-hover)] rounded">
                     <span className="text-sm">API Playground</span>
                     <ExternalLink className="w-4 h-4 text-[var(--color-text-tertiary)]" />
@@ -972,7 +972,7 @@ const APIIntegrationsPage: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">API & Intégrations</h1>
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">API & Intégrations</h1>
         <p className="text-[var(--color-text-secondary)] mt-1">Gérez vos clés API, webhooks et intégrations tierces</p>
       </div>
 
@@ -1263,7 +1263,7 @@ const APIIntegrationsPage: React.FC = () => {
                 <code>{showCodeExamples === 'Node.js' ? `const axios = require('axios');
 
 const apiKey = 'pk_live_YOUR_API_KEY';
-const apiUrl = 'https://api.wisebook.com/v1';
+const apiUrl = 'https://api.atlasfinance.com/v1';
 
 // Exemple de requête GET
 axios.get(\`\${apiUrl}/invoices\`, {
@@ -1273,7 +1273,6 @@ axios.get(\`\${apiUrl}/invoices\`, {
   }
 })
 .then(response => {
-  console.log('Invoices:', response.data);
 })
 .catch(error => {
   console.error('Error:', error);
@@ -1281,7 +1280,7 @@ axios.get(\`\${apiUrl}/invoices\`, {
 showCodeExamples === 'Python' ? `import requests
 
 api_key = 'pk_live_YOUR_API_KEY'
-api_url = 'https://api.wisebook.com/v1'
+api_url = 'https://api.atlasfinance.com/v1'
 
 # Exemple de requête GET
 headers = {
@@ -1298,7 +1297,7 @@ else:
     print('Error:', response.text)` :
 showCodeExamples === 'PHP' ? `<?php
 $apiKey = 'pk_live_YOUR_API_KEY';
-$apiUrl = 'https://api.wisebook.com/v1';
+$apiUrl = 'https://api.atlasfinance.com/v1';
 
 // Exemple de requête GET
 $curl = curl_init();
@@ -1326,7 +1325,7 @@ if ($httpCode == 200) {
 require 'json'
 
 api_key = 'pk_live_YOUR_API_KEY'
-api_url = 'https://api.wisebook.com/v1'
+api_url = 'https://api.atlasfinance.com/v1'
 
 # Exemple de requête GET
 uri = URI("#{api_url}/invoices")

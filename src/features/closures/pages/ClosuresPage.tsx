@@ -97,7 +97,7 @@ const ClosuresPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#191919]">Clôtures Comptables</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Clôtures Comptables</h1>
           <p className="text-[#767676] mt-1">
             Gestion des clôtures périodiques conformes SYSCOHADA
           </p>
@@ -108,7 +108,7 @@ const ClosuresPage: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-        <h2 className="text-xl font-semibold text-[#191919] mb-4">Types de Clôture Supportés</h2>
+        <h2 className="text-lg font-semibold text-[#191919] mb-4">Types de Clôture Supportés</h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {clotureTypes.map((cloture) => (
             <div key={cloture.type} className={`border rounded-lg p-4 ${cloture.color}`}>
@@ -148,7 +148,7 @@ const ClosuresPage: React.FC = () => {
 
       {activeTab === 'sessions' && (
         <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-          <h2 className="text-xl font-semibold text-[#191919] mb-4">
+          <h2 className="text-lg font-semibold text-[#191919] mb-4">
             Sessions de Clôture
           </h2>
           <ClotureSessionsTable
@@ -177,7 +177,7 @@ const ClosuresPage: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-            <h2 className="text-xl font-semibold text-[#191919] mb-4">
+            <h2 className="text-lg font-semibold text-[#191919] mb-4">
               Provisions pour Créances Douteuses
             </h2>
             <ProvisionsTable

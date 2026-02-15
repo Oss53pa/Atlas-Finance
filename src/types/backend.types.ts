@@ -1,5 +1,5 @@
 /**
- * Types TypeScript pour l'API WiseBook Phase 1
+ * Types TypeScript pour l'API Atlas Finance Phase 1
  * Alignés avec le backend Django REST Framework
  *
  * Ces types correspondent EXACTEMENT aux modèles et serializers Django

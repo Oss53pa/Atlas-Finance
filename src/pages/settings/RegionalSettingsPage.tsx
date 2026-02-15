@@ -238,7 +238,7 @@ const RegionalSettingsPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Globe className="mr-3 h-7 w-7 text-blue-600" />
               Paramètres Régionaux & Fiscaux
             </h1>

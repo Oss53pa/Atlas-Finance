@@ -1,5 +1,5 @@
 /**
- * Service Treasury - WiseBook ERP v4.1.0
+ * Service Treasury - Atlas Finance v4.1.0
  *
  * Service frontend pour la gestion de la trésorerie
  * ALIGNÉ sur les endpoints backend après correction P0

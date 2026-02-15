@@ -171,7 +171,7 @@ const ExecutiveDashboard: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
               Tableau de Bord Exécutif
             </h1>
             <p className="text-[var(--color-text-secondary)] mt-1">
@@ -211,7 +211,7 @@ const ExecutiveDashboard: React.FC = () => {
                 +{executiveMetrics.revenue.growth}%
               </span>
             </div>
-            <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {(executiveMetrics.revenue.current / 1000000).toFixed(1)}M€
             </div>
             <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -239,7 +239,7 @@ const ExecutiveDashboard: React.FC = () => {
                 {executiveMetrics.profitability.netMargin}%
               </span>
             </div>
-            <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {(executiveMetrics.profitability.ebitda / 1000000).toFixed(2)}M€
             </div>
             <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -266,7 +266,7 @@ const ExecutiveDashboard: React.FC = () => {
                 NPS: 72
               </span>
             </div>
-            <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {executiveMetrics.operational.customerSatisfaction}%
             </div>
             <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -293,7 +293,7 @@ const ExecutiveDashboard: React.FC = () => {
                 +2.3pts
               </span>
             </div>
-            <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {executiveMetrics.operational.marketShare}%
             </div>
             <div className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -544,7 +544,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <Activity className="w-4 h-4 text-[var(--color-primary)]" />
                 <span className="text-sm text-[var(--color-text-secondary)]">Taux de Conversion</span>
               </div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)]">24.5%</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">24.5%</div>
               <div className="text-xs text-[var(--color-success)]">+2.3% vs mois dernier</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
@@ -552,7 +552,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <Clock className="w-4 h-4 text-[var(--color-primary)]" />
                 <span className="text-sm text-[var(--color-text-secondary)]">Délai Moyen</span>
               </div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)]">3.2 jours</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">3.2 jours</div>
               <div className="text-xs text-[var(--color-success)]">-0.5j vs objectif</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
@@ -560,7 +560,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <Award className="w-4 h-4 text-[var(--color-primary)]" />
                 <span className="text-sm text-[var(--color-text-secondary)]">Qualité</span>
               </div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)]">98.5%</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">98.5%</div>
               <div className="text-xs text-[var(--color-success)]">Top niveau</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
@@ -568,7 +568,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <DollarSign className="w-4 h-4 text-[var(--color-primary)]" />
                 <span className="text-sm text-[var(--color-text-secondary)]">Coût d'Acquisition</span>
               </div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)]">125€</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">125€</div>
               <div className="text-xs text-[var(--color-warning)]">+5€ vs objectif</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
@@ -576,7 +576,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <Users className="w-4 h-4 text-[var(--color-primary)]" />
                 <span className="text-sm text-[var(--color-text-secondary)]">Rétention</span>
               </div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)]">94%</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">94%</div>
               <div className="text-xs text-[var(--color-success)]">+1% vs trimestre</div>
             </div>
             <div className="p-4 bg-[var(--color-background)] rounded-lg">
@@ -584,7 +584,7 @@ const ExecutiveDashboard: React.FC = () => {
                 <Target className="w-4 h-4 text-[var(--color-primary)]" />
                 <span className="text-sm text-[var(--color-text-secondary)]">Objectifs Atteints</span>
               </div>
-              <div className="text-xl font-bold text-[var(--color-text-primary)]">87%</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">87%</div>
               <div className="text-xs text-[var(--color-primary)]">12/14 objectifs</div>
             </div>
           </div>

@@ -380,7 +380,7 @@ const CycleClients: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Total Créances</p>
-                <p className="text-2xl font-bold">{(kpis.totalCreances / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.totalCreances / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">+12% vs mois dernier</p>
               </div>
               <DollarSign className="w-8 h-8 text-[var(--color-primary)]" />
@@ -393,7 +393,7 @@ const CycleClients: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Créances Échues</p>
-                <p className="text-2xl font-bold">{(kpis.totalEchu / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.totalEchu / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-error)] mt-1">{mockCreances.filter(c => c.statut === 'echue').length} factures</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-yellow-500" />
@@ -406,7 +406,7 @@ const CycleClients: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Taux Recouvrement</p>
-                <p className="text-2xl font-bold">{kpis.tauxRecouvrement.toFixed(1)}%</p>
+                <p className="text-lg font-bold">{kpis.tauxRecouvrement.toFixed(1)}%</p>
                 <Progress value={kpis.tauxRecouvrement} className="mt-2" />
               </div>
               <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
@@ -419,7 +419,7 @@ const CycleClients: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Clients à Risque</p>
-                <p className="text-2xl font-bold">{kpis.nombreClientsRisque}</p>
+                <p className="text-lg font-bold">{kpis.nombreClientsRisque}</p>
                 <p className="text-xs text-[var(--color-warning)] mt-1">Surveillance renforcée</p>
               </div>
               <Shield className="w-8 h-8 text-[var(--color-error)]" />
@@ -458,27 +458,27 @@ const CycleClients: React.FC = () => {
                 <div className="grid grid-cols-5 gap-4">
                   <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">0-30 jours</p>
-                    <p className="text-xl font-bold text-[var(--color-success)]">8.5M</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">8.5M</p>
                     <p className="text-xs">42% du total</p>
                   </div>
                   <div className="text-center p-3 bg-[var(--color-warning-lightest)] rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">31-60 jours</p>
-                    <p className="text-xl font-bold text-[var(--color-warning)]">5.2M</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">5.2M</p>
                     <p className="text-xs">26% du total</p>
                   </div>
                   <div className="text-center p-3 bg-orange-50 rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">61-90 jours</p>
-                    <p className="text-xl font-bold text-[var(--color-warning)]">3.8M</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">3.8M</p>
                     <p className="text-xs">19% du total</p>
                   </div>
                   <div className="text-center p-3 bg-[var(--color-error-lightest)] rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">91-120 jours</p>
-                    <p className="text-xl font-bold text-[var(--color-error)]">1.5M</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">1.5M</p>
                     <p className="text-xs">8% du total</p>
                   </div>
                   <div className="text-center p-3 bg-purple-50 rounded">
                     <p className="text-sm text-[var(--color-text-primary)]">+120 jours</p>
-                    <p className="text-xl font-bold text-purple-600">1.0M</p>
+                    <p className="text-lg font-bold text-purple-600">1.0M</p>
                     <p className="text-xs">5% du total</p>
                   </div>
                 </div>
@@ -641,7 +641,7 @@ const CycleClients: React.FC = () => {
                   </div>
                   <p className="font-medium">Rappel Courtois</p>
                   <p className="text-sm text-[var(--color-text-primary)] mt-1">J+5 après échéance</p>
-                  <p className="text-2xl font-bold text-[var(--color-primary)] mt-2">12</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)] mt-2">12</p>
                   <p className="text-xs text-[var(--color-text-secondary)]">envois programmés</p>
                 </div>
 
@@ -652,7 +652,7 @@ const CycleClients: React.FC = () => {
                   </div>
                   <p className="font-medium">Relance Téléphonique</p>
                   <p className="text-sm text-[var(--color-text-primary)] mt-1">J+15 après échéance</p>
-                  <p className="text-2xl font-bold text-[var(--color-warning)] mt-2">8</p>
+                  <p className="text-lg font-bold text-[var(--color-warning)] mt-2">8</p>
                   <p className="text-xs text-[var(--color-text-secondary)]">appels à effectuer</p>
                 </div>
 
@@ -663,7 +663,7 @@ const CycleClients: React.FC = () => {
                   </div>
                   <p className="font-medium">Mise en Demeure</p>
                   <p className="text-sm text-[var(--color-text-primary)] mt-1">J+30 après échéance</p>
-                  <p className="text-2xl font-bold text-[var(--color-error)] mt-2">3</p>
+                  <p className="text-lg font-bold text-[var(--color-error)] mt-2">3</p>
                   <p className="text-xs text-[var(--color-text-secondary)]">courriers à envoyer</p>
                 </div>
               </div>
@@ -714,22 +714,22 @@ const CycleClients: React.FC = () => {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg">
                     <p className="text-sm text-[var(--color-text-primary)]">0-90 jours</p>
-                    <p className="text-2xl font-bold">0%</p>
+                    <p className="text-lg font-bold">0%</p>
                     <p className="text-sm text-[var(--color-text-secondary)] mt-1">Pas de provision</p>
                   </div>
                   <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
                     <p className="text-sm text-[var(--color-text-primary)]">91-180 jours</p>
-                    <p className="text-2xl font-bold">25%</p>
+                    <p className="text-lg font-bold">25%</p>
                     <p className="text-sm text-[var(--color-text-secondary)] mt-1">1.25M FCFA</p>
                   </div>
                   <div className="p-4 bg-orange-50 rounded-lg">
                     <p className="text-sm text-[var(--color-text-primary)]">181-365 jours</p>
-                    <p className="text-2xl font-bold">50%</p>
+                    <p className="text-lg font-bold">50%</p>
                     <p className="text-sm text-[var(--color-text-secondary)] mt-1">3.0M FCFA</p>
                   </div>
                   <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
                     <p className="text-sm text-[var(--color-text-primary)]">+365 jours</p>
-                    <p className="text-2xl font-bold">100%</p>
+                    <p className="text-lg font-bold">100%</p>
                     <p className="text-sm text-[var(--color-text-secondary)] mt-1">1.0M FCFA</p>
                   </div>
                 </div>
@@ -738,7 +738,7 @@ const CycleClients: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm text-[var(--color-text-primary)]">Total Provisions Requises</p>
-                      <p className="text-3xl font-bold text-[var(--color-primary)]">5.25M FCFA</p>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">5.25M FCFA</p>
                     </div>
                     <button
                       className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2"
@@ -848,7 +848,7 @@ const CycleClients: React.FC = () => {
                 <div className="bg-[var(--color-warning-lighter)] text-[var(--color-warning)] p-2 rounded-lg">
                   <Users className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Provision Cycle Clients</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Provision Cycle Clients</h2>
               </div>
               <button
                 onClick={() => {
@@ -1062,7 +1062,7 @@ const CycleClients: React.FC = () => {
                 <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Détail de la Créance</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Détail de la Créance</h2>
               </div>
               <button
                 onClick={() => {

@@ -479,7 +479,7 @@ const Provisions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Total Provisions</p>
-                <p className="text-2xl font-bold">{(kpis.totalProvisions / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold">{(kpis.totalProvisions / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.nombreProvisions} provisions actives</p>
               </div>
               <Shield className="w-8 h-8 text-[var(--color-primary)]" />
@@ -492,7 +492,7 @@ const Provisions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Dotations 2024</p>
-                <p className="text-2xl font-bold text-[var(--color-error)]">{(kpis.dotationsExercice / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold text-[var(--color-error)]">{(kpis.dotationsExercice / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-text-primary)] mt-1">Impact résultat</p>
               </div>
               <TrendingDown className="w-8 h-8 text-[var(--color-error)]" />
@@ -505,7 +505,7 @@ const Provisions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Reprises 2024</p>
-                <p className="text-2xl font-bold text-[var(--color-success)]">{(kpis.reprisesExercice / 1000000).toFixed(1)}M FCFA</p>
+                <p className="text-lg font-bold text-[var(--color-success)]">{(kpis.reprisesExercice / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-success)] mt-1">Gains sur provisions</p>
               </div>
               <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
@@ -518,7 +518,7 @@ const Provisions: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Conformité SYSCOHADA</p>
-                <p className="text-2xl font-bold">{kpis.tauxConformite.toFixed(0)}%</p>
+                <p className="text-lg font-bold">{kpis.tauxConformite.toFixed(0)}%</p>
                 <Progress value={kpis.tauxConformite} className="mt-2" />
               </div>
               <Award className="w-8 h-8 text-purple-500" />
@@ -575,7 +575,7 @@ const Provisions: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-[var(--color-error)]">4.5M</p>
+                      <p className="text-lg font-bold text-[var(--color-error)]">4.5M</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">16% du total</p>
                     </div>
                   </div>
@@ -588,7 +588,7 @@ const Provisions: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-purple-600">8.0M</p>
+                      <p className="text-lg font-bold text-purple-600">8.0M</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">29% du total</p>
                     </div>
                   </div>
@@ -601,7 +601,7 @@ const Provisions: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-[var(--color-primary)]">15.0M</p>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">15.0M</p>
                       <p className="text-sm text-[var(--color-text-secondary)]">55% du total</p>
                     </div>
                   </div>
@@ -618,11 +618,11 @@ const Provisions: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Solde Début 2024</p>
-                      <p className="text-2xl font-bold">13.0M FCFA</p>
+                      <p className="text-lg font-bold">13.0M FCFA</p>
                     </div>
                     <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Solde Fin 2024</p>
-                      <p className="text-2xl font-bold">27.5M FCFA</p>
+                      <p className="text-lg font-bold">27.5M FCFA</p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -860,7 +860,7 @@ const Provisions: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Charges Personnel</p>
-                    <p className="text-2xl font-bold">25.0M</p>
+                    <p className="text-lg font-bold">25.0M</p>
                   </div>
                   <Users className="w-8 h-8 text-[var(--color-primary)]" />
                 </div>
@@ -871,7 +871,7 @@ const Provisions: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Charges Financières</p>
-                    <p className="text-2xl font-bold">8.5M</p>
+                    <p className="text-lg font-bold">8.5M</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
@@ -882,7 +882,7 @@ const Provisions: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Charges Exploitation</p>
-                    <p className="text-2xl font-bold">3.2M</p>
+                    <p className="text-lg font-bold">3.2M</p>
                   </div>
                   <Factory className="w-8 h-8 text-orange-500" />
                 </div>
@@ -981,7 +981,7 @@ const Provisions: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Produits Financiers</p>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">4.5M</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">4.5M</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
@@ -992,7 +992,7 @@ const Provisions: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Subventions</p>
-                    <p className="text-2xl font-bold text-[var(--color-success)]">15.0M</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">15.0M</p>
                   </div>
                   <PiggyBank className="w-8 h-8 text-[var(--color-success)]" />
                 </div>
@@ -1170,13 +1170,13 @@ const Provisions: React.FC = () => {
                       </div>
                       <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
                         <p className="text-sm text-[var(--color-text-primary)]">Impact Financier</p>
-                        <p className="text-xl font-bold text-[var(--color-error)]">
+                        <p className="text-lg font-bold text-[var(--color-error)]">
                           {(analyse.impactFinancier / 1000000).toFixed(1)}M FCFA
                         </p>
                       </div>
                       <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
                         <p className="text-sm text-[var(--color-text-primary)]">Provisions Recommandées</p>
-                        <p className="text-xl font-bold text-[var(--color-primary)]">
+                        <p className="text-lg font-bold text-[var(--color-primary)]">
                           {(analyse.provisionsRecommandees / 1000000).toFixed(1)}M FCFA
                         </p>
                       </div>

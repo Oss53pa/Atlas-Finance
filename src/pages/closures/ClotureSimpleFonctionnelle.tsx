@@ -73,7 +73,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
       {/* En-tête */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
             <Calculator className="h-6 w-6 mr-3 text-[var(--color-primary)]" />
             Module de Clôture Comptable Périodique
           </h1>
@@ -157,7 +157,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-[var(--color-primary)]">Progression</p>
-                        <p className="text-2xl font-bold text-[var(--color-primary-darker)]">
+                        <p className="text-lg font-bold text-[var(--color-primary-darker)]">
                           {Math.round((operations.length / 14) * 100)}%
                         </p>
                       </div>
@@ -169,7 +169,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-[var(--color-success)]">Écritures</p>
-                        <p className="text-2xl font-bold text-green-900">
+                        <p className="text-lg font-bold text-green-900">
                           {operations.reduce((sum, op) => sum + op.ecritures, 0)}
                         </p>
                       </div>
@@ -193,7 +193,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-[var(--color-warning)]">Conformité</p>
-                        <p className="text-2xl font-bold text-orange-900">100%</p>
+                        <p className="text-lg font-bold text-orange-900">100%</p>
                         <p className="text-xs text-[var(--color-warning-dark)]">SYSCOHADA</p>
                       </div>
                       <CheckCircle className="h-8 w-8 text-orange-500" />

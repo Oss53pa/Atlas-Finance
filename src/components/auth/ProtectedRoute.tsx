@@ -19,19 +19,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const { isAuthenticated, user, loading } = useAuth();
 
-  // Logs de débogage
-  console.log('🛡️ [ProtectedRoute] Check:', {
-    path: location.pathname,
-    isAuthenticated,
-    hasUser: !!user,
-    userRole: user?.role,
-    loading,
-    requiredRole
-  });
 
   // Show loading spinner while checking authentication
   if (loading) {
-    console.log('⏳ [ProtectedRoute] Loading...');
     return (
       <div className="flex h-screen items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
@@ -42,15 +32,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Redirect to login if not authenticated
   // IMPORTANT: Ne rediriger que si loading est terminé ET user n'existe pas
   if (!loading && (!isAuthenticated || !user)) {
-    console.log('❌ [ProtectedRoute] Non authentifié - Redirection vers /login', {
-      isAuthenticated,
-      hasUser: !!user,
-      loading
-    });
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  console.log('✅ [ProtectedRoute] Authentifié - Accès autorisé');
 
   // Check role-based access
   if (requiredRole && user.role !== requiredRole) {
@@ -70,7 +54,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return fallback || (
         <div className="flex h-screen items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-red-600">Accès Refusé</h2>
+            <h2 className="text-lg font-bold text-red-600">Accès Refusé</h2>
             <p className="mt-2 text-gray-600">
               Vous n'avez pas la permission d'accéder à cette page.
             </p>

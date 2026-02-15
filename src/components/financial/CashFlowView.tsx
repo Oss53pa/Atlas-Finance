@@ -225,7 +225,7 @@ const CashFlowView: React.FC = () => {
         <div className="bg-white rounded-lg border p-6">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900">
                 TAFIRE - {currentData.period}
               </h3>
               <p className="text-gray-600 mt-1">
@@ -247,7 +247,7 @@ const CashFlowView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Flux d'Exploitation</p>
-                  <p className="text-2xl font-bold text-blue-900">{formatAmount(currentData.operatingCashFlow)}</p>
+                  <p className="text-lg font-bold text-blue-900">{formatAmount(currentData.operatingCashFlow)}</p>
                 </div>
                 <ArrowTrendingUpIcon className="h-8 w-8 text-blue-500" />
               </div>
@@ -257,7 +257,7 @@ const CashFlowView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-red-600">Flux d'Investissement</p>
-                  <p className="text-2xl font-bold text-red-900">{formatAmount(currentData.investmentCashFlow)}</p>
+                  <p className="text-lg font-bold text-red-900">{formatAmount(currentData.investmentCashFlow)}</p>
                 </div>
                 <ArrowTrendingDownIcon className="h-8 w-8 text-red-500" />
               </div>
@@ -267,7 +267,7 @@ const CashFlowView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-yellow-600">Flux de Financement</p>
-                  <p className="text-2xl font-bold text-yellow-900">{formatAmount(currentData.financingCashFlow)}</p>
+                  <p className="text-lg font-bold text-yellow-900">{formatAmount(currentData.financingCashFlow)}</p>
                 </div>
                 <BanknotesIcon className="h-8 w-8 text-yellow-500" />
               </div>
@@ -277,7 +277,7 @@ const CashFlowView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Variation Totale</p>
-                  <p className="text-2xl font-bold text-green-900">{formatAmount(currentData.cashFlowVariation)}</p>
+                  <p className="text-lg font-bold text-green-900">{formatAmount(currentData.cashFlowVariation)}</p>
                 </div>
                 <CurrencyDollarIcon className="h-8 w-8 text-green-500" />
               </div>
@@ -381,17 +381,17 @@ const CashFlowView: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <p className="text-sm text-gray-600">Trésorerie d'ouverture</p>
-              <p className="text-2xl font-bold text-gray-900">{formatAmount(currentData.openingCashBalance)}</p>
+              <p className="text-lg font-bold text-gray-900">{formatAmount(currentData.openingCashBalance)}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-gray-600">Variation nette</p>
-              <p className={`text-2xl font-bold ${currentData.cashFlowVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-lg font-bold ${currentData.cashFlowVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {currentData.cashFlowVariation >= 0 ? '+' : ''}{formatAmount(currentData.cashFlowVariation)}
               </p>
             </div>
             <div className="text-center">
               <p className="text-sm text-gray-600">Trésorerie de clôture</p>
-              <p className="text-2xl font-bold text-blue-600">{formatAmount(currentData.closingCashBalance)}</p>
+              <p className="text-lg font-bold text-blue-600">{formatAmount(currentData.closingCashBalance)}</p>
             </div>
           </div>
         </div>
@@ -402,7 +402,7 @@ const CashFlowView: React.FC = () => {
   const renderScenarios = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">Scénarios de Trésorerie</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Scénarios de Trésorerie</h3>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2">
           <PlusIcon className="h-4 w-4" />
           <span>Nouveau Scénario</span>
@@ -552,7 +552,7 @@ const CashFlowView: React.FC = () => {
 
   const renderAnalysis = () => (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">Analyse de Trésorerie</h3>
+      <h3 className="text-lg font-semibold text-gray-900">Analyse de Trésorerie</h3>
 
       {/* Métriques clés */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -561,7 +561,7 @@ const CashFlowView: React.FC = () => {
             <h4 className="text-sm font-medium text-gray-600">Free Cash Flow</h4>
             <CurrencyDollarIcon className="h-5 w-5 text-blue-500" />
           </div>
-          <p className="text-2xl font-bold text-blue-600">98K €</p>
+          <p className="text-lg font-bold text-blue-600">98K €</p>
           <p className="text-sm text-green-600">+12% vs N-1</p>
         </div>
 
@@ -570,7 +570,7 @@ const CashFlowView: React.FC = () => {
             <h4 className="text-sm font-medium text-gray-600">Cash Conversion</h4>
             <ArrowTrendingUpIcon className="h-5 w-5 text-green-500" />
           </div>
-          <p className="text-2xl font-bold text-green-600">1.13</p>
+          <p className="text-lg font-bold text-green-600">1.13</p>
           <p className="text-sm text-green-600">Excellent</p>
         </div>
 
@@ -579,7 +579,7 @@ const CashFlowView: React.FC = () => {
             <h4 className="text-sm font-medium text-gray-600">Jours de Trésorerie</h4>
             <CalendarIcon className="h-5 w-5 text-yellow-500" />
           </div>
-          <p className="text-2xl font-bold text-yellow-600">34j</p>
+          <p className="text-lg font-bold text-yellow-600">34j</p>
           <p className="text-sm text-yellow-600">À surveiller</p>
         </div>
 
@@ -588,7 +588,7 @@ const CashFlowView: React.FC = () => {
             <h4 className="text-sm font-medium text-gray-600">Burn Rate</h4>
             <ArrowTrendingDownIcon className="h-5 w-5 text-red-500" />
           </div>
-          <p className="text-2xl font-bold text-red-600">5.8K €</p>
+          <p className="text-lg font-bold text-red-600">5.8K €</p>
           <p className="text-sm text-red-600">Par mois</p>
         </div>
       </div>
@@ -623,7 +623,7 @@ const CashFlowView: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestion de Trésorerie</h1>
+          <h1 className="text-lg font-bold text-gray-900">Gestion de Trésorerie</h1>
           <p className="mt-1 text-gray-600">
             TAFIRE, prévisions et scénarios de flux de trésorerie
           </p>

@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import SearchableDropdown from '../ui/SearchableDropdown';
 import { TVAValidator, LigneEcriture as TVALigneEcriture, TVAValidationResult } from '../../utils/tvaValidation';
+import { isEntryEditable, isEntryReversible } from '../../utils/reversalService';
+import TemplateSelector from '../comptabilite/TemplateSelector';
 
 interface JournalEntryModalProps {
   isOpen: boolean;
@@ -55,7 +57,15 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   initialData,
   mode = 'create'
 }) => {
+  // Lock guard: validated/posted entries are read-only (SYSCOHADA intangibility)
+  const entryStatus = initialData?.status || 'draft';
+  const isLocked = !isEntryEditable(entryStatus);
+  const canReverse = isEntryReversible({ status: entryStatus, reversed: initialData?.reversed });
+
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [showReversalDialog, setShowReversalDialog] = useState(false);
+  const [reversalReason, setReversalReason] = useState('');
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('details');
@@ -231,7 +241,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const totalCredit = lignesEcriture.reduce((sum, ligne) => sum + ligne.credit, 0);
 
   useEffect(() => {
-    setIsEquilibree(totalDebit === totalCredit && totalDebit > 0);
+    setIsEquilibree(Math.abs(totalDebit - totalCredit) < 0.01 && totalDebit > 0);
 
     // Validation TVA automatique
     if (lignesEcriture.length > 0) {
@@ -266,6 +276,31 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       }));
     }
   }, [reglementInfo.compteBank, transactionType]);
+
+  // Handler pour appliquer un template d'ecriture
+  const handleApplyTemplate = useCallback((result: {
+    lines: Array<{ accountCode: string; accountName: string; label: string; debit: number; credit: number }>;
+    journal: string;
+    label: string;
+  }) => {
+    const journalMap: Record<string, TransactionType> = {
+      AC: 'purchase', VE: 'sale', BQ: 'payment', CA: 'payment', OD: 'other',
+    };
+    setTransactionType(journalMap[result.journal] || 'other');
+    setDetails(prev => ({
+      ...prev,
+      description: result.label,
+      journal: `${result.journal} - ${result.label}`,
+    }));
+    setLignesEcriture(
+      result.lines.map(l => ({
+        compte: l.accountCode,
+        libelle: l.accountName,
+        debit: l.debit,
+        credit: l.credit,
+      }))
+    );
+  }, []);
 
   // Fermer les dropdowns quand on clique à l'extérieur
   useEffect(() => {
@@ -354,7 +389,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     }
 
     // Vérifications onglet Ventilation
-    if (totalDebit !== totalCredit || totalDebit === 0) {
+    if (Math.abs(totalDebit - totalCredit) >= 0.01 || totalDebit === 0) {
       errors.push(`Écriture non équilibrée (Débit: ${totalDebit.toLocaleString()} ≠ Crédit: ${totalCredit.toLocaleString()})`);
     }
 
@@ -524,7 +559,6 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       if (e.key === 'Enter' && e.ctrlKey && activeTab === 'validation') {
         e.preventDefault();
         if (validationErrors.length === 0) {
-          console.log('Validation et comptabilisation...');
         }
       }
     };
@@ -671,7 +705,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <FileText className="w-5 h-5 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-800">Nouvelle écriture</h2>
+              <h2 className="text-lg font-semibold text-gray-800">Nouvelle écriture</h2>
             </div>
             <div className="flex items-center space-x-3">
               <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full flex items-center space-x-1">
@@ -685,6 +719,28 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Lock Banner — Validated entry */}
+          {isLocked && (
+            <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-amber-700">
+                <AlertCircle className="h-5 w-5" />
+                <span className="font-medium">
+                  {initialData?.reversed
+                    ? `Écriture contrepassée le ${initialData.reversedAt?.split('T')[0] || ''}`
+                    : 'Écriture validée — Modification impossible (SYSCOHADA Art. 19)'}
+                </span>
+              </div>
+              {canReverse && (
+                <button
+                  onClick={() => setShowReversalDialog(true)}
+                  className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Contrepassation
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Type de Transaction et Numéro d'écriture */}
           <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
@@ -703,6 +759,15 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     showSearch={false}
                   />
                 </div>
+                {mode === 'create' && !isLocked && (
+                  <button
+                    onClick={() => setShowTemplateSelector(true)}
+                    className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center space-x-1"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Modele</span>
+                  </button>
+                )}
               </div>
 
               {/* Numéro d'écriture à droite */}
@@ -1414,11 +1479,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="flex items-center space-x-8">
                     <div>
                       <span className="text-sm text-gray-600">Total Débit</span>
-                      <p className="text-xl font-bold text-blue-600">{formatMontant(totalDebit)} XAF</p>
+                      <p className="text-lg font-bold text-blue-600">{formatMontant(totalDebit)} XAF</p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-600">Total Crédit</span>
-                      <p className="text-xl font-bold text-blue-600">{formatMontant(totalCredit)} XAF</p>
+                      <p className="text-lg font-bold text-blue-600">{formatMontant(totalCredit)} XAF</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -1734,23 +1799,23 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="flex items-center justify-around mb-6">
                     <div className="text-center">
                       <p className="text-sm text-gray-600 mb-1">Total Débit</p>
-                      <p className="text-2xl font-bold text-blue-600">{formatMontant(totalDebit)} XAF</p>
+                      <p className="text-lg font-bold text-blue-600">{formatMontant(totalDebit)} XAF</p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-gray-600 mb-1">Total Crédit</p>
-                      <p className="text-2xl font-bold text-blue-600">{formatMontant(totalCredit)} XAF</p>
+                      <p className="text-lg font-bold text-blue-600">{formatMontant(totalCredit)} XAF</p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-gray-600 mb-1">Équilibre</p>
                       {isEquilibree ? (
                         <div className="flex items-center justify-center space-x-2 text-green-600">
                           <CheckCircle className="w-6 h-6" />
-                          <span className="text-2xl font-bold">Équilibré</span>
+                          <span className="text-lg font-bold">Équilibré</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center space-x-2 text-red-600">
                           <AlertCircle className="w-6 h-6" />
-                          <span className="text-2xl font-bold">Non équilibré</span>
+                          <span className="text-lg font-bold">Non équilibré</span>
                         </div>
                       )}
                     </div>
@@ -1860,7 +1925,12 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
               )}
 
               {/* Bouton Suivant ou Valider */}
-              {activeTab !== 'validation' ? (
+              {isLocked ? (
+                <span className="px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-500 flex items-center space-x-2 cursor-not-allowed">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Écriture verrouillée</span>
+                </span>
+              ) : activeTab !== 'validation' ? (
                 <button
                   onClick={goToNextTab}
                   className="px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 bg-blue-600 text-white hover:bg-blue-700"
@@ -1955,6 +2025,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       onClose={() => setShowPeriodModal(false)}
       onApply={(range) => setDateRange(range)}
       initialDateRange={dateRange}
+    />
+    <TemplateSelector
+      isOpen={showTemplateSelector}
+      onClose={() => setShowTemplateSelector(false)}
+      onApply={handleApplyTemplate}
     />
     </>
   );

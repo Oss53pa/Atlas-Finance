@@ -264,7 +264,7 @@ const ClotureAnnuelle: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919]">Clôture Annuelle</h1>
+            <h1 className="text-lg font-bold text-[#191919]">Clôture Annuelle</h1>
             <p className="text-[#767676]">Exercice comptable {selectedExercise}</p>
           </div>
           <div className="flex items-center space-x-4">

@@ -113,7 +113,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
       return {
         id: '1',
         company: {
-          name: 'WISEBOOK SARL',
+          name: 'ATLAS FINANCE SARL',
           address: 'Yaoundé, Cameroun'
         },
         fiscalYear: '2024',
@@ -221,7 +221,7 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
       <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-[#ECECEC] p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-[#191919] flex items-center">
+            <h1 className="text-lg font-bold text-[#191919] flex items-center">
               <ScaleIcon className="h-6 w-6 mr-2 text-[#6A8A82]" />
               BILAN SYSCOHADA
             </h1>

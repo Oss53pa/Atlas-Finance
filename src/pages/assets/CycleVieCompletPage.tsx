@@ -376,7 +376,7 @@ const CycleVieCompletPage: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Package className="mr-3 h-7 w-7 text-blue-600" />
               Cycle de Vie Complet des Actifs
             </h1>
@@ -412,7 +412,7 @@ const CycleVieCompletPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Actifs</p>
-                  <p className="text-2xl font-bold text-blue-700">{totalAssets}</p>
+                  <p className="text-lg font-bold text-blue-700">{totalAssets}</p>
                 </div>
               </div>
             </CardContent>
@@ -432,7 +432,7 @@ const CycleVieCompletPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Valeur Totale</p>
-                  <p className="text-2xl font-bold text-green-700">
+                  <p className="text-lg font-bold text-green-700">
                     {formatCurrency(totalValue)}
                   </p>
                 </div>
@@ -454,7 +454,7 @@ const CycleVieCompletPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">En Maintenance</p>
-                  <p className="text-2xl font-bold text-orange-700">{assetsInMaintenance}</p>
+                  <p className="text-lg font-bold text-orange-700">{assetsInMaintenance}</p>
                 </div>
               </div>
             </CardContent>
@@ -474,7 +474,7 @@ const CycleVieCompletPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Âge Moyen</p>
-                  <p className="text-2xl font-bold text-purple-700">
+                  <p className="text-lg font-bold text-purple-700">
                     {averageAge.toFixed(1)} ans
                   </p>
                 </div>

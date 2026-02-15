@@ -278,7 +278,7 @@ const ExercicePage: React.FC = () => {
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center">
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Calendar className="mr-3 h-7 w-7" />
               Exercices Comptables
             </h1>
@@ -601,7 +601,7 @@ const ExercicePage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Calendar className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Nouvel Exercice Comptable</h2>
+                <h2 className="text-lg font-bold text-gray-900">Nouvel Exercice Comptable</h2>
               </div>
               <button
                 onClick={() => {

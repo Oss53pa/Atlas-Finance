@@ -162,7 +162,7 @@ class TaxationService {
         debut: '2024-01-01',
         fin: '2024-12-31',
       },
-      societe: 'WiseBook SARL',
+      societe: 'Atlas Finance SARL',
       regime_fiscal: 'RNI',
       declarations: [],
       obligations_respectees: 45,

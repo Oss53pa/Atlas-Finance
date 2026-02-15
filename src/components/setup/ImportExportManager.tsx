@@ -281,7 +281,7 @@ const ImportExportManager: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <ArrowPathIcon className="h-8 w-8 mr-3 text-indigo-600" />
               Import/Export Avancé
             </h1>
@@ -322,7 +322,7 @@ const ImportExportManager: React.FC = () => {
         <div className="space-y-6">
           {/* Zone de drag & drop */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Import de Fichiers</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Import de Fichiers</h2>
             
             <div
               className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
@@ -368,7 +368,7 @@ const ImportExportManager: React.FC = () => {
 
           {/* Templates disponibles */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Templates Standards</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Templates Standards</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {importTemplates.map((template) => {
                 const FormatIcon = getFormatIcon(template.format);
@@ -429,7 +429,7 @@ const ImportExportManager: React.FC = () => {
 
           {/* Historique des imports */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Historique des Imports</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Historique des Imports</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -532,7 +532,7 @@ const ImportExportManager: React.FC = () => {
         <div className="space-y-6">
           {/* Exports rapides */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Exports Rapides</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Exports Rapides</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {
@@ -601,7 +601,7 @@ const ImportExportManager: React.FC = () => {
 
           {/* Historique des exports */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Historique des Exports</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Historique des Exports</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -707,7 +707,7 @@ const ImportExportManager: React.FC = () => {
       {/* Onglet FEC */}
       {activeTab === 'fec' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
             <DocumentTextIcon className="h-6 w-6 mr-2 text-indigo-600" />
             Fichier des Écritures Comptables (FEC)
           </h2>

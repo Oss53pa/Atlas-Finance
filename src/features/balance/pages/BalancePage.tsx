@@ -42,7 +42,6 @@ const BalancePage: React.FC = () => {
   };
 
   const handleExport = () => {
-    console.log('Export balance');
   };
 
   return (
@@ -51,7 +50,7 @@ const BalancePage: React.FC = () => {
         <div className="flex items-center space-x-3">
           <Scale className="w-8 h-8 text-[#6A8A82]" />
           <div>
-            <h1 className="text-3xl font-bold text-[#191919]">Balance Comptable</h1>
+            <h1 className="text-lg font-bold text-[#191919]">Balance Comptable</h1>
             <p className="text-[#767676] mt-1">
               Vue synthétique des comptes - Période du {filters.period.from} au {filters.period.to}
             </p>

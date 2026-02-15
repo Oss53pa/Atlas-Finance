@@ -4,7 +4,7 @@
  */
 
 import { UserIntent, ChatContext } from '../types';
-import { wiseBookKnowledge } from '../knowledge/wiseBookKnowledge';
+import { atlasFinanceKnowledge } from '../knowledge/atlasFinanceKnowledge';
 
 interface IntentPattern {
   intent: string;
@@ -396,7 +396,7 @@ export class AdvancedIntentRecognizer {
     let bestMatch = { intent: 'unknown', confidence: 0 };
 
     // Chercher dans la base de connaissances
-    for (const entry of wiseBookKnowledge) {
+    for (const entry of atlasFinanceKnowledge) {
       const relevance = this.calculateKnowledgeRelevance(message, entry);
 
       if (relevance > 0.5) {

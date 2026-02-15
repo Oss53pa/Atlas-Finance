@@ -74,7 +74,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-2xl font-bold text-[#191919]">{asset.assetNumber}</h3>
+          <h3 className="text-lg font-bold text-[#191919]">{asset.assetNumber}</h3>
           <p className="text-[#767676] mt-1">{asset.description}</p>
         </div>
         <div className="flex gap-2">
@@ -146,7 +146,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset }) => 
               <DollarSign className="w-4 h-4 text-[#767676] mt-1" />
               <div className="flex-1">
                 <p className="text-sm text-[#767676]">Coût d'Acquisition</p>
-                <p className="text-xl font-bold text-[#191919]">
+                <p className="text-lg font-bold text-[#191919]">
                   {formatCurrency(asset.acquisitionCost)}
                 </p>
               </div>

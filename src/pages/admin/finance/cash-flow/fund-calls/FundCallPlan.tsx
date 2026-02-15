@@ -42,7 +42,7 @@ const useSession = () => ({
 });
 
 const useLoading = () => ({
-  setIsLoadingCancelable: (loading: boolean) => console.log('Loading:', loading)
+  setIsLoadingCancelable: (_loading: boolean) => {}
 });
 
 export const FundCallPlan: React.FC = () => {
@@ -270,7 +270,6 @@ export const FundCallPlan: React.FC = () => {
     if (answer) {
       try {
         // Mock save operation
-        console.log('Saving fund call plan:', formData);
         await getFundCall();
         sweetAlertRef.current?.afficherAlerte('success', DICTIONNARY.EnregistrementEffectueAvecSucces[language]);
       } catch (error) {

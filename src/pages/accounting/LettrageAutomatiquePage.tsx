@@ -151,7 +151,7 @@ const LettrageAutomatiquePage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+              <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
                 <Link className="h-8 w-8 text-blue-600 mr-3" />
                 Lettrage Automatique
               </h1>
@@ -184,7 +184,7 @@ const LettrageAutomatiquePage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalUnmatched}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.totalUnmatched}</p>
               <p className="text-gray-600 text-sm">Non lettrés</p>
             </div>
           </motion.div>
@@ -201,7 +201,7 @@ const LettrageAutomatiquePage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.autoMatched}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.autoMatched}</p>
               <p className="text-gray-600 text-sm">Auto-lettrés</p>
             </div>
           </motion.div>
@@ -218,7 +218,7 @@ const LettrageAutomatiquePage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.pendingReview}</p>
+              <p className="text-lg font-bold text-gray-900">{stats.pendingReview}</p>
               <p className="text-gray-600 text-sm">À valider</p>
             </div>
           </motion.div>
@@ -235,7 +235,7 @@ const LettrageAutomatiquePage: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.matchRate}%</p>
+              <p className="text-lg font-bold text-gray-900">{stats.matchRate}%</p>
               <p className="text-gray-600 text-sm">Taux lettrage</p>
             </div>
           </motion.div>
@@ -243,7 +243,7 @@ const LettrageAutomatiquePage: React.FC = () => {
 
         {/* Algorithmes de lettrage */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Algorithmes de Lettrage</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Algorithmes de Lettrage</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
@@ -293,7 +293,7 @@ const LettrageAutomatiquePage: React.FC = () => {
         {/* Suggestions de lettrage */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Suggestions de Lettrage</h2>
+            <h2 className="text-lg font-bold text-gray-900">Suggestions de Lettrage</h2>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <Clock className="h-4 w-4" />
               <span>Dernière analyse: {new Date().toLocaleTimeString()}</span>

@@ -1,74 +1,51 @@
 /**
- * WiseBook Design System - Theme Configuration
+ * Atlas Finance Design System - Theme Configuration
  * Unified design tokens for consistent UI across the application
  */
 
 export const theme = {
-  // Brand Colors
+  // Brand Colors - Grayscale Monochrome
   colors: {
     primary: {
-      50: '#F0F9F4',
-      100: '#E0F2E9',
-      200: '#C1E5D3',
-      300: '#A2D9BD',
-      400: '#83CCA7',
-      500: '#6A8A82', // Main brand color
-      600: '#5A7A72',
-      700: '#4A6962',
-      800: '#3A5952',
-      900: '#2A4842',
-    },
-    secondary: {
-      50: '#FFF8F3',
-      100: '#FFF1E7',
-      200: '#FFE3CF',
-      300: '#FFD5B7',
-      400: '#FFC79F',
-      500: '#B87333', // Secondary brand color
-      600: '#A86323',
-      700: '#985313',
-      800: '#884303',
-      900: '#783300',
-    },
-    tertiary: {
-      50: '#F4F7F9',
-      100: '#E9EFF3',
-      200: '#D3DFE7',
-      300: '#BDCFDB',
-      400: '#A7BFCF',
-      500: '#7A99AC', // Tertiary color
-      600: '#6A899C',
-      700: '#5A798C',
-      800: '#4A697C',
-      900: '#3A596C',
+      50: '#fafafa',
+      100: '#f5f5f5',
+      200: '#e5e5e5',
+      300: '#d4d4d4',
+      400: '#a3a3a3',
+      500: '#737373',
+      600: '#525252',
+      700: '#404040',
+      800: '#262626',
+      900: '#171717',
+      950: '#0a0a0a',
     },
     neutral: {
-      50: '#FAFAFA',
-      100: '#F5F5F5',
-      200: '#ECECEC', // Background color
-      300: '#E8E8E8', // Border color
-      400: '#D1D1D1',
-      500: '#A1A1A1',
-      600: '#767676', // Secondary text
-      700: '#444444', // Primary text
-      800: '#191919', // Headlines
-      900: '#0A0A0A',
+      50: '#fafafa',
+      100: '#f5f5f5',
+      200: '#e5e5e5',
+      300: '#d4d4d4',
+      400: '#a3a3a3',
+      500: '#737373',
+      600: '#525252',
+      700: '#404040',
+      800: '#262626',
+      900: '#171717',
     },
     status: {
-      success: '#6A8A82',
-      warning: '#B87333',
-      error: '#B85450',
-      info: '#7A99AC',
+      success: '#22c55e',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#3b82f6',
     },
     semantic: {
-      background: '#ECECEC',
+      background: '#fafafa',
       surface: '#FFFFFF',
-      border: '#E8E8E8',
+      border: '#e5e5e5',
       text: {
-        primary: '#191919',
-        secondary: '#444444',
-        tertiary: '#767676',
-        disabled: '#A1A1A1',
+        primary: '#0a0a0a',
+        secondary: '#404040',
+        tertiary: '#737373',
+        disabled: '#a3a3a3',
         inverse: '#FFFFFF',
       },
     },
@@ -77,8 +54,9 @@ export const theme = {
   // Typography
   typography: {
     fontFamily: {
-      primary: "'Sometype Mono', 'Courier New', monospace",
-      secondary: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      primary: "'Exo 2', sans-serif",
+      secondary: "'Grand Hotel', cursive",
+      mono: "'JetBrains Mono', monospace",
     },
     fontSize: {
       xs: '0.75rem',    // 12px
@@ -97,6 +75,7 @@ export const theme = {
       medium: 500,
       semibold: 600,
       bold: 700,
+      extrabold: 800,
     },
     lineHeight: {
       tight: 1.2,
@@ -127,11 +106,13 @@ export const theme = {
   // Border Radius
   borderRadius: {
     none: '0',
-    sm: '0.125rem',  // 2px
-    base: '0.25rem', // 4px
-    md: '0.375rem',  // 6px
-    lg: '0.5rem',    // 8px
-    xl: '0.75rem',   // 12px
+    sm: '0.25rem',   // 4px
+    base: '0.5rem',  // 8px
+    md: '0.5rem',    // 8px
+    lg: '0.75rem',   // 12px
+    xl: '1rem',      // 16px
+    card: '1rem',    // 16px
+    btn: '0.75rem',  // 12px
     '2xl': '1rem',   // 16px
     '3xl': '1.5rem', // 24px
     full: '9999px',
@@ -140,12 +121,15 @@ export const theme = {
   // Shadows
   shadows: {
     none: 'none',
-    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    sm: '0 1px 2px rgba(0, 0, 0, 0.04)',
+    card: '0 1px 2px rgba(0, 0, 0, 0.04)',
     base: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    md: '0 4px 12px rgba(0, 0, 0, 0.08)',
+    'card-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
     lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
     xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
     '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    focus: '0 0 0 3px rgba(23, 23, 23, 0.1)',
     inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
   },
 
