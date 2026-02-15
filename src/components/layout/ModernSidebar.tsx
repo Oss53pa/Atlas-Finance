@@ -10,6 +10,7 @@ import {
   ChevronRight,
   ChevronDown,
   Home,
+  LayoutDashboard,
   FileText,
   Users,
   Truck,
@@ -40,9 +41,16 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
 
   const navigationItems = [
     {
+      id: 'home',
+      label: 'Accueil',
+      icon: Home,
+      path: '/',
+      badge: null,
+    },
+    {
       id: 'dashboard',
       label: 'Dashboard Executive',
-      icon: Home,
+      icon: LayoutDashboard,
       path: '/executive',
       badge: null,
     },
@@ -191,6 +199,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   };
 
   const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
@@ -209,8 +218,8 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
               <span className="text-white font-bold text-sm">W</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">Atlas Finance MODIFIÉ</h1>
-              <p className="text-xs text-slate-300">NAVIGATION MISE À JOUR</p>
+              <h1 className="text-lg font-bold text-white">Atlas Finance</h1>
+              <p className="text-xs text-slate-300">ERP Comptable SYSCOHADA</p>
             </div>
           </div>
         )}
