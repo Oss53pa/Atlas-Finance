@@ -130,6 +130,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 { font-size: 1.25rem !important; }   /* 20px - Titre de page */
+h1.landing-title { font-size: clamp(3rem, 8vw, 5rem) !important; font-weight: 400 !important; } /* Titre landing page */
 h2 { font-size: 1.125rem !important; }  /* 18px - Titre de section */
 h3 { font-size: 1rem !important; }      /* 16px - Sous-titre */
 h4 { font-size: 0.9375rem !important; } /* 15px - Label important */

@@ -78,13 +78,13 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Top bar */}
-      <header className="flex items-center justify-between px-8 py-5">
+      <header className="relative z-10 flex items-center justify-between px-8 py-5">
         <span className="text-sm text-neutral-400">
           Atlas Finance — WiseBook ERP
         </span>
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-1.5 text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-neutral-700 hover:text-neutral-900 transition-colors cursor-pointer"
         >
           Tableau de bord <ArrowRight className="w-4 h-4" />
         </button>
@@ -94,8 +94,8 @@ const LandingPage: React.FC = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-10">
         {/* App name */}
         <h1
-          className="text-neutral-900 mb-4 leading-none"
-          style={{ fontFamily: "'Grand Hotel', cursive", fontSize: 'clamp(7rem, 18vw, 14rem)' }}
+          className="text-neutral-900 mb-4 leading-none landing-title"
+          style={{ fontFamily: "'Grand Hotel', cursive" }}
         >
           Atlas Finance
         </h1>
@@ -151,7 +151,7 @@ const LandingPage: React.FC = () => {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-neutral-50 text-neutral-700 text-sm hover:bg-neutral-100 transition-colors border border-neutral-200"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-neutral-50 text-neutral-700 text-sm hover:bg-neutral-100 transition-colors border border-neutral-200 cursor-pointer"
             >
               <item.icon className="w-4 h-4" />
               {item.label}
