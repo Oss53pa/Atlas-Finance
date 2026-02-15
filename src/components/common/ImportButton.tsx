@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, RefreshCw } from 'lucide-react';
 import { Button } from '../ui';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/Dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
 import { Label, Checkbox } from '../ui';
 import { FileUpload } from './FileUpload';

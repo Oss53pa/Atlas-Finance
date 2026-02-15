@@ -11,7 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button, Input } from '../ui';
-import { Progress } from '../ui/progress';
+import { Progress } from '../ui/Progress';
 
 interface BaseModalProps {
   isOpen: boolean;
