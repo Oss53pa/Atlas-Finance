@@ -95,7 +95,7 @@ const LandingPage: React.FC = () => {
         {/* App name */}
         <h1
           className="text-neutral-900 mb-4 leading-none"
-          style={{ fontFamily: "'Grand Hotel', cursive", fontSize: 'clamp(5rem, 12vw, 10rem)' }}
+          style={{ fontFamily: "'Grand Hotel', cursive", fontSize: 'clamp(7rem, 18vw, 14rem)' }}
         >
           Atlas Finance
         </h1>
