@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Plus, Trash2, Save } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/Dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
 import { Button, Label, Input } from '../ui';
 import { toast } from 'react-hot-toast';

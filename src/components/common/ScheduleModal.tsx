@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/Dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
 import { Button, Label, Input, Checkbox } from '../ui';
 import { toast } from 'react-hot-toast';

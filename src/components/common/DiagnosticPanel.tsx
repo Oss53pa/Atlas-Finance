@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Button, Card, CardContent } from '../ui';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
 
 /**
  * Panneau de diagnostic pour déboguer les problèmes de modals
