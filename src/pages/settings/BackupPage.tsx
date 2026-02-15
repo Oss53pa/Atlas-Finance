@@ -53,7 +53,7 @@ import {
   AlertDescription,
   Checkbox
 } from '../../components/ui';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/Dialog';
 import { DiagnosticPanel } from '../../components/common/DiagnosticPanel';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
