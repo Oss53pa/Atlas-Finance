@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Ca
 import { Alert, AlertDescription } from '../../components/ui/Alert';
 import { Badge } from '../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/Tabs';
-import { Progress } from '../../components/ui/progress';
+import { Progress } from '../../components/ui/Progress';
 import NewReportCreator from '../../components/reporting/NewReportCreator';
 import {
   ViewReportModal,

@@ -56,7 +56,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
-import { Progress } from '../../../components/ui/progress';
+import { Progress } from '../../../components/ui/Progress';
 
 interface EtatFinancier {
   id: string;

@@ -21,21 +21,21 @@ import {
   CardContent,
   CardHeader,
   CardTitle
-} from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
-import { Progress } from '../../components/ui/progress';
+} from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+import { Progress } from '../../components/ui/Progress';
 import {
   Alert,
   AlertDescription
-} from '../../components/ui/alert';
+} from '../../components/ui/Alert';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '../../components/ui/select';
+} from '../../components/ui/Select';
 import {
   Dialog,
   DialogContent,
