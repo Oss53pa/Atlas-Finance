@@ -11,7 +11,7 @@ import {
   AlertOctagon, Info, ChevronDown, ChevronUp, Printer,
   History, Link, Upload, Bot, Zap, PieChart, Activity
 } from 'lucide-react';
-import { Progress } from '../../components/ui/progress';
+import { Progress } from '../../components/ui/Progress';
 
 // ==================== TYPES ET INTERFACES ====================
 

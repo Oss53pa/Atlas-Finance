@@ -11,7 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
-import { Progress } from '../../../components/ui/progress';
+import { Progress } from '../../../components/ui/Progress';
 
 interface PeriodeComptable {
   id: string;
