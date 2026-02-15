@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import frTranslations from '../locales/fr.json';
 
 export type Language = 'fr' | 'en' | 'es';
 
@@ -34,7 +35,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     return savedLanguage || 'fr';
   });
 
-  const [translations, setTranslations] = useState<Translation>({});
+  const [translations, setTranslations] = useState<Translation>(frTranslations as Translation);
 
   // Charger les traductions
   useEffect(() => {
