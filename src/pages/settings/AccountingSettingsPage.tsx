@@ -1121,7 +1121,7 @@ const AccountingSettingsPage: React.FC = () => {
             <ModernButton
               variant="outline"
               leftIcon={<RefreshCw className="w-4 h-4" />}
-              onClick={handleReset}
+              onClick={handleResetClick}
               disabled={!hasChanges}
             >
               Réinitialiser
