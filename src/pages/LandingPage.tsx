@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FilePlus, BookOpen, Users, Settings,
-  ArrowRight,
+  ArrowRight, AlertCircle, Calendar, Clock,
 } from 'lucide-react';
 import { db } from '../lib/db';
 
@@ -13,13 +13,20 @@ interface Stats {
   immobilisations: number;
 }
 
+interface Alerts {
+  brouillons: number;
+  exercice: string;
+  derniereActivite: string;
+}
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({ ecritures: 0, comptes: 0, tiers: 0, immobilisations: 0 });
+  const [alerts, setAlerts] = useState<Alerts>({ brouillons: 0, exercice: '', derniereActivite: '' });
 
   useEffect(() => {
     let mounted = true;
-    const loadStats = async () => {
+    const load = async () => {
       try {
         const [ecritures, comptes, tiers, immobilisations] = await Promise.all([
           db.journalEntries.count(),
@@ -28,11 +35,35 @@ const LandingPage: React.FC = () => {
           db.assets.count(),
         ]);
         if (mounted) setStats({ ecritures, comptes, tiers, immobilisations });
+
+        // Brouillons à valider
+        const drafts = await db.journalEntries
+          .where('status')
+          .equals('draft')
+          .count();
+
+        // Exercice actif
+        const activeYear = await db.fiscalYears
+          .filter((fy) => fy.isActive)
+          .first();
+
+        // Dernière activité
+        const lastLog = await db.auditLogs
+          .orderBy('timestamp')
+          .last();
+
+        if (mounted) {
+          setAlerts({
+            brouillons: drafts,
+            exercice: activeYear ? activeYear.name : 'Non défini',
+            derniereActivite: lastLog ? formatRelative(lastLog.timestamp) : 'Aucune',
+          });
+        }
       } catch {
         // DB not available yet
       }
     };
-    loadStats();
+    load();
     return () => { mounted = false; };
   }, []);
 
@@ -60,20 +91,20 @@ const LandingPage: React.FC = () => {
       </header>
 
       {/* Center content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-16">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-10">
         {/* App name */}
         <h1
-          className="text-6xl md:text-7xl text-neutral-900 mb-3"
+          className="text-8xl md:text-9xl text-neutral-900 mb-4 leading-none"
           style={{ fontFamily: "'Grand Hotel', cursive" }}
         >
           Atlas Finance
         </h1>
-        <p className="text-neutral-400 text-base italic mb-14">
+        <p className="text-neutral-400 text-base italic mb-12">
           Votre ERP comptable intelligent — Conforme SYSCOHADA
         </p>
 
         {/* Stats row */}
-        <div className="flex items-center divide-x divide-neutral-200">
+        <div className="flex items-center divide-x divide-neutral-200 mb-10">
           {[
             { value: stats.ecritures, label: 'Écritures' },
             { value: stats.comptes, label: 'Comptes' },
@@ -86,10 +117,35 @@ const LandingPage: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {/* Info cards */}
+        <div className="flex flex-wrap justify-center gap-4 max-w-2xl">
+          {alerts.brouillons > 0 && (
+            <button
+              onClick={() => navigate('/ecritures')}
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-amber-50 text-amber-700 text-sm border border-amber-200 hover:bg-amber-100 transition-colors"
+            >
+              <AlertCircle className="w-4 h-4" />
+              {alerts.brouillons} écriture{alerts.brouillons > 1 ? 's' : ''} en brouillon
+            </button>
+          )}
+          {alerts.exercice && (
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-neutral-50 text-neutral-600 text-sm border border-neutral-200">
+              <Calendar className="w-4 h-4" />
+              Exercice : {alerts.exercice}
+            </div>
+          )}
+          {alerts.derniereActivite && (
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-neutral-50 text-neutral-600 text-sm border border-neutral-200">
+              <Clock className="w-4 h-4" />
+              Dernière activité : {alerts.derniereActivite}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Bottom nav */}
-      <footer className="pb-8 pt-12 flex flex-col items-center gap-6">
+      <footer className="pb-8 pt-10 flex flex-col items-center gap-6">
         <nav className="flex flex-wrap justify-center gap-3">
           {navItems.map((item) => (
             <button
@@ -109,5 +165,21 @@ const LandingPage: React.FC = () => {
     </div>
   );
 };
+
+function formatRelative(timestamp: string): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return "À l'instant";
+  if (diffMin < 60) return `Il y a ${diffMin} min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `Il y a ${diffH}h`;
+  const diffD = Math.floor(diffH / 24);
+  if (diffD === 1) return 'Hier';
+  if (diffD < 7) return `Il y a ${diffD} jours`;
+  return date.toLocaleDateString('fr-FR');
+}
 
 export default LandingPage;
