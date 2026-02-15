@@ -100,6 +100,13 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   // Modules principaux restructurés selon les standards ERP
   const primaryMenuItems: MenuItem[] = useMemo(() => [
     {
+      id: 'home',
+      label: 'Accueil',
+      icon: <Home className="w-5 h-5" />,
+      path: '/',
+      ariaLabel: "Retour à la page d'accueil"
+    },
+    {
       id: 'dashboard',
       label: 'Tableau de Bord',
       icon: <LayoutDashboard className="w-5 h-5" />,
@@ -303,7 +310,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const getBreadcrumbs = () => {
     const paths = location.pathname.split('/').filter(Boolean);
     // Rediriger vers le workspace approprié (comptable par défaut)
-    const breadcrumbs = [{ label: 'Accueil', path: '/dashboard/comptable' }];
+    const breadcrumbs = [{ label: 'Accueil', path: '/' }];
 
     paths.forEach((path, index) => {
       const fullPath = '/' + paths.slice(0, index + 1).join('/');
