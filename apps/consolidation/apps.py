@@ -1,7 +1,0 @@
-from django.apps import AppConfig
-
-
-class ConsolidationConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.consolidation'
-    verbose_name = 'Consolidation Multi-Sociétés'

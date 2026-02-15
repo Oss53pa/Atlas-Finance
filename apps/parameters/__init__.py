@@ -1,1 +1,0 @@
-# Parameters module for WiseBook system configuration
