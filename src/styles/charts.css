@@ -1,0 +1,111 @@
+/* Chart.js Container Styles */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.chart-container-sm {
+  position: relative;
+  height: 250px;
+  width: 100%;
+}
+
+.chart-container-lg {
+  position: relative;
+  height: 400px;
+  width: 100%;
+}
+
+/* Fix pour les canvas Chart.js */
+canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Container pour les graphiques responsive */
+.chart-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+/* Fix pour les graphiques dans les grilles */
+.grid .chart-container {
+  min-height: 250px;
+}
+
+/* Styles pour les légendes Chart.js */
+.chart-legend {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* Fix pour les tooltips */
+.chartjs-tooltip {
+  opacity: 1 !important;
+  position: absolute;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  transition: all 0.1s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 9999;
+}
+
+/* Fix pour les couleurs dans les thèmes */
+.chart-container {
+  --chart-grid-color: rgba(156, 163, 175, 0.1);
+  --chart-text-color: var(--color-text-secondary);
+  --chart-font-family: inherit;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .chart-container {
+  --chart-grid-color: rgba(75, 85, 99, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 250px;
+  }
+  
+  .chart-container-lg {
+    height: 300px;
+  }
+}
+
+/* Animation pour les graphiques */
+@keyframes fadeInChart {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-container canvas {
+  animation: fadeInChart 0.5s ease-out;
+}

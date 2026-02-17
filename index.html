@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Atlas Finance - Système de gestion intégré pour l'Afrique avec standards SYSCOHADA" />
+    <meta name="keywords" content="ERP, Comptabilité, SYSCOHADA, Gestion, Afrique, Finance" />
+    <meta name="author" content="Atlas Finance Team" />
+
+    <title>Atlas Finance - Système ERP Comptable SYSCOHADA</title>
+
+    <!-- Polices Exo 2, Grand Hotel, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Grand+Hotel&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles de base CRITIQUES pour éviter le flash (FOUC) -->
+    <style>
+      /* Reset basique */
+      *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* Police et couleurs de base */
+      html {
+        font-family: 'Exo 2', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      body {
+        background-color: #fafafa;
+        color: #171717;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      #root {
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      /* Classes Tailwind de base - INLINE pour chargement instantané */
+      .min-h-screen { min-height: 100vh; }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-center { justify-content: center; }
+      .text-center { text-align: center; }
+      .bg-white { background-color: #ffffff; }
+      .rounded-2xl { border-radius: 1rem; }
+      .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+      .p-12 { padding: 3rem; }
+      .mb-4 { margin-bottom: 1rem; }
+      .mb-6 { margin-bottom: 1.5rem; }
+      .text-5xl { font-size: 3rem; line-height: 1; }
+      .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+      .font-bold { font-weight: 700; }
+      .text-gray-800 { color: #1f2937; }
+      .text-gray-600 { color: #4b5563; }
+
+      /* Gradients */
+      .bg-gradient-to-br {
+        background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+      }
+      .from-neutral-100 { --tw-gradient-from: #f5f5f5; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(245, 245, 245, 0)); }
+      .to-neutral-200 { --tw-gradient-to: #e5e5e5; }
+
+      /* Loading spinner */
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(23, 23, 23, 0.2);
+        border-top: 4px solid #171717;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Masquer le contenu initial jusqu'au chargement */
+      #root:empty::after {
+        content: '';
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+        z-index: 9999;
+      }
+
+      /* Overlay de chargement initial */
+      .app-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        transition: opacity 0.3s ease-out;
+      }
+
+      .app-loader.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loader supprimé - React gère le chargement -->
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
