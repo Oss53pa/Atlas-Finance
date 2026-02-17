@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tous les Formulaires Nouvelle Écriture - WiseBook</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-tsx.min.js"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .modal-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 400px;
+        }
+        pre { border-radius: 8px; overflow-x: auto; }
+        .code-container { max-height: 600px; overflow-y: auto; }
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="sticky-nav bg-white shadow-lg border-b">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        📝 Formulaires Nouvelle Écriture - WiseBook
+                    </h1>
+                    <p class="text-gray-600 mt-1">Tous les modals et formulaires de saisie comptable disponibles</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+                        6 Formulaires trouvés
+                    </span>
+                    <button onclick="window.location.href='http://localhost:5173'"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        Retour à l'app
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation des formulaires -->
+    <div class="container mx-auto px-6 py-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">🎯 Navigation Rapide</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button onclick="showForm('journal-entry')" class="text-left p-4 border-2 border-indigo-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                    <h3 class="font-semibold text-indigo-700">JournalEntryModal.tsx</h3>
+                    <p class="text-sm text-gray-600 mt-1">Modal principal avec AnimatePresence</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Achat</span>
+                        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">Vente</span>
+                        <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">Règlement</span>
+                    </div>
+                </button>
+
+                <button onclick="showForm('intelligent-form')" class="text-left p-4 border-2 border-green-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all">
+                    <h3 class="font-semibold text-green-700">IntelligentEntryForm.tsx</h3>
+                    <p class="text-sm text-gray-600 mt-1">Saisie intelligente avec suggestions</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">Standard</span>
+                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">Rapide</span>
+                        <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded">Expert</span>
+                    </div>
+                </button>
+
+                <button onclick="showForm('intelligent-assistant')" class="text-left p-4 border-2 border-purple-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all">
+                    <h3 class="font-semibold text-purple-700">IntelligentEntryAssistant.tsx</h3>
+                    <p class="text-sm text-gray-600 mt-1">Assistant IA avec ventilation auto</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded">IA</span>
+                        <span class="px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded">Smart</span>
+                        <span class="px-2 py-1 bg-cyan-100 text-cyan-700 text-xs rounded">Guided</span>
+                    </div>
+                </button>
+
+                <button onclick="showForm('entries-page')" class="text-left p-4 border-2 border-orange-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all">
+                    <h3 class="font-semibold text-orange-700">EntriesPage.tsx</h3>
+                    <p class="text-sm text-gray-600 mt-1">Page avec brouillard et modèles</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Brouillard</span>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">8 en attente</span>
+                    </div>
+                </button>
+
+                <button onclick="showForm('entries-clean')" class="text-left p-4 border-2 border-teal-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all">
+                    <h3 class="font-semibold text-teal-700">EntriesPageClean.tsx</h3>
+                    <p class="text-sm text-gray-600 mt-1">Version épurée avec 3 onglets</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded">Nouvelle</span>
+                        <span class="px-2 py-1 bg-sky-100 text-sky-700 text-xs rounded">Consultation</span>
+                        <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded">Validation</span>
+                    </div>
+                </button>
+
+                <button onclick="showForm('floating-button')" class="text-left p-4 border-2 border-pink-200 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all">
+                    <h3 class="font-semibold text-pink-700">FloatingJournalButton.tsx</h3>
+                    <p class="text-sm text-gray-600 mt-1">Bouton flottant avec modal</p>
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        <span class="px-2 py-1 bg-rose-100 text-rose-700 text-xs rounded">Flottant</span>
+                        <span class="px-2 py-1 bg-violet-100 text-violet-700 text-xs rounded">Quick Access</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulaire 1: JournalEntryModal -->
+        <div id="journal-entry" class="tab-content active">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
+                    <h2 class="text-2xl font-bold text-white">📝 JournalEntryModal.tsx</h2>
+                    <p class="text-white/80 mt-2">Modal principal avec AnimatePresence et types d'écritures multiples</p>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">✨ Fonctionnalités</h3>
+                            <ul class="space-y-2 text-gray-700">
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>4 types d'écritures: Achat, Vente, Règlement, Opération diverse</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Génération automatique des écritures selon le type</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Support des règlements avec symboles (💰 ENTRÉE / 💸 SORTIE)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Lettrage automatique des factures</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Calcul automatique TVA</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Upload de pièces jointes</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">🎨 Preview Modal</h3>
+                            <div class="modal-preview rounded-lg p-4 text-white">
+                                <div class="bg-white/10 backdrop-blur rounded-lg p-4">
+                                    <div class="flex space-x-2 mb-4">
+                                        <button class="px-3 py-1 bg-blue-500 text-white rounded text-sm">Achat</button>
+                                        <button class="px-3 py-1 bg-white/20 text-white rounded text-sm">Vente</button>
+                                        <button class="px-3 py-1 bg-white/20 text-white rounded text-sm">Règlement</button>
+                                        <button class="px-3 py-1 bg-white/20 text-white rounded text-sm">Autre</button>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <input placeholder="Compte" class="w-full px-3 py-2 bg-white/20 rounded text-white placeholder-white/60">
+                                        <input placeholder="Libellé" class="w-full px-3 py-2 bg-white/20 rounded text-white placeholder-white/60">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <input placeholder="Débit" class="px-3 py-2 bg-white/20 rounded text-white placeholder-white/60">
+                                            <input placeholder="Crédit" class="px-3 py-2 bg-white/20 rounded text-white placeholder-white/60">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-3">📄 Code Source</h3>
+                        <div class="code-container">
+                            <pre><code class="language-tsx">import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, FileText, StickyNote, Paperclip, Calculator, ShoppingCart, CreditCard, Settings, Plus, Trash2, Upload, Download, Target, CheckCircle, ArrowRight } from 'lucide-react';
+
+interface JournalEntryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+type EntryType = 'purchase' | 'sale' | 'payment' | 'other';
+
+const JournalEntryModal: React.FC&lt;JournalEntryModalProps&gt; = ({ isOpen, onClose }) => {
+  const [entryType, setEntryType] = useState&lt;EntryType&gt;('purchase');
+  const [entries, setEntries] = useState&lt;JournalEntry[]&gt;([
+    { account: '', label: '', debit: 0, credit: 0 }
+  ]);
+
+  // État pour les règlements
+  const [paymentData, setPaymentData] = useState({
+    paymentType: 'customer_receipt', // 'customer_receipt' | 'supplier_payment'
+    thirdParty: '',
+    amount: 0,
+    paymentMethod: 'bank', // 'bank' | 'cash' | 'check'
+    reference: '',
+    description: '',
+    invoiceToMatch: '', // Pour le lettrage automatique
+    autoLettering: true
+  });
+
+  // Génération automatique pour règlement
+  if (entryType === 'payment') {
+    if (paymentType === 'customer_receipt') {
+      // 💰 ENTRÉE D'ARGENT - Encaissement client
+      setEntries([
+        { account: treasuryAccount, label: '💰 ENTRÉE - Encaissement client', debit: amount, credit: 0 },
+        { account: '411000', label: 'Clients - Règlement', debit: 0, credit: amount }
+      ]);
+    } else {
+      // 💸 SORTIE D'ARGENT - Paiement fournisseur
+      setEntries([
+        { account: '401000', label: 'Fournisseurs - Règlement', debit: amount, credit: 0 },
+        { account: treasuryAccount, label: '💸 SORTIE - Paiement fournisseur', debit: 0, credit: amount }
+      ]);
+    }
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire 2: IntelligentEntryForm -->
+        <div id="intelligent-form" class="tab-content">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-green-500 to-teal-600 p-6">
+                    <h2 class="text-2xl font-bold text-white">🤖 IntelligentEntryForm.tsx</h2>
+                    <p class="text-white/80 mt-2">Formulaire intelligent avec suggestions automatiques et modes de saisie</p>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">✨ Fonctionnalités</h3>
+                            <ul class="space-y-2 text-gray-700">
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>3 modes de saisie: Standard, Rapide, Expert</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>8 types de journaux: AC, VE, TR, BQ, CA, OD, AN, NV</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Suggestions de comptes basées sur l'historique</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Calcul automatique TVA avec taux personnalisable</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Modèles préférés et comptes favoris</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Ventilation analytique multi-axes</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">📊 Types de Journaux</h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-3 bg-blue-50 rounded-lg">
+                                    <span class="font-semibold text-blue-700">AC</span>
+                                    <p class="text-sm text-gray-600">Achats</p>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded-lg">
+                                    <span class="font-semibold text-green-700">VE</span>
+                                    <p class="text-sm text-gray-600">Ventes</p>
+                                </div>
+                                <div class="p-3 bg-purple-50 rounded-lg">
+                                    <span class="font-semibold text-purple-700">TR</span>
+                                    <p class="text-sm text-gray-600">Trésorerie</p>
+                                </div>
+                                <div class="p-3 bg-orange-50 rounded-lg">
+                                    <span class="font-semibold text-orange-700">BQ</span>
+                                    <p class="text-sm text-gray-600">Banque</p>
+                                </div>
+                                <div class="p-3 bg-pink-50 rounded-lg">
+                                    <span class="font-semibold text-pink-700">CA</span>
+                                    <p class="text-sm text-gray-600">Caisse</p>
+                                </div>
+                                <div class="p-3 bg-indigo-50 rounded-lg">
+                                    <span class="font-semibold text-indigo-700">OD</span>
+                                    <p class="text-sm text-gray-600">Opérations Diverses</p>
+                                </div>
+                                <div class="p-3 bg-teal-50 rounded-lg">
+                                    <span class="font-semibold text-teal-700">AN</span>
+                                    <p class="text-sm text-gray-600">A Nouveau</p>
+                                </div>
+                                <div class="p-3 bg-red-50 rounded-lg">
+                                    <span class="font-semibold text-red-700">NV</span>
+                                    <p class="text-sm text-gray-600">Nouveaux</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-3">📄 Code Source</h3>
+                        <div class="code-container">
+                            <pre><code class="language-tsx">interface JournalType {
+  code: 'AC' | 'VE' | 'TR' | 'BQ' | 'CA' | 'OD' | 'AN' | 'NV';
+  label: string;
+  comptesPreferes: string[];
+  suggestionsAuto: boolean;
+  champSpecifiques: ChampsSpecifique[];
+}
+
+const IntelligentEntryForm: React.FC = ({ journalType, onSubmit, onCancel, companyId, exerciceId }) => {
+  const [modeSaisie, setModeSaisie] = useState&lt;'standard' | 'rapide' | 'expert'&gt;('rapide');
+  const [saisieRapide, setSaisieRapide] = useState({
+    date: new Date().toISOString().split('T')[0],
+    piece: '',
+    tiers: '',
+    montantHT: 0,
+    tauxTVA: 19.25,
+    montantTVA: 0,
+    montantTTC: 0,
+    libelle: '',
+    modeReglement: '',
+    echeance: '',
+    reference: '',
+    lettrage: ''
+  });
+
+  // Suggestions intelligentes basées sur l'historique
+  const [suggestions, setSuggestions] = useState&lt;SuggestionCompte[]&gt;([]);
+  const [historiqueComptes, setHistoriqueComptes] = useState&lt;SuggestionCompte[]&gt;([]);
+  const [modelesPreferes, setModelesPreferes] = useState&lt;any[]&gt;([]);
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire 3: IntelligentEntryAssistant -->
+        <div id="intelligent-assistant" class="tab-content">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-500 to-pink-600 p-6">
+                    <h2 class="text-2xl font-bold text-white">🧠 IntelligentEntryAssistant.tsx</h2>
+                    <p class="text-white/80 mt-2">Assistant IA avancé avec suggestions et ventilation automatique</p>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">✨ Fonctionnalités IA</h3>
+                            <ul class="space-y-2 text-gray-700">
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>3 modes assistant: GUIDED, SMART, EXPERT</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Suggestions intelligentes avec niveau de confiance</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Ventilation automatique: EQUAL, PERCENTAGE, HISTORICAL, ANALYTICAL</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Templates avec score de correspondance</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Mode apprentissage pour améliorer les suggestions</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Auto-acceptation des suggestions fiables</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">🎯 Types de Suggestions</h3>
+                            <div class="space-y-2">
+                                <div class="p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-blue-700">ACCOUNT</span>
+                                        <span class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Comptes</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-green-700">AMOUNT</span>
+                                        <span class="text-xs bg-green-500 text-white px-2 py-1 rounded">Montants</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-purple-700">THIRD_PARTY</span>
+                                        <span class="text-xs bg-purple-500 text-white px-2 py-1 rounded">Tiers</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-orange-700">VAT</span>
+                                        <span class="text-xs bg-orange-500 text-white px-2 py-1 rounded">TVA</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-gradient-to-r from-pink-50 to-pink-100 rounded-lg border border-pink-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-pink-700">SPLIT</span>
+                                        <span class="text-xs bg-pink-500 text-white px-2 py-1 rounded">Ventilation</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-indigo-700">TEMPLATE</span>
+                                        <span class="text-xs bg-indigo-500 text-white px-2 py-1 rounded">Modèles</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-3">📄 Code Source</h3>
+                        <div class="code-container">
+                            <pre><code class="language-tsx">interface IntelligentSuggestion {
+  type: 'ACCOUNT' | 'AMOUNT' | 'THIRD_PARTY' | 'VAT' | 'SPLIT' | 'TEMPLATE';
+  confidence: number;
+  suggestion: any;
+  reasoning: string;
+  autoApply: boolean;
+}
+
+interface VentilationSuggestion {
+  method: 'EQUAL' | 'PERCENTAGE' | 'HISTORICAL' | 'ANALYTICAL';
+  accounts: Array&lt;{
+    code: string;
+    name: string;
+    suggestedAmount: number;
+    suggestedPercentage: number;
+    reasoning: string;
+  }&gt;;
+  confidence: number;
+}
+
+const IntelligentEntryAssistant: React.FC = () => {
+  const [assistantMode, setAssistantMode] = useState&lt;'GUIDED' | 'SMART' | 'EXPERT'&gt;('SMART');
+  const [suggestions, setSuggestions] = useState&lt;IntelligentSuggestion[]&gt;([]);
+  const [showAIPanel, setShowAIPanel] = useState(true);
+  const [autoAcceptSuggestions, setAutoAcceptSuggestions] = useState(false);
+  const [learningMode, setLearningMode] = useState(true);
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire 4: EntriesPage -->
+        <div id="entries-page" class="tab-content">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-orange-500 to-red-600 p-6">
+                    <h2 class="text-2xl font-bold text-white">📋 EntriesPage.tsx</h2>
+                    <p class="text-white/80 mt-2">Page de gestion des écritures avec brouillard et modèles</p>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">✨ Fonctionnalités</h3>
+                            <ul class="space-y-2 text-gray-700">
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Onglet Brouillard avec badge "8 en attente"</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Utilise JournalEntryModal pour la saisie</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Modèles de saisie prédéfinis</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Validation en masse des écritures</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Édition et visualisation des écritures</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Sélection multiple avec cases à cocher</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">📝 Modèles de Saisie</h3>
+                            <div class="space-y-2">
+                                <div class="p-3 bg-yellow-50 rounded-lg border border-yellow-300">
+                                    <h4 class="font-semibold text-yellow-800">Facture vente standard</h4>
+                                    <p class="text-sm text-gray-600">Journal: VT (Ventes)</p>
+                                </div>
+                                <div class="p-3 bg-blue-50 rounded-lg border border-blue-300">
+                                    <h4 class="font-semibold text-blue-800">Achat avec TVA</h4>
+                                    <p class="text-sm text-gray-600">Journal: AC (Achats)</p>
+                                </div>
+                                <div class="p-3 bg-purple-50 rounded-lg border border-purple-300">
+                                    <h4 class="font-semibold text-purple-800">Paiement fournisseur</h4>
+                                    <p class="text-sm text-gray-600">Journal: BQ (Banque)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-3">📄 Code Source</h3>
+                        <div class="code-container">
+                            <pre><code class="language-tsx">import JournalEntryModal from '../../components/accounting/JournalEntryModal';
+
+const EntriesPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('brouillard');
+  const [showEntryModal, setShowEntryModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEntries, setSelectedEntries] = useState&lt;string[]&gt;([]);
+
+  const tabs = [
+    { id: 'brouillard', label: 'Brouillard', icon: FileText, badge: '8' },
+  ];
+
+  const modelesSaisie = [
+    { id: 1, nom: 'Facture vente standard', journal: 'VT' },
+    { id: 2, nom: 'Achat avec TVA', journal: 'AC' },
+    { id: 3, nom: 'Paiement fournisseur', journal: 'BQ' },
+  ];
+
+  const handleValidateSelection = () => {
+    if (selectedEntries.length > 0) {
+      alert(`${selectedEntries.length} écriture(s) validée(s) avec succès`);
+      setSelectedEntries([]);
+    }
+  };
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire 5: EntriesPageClean -->
+        <div id="entries-clean" class="tab-content">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-teal-500 to-cyan-600 p-6">
+                    <h2 class="text-2xl font-bold text-white">✨ EntriesPageClean.tsx</h2>
+                    <p class="text-white/80 mt-2">Version épurée avec navigation par onglets</p>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">✨ Fonctionnalités</h3>
+                            <ul class="space-y-2 text-gray-700">
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>3 onglets principaux: Nouvelle Écriture, Consultation, Validation</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Interface épurée et moderne</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Badge de notification pour validation</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Navigation de retour vers Accounting</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Bouton Workspace pour navigation rapide</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Utilise JournalEntryModal comme composant principal</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">🎨 Organisation</h3>
+                            <div class="space-y-3">
+                                <div class="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-emerald-500 text-white rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-emerald-800">Nouvelle Écriture</h4>
+                                            <p class="text-sm text-gray-600">Création de nouvelles écritures</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-gradient-to-r from-sky-50 to-sky-100 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-sky-500 text-white rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-sky-800">Consultation</h4>
+                                            <p class="text-sm text-gray-600">Visualisation des écritures</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-amber-500 text-white rounded-lg flex items-center justify-center relative">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">8</span>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-amber-800">Validation</h4>
+                                            <p class="text-sm text-gray-600">8 écritures en attente</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-3">📄 Code Source</h3>
+                        <div class="code-container">
+                            <pre><code class="language-tsx">import JournalEntryModal from '../../components/accounting/JournalEntryModal';
+
+const EntriesPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('saisie');
+  const [showJournalModal, setShowJournalModal] = useState(false);
+
+  const tabs = [
+    { id: 'saisie', label: 'Nouvelle Écriture', icon: Plus },
+    { id: 'consultation', label: 'Consultation', icon: Eye },
+    { id: 'validation', label: 'Validation', icon: CheckCircle, badge: '8' },
+  ];
+
+  return (
+    &lt;div&gt;
+      {showJournalModal && (
+        &lt;JournalEntryModal
+          isOpen={showJournalModal}
+          onClose={() => setShowJournalModal(false)}
+        /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire 6: FloatingJournalButton -->
+        <div id="floating-button" class="tab-content">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-600 p-6">
+                    <h2 class="text-2xl font-bold text-white">🎯 FloatingJournalButton.tsx</h2>
+                    <p class="text-white/80 mt-2">Bouton flottant pour accès rapide au modal de saisie</p>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">✨ Fonctionnalités</h3>
+                            <ul class="space-y-2 text-gray-700">
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Bouton flottant toujours visible</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Accès rapide à JournalEntryModal</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Position fixe en bas à droite</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Animation au survol</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Tooltip informatif</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span>Design moderne avec ombres</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">🎨 Preview</h3>
+                            <div class="relative h-64 bg-gray-100 rounded-lg">
+                                <div class="absolute bottom-4 right-4">
+                                    <button class="w-14 h-14 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-200 flex items-center justify-center text-white">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </button>
+                                    <div class="absolute bottom-16 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                        Nouvelle écriture
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-3">📄 Code Source</h3>
+                        <div class="code-container">
+                            <pre><code class="language-tsx">import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import JournalEntryModal from './JournalEntryModal';
+
+const FloatingJournalButton: React.FC = () => {
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    &lt;&gt;
+      &lt;button
+        onClick={() => setShowModal(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-200 flex items-center justify-center text-white z-50 group"
+        title="Nouvelle écriture comptable"
+      &gt;
+        &lt;Plus className="w-6 h-6" /&gt;
+        &lt;span className="absolute right-16 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"&gt;
+          Nouvelle écriture
+        &lt;/span&gt;
+      &lt;/button&gt;
+
+      {showModal && (
+        &lt;JournalEntryModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+        /&gt;
+      )}
+    &lt;/&gt;
+  );
+};</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 bg-gray-800 text-white rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold">📊 Résumé</h3>
+                    <p class="text-gray-300 mt-1">6 formulaires disponibles pour la saisie d'écritures comptables</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="window.print()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
+                        Imprimer
+                    </button>
+                    <button onclick="exportToJSON()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">
+                        Exporter JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showForm(formId) {
+            // Hide all forms
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show selected form
+            document.getElementById(formId).classList.add('active');
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function exportToJSON() {
+            const data = {
+                forms: [
+                    { name: 'JournalEntryModal', path: 'frontend/src/components/accounting/JournalEntryModal.tsx' },
+                    { name: 'IntelligentEntryForm', path: 'frontend/src/components/accounting/IntelligentEntryForm.tsx' },
+                    { name: 'IntelligentEntryAssistant', path: 'frontend/src/components/accounting/IntelligentEntryAssistant.tsx' },
+                    { name: 'EntriesPage', path: 'frontend/src/pages/accounting/EntriesPage.tsx' },
+                    { name: 'EntriesPageClean', path: 'frontend/src/pages/accounting/EntriesPageClean.tsx' },
+                    { name: 'FloatingJournalButton', path: 'frontend/src/components/accounting/FloatingJournalButton.tsx' }
+                ]
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'formulaires-nouvelle-ecriture.json';
+            a.click();
+        }
+
+        // Apply syntax highlighting
+        Prism.highlightAll();
+    </script>
+</body>
+</html>

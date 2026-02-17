@@ -1,0 +1,463 @@
+/* ====================================
+   Styles d'impression professionnels
+   Format A4 / A3 avec pagination
+   ==================================== */
+
+/* Configuration de base pour l'impression */
+@media print {
+  /* Reset et configuration globale */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Configuration de la page - Par défaut en paysage pour les tableaux */
+  @page {
+    size: A4 landscape;
+    margin: 10mm 15mm;
+    counter-increment: page;
+  }
+
+  @page :first {
+    margin-top: 10mm;
+  }
+
+  /* Format A3 */
+  body.print-a3 {
+    @page {
+      size: A3 portrait;
+    }
+  }
+
+  /* Orientation paysage explicite */
+  body.print-landscape,
+  body.printing {
+    @page {
+      size: A4 landscape;
+      margin: 10mm 15mm;
+    }
+  }
+
+  /* Orientation portrait si spécifiée */
+  body.print-portrait {
+    @page {
+      size: A4 portrait;
+      margin: 15mm 10mm;
+    }
+  }
+
+  body.print-a3.print-landscape {
+    @page {
+      size: A3 landscape;
+    }
+  }
+
+  /* Corps du document */
+  body {
+    font-family: 'Arial', 'Helvetica', sans-serif !important;
+    font-size: 10pt;
+    line-height: 1.4;
+    color: #000 !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Masquer tous les éléments non-imprimables */
+  .print-hide,
+  nav,
+  header:not(.print-header),
+  footer:not(.print-footer),
+  aside,
+  .sidebar,
+  .navbar,
+  .navigation,
+  .toolbar,
+  .actions,
+  .floating-button,
+  button:not(.print-show),
+  .modal,
+  .dropdown,
+  .tooltip,
+  .popover,
+  .advertisement,
+  .ads,
+  .social-media,
+  .chat-widget,
+  [data-no-print="true"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Afficher uniquement la zone d'impression */
+  .print-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Styles pour le contenu imprimable */
+  .print-content {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Titres */
+  h1, h2, h3, h4, h5, h6 {
+    color: #000 !important;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    font-weight: bold;
+    margin-top: 12pt;
+    margin-bottom: 6pt;
+  }
+
+  h1 {
+    font-size: 20pt;
+    margin-top: 0;
+  }
+
+  h2 {
+    font-size: 16pt;
+  }
+
+  h3 {
+    font-size: 14pt;
+  }
+
+  h4, h5, h6 {
+    font-size: 12pt;
+  }
+
+  /* Paragraphes */
+  p {
+    margin: 0 0 8pt 0;
+    page-break-inside: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Tableaux */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+    font-size: 9pt;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  /* Supprimer toutes les bordures arrondies et ombres */
+  table, .data-table, .rounded-lg, .border {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tbody {
+    display: table-row-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  th {
+    background-color: #f8f8f8 !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    padding: 4pt 6pt !important;
+    border: 0.5pt solid #e0e0e0 !important;
+    font-size: 9pt !important;
+    color: #000 !important;
+  }
+
+  td {
+    padding: 3pt 6pt !important;
+    border: 0.5pt solid #e0e0e0 !important;
+    font-size: 9pt !important;
+    color: #000 !important;
+    background: transparent !important;
+  }
+
+  /* Répéter les en-têtes de tableau */
+  thead {
+    display: table-header-group;
+  }
+
+  thead tr {
+    break-inside: avoid;
+  }
+
+  /* Images */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  /* Liens */
+  a {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+
+  /* Afficher l'URL des liens externes */
+  a[href^="http"]:after,
+  a[href^="https"]:after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    font-style: italic;
+    color: #666 !important;
+  }
+
+  /* Ne pas afficher l'URL pour les liens internes */
+  a[href^="#"]:after,
+  a[href^="/"]:after,
+  a[href^="javascript"]:after {
+    content: "";
+  }
+
+  /* Listes */
+  ul, ol {
+    page-break-inside: avoid;
+    margin-left: 20pt;
+  }
+
+  li {
+    page-break-inside: avoid;
+  }
+
+  /* Champs de formulaire - afficher comme texte */
+  input,
+  textarea,
+  select {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    color: #000 !important;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    display: inline-block !important;
+    margin-right: 4pt !important;
+  }
+
+  /* Badges et labels */
+  .badge,
+  .label,
+  .tag,
+  .chip {
+    border: 1pt solid #666 !important;
+    padding: 2pt 4pt !important;
+    border-radius: 2pt !important;
+    background-color: #f0f0f0 !important;
+    color: #000 !important;
+  }
+
+  /* Cartes et conteneurs */
+  .card,
+  .panel,
+  .box {
+    border: 1pt solid #ddd !important;
+    padding: 8pt !important;
+    margin-bottom: 8pt !important;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  /* Codes et pré-formaté */
+  code,
+  pre {
+    background-color: #f5f5f5 !important;
+    border: 1pt solid #ddd !important;
+    padding: 2pt !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 9pt !important;
+  }
+
+  pre {
+    padding: 6pt !important;
+    page-break-inside: avoid;
+  }
+
+  /* Dividers */
+  hr {
+    border: none !important;
+    border-top: 1pt solid #ccc !important;
+    margin: 12pt 0 !important;
+  }
+
+  /* En-tête et pied de page personnalisés */
+  .print-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20mm;
+    border-bottom: 1pt solid #ddd;
+    padding-bottom: 5mm;
+    margin-bottom: 10mm;
+  }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 15mm;
+    border-top: 1pt solid #ddd;
+    padding-top: 5mm;
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* Compteur de pages */
+  .page-number:after {
+    content: counter(page);
+  }
+
+  .total-pages:after {
+    content: counter(pages);
+  }
+
+  /* Classes utilitaires */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Colonnes */
+  .columns {
+    column-count: auto !important;
+    column-gap: 10mm !important;
+  }
+
+  /* Graphiques - transformer en images statiques si possible */
+  canvas,
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  /* Alertes et notifications */
+  .alert,
+  .notification,
+  .message {
+    border: 1pt solid #666 !important;
+    padding: 6pt !important;
+    margin: 8pt 0 !important;
+    background-color: #f9f9f9 !important;
+    page-break-inside: avoid;
+  }
+
+  /* Supprimer les animations et transitions */
+  * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  /* Couleurs spécifiques pour l'impression */
+  .text-primary { color: #000 !important; }
+  .text-secondary { color: #666 !important; }
+  .text-success { color: #000 !important; }
+  .text-danger { color: #000 !important; }
+  .text-warning { color: #333 !important; }
+  .text-info { color: #333 !important; }
+
+  .bg-primary { background-color: #f0f0f0 !important; }
+  .bg-secondary { background-color: #f9f9f9 !important; }
+  .bg-success { background-color: #f0f8f0 !important; }
+  .bg-danger { background-color: #fff0f0 !important; }
+  .bg-warning { background-color: #fffaf0 !important; }
+  .bg-info { background-color: #f0f8ff !important; }
+
+  /* DataTable spécifique */
+  .data-table {
+    font-size: 9pt !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  /* Supprimer les bordures des conteneurs */
+  .border-gray-300,
+  .border-gray-200,
+  .border,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .data-table th {
+    background-color: #e0e0e0 !important;
+    font-weight: bold !important;
+  }
+
+  .data-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9 !important;
+  }
+
+  /* Masquer les contrôles de pagination et filtres */
+  .pagination,
+  .page-controls,
+  .filter-controls,
+  .search-box,
+  .sort-controls {
+    display: none !important;
+  }
+}
+
+/* Classes à appliquer dans le HTML pour contrôler l'impression */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .print-only {
+    display: block !important;
+  }
+
+  .screen-only {
+    display: none !important;
+  }
+}
+
+/* Support pour les navigateurs modernes */
+@supports (break-after: page) {
+  @media print {
+    .page-break-before { break-before: page; }
+    .page-break-after { break-after: page; }
+    .avoid-break { break-inside: avoid; }
+  }
+}
