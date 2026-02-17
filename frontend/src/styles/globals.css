@@ -1,0 +1,499 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Animation pour les notifications pop-up */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+
+/* Variables CSS globales - Atlas Finance Grayscale Theme */
+:root {
+  /* Couleurs principales */
+  --color-primary: #171717;
+  --color-primary-hover: #262626;
+  --color-primary-light: rgba(23, 23, 23, 0.1);
+  --color-primary-rgb: 23, 23, 23;
+  --color-secondary-rgb: 115, 115, 115;
+  --color-secondary: #737373;
+  --color-accent: #404040;
+  --color-background: #fafafa;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #f5f5f5;
+
+  /* Texte */
+  --color-text-primary: #0a0a0a;
+  --color-text-secondary: #404040;
+  --color-text-tertiary: #737373;
+  --color-text-inverse: #FFFFFF;
+
+  /* Bordures */
+  --color-border: #e5e5e5;
+  --color-border-light: #f5f5f5;
+
+  /* États */
+  --color-success: #22c55e;
+  --color-success-light: rgba(34, 197, 94, 0.1);
+  --color-error: #ef4444;
+  --color-error-light: rgba(239, 68, 68, 0.1);
+  --color-warning: #f59e0b;
+  --color-warning-light: rgba(245, 158, 11, 0.1);
+  --color-info: #3b82f6;
+  --color-info-light: rgba(59, 130, 246, 0.1);
+
+  /* Ombres */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.12);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-card: 16px;
+  --radius-btn: 12px;
+  --radius-full: 9999px;
+}
+
+/* Reset et base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Exo 2', sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Exo 2', sans-serif;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* ============================================
+   CONFIGURATION GLOBALE TYPOGRAPHIE
+   Ces règles s'appliquent à TOUTE l'application.
+   Pour modifier les tailles, changez ici uniquement.
+   ============================================ */
+
+/* Titres de page (h1) */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h1 { font-size: 1.25rem !important; }   /* 20px - Titre de page */
+h1.landing-title { font-size: clamp(3rem, 8vw, 5rem) !important; font-weight: 400 !important; } /* Titre landing page */
+h2 { font-size: 1.125rem !important; }  /* 18px - Titre de section */
+h3 { font-size: 1rem !important; }      /* 16px - Sous-titre */
+h4 { font-size: 0.9375rem !important; } /* 15px - Label important */
+h5 { font-size: 0.875rem !important; }  /* 14px - Label */
+h6 { font-size: 0.8125rem !important; } /* 13px - Petit label */
+
+/* Texte normal */
+p {
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem; /* 14px */
+}
+
+/* Force les tailles pour TOUTES les classes Tailwind (y compris sm:, md:, lg:) */
+[class*="text-4xl"], [class*="text-3xl"] { font-size: 1.25rem !important; }
+[class*="text-2xl"] { font-size: 1.125rem !important; }
+[class*="text-xl"]  { font-size: 1rem !important; }
+[class*="text-lg"]  { font-size: 0.9375rem !important; }
+.text-base { font-size: 0.875rem !important; }
+.text-sm  { font-size: 0.8125rem !important; }
+.text-xs  { font-size: 0.75rem !important; }
+
+/* Tables — police compacte et lisible */
+table, .table, .af-table {
+  font-size: 0.8125rem !important; /* 13px */
+}
+table th, .table th, .af-table-head {
+  font-size: 0.75rem !important;   /* 12px */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+table td, .table td, .af-table-cell {
+  font-size: 0.8125rem !important; /* 13px */
+  padding: 0.5rem 0.75rem;
+}
+
+/* ============================================
+   NEUTRALISATION DES COULEURS VIVES
+   Applique le thème monochrome partout.
+   ============================================ */
+
+/* Supprime les gradients décoratifs sur les cartes/conteneurs,
+   SAUF ceux qui portent text-white (headers, boutons, banners intentionnels) */
+[class*="bg-gradient"]:not([class*="text-white"]) {
+  background-image: none !important;
+  background-color: var(--color-surface) !important;
+}
+
+/* Neutralise les bordures colorées inline (borderLeftColor etc.) */
+[style*="border-left-color"], [style*="borderLeftColor"] {
+  border-left-color: var(--color-border) !important;
+}
+
+/* Neutralise les fonds colorés inline */
+[style*="background-color"]:not([class*="sidebar"]):not(button) {
+  background-color: var(--color-surface-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Utility Classes */
+@layer components {
+  /* Conteneurs */
+  .container-fluid {
+    @apply w-full px-4 mx-auto;
+  }
+
+  .container {
+    @apply container-fluid max-w-7xl;
+  }
+
+  /* Cards modernes */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--color-border-light);
+    background: var(--color-surface-hover);
+    border-radius: 0 0 var(--radius-card) var(--radius-card);
+  }
+
+  /* Boutons modernes */
+  .btn {
+    @apply inline-flex items-center justify-center px-3 py-1.5 font-medium transition-all duration-200;
+    border-radius: var(--radius-btn);
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-secondary {
+    background: var(--color-secondary);
+    color: var(--color-text-inverse);
+  }
+
+  .btn-secondary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  .btn-outline:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+  }
+
+  .btn-ghost:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
+  }
+
+  /* Inputs modernes */
+  .input {
+    @apply w-full px-3 py-1.5 transition-all duration-200;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    border-radius: var(--radius-btn);
+    transition: all var(--transition-fast);
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+  }
+
+  .input:disabled {
+    background: var(--color-surface-hover);
+    color: var(--color-text-tertiary);
+    cursor: not-allowed;
+  }
+
+  /* Labels */
+  .label {
+    @apply block mb-2 text-sm font-medium;
+    color: var(--color-text-secondary);
+  }
+
+  /* Tables modernes */
+  .table {
+    @apply w-full;
+    background: var(--color-surface);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+
+  .table thead {
+    background: var(--color-surface-hover);
+  }
+
+  .table th {
+    @apply px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table td {
+    @apply px-3 py-2;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .table tbody tr:hover {
+    background: var(--color-surface-hover);
+  }
+
+  .table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    background: var(--color-success-light);
+    color: var(--color-success);
+  }
+
+  .badge-error {
+    background: var(--color-error-light);
+    color: var(--color-error);
+  }
+
+  .badge-warning {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+  }
+
+  .badge-info {
+    background: var(--color-info-light);
+    color: var(--color-info);
+  }
+
+  /* Tooltips */
+  .tooltip {
+    @apply relative inline-block;
+  }
+
+  .tooltip-content {
+    @apply absolute z-50 px-3 py-2 text-xs shadow-lg whitespace-nowrap;
+    background: var(--color-text-primary);
+    color: var(--color-text-inverse);
+    border-radius: var(--radius-md);
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
+  }
+
+  .tooltip:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideInUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInDown {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-fadeIn { animation: fadeIn 0.3s ease; }
+  .animate-slideInUp { animation: slideInUp 0.3s ease; }
+  .animate-slideInDown { animation: slideInDown 0.3s ease; }
+  .animate-slideInLeft { animation: slideInLeft 0.3s ease; }
+  .animate-slideInRight { animation: slideInRight 0.3s ease; }
+  .animate-pulse { animation: pulse 2s infinite; }
+  .animate-spin { animation: spin 1s linear infinite; }
+
+  /* Loading states */
+  .skeleton {
+    @apply animate-pulse;
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-hover) 25%,
+      var(--color-border-light) 50%,
+      var(--color-surface-hover) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Responsive utilities */
+  .hide-mobile {
+    @apply hidden md:block;
+  }
+
+  .show-mobile {
+    @apply block md:hidden;
+  }
+}

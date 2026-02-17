@@ -112,5 +112,7 @@ renderSyntheseFix.txt
 *.bat
 *.sh
 
-# Frontend (separate repository)
-frontend/
+# Frontend build output
+frontend/dist/
+frontend/build/
+frontend/node_modules/
