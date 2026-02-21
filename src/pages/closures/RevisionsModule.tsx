@@ -12,6 +12,8 @@ import {
   History, Link, Upload, Bot, Zap, PieChart, Activity
 } from 'lucide-react';
 import { Progress } from '../../components/ui/Progress';
+import { analyzeAuditRevision, type AuditAnalysisResult, type AuditFindingItem } from '../../services/auditRevisionAnalyzer';
+import AuditResultPanel from '../../components/closures/AuditResultPanel';
 
 // ==================== TYPES ET INTERFACES ====================
 
@@ -181,6 +183,8 @@ const RevisionsModule: React.FC = () => {
   const [selectedLeadSchedule, setSelectedLeadSchedule] = useState<LeadSchedule | null>(null);
   const [showLeadScheduleModal, setShowLeadScheduleModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>(['general', 'assertions', 'comptable']);
+  const [auditResult, setAuditResult] = useState<AuditAnalysisResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // ==================== DONNÉES ====================
 
@@ -625,7 +629,43 @@ const RevisionsModule: React.FC = () => {
   };
 
   const handleLancerAnalyseIA = () => {
-    toast.success('Analyse IA des anomalies en cours...');
+    setIsAnalyzing(true);
+    setTimeout(() => {
+      const result = analyzeAuditRevision({ revisions, leadSchedules, risquesControles });
+      setAuditResult(result);
+      setIsAnalyzing(false);
+      if (result.criticalCount > 0) {
+        toast.error(`Analyse terminée — ${result.criticalCount} constat(s) critique(s) détecté(s) (Note: ${result.globalGrade})`);
+      } else if (result.errorCount > 0) {
+        toast(`Analyse terminée — ${result.errorCount} erreur(s) identifiée(s) (Note: ${result.globalGrade})`, { icon: '⚠️' });
+      } else {
+        toast.success(`Analyse terminée — Note: ${result.globalGrade} (${result.globalScore}/100)`);
+      }
+    }, 0);
+  };
+
+  const handleFindingClick = (finding: AuditFindingItem) => {
+    const tabMap: Record<string, typeof activeMainTab> = {
+      revision: 'revisions',
+      lead_schedule: 'lead_schedule',
+      risk_matrix: 'risques',
+      adjustment: 'ajustements',
+      analytical: 'analytique',
+    };
+    const targetTab = tabMap[finding.category];
+    if (targetTab && targetTab !== activeMainTab) {
+      setActiveMainTab(targetTab);
+    }
+    if (finding.affectedItemId) {
+      const rev = revisions.find(r => r.id === finding.affectedItemId);
+      if (rev && targetTab === 'revisions') {
+        openDetail(rev);
+      }
+      const ls = leadSchedules.find(l => l.id === finding.affectedItemId);
+      if (ls && targetTab === 'lead_schedule') {
+        openLeadScheduleDetail(ls);
+      }
+    }
   };
 
   const openDetail = (revision: RevisionItem) => {
@@ -773,10 +813,11 @@ const RevisionsModule: React.FC = () => {
           <div className="flex items-center space-x-3">
             <button
               onClick={handleLancerAnalyseIA}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center space-x-2"
+              disabled={isAnalyzing}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-2"
             >
-              <Bot className="w-4 h-4" />
-              <span>Analyse IA</span>
+              {isAnalyzing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+              <span>{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
             </button>
             <button
               onClick={handleExportRevisions}
@@ -878,6 +919,13 @@ const RevisionsModule: React.FC = () => {
             <Progress value={stats.tauxCompletion} className="h-1 mt-2" />
           </div>
         </div>
+
+        {/* Panel global audit */}
+        {auditResult && (
+          <div className="mt-6">
+            <AuditResultPanel result={auditResult} filterCategory="all" defaultExpanded={false} onFindingClick={handleFindingClick} />
+          </div>
+        )}
       </div>
 
       {/* ==================== TAB: REVISIONS ==================== */}
@@ -1099,6 +1147,7 @@ const RevisionsModule: React.FC = () => {
               )}
             </div>
           </div>
+          {auditResult && <AuditResultPanel result={auditResult} filterCategory="revision" onFindingClick={handleFindingClick} />}
         </>
       )}
 
@@ -1225,6 +1274,7 @@ const RevisionsModule: React.FC = () => {
               </div>
             ))}
           </div>
+          {auditResult && <AuditResultPanel result={auditResult} filterCategory="lead_schedule" onFindingClick={handleFindingClick} />}
         </div>
       )}
 
@@ -1301,6 +1351,7 @@ const RevisionsModule: React.FC = () => {
               </tbody>
             </table>
           </div>
+          {auditResult && <AuditResultPanel result={auditResult} filterCategory="risk_matrix" onFindingClick={handleFindingClick} />}
         </div>
       )}
 
@@ -1421,6 +1472,7 @@ const RevisionsModule: React.FC = () => {
               </div>
             ))}
           </div>
+          {auditResult && <AuditResultPanel result={auditResult} filterCategory="adjustment" onFindingClick={handleFindingClick} />}
         </div>
       )}
 
@@ -1508,6 +1560,7 @@ const RevisionsModule: React.FC = () => {
               ))}
             </div>
           </div>
+          {auditResult && <AuditResultPanel result={auditResult} filterCategory="analytical" onFindingClick={handleFindingClick} />}
         </div>
       )}
 
