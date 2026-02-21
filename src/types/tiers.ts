@@ -456,8 +456,8 @@ export interface HistoryEntry {
   id: string;
   action: string;
   description: string;
-  ancienneValeur?: any;
-  nouvelleValeur?: any;
+  ancienneValeur?: unknown;
+  nouvelleValeur?: unknown;
   utilisateur: string;
   timestamp: string;
 }

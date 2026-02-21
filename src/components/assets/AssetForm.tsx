@@ -14,9 +14,9 @@ import { AssetClassification, AssetClassificationService } from '../../data/asse
 interface AssetFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: Record<string, string>) => void;
   mode: 'create' | 'edit';
-  initialData?: any;
+  initialData?: Record<string, string>;
 }
 
 type FormData = Record<string, string>;

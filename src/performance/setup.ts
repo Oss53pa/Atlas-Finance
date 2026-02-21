@@ -98,15 +98,32 @@ export function setupGlobalPerformance(config: Partial<PerformanceConfig> = {}) 
   };
 }
 
+interface WebVitalMetric {
+  name: string;
+  id: string;
+  value: number;
+}
+
+interface WindowWithGtag extends Window {
+  gtag?: (command: string, eventName: string, params: Record<string, unknown>) => void;
+  __ATLAS_FINANCE_PERFORMANCE__?: Record<string, unknown>;
+  __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
+    onCommitFiberRoot?: (id: number, root: unknown, priorityLevel: unknown) => void;
+    [key: string]: unknown;
+  };
+}
+
+declare const window: WindowWithGtag;
+
 function setupWebVitalsReporting(reportToAnalytics: boolean) {
   // Import and setup web-vitals library if available
   try {
     import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-      const reportMetric = (metric: any) => {
+      const reportMetric = (metric: WebVitalMetric) => {
         console.debug('Web Vital:', metric);
 
-        if (reportToAnalytics && (window as any).gtag) {
-          (window as any).gtag('event', metric.name, {
+        if (reportToAnalytics && window.gtag) {
+          window.gtag('event', metric.name, {
             event_category: 'Web Vitals',
             event_label: metric.id,
             value: Math.round(metric.value),
@@ -176,7 +193,7 @@ function setupAutoCleanup(threshold: number) {
 
 function setupDevelopmentHelpers() {
   // Add performance helpers to window for debugging
-  (window as any).__ATLAS_FINANCE_PERFORMANCE__ = {
+  window.__ATLAS_FINANCE_PERFORMANCE__ = {
     monitor: performanceMonitor,
     bundleAnalyzer,
     memoryOptimizer,
@@ -200,10 +217,10 @@ function setupDevelopmentHelpers() {
   console.debug('Performance helpers available at window.__ATLAS FINANCE_PERFORMANCE__');
 
   // Setup React DevTools profiler integration
-  if ((window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__) {
-    const devtools = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
+  if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+    const devtools = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
 
-    devtools.onCommitFiberRoot = (id: any, root: any, priorityLevel: any) => {
+    devtools.onCommitFiberRoot = (id: number, root: unknown, priorityLevel: unknown) => {
       // Track React commits for performance analysis
       console.debug('React commit:', { id, priorityLevel });
     };
@@ -213,7 +230,7 @@ function setupDevelopmentHelpers() {
   if ('PerformanceObserver' in window) {
     const longTaskObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
+      entries.forEach((entry: PerformanceEntry) => {
         console.warn('Long task detected:', {
           duration: entry.duration,
           startTime: entry.startTime,
@@ -237,7 +254,7 @@ export function withPerformanceTracking<P extends object>(
 ) {
   const displayName = componentName || WrappedComponent.displayName || WrappedComponent.name;
 
-  const PerformanceTrackedComponent = React.forwardRef<any, P>((props, ref) => {
+  const PerformanceTrackedComponent = React.forwardRef<unknown, P>((props, ref) => {
     const renderStartTime = React.useRef<number>();
 
     // Track component mount/unmount

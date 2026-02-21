@@ -41,13 +41,13 @@ export const MonthlyBudgetChart: React.FC<MonthlyBudgetChartProps> = ({
     );
   }
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ color: string; name: string; value: number; payload: Record<string, unknown> }> }) => {
     if (!active || !payload || !payload.length) return null;
 
     return (
       <div className="bg-white border border-[#D9D9D9] rounded-lg shadow-lg p-3">
-        <p className="font-semibold text-[#191919] mb-2">{payload[0].payload.month}</p>
-        {payload.map((entry: any, index: number) => (
+        <p className="font-semibold text-[#191919] mb-2">{payload[0].payload.month as string}</p>
+        {payload.map((entry, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {entry.name}: {formatCurrency(entry.value)}
           </p>

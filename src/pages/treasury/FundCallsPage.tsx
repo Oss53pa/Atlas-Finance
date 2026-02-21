@@ -3,6 +3,7 @@
  * Interface complète avec workflow de validation selon cahier des charges
  */
 import React, { useState, useMemo } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
@@ -287,13 +288,6 @@ const FundCallsPage: React.FC = () => {
     return proposedPayments.reduce((sum, item) => sum + item.outstanding, 0);
   }, [proposedPayments]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -408,7 +402,7 @@ const FundCallsPage: React.FC = () => {
                 />
               </div>
               
-              <Select value={groupBy} onValueChange={(value: any) => setGroupBy(value)}>
+              <Select value={groupBy} onValueChange={(value: string) => setGroupBy(value as 'vendor' | 'type' | 'priority' | 'none')}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
@@ -598,8 +592,8 @@ const FundCallsPage: React.FC = () => {
                     <TableCell>
                       <Select 
                         value={item.recommendation} 
-                        onValueChange={(value: any) => {
-                          setProposedPayments(prev => 
+                        onValueChange={(value: string) => {
+                          setProposedPayments(prev =>
                             prev.map(p => p.id === item.id ? { ...p, recommendation: value } : p)
                           );
                         }}
@@ -906,7 +900,7 @@ const FundCallsPage: React.FC = () => {
             return (
               <button
                 key={tab.key}
-                onClick={() => setViewMode(tab.key as any)}
+                onClick={() => setViewMode(tab.key as 'payables' | 'fund-calls' | 'workflow')}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-all ${
                   viewMode === tab.key
                     ? 'bg-slate-800 text-white shadow-md'

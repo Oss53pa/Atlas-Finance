@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
+import { verifyTrialBalance } from '../../services/trialBalanceService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
@@ -88,43 +91,90 @@ const AdvancedBalance: React.FC = () => {
     fileName: 'balance-avancee.pdf'
   });
 
-  // Données simulées
-  const mockBalanceData: BalanceData[] = [
-    { compte: '101000', libelle: 'Capital social', debitPrecedent: 0, creditPrecedent: 10000000, debitMouvement: 0, creditMouvement: 0, debitSolde: 0, creditSolde: 10000000, type: 'passif', centreCout: 'CC001' },
-    { compte: '161000', libelle: 'Emprunts', debitPrecedent: 0, creditPrecedent: 5000000, debitMouvement: 0, creditMouvement: 500000, debitSolde: 0, creditSolde: 5500000, type: 'passif', centreCout: 'CC001' },
-    { compte: '211000', libelle: 'Terrains', debitPrecedent: 8000000, creditPrecedent: 0, debitMouvement: 0, creditMouvement: 0, debitSolde: 8000000, creditSolde: 0, type: 'actif', centreCout: 'CC002' },
-    { compte: '241000', libelle: 'Matériel industriel', debitPrecedent: 12000000, creditPrecedent: 0, debitMouvement: 2000000, creditMouvement: 0, debitSolde: 14000000, creditSolde: 0, type: 'actif', centreCout: 'CC002' },
-    { compte: '411001', libelle: 'Client A', debitPrecedent: 1500000, creditPrecedent: 0, debitMouvement: 2500000, creditMouvement: 1800000, debitSolde: 2200000, creditSolde: 0, type: 'actif', centreCout: 'CC001' },
-    { compte: '401001', libelle: 'Fournisseur ACME', debitPrecedent: 0, creditPrecedent: 800000, debitMouvement: 600000, creditMouvement: 1200000, debitSolde: 0, creditSolde: 1400000, type: 'passif', centreCout: 'CC001' },
-    { compte: '512100', libelle: 'Banque BNP', debitPrecedent: 3500000, creditPrecedent: 0, debitMouvement: 8500000, creditMouvement: 7200000, debitSolde: 4800000, creditSolde: 0, type: 'actif', centreCout: 'CC001' },
-    { compte: '607000', libelle: 'Achats marchandises', debitPrecedent: 15000000, creditPrecedent: 0, debitMouvement: 8500000, creditMouvement: 0, debitSolde: 23500000, creditSolde: 0, type: 'charges', centreCout: 'CC001' },
-    { compte: '707000', libelle: 'Ventes marchandises', debitPrecedent: 0, creditPrecedent: 25000000, debitMouvement: 0, creditMouvement: 12500000, debitSolde: 0, creditSolde: 37500000, type: 'produits', centreCout: 'CC001' },
-    { compte: '621000', libelle: 'Personnel', debitPrecedent: 8000000, creditPrecedent: 0, debitMouvement: 4200000, creditMouvement: 0, debitSolde: 12200000, creditSolde: 0, type: 'charges', centreCout: 'CC003' }
-  ];
+  // Charger les données de balance depuis Dexie
+  const { data: balanceData = [] } = useQuery<BalanceData[]>({
+    queryKey: ['advanced-balance', dateRange.start, dateRange.end],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const accounts = await db.accounts.toArray();
+      const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
-  const chartData: ChartData[] = [
-    { periode: 'Jan 2025', actif: 28000000, passif: 17900000, charges: 6500000, produits: 8200000 },
-    { periode: 'Fév 2025', actif: 29200000, passif: 18500000, charges: 7800000, produits: 9100000 },
-    { periode: 'Mar 2025', actif: 31500000, passif: 19200000, charges: 8900000, produits: 10500000 },
-    { periode: 'Avr 2025', actif: 33200000, passif: 20100000, charges: 9200000, produits: 11800000 },
-    { periode: 'Mai 2025', actif: 34800000, passif: 21500000, charges: 10100000, produits: 12900000 },
-    { periode: 'Jun 2025', actif: 36500000, passif: 22800000, charges: 11200000, produits: 14200000 }
-  ];
+      const movements = new Map<string, { debit: number; credit: number; name: string; centreCout?: string }>();
+      for (const entry of entries) {
+        if (entry.date < dateRange.start || entry.date > dateRange.end) continue;
+        for (const line of entry.lines) {
+          const existing = movements.get(line.accountCode) || {
+            debit: 0, credit: 0,
+            name: line.accountName || accountNames.get(line.accountCode) || line.accountCode,
+            centreCout: line.analyticalCode,
+          };
+          existing.debit += line.debit;
+          existing.credit += line.credit;
+          movements.set(line.accountCode, existing);
+        }
+      }
+
+      const getType = (code: string): BalanceData['type'] => {
+        const c = code.charAt(0);
+        if (c === '6' || c === '8') return 'charges';
+        if (c === '7') return 'produits';
+        if (c === '2' || c === '3' || c === '5') return 'actif';
+        if (c === '1') return 'passif';
+        if (code.startsWith('40')) return 'passif';
+        return 'actif';
+      };
+
+      return Array.from(movements.entries()).map(([code, mov]): BalanceData => {
+        const solde = mov.debit - mov.credit;
+        return {
+          compte: code,
+          libelle: mov.name,
+          debitPrecedent: 0,
+          creditPrecedent: 0,
+          debitMouvement: mov.debit,
+          creditMouvement: mov.credit,
+          debitSolde: solde > 0 ? solde : 0,
+          creditSolde: solde < 0 ? Math.abs(solde) : 0,
+          type: getType(code),
+          centreCout: mov.centreCout,
+        };
+      }).sort((a, b) => a.compte.localeCompare(b.compte));
+    },
+  });
+
+  // Graphique évolution — calculé depuis les données
+  const chartData: ChartData[] = useMemo(() => {
+    if (!balanceData.length) return [];
+    return [{
+      periode: `${dateRange.start} - ${dateRange.end}`,
+      actif: balanceData.filter(i => i.type === 'actif').reduce((s, i) => s + i.debitSolde, 0),
+      passif: balanceData.filter(i => i.type === 'passif').reduce((s, i) => s + i.creditSolde, 0),
+      charges: balanceData.filter(i => i.type === 'charges').reduce((s, i) => s + i.debitSolde, 0),
+      produits: balanceData.filter(i => i.type === 'produits').reduce((s, i) => s + i.creditSolde, 0),
+    }];
+  }, [balanceData, dateRange]);
 
   // Calculs des indicateurs
   const indicators = useMemo(() => {
-    const totalDebit = mockBalanceData.reduce((sum, item) => sum + item.debitSolde, 0);
-    const totalCredit = mockBalanceData.reduce((sum, item) => sum + item.creditSolde, 0);
+    const totalDebit = balanceData.reduce((sum, item) => sum + item.debitSolde, 0);
+    const totalCredit = balanceData.reduce((sum, item) => sum + item.creditSolde, 0);
     const equilibre = Math.abs(totalDebit - totalCredit);
     const tauxEquilibre = totalCredit > 0 ? ((totalCredit - equilibre) / totalCredit) * 100 : 0;
     
-    const actif = mockBalanceData.filter(item => item.type === 'actif').reduce((sum, item) => sum + item.debitSolde - item.creditSolde, 0);
-    const passif = mockBalanceData.filter(item => item.type === 'passif').reduce((sum, item) => sum + item.creditSolde - item.debitSolde, 0);
-    const charges = mockBalanceData.filter(item => item.type === 'charges').reduce((sum, item) => sum + item.debitSolde, 0);
-    const produits = mockBalanceData.filter(item => item.type === 'produits').reduce((sum, item) => sum + item.creditSolde, 0);
+    const actif = balanceData.filter(item => item.type === 'actif').reduce((sum, item) => sum + item.debitSolde - item.creditSolde, 0);
+    const passif = balanceData.filter(item => item.type === 'passif').reduce((sum, item) => sum + item.creditSolde - item.debitSolde, 0);
+    const charges = balanceData.filter(item => item.type === 'charges').reduce((sum, item) => sum + item.debitSolde, 0);
+    const produits = balanceData.filter(item => item.type === 'produits').reduce((sum, item) => sum + item.creditSolde, 0);
     
     return { totalDebit, totalCredit, equilibre, tauxEquilibre, actif, passif, charges, produits };
-  }, [mockBalanceData]);
+  }, [balanceData]);
+
+  // Trial balance verification
+  const { data: trialBalance } = useQuery({
+    queryKey: ['trial-balance-check', dateRange],
+    queryFn: () => verifyTrialBalance(dateRange.start?.substring(0, 4)),
+    enabled: balanceData.length > 0,
+  });
 
   const COLORS = ['#6A8A82', '#B87333', '#E8B4B8', '#A8C8EC', '#D4B5D4', '#FFD93D'];
 
@@ -220,7 +270,7 @@ const AdvancedBalance: React.FC = () => {
           ].map((view) => (
             <button
               key={view.id}
-              onClick={() => setActiveView(view.id as any)}
+              onClick={() => setActiveView(view.id as 'dashboard' | 'generale' | 'analytique')}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeView === view.id 
                   ? 'bg-[#6A8A82] text-[#F0F3F2]'
@@ -425,8 +475,8 @@ const AdvancedBalance: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#191919]/70">Comptes Actifs</p>
-                  <p className="text-lg font-bold text-[#6A8A82]">{mockBalanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
-                  <p className="text-xs text-gray-700">sur {mockBalanceData.length} total</p>
+                  <p className="text-lg font-bold text-[#6A8A82]">{balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
+                  <p className="text-xs text-gray-700">sur {balanceData.length} total</p>
                 </div>
                 <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
                   <Building className="w-6 h-6 text-[#6A8A82]" />
@@ -434,6 +484,46 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Vérification balance de vérification */}
+          {trialBalance && (
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-[#ECECEC]">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-[#191919]">
+                  Balance de Vérification
+                </h3>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  trialBalance.isBalanced
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                }`}>
+                  {trialBalance.isBalanced ? 'Conforme' : 'Anomalie(s)'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {trialBalance.checks.map((check, idx) => (
+                  <div key={idx} className={`p-3 rounded-lg border ${
+                    check.status === 'pass' ? 'border-green-200 bg-green-50'
+                      : check.status === 'warning' ? 'border-amber-200 bg-amber-50'
+                      : 'border-red-200 bg-red-50'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      {check.status === 'pass' ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : check.status === 'warning' ? (
+                        <AlertTriangle className="w-4 h-4 text-amber-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                      )}
+                      <span className="text-sm font-medium text-gray-800">{check.name}</span>
+                    </div>
+                    <p className="text-xs text-gray-600">{check.details}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-3">{trialBalance.entriesChecked} écritures vérifiées</p>
+            </div>
+          )}
 
           {/* Graphiques principaux */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -537,7 +627,7 @@ const AdvancedBalance: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-[#F0F3F2] divide-y divide-[#ECECEC]">
-                  {mockBalanceData
+                  {balanceData
                     .sort((a, b) => (b.debitMouvement + b.creditMouvement) - (a.debitMouvement + a.creditMouvement))
                     .slice(0, 10)
                     .map((item, index) => (
@@ -882,7 +972,7 @@ const AdvancedBalance: React.FC = () => {
                     <label className="text-sm text-[#191919]/70">Format:</label>
                     <select 
                       value={printConfig.format}
-                      onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as any})}
+                      onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as 'A4' | 'A3'})}
                       className="px-2 py-1 border border-[#ECECEC] rounded text-sm"
                     >
                       <option value="A4">A4</option>
@@ -893,7 +983,7 @@ const AdvancedBalance: React.FC = () => {
                     <label className="text-sm text-[#191919]/70">Orientation:</label>
                     <select 
                       value={printConfig.orientation}
-                      onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as any})}
+                      onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as 'portrait' | 'landscape'})}
                       className="px-2 py-1 border border-[#ECECEC] rounded text-sm"
                     >
                       <option value="portrait">Portrait</option>
@@ -981,7 +1071,7 @@ const AdvancedBalance: React.FC = () => {
                 <div className="text-center">
                   <div className="text-xs text-[#191919]/70">Comptes Actifs</div>
                   <div className="font-bold text-[#6A8A82]">
-                    {mockBalanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}
+                    {balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}
                   </div>
                 </div>
               </div>
@@ -997,7 +1087,7 @@ const AdvancedBalance: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockBalanceData.slice(0, 15).map((item) => (
+                  {balanceData.slice(0, 15).map((item) => (
                     <tr key={item.compte} className="border-b border-[#ECECEC]">
                       <td className="border-r border-[#ECECEC] px-2 py-1 font-mono">{item.compte}</td>
                       <td className="border-r border-[#ECECEC] px-2 py-1">{item.libelle}</td>

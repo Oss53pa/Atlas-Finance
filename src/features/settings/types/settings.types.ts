@@ -6,7 +6,7 @@ export interface AccountingSetting {
   id: string;
   label: string;
   description: string;
-  value: any;
+  value: string | number | boolean;
   type: SettingType;
   options?: { value: string; label: string }[];
   min?: number;

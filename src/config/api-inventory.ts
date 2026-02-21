@@ -17,11 +17,11 @@ export interface ApiEndpointConfig {
   params?: {
     path?: string[];
     query?: string[];
-    body?: Record<string, any>;
+    body?: Record<string, unknown>;
   };
   response?: {
     type: string;
-    structure?: Record<string, any>;
+    structure?: Record<string, unknown>;
   };
 }
 
@@ -1075,7 +1075,7 @@ export function buildApiUrl(endpoint: ApiEndpointConfig, pathParams?: Record<str
 export function getAllEndpoints(): ApiEndpointConfig[] {
   const endpoints: ApiEndpointConfig[] = [];
 
-  function extractEndpoints(obj: any) {
+  function extractEndpoints(obj: Record<string, unknown>) {
     for (const key in obj) {
       const value = obj[key];
       if (value && typeof value === 'object') {
@@ -1107,9 +1107,9 @@ export function getEndpointsByModule(): Record<string, ApiEndpointConfig[]> {
 
   Object.keys(API_ENDPOINTS).forEach(module => {
     byModule[module] = [];
-    const moduleEndpoints = (API_ENDPOINTS as any)[module];
+    const moduleEndpoints = (API_ENDPOINTS as Record<string, unknown>)[module];
 
-    function extractFromModule(obj: any) {
+    function extractFromModule(obj: Record<string, unknown>) {
       for (const key in obj) {
         const value = obj[key];
         if (value && typeof value === 'object') {

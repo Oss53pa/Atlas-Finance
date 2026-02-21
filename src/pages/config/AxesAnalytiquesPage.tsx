@@ -103,7 +103,7 @@ interface AllocationRule {
   source_axis: string;
   target_axes: string[];
   allocation_method: 'equal' | 'percentage' | 'amount' | 'formula';
-  allocation_data: any;
+  allocation_data: Record<string, unknown>;
   conditions: string[];
   is_active: boolean;
   auto_apply: boolean;
@@ -1104,7 +1104,7 @@ const AxesAnalytiquesPage: React.FC = () => {
                 </label>
                 <select
                   value={newAxis.type}
-                  onChange={(e) => setNewAxis({ ...newAxis, type: e.target.value as any })}
+                  onChange={(e) => setNewAxis({ ...newAxis, type: e.target.value as AnalyticalAxis['type'] })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="centre_cout">Centre de Coût</option>

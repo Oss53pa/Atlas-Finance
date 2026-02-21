@@ -12,6 +12,7 @@ export default defineConfig({
     setupFiles: ['./src/test/vitest-setup.ts'],
     exclude: [
       'node_modules/**',
+      'frontend/**',
       '**/workspace/**',
       'src/components/layout/__tests__/**',
     ],

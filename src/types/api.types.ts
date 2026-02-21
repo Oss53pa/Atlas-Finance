@@ -92,7 +92,7 @@ export interface LoginCredentials {
 export interface UserProfile extends User {
   phone?: string;
   avatar?: string;
-  preferences?: Record<string, any>;
+  preferences?: Record<string, unknown>;
 }
 
 /**
@@ -354,7 +354,7 @@ export interface Report extends BaseEntity {
   libelle: string;
   type: 'balance' | 'grand_livre' | 'bilan' | 'resultat' | 'tresorerie' | 'autre';
   description?: string;
-  parametres?: Record<string, any>;
+  parametres?: Record<string, unknown>;
   genere_par?: string;
   date_generation?: string;
   fichier?: string;
@@ -370,15 +370,15 @@ export interface Dashboard {
     debut: string;
     fin: string;
   };
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 export interface DashboardWidget {
   id: string;
   type: 'kpi' | 'chart' | 'table' | 'gauge';
   titre: string;
-  donnees: any;
-  configuration?: Record<string, any>;
+  donnees: unknown;
+  configuration?: Record<string, unknown>;
 }
 
 /**
@@ -527,7 +527,7 @@ export interface ApiError {
   status?: number;
   code?: string;
   errors?: Record<string, string[]>;
-  details?: any;
+  details?: unknown;
 }
 
 export interface ValidationError {

@@ -30,11 +30,11 @@ const AssetMasterDataPage: React.FC = () => {
     { id: 'maintenance', label: 'Maintenance', icon: Wrench }
   ];
 
-  const handleFieldChange = (section: string, field: string, value: any) => {
+  const handleFieldChange = (section: string, field: string, value: string | number | boolean) => {
     setEditedAsset(prev => ({
       ...prev,
       [section]: {
-        ...((prev as any)[section] || {}),
+        ...((prev as Record<string, Record<string, unknown>>)[section] || {}),
         [field]: value
       }
     }));
@@ -112,7 +112,7 @@ const AssetMasterDataPage: React.FC = () => {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'general' | 'acquisition' | 'immobilisation' | 'maintenance')}
                   className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
                     activeTab === tab.id
                       ? 'bg-[#6A8A82]/20 text-[#6A8A82] font-medium'

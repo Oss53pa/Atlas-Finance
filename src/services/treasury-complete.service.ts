@@ -79,9 +79,9 @@ class BankAccountsService {
     }
   }
 
-  async getAll(params?: any): Promise<{ results: BankAccount[]; count: number }> {
+  async getAll(params?: { page?: number; page_size?: number; status?: string }): Promise<{ results: BankAccount[]; count: number }> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string> = {};
       if (params?.status) filters.status = params.status;
 
       const result = await queryTable<BankAccount>('treasury_bank_accounts', {
@@ -112,12 +112,12 @@ class BankAccountsService {
     }
   }
 
-  async create(data: any): Promise<BankAccount> {
-    return await insertRecord<BankAccount>('treasury_bank_accounts', data);
+  async create(data: Partial<Omit<BankAccount, 'id'>>): Promise<BankAccount> {
+    return await insertRecord<BankAccount>('treasury_bank_accounts', data as Record<string, unknown>);
   }
 
-  async update(id: string, data: any): Promise<BankAccount> {
-    return await updateRecord<BankAccount>('treasury_bank_accounts', id, data);
+  async update(id: string, data: Partial<Omit<BankAccount, 'id'>>): Promise<BankAccount> {
+    return await updateRecord<BankAccount>('treasury_bank_accounts', id, data as Record<string, unknown>);
   }
 
   async delete(id: string): Promise<void> {
@@ -127,9 +127,9 @@ class BankAccountsService {
 
 // Bank Transactions Service
 class BankTransactionsService {
-  async getTransactions(params?: any): Promise<CashMovement[]> {
+  async getTransactions(params?: { accountId?: string; limit?: number }): Promise<CashMovement[]> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string> = {};
       if (params?.accountId) filters.bank_account_id = params.accountId;
 
       const result = await queryTable<CashMovement>('treasury_cash_movements', {
@@ -163,9 +163,9 @@ class BankTransactionsService {
 
 // Payments Service
 class PaymentsService {
-  async getAll(params?: any): Promise<{ results: Payment[]; count: number }> {
+  async getAll(params?: { page?: number; page_size?: number; direction?: string; status?: string }): Promise<{ results: Payment[]; count: number }> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string> = {};
       if (params?.direction) filters.direction = params.direction;
       if (params?.status) filters.status = params.status;
 
@@ -182,20 +182,20 @@ class PaymentsService {
     }
   }
 
-  async create(data: any): Promise<Payment> {
-    return await insertRecord<Payment>('treasury_payments', data);
+  async create(data: Partial<Omit<Payment, 'id'>>): Promise<Payment> {
+    return await insertRecord<Payment>('treasury_payments', data as Record<string, unknown>);
   }
 
-  async update(id: string, data: any): Promise<Payment> {
-    return await updateRecord<Payment>('treasury_payments', id, data);
+  async update(id: string, data: Partial<Omit<Payment, 'id'>>): Promise<Payment> {
+    return await updateRecord<Payment>('treasury_payments', id, data as Record<string, unknown>);
   }
 }
 
 // Treasury Reports Service
 class TreasuryReportsService {
-  async getCashFlowReport(params?: any): Promise<any> {
+  async getCashFlowReport(params?: { company_id?: string }): Promise<unknown[]> {
     try {
-      const result = await callRpc('get_treasury_position', {
+      const result = await callRpc<unknown[]>('get_treasury_position', {
         p_company_id: params?.company_id || (await supabase.rpc('get_user_company_id')).data,
       });
       return result || [];
@@ -204,9 +204,9 @@ class TreasuryReportsService {
     }
   }
 
-  async getPosition(): Promise<any[]> {
+  async getPosition(): Promise<unknown[]> {
     try {
-      const result = await callRpc('get_treasury_position', {
+      const result = await callRpc<unknown[]>('get_treasury_position', {
         p_company_id: (await supabase.rpc('get_user_company_id')).data,
       });
       return result || [];

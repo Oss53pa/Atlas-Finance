@@ -103,8 +103,8 @@ interface ConflictItem {
   recordId: string;
   recordType: string;
   field: string;
-  localValue: any;
-  serverValue: any;
+  localValue: unknown;
+  serverValue: unknown;
   lastModifiedLocal: Date;
   lastModifiedServer: Date;
   status: 'pending' | 'resolved' | 'auto_resolved';

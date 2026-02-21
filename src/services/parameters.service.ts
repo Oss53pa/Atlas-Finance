@@ -110,7 +110,7 @@ export interface NotificationParametres {
   destinataires: string[];
   template_sujet?: string;
   template_corps?: string;
-  conditions?: Record<string, any>;
+  conditions?: Record<string, unknown>;
   delai_envoi_minutes?: number;
   is_actif: boolean;
   created_at: string;
@@ -387,7 +387,7 @@ class ParametersService {
           'Content-Type': 'multipart/form-data',
         },
         onUploadProgress: onProgress
-          ? (progressEvent: any) => {
+          ? (progressEvent: { loaded: number; total?: number }) => {
               if (progressEvent.total) {
                 const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 onProgress(progress);

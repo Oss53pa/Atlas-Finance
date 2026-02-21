@@ -21,7 +21,7 @@ export const useAuth = () => {
       toast.success(`Welcome back, ${data.user.firstName}!`);
       // Don't navigate here - let the calling component handle navigation
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Login failed');
     },
     onSettled: () => {
@@ -40,7 +40,7 @@ export const useAuth = () => {
       toast.success(`Welcome to BookWise, ${data.user.firstName}!`);
       navigate('/dashboard');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Registration failed');
     },
     onSettled: () => {
@@ -71,7 +71,7 @@ export const useAuth = () => {
     onSuccess: () => {
       toast.success('Password changed successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to change password');
     },
   });
@@ -84,7 +84,7 @@ export const useAuth = () => {
       queryClient.setQueryData(['user', 'profile'], updatedUser);
       toast.success('Profile updated successfully');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to update profile');
     },
   });
@@ -103,7 +103,7 @@ export const useAuth = () => {
     onSuccess: () => {
       toast.success('Password reset link sent to your email');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to send password reset email');
     },
   });
@@ -116,7 +116,7 @@ export const useAuth = () => {
       toast.success('Password reset successfully');
       navigate('/login');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to reset password');
     },
   });

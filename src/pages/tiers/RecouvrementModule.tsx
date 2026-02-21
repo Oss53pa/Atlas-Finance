@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency, formatDate } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -26,6 +27,179 @@ import { tiersService, createTransfertContentieuxSchema } from '../../services/m
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 
+interface CrmContact {
+  nom: string;
+  fonction: string;
+  telephone: string;
+  email: string;
+}
+
+interface CrmData {
+  scoreRisque: number;
+  categoriePaiement: string;
+  chiffreAffairesAnnuel: number;
+  ancienneteClient: string;
+  contactPrincipal: CrmContact;
+  derniereInteraction: string;
+  typeInteraction: string;
+}
+
+interface CommercialData {
+  conditionsParticulieres: {
+    delaiPaiement: string;
+    remiseAccordee: string;
+    plafondCredit: number;
+  };
+  gestionnaireCom: string;
+  secteurActivite: string;
+  litigesActifs: number;
+}
+
+interface CreanceEnrichie extends DebtCollection {
+  clientNom: string;
+  clientCode: string;
+  crmData?: CrmData;
+  commercialData?: CommercialData;
+}
+
+interface PlanRemboursement {
+  reference: string;
+  client: string;
+  montantTotal: number;
+  mensualite: number;
+  echeancesPayees: number | string;
+  progression: number;
+  prochaineEcheance: string;
+  statut: string;
+  montantPaye: number;
+  montantRestant: number;
+}
+
+interface ContentieuxDepense {
+  id: number;
+  type: string;
+  date: string;
+  montant: number;
+  destinataire: string;
+  reference: string;
+  notes: string;
+}
+
+interface SuiviEtape {
+  id: number;
+  type: string;
+  date: string;
+  heure: string;
+  intervenant: string;
+  roleIntervenant: string;
+  contact: string;
+  resultat: string;
+  notes: string;
+  prochainRdv: string;
+  documentsJoints: string;
+  createdAt?: string;
+}
+
+interface ContentieuxFormData {
+  id: string;
+  numeroRef?: string;
+  client?: string;
+  statutJuridique: string;
+  typeProcedure: string;
+  avocat: string;
+  avocatTel: string;
+  avocatEmail: string;
+  huissier: string;
+  huissierTel: string;
+  huissierEmail: string;
+  tribunal: string;
+  tribunalAdresse: string;
+  numeroRG: string;
+  chambre: string;
+  dateTransfert: string;
+  dateMiseEnDemeure: string;
+  dateAssignation: string;
+  dateAudience: string;
+  dateTitreExecutoire: string;
+  dateExecution: string;
+  provision: number;
+  debiteurAdresse: string;
+  debiteurTel: string;
+  debiteurEmail?: string;
+  debiteurRepresentant?: string;
+  motifTransfert?: string;
+  resultatAttendu?: string;
+  risques?: string;
+  chancesSucces?: string;
+  prochaineEcheance?: string;
+  priorite?: string;
+  notes?: string;
+  dernierContact?: string;
+  prochainContact?: string;
+  [key: string]: unknown;
+}
+
+interface DossierContentieux {
+  id: string;
+  numeroRef: string;
+  client: string;
+  montantPrincipal: number;
+  interetsRetard?: number;
+  fraisProcedure?: number;
+  honorairesAvocat?: number;
+  montantTotal: number;
+  statutJuridique?: string;
+  typeProcedure?: string;
+  avocat?: string;
+  avocatTel?: string;
+  avocatEmail?: string;
+  huissier?: string;
+  huissierTel?: string;
+  huissierEmail?: string;
+  tribunal?: string;
+  tribunalAdresse?: string;
+  numeroRG?: string;
+  chambre?: string;
+  dateTransfert?: string;
+  dateMiseEnDemeure?: string;
+  dateAssignation?: string;
+  dateAudience?: string;
+  dateTitreExecutoire?: string;
+  dateExecution?: string;
+  provision?: number;
+  debiteurAdresse?: string;
+  debiteurTel?: string;
+  debiteurEmail?: string;
+  debiteurRepresentant?: string;
+  motifTransfert?: string;
+  resultatAttendu?: string;
+  risques?: string;
+  chancesSucces?: string;
+  prochaineEcheance?: string;
+  priorite?: string;
+  notes?: string;
+  dernierContact?: string;
+  prochainContact?: string;
+  [key: string]: unknown;
+}
+
+interface DossierWorkflow {
+  id: string;
+  numeroRef: string;
+  client: string;
+  [key: string]: unknown;
+}
+
+interface WorkflowEtape {
+  id: number;
+  code: string;
+  titre: string;
+  description: string;
+  [key: string]: unknown;
+}
+
+type ActionTypeRecouvrement = 'APPEL' | 'EMAIL' | 'COURRIER' | 'SMS' | 'VISITE' | 'MISE_EN_DEMEURE' | 'PROCEDURE_JUDICIAIRE';
+
 interface DossierRecouvrement {
   id: string;
   numeroRef: string;
@@ -43,7 +217,7 @@ interface DossierRecouvrement {
   responsable: string;
   derniereAction: string;
   dateAction: string;
-  typeAction: 'APPEL' | 'EMAIL' | 'COURRIER' | 'SMS' | 'VISITE' | 'MISE_EN_DEMEURE' | 'PROCEDURE_JUDICIAIRE';
+  typeAction: ActionTypeRecouvrement;
   prochainEtape: string;
 }
 
@@ -54,7 +228,7 @@ const RecouvrementModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatut, setFilterStatut] = useState('tous');
   const [filterNiveau, setFilterNiveau] = useState('tous');
-  const [selectedCreance, setSelectedCreance] = useState<any>(null);
+  const [selectedCreance, setSelectedCreance] = useState<CreanceEnrichie | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionFormData, setActionFormData] = useState({
     typeAction: 'APPEL' as 'APPEL' | 'EMAIL' | 'COURRIER' | 'SMS' | 'VISITE' | 'MISE_EN_DEMEURE',
@@ -80,7 +254,7 @@ const RecouvrementModule: React.FC = () => {
   const [showPlanDetailModal, setShowPlanDetailModal] = useState(false);
   const [showEnregistrerPaiementModal, setShowEnregistrerPaiementModal] = useState(false);
   const [showRelancePlanModal, setShowRelancePlanModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanRemboursement | null>(null);
   const [showCreateDossierModal, setShowCreateDossierModal] = useState(false);
   const [showDossierActionModal, setShowDossierActionModal] = useState(false);
   const [selectedDossierAction, setSelectedDossierAction] = useState<DossierRecouvrement | null>(null);
@@ -598,17 +772,7 @@ Service Contentieux
     return icons[type as keyof typeof icons] || MessageSquare;
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR');
-  };
 
   const toggleClientExpansion = (clientId: string) => {
     const newExpanded = new Set(expandedClients);
@@ -1677,11 +1841,11 @@ Service Contentieux
   // Composant Onglet Contentieux
   const ContentieuxTab = () => {
     const [contentieuxView, setContentieuxView] = useState('dashboard'); // dashboard, liste, detail, workflow, couts, execution
-    const [selectedContentieux, setSelectedContentieux] = useState<any>(null);
+    const [selectedContentieux, setSelectedContentieux] = useState<DossierContentieux | null>(null);
     const [filterStatutContentieux, setFilterStatutContentieux] = useState('tous');
     const [filterProcedure, setFilterProcedure] = useState('tous');
     const [showTransferContentieuxModal, setShowTransferContentieuxModal] = useState(false);
-    const [selectedDossierTransfer, setSelectedDossierTransfer] = useState<any>(null);
+    const [selectedDossierTransfer, setSelectedDossierTransfer] = useState<DossierContentieux | null>(null);
     const [formData, setFormData] = useState({
       creance_ids: [] as string[],
       motif: '',
@@ -1705,7 +1869,7 @@ Service Contentieux
         setShowTransferContentieuxModal(false);
         resetForm();
       },
-      onError: (error: any) => {
+      onError: (error: Error) => {
         toast.error(error.message || 'Erreur lors de la création');
       },
     });
@@ -1723,7 +1887,7 @@ Service Contentieux
       setIsSubmitting(false);
     };
 
-    const handleInputChange = (field: string, value: any) => {
+    const handleInputChange = (field: string, value: string | string[] | number | undefined) => {
       setFormData(prev => ({ ...prev, [field]: value }));
       if (errors[field]) {
         setErrors(prev => {
@@ -1773,15 +1937,15 @@ Service Contentieux
     const [showRetourAmiableModal, setShowRetourAmiableModal] = useState(false);
     const [showExpertiseModal, setShowExpertiseModal] = useState(false);
     const [showClotureModal, setShowClotureModal] = useState(false);
-    const [actionContentieuxData, setActionContentieuxData] = useState<any>({});
+    const [actionContentieuxData, setActionContentieuxData] = useState<Record<string, unknown>>({});
 
     // États pour les modales d'exécution
     const [showExecutionDetailModal, setShowExecutionDetailModal] = useState(false);
-    const [selectedExecutionDossier, setSelectedExecutionDossier] = useState<any>(null);
+    const [selectedExecutionDossier, setSelectedExecutionDossier] = useState<DossierContentieux | null>(null);
 
     // États pour la page détaillée des dossiers contentieux
     const [showContentieuxDetailPage, setShowContentieuxDetailPage] = useState(false);
-    const [selectedContentieuxDetail, setSelectedContentieuxDetail] = useState<any>(null);
+    const [selectedContentieuxDetail, setSelectedContentieuxDetail] = useState<DossierContentieux | null>(null);
     const [activeContentieuxTab, setActiveContentieuxTab] = useState('general');
 
     // Hooks pour les onglets enrichis
@@ -1825,7 +1989,7 @@ Service Contentieux
     ];
 
     // État pour les dépenses du contentieux
-    const [contentieuxDepenses, setContentieuxDepenses] = useState<any[]>([]);
+    const [contentieuxDepenses, setContentieuxDepenses] = useState<ContentieuxDepense[]>([]);
     const [newDepense, setNewDepense] = useState({
       type: 'creance_principale',
       date: new Date().toISOString().split('T')[0],
@@ -1835,7 +1999,7 @@ Service Contentieux
       notes: ''
     });
 
-    const [editContentieuxFormData, setEditContentieuxFormData] = useState<any>({
+    const [editContentieuxFormData, setEditContentieuxFormData] = useState<ContentieuxFormData>({
       id: '',
       statutJuridique: '',
       typeProcedure: '',
@@ -1935,7 +2099,7 @@ Service Contentieux
     ];
 
     // État pour les étapes de suivi
-    const [suiviEtapes, setSuiviEtapes] = useState<any[]>([]);
+    const [suiviEtapes, setSuiviEtapes] = useState<SuiviEtape[]>([]);
     const [newSuiviEtape, setNewSuiviEtape] = useState({
       type: 'appel_telephonique',
       date: new Date().toISOString().split('T')[0],
@@ -1999,7 +2163,7 @@ Service Contentieux
     };
 
     // Fonction pour ouvrir la modal d'édition avec les données du dossier
-    const openEditContentieuxModal = (dossier: any) => {
+    const openEditContentieuxModal = (dossier: DossierContentieux) => {
       setEditContentieuxFormData({
         id: dossier.id,
         numeroRef: dossier.numeroRef,
@@ -2046,7 +2210,7 @@ Service Contentieux
       });
 
       // Initialiser les dépenses à partir des données existantes du dossier
-      const depensesInitiales: any[] = [];
+      const depensesInitiales: ContentieuxDepense[] = [];
       if (dossier.montantPrincipal > 0) {
         depensesInitiales.push({
           id: 1,
@@ -2246,11 +2410,11 @@ Service Contentieux
 
     // États pour le workflow personnalisable
     const [showWorkflowModal, setShowWorkflowModal] = useState(false);
-    const [selectedDossierWorkflow, setSelectedDossierWorkflow] = useState<any>(null);
+    const [selectedDossierWorkflow, setSelectedDossierWorkflow] = useState<DossierWorkflow | null>(null);
     const [showAddEtapeModal, setShowAddEtapeModal] = useState(false);
     const [newEtape, setNewEtape] = useState({ titre: '', description: '', datePrevu: '' });
     const [showCommentModal, setShowCommentModal] = useState(false);
-    const [selectedEtape, setSelectedEtape] = useState<any>(null);
+    const [selectedEtape, setSelectedEtape] = useState<WorkflowEtape | null>(null);
     const [newComment, setNewComment] = useState('');
 
     // Structure des étapes du workflow par défaut
@@ -8531,7 +8695,7 @@ Service Contentieux
                       </tr>
 
                       {/* Lignes de détail des factures (expandable) */}
-                      {expandedClients.has(creance.id) && creance.factures.map((facture: any) => (
+                      {expandedClients.has(creance.id) && creance.factures.map((facture: InvoiceDebt) => (
                         <tr key={facture.factureId} className="bg-gray-50">
                           <td className="px-6 py-3"></td>
                           <td className="px-6 py-3">
@@ -8768,7 +8932,7 @@ Service Contentieux
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {selectedCreance.factures.map((facture: any) => (
+                      {selectedCreance.factures.map((facture: InvoiceDebt) => (
                         <tr key={facture.factureId}>
                           <td className="px-4 py-3 text-sm font-medium text-gray-900">{facture.numero}</td>
                           <td className="px-4 py-3 text-sm text-gray-900">{formatDate(facture.date)}</td>
@@ -8789,7 +8953,7 @@ Service Contentieux
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-[#191919] mb-4">Historique des Relances</h3>
                 <div className="space-y-3">
-                  {selectedCreance.relances.map((relance: any) => {
+                  {selectedCreance.relances.map((relance: CollectionAction) => {
                     const IconComponent = getActionIcon(relance.type);
                     return (
                       <div key={relance.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
@@ -14998,7 +15162,7 @@ L'équipe recouvrement`}
                       <button
                         key={type.value}
                         type="button"
-                        onClick={() => setActionFormData({ ...actionFormData, typeAction: type.value as any })}
+                        onClick={() => setActionFormData({ ...actionFormData, typeAction: type.value as ActionTypeRecouvrement })}
                         className={`p-3 rounded-lg border-2 transition-all ${
                           actionFormData.typeAction === type.value
                             ? 'border-orange-600 bg-orange-50 text-orange-900'

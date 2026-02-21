@@ -39,7 +39,7 @@ export interface DataTableProps<T> {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
   onSort?: (key: string, direction: 'asc' | 'desc') => void;
-  onFilter?: (filters: Record<string, any>) => void;
+  onFilter?: (filters: Record<string, unknown>) => void;
   onSearch?: (searchTerm: string) => void;
   onRefresh?: () => void;
   onExport?: () => void;
@@ -51,12 +51,12 @@ export interface DataTableProps<T> {
   printable?: boolean;
   selectable?: boolean;
   onSelectionChange?: (selectedItems: T[]) => void;
-  actions?: ((item: T) => React.ReactNode) | Array<{icon?: any; label: string; onClick: (item: T) => void}>;
+  actions?: ((item: T) => React.ReactNode) | Array<{icon?: React.ComponentType<{ className?: string }>; label: string; onClick: (item: T) => void}>;
   emptyMessage?: string;
   className?: string;
 }
 
-function DataTable<T extends Record<string, any>>({
+function DataTable<T extends Record<string, unknown>>({
   columns,
   data,
   totalCount,
@@ -83,7 +83,7 @@ function DataTable<T extends Record<string, any>>({
 }: DataTableProps<T>) {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -152,7 +152,7 @@ function DataTable<T extends Record<string, any>>({
   };
 
   // Gestion des filtres
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value };
     if (!value) {
       delete newFilters[key];
@@ -448,7 +448,7 @@ function DataTable<T extends Record<string, any>>({
                   {actions && Array.isArray(actions) && (
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {actions.map((action: any, idx: number) => (
+                        {actions.map((action, idx: number) => (
                           <button
                             key={idx}
                             onClick={() => action.onClick(item)}

@@ -91,9 +91,9 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
       if (workspace?.id) {
         await loadWorkspaceDashboard(workspace.id);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur chargement workspace:', err);
-      setError(err.message || 'Erreur lors du chargement du workspace');
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement du workspace');
 
       // En cas d'erreur, créer un workspace par défaut
       const defaultWorkspace: Workspace = {
@@ -124,7 +124,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
     try {
       const dashboard = await workspaceService.getDashboard(workspaceId);
       setWorkspaceDashboard(dashboard);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur chargement dashboard:', err);
       // Ne pas bloquer si le dashboard ne charge pas
     } finally {

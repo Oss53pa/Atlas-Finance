@@ -65,7 +65,7 @@ const SuppliersPage: React.FC = () => {
     evaluation: ''
   });
   const [page, setPage] = useState(1);
-  const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<Record<string, unknown> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -89,19 +89,19 @@ const SuppliersPage: React.FC = () => {
         onSuccess: () => {
           toast.success('Fournisseur supprimé avec succès');
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           toast.error(error?.message || 'Erreur lors de la suppression');
         }
       });
     }
   };
 
-  const handleViewDetails = (supplier: any) => {
+  const handleViewDetails = (supplier: Record<string, unknown>) => {
     setSelectedSupplier(supplier);
     setShowDetailModal(true);
   };
 
-  const handleEditSupplier = (supplier: any) => {
+  const handleEditSupplier = (supplier: Record<string, unknown>) => {
     setSelectedSupplier(supplier);
     setShowEditModal(true);
   };

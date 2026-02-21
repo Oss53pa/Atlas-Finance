@@ -110,18 +110,18 @@ const ConnexionsBancairesPage: React.FC = () => {
     queryKey: ['bank-accounts'],
     queryFn: async () => {
       const accounts = await bankAccountsService.getActiveAccounts();
-      return accounts.map((acc: any) => ({
-        id: acc.id,
-        nom_banque: acc.banque || 'Banque',
-        nom_compte: acc.libelle || acc.numero_compte,
-        numero_compte: acc.numero_compte,
-        type_compte: acc.type_compte || 'courant',
+      return accounts.map((acc: Record<string, unknown>) => ({
+        id: acc.id as string,
+        nom_banque: (acc.banque as string) || 'Banque',
+        nom_compte: (acc.libelle as string) || (acc.numero_compte as string),
+        numero_compte: acc.numero_compte as string,
+        type_compte: (acc.type_compte as string) || 'courant',
         statut: acc.actif ? 'connecté' : 'déconnecté',
-        derniere_sync: acc.date_derniere_sync || new Date().toISOString(),
-        solde_actuel: acc.solde_courant || 0,
-        devise: acc.devise_code || 'XOF',
+        derniere_sync: (acc.date_derniere_sync as string) || new Date().toISOString(),
+        solde_actuel: (acc.solde_courant as number) || 0,
+        devise: (acc.devise_code as string) || 'XOF',
         api_type: 'API_BANQUE' as const,
-        derniere_transaction: acc.date_derniere_transaction || new Date().toISOString(),
+        derniere_transaction: (acc.date_derniere_transaction as string) || new Date().toISOString(),
         nb_transactions: 0,
         auto_sync: true,
         certificat_ssl: true,
@@ -147,17 +147,17 @@ const ConnexionsBancairesPage: React.FC = () => {
     enabled: true,
   });
 
-  const transactions = (transactionsData || []).map((tx: any) => ({
-    id: tx.id,
-    date: tx.date,
-    libelle: tx.libelle || tx.memo || 'Transaction',
-    montant: tx.montant || 0,
-    type: tx.type_operation === 'credit' || tx.montant > 0 ? 'crédit' as const : 'débit' as const,
-    solde_apres: tx.solde_apres || 0,
-    compte_id: tx.compte_bancaire,
+  const transactions = (transactionsData || []).map((tx: Record<string, unknown>) => ({
+    id: tx.id as string,
+    date: tx.date as string,
+    libelle: (tx.libelle as string) || (tx.memo as string) || 'Transaction',
+    montant: (tx.montant as number) || 0,
+    type: tx.type_operation === 'credit' || (tx.montant as number) > 0 ? 'crédit' as const : 'débit' as const,
+    solde_apres: (tx.solde_apres as number) || 0,
+    compte_id: tx.compte_bancaire as string,
     statut: tx.statut === 'valide' ? 'traité' as const : 'en_attente' as const,
-    reference: tx.reference || tx.id,
-    categorie: tx.categorie
+    reference: (tx.reference as string) || (tx.id as string),
+    categorie: tx.categorie as string
   }));
 
   // Real API calls for reconciliation status
@@ -170,10 +170,10 @@ const ConnexionsBancairesPage: React.FC = () => {
     enabled: !!localStorage.getItem('company_id'),
   });
 
-  const syncLogs = (reconciliationData?.reconciliations || []).map((rec: any) => ({
-    id: rec.reconciliation_id,
-    compte_id: rec.account_id,
-    date_sync: rec.created_at,
+  const syncLogs = (reconciliationData?.reconciliations || []).map((rec: Record<string, unknown>) => ({
+    id: rec.reconciliation_id as string,
+    compte_id: rec.account_id as string,
+    date_sync: rec.created_at as string,
     statut: rec.status === 'balanced' ? 'succès' as const : rec.status === 'unbalanced' ? 'erreur' as const : 'partiel' as const,
     nb_transactions: 0,
     message: rec.status === 'balanced' ? 'Rapprochement réussi' : 'Rapprochement en cours',

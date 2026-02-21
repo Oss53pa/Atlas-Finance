@@ -25,7 +25,7 @@ export const useSettings = () => {
     fetchSettings();
   }, []);
 
-  const updateSetting = (category: string, id: string, value: any) => {
+  const updateSetting = (category: string, id: string, value: string | number | boolean) => {
     setSettings(prev => ({
       ...prev,
       [category]: prev[category].map(setting =>
@@ -62,7 +62,7 @@ export const useSettings = () => {
 export const useSettingValidation = () => {
   const [validationErrors, setValidationErrors] = useState<ValidationError>({});
 
-  const validateSetting = (setting: AccountingSetting, value: any): boolean => {
+  const validateSetting = (setting: AccountingSetting, value: string | number | boolean): boolean => {
     const error = settingsService.validateSetting(setting, value);
 
     if (error) {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { toast } from 'react-hot-toast';
 import {
   TrendingUp,
@@ -50,6 +51,25 @@ import {
 } from '../../components/ui';
 import { motion } from 'framer-motion';
 
+interface TaxDeclaration {
+  id: string;
+  type: string;
+  periode: string;
+  montant: number;
+  statut: string;
+  dateEcheance: string;
+  datePaiement: string | null;
+}
+
+interface TaxReport {
+  id: string;
+  name: string;
+  type: string;
+  format: string;
+  size: string;
+  lastGenerated: string;
+}
+
 const TaxReportingPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('current-month');
   const [selectedTaxType, setSelectedTaxType] = useState('all');
@@ -62,8 +82,8 @@ const TaxReportingPage: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showGenerateReportModal, setShowGenerateReportModal] = useState(false);
   const [showReportPreviewModal, setShowReportPreviewModal] = useState(false);
-  const [selectedDeclaration, setSelectedDeclaration] = useState<any>(null);
-  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [selectedDeclaration, setSelectedDeclaration] = useState<TaxDeclaration | null>(null);
+  const [selectedReport, setSelectedReport] = useState<TaxReport | null>(null);
 
   // Form states
   const [newDeclaration, setNewDeclaration] = useState({
@@ -87,17 +107,17 @@ const TaxReportingPage: React.FC = () => {
     setShowNewDeclarationModal(true);
   };
 
-  const handleViewDeclaration = (declaration: any) => {
+  const handleViewDeclaration = (declaration: TaxDeclaration) => {
     setSelectedDeclaration(declaration);
     setShowDeclarationDetailModal(true);
   };
 
-  const handlePayment = (declaration: any) => {
+  const handlePayment = (declaration: TaxDeclaration) => {
     setSelectedDeclaration(declaration);
     setShowPaymentModal(true);
   };
 
-  const handleDownloadDeclaration = (declaration: any) => {
+  const handleDownloadDeclaration = (declaration: TaxDeclaration) => {
     toast.success(`Téléchargement de la déclaration ${declaration.type} - ${declaration.periode}`);
   };
 
@@ -105,12 +125,12 @@ const TaxReportingPage: React.FC = () => {
     setShowGenerateReportModal(true);
   };
 
-  const handlePreviewReport = (report: any) => {
+  const handlePreviewReport = (report: TaxReport) => {
     setSelectedReport(report);
     setShowReportPreviewModal(true);
   };
 
-  const handleDownloadReport = (report: any) => {
+  const handleDownloadReport = (report: TaxReport) => {
     toast.success(`Téléchargement du rapport "${report.name}"`);
   };
 
@@ -236,14 +256,6 @@ const TaxReportingPage: React.FC = () => {
     }
   ];
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {

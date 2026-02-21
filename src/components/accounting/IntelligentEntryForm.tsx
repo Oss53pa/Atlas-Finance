@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import SearchableDropdown from '../ui/SearchableDropdown';
 import { TVAValidator, TVAValidationResult } from '../../utils/tvaValidation';
+import { validateJournalEntrySync } from '../../validators/journalEntryValidator';
 
 // Types
 interface JournalType {
@@ -100,7 +101,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
   // États pour les suggestions
   const [suggestions, setSuggestions] = useState<SuggestionCompte[]>([]);
   const [historiqueComptes, setHistoriqueComptes] = useState<SuggestionCompte[]>([]);
-  const [modelesPreferes, setModelesPreferes] = useState<any[]>([]);
+  const [modelesPreferes, setModelesPreferes] = useState<Record<string, unknown>[]>([]);
   const [tvaValidation, setTvaValidation] = useState<TVAValidationResult | null>(null);
 
   // Configurations par type de journal
@@ -375,16 +376,16 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
     setSuggestions(suggestionsFiltered);
   }, [journalType?.code, configurationsJournal]);
 
-  // Validation intelligente avec TVAValidator
+  // Validation intelligente avec Money class + TVAValidator
   const validerEcriture = useCallback(() => {
-    const totalDebit = lignes.reduce((sum, l) => sum + l.debit, 0);
-    const totalCredit = lignes.reduce((sum, l) => sum + l.credit, 0);
-    const equilibre = Math.abs(totalDebit - totalCredit) < 0.01;
-
     const erreurs: string[] = [];
 
-    if (!equilibre) {
-      erreurs.push(`Écriture non équilibrée: Débit ${totalDebit.toFixed(2)} ≠ Crédit ${totalCredit.toFixed(2)}`);
+    // Validation D=C via le validateur dédié (Money class, pas de raw JS)
+    const syncResult = validateJournalEntrySync(
+      lignes.map(l => ({ accountCode: l.compte, debit: l.debit, credit: l.credit }))
+    );
+    if (!syncResult.isValid) {
+      erreurs.push(...syncResult.errors);
     }
 
     // Validations spécifiques par journal
@@ -865,7 +866,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
             {['rapide', 'standard', 'expert'].map((mode) => (
               <button
                 key={mode}
-                onClick={() => setModeSaisie(mode as any)}
+                onClick={() => setModeSaisie(mode as typeof modeSaisie)}
                 className={`px-3 py-1.5 rounded-lg transition-colors ${
                   modeSaisie === mode
                     ? 'bg-blue-600 text-white'

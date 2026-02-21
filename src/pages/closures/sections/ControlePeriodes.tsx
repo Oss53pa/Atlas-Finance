@@ -12,6 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Progress } from '../../../components/ui/Progress';
+import { db } from '../../../lib/db';
+import type { DBFiscalYear } from '../../../lib/db';
+import { canClose } from '../../../services/closureService';
 
 interface PeriodeComptable {
   id: string;
@@ -55,112 +58,51 @@ const ControlePeriodes: React.FC = () => {
   const [selectedPeriode, setSelectedPeriode] = useState<string>('2025-01');
   const [showClotureModal, setShowClotureModal] = useState(false);
   const [showForceClotureModal, setShowForceClotureModal] = useState(false);
+  const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
 
-  // Date actuelle simulée
-  const dateActuelle = new Date('2025-02-15');
+  const dateActuelle = new Date();
 
-  // Périodes comptables
-  const periodes: PeriodeComptable[] = [
-    {
-      id: '1',
-      periode: '2025-02',
-      type: 'mensuelle',
-      dateDebut: new Date('2025-02-01'),
-      dateFin: new Date('2025-02-28'),
-      statut: 'ouverte',
-      dateOuverture: new Date('2025-02-01'),
-      responsable: 'Marie Kouadio',
-      progression: 45,
-      blocages: ['Période en cours'],
-      validations: {
-        comptable: false,
-        fiscal: false,
-        audit: false,
-        direction: false
-      },
-      etapesObligatoires: [
-        { id: '1', nom: 'Saisie des écritures', statut: 'en_cours', obligatoire: true },
-        { id: '2', nom: 'Rapprochement bancaire', statut: 'en_attente', obligatoire: true },
-        { id: '3', nom: 'Validation stocks', statut: 'en_attente', obligatoire: true },
-        { id: '4', nom: 'Contrôles cohérence', statut: 'en_attente', obligatoire: true }
-      ]
-    },
-    {
-      id: '2',
-      periode: '2025-01',
-      type: 'mensuelle',
-      dateDebut: new Date('2025-01-01'),
-      dateFin: new Date('2025-01-31'),
-      statut: 'en_cloture',
-      dateOuverture: new Date('2025-01-01'),
-      responsable: 'Marie Kouadio',
-      progression: 85,
+  // Load fiscal years from Dexie
+  useEffect(() => {
+    db.fiscalYears.toArray().then(fys => {
+      setFiscalYears(fys.sort((a, b) => b.startDate.localeCompare(a.startDate)));
+    });
+  }, []);
+
+  // Map fiscal years to PeriodeComptable interface
+  const periodes: PeriodeComptable[] = fiscalYears.map(fy => {
+    const isClosed = fy.isClosed;
+    const isActive = fy.isActive;
+    const statut: PeriodeComptable['statut'] = isClosed
+      ? 'fermee'
+      : isActive ? 'ouverte' : 'en_cloture';
+
+    return {
+      id: fy.id,
+      periode: fy.code || fy.name,
+      type: 'annuelle',
+      dateDebut: new Date(fy.startDate),
+      dateFin: new Date(fy.endDate),
+      statut,
+      dateOuverture: new Date(fy.startDate),
+      dateCloture: isClosed ? new Date(fy.endDate) : undefined,
+      responsable: 'Comptable',
+      progression: isClosed ? 100 : isActive ? 50 : 0,
       blocages: [],
       validations: {
-        comptable: true,
-        fiscal: true,
-        audit: false,
-        direction: false
+        comptable: isClosed,
+        fiscal: isClosed,
+        audit: isClosed,
+        direction: isClosed,
       },
       etapesObligatoires: [
-        { id: '1', nom: 'Saisie des écritures', statut: 'complete', obligatoire: true, dateComplete: new Date('2025-02-05') },
-        { id: '2', nom: 'Rapprochement bancaire', statut: 'complete', obligatoire: true, dateComplete: new Date('2025-02-08') },
-        { id: '3', nom: 'Validation stocks', statut: 'complete', obligatoire: true, dateComplete: new Date('2025-02-10') },
-        { id: '4', nom: 'Contrôles cohérence', statut: 'en_cours', obligatoire: true }
-      ]
-    },
-    {
-      id: '3',
-      periode: '2024-12',
-      type: 'mensuelle',
-      dateDebut: new Date('2024-12-01'),
-      dateFin: new Date('2024-12-31'),
-      statut: 'fermee',
-      dateOuverture: new Date('2024-12-01'),
-      dateCloture: new Date('2025-01-15'),
-      responsable: 'Jean Konan',
-      progression: 100,
-      blocages: [],
-      validations: {
-        comptable: true,
-        fiscal: true,
-        audit: true,
-        direction: true
-      },
-      etapesObligatoires: [
-        { id: '1', nom: 'Saisie des écritures', statut: 'complete', obligatoire: true, dateComplete: new Date('2025-01-05') },
-        { id: '2', nom: 'Rapprochement bancaire', statut: 'complete', obligatoire: true, dateComplete: new Date('2025-01-08') },
-        { id: '3', nom: 'Validation stocks', statut: 'complete', obligatoire: true, dateComplete: new Date('2025-01-10') },
-        { id: '4', nom: 'Contrôles cohérence', statut: 'complete', obligatoire: true, dateComplete: new Date('2025-01-12') }
-      ]
-    },
-    {
-      id: '4',
-      periode: '2024-11',
-      type: 'mensuelle',
-      dateDebut: new Date('2024-11-01'),
-      dateFin: new Date('2024-11-30'),
-      statut: 'verrouillee',
-      dateOuverture: new Date('2024-11-01'),
-      dateCloture: new Date('2024-12-15'),
-      dateVerrouillage: new Date('2025-01-01'),
-      responsable: 'Marie Kouadio',
-      progression: 100,
-      blocages: [],
-      validations: {
-        comptable: true,
-        fiscal: true,
-        audit: true,
-        direction: true
-      },
-      etapesObligatoires: [
-        { id: '1', nom: 'Saisie des écritures', statut: 'complete', obligatoire: true, dateComplete: new Date('2024-12-05') },
-        { id: '2', nom: 'Rapprochement bancaire', statut: 'complete', obligatoire: true, dateComplete: new Date('2024-12-08') },
-        { id: '3', nom: 'Validation stocks', statut: 'complete', obligatoire: true, dateComplete: new Date('2024-12-10') },
-        { id: '4', nom: 'Contrôles cohérence', statut: 'complete', obligatoire: true, dateComplete: new Date('2024-12-12') }
-      ]
-    }
-  ];
+        { id: '1', nom: 'Saisie des écritures', statut: isClosed ? 'complete' : isActive ? 'en_cours' : 'en_attente', obligatoire: true },
+        { id: '2', nom: 'Rapprochement bancaire', statut: isClosed ? 'complete' : 'en_attente', obligatoire: true },
+        { id: '3', nom: 'Contrôles cohérence', statut: isClosed ? 'complete' : 'en_attente', obligatoire: true },
+        { id: '4', nom: 'Validation finale', statut: isClosed ? 'complete' : 'en_attente', obligatoire: true },
+      ],
+    };
+  });
 
   // Règles de clôture
   const regles: RegleCloture[] = [

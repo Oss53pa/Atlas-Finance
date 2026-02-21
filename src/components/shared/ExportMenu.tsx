@@ -4,7 +4,7 @@ import { Button } from '../ui';
 import { toast } from 'react-hot-toast';
 
 interface ExportMenuProps {
-  data: any[];
+  data: Record<string, unknown>[];
   filename: string;
   columns?: { [key: string]: string }; // Mapping des clés vers les labels
   onExport?: (format: 'csv' | 'excel' | 'pdf') => void;
@@ -31,7 +31,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
 
     if (columns) {
       return data.map(item => {
-        const mappedItem: any = {};
+        const mappedItem: Record<string, unknown> = {};
         Object.entries(columns).forEach(([key, label]) => {
           mappedItem[label] = item[key];
         });
@@ -70,7 +70,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
     setShowMenu(false);
   };
 
-  const exportCSV = (data: any[], filename: string) => {
+  const exportCSV = (data: Record<string, unknown>[], filename: string) => {
     if (data.length === 0) return;
 
     const headers = Object.keys(data[0]);
@@ -90,7 +90,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
     downloadBlob(blob, filename);
   };
 
-  const exportExcel = (data: any[], filename: string) => {
+  const exportExcel = (data: Record<string, unknown>[], filename: string) => {
     if (data.length === 0) return;
 
     const headers = Object.keys(data[0]);

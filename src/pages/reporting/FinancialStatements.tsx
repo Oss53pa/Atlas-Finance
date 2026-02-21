@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -105,196 +106,98 @@ const FinancialStatements: React.FC = () => {
   const [statementModal, setStatementModal] = useState<StatementModal>({ isOpen: false, mode: 'view' });
   const [selectedPeriod, setSelectedPeriod] = useState('2024-Q3');
 
-  // Mock data for financial statements
-  const mockStatements: FinancialStatement[] = [
-    {
-      id: '1',
-      statementType: 'balance_sheet',
-      title: 'Bilan Consolidé T3 2024',
-      period: '2024-Q3',
-      periodType: 'quarterly',
-      status: 'approved',
-      lastModified: '2024-09-15T14:30:00Z',
-      createdBy: 'Marie Dubois',
-      reviewedBy: 'Jean Martin',
-      approvedBy: 'Sophie Laurent',
-      publishedDate: '2024-09-16T09:00:00Z',
-      version: '1.2',
-      format: 'ifrs',
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '3.8 MB',
-      accessLevel: 'public'
-    },
-    {
-      id: '2',
-      statementType: 'income_statement',
-      title: 'Compte de Résultat T3 2024',
-      period: '2024-Q3',
-      periodType: 'quarterly',
-      status: 'review',
-      lastModified: '2024-09-18T16:45:00Z',
-      createdBy: 'Pierre Leroy',
-      reviewedBy: 'Marie Dubois',
-      version: '1.0',
-      format: 'ifrs',
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '2.4 MB',
-      accessLevel: 'restricted'
-    },
-    {
-      id: '3',
-      statementType: 'cash_flow',
-      title: 'Tableau des Flux de Trésorerie T3 2024',
-      period: '2024-Q3',
-      periodType: 'quarterly',
-      status: 'draft',
-      lastModified: '2024-09-19T11:20:00Z',
-      createdBy: 'Antoine Rousseau',
-      version: '0.5',
-      format: 'ifrs',
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '1.9 MB',
-      accessLevel: 'confidential'
-    },
-    {
-      id: '4',
-      statementType: 'equity_statement',
-      title: 'État des Variations des Capitaux Propres T3 2024',
-      period: '2024-Q3',
-      periodType: 'quarterly',
-      status: 'approved',
-      lastModified: '2024-09-14T13:15:00Z',
-      createdBy: 'Isabelle Moreau',
-      reviewedBy: 'Jean Martin',
-      approvedBy: 'Sophie Laurent',
-      publishedDate: '2024-09-16T09:00:00Z',
-      version: '1.1',
-      format: 'ifrs',
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '1.2 MB',
-      accessLevel: 'public'
-    },
-    {
-      id: '5',
-      statementType: 'comprehensive_income',
-      title: 'État du Résultat Global T3 2024',
-      period: '2024-Q3',
-      periodType: 'quarterly',
-      status: 'published',
-      lastModified: '2024-09-19T09:30:00Z',
-      createdBy: 'Thomas Bernard',
-      reviewedBy: 'Sophie Laurent',
-      approvedBy: 'Jean Martin',
-      publishedDate: '2024-09-20T08:00:00Z',
-      version: '1.0',
-      format: 'ifrs',
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '2.1 MB',
-      accessLevel: 'public'
-    }
-  ];
+  // Load fiscal years from Dexie to build statement list
+  const { data: fiscalYears = [] } = useQuery({
+    queryKey: ['financial-statements-fiscal-years'],
+    queryFn: () => db.fiscalYears.toArray(),
+  });
 
-  // Mock financial metrics
-  const mockMetrics: FinancialMetric[] = [
-    {
-      name: 'Marge Brute',
-      currentPeriod: 0.68,
-      previousPeriod: 0.65,
-      variance: 0.03,
-      variancePercent: 4.6,
-      category: 'profitability',
-      benchmark: 0.70,
-      target: 0.72
-    },
-    {
-      name: 'Marge Opérationnelle',
-      currentPeriod: 0.15,
-      previousPeriod: 0.12,
-      variance: 0.03,
-      variancePercent: 25.0,
-      category: 'profitability',
-      benchmark: 0.18,
-      target: 0.20
-    },
-    {
-      name: 'ROE',
-      currentPeriod: 0.14,
-      previousPeriod: 0.11,
-      variance: 0.03,
-      variancePercent: 27.3,
-      category: 'profitability',
-      benchmark: 0.15,
-      target: 0.16
-    },
-    {
-      name: 'Ratio de Liquidité Générale',
-      currentPeriod: 1.85,
-      previousPeriod: 1.62,
-      variance: 0.23,
-      variancePercent: 14.2,
-      category: 'liquidity',
-      benchmark: 1.50,
-      target: 1.80
-    },
-    {
-      name: 'Ratio d\'Endettement',
-      currentPeriod: 0.35,
-      previousPeriod: 0.42,
-      variance: -0.07,
-      variancePercent: -16.7,
-      category: 'leverage',
-      benchmark: 0.40,
-      target: 0.30
-    },
-    {
-      name: 'Rotation des Stocks',
-      currentPeriod: 8.5,
-      previousPeriod: 7.2,
-      variance: 1.3,
-      variancePercent: 18.1,
-      category: 'efficiency',
-      benchmark: 9.0,
-      target: 10.0
+  const mockStatements: FinancialStatement[] = useMemo(() => {
+    if (fiscalYears.length === 0) return [];
+    const types: Array<{ type: FinancialStatement['statementType']; label: string }> = [
+      { type: 'balance_sheet', label: 'Bilan SYSCOHADA' },
+      { type: 'income_statement', label: 'Compte de Résultat' },
+      { type: 'cash_flow', label: 'Tableau des Flux de Trésorerie' },
+      { type: 'equity_statement', label: 'Variation des Capitaux Propres' },
+      { type: 'comprehensive_income', label: 'Résultat Global' },
+    ];
+    const result: FinancialStatement[] = [];
+    for (const fy of fiscalYears) {
+      const period = `${fy.startDate?.substring(0, 4) || ''}`;
+      const fyStatus = (fy as unknown as Record<string, string>).status || 'active';
+      const status: FinancialStatement['status'] = fyStatus === 'closed' ? 'approved' : 'draft';
+      for (const t of types) {
+        result.push({
+          id: `${fy.id}-${t.type}`,
+          statementType: t.type,
+          title: `${t.label} ${period}`,
+          period,
+          periodType: 'annual',
+          status,
+          lastModified: fy.endDate || new Date().toISOString().split('T')[0],
+          createdBy: 'system',
+          version: '1.0',
+          format: 'syscohada',
+          consolidation: false,
+          currency: 'XAF',
+          fileSize: '-',
+          accessLevel: 'restricted',
+        });
+      }
     }
-  ];
+    return result;
+  }, [fiscalYears]);
 
-  // Mock statement templates
+  // Compute real financial metrics from journal entries
+  const { data: allEntries = [] } = useQuery({
+    queryKey: ['financial-statements-entries-metrics'],
+    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
+  });
+
+  const mockMetrics: FinancialMetric[] = useMemo(() => {
+    const net = (...prefixes: string[]) => {
+      let d = 0, c = 0;
+      for (const e of allEntries) for (const l of e.lines) if (prefixes.some(p => l.accountCode.startsWith(p))) { d += l.debit; c += l.credit; }
+      return d - c;
+    };
+    const creditNet = (...prefixes: string[]) => -net(...prefixes);
+    const ca = creditNet('70', '71', '72');
+    const achats = net('60', '61');
+    const charges6 = net('6');
+    const produits7 = creditNet('7');
+    const capitaux = creditNet('10', '11', '12', '13');
+    const dettesFinancieres = creditNet('16', '17');
+    const actifCirculant = net('3', '41', '5');
+    const passifCirculant = creditNet('40', '42', '43', '44');
+    const stocks = net('3');
+    const resultatNet = produits7 - charges6;
+
+    const safe = (n: number, d: number) => d !== 0 ? n / d : 0;
+    const margeBrute = safe(ca - achats, ca);
+    const margeOp = safe(resultatNet, ca);
+    const roe = safe(resultatNet, capitaux);
+    const liqGen = safe(actifCirculant, passifCirculant);
+    const endettement = safe(dettesFinancieres, capitaux + dettesFinancieres);
+    const rotStocks = safe(achats, stocks);
+
+    const mk = (name: string, val: number, cat: FinancialMetric['category']): FinancialMetric => ({
+      name, currentPeriod: val, previousPeriod: 0, variance: val, variancePercent: 0, category: cat,
+    });
+    return [
+      mk('Marge Brute', margeBrute, 'profitability'),
+      mk('Marge Opérationnelle', margeOp, 'profitability'),
+      mk('ROE', roe, 'profitability'),
+      mk('Ratio de Liquidité Générale', liqGen, 'liquidity'),
+      mk("Ratio d'Endettement", endettement, 'leverage'),
+      mk('Rotation des Stocks', rotStocks, 'efficiency'),
+    ];
+  }, [allEntries]);
+
+  // Static SYSCOHADA statement templates
   const mockTemplates: StatementTemplate[] = [
-    {
-      id: '1',
-      name: 'Bilan IFRS Standard',
-      type: 'balance_sheet',
-      format: 'ifrs',
-      description: 'Modèle de bilan conforme aux normes IFRS',
-      sections: ['Actifs non courants', 'Actifs courants', 'Capitaux propres', 'Passifs non courants', 'Passifs courants'],
-      lastUsed: '2024-09-15',
-      frequency: 12
-    },
-    {
-      id: '2',
-      name: 'Compte de Résultat par Nature',
-      type: 'income_statement',
-      format: 'ifrs',
-      description: 'Compte de résultat avec classification par nature',
-      sections: ['Chiffre d\'affaires', 'Autres produits', 'Achats', 'Charges de personnel', 'Autres charges'],
-      lastUsed: '2024-09-18',
-      frequency: 8
-    },
-    {
-      id: '3',
-      name: 'Tableau de Flux SYSCOHADA',
-      type: 'cash_flow',
-      format: 'syscohada',
-      description: 'Tableau des flux de trésorerie SYSCOHADA',
-      sections: ['Flux opérationnels', 'Flux d\'investissement', 'Flux de financement'],
-      lastUsed: '2024-09-10',
-      frequency: 4
-    }
+    { id: 'tpl-bilan', name: 'Bilan SYSCOHADA', type: 'balance_sheet', format: 'syscohada', description: 'Bilan avec structure Actif Immobilisé / Circulant / Trésorerie', sections: ['Actif immobilisé', 'Actif circulant', 'Trésorerie-Actif', 'Capitaux propres', 'Dettes financières', 'Passif circulant'], lastUsed: new Date().toISOString().split('T')[0], frequency: 0 },
+    { id: 'tpl-resultat', name: 'Compte de Résultat par Nature', type: 'income_statement', format: 'syscohada', description: 'Classification des charges (classe 6) et produits (classe 7) par nature', sections: ['Produits d\'exploitation', 'Charges d\'exploitation', 'Résultat financier', 'Résultat HAO', 'Impôts'], lastUsed: new Date().toISOString().split('T')[0], frequency: 0 },
+    { id: 'tpl-flux', name: 'Tableau des Flux de Trésorerie', type: 'cash_flow', format: 'syscohada', description: 'TAFIRE — méthode indirecte SYSCOHADA', sections: ['Flux d\'exploitation', 'Flux d\'investissement', 'Flux de financement'], lastUsed: new Date().toISOString().split('T')[0], frequency: 0 },
   ];
 
   // Filter statements based on search and filters

@@ -6,6 +6,34 @@
 import { searchKnowledge, KnowledgeEntry, atlasFinanceKnowledge } from '../knowledge/atlasFinanceKnowledge';
 import { palomaLearningSystem } from './learningSystem';
 
+interface ResponseContext {
+  currentModule?: string;
+  userRole?: string;
+  [key: string]: unknown;
+}
+
+interface AdaptedPersonality {
+  tone?: 'formal' | 'friendly' | 'enthusiastic';
+  responseLength?: 'short' | 'medium' | 'long';
+  style?: 'concise' | 'detailed' | 'visual' | 'step-by-step';
+  complexity?: string;
+  focusAreas?: string[];
+}
+
+interface RecentInteraction {
+  userQuery: string;
+  intent: string;
+  timestamp: Date;
+}
+
+interface EnhancedIntelligentResponse extends IntelligentResponse {
+  metadata?: {
+    enhanced: boolean;
+    learningApplied: boolean;
+    adaptationCount: number;
+  };
+}
+
 export interface IntelligentResponse {
   message: string;
   confidence: number;
@@ -94,7 +122,7 @@ export class IntelligentResponseGenerator {
   private analyzer = new SemanticAnalyzer();
   private conversationHistory: string[] = [];
 
-  generateResponse(query: string, context?: any): IntelligentResponse {
+  generateResponse(query: string, context?: ResponseContext): IntelligentResponse {
     // Analyser l'intention
     const intent = this.analyzer.detectIntent(query);
 
@@ -440,7 +468,7 @@ export class IntelligentResponseGenerator {
 
   // === INTÉGRATION DU SYSTÈME D'APPRENTISSAGE ===
 
-  private enhanceWithLearning(response: IntelligentResponse, query: string, context?: any): IntelligentResponse {
+  private enhanceWithLearning(response: IntelligentResponse, query: string, context?: ResponseContext): EnhancedIntelligentResponse {
     // Adapter la réponse en temps réel basée sur l'apprentissage
     const adaptedMessage = palomaLearningSystem.adaptResponseInRealTime(
       response.message,
@@ -471,7 +499,7 @@ export class IntelligentResponseGenerator {
     };
   }
 
-  private personalizeMessage(message: string, personality: any): string {
+  private personalizeMessage(message: string, personality: AdaptedPersonality | null): string {
     if (!personality) return message;
 
     let personalized = message;
@@ -498,7 +526,7 @@ export class IntelligentResponseGenerator {
     return personalized;
   }
 
-  private calculateEnhancedConfidence(baseConfidence: number, query: string, context?: any): number {
+  private calculateEnhancedConfidence(baseConfidence: number, query: string, _context?: ResponseContext): number {
     // Utiliser les insights d'apprentissage pour ajuster la confiance
     const learningInsights = palomaLearningSystem.generateLearningInsights();
 
@@ -515,7 +543,7 @@ export class IntelligentResponseGenerator {
     return Math.min(enhancedConfidence, 1.0);
   }
 
-  private getRecentInteractions(): any[] {
+  private getRecentInteractions(): RecentInteraction[] {
     // Simuler l'obtention des interactions récentes
     return this.conversationHistory.map((query, index) => ({
       userQuery: query,
@@ -602,15 +630,15 @@ export class IntelligentResponseGenerator {
     palomaLearningSystem.recordInteraction(interaction);
   }
 
-  public getLearningInsights(): any {
+  public getLearningInsights(): ReturnType<typeof palomaLearningSystem.generateLearningInsights> {
     return palomaLearningSystem.generateLearningInsights();
   }
 
-  public getPersonalizedExperience(userId: string): any {
+  public getPersonalizedExperience(userId: string): ReturnType<typeof palomaLearningSystem.personalizeExperience> {
     return palomaLearningSystem.personalizeExperience(userId);
   }
 
-  public exportLearningData(): any {
+  public exportLearningData(): ReturnType<typeof palomaLearningSystem.exportLearningData> {
     return palomaLearningSystem.exportLearningData();
   }
 }

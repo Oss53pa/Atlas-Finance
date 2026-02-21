@@ -9,7 +9,7 @@ interface SettingsSectionProps {
   settings: AccountingSetting[];
   expanded: boolean;
   onToggle: () => void;
-  onUpdate: (id: string, value: any) => void;
+  onUpdate: (id: string, value: string | number | boolean) => void;
   errors?: ValidationError;
 }
 

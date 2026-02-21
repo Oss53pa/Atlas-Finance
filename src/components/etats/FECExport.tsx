@@ -64,8 +64,8 @@ const FECExport: React.FC = () => {
     try {
       const result = await validateFEC(getOptions());
       setValidation(result);
-    } catch (e: any) {
-      setValidation({ valid: false, errors: [e.message || 'Erreur de validation'], warnings: [], lineCount: 0, totalDebit: 0, totalCredit: 0 });
+    } catch (e: unknown) {
+      setValidation({ valid: false, errors: [(e instanceof Error ? e.message : 'Erreur de validation')], warnings: [], lineCount: 0, totalDebit: 0, totalCredit: 0 });
     }
     setIsValidating(false);
   };

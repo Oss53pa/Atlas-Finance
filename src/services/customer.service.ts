@@ -269,7 +269,7 @@ export interface Segmentation {
   segments: Array<{
     name: string;
     size: number;
-    characteristics: Record<string, any>;
+    characteristics: Record<string, unknown>;
     avg_revenue: number;
     churn_risk: number;
   }>;
@@ -467,7 +467,7 @@ class CustomerService {
   async getClientTimeline(clientId: string): Promise<{
     client_id: string;
     raison_sociale: string;
-    timeline: Array<any>;
+    timeline: Array<Record<string, unknown>>;
     statistiques: {
       total_evenements: number;
       contacts_ce_mois: number;
@@ -900,9 +900,9 @@ class CustomerService {
   async generateCustomReport(config: {
     metrics: string[];
     dimensions: string[];
-    filters: Record<string, any>;
+    filters: Record<string, unknown>;
     date_range: { from: string; to: string };
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.post(`${BASE_PATH}/analytics/custom-report/`, config);
     return response.data;
   }
@@ -917,7 +917,7 @@ class CustomerService {
    */
   async calculateClientScoring(clientId: string): Promise<{
     message: string;
-    scoring: Record<string, any>;
+    scoring: Record<string, unknown>;
     created: boolean;
   }> {
     const response = await apiService.post(`${BASE_PATH}/clients/${clientId}/scoring/`);
@@ -981,7 +981,7 @@ class CustomerService {
    *
    * @endpoint GET /api/v1/customers/recouvrement/dashboard/
    */
-  async getRecouvrementDashboard(): Promise<any> {
+  async getRecouvrementDashboard(): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/recouvrement/dashboard/`);
     return response.data;
   }
@@ -1058,7 +1058,7 @@ class CustomerService {
   async automaticMatching(): Promise<{
     matched_count: number;
     total_amount: number;
-    details: Array<any>;
+    details: Array<Record<string, unknown>>;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/auto/`);
     return response.data;
@@ -1111,7 +1111,7 @@ class CustomerService {
    */
   async exportClients(params: {
     format_export: 'CSV' | 'EXCEL' | 'PDF';
-    filtres?: Record<string, any>;
+    filtres?: Record<string, unknown>;
     colonnes?: string[];
   }): Promise<void> {
     const response = await apiService.post(`${BASE_PATH}/clients/export/`, params, {
@@ -1140,7 +1140,7 @@ class CustomerService {
   async exportDashboard(params: {
     companyId?: string;
     fiscalYearId?: string;
-    filters?: any;
+    filters?: Record<string, unknown>;
     format: 'pdf' | 'excel';
     view: string;
   }): Promise<{
@@ -1173,7 +1173,7 @@ class CustomerService {
     dateFrom: string;
     dateTo: string;
     includeForecasts?: boolean;
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/recouvrement/collection-report/`, {
       params: {
         company_id: params.companyId,
@@ -1198,7 +1198,7 @@ class CustomerService {
     customerId?: string;
     dateFrom?: string;
     dateTo?: string;
-  }): Promise<Array<any>> {
+  }): Promise<Array<Record<string, unknown>>> {
     const response = await apiService.get(`${BASE_PATH}/recouvrement/reminder-history/`, {
       params: {
         company_id: params.companyId,
@@ -1348,7 +1348,7 @@ class CustomerService {
     r3_days: number;
     auto_send: boolean;
     channels: string[];
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.post(`${BASE_PATH}/recouvrement/configure-reminders/`, config);
     return response.data;
   }

@@ -59,7 +59,7 @@ const AnalyticalAxesPage: React.FC = () => {
     niveau: ''
   });
   const [page, setPage] = useState(1);
-  const [selectedAxe, setSelectedAxe] = useState<any>(null);
+  const [selectedAxe, setSelectedAxe] = useState<Record<string, unknown> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
@@ -84,7 +84,7 @@ const AnalyticalAxesPage: React.FC = () => {
       setShowCreateModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création');
     },
   });
@@ -148,7 +148,7 @@ const AnalyticalAxesPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {

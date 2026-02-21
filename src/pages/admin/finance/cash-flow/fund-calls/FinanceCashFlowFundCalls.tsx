@@ -205,9 +205,9 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
         { name: "Statut" },
     ];
 
-    const [contentDrawerActive, setContentDrawerActive] = useState<any>();
+    const [contentDrawerActive, setContentDrawerActive] = useState<Record<string, unknown>>();
     const [drawer, setDrawer] = useState<boolean>(false);
-    const serviceCodeList: any[] = [''].map(item => ({ id: (item as any).id, name: (item as any).service_code }));
+    const serviceCodeList: Array<{ id: string; name: string }> = [''].map(item => ({ id: (item as unknown as Record<string, string>).id, name: (item as unknown as Record<string, string>).service_code }));
 
     return (
         <>

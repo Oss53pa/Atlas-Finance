@@ -125,12 +125,22 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
   );
 };
 
+interface LCMTestResult {
+  itemId: string;
+  itemName: string;
+  cost: number;
+  marketValue: number;
+  writeDown: number;
+  status: string;
+  [key: string]: unknown;
+}
+
 interface LCMTestingProps {
-  onTestComplete: (results: any) => void;
+  onTestComplete: (results: LCMTestResult[]) => void;
 }
 
 const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
-  const [testResults, setTestResults] = useState<any[]>([]);
+  const [testResults, setTestResults] = useState<LCMTestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [complianceStandard, setComplianceStandard] = useState<'IFRS_IAS2' | 'US_GAAP_ASC330'>('IFRS_IAS2');
 
@@ -199,7 +209,7 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
         <div className="flex items-center gap-4">
           <select
             value={complianceStandard}
-            onChange={(e) => setComplianceStandard(e.target.value as any)}
+            onChange={(e) => setComplianceStandard(e.target.value as 'IFRS_IAS2' | 'US_GAAP_ASC330')}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm"
           >
             <option value="IFRS_IAS2">IFRS IAS 2</option>
@@ -350,7 +360,7 @@ const InventoryValuation: React.FC = () => {
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [valuationData, setValuationData] = useState<InventoryValuation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [lcmResults, setLcmResults] = useState<any[]>([]);
+  const [lcmResults, setLcmResults] = useState<LCMTestResult[]>([]);
 
   const valuationMethods: ValuationMethod[] = ['FIFO', 'LIFO', 'WEIGHTED_AVERAGE', 'SPECIFIC_IDENTIFICATION'];
 

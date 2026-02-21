@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -330,7 +331,7 @@ const FournisseursModule: React.FC = () => {
     }
   ];
 
-  const filteredFournisseurs = fournisseurs.filter(fournisseur => {
+  const filteredFournisseurs = useMemo(() => fournisseurs.filter(fournisseur => {
     const matchSearch = fournisseur.raisonSociale.toLowerCase().includes(searchTerm.toLowerCase()) ||
                        fournisseur.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
                        fournisseur.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase());
@@ -338,15 +339,8 @@ const FournisseursModule: React.FC = () => {
     const matchStatut = selectedStatut === 'all' || fournisseur.statut === selectedStatut;
 
     return matchSearch && matchCategory && matchStatut;
-  });
+  }), [fournisseurs, searchTerm, selectedCategory, selectedStatut]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const getCategorieColor = (categorie: string) => {
     switch (categorie) {
@@ -395,10 +389,12 @@ const FournisseursModule: React.FC = () => {
   };
 
   // Calcul des statistiques
-  const totalEncours = fournisseurs.reduce((sum, f) => sum + f.encoursActuel, 0);
-  const totalAchats = fournisseurs.reduce((sum, f) => sum + f.volumeAchats, 0);
-  const moyenneDPO = Math.round(fournisseurs.reduce((sum, f) => sum + f.dpo, 0) / fournisseurs.length);
-  const fournisseursActifs = fournisseurs.filter(f => f.statut === 'ACTIF').length;
+  const { totalEncours, totalAchats, moyenneDPO, fournisseursActifs } = useMemo(() => ({
+    totalEncours: fournisseurs.reduce((sum, f) => sum + f.encoursActuel, 0),
+    totalAchats: fournisseurs.reduce((sum, f) => sum + f.volumeAchats, 0),
+    moyenneDPO: Math.round(fournisseurs.reduce((sum, f) => sum + f.dpo, 0) / fournisseurs.length),
+    fournisseursActifs: fournisseurs.filter(f => f.statut === 'ACTIF').length,
+  }), [fournisseurs]);
 
   // Analytics Data
   const analyticsData = {
@@ -428,7 +424,7 @@ const FournisseursModule: React.FC = () => {
   const COLORS = ['#6A8A82', '#B87333', '#7A99AC', '#5A79AC'];
 
   // Données Balance Âgée Fournisseurs (Dettes)
-  const balanceAgeeData: BalanceAgeeFournisseurItem[] = fournisseurs.map(f => ({
+  const balanceAgeeData: BalanceAgeeFournisseurItem[] = useMemo(() => fournisseurs.map(f => ({
     fournisseurId: f.id,
     fournisseurCode: f.code,
     fournisseurNom: f.raisonSociale,
@@ -440,10 +436,10 @@ const FournisseursModule: React.FC = () => {
     echuPlus90: f.echuPlus90,
     // Provision calculée selon SYSCOHADA (20% pour 61-90j, 50% pour +90j)
     provision: (f.echu61_90 * 0.2) + (f.echuPlus90 * 0.5)
-  }));
+  })), [fournisseurs]);
 
   // Calculs totaux Balance Âgée Fournisseurs
-  const totauxBalanceAgee = balanceAgeeData.reduce((acc, item) => ({
+  const totauxBalanceAgee = useMemo(() => balanceAgeeData.reduce((acc, item) => ({
     totalDettes: acc.totalDettes + item.totalDettes,
     nonEchu: acc.nonEchu + item.nonEchu,
     echu0_30: acc.echu0_30 + item.echu0_30,
@@ -453,7 +449,7 @@ const FournisseursModule: React.FC = () => {
     provision: acc.provision + item.provision
   }), {
     totalDettes: 0, nonEchu: 0, echu0_30: 0, echu31_60: 0, echu61_90: 0, echuPlus90: 0, provision: 0
-  });
+  }), [balanceAgeeData]);
 
   // Data pour graphique Balance Âgée Fournisseurs
   const balanceAgeeChartData = [

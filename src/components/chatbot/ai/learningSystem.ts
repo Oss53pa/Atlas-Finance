@@ -4,6 +4,71 @@
  */
 
 // Interfaces pour le système d'apprentissage
+interface InteractionContext {
+  currentModule?: string;
+  userRole?: string;
+  [key: string]: unknown;
+}
+
+interface ImplicitSignals {
+  userResponseTime?: number;
+  followUpActions?: string[];
+  [key: string]: unknown;
+}
+
+interface AdaptedPersonality {
+  tone: 'formal' | 'friendly' | 'enthusiastic';
+  responseLength: 'short' | 'medium' | 'long';
+  style: 'concise' | 'detailed' | 'visual' | 'step-by-step';
+  complexity: string;
+  focusAreas: string[];
+}
+
+interface PersonalizedExperience {
+  welcomeMessage: string;
+  suggestedTopics: string[];
+  interfacePreferences: Record<string, unknown>;
+  learningPath: LearningStep[];
+  shortcuts: string[];
+}
+
+interface LearningStep {
+  step: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+interface FailureFactor {
+  type: string;
+  [key: string]: unknown;
+}
+
+interface LearningExportData {
+  interactionsSummary: {
+    total: number;
+    averageSatisfaction: number;
+    topIntents: string[];
+  };
+  patterns: LearningPattern[];
+  userProfiles: Record<string, unknown>[];
+  adaptationHistory: AdaptationEvent[];
+  exportTimestamp: string;
+}
+
+interface SerializedUserProfile {
+  userId: string;
+  expertiseLevel: 'beginner' | 'intermediate' | 'expert';
+  preferredCommunicationStyle: 'concise' | 'detailed' | 'visual' | 'step-by-step';
+  frequentTopics: [string, number][];
+  successfulInteractionPatterns: LearningPattern[];
+  problematicAreas: string[];
+  optimalResponseLength: 'short' | 'medium' | 'long';
+  preferredTone: 'formal' | 'friendly' | 'enthusiastic';
+  learningGoals: string[];
+  adaptationHistory: AdaptationEvent[];
+}
+
+type AdaptationRuleFn = (response: string, context: InteractionContext) => string;
+
 interface UserInteraction {
   id: string;
   timestamp: Date;
@@ -13,7 +78,7 @@ interface UserInteraction {
   userSatisfaction?: number; // 0-1 score
   userFeedback?: 'positive' | 'negative' | 'neutral';
   responseTime: number;
-  contextAtTime: any;
+  contextAtTime: InteractionContext;
   wasHelpful: boolean;
   followUpActions: string[];
 }
@@ -21,7 +86,7 @@ interface UserInteraction {
 interface LearningPattern {
   patternId: string;
   type: 'preference' | 'success' | 'failure' | 'style' | 'content';
-  pattern: any;
+  pattern: Record<string, unknown>;
   confidence: number;
   occurrences: number;
   lastSeen: Date;
@@ -44,8 +109,8 @@ interface UserProfile {
 interface AdaptationEvent {
   timestamp: Date;
   type: 'style_change' | 'content_adjustment' | 'pattern_learning' | 'preference_update';
-  before: any;
-  after: any;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
   trigger: string;
   impact: number;
 }
@@ -63,7 +128,7 @@ export class PalomaLearningSystem {
   private interactions: UserInteraction[] = [];
   private userProfiles: Map<string, UserProfile> = new Map();
   private globalPatterns: LearningPattern[] = [];
-  private adaptationRules: Map<string, Function> = new Map();
+  private adaptationRules: Map<string, AdaptationRuleFn> = new Map();
   private learningEnabled: boolean = true;
 
   constructor() {
@@ -93,7 +158,7 @@ export class PalomaLearningSystem {
     userQuery: string,
     response: string,
     userFeedback?: 'positive' | 'negative' | 'neutral',
-    implicitSignals?: any
+    implicitSignals?: ImplicitSignals
   ): number {
     let satisfaction = 0.5; // Score de base
 
@@ -119,7 +184,7 @@ export class PalomaLearningSystem {
     return Math.max(0, Math.min(1, satisfaction));
   }
 
-  adaptPersonalityToUser(userId: string): any {
+  adaptPersonalityToUser(userId: string): AdaptedPersonality {
     const profile = this.userProfiles.get(userId);
     if (!profile) return this.getDefaultPersonality();
 
@@ -185,13 +250,14 @@ export class PalomaLearningSystem {
 
   adaptResponseInRealTime(
     baseResponse: string,
-    context: any,
-    userHistory: UserInteraction[]
+    context: InteractionContext | undefined,
+    userHistory: Partial<UserInteraction>[]
   ): string {
     let adaptedResponse = baseResponse;
+    const safeContext: InteractionContext = context ?? {};
 
     // Adapter selon les patterns appris
-    const relevantPatterns = this.findRelevantPatterns(context, userHistory);
+    const relevantPatterns = this.findRelevantPatterns(safeContext, userHistory);
 
     for (const pattern of relevantPatterns) {
       adaptedResponse = this.applyPattern(adaptedResponse, pattern);
@@ -199,8 +265,8 @@ export class PalomaLearningSystem {
 
     // Adapter selon les règles d'adaptation
     for (const [ruleName, rule] of this.adaptationRules) {
-      if (this.shouldApplyRule(ruleName, context)) {
-        adaptedResponse = rule(adaptedResponse, context);
+      if (this.shouldApplyRule(ruleName, safeContext)) {
+        adaptedResponse = rule(adaptedResponse, safeContext);
       }
     }
 
@@ -209,8 +275,8 @@ export class PalomaLearningSystem {
 
   suggestResponseImprovements(
     originalResponse: string,
-    userFeedback: any,
-    context: any
+    userFeedback: { satisfaction: number; emotionalState?: string },
+    context: InteractionContext
   ): string[] {
     const suggestions: string[] = [];
 
@@ -242,7 +308,7 @@ export class PalomaLearningSystem {
 
   // === PERSONNALISATION AVANCÉE ===
 
-  personalizeExperience(userId: string): any {
+  personalizeExperience(userId: string): PersonalizedExperience | Record<string, never> {
     const profile = this.userProfiles.get(userId);
     if (!profile) return {};
 
@@ -257,8 +323,8 @@ export class PalomaLearningSystem {
     return personalization;
   }
 
-  generateLearningPath(profile: UserProfile): any[] {
-    const path = [];
+  generateLearningPath(profile: UserProfile): LearningStep[] {
+    const path: LearningStep[] = [];
 
     // Basé sur le niveau d'expertise
     if (profile.expertiseLevel === 'beginner') {
@@ -297,7 +363,7 @@ export class PalomaLearningSystem {
     };
   }
 
-  exportLearningData(): any {
+  exportLearningData(): LearningExportData {
     return {
       interactionsSummary: {
         total: this.interactions.length,
@@ -318,24 +384,25 @@ export class PalomaLearningSystem {
 
   private initializeAdaptationRules(): void {
     // Règle pour adapter la longueur des réponses
-    this.adaptationRules.set('adjust_length', (response: string, context: any) => {
-      if (context.userPreference?.responseLength === 'short') {
+    this.adaptationRules.set('adjust_length', (response: string, context: InteractionContext) => {
+      const userPref = context['userPreference'] as Record<string, unknown> | undefined;
+      if (userPref?.responseLength === 'short') {
         return this.shortenResponse(response);
       }
       return response;
     });
 
     // Règle pour ajouter de l'empathie
-    this.adaptationRules.set('add_empathy', (response: string, context: any) => {
-      if (context.emotionalState === 'frustrated') {
+    this.adaptationRules.set('add_empathy', (response: string, context: InteractionContext) => {
+      if (context['emotionalState'] === 'frustrated') {
         return `🤗 Je comprends votre frustration. ${response}`;
       }
       return response;
     });
 
     // Règle pour adapter le niveau technique
-    this.adaptationRules.set('adjust_technical_level', (response: string, context: any) => {
-      if (context.expertiseLevel === 'beginner') {
+    this.adaptationRules.set('adjust_technical_level', (response: string, context: InteractionContext) => {
+      if (context['expertiseLevel'] === 'beginner') {
         return this.simplifyTechnicalTerms(response);
       }
       return response;
@@ -520,7 +587,7 @@ export class PalomaLearningSystem {
         this.globalPatterns = data.patterns || [];
         // Reconstituer les user profiles
         if (data.userProfiles) {
-          data.userProfiles.forEach((profileData: any) => {
+          data.userProfiles.forEach((profileData: SerializedUserProfile) => {
             const profile = {
               ...profileData,
               frequentTopics: new Map(profileData.frequentTopics || [])

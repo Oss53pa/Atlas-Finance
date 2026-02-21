@@ -48,7 +48,7 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({
 
   const montantRestant = dossier.montantTotal - dossier.montantPaye;
 
-  const handleChange = (field: keyof ReminderFormData, value: any) => {
+  const handleChange = (field: keyof ReminderFormData, value: string | number | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {

@@ -185,7 +185,7 @@ const ReconciliationManager: React.FC<ReconciliationManagerProps> = ({
     });
   };
 
-  const applySuggestion = (suggestion: any) => {
+  const applySuggestion = (suggestion: { lines: string[] }) => {
     setSelectedLines(suggestion.lines);
   };
 

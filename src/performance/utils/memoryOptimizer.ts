@@ -29,7 +29,7 @@ interface ComponentMemoryInfo {
 export class MemoryOptimizer {
   private memoryHistory: MemoryMetrics[] = [];
   private monitoringInterval: NodeJS.Timeout | null = null;
-  private observers: Map<string, any> = new Map();
+  private observers: Map<string, { disconnect?: () => void }> = new Map();
   private componentRegistry: Map<string, ComponentMemoryInfo> = new Map();
   private eventListeners: Map<HTMLElement, Set<string>> = new Map();
 
@@ -50,7 +50,7 @@ export class MemoryOptimizer {
   private collectMemoryMetrics(): void {
     if (!('memory' in performance)) return;
 
-    const memory = (performance as any).memory;
+    const memory = (performance as Performance & { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
     const metrics: MemoryMetrics = {
       usedJSHeapSize: memory.usedJSHeapSize,
       totalJSHeapSize: memory.totalJSHeapSize,
@@ -84,9 +84,9 @@ export class MemoryOptimizer {
   private setupMemoryPressureDetection(): void {
     // Modern browsers support memory pressure API
     if ('memory' in navigator) {
-      const memory = (navigator as any).memory;
-      if (memory && typeof memory.addEventListener === 'function') {
-        memory.addEventListener('memoryPressure', () => {
+      const navMemory = (navigator as Navigator & { memory?: { addEventListener?: (event: string, handler: () => void) => void } }).memory;
+      if (navMemory && typeof navMemory.addEventListener === 'function') {
+        navMemory.addEventListener('memoryPressure', () => {
           this.handleMemoryPressure();
         });
       }
@@ -108,8 +108,8 @@ export class MemoryOptimizer {
 
   private handleMemoryPressure(): void {
     // Trigger garbage collection if available
-    if ((window as any).gc) {
-      (window as any).gc();
+    if (typeof (window as Window & { gc?: () => void }).gc === 'function') {
+      (window as Window & { gc?: () => void }).gc!();
     }
 
     // Clean up component registry
@@ -173,7 +173,7 @@ export class MemoryOptimizer {
     // Check for global variables holding DOM references
     const globalVars = Object.keys(window).filter(key => {
       try {
-        const value = (window as any)[key];
+        const value = (window as unknown as Record<string, unknown>)[key];
         return value instanceof HTMLElement;
       } catch {
         return false;
@@ -197,7 +197,7 @@ export class MemoryOptimizer {
 
     // This is a simplified check - in real implementation,
     // you'd need to track timer creation/cleanup
-    const timers = (window as any).__timers || [];
+    const timers = (window as Window & { __timers?: unknown[] }).__timers || [];
     if (timers.length > 50) {
       leaks.push({
         type: 'interval',
@@ -272,7 +272,7 @@ export class MemoryOptimizer {
     }
   }
 
-  public registerObserver(id: string, observer: any): void {
+  public registerObserver(id: string, observer: { disconnect?: () => void }): void {
     this.observers.set(id, observer);
   }
 
@@ -355,8 +355,8 @@ export class MemoryOptimizer {
 
   public optimizeMemoryUsage(): void {
     // Force garbage collection if available
-    if ((window as any).gc) {
-      (window as any).gc();
+    if (typeof (window as Window & { gc?: () => void }).gc === 'function') {
+      (window as Window & { gc?: () => void }).gc!();
     }
 
     // Clean up internal data structures

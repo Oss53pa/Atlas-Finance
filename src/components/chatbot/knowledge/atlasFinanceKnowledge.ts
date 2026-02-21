@@ -897,7 +897,7 @@ export function getSmartSuggestions(): string[] {
 }
 
 // Fonction pour obtenir des statistiques de recherche
-export function getSearchStats(): any {
+export function getSearchStats(): { totalEntries: number; categories: string[]; subcategories: (string | undefined)[]; totalKeywords: number } {
   return {
     totalEntries: atlasFinanceKnowledge.length,
     categories: [...new Set(atlasFinanceKnowledge.map(e => e.category))],

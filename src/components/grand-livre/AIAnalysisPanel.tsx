@@ -2,10 +2,10 @@ import React from 'react';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 
 interface SearchResult {
-  entries: any[];
+  entries: Record<string, unknown>[];
   total_count: number;
   confidence_score: number;
-  aggregations: Record<string, any>;
+  aggregations: Record<string, unknown>;
 }
 
 interface AIAnalysisPanelProps {

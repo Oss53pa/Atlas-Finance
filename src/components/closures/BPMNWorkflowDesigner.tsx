@@ -28,7 +28,7 @@ interface BPMNNode {
   y: number;
   width: number;
   height: number;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
   connections: string[];
 }
 
@@ -299,7 +299,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                 draggable
                 onDragStart={() => setDraggedNode({
                   id: `${element.type}_${Date.now()}`,
-                  type: element.type as any,
+                  type: element.type as BPMNNode['type'],
                   name: element.name,
                   x: 0,
                   y: 0,
@@ -477,7 +477,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
                     value={node.type}
                     onChange={(e) => {
                       setNodes(nodes.map(n =>
-                        n.id === selectedNode ? { ...n, type: e.target.value as any } : n
+                        n.id === selectedNode ? { ...n, type: e.target.value as BPMNNode['type'] } : n
                       ));
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"

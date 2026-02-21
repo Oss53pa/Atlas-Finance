@@ -18,8 +18,26 @@ interface BaseModalProps {
   onClose: () => void;
 }
 
+interface Rapport {
+  id: string;
+  nom: string;
+  type: string;
+  module: string;
+  statut: string;
+  progression?: number;
+  dateCreation: string;
+  dateModification: string;
+  responsable: string;
+  taille?: string;
+  format?: string;
+  priorite?: string;
+  tags?: string[];
+  partage?: string[];
+  prochaineLancement?: string;
+}
+
 interface ViewReportModalProps extends BaseModalProps {
-  rapport: any;
+  rapport: Rapport | null;
 }
 
 export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClose, rapport }) => {
@@ -306,13 +324,13 @@ export const ViewReportModal: React.FC<ViewReportModalProps> = ({ isOpen, onClos
 };
 
 interface EditReportModalProps extends BaseModalProps {
-  rapport: any;
-  onSave: (data: any) => void;
+  rapport: Rapport | null;
+  onSave: (data: Rapport) => void;
 }
 
 export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClose, rapport, onSave }) => {
   const { t } = useLanguage();
-  const [formData, setFormData] = useState(rapport || {});
+  const [formData, setFormData] = useState<Rapport>(rapport || {} as Rapport);
   const [newTag, setNewTag] = useState('');
 
   // Sync formData when rapport changes - MUST be before any conditional return
@@ -552,7 +570,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({ isOpen, onClos
 };
 
 interface DownloadReportModalProps extends BaseModalProps {
-  rapport: any;
+  rapport: Rapport | null;
 }
 
 export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen, onClose, rapport }) => {
@@ -713,8 +731,14 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({ isOpen
   );
 };
 
+interface ShareableItem {
+  id: string;
+  nom?: string;
+  name?: string;
+}
+
 interface ShareModalProps extends BaseModalProps {
-  item: any;
+  item: ShareableItem | null;
   type: 'rapport' | 'template';
 }
 
@@ -871,14 +895,27 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, item, t
   );
 };
 
+interface ScheduleData {
+  id?: string;
+  rapport: string;
+  frequence?: string;
+  heure?: string;
+  fuseau?: string;
+  format?: string;
+  destinataires?: string;
+  actif?: boolean;
+  notifEchec?: boolean;
+  piecesJointes?: boolean;
+}
+
 interface ScheduleSettingsModalProps extends BaseModalProps {
-  schedule: any;
-  onSave: (data: any) => void;
+  schedule: ScheduleData | null;
+  onSave: (data: ScheduleData) => void;
 }
 
 export const ScheduleSettingsModal: React.FC<ScheduleSettingsModalProps> = ({ isOpen, onClose, schedule, onSave }) => {
   const { t } = useLanguage();
-  const [formData, setFormData] = useState(schedule || {});
+  const [formData, setFormData] = useState<ScheduleData>(schedule || {} as ScheduleData);
 
   // Sync formData when schedule changes - MUST be before any conditional return
   React.useEffect(() => {

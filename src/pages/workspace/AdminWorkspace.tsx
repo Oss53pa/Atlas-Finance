@@ -222,7 +222,7 @@ const AdminWorkspace: React.FC = () => {
                   {id:'settings',label:'Parametres',icon:Settings},
                   {id:'help',label:'Aide',icon:HelpCircle}
                 ].map(item => (
-                  <button key={item.id} onClick={() => setActiveSection(item.id as any)} className={`${activeSection===item.id?'bg-[#DC2626]/10 text-[#DC2626]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
+                  <button key={item.id} onClick={() => setActiveSection(item.id as typeof activeSection)} className={`${activeSection===item.id?'bg-[#DC2626]/10 text-[#DC2626]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
                     <div className="flex items-center space-x-3"><item.icon className="w-4 h-4" /><span className="text-sm font-medium">{item.label}</span></div>
                     {item.badge && <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">{item.badge}</span>}
                   </button>

@@ -6,9 +6,18 @@ import { Play, FileText, Euro, Calendar } from 'lucide-react';
 
 const CapitalizationDemo: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<SampleInvoice | null>(null);
 
-  const sampleInvoices = [
+  interface SampleInvoice {
+    id: string;
+    amount: number;
+    supplier: string;
+    description: string;
+    account: string;
+    date: string;
+  }
+
+  const sampleInvoices: SampleInvoice[] = [
     {
       id: "INV-2024-001",
       amount: 2500,
@@ -43,12 +52,12 @@ const CapitalizationDemo: React.FC = () => {
     }
   ];
 
-  const handleShowModal = (invoice: any) => {
+  const handleShowModal = (invoice: SampleInvoice) => {
     setSelectedInvoice(invoice);
     setShowModal(true);
   };
 
-  const handleSubmitCapitalization = (data: any) => {
+  const handleSubmitCapitalization = (data: Record<string, unknown>) => {
     // Ici on enverrait les données au backend
     alert('Demande de capitalisation soumise avec succès !');
   };

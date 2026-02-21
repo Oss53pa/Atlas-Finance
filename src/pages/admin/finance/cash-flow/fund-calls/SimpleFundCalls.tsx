@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatDate } from '../../../../../utils/formatters';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 
@@ -53,10 +54,6 @@ export const SimpleFundCalls: React.FC = () => {
     }, 500);
   }, []);
 
-  const formatDate = (date: string): string => {
-    const newDate = new Date(date);
-    return newDate.toLocaleDateString('fr-FR');
-  };
 
   const formatAmount = (amount: number): string => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';

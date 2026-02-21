@@ -96,7 +96,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
             <Label>Fréquence</Label>
             <Select
               value={config.frequency}
-              onValueChange={(value: any) => setConfig({ ...config, frequency: value })}
+              onValueChange={(value: string) => setConfig({ ...config, frequency: value })}
             >
               <SelectTrigger className="mt-2">
                 <SelectValue />

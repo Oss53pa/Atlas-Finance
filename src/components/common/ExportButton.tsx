@@ -10,7 +10,7 @@ export type ExportFormat = 'excel' | 'csv' | 'pdf' | 'json' | 'xml';
 
 interface ExportButtonProps {
   module: string;
-  data?: any;
+  data?: unknown;
   onExport?: (format: ExportFormat, options: ExportOptions) => void;
   className?: string;
   variant?: 'default' | 'outline' | 'ghost';

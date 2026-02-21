@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { ChatMessage, ChatAction } from '../types';
 import { PalomaAvatar } from './PalomaAvatar';
 
@@ -103,7 +104,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div
           className="message-bubble__text"
           dangerouslySetInnerHTML={{
-            __html: formatMessageContent(message.content)
+            __html: DOMPurify.sanitize(formatMessageContent(message.content), {
+              ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br', 'p', 'ul', 'li', 'ol', 'code', 'pre', 'a'],
+              ALLOWED_ATTR: ['href', 'target', 'class'],
+            })
           }}
         />
 

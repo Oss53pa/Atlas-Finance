@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import {
   CurrencyDollarIcon,
   CheckCircleIcon,
@@ -70,61 +72,63 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   const { data: cashFlowData, isLoading } = useQuery({
     queryKey: ['cash-flow-statement-syscohada', selectedPeriod],
     queryFn: async (): Promise<CashFlowStatementData> => {
-      // Mock data conforme SYSCOHADA
+      const entries = await db.journalEntries.toArray();
+      const net = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+        return t;
+      };
+      const creditN = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+        return t;
+      };
+
+      const netResult = creditN('7') - net('6');
+      const depreciationAndProvisions = net('68', '69');
+      const provisionsReversals = creditN('78', '79');
+      const selfFinancingCapacity = netResult + depreciationAndProvisions - provisionsReversals;
+      const workingCapitalVariation = net('3', '41', '46') - creditN('40', '42', '43', '44');
+      const operatingCashFlow = selfFinancingCapacity - workingCapitalVariation;
+
+      const fixedAssetsAcquisitions = Math.max(0, net('2') + net('28'));
+      const financialAssetsAcquisitions = Math.max(0, net('26', '27'));
+      const investmentCashFlow = -fixedAssetsAcquisitions - financialAssetsAcquisitions;
+
+      const capitalIncrease = creditN('10');
+      const investmentSubsidiesReceived = creditN('14');
+      const newBorrowings = creditN('16');
+      const loanRepayments = net('16') > 0 ? net('16') : 0;
+      const dividendsPaid = net('465');
+      const financingCashFlow = capitalIncrease + investmentSubsidiesReceived + newBorrowings - loanRepayments - dividendsPaid;
+
+      const cashFlowVariation = operatingCashFlow + investmentCashFlow + financingCashFlow;
+      const closingCashBalance = net('5');
+      const openingCashBalance = closingCashBalance - cashFlowVariation;
+
       return {
         id: '1',
-        company: {
-          name: 'ATLAS FINANCE SARL',
-          address: 'Yaoundé, Cameroun'
-        },
-        fiscalYear: '2024',
-        statementDate: '2024-08-31',
+        company: { name: 'ATLAS FINANCE', address: '' },
+        fiscalYear: new Date().getFullYear().toString(),
+        statementDate: new Date().toISOString().split('T')[0],
         calculationMethod: 'INDIRECT',
-        
-        // Flux d'exploitation
-        netResultForCashFlow: 1450000,
-        depreciationAndProvisions: 850000,
-        provisionsReversals: 120000,
-        valueAdjustments: 25000,
-        selfFinancingCapacity: 2205000,
-        workingCapitalVariation: 380000,
-        operatingCashFlow: 1825000,
-        
-        // Flux d'investissement
-        fixedAssetsAcquisitions: 950000,
-        fixedAssetsDisposals: 180000,
-        financialAssetsAcquisitions: 200000,
-        financialAssetsDisposals: 50000,
-        investmentCashFlow: -920000,
-        
-        // Flux de financement
-        capitalIncrease: 0,
-        investmentSubsidiesReceived: 100000,
-        newBorrowings: 800000,
-        loanRepayments: 650000,
-        dividendsPaid: 250000,
-        financingCashFlow: 0,
-        
-        // Variation de trésorerie
-        cashFlowVariation: 905000,
-        openingCashBalance: 565000,
-        closingCashBalance: 1470000,
-        cashVariationControl: 905000,
-        isCashFlowBalanced: true,
-        
-        isValidated: true,
-        validatedBy: 'Marie Dubois',
-        validationDate: '2024-08-31T17:00:00Z'
+        netResultForCashFlow: netResult,
+        depreciationAndProvisions, provisionsReversals, valueAdjustments: 0,
+        selfFinancingCapacity, workingCapitalVariation, operatingCashFlow,
+        fixedAssetsAcquisitions, fixedAssetsDisposals: 0,
+        financialAssetsAcquisitions, financialAssetsDisposals: 0, investmentCashFlow,
+        capitalIncrease, investmentSubsidiesReceived, newBorrowings, loanRepayments,
+        dividendsPaid, financingCashFlow,
+        cashFlowVariation, openingCashBalance, closingCashBalance,
+        cashVariationControl: cashFlowVariation,
+        isCashFlowBalanced: Math.abs(cashFlowVariation - (closingCashBalance - openingCashBalance)) < 1,
+        isValidated: false,
       };
     }
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const getFlowIcon = (value: number) => {
     if (value > 0) return <ArrowUpIcon className="h-4 w-4 text-green-500" />;

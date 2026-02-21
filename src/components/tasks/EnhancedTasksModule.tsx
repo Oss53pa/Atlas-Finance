@@ -102,7 +102,7 @@ interface Task {
   isRecurring?: boolean;
   recurringPattern?: RecurringPattern;
   reminders?: Reminder[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   automationRules?: AutomationRule[];
   labels?: Label[];
   checklist?: ChecklistItem[];
@@ -120,8 +120,8 @@ interface TaskHistory {
   user: string;
   date: Date;
   details?: string;
-  oldValue?: any;
-  newValue?: any;
+  oldValue?: unknown;
+  newValue?: unknown;
 }
 
 interface SubTask {
@@ -171,7 +171,7 @@ interface AutomationRule {
   id: string;
   trigger: string;
   action: string;
-  conditions?: Record<string, any>;
+  conditions?: Record<string, unknown>;
 }
 
 interface Label {

@@ -47,7 +47,7 @@ interface AccountingSetting {
   id: string;
   label: string;
   description: string;
-  value: any;
+  value: string | number | boolean;
   type: 'select' | 'number' | 'boolean' | 'text' | 'date';
   options?: { value: string; label: string }[];
   min?: number;
@@ -783,7 +783,7 @@ const AccountingSettingsPage: React.FC = () => {
     return isValid;
   };
 
-  const handleSettingChange = (category: string, settingId: string, value: any) => {
+  const handleSettingChange = (category: string, settingId: string, value: string | number | boolean) => {
     setSettings(prev => ({
       ...prev,
       [category]: prev[category].map(setting =>

@@ -411,7 +411,7 @@ const AssetsMaintenance: React.FC = () => {
   const uniqueTechnicians = [...new Set(mockMaintenanceRecords.map(r => r.technician).filter(Boolean))];
 
   // Form handlers
-  const handleFormChange = (field: string, value: any) => {
+  const handleFormChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field when user starts typing
     if (formErrors[field]) {

@@ -31,12 +31,17 @@ import {
 import SearchableDropdown from '../ui/SearchableDropdown';
 import { TVAValidator, LigneEcriture as TVALigneEcriture, TVAValidationResult } from '../../utils/tvaValidation';
 import { isEntryEditable, isEntryReversible } from '../../utils/reversalService';
+import { validateJournalEntry, getNextPieceNumber } from '../../validators/journalEntryValidator';
+import { db } from '../../lib/db';
+import { safeAddEntry } from '../../services/entryGuard';
+import { validerEcriture, comptabiliserEcriture, retourBrouillon, allowedTransitions, transitionLabel } from '../../services/entryWorkflow';
+import type { EntryStatus } from '../../services/entryWorkflow';
 import TemplateSelector from '../comptabilite/TemplateSelector';
 
 interface JournalEntryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialData?: any;
+  initialData?: Record<string, unknown>;
   mode?: 'create' | 'edit';
 }
 
@@ -219,7 +224,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const [sousJournalOD, setSousJournalOD] = useState('');
 
   // État pour les attachements
-  const [attachements, setAttachements] = useState<any[]>([
+  const [attachements, setAttachements] = useState<Array<{ nom: string; type: string; taille: string; reference: string; ligneAssociee: string; commentaire: string }>>([
     {
       nom: 'facture_FA2025001.pdf',
       type: 'Facture',
@@ -528,6 +533,70 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     setTabValidation(newValidation);
   }, [validateDetailsTab, validateVentilationTab, validateValidationTab]);
 
+  // --- Sauvegarder l'écriture en Dexie après validation complète ---
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveEntry = useCallback(async () => {
+    if (isSaving || validationErrors.length > 0) return;
+
+    setIsSaving(true);
+    try {
+      const journalCode = transactionType === 'purchase' ? 'AC'
+        : transactionType === 'sale' ? 'VE'
+        : transactionType === 'payment' ? (reglementInfo.compteBank === '531000' ? 'CA' : 'BQ')
+        : transactionType === 'transfer' ? 'TR'
+        : 'OD';
+
+      // Validation complète via le validateur dédié (Money class, D=C, comptes, période)
+      const lines = lignesEcriture.map((l, i) => ({
+        id: `L${i + 1}`,
+        accountCode: l.compte,
+        accountName: l.libelle,
+        label: l.libelle,
+        debit: l.debit,
+        credit: l.credit,
+        analyticalCode: l.codeAnalytique || undefined,
+      }));
+
+      const result = await validateJournalEntry({
+        date: details.dateEcriture,
+        lines,
+        journal: journalCode,
+        label: details.description,
+      });
+
+      if (!result.isValid) {
+        setValidationErrors(result.errors);
+        setIsSaving(false);
+        return;
+      }
+
+      // Générer le numéro de pièce séquentiel
+      const entryNumber = await getNextPieceNumber(journalCode);
+
+      await safeAddEntry({
+        id: crypto.randomUUID(),
+        entryNumber,
+        journal: journalCode,
+        date: details.dateEcriture,
+        label: details.description,
+        reference: details.reference,
+        lines,
+        status: 'draft' as const,
+        createdAt: new Date().toISOString(),
+        createdBy: details.preparePar,
+      });
+
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde :', error);
+      setValidationErrors([`Erreur de sauvegarde : ${error instanceof Error ? error.message : String(error)}`]);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [isSaving, validationErrors, lignesEcriture, details, transactionType, reglementInfo.compteBank, resetForm, onClose]);
+
   // Gestion du clavier pour la navigation entre onglets
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -559,6 +628,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       if (e.key === 'Enter' && e.ctrlKey && activeTab === 'validation') {
         e.preventDefault();
         if (validationErrors.length === 0) {
+          handleSaveEntry();
         }
       }
     };
@@ -578,7 +648,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     setLignesEcriture(lignesEcriture.filter((_, i) => i !== index));
   };
 
-  const modifierLigne = (index: number, field: keyof LigneEcriture, value: any) => {
+  const modifierLigne = (index: number, field: keyof LigneEcriture, value: string | number) => {
     const newLignes = [...lignesEcriture];
     newLignes[index] = { ...newLignes[index], [field]: value };
     setLignesEcriture(newLignes);
@@ -720,25 +790,62 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
             </div>
           </div>
 
-          {/* Lock Banner — Validated entry */}
-          {isLocked && (
-            <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-amber-700">
-                <AlertCircle className="h-5 w-5" />
-                <span className="font-medium">
-                  {initialData?.reversed
-                    ? `Écriture contrepassée le ${initialData.reversedAt?.split('T')[0] || ''}`
-                    : 'Écriture validée — Modification impossible (SYSCOHADA Art. 19)'}
+          {/* Status Banner + Workflow Buttons */}
+          {mode === 'edit' && initialData?.id && (
+            <div className={`border-b px-6 py-3 flex items-center justify-between ${
+              entryStatus === 'posted' ? 'bg-green-50 border-green-200'
+                : entryStatus === 'validated' ? 'bg-amber-50 border-amber-200'
+                : 'bg-blue-50 border-blue-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <AlertCircle className={`h-5 w-5 ${
+                  entryStatus === 'posted' ? 'text-green-600'
+                    : entryStatus === 'validated' ? 'text-amber-600'
+                    : 'text-blue-600'
+                }`} />
+                <span className="font-medium text-sm">
+                  {entryStatus === 'posted'
+                    ? initialData?.reversed
+                      ? `Contrepassée le ${initialData.reversedAt?.split('T')[0] || ''}`
+                      : 'Comptabilisée — Immutable (SYSCOHADA Art. 19)'
+                    : entryStatus === 'validated'
+                    ? 'Validée — En attente de comptabilisation'
+                    : 'Brouillon — Modifiable'}
                 </span>
               </div>
-              {canReverse && (
-                <button
-                  onClick={() => setShowReversalDialog(true)}
-                  className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Contrepassation
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {allowedTransitions(entryStatus as EntryStatus).map(target => (
+                  <button
+                    key={target}
+                    onClick={async () => {
+                      const fn = target === 'validated' ? validerEcriture
+                        : target === 'posted' ? comptabiliserEcriture
+                        : retourBrouillon;
+                      const res = await fn(initialData.id);
+                      if (res.success) {
+                        onClose();
+                      } else {
+                        setValidationErrors([res.error || 'Erreur']);
+                      }
+                    }}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                      target === 'posted' ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : target === 'validated' ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                    }`}
+                  >
+                    {transitionLabel(target)}
+                  </button>
+                ))}
+                {canReverse && (
+                  <button
+                    onClick={() => setShowReversalDialog(true)}
+                    className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Contrepassation
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -1940,7 +2047,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 </button>
               ) : (
                 <button
-                  disabled={validationErrors.length > 0}
+                  disabled={validationErrors.length > 0 || isSaving}
+                  onClick={handleSaveEntry}
                   className={`
                     px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2
                     ${validationErrors.length === 0
@@ -1951,7 +2059,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   title={validationErrors.length > 0 ? `${validationErrors.length} élément(s) à corriger` : 'Valider et comptabiliser cette écriture'}
                 >
                   <CheckCircle className="w-5 h-5" />
-                  <span>Valider et Comptabiliser</span>
+                  <span>{isSaving ? 'Enregistrement...' : 'Valider et Comptabiliser'}</span>
                 </button>
               )}
             </div>

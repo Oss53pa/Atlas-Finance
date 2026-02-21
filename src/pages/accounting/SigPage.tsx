@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
+import type { DBJournalEntry } from '../../lib/db';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { 
   Calculator,
@@ -63,208 +66,135 @@ const SigPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('2024');
   const [viewMode, setViewMode] = useState('sig'); // sig, ratios
   
-  // SIG selon SYSCOHADA
-  const soldesIntermediaires: SigItem[] = [
-    {
-      id: 'sf1',
-      libelle: 'Marge commerciale',
-      montant_n: 10000000,
-      montant_n1: 8500000,
-      variation: 17.6,
-      pourcentage_ca: 33.3,
-      formule: 'Ventes marchandises - Coût achat marchandises vendues'
-    },
-    {
-      id: 'sf2', 
-      libelle: 'Production de l\'exercice',
-      montant_n: 5000000,
-      montant_n1: 5700000,
-      variation: -12.3,
-      pourcentage_ca: 16.7,
-      formule: 'Production vendue + Production stockée + Production immobilisée'
-    },
-    {
-      id: 'sf3',
-      libelle: 'Valeur ajoutée',
-      montant_n: 12500000,
-      montant_n1: 11200000,
-      variation: 11.6,
-      pourcentage_ca: 41.7,
-      formule: 'Marge commerciale + Production - Consommations externes'
-    },
-    {
-      id: 'sf4',
-      libelle: 'Excédent brut d\'exploitation (EBE)',
-      montant_n: 7800000,
-      montant_n1: 7200000,
-      variation: 8.3,
-      pourcentage_ca: 26.0,
-      formule: 'Valeur ajoutée + Subventions - Charges de personnel - Impôts et taxes'
-    },
-    {
-      id: 'sf5',
-      libelle: 'Résultat d\'exploitation',
-      montant_n: 6000000,
-      montant_n1: 5550000,
-      variation: 8.1,
-      pourcentage_ca: 20.0,
-      formule: 'EBE + Autres produits - Autres charges - Dotations amortissements'
-    },
-    {
-      id: 'sf6',
-      libelle: 'Résultat financier',
-      montant_n: -450000,
-      montant_n1: -380000,
-      variation: 18.4,
-      pourcentage_ca: -1.5,
-      formule: 'Produits financiers - Charges financières'
-    },
-    {
-      id: 'sf7',
-      libelle: 'Résultat des activités ordinaires',
-      montant_n: 5550000,
-      montant_n1: 5170000,
-      variation: 7.3,
-      pourcentage_ca: 18.5,
-      formule: 'Résultat exploitation + Résultat financier'
-    },
-    {
-      id: 'sf8',
-      libelle: 'Résultat exceptionnel',
-      montant_n: 150000,
-      montant_n1: -50000,
-      variation: 400.0,
-      pourcentage_ca: 0.5,
-      formule: 'Produits exceptionnels - Charges exceptionnelles'
-    },
-    {
-      id: 'sf9',
-      libelle: 'Résultat avant impôt',
-      montant_n: 5700000,
-      montant_n1: 5120000,
-      variation: 11.3,
-      pourcentage_ca: 19.0,
-      formule: 'Résultat activités ordinaires + Résultat exceptionnel'
-    },
-    {
-      id: 'sf10',
-      libelle: 'Résultat net de l\'exercice',
-      montant_n: 4275000,
-      montant_n1: 3840000,
-      variation: 11.3,
-      pourcentage_ca: 14.25,
-      formule: 'Résultat avant impôt - Impôts sur les bénéfices'
-    }
-  ];
+  // Load journal entries from Dexie
+  const { data: entriesN = [] } = useQuery({
+    queryKey: ['sig-entries-n', selectedPeriod],
+    queryFn: () => db.journalEntries.filter(e => e.date.startsWith(selectedPeriod)).toArray(),
+  });
+  const prevYear = String(parseInt(selectedPeriod) - 1);
+  const { data: entriesN1 = [] } = useQuery({
+    queryKey: ['sig-entries-n1', prevYear],
+    queryFn: () => db.journalEntries.filter(e => e.date.startsWith(prevYear)).toArray(),
+  });
 
-  // Ratios financiers selon SYSCOHADA
-  const ratiosFinanciers: Ratio[] = [
-    // Ratios de liquidité
-    {
-      categorie: 'Liquidité',
-      nom: 'Liquidité générale',
-      valeur_n: 1.35,
-      valeur_n1: 1.28,
-      unite: '',
-      interpretation: 'bon',
-      benchmark: 1.2,
-      description: 'Actif circulant / Dettes à court terme'
-    },
-    {
-      categorie: 'Liquidité',
-      nom: 'Liquidité immédiate',
-      valeur_n: 0.65,
-      valeur_n1: 0.58,
-      unite: '',
-      interpretation: 'moyen',
-      benchmark: 0.8,
-      description: 'Disponibilités / Dettes à court terme'
-    },
-    
-    // Ratios de rentabilité
-    {
-      categorie: 'Rentabilité',
-      nom: 'Rentabilité économique (ROA)',
-      valeur_n: 12.8,
-      valeur_n1: 11.5,
-      unite: '%',
-      interpretation: 'bon',
-      benchmark: 10.0,
-      description: 'Résultat net / Total actif'
-    },
-    {
-      categorie: 'Rentabilité',
-      nom: 'Rentabilité financière (ROE)',
-      valeur_n: 26.7,
-      valeur_n1: 24.2,
-      unite: '%',
-      interpretation: 'bon',
-      benchmark: 15.0,
-      description: 'Résultat net / Capitaux propres'
-    },
-    {
-      categorie: 'Rentabilité',
-      nom: 'Marge nette',
-      valeur_n: 14.25,
-      valeur_n1: 13.6,
-      unite: '%',
-      interpretation: 'bon',
-      benchmark: 10.0,
-      description: 'Résultat net / Chiffre d\'affaires'
-    },
-    
-    // Ratios d'endettement
-    {
-      categorie: 'Endettement',
-      nom: 'Taux d\'endettement',
-      valeur_n: 38.5,
-      valeur_n1: 42.3,
-      unite: '%',
-      interpretation: 'bon',
-      benchmark: 50.0,
-      description: 'Dettes totales / Total passif'
-    },
-    {
-      categorie: 'Endettement',
-      nom: 'Capacité de remboursement',
-      valeur_n: 2.8,
-      valeur_n1: 3.2,
-      unite: 'années',
-      interpretation: 'bon',
-      benchmark: 4.0,
-      description: 'Dettes financières / CAF'
-    },
-    
-    // Ratios d'activité
-    {
-      categorie: 'Activité',
-      nom: 'Rotation des stocks',
-      valeur_n: 4.2,
-      valeur_n1: 3.8,
-      unite: 'fois/an',
-      interpretation: 'bon',
-      benchmark: 4.0,
-      description: 'CAMV / Stock moyen'
-    },
-    {
-      categorie: 'Activité',
-      nom: 'Délai de recouvrement clients',
-      valeur_n: 45,
-      valeur_n1: 52,
-      unite: 'jours',
-      interpretation: 'bon',
-      benchmark: 60,
-      description: 'Créances clients × 360 / CA TTC'
-    }
-  ];
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-    }).format(amount);
+  // Helpers
+  const net = (entries: DBJournalEntry[], ...prefixes: string[]) => {
+    let t = 0;
+    for (const e of entries) for (const l of e.lines)
+      if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+    return t;
   };
+  const creditN = (entries: DBJournalEntry[], ...prefixes: string[]) => {
+    let t = 0;
+    for (const e of entries) for (const l of e.lines)
+      if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+    return t;
+  };
+
+  // SIG computed from real data
+  const sigComputed = useMemo(() => {
+    const compute = (entries: DBJournalEntry[]) => {
+      const venteMarch = creditN(entries, '701');
+      const coutAchat = net(entries, '601');
+      const mc = venteMarch - coutAchat;
+      const production = creditN(entries, '70', '71', '72', '73');
+      const consoExt = net(entries, '60', '61', '62', '63');
+      const va = mc + production - consoExt;
+      const subventions = creditN(entries, '74');
+      const personnel = net(entries, '66');
+      const impotsTaxes = net(entries, '64');
+      const ebe = va + subventions - personnel - impotsTaxes;
+      const autresProduits = creditN(entries, '75');
+      const autresCharges = net(entries, '65');
+      const dotations = net(entries, '68');
+      const reprises = creditN(entries, '79');
+      const re = ebe + autresProduits - autresCharges - dotations + reprises;
+      const prodsFinanciers = creditN(entries, '76', '786', '796');
+      const chargesFinancieres = net(entries, '67', '686', '696');
+      const rf = prodsFinanciers - chargesFinancieres;
+      const rao = re + rf;
+      const prodsHAO = creditN(entries, '82', '84', '86', '88');
+      const chargesHAO = net(entries, '81', '83', '85', '87');
+      const rHAO = prodsHAO - chargesHAO;
+      const rai = rao + rHAO;
+      const impotBenef = net(entries, '89');
+      const rn = rai - impotBenef;
+      const ca = creditN(entries, '70');
+      return { mc, production, va, ebe, re, rf, rao, rHAO, rai, rn, ca };
+    };
+    return { n: compute(entriesN), n1: compute(entriesN1) };
+  }, [entriesN, entriesN1]);
+
+  const safePct = (val: number, base: number) => base !== 0 ? Math.round((val / base) * 1000) / 10 : 0;
+  const safeVar = (n: number, n1: number) => n1 !== 0 ? Math.round(((n - n1) / Math.abs(n1)) * 1000) / 10 : 0;
+
+  const soldesIntermediaires: SigItem[] = useMemo(() => {
+    const { n, n1 } = sigComputed;
+    const items: Array<{ id: string; libelle: string; n: number; n1: number; formule: string }> = [
+      { id: 'sf1', libelle: 'Marge commerciale', n: n.mc, n1: n1.mc, formule: 'Ventes marchandises - Coût achat marchandises vendues' },
+      { id: 'sf2', libelle: 'Production de l\'exercice', n: n.production, n1: n1.production, formule: 'Production vendue + Production stockée + Production immobilisée' },
+      { id: 'sf3', libelle: 'Valeur ajoutée', n: n.va, n1: n1.va, formule: 'Marge commerciale + Production - Consommations externes' },
+      { id: 'sf4', libelle: 'Excédent brut d\'exploitation (EBE)', n: n.ebe, n1: n1.ebe, formule: 'Valeur ajoutée + Subventions - Charges de personnel - Impôts et taxes' },
+      { id: 'sf5', libelle: 'Résultat d\'exploitation', n: n.re, n1: n1.re, formule: 'EBE + Autres produits - Autres charges - Dotations amortissements' },
+      { id: 'sf6', libelle: 'Résultat financier', n: n.rf, n1: n1.rf, formule: 'Produits financiers - Charges financières' },
+      { id: 'sf7', libelle: 'Résultat des activités ordinaires', n: n.rao, n1: n1.rao, formule: 'Résultat exploitation + Résultat financier' },
+      { id: 'sf8', libelle: 'Résultat exceptionnel', n: n.rHAO, n1: n1.rHAO, formule: 'Produits exceptionnels - Charges exceptionnelles' },
+      { id: 'sf9', libelle: 'Résultat avant impôt', n: n.rai, n1: n1.rai, formule: 'Résultat activités ordinaires + Résultat exceptionnel' },
+      { id: 'sf10', libelle: 'Résultat net de l\'exercice', n: n.rn, n1: n1.rn, formule: 'Résultat avant impôt - Impôts sur les bénéfices' },
+    ];
+    return items.map(i => ({
+      id: i.id,
+      libelle: i.libelle,
+      montant_n: i.n,
+      montant_n1: i.n1,
+      variation: safeVar(i.n, i.n1),
+      pourcentage_ca: safePct(i.n, n.ca),
+      formule: i.formule,
+    }));
+  }, [sigComputed]);
+
+  // Ratios computed from real data
+  const ratiosFinanciers: Ratio[] = useMemo(() => {
+    const { n, n1 } = sigComputed;
+    const computeRatios = (entries: DBJournalEntry[], sig: typeof n) => {
+      const actifCirculant = net(entries, '3', '41', '5');
+      const dettesCT = Math.abs(net(entries, '40', '42', '43', '44'));
+      const disponibilites = net(entries, '5');
+      const totalActif = net(entries, '2', '3', '4', '5');
+      const capitauxPropres = Math.abs(net(entries, '1'));
+      const dettesTotales = Math.abs(net(entries, '16', '17', '40', '42', '43', '44'));
+      const stocks = net(entries, '3');
+      const creancesClients = net(entries, '41');
+      const safe = (a: number, b: number) => b !== 0 ? Math.round((a / b) * 100) / 100 : 0;
+      return {
+        liqGenerale: safe(actifCirculant, dettesCT),
+        liqImmediate: safe(disponibilites, dettesCT),
+        roa: totalActif !== 0 ? Math.round((sig.rn / totalActif) * 1000) / 10 : 0,
+        roe: capitauxPropres !== 0 ? Math.round((sig.rn / capitauxPropres) * 1000) / 10 : 0,
+        margeNette: sig.ca !== 0 ? Math.round((sig.rn / sig.ca) * 1000) / 10 : 0,
+        endettement: (totalActif + capitauxPropres) !== 0 ? Math.round((dettesTotales / (totalActif + capitauxPropres)) * 1000) / 10 : 0,
+        rotationStocks: stocks !== 0 ? Math.round((net(entries, '601') / stocks) * 10) / 10 : 0,
+        delaiClients: sig.ca !== 0 ? Math.round((creancesClients * 360 / sig.ca)) : 0,
+      };
+    };
+    const rN = computeRatios(entriesN, n);
+    const rN1 = computeRatios(entriesN1, n1);
+    const interp = (val: number, bench: number, higher: boolean) =>
+      higher ? (val >= bench ? 'bon' : val >= bench * 0.7 ? 'moyen' : 'mauvais')
+        : (val <= bench ? 'bon' : val <= bench * 1.3 ? 'moyen' : 'mauvais');
+
+    return [
+      { categorie: 'Liquidité', nom: 'Liquidité générale', valeur_n: rN.liqGenerale, valeur_n1: rN1.liqGenerale, unite: '', interpretation: interp(rN.liqGenerale, 1.2, true) as Ratio['interpretation'], benchmark: 1.2, description: 'Actif circulant / Dettes à court terme' },
+      { categorie: 'Liquidité', nom: 'Liquidité immédiate', valeur_n: rN.liqImmediate, valeur_n1: rN1.liqImmediate, unite: '', interpretation: interp(rN.liqImmediate, 0.8, true) as Ratio['interpretation'], benchmark: 0.8, description: 'Disponibilités / Dettes à court terme' },
+      { categorie: 'Rentabilité', nom: 'Rentabilité économique (ROA)', valeur_n: rN.roa, valeur_n1: rN1.roa, unite: '%', interpretation: interp(rN.roa, 10, true) as Ratio['interpretation'], benchmark: 10.0, description: 'Résultat net / Total actif' },
+      { categorie: 'Rentabilité', nom: 'Rentabilité financière (ROE)', valeur_n: rN.roe, valeur_n1: rN1.roe, unite: '%', interpretation: interp(rN.roe, 15, true) as Ratio['interpretation'], benchmark: 15.0, description: 'Résultat net / Capitaux propres' },
+      { categorie: 'Rentabilité', nom: 'Marge nette', valeur_n: rN.margeNette, valeur_n1: rN1.margeNette, unite: '%', interpretation: interp(rN.margeNette, 10, true) as Ratio['interpretation'], benchmark: 10.0, description: 'Résultat net / Chiffre d\'affaires' },
+      { categorie: 'Endettement', nom: 'Taux d\'endettement', valeur_n: rN.endettement, valeur_n1: rN1.endettement, unite: '%', interpretation: interp(rN.endettement, 50, false) as Ratio['interpretation'], benchmark: 50.0, description: 'Dettes totales / Total passif' },
+      { categorie: 'Activité', nom: 'Rotation des stocks', valeur_n: rN.rotationStocks, valeur_n1: rN1.rotationStocks, unite: 'fois/an', interpretation: interp(rN.rotationStocks, 4, true) as Ratio['interpretation'], benchmark: 4.0, description: 'CAMV / Stock moyen' },
+      { categorie: 'Activité', nom: 'Délai de recouvrement clients', valeur_n: rN.delaiClients, valeur_n1: rN1.delaiClients, unite: 'jours', interpretation: interp(rN.delaiClients, 60, false) as Ratio['interpretation'], benchmark: 60, description: 'Créances clients × 360 / CA TTC' },
+    ];
+  }, [entriesN, entriesN1, sigComputed]);
+
 
   const getVariationColor = (variation: number) => {
     if (variation > 0) return 'text-green-600';

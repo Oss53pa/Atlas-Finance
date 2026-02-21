@@ -71,7 +71,7 @@ export interface ReportParameters {
   comparatif?: boolean;
   exercice_comparatif?: string;
   grouping?: 'jour' | 'semaine' | 'mois' | 'trimestre' | 'annee';
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ReportTemplate {

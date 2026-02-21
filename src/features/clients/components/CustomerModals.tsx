@@ -168,13 +168,13 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
       toast.success('Client créé avec succès');
       onSuccess?.();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur création client:', error);
-      toast.error(error?.message || 'Erreur lors de la création du client');
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la création du client');
     }
   };
 
-  const handleInputChange = (field: keyof CustomerFormData, value: any) => {
+  const handleInputChange = (field: keyof CustomerFormData, value: CustomerFormData[keyof CustomerFormData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -275,7 +275,7 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
                   </label>
                   <Select
                     value={formData.type_client}
-                    onValueChange={(value: any) => handleInputChange('type_client', value)}
+                    onValueChange={(value: string) => handleInputChange('type_client', value as CustomerFormData['type_client'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -327,7 +327,7 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
                   </label>
                   <Select
                     value={formData.segment}
-                    onValueChange={(value: any) => handleInputChange('segment', value)}
+                    onValueChange={(value: string) => handleInputChange('segment', value as CustomerFormData['segment'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -347,7 +347,7 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
                   </label>
                   <Select
                     value={formData.statut}
-                    onValueChange={(value: any) => handleInputChange('statut', value)}
+                    onValueChange={(value: string) => handleInputChange('statut', value as CustomerFormData['statut'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -641,10 +641,16 @@ export const CreateCustomerModal: React.FC<CreateCustomerModalProps> = ({
   );
 };
 
+interface CustomerData extends CustomerFormData {
+  id: string;
+  ca_annuel?: number;
+  solde_compte?: number;
+}
+
 interface EditCustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  customer: any;
+  customer: CustomerData | null;
   onSuccess?: () => void;
 }
 
@@ -740,13 +746,13 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       toast.success('Client modifié avec succès');
       onSuccess?.();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur modification client:', error);
-      toast.error(error?.message || 'Erreur lors de la modification du client');
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la modification du client');
     }
   };
 
-  const handleInputChange = (field: keyof CustomerFormData, value: any) => {
+  const handleInputChange = (field: keyof CustomerFormData, value: CustomerFormData[keyof CustomerFormData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -844,7 +850,7 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
                   </label>
                   <Select
                     value={formData.type_client}
-                    onValueChange={(value: any) => handleInputChange('type_client', value)}
+                    onValueChange={(value: string) => handleInputChange('type_client', value as CustomerFormData['type_client'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -890,7 +896,7 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
                   </label>
                   <Select
                     value={formData.segment}
-                    onValueChange={(value: any) => handleInputChange('segment', value)}
+                    onValueChange={(value: string) => handleInputChange('segment', value as CustomerFormData['segment'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -910,7 +916,7 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
                   </label>
                   <Select
                     value={formData.statut}
-                    onValueChange={(value: any) => handleInputChange('statut', value)}
+                    onValueChange={(value: string) => handleInputChange('statut', value as CustomerFormData['statut'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -967,7 +973,7 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 interface CustomerDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  customer: any;
+  customer: CustomerData | null;
   onEdit?: () => void;
 }
 

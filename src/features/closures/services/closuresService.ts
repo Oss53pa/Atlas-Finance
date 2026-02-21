@@ -6,6 +6,7 @@
 import { Money, money } from '../../../utils/money';
 import { db, logAudit } from '../../../lib/db';
 import type { DBClosureSession, DBProvision } from '../../../lib/db';
+import { safeAddEntry } from '../../../services/entryGuard';
 import {
   ClotureSession,
   BalanceAccount,
@@ -335,7 +336,7 @@ class ClosuresService {
   async createEcriture(ecriture: Omit<EcritureCloture, 'id'>): Promise<EcritureCloture> {
     const id = crypto.randomUUID();
 
-    await db.journalEntries.add({
+    await safeAddEntry({
       id,
       entryNumber: ecriture.numero,
       journal: 'OD',
@@ -361,12 +362,8 @@ class ClosuresService {
           credit: ecriture.montant,
         },
       ],
-      totalDebit: ecriture.montant,
-      totalCredit: ecriture.montant,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
       createdBy: 'system',
-    });
+    }, { skipSyncValidation: true });
 
     await logAudit(
       'CLOSURE_ENTRY_CREATE',

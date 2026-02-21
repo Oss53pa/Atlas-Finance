@@ -80,7 +80,7 @@ const LandingPage: React.FC = () => {
       {/* Top bar */}
       <header className="relative z-10 flex items-center justify-between px-8 py-5">
         <span className="text-sm text-neutral-400">
-          Atlas Finance — WiseBook ERP
+          Atlas Finance
         </span>
         <button
           onClick={() => navigate('/dashboard')}

@@ -648,7 +648,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     }
   };
 
-  const fetchData = useCallback(async (params: any) => {
+  const fetchData = useCallback(async (params: { search?: string; page?: number; pageSize?: number }) => {
     const currentClass = planComptable[selectedClasse as keyof typeof planComptable];
     if (!currentClass) return { data: [], total: 0, page: 1, pageSize: 10 };
 
@@ -706,7 +706,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
       setShowNewAccountModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création du compte');
     },
   });
@@ -749,7 +749,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {

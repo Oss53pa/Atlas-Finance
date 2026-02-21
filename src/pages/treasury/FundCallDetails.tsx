@@ -15,18 +15,18 @@ const FundCallDetails: React.FC = () => {
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   const [expandedProposalVendors, setExpandedProposalVendors] = useState<Set<string>>(new Set());
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
-  const [accountPayableData, setAccountPayableData] = useState(null);
+  const [accountPayableData, setAccountPayableData] = useState<{ vendors: Record<string, { invoices: Array<{ id: string; date_piece: string; numero_piece: string; reference: string; libelle: string; montant_du: number; montant_impaye: number; age_jours: number }> }> } | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedAggregateRows, setExpandedAggregateRows] = useState<Set<string>>(new Set());
   const [expandedPaymentDetails, setExpandedPaymentDetails] = useState<Set<string>>(new Set());
   const [showValidatorConfig, setShowValidatorConfig] = useState(false);
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [workflowComment, setWorkflowComment] = useState('');
   const [showNoteModal, setShowNoteModal] = useState(false);
-  const [selectedInvoiceForNote, setSelectedInvoiceForNote] = useState(null);
+  const [selectedInvoiceForNote, setSelectedInvoiceForNote] = useState<string | null>(null);
   const [invoiceNotes, setInvoiceNotes] = useState<Record<string, string>>({});
-  const [newExpenses, setNewExpenses] = useState([]);
+  const [newExpenses, setNewExpenses] = useState<Array<{ id: string; description: string; amount: number }>>([]);
 
   // Données de l'appel de fonds
   const fundCallData = {
@@ -122,9 +122,9 @@ const FundCallDetails: React.FC = () => {
   // Transformer les données du Grand Livre pour l'affichage
   const vendorInvoices = accountPayableData ?
     Object.fromEntries(
-      Object.entries(accountPayableData.vendors).map(([vendor, data]: [string, any]) => [
+      Object.entries(accountPayableData.vendors).map(([vendor, data]) => [
         vendor,
-        data.invoices.map((invoice: any) => ({
+        data.invoices.map((invoice) => ({
           id: invoice.id,
           docDate: invoice.date_piece,
           docNumber: invoice.numero_piece,
@@ -178,7 +178,7 @@ const FundCallDetails: React.FC = () => {
     }
   };
 
-  const openNoteModal = (invoice: any) => {
+  const openNoteModal = (invoice: string) => {
     setSelectedInvoiceForNote(invoice);
     setShowNoteModal(true);
   };
@@ -205,7 +205,7 @@ const FundCallDetails: React.FC = () => {
   };
 
   // Ajouter une nouvelle dépense
-  const addNewExpense = (expenseData: any) => {
+  const addNewExpense = (expenseData: { vendor: string; docDate: string; docNumber: string; reference: string; description: string; dueAmount: string; outstanding: string; type: string }) => {
     const calculatedAge = calculateAge(expenseData.docDate);
     const newExpense = {
       id: `NEW-${Date.now()}`,

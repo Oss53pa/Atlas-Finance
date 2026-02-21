@@ -52,7 +52,7 @@ export const BalanceFilters: React.FC<BalanceFiltersProps> = ({
               label="Type de balance"
               value={filters.balanceType}
               onChange={(e) => onFiltersChange({
-                balanceType: e.target.value as any
+                balanceType: e.target.value as typeof filters.balanceType
               })}
               options={[
                 { value: 'generale', label: 'Balance Générale' },

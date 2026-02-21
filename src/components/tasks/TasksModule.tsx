@@ -391,7 +391,7 @@ const TasksModule: React.FC = () => {
                   </label>
                   <select
                     value={newTask.priority}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as any }))}
+                    onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as typeof prev.priority }))}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
                   >
                     <option value="low">Faible</option>

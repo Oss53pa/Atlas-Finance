@@ -18,20 +18,23 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
+  readonly root: Element | null = null;
+  readonly rootMargin: string = '';
+  readonly thresholds: ReadonlyArray<number> = [];
+  constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
   disconnect() {}
   observe() {}
-  takeRecords() { return []; }
+  takeRecords(): IntersectionObserverEntry[] { return []; }
   unobserve() {}
-} as any;
+};
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
-  constructor() {}
+  constructor(_callback: ResizeObserverCallback) {}
   disconnect() {}
   observe() {}
   unobserve() {}
-} as any;
+};
 
 // Mock crypto.subtle for Node (SHA-256 tests)
 if (!globalThis.crypto?.subtle) {

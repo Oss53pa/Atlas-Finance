@@ -29,13 +29,89 @@ import {
   ArrowRight,
   CheckCircle2,
   MessageSquare,
-  Gauge
+  Gauge,
+  LucideIcon
 } from 'lucide-react';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import { cn } from '../../lib/utils';
 
 type ViewMode = 'list' | 'kanban' | 'cards';
+
+interface AlgoParam {
+  name: string;
+  value: string;
+}
+
+interface AlgoFeature {
+  name: string;
+  importance: string;
+}
+
+interface AlgoDetectionCriteria {
+  name: string;
+  threshold: string;
+}
+
+interface AlgoRule {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface AlgoRuleCategory {
+  category: string;
+  rules: AlgoRule[];
+}
+
+interface AlgoMlDetection {
+  name: string;
+  description: string;
+}
+
+interface AlgoClassification {
+  name: string;
+  count: string;
+}
+
+interface AlgoUseCase {
+  name: string;
+  accuracy: string;
+}
+
+interface AlgorithmDetail {
+  name: string;
+  title: string;
+  type: string;
+  accuracy: string;
+  description: string;
+  trainingData?: string;
+  detected?: string;
+  adoption?: string;
+  atRisk?: string;
+  segments?: string;
+  forecasts?: string;
+  rulesCount?: string;
+  classes?: string;
+  predictions?: string;
+  parameters?: AlgoParam[];
+  inputVariables?: AlgoFeature[];
+  features?: AlgoFeature[];
+  detectionCriteria?: AlgoDetectionCriteria[];
+  riskIndicators?: AlgoFeature[];
+  ruleCategories?: AlgoRuleCategory[];
+  mlDetections?: AlgoMlDetection[];
+  classifications?: AlgoClassification[];
+  useCases?: AlgoUseCase[];
+}
+
+interface AlgorithmCardInfo {
+  name: string;
+  title: string;
+  desc: string;
+  accuracy: string;
+  icon: LucideIcon;
+}
 
 const IAConfigPage: React.FC = () => {
   const { t } = useLanguage();
@@ -68,7 +144,7 @@ const IAConfigPage: React.FC = () => {
     setShowAlgoModal(true);
   };
 
-  const algorithmDetails: Record<string, any> = {
+  const algorithmDetails: Record<string, AlgorithmDetail> = {
     'LSTM': {
       name: 'LSTM Neural Network',
       title: 'Prédiction de Trésorerie',
@@ -322,7 +398,7 @@ const IAConfigPage: React.FC = () => {
   const activeAlgorithms = allAlgorithms.filter(algo => algorithmStatus[algo.name]);
   const inactiveAlgorithms = allAlgorithms.filter(algo => !algorithmStatus[algo.name]);
 
-  const renderAlgorithmCard = (algo: any, isActive: boolean) => {
+  const renderAlgorithmCard = (algo: AlgorithmCardInfo, isActive: boolean) => {
     const Icon = algo.icon;
     return (
       <div
@@ -1422,7 +1498,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].parameters.map((param: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{param.name}</p>
                           <p className="font-semibold text-[var(--color-text-primary)]">{param.value}</p>
@@ -1436,7 +1512,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Variables d'Entrée</h3>
                     <div className="space-y-3">
-                      {algorithmDetails[selectedAlgo].inputVariables.map((variable: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].inputVariables.map((variable: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <span className="text-[var(--color-text-primary)]">{variable.name}</span>
                           <div className="flex items-center gap-3">
@@ -1458,7 +1534,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Critères de Détection</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].detectionCriteria.map((criteria: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].detectionCriteria.map((criteria: AlgoDetectionCriteria, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <div className="flex items-center gap-2 mb-2">
                             <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
@@ -1475,7 +1551,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].parameters.map((param: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{param.name}</p>
                           <p className="font-semibold text-[var(--color-text-primary)]">{param.value}</p>
@@ -1489,7 +1565,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Utilisées</h3>
                     <div className="space-y-3">
-                      {algorithmDetails[selectedAlgo].features.map((feature: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <span className="text-[var(--color-text-primary)]">{feature.name}</span>
                           <div className="flex items-center gap-3">
@@ -1511,7 +1587,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Indicateurs de Risque</h3>
                     <div className="space-y-3">
-                      {algorithmDetails[selectedAlgo].riskIndicators.map((indicator: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].riskIndicators.map((indicator: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <span className="text-[var(--color-text-primary)]">{indicator.name}</span>
                           <div className="flex items-center gap-3">
@@ -1533,7 +1609,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].parameters.map((param: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{param.name}</p>
                           <p className="font-semibold text-[var(--color-text-primary)]">{param.value}</p>
@@ -1547,7 +1623,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Analysées</h3>
                     <div className="space-y-3">
-                      {algorithmDetails[selectedAlgo].features.map((feature: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <span className="text-[var(--color-text-primary)]">{feature.name}</span>
                           <div className="flex items-center gap-3">
@@ -1569,7 +1645,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].parameters.map((param: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{param.name}</p>
                           <p className="font-semibold text-[var(--color-text-primary)]">{param.value}</p>
@@ -1583,7 +1659,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Variables d'Entrée</h3>
                     <div className="space-y-3">
-                      {algorithmDetails[selectedAlgo].inputVariables.map((variable: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].inputVariables.map((variable: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <span className="text-[var(--color-text-primary)]">{variable.name}</span>
                           <div className="flex items-center gap-3">
@@ -1605,7 +1681,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Critères de Détection</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].detectionCriteria.map((criteria: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].detectionCriteria.map((criteria: AlgoDetectionCriteria, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <div className="flex items-center gap-2 mb-2">
                             <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
@@ -1622,7 +1698,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Règles SYSCOHADA par Catégorie</h3>
                     <div className="space-y-4">
-                      {algorithmDetails[selectedAlgo].ruleCategories.map((category: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].ruleCategories.map((category: AlgoRuleCategory, idx: number) => (
                         <div key={idx} className="border border-[var(--color-border)] rounded-lg overflow-hidden">
                           <div className="bg-[var(--color-primary-light)] px-4 py-2 border-b border-[var(--color-border)]">
                             <h4 className="font-semibold text-[var(--color-primary)] flex items-center gap-2">
@@ -1631,7 +1707,7 @@ const IAConfigPage: React.FC = () => {
                             </h4>
                           </div>
                           <div className="p-4 space-y-2">
-                            {category.rules.map((rule: any, ruleIdx: number) => (
+                            {category.rules.map((rule: AlgoRule, ruleIdx: number) => (
                               <div key={ruleIdx} className="flex items-start gap-3 p-2 hover:bg-[var(--color-surface-hover)] rounded">
                                 <span className="px-2 py-0.5 bg-[var(--color-primary)] text-white text-xs font-mono rounded">{rule.id}</span>
                                 <div className="flex-1">
@@ -1651,7 +1727,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Détections ML OHADA</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].mlDetections.map((detection: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].mlDetections.map((detection: AlgoMlDetection, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <div className="flex items-center gap-2 mb-2">
                             <Brain className="w-4 h-4 text-[var(--color-primary)]" />
@@ -1668,7 +1744,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].parameters.map((param: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{param.name}</p>
                           <p className="font-semibold text-[var(--color-text-primary)]">{param.value}</p>
@@ -1682,7 +1758,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Utilisées</h3>
                     <div className="space-y-3">
-                      {algorithmDetails[selectedAlgo].features.map((feature: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <span className="text-[var(--color-text-primary)]">{feature.name}</span>
                           <div className="flex items-center gap-3">
@@ -1704,7 +1780,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Classifications par Catégorie</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].classifications.map((classification: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].classifications.map((classification: AlgoClassification, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <div className="flex items-center justify-between">
                             <p className="font-medium text-[var(--color-text-primary)]">{classification.name}</p>
@@ -1720,7 +1796,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].parameters.map((param: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{param.name}</p>
                           <p className="font-semibold text-[var(--color-text-primary)]">{param.value}</p>
@@ -1734,7 +1810,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Utilisées</h3>
                     <div className="space-y-3">
-                      {algorithmDetails[selectedAlgo].features.map((feature: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <span className="text-[var(--color-text-primary)]">{feature.name}</span>
                           <div className="flex items-center gap-3">
@@ -1756,7 +1832,7 @@ const IAConfigPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Cas d'Usage</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {algorithmDetails[selectedAlgo].useCases.map((useCase: any, idx: number) => (
+                      {algorithmDetails[selectedAlgo].useCases.map((useCase: AlgoUseCase, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                           <div className="flex items-center justify-between mb-2">
                             <p className="font-medium text-[var(--color-text-primary)]">{useCase.name}</p>

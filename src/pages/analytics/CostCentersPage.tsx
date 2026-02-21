@@ -66,7 +66,7 @@ const CostCentersPage: React.FC = () => {
     responsable: ''
   });
   const [page, setPage] = useState(1);
-  const [selectedCenter, setSelectedCenter] = useState<any>(null);
+  const [selectedCenter, setSelectedCenter] = useState<Record<string, unknown> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
@@ -93,7 +93,7 @@ const CostCentersPage: React.FC = () => {
       setShowCreateModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création');
     },
   });
@@ -167,7 +167,7 @@ const CostCentersPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {

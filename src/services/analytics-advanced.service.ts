@@ -21,7 +21,7 @@ interface GlobalKPIs {
     total_entries: number;
     balance: number;
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 class AnalyticsAdvancedService {

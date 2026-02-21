@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 import {
   BuildingOfficeIcon,
@@ -254,9 +254,9 @@ const EnhancedCompanyConfiguration: React.FC = () => {
     });
   };
 
-  const onError = (errors: any) => {
+  const onError = (errors: Record<string, { message?: string }>) => {
     console.error('Erreurs de validation:', errors);
-    const firstError = Object.values(errors)[0] as any;
+    const firstError = Object.values(errors)[0];
     toast.error(firstError?.message || 'Veuillez corriger les erreurs du formulaire', {
       duration: 4000,
       position: 'top-right',

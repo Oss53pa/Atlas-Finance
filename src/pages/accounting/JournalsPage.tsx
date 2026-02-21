@@ -13,6 +13,7 @@ import { usePrintReport } from '../../hooks/usePrint';
 import { useReverseEntry } from '../../hooks/useAccounting';
 import { useLanguage } from '../../contexts/LanguageContext';
 import toast from 'react-hot-toast';
+import { validerEcriture } from '../../services/entryWorkflow';
 
 interface Journal {
   id: string;
@@ -48,11 +49,11 @@ const JournalsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRecapTable, setShowRecapTable] = useState(false);
   const [showEditEntryModal, setShowEditEntryModal] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<any>(null);
-  const [selectedEntryLines, setSelectedEntryLines] = useState<any[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<Record<string, unknown> | null>(null);
+  const [selectedEntryLines, setSelectedEntryLines] = useState<Record<string, unknown>[]>([]);
   const [showSubJournals, setShowSubJournals] = useState<{[key: string]: boolean}>({});
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [savedEntry, setSavedEntry] = useState<any>(null);
+  const [savedEntry, setSavedEntry] = useState<Record<string, unknown> | null>(null);
 
   // Pour tester le modal via URL: /accounting/journals?test-modal=true
   React.useEffect(() => {
@@ -332,7 +333,7 @@ const JournalsPage: React.FC = () => {
     }));
   };
 
-  const handleDoubleClickEntry = (entry: any) => {
+  const handleDoubleClickEntry = (entry: Record<string, unknown>) => {
     setSelectedEntry(entry);
 
     // Récupérer toutes les lignes de l'écriture (même numéro de mouvement)
@@ -412,9 +413,9 @@ const JournalsPage: React.FC = () => {
 
       toast.success(t('messages.saveSuccess'));
       setShowEditEntryModal(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur lors du reversement:', error);
-      toast.error(error?.message || t('messages.saveError'));
+      toast.error((error instanceof Error ? error.message : undefined) || t('messages.saveError'));
     }
   };
 
@@ -1460,14 +1461,14 @@ const JournalsPage: React.FC = () => {
                   Enregistrer les modifications
                 </button>
                 <button
-                  onClick={() => {
-                    // Vérifier que l'écriture est équilibrée avant de valider
-                    if (selectedEntry && selectedEntry.debit === selectedEntry.credit) {
-                      alert(`Écriture ${selectedEntry.piece} validée et transférée au journal ${selectedEntry.jnl}`);
+                  onClick={async () => {
+                    if (!selectedEntry?.id) return;
+                    const res = await validerEcriture(selectedEntry.id);
+                    if (res.success) {
+                      toast.success(`Écriture ${selectedEntry.piece} validée`);
                       setShowEditEntryModal(false);
-                      // Ici on ajouterait l'appel API pour valider et transférer l'écriture
                     } else {
-                      alert('L\'écriture doit être équilibrée avant validation');
+                      toast.error(res.error || 'Validation impossible');
                     }
                   }}
                   className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2"

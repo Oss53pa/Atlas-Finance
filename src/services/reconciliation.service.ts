@@ -178,7 +178,7 @@ class ReconciliationService {
     reportConfig: {
       title: string;
       dataSource: string[];
-      filters: any;
+      filters: Record<string, unknown>;
       groupBy: string[];
       aggregations: string[];
       chartType?: string;
@@ -195,7 +195,7 @@ class ReconciliationService {
     companyId: string;
     dataType: 'customers' | 'suppliers' | 'reconciliation' | 'treasury';
     format: 'pdf' | 'excel' | 'json' | 'csv';
-    filters?: any;
+    filters?: Record<string, unknown>;
   }) {
     const response = await apiService.get('/export/data', {
       params,
@@ -217,7 +217,14 @@ class ReconciliationService {
    */
   async scheduleAutomaticReport(data: {
     companyId: string;
-    reportConfig: any;
+    reportConfig: {
+      title: string;
+      dataSource: string[];
+      filters: Record<string, unknown>;
+      groupBy: string[];
+      aggregations: string[];
+      chartType?: string;
+    };
     schedule: {
       frequency: 'daily' | 'weekly' | 'monthly';
       dayOfWeek?: number;
@@ -287,8 +294,8 @@ class ReconciliationService {
   async calibrateMLAlgorithms(data: {
     companyId: string;
     trainingData: {
-      historicalReconciliations: any[];
-      feedbackData: any[];
+      historicalReconciliations: Array<Record<string, unknown>>;
+      feedbackData: Array<Record<string, unknown>>;
     };
   }) {
     const response = await apiService.post('/reconciliation/calibrate-ml', data);

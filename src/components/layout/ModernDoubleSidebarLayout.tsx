@@ -13,9 +13,11 @@ import {
   MessageSquare, Smartphone, Workflow, RefreshCw, Wifi,
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
-  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History
+  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Zap
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBadgeCounts } from '../../hooks/useBadgeCounts';
+import { useInvalidateOnEntryChange } from '../../hooks/useInvalidateOnEntryChange';
 import ModernButton from '../ui/ModernButton';
 import LanguageSelector from '../ui/LanguageSelector';
 
@@ -43,6 +45,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, themeType, setTheme } = useTheme();
+  const badgeCounts = useBadgeCounts();
+  useInvalidateOnEntryChange();
 
   const [primaryCollapsed, setPrimaryCollapsed] = useState(false);
   const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
@@ -117,7 +121,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       id: 'accounting',
       label: t('accounting.title'),
       icon: <Calculator className="w-5 h-5" />,
-      badge: '3',
+      badge: badgeCounts.draftEntries > 0 ? badgeCounts.draftEntries : undefined,
       ariaLabel: 'Accéder à la comptabilité générale'
     },
     {
@@ -170,12 +174,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'global-view', label: 'Vue Globale', path: '/dashboard', icon: <Eye className="w-4 h-4" /> },
       { id: 'executive-view', label: 'Vue Executive', path: '/executive', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'kpis', label: 'KPIs Temps Réel', path: '/dashboard/kpis', icon: <Activity className="w-4 h-4" /> },
-      { id: 'alerts', label: 'Alertes', path: '/dashboard/alerts', icon: <AlertTriangle className="w-4 h-4" />, badge: '5' },
+      { id: 'alerts', label: 'Alertes', path: '/dashboard/alerts', icon: <AlertTriangle className="w-4 h-4" />, badge: badgeCounts.alerts > 0 ? badgeCounts.alerts : undefined },
       { id: 'ai-insights', label: 'IA Insights', path: '/dashboard/ai-insights', icon: <Bot className="w-4 h-4" /> },
       { id: 'workflows', label: 'Workflows', path: '/dashboard/workflows', icon: <Workflow className="w-4 h-4" /> }
     ],
     accounting: [
-      { id: 'entries', label: 'Écritures & Saisie', path: '/accounting/entries', icon: <FileText className="w-4 h-4" />, badge: '3' },
+      { id: 'entries', label: 'Écritures & Saisie', path: '/accounting/entries', icon: <FileText className="w-4 h-4" />, badge: badgeCounts.draftEntries > 0 ? badgeCounts.draftEntries : undefined },
       { id: 'journals', label: t('navigation.journals'), path: '/accounting/journals', icon: <BookOpen className="w-4 h-4" /> },
       { id: 'general-ledger', label: 'Grand Livre', path: '/accounting/general-ledger', icon: <Database className="w-4 h-4" /> },
       { id: 'lettrage', label: t('thirdParty.reconciliation'), path: '/accounting/lettrage', icon: <Link className="w-4 h-4" /> },
@@ -219,9 +223,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'inventory', label: 'Inventaire', path: '/assets/inventory', icon: <Archive className="w-4 h-4" /> }
     ],
     closures: [
-      { id: 'periodic', label: '🔥 Clôture Périodique SYSCOHADA', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
+      { id: 'periodic', label: 'Clôture Périodique', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
+      { id: 'periodiques', label: 'Clôture Avancée', path: '/closures/periodiques', icon: <Zap className="w-4 h-4" /> },
       { id: 'revisions', label: 'Révisions', path: '/closures/revisions', icon: <CheckCircle className="w-4 h-4" /> },
       { id: 'carry-forward', label: 'Reports à Nouveau', path: '/closures/carry-forward', icon: <RefreshCw className="w-4 h-4" /> },
+      { id: 'annual', label: 'Clôture Annuelle', path: '/closures/annual', icon: <Lock className="w-4 h-4" /> },
       { id: 'audit-trail', label: 'Piste d\'Audit', path: '/closures/audit-trail', icon: <Shield className="w-4 h-4" /> }
     ],
     reporting: [

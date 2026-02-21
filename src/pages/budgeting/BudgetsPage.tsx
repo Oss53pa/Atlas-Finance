@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db } from '../../lib/db';
+import { getBudgetAnalysis } from '../../services/budgetAnalysisService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
@@ -63,74 +66,52 @@ const BudgetsPage: React.FC = () => {
   const { data: budgets = [], isLoading } = useQuery({
     queryKey: ['budgets', searchTerm, selectedType, selectedStatus, selectedDepartment],
     queryFn: async () => {
-      const mockBudgets: Budget[] = [
-        {
-          id: '1',
-          name: 'Budget Exploitation 2024',
-          code: 'BUDG-EXP-2024',
+      const budgetLines = await db.budgetLines.toArray();
+      const fiscalYears = await db.fiscalYears.toArray();
+
+      // Group budget lines by fiscalYear to build Budget summaries
+      const byFY = new Map<string, typeof budgetLines>();
+      for (const bl of budgetLines) {
+        const list = byFY.get(bl.fiscalYear) || [];
+        list.push(bl);
+        byFY.set(bl.fiscalYear, list);
+      }
+
+      // Get actuals from budgetAnalysisService for each FY
+      const budgets: Budget[] = [];
+      for (const [fyId, lines] of byFY) {
+        const fy = fiscalYears.find(f => f.id === fyId || f.name === fyId);
+        const totalBudgeted = lines.reduce((s, l) => s + l.budgeted, 0);
+        const totalActual = lines.reduce((s, l) => s + (l.actual || 0), 0);
+        const remaining = totalBudgeted - totalActual;
+        const rate = totalBudgeted > 0 ? Math.round((totalActual / totalBudgeted) * 100) : 0;
+
+        budgets.push({
+          id: fyId,
+          name: `Budget ${fy?.name || fyId}`,
+          code: `BUDG-${fyId}`,
           type: 'operational',
-          status: 'active',
-          period: '2024',
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
-          totalAmount: 5000000,
-          consumedAmount: 3200000,
-          remainingAmount: 1800000,
-          consumptionRate: 64,
-          department: 'Exploitation',
-          responsible: 'Marie Dubois',
+          status: fy?.isClosed ? 'closed' : 'active',
+          period: fy?.name || fyId,
+          startDate: fy?.startDate || '',
+          endDate: fy?.endDate || '',
+          totalAmount: totalBudgeted,
+          consumedAmount: totalActual,
+          remainingAmount: remaining,
+          consumptionRate: rate,
+          department: 'Tous',
+          responsible: '',
           currency: 'XOF',
-          description: 'Budget opérationnel pour l\'exercice 2024',
-          createdAt: '2024-01-01T00:00:00Z',
-          lastModified: '2024-08-15T10:30:00Z'
-        },
-        {
-          id: '2',
-          name: 'Budget Investissements IT',
-          code: 'BUDG-INV-IT24',
-          type: 'investment',
-          status: 'active',
-          period: '2024',
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
-          totalAmount: 2000000,
-          consumedAmount: 800000,
-          remainingAmount: 1200000,
-          consumptionRate: 40,
-          department: 'IT',
-          responsible: 'Paul Martin',
-          currency: 'XOF',
-          description: 'Investissements en matériel et logiciels IT',
-          createdAt: '2024-01-01T00:00:00Z',
-          lastModified: '2024-07-20T14:15:00Z'
-        },
-        {
-          id: '3',
-          name: 'Budget Trésorerie Q4',
-          code: 'BUDG-TRES-Q4',
-          type: 'treasury',
-          status: 'draft',
-          period: 'Q4 2024',
-          startDate: '2024-10-01',
-          endDate: '2024-12-31',
-          totalAmount: 1500000,
-          consumedAmount: 0,
-          remainingAmount: 1500000,
-          consumptionRate: 0,
-          department: 'Finance',
-          responsible: 'Sophie Koné',
-          currency: 'XOF',
-          description: 'Budget de trésorerie pour le quatrième trimestre',
-          createdAt: '2024-09-01T00:00:00Z',
-          lastModified: '2024-09-15T09:00:00Z'
-        }
-      ];
-      
-      return mockBudgets.filter(budget => 
-        (searchTerm === '' || 
+          description: `Budget pour l'exercice ${fy?.name || fyId}`,
+          createdAt: fy?.startDate || new Date().toISOString(),
+          lastModified: new Date().toISOString(),
+        });
+      }
+
+      return budgets.filter(budget =>
+        (searchTerm === '' ||
          budget.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         budget.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         budget.responsible.toLowerCase().includes(searchTerm.toLowerCase())) &&
+         budget.code.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (selectedType === 'all' || budget.type === selectedType) &&
         (selectedStatus === 'all' || budget.status === selectedStatus) &&
         (selectedDepartment === 'all' || budget.department === selectedDepartment)
@@ -183,13 +164,6 @@ const BudgetsPage: React.FC = () => {
     return 'text-red-600';
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; budget: Budget | null }>({
     isOpen: false,

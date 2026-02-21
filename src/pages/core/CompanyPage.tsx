@@ -29,7 +29,7 @@ import { toast } from 'react-hot-toast';
 
 const CompanyPage: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   const queryClient = useQueryClient();
 
@@ -73,7 +73,7 @@ const CompanyPage: React.FC = () => {
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    setFormData((prev: Record<string, unknown>) => ({ ...prev, [field]: value }));
   };
 
   if (isLoading) {

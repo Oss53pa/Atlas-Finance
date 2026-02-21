@@ -166,8 +166,8 @@ export class CapitalizationValidator {
     };
   }
 
-  private static getFieldValue(obj: any, field: string): any {
-    return field.split('.').reduce((o, key) => o?.[key], obj);
+  private static getFieldValue(obj: Record<string, unknown>, field: string): unknown {
+    return field.split('.').reduce<unknown>((o, key) => (o as Record<string, unknown>)?.[key], obj);
   }
 }
 

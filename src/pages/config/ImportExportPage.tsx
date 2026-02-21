@@ -81,7 +81,7 @@ interface ImportExportTemplate {
   execution_count: number;
   success_rate: number;
   file_path?: string;
-  mapping_config: any;
+  mapping_config: Record<string, unknown>;
   validation_rules: string[];
   created_date: string;
   created_by: string;

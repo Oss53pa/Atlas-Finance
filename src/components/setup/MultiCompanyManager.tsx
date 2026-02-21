@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   BuildingOfficeIcon,
@@ -387,14 +388,6 @@ const MultiCompanyManager: React.FC = () => {
     );
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -411,7 +404,7 @@ const MultiCompanyManager: React.FC = () => {
           <div className="flex space-x-4">
             <select
               value={viewMode}
-              onChange={(e) => setViewMode(e.target.value as any)}
+              onChange={(e) => setViewMode(e.target.value as 'tree' | 'list' | 'consolidation')}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
             >
               <option value="tree">Vue Arbre</option>
@@ -540,15 +533,15 @@ const MultiCompanyManager: React.FC = () => {
                         <div key={configItem.key} className="flex items-center justify-between">
                           <span className="text-sm text-gray-700">{configItem.label}</span>
                           <div className="flex items-center space-x-2">
-                            {(company.config as any)[configItem.key] ? (
+                            {company.config[configItem.key as keyof Company['config']] ? (
                               <CheckCircleIcon className="h-4 w-4 text-green-500" />
                             ) : (
                               <div className="h-4 w-4 border border-gray-300 rounded-full"></div>
                             )}
                             <span className={`text-xs ${
-                              (company.config as any)[configItem.key] ? 'text-green-600' : 'text-gray-700'
+                              company.config[configItem.key as keyof Company['config']] ? 'text-green-600' : 'text-gray-700'
                             }`}>
-                              {(company.config as any)[configItem.key] ? 'Activé' : 'Désactivé'}
+                              {company.config[configItem.key as keyof Company['config']] ? 'Activé' : 'Désactivé'}
                             </span>
                           </div>
                         </div>
@@ -572,15 +565,15 @@ const MultiCompanyManager: React.FC = () => {
                         <div key={rightItem.key} className="flex items-center justify-between">
                           <span className="text-sm text-gray-700">{rightItem.label}</span>
                           <div className="flex items-center space-x-2">
-                            {(company.droits as any)[rightItem.key] ? (
+                            {company.droits[rightItem.key as keyof Company['droits']] ? (
                               <CheckCircleIcon className="h-4 w-4 text-green-500" />
                             ) : (
                               <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500" />
                             )}
                             <span className={`text-xs ${
-                              (company.droits as any)[rightItem.key] ? 'text-green-600' : 'text-yellow-600'
+                              company.droits[rightItem.key as keyof Company['droits']] ? 'text-green-600' : 'text-yellow-600'
                             }`}>
-                              {(company.droits as any)[rightItem.key] ? 'Autorisé' : 'Restreint'}
+                              {company.droits[rightItem.key as keyof Company['droits']] ? 'Autorisé' : 'Restreint'}
                             </span>
                           </div>
                         </div>

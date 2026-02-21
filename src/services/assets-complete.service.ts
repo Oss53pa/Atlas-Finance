@@ -21,17 +21,22 @@ class FixedAssetsService {
   async getCategories() { try { const r = await apiService.get(`${BASE_PATH}/categories/`); return r.data; } catch { return []; } }
 }
 
+export interface DepreciationQueryParams { page?: number; page_size?: number; asset_id?: string; period?: string; status?: string; }
+export interface DepreciationCalculateParams { start_date?: string; end_date?: string; method?: string; }
+
 class DepreciationsService {
-  async getAll(params?: any) { try { const r = await apiService.get(`${BASE_PATH}/depreciations/`, { params }); return r.data; } catch { return { results: [], count: 0 }; } }
+  async getAll(params?: DepreciationQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/depreciations/`, { params }); return r.data; } catch { return { results: [], count: 0 }; } }
   async getByAsset(assetId: string) { try { const r = await apiService.get(`${BASE_PATH}/fixed-assets/${assetId}/depreciations/`); return r.data; } catch { return []; } }
-  async calculate(assetId: string, params?: any) { const r = await apiService.post(`${BASE_PATH}/fixed-assets/${assetId}/calculate-depreciation/`, params); return r.data; }
+  async calculate(assetId: string, params?: DepreciationCalculateParams) { const r = await apiService.post(`${BASE_PATH}/fixed-assets/${assetId}/calculate-depreciation/`, params); return r.data; }
   async post(id: string) { const r = await apiService.post(`${BASE_PATH}/depreciations/${id}/post/`); return r.data; }
 }
 
+export interface AssetsReportParams { page?: number; page_size?: number; category?: string; status?: string; date_from?: string; date_to?: string; }
+
 class AssetsReportsService {
-  async getAssetRegister(params?: any) { try { const r = await apiService.get(`${BASE_PATH}/reports/register/`, { params }); return r.data; } catch { return { assets: [] }; } }
-  async getDepreciationSchedule(params?: any) { try { const r = await apiService.get(`${BASE_PATH}/reports/depreciation-schedule/`, { params }); return r.data; } catch { return { schedule: [] }; } }
-  async getAssetSummary(params?: any) { try { const r = await apiService.get(`${BASE_PATH}/reports/summary/`, { params }); return r.data; } catch { return { total_value: 0, total_depreciation: 0, net_value: 0 }; } }
+  async getAssetRegister(params?: AssetsReportParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/register/`, { params }); return r.data; } catch { return { assets: [] }; } }
+  async getDepreciationSchedule(params?: AssetsReportParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/depreciation-schedule/`, { params }); return r.data; } catch { return { schedule: [] }; } }
+  async getAssetSummary(params?: AssetsReportParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/summary/`, { params }); return r.data; } catch { return { total_value: 0, total_depreciation: 0, net_value: 0 }; } }
 }
 
 export const fixedAssetsService = new FixedAssetsService();

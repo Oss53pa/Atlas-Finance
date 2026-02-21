@@ -448,7 +448,7 @@ const WorkflowsManager: React.FC = () => {
             {['workflows', 'approvals', 'templates'].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
+                onClick={() => setActiveTab(tab as typeof activeTab)}
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                   activeTab === tab

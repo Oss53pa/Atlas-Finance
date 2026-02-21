@@ -126,7 +126,7 @@ interface ReportTemplate {
   description: string;
   frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'on-demand';
   format: 'pdf' | 'excel' | 'csv' | 'json';
-  parameters: { [key: string]: any };
+  parameters: { [key: string]: unknown };
   recipients: string[];
   isActive: boolean;
   lastGenerated?: string;

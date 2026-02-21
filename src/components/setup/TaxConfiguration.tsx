@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { z } from 'zod';
 import {
   CurrencyDollarIcon,
   CalculatorIcon,
@@ -126,7 +126,7 @@ const TaxConfiguration: React.FC = () => {
     { id: 'declarations', label: 'Déclarations', icon: CalendarDaysIcon }
   ];
 
-  const addTax = (taxTemplate?: any) => {
+  const addTax = (taxTemplate?: { code?: string; libelle?: string; taux?: number }) => {
     const newTax = {
       id: Date.now().toString(),
       code: taxTemplate?.code || '',
@@ -136,7 +136,7 @@ const TaxConfiguration: React.FC = () => {
       compteCollecte: '',
       compteDeductible: '',
       base: 'HT' as const,
-      zone: selectedZone as any,
+      zone: selectedZone as typeof selectedZone,
       actif: true,
       dateApplication: new Date().toISOString().split('T')[0],
       exonerable: false,

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,6 +9,9 @@ import {
 } from 'lucide-react';
 import PrintableArea from '../../components/ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
+import { db } from '../../lib/db';
+import type { DBJournalEntry } from '../../lib/db';
+import { money } from '../../utils/money';
 
 const BilanSYSCOHADAPage: React.FC = () => {
   const { t } = useLanguage();
@@ -16,7 +20,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
   const [periode, setPeriode] = useState('current');
 
   // États pour la modal de détails
-  const [selectedDetail, setSelectedDetail] = useState<any>(null);
+  const [selectedDetail, setSelectedDetail] = useState<{ type: string; title: string; data: Array<Record<string, unknown>>; total?: number } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
@@ -38,161 +42,226 @@ const BilanSYSCOHADAPage: React.FC = () => {
     { id: 'export', label: 'Export', icon: Download },
   ];
 
-  // Données Bilan SYSCOHADA
-  const bilanData = {
+  // ========== DONNÉES RÉELLES DEPUIS DEXIE ==========
+  const { data: rawEntries = [] } = useQuery({
+    queryKey: ['bilan-syscohada-entries'],
+    queryFn: () => db.journalEntries.toArray(),
+  });
+
+  // Helper: net balance (debit - credit) for account prefixes
+  const net = (prefixes: string[]) => {
+    let t = 0;
+    for (const e of rawEntries) for (const l of e.lines)
+      if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+    return t;
+  };
+  const creditNet = (prefixes: string[]) => {
+    let t = 0;
+    for (const e of rawEntries) for (const l of e.lines)
+      if (prefixes.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+    return t;
+  };
+
+  // Bilan data — computed from entries
+  const bilanData = useMemo(() => ({
     actif: [
-      { code: '20', libelle: 'Charges immobilisées', exerciceN: 150000, exerciceN1: 120000 },
-      { code: '21', libelle: 'Immobilisations incorporelles', exerciceN: 850000, exerciceN1: 750000 },
-      { code: '22/23', libelle: 'Terrains', exerciceN: 2500000, exerciceN1: 2500000 },
-      { code: '24', libelle: 'Bâtiments', exerciceN: 3200000, exerciceN1: 3400000 },
-      { code: '245', libelle: 'Matériel et outillage', exerciceN: 1850000, exerciceN1: 1650000 },
-      { code: '246', libelle: 'Matériel de transport', exerciceN: 650000, exerciceN1: 580000 },
-      { code: '247', libelle: 'Matériel et mobilier', exerciceN: 420000, exerciceN1: 380000 },
-      { code: '31', libelle: 'Stocks de marchandises', exerciceN: 680000, exerciceN1: 620000 },
-      { code: '32', libelle: 'Stocks de matières premières', exerciceN: 450000, exerciceN1: 420000 },
-      { code: '41', libelle: 'Clients et comptes rattachés', exerciceN: 1250000, exerciceN1: 1100000 },
-      { code: '46', libelle: 'Débiteurs divers', exerciceN: 180000, exerciceN1: 160000 },
-      { code: '50', libelle: 'Valeurs mobilières de placement', exerciceN: 350000, exerciceN1: 300000 },
-      { code: '52', libelle: 'Banques', exerciceN: 890000, exerciceN1: 750000 },
-      { code: '53', libelle: 'Caisses', exerciceN: 45000, exerciceN1: 35000 }
+      { code: '20', libelle: 'Charges immobilisées', exerciceN: Math.max(0, net(['20'])), exerciceN1: 0 },
+      { code: '21', libelle: 'Immobilisations incorporelles', exerciceN: Math.max(0, net(['21'])), exerciceN1: 0 },
+      { code: '22/23', libelle: 'Terrains', exerciceN: Math.max(0, net(['22', '23'])), exerciceN1: 0 },
+      { code: '24', libelle: 'Bâtiments et installations', exerciceN: Math.max(0, net(['24'])), exerciceN1: 0 },
+      { code: '245', libelle: 'Matériel et outillage', exerciceN: Math.max(0, net(['245'])), exerciceN1: 0 },
+      { code: '246', libelle: 'Matériel de transport', exerciceN: Math.max(0, net(['246'])), exerciceN1: 0 },
+      { code: '247', libelle: 'Matériel et mobilier', exerciceN: Math.max(0, net(['247'])), exerciceN1: 0 },
+      { code: '31', libelle: 'Stocks de marchandises', exerciceN: Math.max(0, net(['31'])), exerciceN1: 0 },
+      { code: '32', libelle: 'Stocks de matières premières', exerciceN: Math.max(0, net(['32'])), exerciceN1: 0 },
+      { code: '41', libelle: 'Clients et comptes rattachés', exerciceN: Math.max(0, net(['41'])), exerciceN1: 0 },
+      { code: '46', libelle: 'Débiteurs divers', exerciceN: Math.max(0, net(['46'])), exerciceN1: 0 },
+      { code: '50', libelle: 'Valeurs mobilières de placement', exerciceN: Math.max(0, net(['50'])), exerciceN1: 0 },
+      { code: '52', libelle: 'Banques', exerciceN: Math.max(0, net(['52'])), exerciceN1: 0 },
+      { code: '53', libelle: 'Caisses', exerciceN: Math.max(0, net(['57'])), exerciceN1: 0 },
     ],
     passif: [
-      { code: '10', libelle: 'Capital social', exerciceN: 5000000, exerciceN1: 5000000 },
-      { code: '11', libelle: 'Réserves', exerciceN: 2850000, exerciceN1: 2450000 },
-      { code: '12', libelle: 'Report à nouveau', exerciceN: 320000, exerciceN1: 180000 },
-      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: 680000, exerciceN1: 620000 },
-      { code: '16', libelle: 'Emprunts et dettes financières', exerciceN: 2800000, exerciceN1: 3200000 },
-      { code: '40', libelle: 'Fournisseurs et comptes rattachés', exerciceN: 950000, exerciceN1: 850000 },
-      { code: '42', libelle: 'Personnel', exerciceN: 180000, exerciceN1: 160000 },
-      { code: '43', libelle: 'Organismes sociaux', exerciceN: 120000, exerciceN1: 110000 },
-      { code: '44', libelle: 'État et collectivités', exerciceN: 265000, exerciceN1: 235000 },
-      { code: '47', libelle: 'Créditeurs divers', exerciceN: 300000, exerciceN1: 280000 }
-    ]
-  };
+      { code: '10', libelle: 'Capital social', exerciceN: creditNet(['10']), exerciceN1: 0 },
+      { code: '11', libelle: 'Réserves', exerciceN: creditNet(['11']), exerciceN1: 0 },
+      { code: '12', libelle: 'Report à nouveau', exerciceN: creditNet(['12']), exerciceN1: 0 },
+      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - (net(['6']) > 0 ? net(['6']) : 0), exerciceN1: 0 },
+      { code: '16', libelle: 'Emprunts et dettes financières', exerciceN: creditNet(['16']), exerciceN1: 0 },
+      { code: '40', libelle: 'Fournisseurs et comptes rattachés', exerciceN: creditNet(['40']), exerciceN1: 0 },
+      { code: '42', libelle: 'Personnel', exerciceN: creditNet(['42']), exerciceN1: 0 },
+      { code: '43', libelle: 'Organismes sociaux', exerciceN: creditNet(['43']), exerciceN1: 0 },
+      { code: '44', libelle: 'État et collectivités', exerciceN: creditNet(['44']), exerciceN1: 0 },
+      { code: '47', libelle: 'Créditeurs divers', exerciceN: creditNet(['47']), exerciceN1: 0 },
+    ],
+  }), [rawEntries]);
 
-  // Données Compte de Résultat SYSCOHADA
-  const compteResultatData = {
+  // Compte de Résultat
+  const compteResultatData = useMemo(() => ({
     produits: [
-      { code: '70', libelle: 'Ventes de marchandises', exerciceN: 8500000, exerciceN1: 7800000 },
-      { code: '72', libelle: 'Production vendue', exerciceN: 2400000, exerciceN1: 2200000 },
-      { code: '74', libelle: 'Subventions d\'exploitation', exerciceN: 150000, exerciceN1: 120000 },
-      { code: '75', libelle: 'Autres produits de gestion', exerciceN: 280000, exerciceN1: 250000 },
-      { code: '77', libelle: 'Revenus financiers', exerciceN: 190000, exerciceN1: 215000 },
-      { code: '78', libelle: 'Reprises de provisions', exerciceN: 100000, exerciceN1: 100000 }
+      { code: '70', libelle: 'Ventes de marchandises', exerciceN: creditNet(['70']), exerciceN1: 0 },
+      { code: '72', libelle: 'Production vendue', exerciceN: creditNet(['72']), exerciceN1: 0 },
+      { code: '74', libelle: 'Subventions d\'exploitation', exerciceN: creditNet(['74']), exerciceN1: 0 },
+      { code: '75', libelle: 'Autres produits de gestion', exerciceN: creditNet(['75']), exerciceN1: 0 },
+      { code: '77', libelle: 'Revenus financiers', exerciceN: creditNet(['77']), exerciceN1: 0 },
+      { code: '78', libelle: 'Reprises de provisions', exerciceN: creditNet(['78']), exerciceN1: 0 },
     ],
     charges: [
-      { code: '60', libelle: 'Achats de marchandises', exerciceN: 5200000, exerciceN1: 4800000 },
-      { code: '61', libelle: 'Transports', exerciceN: 380000, exerciceN1: 350000 },
-      { code: '62', libelle: 'Services extérieurs A', exerciceN: 420000, exerciceN1: 390000 },
-      { code: '63', libelle: 'Services extérieurs B', exerciceN: 520000, exerciceN1: 480000 },
-      { code: '64', libelle: 'Impôts et taxes', exerciceN: 280000, exerciceN1: 260000 },
-      { code: '66', libelle: 'Charges de personnel', exerciceN: 2850000, exerciceN1: 2650000 },
-      { code: '68', libelle: 'Dotations aux amortissements', exerciceN: 650000, exerciceN1: 620000 },
-      { code: '67', libelle: 'Charges financières', exerciceN: 180000, exerciceN1: 200000 }
-    ]
-  };
-
-  // Données Bilan Fonctionnel
-  const bilanFonctionnelData = {
-    emplois: [
-      { code: 'ES', libelle: 'Emplois stables', valeur: 9620000, pourcentage: 73.6 },
-      { code: 'ACE', libelle: 'Actif circulant d\'exploitation', valeur: 2480000, pourcentage: 19.0 },
-      { code: 'ACHE', libelle: 'Actif circulant hors exploitation', valeur: 520000, pourcentage: 4.0 },
-      { code: 'AT', libelle: 'Actif de trésorerie', valeur: 455000, pourcentage: 3.4 }
+      { code: '60', libelle: 'Achats de marchandises', exerciceN: net(['60']), exerciceN1: 0 },
+      { code: '61', libelle: 'Transports', exerciceN: net(['61']), exerciceN1: 0 },
+      { code: '62', libelle: 'Services extérieurs A', exerciceN: net(['62']), exerciceN1: 0 },
+      { code: '63', libelle: 'Services extérieurs B', exerciceN: net(['63']), exerciceN1: 0 },
+      { code: '64', libelle: 'Impôts et taxes', exerciceN: net(['64']), exerciceN1: 0 },
+      { code: '66', libelle: 'Charges de personnel', exerciceN: net(['66']), exerciceN1: 0 },
+      { code: '68', libelle: 'Dotations aux amortissements', exerciceN: net(['68']), exerciceN1: 0 },
+      { code: '67', libelle: 'Charges financières', exerciceN: net(['67']), exerciceN1: 0 },
     ],
-    ressources: [
-      { code: 'RS', libelle: 'Ressources stables', valeur: 8850000, pourcentage: 67.7 },
-      { code: 'PCE', libelle: 'Passif circulant d\'exploitation', valeur: 1350000, pourcentage: 10.3 },
-      { code: 'PCHE', libelle: 'Passif circulant hors exploitation', valeur: 385000, pourcentage: 2.9 },
-      { code: 'PT', libelle: 'Passif de trésorerie', valeur: 2490000, pourcentage: 19.1 }
-    ]
-  };
+  }), [rawEntries]);
 
-  // Données SIG
-  const sigData = [
-    { libelle: 'Marge commerciale', exerciceN: 3300000, exerciceN1: 3000000, variation: '+10.0%' },
-    { libelle: 'Production de l\'exercice', exerciceN: 2400000, exerciceN1: 2200000, variation: '+9.1%' },
-    { libelle: 'Valeur ajoutée', exerciceN: 4180000, exerciceN1: 3820000, variation: '+9.4%' },
-    { libelle: 'Excédent brut d\'exploitation', exerciceN: 1050000, exerciceN1: 910000, variation: '+15.4%' },
-    { libelle: 'Résultat d\'exploitation', exerciceN: 400000, exerciceN1: 290000, variation: '+37.9%' },
-    { libelle: 'Résultat courant avant impôt', exerciceN: 410000, exerciceN1: 305000, variation: '+34.4%' },
-    { libelle: 'Résultat net', exerciceN: 1140000, exerciceN1: 935000, variation: '+21.9%' }
-  ];
+  // Bilan Fonctionnel
+  const bilanFonctionnelData = useMemo(() => {
+    const emploisStables = Math.max(0, net(['2']) + net(['28']));
+    const aceVal = Math.max(0, net(['3'])) + Math.max(0, net(['41']));
+    const acheVal = Math.max(0, net(['46']));
+    const atVal = Math.max(0, net(['5']));
+    const totalEmplois = emploisStables + aceVal + acheVal + atVal;
 
-  // Données Tableau de Flux de Trésorerie SYSCOHADA
-  const fluxTresorerieData = {
-    activitesOperationnelles: [
-      { code: 'FO1', libelle: 'Résultat net de l\'exercice', montant: 1140000 },
-      { code: 'FO2', libelle: 'Dotations aux amortissements', montant: 650000 },
-      { code: 'FO3', libelle: 'Dotations aux provisions', montant: 85000 },
-      { code: 'FO4', libelle: 'Plus/moins-values de cessions', montant: -25000 },
-      { code: 'FO5', libelle: 'Variation des créances clients', montant: -150000 },
-      { code: 'FO6', libelle: 'Variation des stocks', montant: -90000 },
-      { code: 'FO7', libelle: 'Variation des dettes fournisseurs', montant: 100000 },
-      { code: 'FO8', libelle: 'Variation autres créances et dettes', montant: -50000 }
-    ],
-    activitesInvestissement: [
-      { code: 'FI1', libelle: 'Acquisitions d\'immobilisations corporelles', montant: -850000 },
-      { code: 'FI2', libelle: 'Acquisitions d\'immobilisations incorporelles', montant: -120000 },
-      { code: 'FI3', libelle: 'Cessions d\'immobilisations', montant: 75000 },
-      { code: 'FI4', libelle: 'Acquisitions de participations', montant: -200000 }
-    ],
-    activitesFinancement: [
-      { code: 'FF1', libelle: 'Augmentation de capital', montant: 0 },
-      { code: 'FF2', libelle: 'Nouveaux emprunts contractés', montant: 500000 },
-      { code: 'FF3', libelle: 'Remboursements d\'emprunts', montant: -400000 },
-      { code: 'FF4', libelle: 'Dividendes versés', montant: -200000 },
-      { code: 'FF5', libelle: 'Intérêts versés', montant: -180000 }
-    ]
-  };
+    const rs = creditNet(['10', '11', '12']) + creditNet(['16', '17']);
+    const pce = creditNet(['40']);
+    const pche = creditNet(['42', '43', '44', '47']);
+    const totalRessources = rs + pce + pche;
 
-  // Données Tableau de Financement
-  const tableauFinancementData = {
-    emplois: [
-      { code: 'TF1', libelle: 'Distributions mises en paiement au cours de l\'exercice', montant: 200000 },
-      { code: 'TF2', libelle: 'Acquisitions d\'éléments de l\'actif immobilisé', montant: 970000 },
-      { code: 'TF3', libelle: 'Charges à répartir sur plusieurs exercices', montant: 30000 },
-      { code: 'TF4', libelle: 'Réduction des capitaux propres', montant: 0 },
-      { code: 'TF5', libelle: 'Remboursements de dettes financières', montant: 400000 }
-    ],
-    ressources: [
-      { code: 'TF6', libelle: 'Capacité d\'autofinancement de l\'exercice', montant: 1150000 },
-      { code: 'TF7', libelle: 'Cessions ou réductions d\'éléments de l\'actif immobilisé', montant: 75000 },
-      { code: 'TF8', libelle: 'Augmentation des capitaux propres', montant: 0 },
-      { code: 'TF9', libelle: 'Augmentation des dettes financières', montant: 500000 }
-    ],
-    variationFdr: [
-      { code: 'TF10', libelle: 'Variation du fonds de roulement net global', montant: 125000 }
-    ]
-  };
+    return {
+      emplois: [
+        { code: 'ES', libelle: 'Emplois stables', valeur: emploisStables, pourcentage: totalEmplois ? (emploisStables / totalEmplois) * 100 : 0 },
+        { code: 'ACE', libelle: 'Actif circulant d\'exploitation', valeur: aceVal, pourcentage: totalEmplois ? (aceVal / totalEmplois) * 100 : 0 },
+        { code: 'ACHE', libelle: 'Actif circulant hors exploitation', valeur: acheVal, pourcentage: totalEmplois ? (acheVal / totalEmplois) * 100 : 0 },
+        { code: 'AT', libelle: 'Actif de trésorerie', valeur: atVal, pourcentage: totalEmplois ? (atVal / totalEmplois) * 100 : 0 },
+      ],
+      ressources: [
+        { code: 'RS', libelle: 'Ressources stables', valeur: rs, pourcentage: totalRessources ? (rs / totalRessources) * 100 : 0 },
+        { code: 'PCE', libelle: 'Passif circulant d\'exploitation', valeur: pce, pourcentage: totalRessources ? (pce / totalRessources) * 100 : 0 },
+        { code: 'PCHE', libelle: 'Passif circulant hors exploitation', valeur: pche, pourcentage: totalRessources ? (pche / totalRessources) * 100 : 0 },
+        { code: 'PT', libelle: 'Passif de trésorerie', valeur: 0, pourcentage: 0 },
+      ],
+    };
+  }, [rawEntries]);
 
-  // Données Ratios
-  const ratiosData = [
-    {
-      categorie: 'Ratios de Structure',
-      ratios: [
-        { nom: 'Ratio d\'autonomie financière', calcul: 'Capitaux propres / Total passif', valeur: 0.668, norme: '> 0.5', status: 'bon' },
-        { nom: 'Ratio de financement des immobilisations', calcul: 'Capitaux permanents / Immobilisations', valeur: 0.920, norme: '> 1', status: 'moyen' },
-        { nom: 'Ratio d\'endettement', calcul: 'Dettes / Capitaux propres', valeur: 0.497, norme: '< 1', status: 'excellent' }
-      ]
-    },
-    {
-      categorie: 'Ratios de Liquidité',
-      ratios: [
-        { nom: 'Ratio de liquidité générale', calcul: 'Actif circulant / Dettes CT', valeur: 1.89, norme: '> 1.5', status: 'bon' },
-        { nom: 'Ratio de liquidité réduite', calcul: '(Créances + Disponibilités) / Dettes CT', valeur: 1.42, norme: '> 1', status: 'bon' },
-        { nom: 'Ratio de liquidité immédiate', calcul: 'Disponibilités / Dettes CT', valeur: 0.51, norme: '> 0.3', status: 'excellent' }
-      ]
-    },
-    {
-      categorie: 'Ratios de Rentabilité',
-      ratios: [
-        { nom: 'Rentabilité économique', calcul: 'Résultat net / Total actif', valeur: 0.087, norme: '> 0.05', status: 'excellent' },
-        { nom: 'Rentabilité financière', calcul: 'Résultat net / Capitaux propres', valeur: 0.131, norme: '> 0.10', status: 'excellent' },
-        { nom: 'Taux de marge nette', calcul: 'Résultat net / CA', valeur: 0.134, norme: '> 0.05', status: 'excellent' }
-      ]
-    }
-  ];
+  // SIG
+  const sigData = useMemo(() => {
+    const ventesMarc = creditNet(['701']);
+    const achatsMarc = net(['601']);
+    const mc = ventesMarc - achatsMarc;
+    const prodExercice = creditNet(['70', '71', '72', '73']);
+    const va = mc + prodExercice - net(['60', '61', '62', '63']);
+    const ebe = va + creditNet(['74']) - net(['66']) - net(['64']);
+    const re = ebe - net(['68']) + creditNet(['75', '78', '79']) - net(['65']);
+    const rc = re + creditNet(['77']) - net(['67']);
+    const rn = rc - net(['89']);
+    return [
+      { libelle: 'Marge commerciale', exerciceN: mc, exerciceN1: 0, variation: '—' },
+      { libelle: 'Production de l\'exercice', exerciceN: prodExercice, exerciceN1: 0, variation: '—' },
+      { libelle: 'Valeur ajoutée', exerciceN: va, exerciceN1: 0, variation: '—' },
+      { libelle: 'Excédent brut d\'exploitation', exerciceN: ebe, exerciceN1: 0, variation: '—' },
+      { libelle: 'Résultat d\'exploitation', exerciceN: re, exerciceN1: 0, variation: '—' },
+      { libelle: 'Résultat courant avant impôt', exerciceN: rc, exerciceN1: 0, variation: '—' },
+      { libelle: 'Résultat net', exerciceN: rn, exerciceN1: 0, variation: '—' },
+    ];
+  }, [rawEntries]);
+
+  // Flux de trésorerie
+  const fluxTresorerieData = useMemo(() => {
+    const rn = creditNet(['7']) - net(['6']);
+    const dotAmort = net(['68']);
+    return {
+      activitesOperationnelles: [
+        { code: 'FO1', libelle: 'Résultat net de l\'exercice', montant: rn },
+        { code: 'FO2', libelle: 'Dotations aux amortissements', montant: dotAmort },
+        { code: 'FO3', libelle: 'Dotations aux provisions', montant: net(['69']) },
+        { code: 'FO4', libelle: 'Plus/moins-values de cessions', montant: 0 },
+        { code: 'FO5', libelle: 'Variation des créances clients', montant: -net(['41']) },
+        { code: 'FO6', libelle: 'Variation des stocks', montant: -net(['3']) },
+        { code: 'FO7', libelle: 'Variation des dettes fournisseurs', montant: creditNet(['40']) },
+        { code: 'FO8', libelle: 'Variation autres créances et dettes', montant: 0 },
+      ],
+      activitesInvestissement: [
+        { code: 'FI1', libelle: 'Acquisitions d\'immobilisations corporelles', montant: -Math.max(0, net(['24', '245', '246', '247'])) },
+        { code: 'FI2', libelle: 'Acquisitions d\'immobilisations incorporelles', montant: -Math.max(0, net(['21'])) },
+        { code: 'FI3', libelle: 'Cessions d\'immobilisations', montant: 0 },
+        { code: 'FI4', libelle: 'Acquisitions de participations', montant: -Math.max(0, net(['26'])) },
+      ],
+      activitesFinancement: [
+        { code: 'FF1', libelle: 'Augmentation de capital', montant: creditNet(['10']) },
+        { code: 'FF2', libelle: 'Nouveaux emprunts contractés', montant: creditNet(['16']) },
+        { code: 'FF3', libelle: 'Remboursements d\'emprunts', montant: -net(['16']) },
+        { code: 'FF4', libelle: 'Dividendes versés', montant: -net(['465']) },
+        { code: 'FF5', libelle: 'Intérêts versés', montant: -net(['67']) },
+      ],
+    };
+  }, [rawEntries]);
+
+  // Tableau de Financement
+  const tableauFinancementData = useMemo(() => {
+    const caf = (creditNet(['7']) - net(['6'])) + net(['68']);
+    return {
+      emplois: [
+        { code: 'TF1', libelle: 'Distributions mises en paiement', montant: net(['465']) },
+        { code: 'TF2', libelle: 'Acquisitions d\'éléments de l\'actif immobilisé', montant: Math.max(0, net(['2']) + net(['28'])) },
+        { code: 'TF3', libelle: 'Charges à répartir sur plusieurs exercices', montant: net(['20']) },
+        { code: 'TF4', libelle: 'Réduction des capitaux propres', montant: 0 },
+        { code: 'TF5', libelle: 'Remboursements de dettes financières', montant: net(['16']) > 0 ? net(['16']) : 0 },
+      ],
+      ressources: [
+        { code: 'TF6', libelle: 'Capacité d\'autofinancement de l\'exercice', montant: caf },
+        { code: 'TF7', libelle: 'Cessions ou réductions d\'éléments de l\'actif immobilisé', montant: 0 },
+        { code: 'TF8', libelle: 'Augmentation des capitaux propres', montant: creditNet(['10']) },
+        { code: 'TF9', libelle: 'Augmentation des dettes financières', montant: creditNet(['16']) },
+      ],
+      variationFdr: [
+        { code: 'TF10', libelle: 'Variation du fonds de roulement net global', montant: caf - Math.max(0, net(['2']) + net(['28'])) },
+      ],
+    };
+  }, [rawEntries]);
+
+  // Ratios — computed from bilan/CR data
+  const ratiosData = useMemo(() => {
+    const totalActif = bilanData.actif.reduce((s, r) => s + r.exerciceN, 0);
+    const cp = bilanData.passif.filter(r => ['10','11','12','13'].includes(r.code)).reduce((s, r) => s + r.exerciceN, 0);
+    const emprunts = bilanData.passif.find(r => r.code === '16')?.exerciceN || 0;
+    const detteCT = bilanData.passif.filter(r => ['40','42','43','44','47'].includes(r.code)).reduce((s, r) => s + r.exerciceN, 0);
+    const actifCirculant = bilanData.actif.filter(r => ['31','32','41','46','50','52','53'].includes(r.code)).reduce((s, r) => s + r.exerciceN, 0);
+    const creancesTreso = bilanData.actif.filter(r => ['41','50','52','53'].includes(r.code)).reduce((s, r) => s + r.exerciceN, 0);
+    const treso = bilanData.actif.filter(r => ['52','53'].includes(r.code)).reduce((s, r) => s + r.exerciceN, 0);
+    const ca = compteResultatData.produits.find(r => r.code === '70')?.exerciceN || 0;
+    const rn = sigData[sigData.length - 1]?.exerciceN || 0;
+
+    const safe = (a: number, b: number) => b === 0 ? 0 : a / b;
+
+    return [
+      {
+        categorie: 'Ratios de Structure',
+        ratios: [
+          { nom: 'Ratio d\'autonomie financière', calcul: 'Capitaux propres / Total passif', valeur: safe(cp, totalActif), norme: '> 0.5', status: safe(cp, totalActif) > 0.5 ? 'bon' : 'moyen' },
+          { nom: 'Ratio de financement des immobilisations', calcul: 'Capitaux permanents / Immobilisations', valeur: safe(cp + emprunts, bilanData.actif.slice(0, 7).reduce((s, r) => s + r.exerciceN, 0) || 1), norme: '> 1', status: 'moyen' },
+          { nom: 'Ratio d\'endettement', calcul: 'Dettes / Capitaux propres', valeur: safe(emprunts, cp), norme: '< 1', status: safe(emprunts, cp) < 1 ? 'bon' : 'moyen' },
+        ],
+      },
+      {
+        categorie: 'Ratios de Liquidité',
+        ratios: [
+          { nom: 'Ratio de liquidité générale', calcul: 'Actif circulant / Dettes CT', valeur: safe(actifCirculant, detteCT), norme: '> 1.5', status: safe(actifCirculant, detteCT) > 1.5 ? 'bon' : 'moyen' },
+          { nom: 'Ratio de liquidité réduite', calcul: '(Créances + Disponibilités) / Dettes CT', valeur: safe(creancesTreso, detteCT), norme: '> 1', status: safe(creancesTreso, detteCT) > 1 ? 'bon' : 'moyen' },
+          { nom: 'Ratio de liquidité immédiate', calcul: 'Disponibilités / Dettes CT', valeur: safe(treso, detteCT), norme: '> 0.3', status: safe(treso, detteCT) > 0.3 ? 'excellent' : 'moyen' },
+        ],
+      },
+      {
+        categorie: 'Ratios de Rentabilité',
+        ratios: [
+          { nom: 'Rentabilité économique', calcul: 'Résultat net / Total actif', valeur: safe(rn, totalActif), norme: '> 0.05', status: safe(rn, totalActif) > 0.05 ? 'excellent' : 'moyen' },
+          { nom: 'Rentabilité financière', calcul: 'Résultat net / Capitaux propres', valeur: safe(rn, cp), norme: '> 0.10', status: safe(rn, cp) > 0.10 ? 'excellent' : 'moyen' },
+          { nom: 'Taux de marge nette', calcul: 'Résultat net / CA', valeur: safe(rn, ca), norme: '> 0.05', status: safe(rn, ca) > 0.05 ? 'excellent' : 'moyen' },
+        ],
+      },
+    ];
+  }, [bilanData, compteResultatData, sigData]);
 
   // Génération des détails de transactions pour un compte
   const generateTransactionDetails = (accountCode: string, period: string, amount: number) => {
@@ -1319,7 +1388,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedDetail.data.map((subAccount: any, index: number) => (
+                        {selectedDetail.data.map((subAccount: Record<string, unknown>, index: number) => (
                           <tr key={index} className="border-b border-[#E8E8E8] hover:bg-gray-50">
                             <td className="p-3 font-medium text-[#B87333]">{subAccount.code}</td>
                             <td className="p-3 text-[#191919]">{subAccount.libelle}</td>
@@ -1364,7 +1433,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedDetail.data.map((transaction: any, index: number) => (
+                        {selectedDetail.data.map((transaction: Record<string, unknown>, index: number) => (
                           <tr key={index} className="border-b border-[#E8E8E8] hover:bg-gray-50">
                             <td className="p-3 text-[#767676]">{transaction.date}</td>
                             <td className="p-3 font-medium text-[#B87333]">{transaction.reference}</td>

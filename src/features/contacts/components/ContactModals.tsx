@@ -114,7 +114,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
       onSuccess?.();
       onClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Erreur création contact:', error);
       toast.error(error?.message || 'Erreur lors de la création du contact');
     }
@@ -178,7 +178,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
     createContact.mutate(formData);
   };
 
-  const handleInputChange = (field: keyof ContactFormData, value: any) => {
+  const handleInputChange = (field: keyof ContactFormData, value: ContactFormData[keyof ContactFormData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -252,7 +252,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
                   </label>
                   <Select
                     value={formData.civilite}
-                    onValueChange={(value: any) => handleInputChange('civilite', value)}
+                    onValueChange={(value: string) => handleInputChange('civilite', value as ContactFormData['civilite'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -334,7 +334,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Aucune entreprise</SelectItem>
-                      {companiesData?.results?.map((company: any) => (
+                      {companiesData?.results?.map((company: { id: string; denomination: string }) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.denomination}
                         </SelectItem>
@@ -349,7 +349,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
                   </label>
                   <Select
                     value={formData.type_tiers}
-                    onValueChange={(value: any) => handleInputChange('type_tiers', value)}
+                    onValueChange={(value: string) => handleInputChange('type_tiers', value as ContactFormData['type_tiers'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -566,10 +566,15 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
   );
 };
 
+interface ContactData extends ContactFormData {
+  id: string;
+  entreprise_nom?: string;
+}
+
 interface EditContactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  contact: any;
+  contact: ContactData | null;
   onSuccess?: () => void;
 }
 
@@ -592,7 +597,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
   });
 
   const updateContact = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: ContactFormData }) =>
       thirdPartyService.updateContact(id, data),
     onSuccess: () => {
       toast.success('Contact modifié avec succès');
@@ -600,7 +605,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
       onSuccess?.();
       onClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Erreur modification contact:', error);
       toast.error(error?.message || 'Erreur lors de la modification du contact');
     }
@@ -670,7 +675,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
     updateContact.mutate({ id: contact.id, data: formData });
   };
 
-  const handleInputChange = (field: keyof ContactFormData, value: any) => {
+  const handleInputChange = (field: keyof ContactFormData, value: ContactFormData[keyof ContactFormData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -745,7 +750,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
                   </label>
                   <Select
                     value={formData.civilite}
-                    onValueChange={(value: any) => handleInputChange('civilite', value)}
+                    onValueChange={(value: string) => handleInputChange('civilite', value as ContactFormData['civilite'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -825,7 +830,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Aucune entreprise</SelectItem>
-                      {companiesData?.results?.map((company: any) => (
+                      {companiesData?.results?.map((company: { id: string; denomination: string }) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.denomination}
                         </SelectItem>
@@ -840,7 +845,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
                   </label>
                   <Select
                     value={formData.type_tiers}
-                    onValueChange={(value: any) => handleInputChange('type_tiers', value)}
+                    onValueChange={(value: string) => handleInputChange('type_tiers', value as ContactFormData['type_tiers'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -905,7 +910,7 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
 interface ContactDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  contact: any;
+  contact: ContactData | null;
   onEdit?: () => void;
 }
 

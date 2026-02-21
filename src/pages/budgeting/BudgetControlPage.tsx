@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { 
   ChartBarIcon,
@@ -75,86 +77,66 @@ const BudgetControlPage: React.FC = () => {
   const { data: budgetControls = [], isLoading } = useQuery({
     queryKey: ['budget-controls', selectedPeriod, selectedDepartment, selectedStatus, searchTerm],
     queryFn: async () => {
-      const mockControls: BudgetControl[] = [
-        {
-          id: '1',
-          budgetId: 'BUDG-EXP-2024',
-          budgetName: 'Budget Exploitation 2024',
-          department: 'Exploitation',
-          period: '2024',
-          budgetedAmount: 5000000,
-          actualAmount: 4200000,
-          variance: -800000,
-          variancePercentage: -16,
-          status: 'under_budget',
-          category: 'Opérationnel',
-          responsible: 'Marie Dubois',
-          lastUpdate: '2024-08-25T00:00:00Z',
-          alerts: [
-            {
-              type: 'info',
-              message: 'Économies réalisées sur les fournitures de bureau',
-              date: '2024-08-20T00:00:00Z'
-            }
-          ]
-        },
-        {
-          id: '2',
-          budgetId: 'BUDG-INV-IT24',
-          budgetName: 'Budget Investissements IT',
-          department: 'IT',
-          period: '2024',
-          budgetedAmount: 2000000,
-          actualAmount: 2300000,
-          variance: 300000,
-          variancePercentage: 15,
-          status: 'over_budget',
-          category: 'Investissement',
-          responsible: 'Paul Martin',
-          lastUpdate: '2024-08-24T00:00:00Z',
-          alerts: [
-            {
-              type: 'danger',
-              message: 'Dépassement budgétaire de 15% - Achat serveur non planifié',
-              date: '2024-08-22T00:00:00Z'
-            },
-            {
-              type: 'warning',
-              message: 'Prévision de dépassement supplémentaire en Q4',
-              date: '2024-08-20T00:00:00Z'
-            }
-          ]
-        },
-        {
-          id: '3',
-          budgetId: 'BUDG-COM-2024',
-          budgetName: 'Budget Commercial',
-          department: 'Commercial',
-          period: '2024',
-          budgetedAmount: 3000000,
-          actualAmount: 3100000,
-          variance: 100000,
-          variancePercentage: 3.33,
-          status: 'at_risk',
-          category: 'Opérationnel',
-          responsible: 'Jean Kouassi',
-          lastUpdate: '2024-08-23T00:00:00Z',
-          alerts: [
-            {
-              type: 'warning',
-              message: 'Dépassement léger sur les frais de déplacement',
-              date: '2024-08-18T00:00:00Z'
-            }
-          ]
+      const budgetLines = await db.budgetLines.toArray();
+      const entries = await db.journalEntries.toArray();
+
+      // Group budget lines by fiscal year
+      const budgetByAccount: Record<string, { budgeted: number; accountCode: string; fiscalYear: string }> = {};
+      for (const bl of budgetLines) {
+        if (bl.fiscalYear !== selectedPeriod) continue;
+        if (!budgetByAccount[bl.accountCode]) {
+          budgetByAccount[bl.accountCode] = { budgeted: 0, accountCode: bl.accountCode, fiscalYear: bl.fiscalYear };
         }
-      ];
-      
-      return mockControls.filter(control =>
+        budgetByAccount[bl.accountCode].budgeted += bl.budgeted;
+      }
+
+      // Calculate actuals from journal entries (charge accounts 6x)
+      const actualByAccount: Record<string, number> = {};
+      for (const entry of entries) {
+        if (!entry.date.startsWith(selectedPeriod)) continue;
+        for (const line of entry.lines) {
+          if (!actualByAccount[line.accountCode]) actualByAccount[line.accountCode] = 0;
+          actualByAccount[line.accountCode] += line.debit - line.credit;
+        }
+      }
+
+      // Build budget controls
+      const controls: BudgetControl[] = Object.entries(budgetByAccount).map(([accountCode, budget]) => {
+        const actual = actualByAccount[accountCode] || 0;
+        const variance = actual - budget.budgeted;
+        const variancePercentage = budget.budgeted !== 0 ? (variance / budget.budgeted) * 100 : 0;
+        let status: BudgetControl['status'] = 'on_track';
+        if (variancePercentage > 10) status = 'over_budget';
+        else if (variancePercentage > 3) status = 'at_risk';
+        else if (variancePercentage < -10) status = 'under_budget';
+
+        return {
+          id: accountCode,
+          budgetId: `BUDG-${accountCode}-${selectedPeriod}`,
+          budgetName: `Budget ${accountCode}`,
+          department: accountCode.charAt(1) === '1' ? 'Personnel' : accountCode.charAt(1) === '2' ? 'Services' : 'Exploitation',
+          period: selectedPeriod,
+          budgetedAmount: budget.budgeted,
+          actualAmount: actual,
+          variance,
+          variancePercentage: Math.round(variancePercentage * 100) / 100,
+          status,
+          category: 'Opérationnel',
+          responsible: '',
+          lastUpdate: new Date().toISOString(),
+          alerts: Math.abs(variancePercentage) > 10 ? [{
+            type: variancePercentage > 10 ? 'danger' as const : 'info' as const,
+            message: `Écart de ${Math.abs(Math.round(variancePercentage))}% sur le compte ${accountCode}`,
+            date: new Date().toISOString()
+          }] : []
+        };
+      });
+
+      return controls.filter(control =>
         (selectedDepartment === 'all' || control.department === selectedDepartment) &&
         (selectedStatus === 'all' || control.status === selectedStatus) &&
-        (searchTerm === '' || 
-         control.budgetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         control.responsible.toLowerCase().includes(searchTerm.toLowerCase()))
+        (searchTerm === '' ||
+         control.budgetName.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
   });
@@ -162,18 +144,28 @@ const BudgetControlPage: React.FC = () => {
   const { data: monthlyData = [] } = useQuery({
     queryKey: ['monthly-budget-data', selectedPeriod],
     queryFn: async () => {
-      const mockData: MonthlyData[] = [
-        { month: 'Jan', budgeted: 800000, actual: 750000, variance: -50000 },
-        { month: 'Fév', budgeted: 800000, actual: 820000, variance: 20000 },
-        { month: 'Mar', budgeted: 800000, actual: 780000, variance: -20000 },
-        { month: 'Avr', budgeted: 850000, actual: 900000, variance: 50000 },
-        { month: 'Mai', budgeted: 850000, actual: 830000, variance: -20000 },
-        { month: 'Jun', budgeted: 850000, actual: 870000, variance: 20000 },
-        { month: 'Jul', budgeted: 900000, actual: 950000, variance: 50000 },
-        { month: 'Aoû', budgeted: 900000, actual: 880000, variance: -20000 }
-      ];
-      
-      return mockData;
+      const budgetLines = await db.budgetLines.toArray();
+      const entries = await db.journalEntries.toArray();
+      const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+      const result: MonthlyData[] = months.map((month, idx) => {
+        const monthStr = String(idx + 1).padStart(2, '0');
+        const prefix = `${selectedPeriod}-${monthStr}`;
+
+        // Sum budgeted for this month
+        const budgeted = budgetLines
+          .filter(bl => bl.fiscalYear === selectedPeriod && bl.period === monthStr)
+          .reduce((s, bl) => s + bl.budgeted, 0);
+
+        // Sum actual from entries for this month (charge accounts 6x)
+        const actual = entries
+          .filter(e => e.date.startsWith(prefix))
+          .reduce((s, e) => s + e.lines.filter(l => l.accountCode.startsWith('6')).reduce((ls, l) => ls + l.debit - l.credit, 0), 0);
+
+        return { month, budgeted, actual, variance: actual - budgeted };
+      });
+
+      return result.filter(m => m.budgeted > 0 || m.actual > 0);
     }
   });
 
@@ -203,13 +195,6 @@ const BudgetControlPage: React.FC = () => {
     return 'text-gray-600';
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const totalBudgeted = budgetControls.reduce((sum, control) => sum + control.budgetedAmount, 0);
   const totalActual = budgetControls.reduce((sum, control) => sum + control.actualAmount, 0);

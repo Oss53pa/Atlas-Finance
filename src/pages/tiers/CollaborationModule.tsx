@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { formatDate } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
 import {
   MessageSquare, Plus, Search, Filter, Download, Eye, Edit, Trash2,
@@ -17,7 +18,7 @@ import { Message, Collaboration, CollaborationTask } from '../../types/tiers';
 const CollaborationModule: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('chat');
-  const [selectedChat, setSelectedChat] = useState<any>(null);
+  const [selectedChat, setSelectedChat] = useState<Record<string, unknown> | null>(null);
   const [messageText, setMessageText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -280,9 +281,6 @@ const CollaborationModule: React.FC = () => {
     });
   };
 
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('fr-FR');
-  };
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -506,7 +504,7 @@ const CollaborationModule: React.FC = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {selectedChat.messages.map((message: any) => (
+                  {(selectedChat.messages as Array<Record<string, unknown>>).map((message: Record<string, unknown>) => (
                     <div
                       key={message.id}
                       className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import {
   DocumentTextIcon,
   CheckCircleIcon,
@@ -109,95 +111,91 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
   const { data: balanceData, isLoading } = useQuery({
     queryKey: ['balance-sheet-syscohada', selectedPeriod],
     queryFn: async (): Promise<BalanceSheetData> => {
-      // Mock data conforme SYSCOHADA
+      const entries = await db.journalEntries.toArray();
+      const settings = await db.settings.get('company_name');
+
+      // Helper: net balance (debit - credit)
+      const net = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+        return t;
+      };
+      const creditN = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+        return t;
+      };
+
+      // ACTIF
+      const intGross = Math.max(0, net('21'));
+      const intDepr = Math.abs(Math.min(0, net('281')));
+      const tanGross = Math.max(0, net('22', '23', '24'));
+      const tanDepr = Math.abs(Math.min(0, net('282', '283', '284')));
+      const finGross = Math.max(0, net('25', '26', '27'));
+      const finProv = Math.abs(Math.min(0, net('29')));
+      const totalFixed = (intGross - intDepr) + (tanGross - tanDepr) + (finGross - finProv);
+
+      const stocksGross = Math.max(0, net('3'));
+      const stocksProv = Math.abs(Math.min(0, net('39')));
+      const recGross = Math.max(0, net('41', '42', '43', '44', '45', '46'));
+      const recProv = Math.abs(Math.min(0, net('491')));
+      const totalCurrent = (stocksGross - stocksProv) + (recGross - recProv);
+
+      const marketSec = Math.max(0, net('50'));
+      const cashBanks = Math.max(0, net('52', '57'));
+      const totalTreasury = marketSec + cashBanks;
+      const totalAssets = totalFixed + totalCurrent + totalTreasury;
+
+      // PASSIF
+      const capital = creditN('10');
+      const reserves = creditN('11', '12');
+      const resultatNet = creditN('7') - net('6');
+      const totalEquity = capital + reserves + resultatNet;
+
+      const financialDebts = creditN('16', '17');
+      const totalFinDebts = financialDebts;
+
+      const suppliers = creditN('40');
+      const taxSocial = creditN('42', '43', '44');
+      const otherDebts = creditN('45', '46', '47');
+      const totalCurrentLiab = suppliers + taxSocial + otherDebts;
+      const totalLiabilities = totalEquity + totalFinDebts + totalCurrentLiab;
+
       return {
         id: '1',
-        company: {
-          name: 'ATLAS FINANCE SARL',
-          address: 'Yaoundé, Cameroun'
-        },
-        fiscalYear: '2024',
-        statementDate: '2024-08-31',
-        
-        // ACTIF
-        intangibleAssetsGross: 500000,
-        intangibleAssetsDepreciation: 150000,
-        intangibleAssetsNet: 350000,
-        
-        tangibleAssetsGross: 8500000,
-        tangibleAssetsDepreciation: 3200000,
-        tangibleAssetsNet: 5300000,
-        
-        advancesOnFixedAssets: 200000,
-        
-        financialAssetsGross: 1200000,
-        financialAssetsProvisions: 100000,
-        financialAssetsNet: 1100000,
-        
-        totalFixedAssets: 6950000,
-        
-        haoCurrentAssets: 150000,
-        
-        stocksGross: 2800000,
-        stocksProvisions: 180000,
-        stocksNet: 2620000,
-        
-        receivablesGross: 4200000,
-        receivablesProvisions: 320000,
-        receivablesNet: 3880000,
-        
-        totalCurrentAssets: 6650000,
-        
-        marketableSecurities: 500000,
-        valuesToCollect: 120000,
-        cashAndBanks: 1850000,
-        totalTreasuryAssets: 2470000,
-        
-        currencyTranslationDiffAssets: 25000,
-        totalAssets: 16095000,
-        
-        // PASSIF
-        shareCapital: 3000000,
-        uncalledShareCapital: 0,
-        premiumsAndReserves: 2200000,
-        revaluationDifferences: 0,
-        netResult: 1450000,
-        otherEquity: 150000,
-        totalEquity: 6800000,
-        
-        investmentSubsidies: 800000,
-        regulatedProvisions: 200000,
-        financialDebts: 4500000,
-        financialProvisions: 180000,
-        totalFinancialDebts: 5680000,
-        
-        haoCurrentLiabilities: 80000,
-        customerAdvances: 320000,
-        suppliersAndRelated: 1850000,
-        taxAndSocialDebts: 980000,
-        otherDebts: 350000,
-        shortTermProvisions: 120000,
-        totalCurrentLiabilities: 3700000,
-        
-        bankOverdrafts: 0,
-        totalTreasuryLiabilities: 0,
-        
-        currencyTranslationDiffLiabilities: 15000,
-        totalLiabilities: 16095000,
-        
-        isBalanced: true,
-        balanceDifference: 0,
-        isValidated: true
+        company: { name: settings?.value || 'ATLAS FINANCE', address: '' },
+        fiscalYear: new Date().getFullYear().toString(),
+        statementDate: new Date().toISOString().split('T')[0],
+        intangibleAssetsGross: intGross, intangibleAssetsDepreciation: intDepr, intangibleAssetsNet: intGross - intDepr,
+        tangibleAssetsGross: tanGross, tangibleAssetsDepreciation: tanDepr, tangibleAssetsNet: tanGross - tanDepr,
+        advancesOnFixedAssets: 0,
+        financialAssetsGross: finGross, financialAssetsProvisions: finProv, financialAssetsNet: finGross - finProv,
+        totalFixedAssets: totalFixed,
+        haoCurrentAssets: 0,
+        stocksGross, stocksProvisions: stocksProv, stocksNet: stocksGross - stocksProv,
+        receivablesGross: recGross, receivablesProvisions: recProv, receivablesNet: recGross - recProv,
+        totalCurrentAssets: totalCurrent,
+        marketableSecurities: marketSec, valuesToCollect: 0, cashAndBanks: cashBanks,
+        totalTreasuryAssets: totalTreasury,
+        currencyTranslationDiffAssets: 0, totalAssets,
+        shareCapital: capital, uncalledShareCapital: 0, premiumsAndReserves: reserves,
+        revaluationDifferences: 0, netResult: resultatNet, otherEquity: 0, totalEquity,
+        investmentSubsidies: 0, regulatedProvisions: 0,
+        financialDebts, financialProvisions: 0, totalFinancialDebts: totalFinDebts,
+        haoCurrentLiabilities: 0, customerAdvances: 0,
+        suppliersAndRelated: suppliers, taxAndSocialDebts: taxSocial,
+        otherDebts, shortTermProvisions: 0, totalCurrentLiabilities: totalCurrentLiab,
+        bankOverdrafts: 0, totalTreasuryLiabilities: 0,
+        currencyTranslationDiffLiabilities: 0, totalLiabilities,
+        isBalanced: Math.abs(totalAssets - totalLiabilities) < 1,
+        balanceDifference: totalAssets - totalLiabilities,
+        isValidated: false,
       };
     }
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   if (isLoading) {
     return (

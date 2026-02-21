@@ -21,7 +21,7 @@ interface ReportSection {
   content?: Array<{
     id: string;
     type: 'text' | 'table' | 'dashboard' | 'comment';
-    data?: any;
+    data?: unknown;
   }>;
   isExpanded?: boolean;
 }
@@ -141,7 +141,7 @@ const NewReportCreator: React.FC<NewReportCreatorProps> = ({ isOpen, onClose }) 
     }
   };
 
-  const handleInsertContent = (sectionId: string, contentType: 'text' | 'table' | 'dashboard' | 'comment', selectedContent?: any) => {
+  const handleInsertContent = (sectionId: string, contentType: 'text' | 'table' | 'dashboard' | 'comment', selectedContent?: { id?: string; name?: string; description?: string }) => {
     const newContent = {
       id: Date.now().toString(),
       type: contentType,

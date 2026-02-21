@@ -151,15 +151,15 @@ const ChevronRightIcon = ({ className }: { className?: string }) => (
 );
 
 // Column definition interface
-export interface TableColumn<T = any> {
+export interface TableColumn<T = Record<string, unknown>> {
   /** Unique key for the column */
   key: string;
   /** Column header text */
   header: React.ReactNode;
   /** Accessor function or key for the data */
-  accessor?: keyof T | ((row: T) => any);
+  accessor?: keyof T | ((row: T) => unknown);
   /** Custom cell renderer */
-  cell?: (value: any, row: T, index: number) => React.ReactNode;
+  cell?: (value: unknown, row: T, index: number) => React.ReactNode;
   /** Whether the column is sortable */
   sortable?: boolean;
   /** Whether the column is filterable */
@@ -184,7 +184,7 @@ export interface FilterConfig {
 }
 
 // Selection configuration
-export interface SelectionConfig<T = any> {
+export interface SelectionConfig<T = Record<string, unknown>> {
   selectedRows: T[];
   onSelectionChange: (selectedRows: T[]) => void;
   getRowId?: (row: T) => string | number;
@@ -201,7 +201,7 @@ export interface PaginationConfig {
 }
 
 // Table component props
-export interface TableProps<T = any>
+export interface TableProps<T = Record<string, unknown>>
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof tableVariants> {
   /** Table data */
@@ -343,7 +343,7 @@ export const Table = forwardRef<HTMLDivElement, TableProps>(
     };
 
     // Handle row selection
-    const handleRowSelection = (row: any, checked: boolean) => {
+    const handleRowSelection = (row: T, checked: boolean) => {
       if (!selectionConfig) return;
 
       const { selectedRows, onSelectionChange, getRowId } = selectionConfig;
@@ -371,7 +371,7 @@ export const Table = forwardRef<HTMLDivElement, TableProps>(
     };
 
     // Check if row is selected
-    const isRowSelected = (row: any) => {
+    const isRowSelected = (row: T) => {
       if (!selectionConfig) return false;
 
       const { selectedRows, getRowId } = selectionConfig;
@@ -399,7 +399,7 @@ export const Table = forwardRef<HTMLDivElement, TableProps>(
     const visibleColumns = columns.filter(column => !column.hidden);
 
     // Get cell value
-    const getCellValue = (row: any, column: TableColumn) => {
+    const getCellValue = (row: T, column: TableColumn<T>) => {
       if (column.accessor) {
         if (typeof column.accessor === 'function') {
           return column.accessor(row);

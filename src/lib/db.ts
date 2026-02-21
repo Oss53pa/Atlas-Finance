@@ -188,7 +188,7 @@ export interface DBRevisionItem {
 // DATABASE
 // ============================================================================
 
-class WiseBookDB extends Dexie {
+class AtlasFinanceDB extends Dexie {
   journalEntries!: Table<DBJournalEntry, string>;
   accounts!: Table<DBAccount, string>;
   thirdParties!: Table<DBThirdParty, string>;
@@ -204,7 +204,7 @@ class WiseBookDB extends Dexie {
   revisionItems!: Table<DBRevisionItem, string>;
 
   constructor() {
-    super('WiseBookDB');
+    super('AtlasFinanceDB');
     this.version(1).stores({
       journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
       accounts: 'id, code, accountClass, parentCode',
@@ -233,18 +233,18 @@ class WiseBookDB extends Dexie {
   }
 }
 
-export const db = new WiseBookDB();
+export const db = new AtlasFinanceDB();
 
 // ============================================================================
 // MIGRATION: localStorage → IndexedDB
 // ============================================================================
 
-const MIGRATION_KEY = 'wisebook_idb_migration_v1';
+const MIGRATION_KEY = 'atlas_idb_migration_v1';
 
 export async function migrateFromLocalStorage(): Promise<void> {
   if (localStorage.getItem(MIGRATION_KEY)) return;
 
-  console.info('[WiseBook] Checking for localStorage data to migrate...');
+  console.info('[AtlasFinance] Checking for localStorage data to migrate...');
 
   const keysToCheck = Object.keys(localStorage).filter(k =>
     k.startsWith('wisebook_') || k.startsWith('wb_') || k.startsWith('atlas_')
@@ -280,7 +280,7 @@ export async function migrateFromLocalStorage(): Promise<void> {
 
   localStorage.setItem(MIGRATION_KEY, new Date().toISOString());
   if (migrated > 0) {
-    console.info(`[WiseBook] Migrated ${migrated} records to IndexedDB.`);
+    console.info(`[AtlasFinance] Migrated ${migrated} records to IndexedDB.`);
   }
 }
 

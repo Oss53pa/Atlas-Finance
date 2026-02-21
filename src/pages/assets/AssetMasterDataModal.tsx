@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import {
   Camera, QrCode, Info, DollarSign, Building, TrendingDown, TrendingUp,
   Package, Wrench, FileText, Edit, MapPin, User, Tag, X,
@@ -7,11 +8,39 @@ import {
   Database, ChevronRight
 } from 'lucide-react';
 
+interface AssetFormData {
+  code: string;
+  name: string;
+  category: string;
+  acquisition_date: string;
+  acquisition_value: number;
+  depreciation_method: string;
+  useful_life: number;
+  residual_value: number;
+  location: string;
+  status: string;
+  description: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+interface CapitationData {
+  totalValue: number;
+  depreciatedValue: number;
+  netBookValue: number;
+  assetCount: number;
+}
+
+interface WiseFMData {
+  maintenanceSchedule: Array<{ id: string; date: string; type: string; status: string }>;
+  inspections: Array<{ id: string; date: string; result: string }>;
+  workOrders: Array<{ id: string; description: string; status: string }>;
+}
+
 interface AssetMasterDataModalProps {
   showModal: boolean;
   onClose: () => void;
-  newAssetForm: any;
-  setNewAssetForm: (form: any) => void;
+  newAssetForm: AssetFormData;
+  setNewAssetForm: (form: AssetFormData) => void;
   activeFormTab: string;
   setActiveFormTab: (tab: string) => void;
   activeGeneralTab: string;
@@ -20,8 +49,8 @@ interface AssetMasterDataModalProps {
   setActiveImmobilisationTab: (tab: string) => void;
   activeMaintenanceTab: string;
   setActiveMaintenanceTab: (tab: string) => void;
-  capitationData: any;
-  wiseFMData: any;
+  capitationData: CapitationData;
+  wiseFMData: WiseFMData;
   handleSaveAsset: () => void;
 }
 
@@ -43,12 +72,14 @@ const AssetMasterDataModal: React.FC<AssetMasterDataModalProps> = ({
   handleSaveAsset
 }) => {
 
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('fr-FR') + ' XAF';
-  };
 
-  const ElegantButton = ({ variant = 'primary', onClick, children, className = '' }: any) => {
-    const variants = {
+  const ElegantButton = ({ variant = 'primary', onClick, children, className = '' }: {
+    variant?: 'primary' | 'outline';
+    onClick?: () => void;
+    children: React.ReactNode;
+    className?: string;
+  }) => {
+    const variants: Record<string, string> = {
       primary: 'bg-[#6A8A82] text-white hover:bg-[#5A7A72]',
       outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50'
     };

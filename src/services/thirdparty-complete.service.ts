@@ -17,8 +17,8 @@ class ThirdPartyServiceClass {
   async create(data: CreateThirdPartyDto) { const r = await apiService.post(`${BASE_PATH}/`, data); return r.data; }
   async update(id: string, data: UpdateThirdPartyDto) { const r = await apiService.patch(`${BASE_PATH}/${id}/`, data); return r.data; }
   async delete(id: string) { await apiService.delete(`${BASE_PATH}/${id}/`); }
-  async getCustomers(params?: any) { return this.getAll({ ...params, type: 'customer' }); }
-  async getSuppliers(params?: any) { return this.getAll({ ...params, type: 'supplier' }); }
+  async getCustomers(params?: Omit<ThirdPartyQueryParams, 'type'>) { return this.getAll({ ...params, type: 'customer' }); }
+  async getSuppliers(params?: Omit<ThirdPartyQueryParams, 'type'>) { return this.getAll({ ...params, type: 'supplier' }); }
 }
 
 class ContactsService {
@@ -29,9 +29,9 @@ class ContactsService {
 }
 
 class ThirdPartyReportsService {
-  async getAgingReport(params?: any) { try { const r = await apiService.get(`${BASE_PATH}/reports/aging/`, { params }); return r.data; } catch { return { customers: [], suppliers: [] }; } }
-  async getBalanceReport(params?: any) { try { const r = await apiService.get(`${BASE_PATH}/reports/balance/`, { params }); return r.data; } catch { return { balances: [] }; } }
-  async getStatementReport(thirdPartyId: string, params?: any) { try { const r = await apiService.get(`${BASE_PATH}/${thirdPartyId}/statement/`, { params }); return r.data; } catch { return { transactions: [], balance: 0 }; } }
+  async getAgingReport(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/aging/`, { params }); return r.data; } catch { return { customers: [], suppliers: [] }; } }
+  async getBalanceReport(params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/reports/balance/`, { params }); return r.data; } catch { return { balances: [] }; } }
+  async getStatementReport(thirdPartyId: string, params?: ThirdPartyQueryParams) { try { const r = await apiService.get(`${BASE_PATH}/${thirdPartyId}/statement/`, { params }); return r.data; } catch { return { transactions: [], balance: 0 }; } }
 }
 
 export const thirdPartyService = new ThirdPartyServiceClass();

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatDate } from '../../../../../utils/formatters';
 import { Link } from 'react-router-dom';
 
 interface TreasuryPlan {
@@ -46,10 +47,6 @@ export const SimplePrevisionTresorerie: React.FC = () => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR');
-  };
 
   return (
     <div className="container-fluid">

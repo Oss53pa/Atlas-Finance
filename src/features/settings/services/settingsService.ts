@@ -157,7 +157,7 @@ class SettingsService {
     };
   }
 
-  async updateSetting(id: string, value: any): Promise<void> {
+  async updateSetting(id: string, value: string | number | boolean): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
@@ -165,7 +165,7 @@ class SettingsService {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
-  validateSetting(setting: AccountingSetting, value: any): string | null {
+  validateSetting(setting: AccountingSetting, value: string | number | boolean): string | null {
     if (setting.required && !value) {
       return 'Ce champ est obligatoire';
     }

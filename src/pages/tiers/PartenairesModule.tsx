@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -133,7 +134,7 @@ const PartenairesModule: React.FC = () => {
       setShowPartenaireModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création');
     },
   });
@@ -159,7 +160,7 @@ const PartenairesModule: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => {
@@ -439,13 +440,6 @@ const PartenairesModule: React.FC = () => {
     return matchesSearch && matchesType && matchesNiveau;
   });
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const getNiveauBadge = (niveau: string) => {
     const niveauConfig = {

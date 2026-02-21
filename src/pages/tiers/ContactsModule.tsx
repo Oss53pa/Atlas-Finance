@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatDate } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -225,9 +226,6 @@ const ContactsModule: React.FC = () => {
     return icons[type as keyof typeof icons] || MessageSquare;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR');
-  };
 
   const filteredContacts = mockContacts.filter(contact => {
     const matchSearch = contact.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||

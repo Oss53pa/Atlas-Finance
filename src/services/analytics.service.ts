@@ -679,7 +679,7 @@ export default analyticsService;
 /**
  * @deprecated Use analyticsService.getAxes() instead
  */
-export const getAnalyticalAxes = (filters?: any) => analyticsService.getAxes(filters);
+export const getAnalyticalAxes = (filters?: { societe?: string; type_axe?: string; is_active?: boolean; page?: number; page_size?: number }) => analyticsService.getAxes(filters);
 
 /**
  * @deprecated Use analyticsService.getDashboardStats() instead
@@ -689,7 +689,7 @@ export const getDashboardStats = () => analyticsService.getDashboardStats();
 /**
  * @deprecated Use analyticsService.getCostCenters() instead
  */
-export const getCostCenters = (filters?: any) => analyticsService.getCostCenters(filters);
+export const getCostCenters = (filters?: { type?: string; status?: string }) => analyticsService.getCostCenters(filters);
 
 /**
  * @deprecated Use analyticsService.deleteAxe() instead

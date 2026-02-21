@@ -6,6 +6,7 @@
  */
 
 import jsPDF from 'jspdf';
+import { db } from '../lib/db';
 
 export interface CompanyInfo {
   name: string;
@@ -39,14 +40,43 @@ export interface NotificationContent {
 class PDFGeneratorService {
   private defaultCompany: CompanyInfo = {
     name: 'Atlas Finance',
-    address: '123 Avenue de la Comptabilité',
-    city: 'Paris',
-    postalCode: '75001',
-    country: 'France',
-    phone: '+33 1 23 45 67 89',
-    email: 'contact@atlasfinance.com',
-    taxId: 'FR 12 345 678 901'
+    address: '',
+    city: '',
+    postalCode: '',
+    country: '',
+    phone: '',
+    email: '',
   };
+
+  /**
+   * Load company info from Dexie settings (lazy, cached).
+   */
+  private async getCompanyInfo(): Promise<CompanyInfo> {
+    try {
+      const [name, address, city, postalCode, country, phone, email, taxId] = await Promise.all([
+        db.settings.get('company_name'),
+        db.settings.get('company_address'),
+        db.settings.get('company_city'),
+        db.settings.get('company_postal_code'),
+        db.settings.get('company_country'),
+        db.settings.get('company_phone'),
+        db.settings.get('company_email'),
+        db.settings.get('company_tax_id'),
+      ]);
+      return {
+        name: name?.value || this.defaultCompany.name,
+        address: address?.value || '',
+        city: city?.value || '',
+        postalCode: postalCode?.value || '',
+        country: country?.value || '',
+        phone: phone?.value || '',
+        email: email?.value || '',
+        taxId: taxId?.value,
+      };
+    } catch {
+      return this.defaultCompany;
+    }
+  }
 
   /**
    * Génère un PDF avec en-tête d'entreprise
@@ -55,7 +85,7 @@ class PDFGeneratorService {
     content: NotificationContent,
     companyInfo?: CompanyInfo
   ): Promise<Blob> {
-    const company = companyInfo || this.defaultCompany;
+    const company = companyInfo || await this.getCompanyInfo();
     const doc = new jsPDF();
 
     // Configuration des couleurs du thème

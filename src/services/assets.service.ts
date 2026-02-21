@@ -1084,7 +1084,7 @@ export const getCategories = () => assetsService.getCategories();
 /**
  * @deprecated Use assetsService.getImmobilisations() instead
  */
-export const getImmobilisations = (filters?: any) => assetsService.getImmobilisations(filters);
+export const getImmobilisations = (filters?: Record<string, unknown>) => assetsService.getImmobilisations(filters);
 
 /**
  * @deprecated Use assetsService.getStatistiques() instead

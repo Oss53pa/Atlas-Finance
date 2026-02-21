@@ -49,12 +49,23 @@ import ValuationMethodBadge from './components/ValuationMethodBadge';
 import LoadingSpinner from './components/LoadingSpinner';
 import ExportButton from './components/ExportButton';
 
+interface ReportParams {
+  locations: string[];
+  categories: string[];
+  valuationMethod: ValuationMethod;
+  format: string;
+  includeZeroQty: boolean;
+  includeInactive: boolean;
+  dateFrom: string;
+  dateTo: string;
+}
+
 interface ReportTemplateProps {
   title: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   reportType: string;
-  onGenerate: (type: string, params: any) => void;
+  onGenerate: (type: string, params: ReportParams) => void;
   isGenerating: boolean;
 }
 
@@ -383,7 +394,7 @@ const InventoryReports: React.FC = () => {
     }
   ];
 
-  const handleGenerateReport = async (type: string, params: any) => {
+  const handleGenerateReport = async (type: string, params: ReportParams) => {
     setIsGenerating(prev => ({ ...prev, [type]: true }));
 
     // Simulate report generation
@@ -392,7 +403,7 @@ const InventoryReports: React.FC = () => {
     const newReport: InventoryReport = {
       id: `RPT${Date.now()}`,
       name: reportTemplates.find(t => t.type === type)?.title || 'Unknown Report',
-      type: type as any,
+      type: type as InventoryReport['type'],
       parameters: {
         dateRange: {
           from: params.dateFrom,
@@ -428,7 +439,7 @@ const InventoryReports: React.FC = () => {
           from: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
           to: new Date().toISOString()
         },
-        complianceStandard: standard as any
+        complianceStandard: standard as InventoryReport['parameters']['complianceStandard']
       },
       data: generateMockComplianceData(standard),
       generatedAt: new Date().toISOString(),

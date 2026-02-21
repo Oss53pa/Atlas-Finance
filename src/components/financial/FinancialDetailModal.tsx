@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { X, Eye, Download, Filter, ChevronRight, ArrowUpRight } from 'lucide-react';
 
@@ -50,14 +51,6 @@ const FinancialDetailModal: React.FC<ModalProps> = ({
   const { t } = useLanguage();
   if (!isOpen) return null;
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   const formatPercent = (percent: number): string => {
     return `${percent > 0 ? '+' : ''}${percent.toFixed(1)}%`;

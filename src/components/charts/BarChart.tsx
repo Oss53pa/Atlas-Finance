@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface BarChartProps {
-  data: any[];
+  data: Record<string, unknown>[];
   xAxisKey: string;
   bars: Array<{ key: string; name: string; color: string }>;
   height: number;

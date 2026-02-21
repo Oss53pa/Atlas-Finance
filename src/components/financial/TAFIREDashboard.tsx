@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useQuery } from '@tanstack/react-query';
 import {
   CurrencyDollarIcon,
   ChartBarIcon,
-  TrendingDownIcon,
   ArrowUpIcon,
   ArrowDownIcon,
   InformationCircleIcon,
@@ -12,69 +12,16 @@ import {
 import {
   BarChart,
   Bar,
-  LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ComposedChart,
-  Area,
-  AreaChart,
-  PieChart,
-  Pie,
-  Cell
 } from 'recharts';
-
-interface TAFIREData {
-  id: string;
-  fiscalYear: string;
-  calculationMethod: 'DIRECT' | 'INDIRECT';
-  
-  // Flux d'exploitation
-  netIncome: number;
-  depreciationProvisions: number;
-  provisionsReversal: number;
-  exceptionalItems: number;
-  selfFinancingCapacity: number;
-  workingCapitalVariation: number;
-  operatingCashSurplus: number;
-  
-  // Flux d'investissement
-  fixedAssetsAcquisitions: number;
-  fixedAssetsDisposals: number;
-  financialInvestmentsVariation: number;
-  investmentSubsidies: number;
-  investmentCashFlow: number;
-  
-  // Flux de financement
-  capitalIncrease: number;
-  newBorrowings: number;
-  loanRepayments: number;
-  dividendsPaid: number;
-  financingCashFlow: number;
-  
-  // Trésorerie
-  openingCashBalance: number;
-  closingCashBalance: number;
-  cashVariation: number;
-  freeCashFlow: number;
-  
-  // Métadonnées
-  calculationDate: string;
-  calculationTimeMs: number;
-  isValidated: boolean;
-}
-
-interface TAFIREAnalysis {
-  strengths: string[];
-  weaknesses: string[];
-  recommendations: string[];
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
-  score: number;
-}
+import { calculateTAFIRE, analyzeTAFIRE } from '../../services/financial/tafireService';
+import type { TAFIREData, TAFIREAnalysis } from '../../services/financial/tafireService';
 
 const TAFIREDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('current');
@@ -82,104 +29,11 @@ const TAFIREDashboard: React.FC = () => {
 
   const { data: tafireData, isLoading } = useQuery({
     queryKey: ['tafire-data', selectedPeriod],
-    queryFn: async (): Promise<TAFIREData> => {
-      // Mock data - remplacer par vraie API
-      return {
-        id: '1',
-        fiscalYear: '2024',
-        calculationMethod: 'INDIRECT',
-        
-        // Flux d'exploitation
-        netIncome: 1450000,
-        depreciationProvisions: 850000,
-        provisionsReversal: 120000,
-        exceptionalItems: 50000,
-        selfFinancingCapacity: 2230000,
-        workingCapitalVariation: 180000,
-        operatingCashSurplus: 2050000,
-        
-        // Flux d'investissement
-        fixedAssetsAcquisitions: 950000,
-        fixedAssetsDisposals: 180000,
-        financialInvestmentsVariation: 50000,
-        investmentSubsidies: 100000,
-        investmentCashFlow: -720000,
-        
-        // Flux de financement
-        capitalIncrease: 200000,
-        newBorrowings: 500000,
-        loanRepayments: 680000,
-        dividendsPaid: 250000,
-        financingCashFlow: -230000,
-        
-        // Trésorerie
-        openingCashBalance: 580000,
-        closingCashBalance: 1680000,
-        cashVariation: 1100000,
-        freeCashFlow: 1330000,
-        
-        // Métadonnées
-        calculationDate: '2024-08-25T10:30:00Z',
-        calculationTimeMs: 1250,
-        isValidated: true
-      };
-    }
+    queryFn: () => calculateTAFIRE(selectedPeriod === 'current' ? new Date().getFullYear().toString() : undefined),
   });
 
-  const { data: analysisData } = useQuery({
-    queryKey: ['tafire-analysis', tafireData?.id],
-    queryFn: async (): Promise<TAFIREAnalysis> => {
-      if (!tafireData) return null;
-      
-      // Analyse automatique basée sur les données
-      const analysis: TAFIREAnalysis = {
-        strengths: [],
-        weaknesses: [],
-        recommendations: [],
-        riskLevel: 'LOW',
-        score: 85
-      };
+  const analysisData = tafireData ? analyzeTAFIRE(tafireData) : undefined;
 
-      // Analyse CAF
-      if (tafireData.selfFinancingCapacity > 0) {
-        analysis.strengths.push("CAF positive - Bonne capacité d'autofinancement");
-      } else {
-        analysis.weaknesses.push("CAF négative - Difficultés de génération de cash");
-        analysis.riskLevel = 'HIGH';
-      }
-
-      // Analyse Free Cash Flow
-      if (tafireData.freeCashFlow > 0) {
-        analysis.strengths.push("Free Cash Flow positif - Capacité d'investissement démontrée");
-      } else {
-        analysis.weaknesses.push("Free Cash Flow négatif - Dépendance au financement externe");
-        analysis.recommendations.push("Optimiser le cash flow libre : rentabilité et maîtrise investissements");
-      }
-
-      // Analyse variation BFR
-      if (Math.abs(tafireData.workingCapitalVariation) > tafireData.selfFinancingCapacity * 0.3) {
-        analysis.weaknesses.push("Forte variation du BFR impactant la trésorerie");
-        analysis.recommendations.push("Optimiser la gestion du BFR (clients, stocks, fournisseurs)");
-      }
-
-      // Analyse équilibre des flux
-      if (tafireData.investmentCashFlow > tafireData.selfFinancingCapacity) {
-        analysis.recommendations.push("Investissements dépassant la CAF - Évaluer les sources de financement");
-      }
-
-      return analysis;
-    },
-    enabled: !!tafireData
-  });
-
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const getFlowColor = (value: number): string => {
     if (value > 0) return '#6A8A82';
@@ -350,7 +204,7 @@ const TAFIREDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="value" fill={(entry) => getFlowColor(entry.value)} />
+                <Bar dataKey="value" fill="#6A8A82" />
                 <Line type="monotone" dataKey="cumulative" stroke="#7A99AC" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
@@ -365,7 +219,7 @@ const TAFIREDashboard: React.FC = () => {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="value" fill={(entry) => getFlowColor(entry.value)} />
+                <Bar dataKey="value" fill="#6A8A82" />
               </BarChart>
             </ResponsiveContainer>
           </div>

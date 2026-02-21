@@ -6,10 +6,31 @@
 import { useState, useEffect, useCallback } from 'react';
 import { performanceMonitor } from '../utils/performanceMonitor';
 
+interface PerformanceMetrics {
+  fps?: number;
+  loadTime?: number;
+  memoryUsage?: number;
+  domNodes?: number;
+  [key: string]: unknown;
+}
+
+interface PerformanceIssue {
+  type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  [key: string]: unknown;
+}
+
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
 interface PerformanceState {
   score: number;
-  metrics: any;
-  issues: any[];
+  metrics: PerformanceMetrics;
+  issues: PerformanceIssue[];
   recommendations: string[];
   isMonitoring: boolean;
   loading: boolean;
@@ -132,7 +153,7 @@ export function usePerformance(): PerformanceState & PerformanceActions {
 
   const analyzeMemoryLeaks = useCallback(() => {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as unknown as { memory: PerformanceMemory }).memory;
       const memoryUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
 
       if (memoryUsage > 0.8) {

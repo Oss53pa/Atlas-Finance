@@ -51,7 +51,7 @@ interface ClotureComptable {
   date_echeance: string;
   statut: 'PLANIFIEE' | 'EN_COURS' | 'CONTROLE' | 'VALIDATION' | 'APPROUVEE' | 'TERMINEE';
   progression_pourcentage: number;
-  responsable_principal: any;
+  responsable_principal: { id: string; nom: string; email?: string } | null;
   nombre_operations: number;
   taux_erreur: number;
 }
@@ -81,12 +81,12 @@ interface OperationRegularisation {
   numero_operation: string;
   type_operation: string;
   description: string;
-  compte_concerne: any;
+  compte_concerne: { code: string; libelle: string } | null;
   montant_estime: string;
   impact_financier: 'FAIBLE' | 'MOYEN' | 'FORT' | 'CRITIQUE';
   statut: string;
   date_echeance: string;
-  responsable?: any;
+  responsable?: { id: string; nom: string; email?: string } | null;
 }
 
 const ClotureComptableIntegree: React.FC = () => {
@@ -101,7 +101,7 @@ const ClotureComptableIntegree: React.FC = () => {
   const [balanceGenerale, setBalanceGenerale] = useState<BalanceLigne[]>([]);
   const [provisionsClients, setProvisionsClients] = useState<ProvisionClient[]>([]);
   const [operations, setOperations] = useState<OperationRegularisation[]>([]);
-  const [indicateurs, setIndicateurs] = useState<any>({});
+  const [indicateurs, setIndicateurs] = useState<Record<string, unknown>>({});
 
   // État des onglets actifs
   const [ongletActif, setOngletActif] = useState('cycle');

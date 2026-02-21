@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight, Filter, Search, Download } from 'lucide-reac
 interface Column<T> {
   key: keyof T | string;
   title: string;
-  render?: (value: any, row: T, index: number) => React.ReactNode;
+  render?: (value: unknown, row: T, index: number) => React.ReactNode;
   sortable?: boolean;
   width?: string;
   className?: string;
@@ -26,14 +26,14 @@ interface ResponsiveTableProps<T> {
   expandable?: boolean;
   renderExpandedRow?: (row: T) => React.ReactNode;
   onSearch?: (query: string) => void;
-  onFilter?: (filters: Record<string, any>) => void;
+  onFilter?: (filters: Record<string, unknown>) => void;
   onExport?: () => void;
   className?: string;
   variant?: 'default' | 'striped' | 'bordered';
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function ResponsiveTable<T extends Record<string, any>>({
+export function ResponsiveTable<T extends Record<string, unknown>>({
   data,
   columns,
   loading = false,

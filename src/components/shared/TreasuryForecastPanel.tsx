@@ -413,7 +413,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
         <TabsContent value="scenarios" className="space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Analyse de Scénarios</h3>
-            <Select value={selectedScenario} onValueChange={(v: any) => setSelectedScenario(v)}>
+            <Select value={selectedScenario} onValueChange={(v: string) => setSelectedScenario(v)}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>

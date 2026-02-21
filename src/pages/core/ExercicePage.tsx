@@ -74,7 +74,7 @@ const ExercicePage: React.FC = () => {
       setShowCreateModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création de l\'exercice');
     },
   });
@@ -206,7 +206,7 @@ const ExercicePage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {

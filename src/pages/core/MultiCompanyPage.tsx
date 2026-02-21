@@ -638,7 +638,7 @@ const MultiCompanyPage: React.FC = () => {
             return (
               <button
                 key={tab.key}
-                onClick={() => setViewMode(tab.key as any)}
+                onClick={() => setViewMode(tab.key as typeof viewMode)}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-all ${
                   viewMode === tab.key
                     ? 'bg-slate-800 text-white shadow-md'

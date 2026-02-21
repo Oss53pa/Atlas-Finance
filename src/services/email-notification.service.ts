@@ -137,11 +137,11 @@ class EmailNotificationService {
         pdfFilename: pdfFilename
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur lors de l\'envoi de l\'email:', error);
       return {
         success: false,
-        error: error.message || 'Erreur lors de l\'envoi de l\'email',
+        error: error instanceof Error ? error.message : 'Erreur lors de l\'envoi de l\'email',
         pdfGenerated: false
       };
     }

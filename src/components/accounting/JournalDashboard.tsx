@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
@@ -22,78 +25,141 @@ const JournalDashboard: React.FC = () => {
     { id: 'treasury', label: 'Trésorerie & Performance', icon: TrendIcon }
   ];
 
-  // Données mockées pour la démo
-  // 1. Synthèse des écritures du jour
-  const todaySummary = {
-    totalEntries: 47,
-    totalDebit: 3450000,
-    totalCredit: 3450000,
-    isBalanced: true,
-    pendingValidation: 8,
-    validated: 39
-  };
+  const [selectedPeriod, setSelectedPeriod] = useState('today');
 
-  // 2. Répartition par type d'opération
-  const operationsByType = [
-    { name: 'Ventes', value: 35, color: '#10B981' },
-    { name: 'Achats', value: 28, color: '#EF4444' },
-    { name: 'Banque', value: 20, color: '#3B82F6' },
-    { name: 'Caisse', value: 10, color: '#F59E0B' },
-    { name: 'Paie', value: 5, color: '#8B5CF6' },
-    { name: 'Opérations Diverses', value: 2, color: '#6B7280' }
-  ];
+  // 1. Synthèse des écritures du jour — depuis Dexie
+  const { data: todaySummary = { totalEntries: 0, totalDebit: 0, totalCredit: 0, isBalanced: true, pendingValidation: 0, validated: 0 } } = useQuery({
+    queryKey: ['journal-today-summary'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const entries = await db.journalEntries.toArray();
+      const todayEntries = entries.filter(e => e.date === today);
+      const totalDebit = todayEntries.reduce((s, e) => s + e.totalDebit, 0);
+      const totalCredit = todayEntries.reduce((s, e) => s + e.totalCredit, 0);
+      return {
+        totalEntries: todayEntries.length,
+        totalDebit, totalCredit,
+        isBalanced: Math.abs(totalDebit - totalCredit) < 1,
+        pendingValidation: todayEntries.filter(e => e.status === 'draft').length,
+        validated: todayEntries.filter(e => e.status === 'validated' || e.status === 'posted').length,
+      };
+    },
+  });
+
+  // 2. Répartition par type d'opération — depuis Dexie
+  const { data: operationsByType = [] } = useQuery({
+    queryKey: ['journal-operations-by-type', dateRange],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const filtered = entries.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
+      const byJournal: Record<string, number> = {};
+      for (const e of filtered) byJournal[e.journal] = (byJournal[e.journal] || 0) + 1;
+      const colors: Record<string, string> = { VE: '#10B981', AC: '#EF4444', BQ: '#3B82F6', CA: '#F59E0B', OD: '#6B7280' };
+      const names: Record<string, string> = { VE: 'Ventes', AC: 'Achats', BQ: 'Banque', CA: 'Caisse', OD: 'Opérations Diverses' };
+      return Object.entries(byJournal).map(([key, value]) => ({
+        name: names[key] || key, value, color: colors[key] || '#8B5CF6',
+      }));
+    },
+  });
 
   // Volume d'écritures par jour (7 derniers jours)
-  const volumeByDay = [
-    { day: 'Lun', entries: 42, validated: 38, pending: 4 },
-    { day: 'Mar', entries: 56, validated: 50, pending: 6 },
-    { day: 'Mer', entries: 38, validated: 35, pending: 3 },
-    { day: 'Jeu', entries: 45, validated: 40, pending: 5 },
-    { day: 'Ven', entries: 52, validated: 48, pending: 4 },
-    { day: 'Sam', entries: 28, validated: 25, pending: 3 },
-    { day: 'Dim', entries: 47, validated: 39, pending: 8 }
-  ];
+  const { data: volumeByDay = [] } = useQuery({
+    queryKey: ['journal-volume-by-day'],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+      const result: { day: string; entries: number; validated: number; pending: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayEntries = entries.filter(e => e.date === dateStr);
+        result.push({
+          day: days[d.getDay()],
+          entries: dayEntries.length,
+          validated: dayEntries.filter(e => e.status === 'validated' || e.status === 'posted').length,
+          pending: dayEntries.filter(e => e.status === 'draft').length,
+        });
+      }
+      return result;
+    },
+  });
 
-  // 3. Alertes et contrôles
-  const alerts = [
-    { type: 'error', message: '2 journaux non équilibrés (AC, OD)', icon: AlertTriangle },
-    { type: 'warning', message: '8 écritures en attente de validation', icon: Clock },
-    { type: 'info', message: '3 écritures avec comptes manquants', icon: AlertCircle }
-  ];
+  // 3. Alertes et contrôles — dynamiques
+  const { data: alerts = [] } = useQuery({
+    queryKey: ['journal-alerts'],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const drafts = entries.filter(e => e.status === 'draft').length;
+      const unbalanced = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1).length;
+      const result: { type: string; message: string; icon: typeof AlertTriangle }[] = [];
+      if (unbalanced > 0) result.push({ type: 'error', message: `${unbalanced} écriture(s) non équilibrée(s)`, icon: AlertTriangle });
+      if (drafts > 0) result.push({ type: 'warning', message: `${drafts} écriture(s) en attente de validation`, icon: Clock });
+      if (result.length === 0) result.push({ type: 'info', message: 'Aucune alerte en cours', icon: CheckCircle });
+      return result;
+    },
+  });
 
-  // 4. Suivi de trésorerie
-  const treasuryData = {
-    cashBalance: 850000,
-    bankBalance: 5420000,
-    totalBalance: 6270000,
-    dailyIn: 1250000,
-    dailyOut: 890000,
-    netFlow: 360000
-  };
+  // 4. Suivi de trésorerie — depuis comptes 5x
+  const { data: treasuryData = { cashBalance: 0, bankBalance: 0, totalBalance: 0, dailyIn: 0, dailyOut: 0, netFlow: 0 } } = useQuery({
+    queryKey: ['journal-treasury'],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      let bankBalance = 0, cashBalance = 0;
+      for (const e of entries) {
+        for (const l of e.lines) {
+          if (l.accountCode.startsWith('52')) bankBalance += l.debit - l.credit;
+          if (l.accountCode.startsWith('57')) cashBalance += l.debit - l.credit;
+        }
+      }
+      return { cashBalance, bankBalance, totalBalance: bankBalance + cashBalance, dailyIn: 0, dailyOut: 0, netFlow: 0 };
+    },
+  });
 
   // Évolution de la trésorerie (7 derniers jours)
-  const treasuryEvolution = [
-    { day: 'Lun', encaissements: 1200000, decaissements: 800000, solde: 5870000 },
-    { day: 'Mar', encaissements: 1500000, decaissements: 950000, solde: 6420000 },
-    { day: 'Mer', encaissements: 980000, decaissements: 1200000, solde: 6200000 },
-    { day: 'Jeu', encaissements: 1350000, decaissements: 720000, solde: 6830000 },
-    { day: 'Ven', encaissements: 1100000, decaissements: 880000, solde: 7050000 },
-    { day: 'Sam', encaissements: 750000, decaissements: 1100000, solde: 6700000 },
-    { day: 'Dim', encaissements: 1250000, decaissements: 890000, solde: 6270000 }
-  ];
+  const { data: treasuryEvolution = [] } = useQuery({
+    queryKey: ['journal-treasury-evolution'],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+      const result: { day: string; encaissements: number; decaissements: number; solde: number }[] = [];
+      let runningBalance = 0;
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        let enc = 0, dec = 0;
+        for (const e of entries.filter(e => e.date === dateStr)) {
+          for (const l of e.lines) {
+            if (l.accountCode.startsWith('5')) {
+              enc += l.debit;
+              dec += l.credit;
+            }
+          }
+        }
+        runningBalance += enc - dec;
+        result.push({ day: days[d.getDay()], encaissements: enc, decaissements: dec, solde: runningBalance });
+      }
+      return result;
+    },
+  });
 
-  // 5. Indicateurs de performance
-  const kpis = {
-    avgValidationTime: '2.5',
-    complianceRate: 92,
-    errorRate: 3,
-    automationRate: 65
-  };
+  // 5. KPIs calculés
+  const { data: kpis = { avgValidationTime: '0', complianceRate: 100, errorRate: 0, automationRate: 0 } } = useQuery({
+    queryKey: ['journal-kpis'],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const total = entries.length || 1;
+      const validated = entries.filter(e => e.status !== 'draft').length;
+      const errors = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1).length;
+      return {
+        avgValidationTime: '—',
+        complianceRate: Math.round((validated / total) * 100),
+        errorRate: Math.round((errors / total) * 100),
+        automationRate: 0,
+      };
+    },
+  });
 
-  // Fonction de formatage des montants
-  const formatAmount = (amount: number) => {
-    return amount.toLocaleString('fr-FR') + ' FCFA';
-  };
+  const formatAmount = (amount: number) => formatCurrency(amount);
 
   return (
     <div className="space-y-6">

@@ -182,17 +182,5 @@ export const chartColors = {
   grayLight: 'rgba(156, 163, 175, 0.1)'
 };
 
-// Fonction pour formater les valeurs monétaires
-export const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XAF',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(value);
-};
-
-// Fonction pour formater les pourcentages
-export const formatPercent = (value: number): string => {
-  return `${value.toFixed(1)}%`;
-};
+// Re-export from central formatters
+export { formatCurrency, formatPercent } from '../utils/formatters';

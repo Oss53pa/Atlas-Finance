@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
+import { previewClosure, executerCloture, getClosureSessions } from '../../services/closureService';
+import { db } from '../../lib/db';
+import toast from 'react-hot-toast';
 import {
   Lock,
   Calendar,
@@ -106,17 +109,89 @@ const CloturesPeriodiquesPage: React.FC = () => {
   // États pour vraies opérations comptables
   const [realClosureInProgress, setRealClosureInProgress] = useState(false);
   const [currentRealStep, setCurrentRealStep] = useState('');
-  const [realClosureResult, setRealClosureResult] = useState<any>(null);
-  const [realTrialBalance, setRealTrialBalance] = useState<any[]>([]);
-  const [realProvisions, setRealProvisions] = useState<any[]>([]);
-  const [realDepreciation, setRealDepreciation] = useState<any[]>([]);
+  const [realClosureResult, setRealClosureResult] = useState<Record<string, unknown> | null>(null);
+  const [realTrialBalance, setRealTrialBalance] = useState<Record<string, unknown>[]>([]);
+  const [realProvisions, setRealProvisions] = useState<Record<string, unknown>[]>([]);
+  const [realDepreciation, setRealDepreciation] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     loadClosurePeriods();
   }, []);
 
   const loadClosurePeriods = async () => {
-    // Simulation de données SYSCOHADA complètes
+    // Load real closure sessions from Dexie
+    const sessions = await getClosureSessions();
+    const fiscalYears = await db.fiscalYears.toArray();
+
+    if (sessions.length > 0) {
+      const realPeriods: ClosurePeriod[] = sessions.map((s, idx) => ({
+        id: s.id,
+        type: s.type === 'MENSUELLE' ? 'monthly' as const
+          : s.type === 'TRIMESTRIELLE' ? 'quarterly' as const
+          : 'annual' as const,
+        period: s.periode,
+        period_en: s.periode,
+        status: s.statut === 'CLOTUREE' ? 'closed' as const
+          : s.statut === 'EN_COURS' ? 'in_progress' as const
+          : 'pending' as const,
+        startDate: new Date(s.dateDebut),
+        endDate: new Date(s.dateFin),
+        closure_deadline: new Date(s.dateFin),
+        fiscal_year: s.exercice,
+        syscohada_compliance_score: s.statut === 'CLOTUREE' ? 100 : s.progression,
+        legal_requirements_met: s.statut === 'CLOTUREE',
+        audit_trail_complete: s.statut === 'CLOTUREE',
+        documents_generated: s.statut === 'CLOTUREE' ? ['trial_balance', 'journal_entries'] : [],
+        approvals_required: ['comptable_principal'],
+        approvals_received: s.statut === 'CLOTUREE' ? ['comptable_principal'] : [],
+        region: 'CEMAC',
+        business_sector: 'commercial',
+        total_duration: '',
+        created_by: s.creePar,
+        approved_by: s.statut === 'CLOTUREE' ? s.creePar : undefined,
+        locked_by: s.statut === 'CLOTUREE' ? 'system' : undefined,
+        retention_until: new Date(new Date(s.dateFin).getTime() + 10 * 365 * 24 * 3600 * 1000),
+        steps: [],
+      }));
+      setPeriods(realPeriods);
+      if (realPeriods.length > 0) setSelectedPeriod(realPeriods[0].id);
+      setLoading(false);
+      return;
+    }
+
+    // Fallback: generate periods from fiscal years
+    const fallbackPeriods: ClosurePeriod[] = fiscalYears.map(fy => ({
+      id: fy.id,
+      type: 'annual' as const,
+      period: fy.name,
+      period_en: fy.name,
+      status: fy.isClosed ? 'closed' as const : 'pending' as const,
+      startDate: new Date(fy.startDate),
+      endDate: new Date(fy.endDate),
+      closure_deadline: new Date(fy.endDate),
+      fiscal_year: fy.name,
+      syscohada_compliance_score: fy.isClosed ? 100 : 0,
+      legal_requirements_met: fy.isClosed,
+      audit_trail_complete: fy.isClosed,
+      documents_generated: [],
+      approvals_required: ['comptable_principal'],
+      approvals_received: fy.isClosed ? ['comptable_principal'] : [],
+      region: 'CEMAC',
+      business_sector: 'commercial',
+      total_duration: '',
+      created_by: '',
+      retention_until: new Date(new Date(fy.endDate).getTime() + 10 * 365 * 24 * 3600 * 1000),
+      steps: [],
+    }));
+
+    if (fallbackPeriods.length > 0) {
+      setPeriods(fallbackPeriods);
+      setSelectedPeriod(fallbackPeriods[0].id);
+      setLoading(false);
+      return;
+    }
+
+    // Ultimate fallback — empty state
     const mockPeriods: ClosurePeriod[] = [
       {
         id: '202401',
@@ -468,83 +543,41 @@ const CloturesPeriodiquesPage: React.FC = () => {
     return 'text-[var(--color-error)] bg-[var(--color-error-lighter)]';
   };
   
-  // Fonctions réelles de clôture comptable
-  const startMonthlyClosureReal = async (periodId: string) => {
+  // Fonctions réelles de clôture comptable — via closureService (Dexie local)
+  const startMonthlyClosureReal = async (_periodId: string) => {
     setRealClosureInProgress(true);
-    setCurrentRealStep('Initialisation clôture mensuelle...');
+    setCurrentRealStep('Initialisation clôture...');
 
     try {
-      // 1. Appel API pour démarrer la clôture réelle
-      const response = await fetch('http://127.0.0.1:8888/api/v1/period-closures/api/closures/start-real-closure/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          fiscal_year_id: '2024',
-          closure_type: 'monthly',
-          period_id: periodId
-        })
-      });
+      // 1. Preview
+      setCurrentRealStep('Pré-vérification...');
+      const preview = await previewClosure();
+      setRealTrialBalance([
+        { label: 'Brouillons à verrouiller', value: preview.draftsToLock },
+        { label: 'Immobilisations', value: preview.assetsToDepreciate },
+      ]);
 
-      if (response.ok) {
-        const result = await response.json();
+      // 2. Execute full closure
+      setCurrentRealStep('Exécution de la clôture...');
+      const result = await executerCloture();
 
-        // Simulation du processus étape par étape avec vraies données
-        const steps = [
-          { name: 'Balance pré-clôture', api: 'http://127.0.0.1:8888/api/v1/period-closures/api/closures/trial-balance/' },
-          { name: 'Calcul provisions clients', api: 'http://127.0.0.1:8888/api/v1/period-closures/api/closures/calculate-provisions/' },
-          { name: 'Calcul amortissements', api: 'http://127.0.0.1:8888/api/v1/period-closures/api/closures/calculate-depreciation/' },
-          { name: 'Écritures régularisation', api: 'http://127.0.0.1:8888/api/v1/period-closures/api/closures/generate-accruals/' },
-          { name: 'Balance post-clôture', api: 'http://127.0.0.1:8888/api/v1/period-closures/api/closures/trial-balance/' }
-        ];
-
-        for (const step of steps) {
-          setCurrentRealStep(step.name);
-
-          // Appel API réel pour chaque étape
-          const stepResponse = await fetch(step.api, {
-            method: step.api.includes('trial-balance') ? 'GET' : 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: step.api.includes('trial-balance') ? undefined : JSON.stringify({
-              fiscal_year_id: '2024'
-            })
-          });
-
-          if (stepResponse.ok) {
-            const stepData = await stepResponse.json();
-
-            // Mettre à jour l'état avec les vraies données
-            if (step.name === 'Calcul provisions clients') {
-              setRealProvisions(stepData.provisions_detail || []);
-            } else if (step.name === 'Calcul amortissements') {
-              setRealDepreciation(stepData.depreciation_detail || []);
-            } else if (step.name.includes('Balance')) {
-              setRealTrialBalance(stepData.balance_data || []);
-            }
-          }
-
-          // Délai pour montrer la progression
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        setRealClosureResult(result);
-        setCurrentRealStep('Clôture mensuelle terminée');
-
-        // Recharger les données des périodes
-        loadClosurePeriods();
-
-      } else {
-        throw new Error('Erreur API clôture');
+      if (!result.success) {
+        toast.error(result.errors?.join('\n') || 'Erreur clôture');
+        setCurrentRealStep('Erreur lors de la clôture');
+        return;
       }
 
+      setRealClosureResult(result);
+      setCurrentRealStep('Clôture terminée');
+      toast.success(`Clôture terminée — ${result.entriesLocked || 0} écritures verrouillées`);
+
+      // Reload periods
+      loadClosurePeriods();
+
     } catch (error) {
-      console.error('Erreur clôture réelle:', error);
+      console.error('Erreur clôture:', error);
       setCurrentRealStep('Erreur lors de la clôture');
+      toast.error(`Erreur : ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setRealClosureInProgress(false);
     }
@@ -890,7 +923,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-purple-500 text-purple-600'

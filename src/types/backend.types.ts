@@ -20,7 +20,7 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
@@ -437,7 +437,7 @@ export interface QueryParams extends PaginationParams, SortParams, SearchParams 
 
 export interface RequestConfig {
   headers?: Record<string, string>;
-  params?: Record<string, any>;
+  params?: Record<string, string | number | boolean | undefined>;
   timeout?: number;
   signal?: AbortSignal;
 }
@@ -467,8 +467,8 @@ export interface ApiLogEntry {
   status?: number;
   duration?: number;
   error?: string;
-  requestData?: any;
-  responseData?: any;
+  requestData?: unknown;
+  responseData?: unknown;
 }
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';

@@ -14,7 +14,7 @@ const TreasuryPlanDetails: React.FC = () => {
     title: string;
     type: 'client' | 'fournisseur';
     category: string;
-    invoices: any[];
+    invoices: Array<Record<string, unknown>>;
   } | null>(null);
   const [transactionType, setTransactionType] = useState('encaissement');
   const [expandedEncaissements, setExpandedEncaissements] = useState(false);

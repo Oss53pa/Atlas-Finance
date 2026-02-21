@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -376,13 +377,6 @@ const ClientDetailView: React.FC = () => {
     { id: 'historique', label: 'Historique', icon: Activity }
   ];
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600 bg-green-100';
@@ -1959,7 +1953,7 @@ const ClientDetailView: React.FC = () => {
                 ].map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setEditModalTab(tab.id as any)}
+                    onClick={() => setEditModalTab(tab.id as typeof editModalTab)}
                     className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                       editModalTab === tab.id
                         ? 'border-[#6A8A82] text-[#6A8A82] bg-white'

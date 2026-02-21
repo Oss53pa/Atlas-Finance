@@ -75,7 +75,7 @@ const FixedAssetsPage: React.FC = () => {
     valeur_max: ''
   });
   const [page, setPage] = useState(1);
-  const [selectedAsset, setSelectedAsset] = useState<any>(null);
+  const [selectedAsset, setSelectedAsset] = useState<Record<string, unknown> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
@@ -107,7 +107,7 @@ const FixedAssetsPage: React.FC = () => {
       setShowCreateModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création');
     },
   });
@@ -183,7 +183,7 @@ const FixedAssetsPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {

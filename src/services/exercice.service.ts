@@ -155,9 +155,9 @@ export const exerciceService = {
         success: true,
         data: mapToFrontend(exercice)
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur lors de la création de l\'exercice:', error);
-      throw new Error(error.message || 'Erreur lors de la création de l\'exercice');
+      throw new Error(error instanceof Error ? error.message : 'Erreur lors de la création de l\'exercice');
     }
   },
 

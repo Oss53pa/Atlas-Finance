@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, user: authUser } = useAuth();
-  const { selectedRole, targetPath } = (location.state as any) || { targetPath: '/dashboard' };
+  const { selectedRole, targetPath } = (location.state as { selectedRole?: string; targetPath?: string } | null) || { targetPath: '/dashboard' };
 
   const [formData, setFormData] = useState({
     email: '',
@@ -66,10 +66,10 @@ const LoginPage: React.FC = () => {
 
       const redirectPath = getRoleRedirectPath(userRole);
       navigate(redirectPath, { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[LoginPage] Erreur de connexion:', error);
       setErrors({
-        password: error.message || 'Email ou mot de passe incorrect. Veuillez réessayer.'
+        password: error instanceof Error ? error.message : 'Email ou mot de passe incorrect. Veuillez réessayer.'
       });
       setIsLoggingIn(false);
     }
@@ -112,10 +112,10 @@ const LoginPage: React.FC = () => {
       const userRole = userData?.role || 'user';
 
       navigate(getRoleRedirectPath(userRole), { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[LoginPage] Erreur de connexion:', error);
       setErrors({
-        password: error.message || 'Email ou mot de passe incorrect. Veuillez réessayer.'
+        password: error instanceof Error ? error.message : 'Email ou mot de passe incorrect. Veuillez réessayer.'
       });
       setIsLoggingIn(false);
     }

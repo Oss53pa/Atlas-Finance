@@ -2,18 +2,18 @@ import React, { ReactNode } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Search, Filter, Download, Eye, Edit, Trash2 } from 'lucide-react';
 
-interface Column {
+interface Column<T = Record<string, unknown>> {
   key: string;
   label: string;
   align?: 'left' | 'center' | 'right';
   width?: string;
-  render?: (value: any, row: any) => ReactNode;
+  render?: (value: unknown, row: T) => ReactNode;
 }
 
 interface KadsTableProps {
   title?: string;
   columns: Column[];
-  data: any[];
+  data: Record<string, unknown>[];
   searchable?: boolean;
   filterable?: boolean;
   exportable?: boolean;
@@ -21,9 +21,9 @@ interface KadsTableProps {
   onSearch?: (term: string) => void;
   onFilter?: () => void;
   onExport?: () => void;
-  onView?: (row: any) => void;
-  onEdit?: (row: any) => void;
-  onDelete?: (row: any) => void;
+  onView?: (row: Record<string, unknown>) => void;
+  onEdit?: (row: Record<string, unknown>) => void;
+  onDelete?: (row: Record<string, unknown>) => void;
   className?: string;
 }
 

@@ -22,7 +22,7 @@ const AssetsJournal: React.FC = () => {
   const [viewMode, setViewMode] = useState<'journal' | 'table'>('journal');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
 
-  const categoryIcons: { [key: string]: any } = {
+  const categoryIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
     '213-LA': Monitor,
     '212-DL': FileText,
     '211-FD': Settings,

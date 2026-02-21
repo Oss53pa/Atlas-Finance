@@ -77,7 +77,7 @@ export interface AuditLogEntry {
   model: string;
   object_id?: string;
   object_repr: string;
-  changes?: Record<string, { old: any; new: any }>;
+  changes?: Record<string, { old: unknown; new: unknown }>;
   ip_address: string;
   user_agent?: string;
   timestamp: string;

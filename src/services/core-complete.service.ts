@@ -67,7 +67,7 @@ export interface UpdateCompanyDto {
 
 // Companies Service
 class CompaniesService {
-  async getAll(params?: any): Promise<{ results: Company[]; count: number }> {
+  async getAll(params?: { page?: number; page_size?: number; search?: string }): Promise<{ results: Company[]; count: number }> {
     try {
       const result = await queryTable<Company>('societes', {
         page: params?.page || 1,
@@ -105,9 +105,9 @@ class CompaniesService {
 
 // Fiscal Years Service
 class FiscalYearsService {
-  async getAll(params?: any): Promise<{ results: FiscalYear[]; count: number }> {
+  async getAll(params?: { page?: number; page_size?: number; company_id?: string; is_active?: boolean; is_closed?: boolean }): Promise<{ results: FiscalYear[]; count: number }> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string | boolean> = {};
       if (params?.company_id) filters.company_id = params.company_id;
       if (params?.is_active !== undefined) filters.is_active = params.is_active;
       if (params?.is_closed !== undefined) filters.is_closed = params.is_closed;
@@ -167,9 +167,9 @@ class FiscalYearsService {
 
 // Currencies Service
 class CurrenciesService {
-  async getAll(params?: any): Promise<{ results: Currency[]; count: number }> {
+  async getAll(params?: { page?: number; page_size?: number; is_active?: boolean }): Promise<{ results: Currency[]; count: number }> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, boolean> = {};
       if (params?.is_active !== undefined) filters.is_active = params.is_active;
 
       const result = await queryTable<Currency>('devises', {

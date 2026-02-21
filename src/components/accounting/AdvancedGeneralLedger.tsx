@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
@@ -73,11 +75,11 @@ const AdvancedGeneralLedger: React.FC = () => {
   // Nouvelles fonctionnalités intelligentes
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any>(null);
+  const [searchResults, setSearchResults] = useState<AccountData[] | null>(null);
   const [showAIAnalysis, setShowAIAnalysis] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [savedSearches, setSavedSearches] = useState<any[]>([]);
+  const [savedSearches, setSavedSearches] = useState<{ query: string; date: string }[]>([]);
   const [responseTime, setResponseTime] = useState<number>(0);
   const [viewMode, setViewMode] = useState<'table' | 'timeline' | 'hierarchy'>('table');
   const [ledgerViewMode, setLedgerViewMode] = useState<'detailed' | 'tree' | 'list'>('detailed');
@@ -107,84 +109,69 @@ const AdvancedGeneralLedger: React.FC = () => {
     accountsPerPage: 5
   });
 
-  // Données simulées des comptes
-  const mockAccountsData: AccountData[] = [
-    {
-      compte: '101000',
-      libelle: 'Capital social',
-      soldeOuverture: 10000000,
-      totalDebit: 0,
-      totalCredit: 0,
-      soldeFermeture: 10000000,
-      nombreEcritures: 1,
-      entries: [
-        { id: '1', date: '2025-01-01', piece: 'OD-001', libelle: 'Constitution capital', debit: 0, credit: 10000000, solde: -10000000, centreCout: 'CC001' }
-      ]
-    },
-    {
-      compte: '411001',
-      libelle: 'Client A SARL',
-      soldeOuverture: 1500000,
-      totalDebit: 3200000,
-      totalCredit: 2800000,
-      soldeFermeture: 1900000,
-      nombreEcritures: 15,
-      entries: [
-        { id: '2', date: '2025-01-15', piece: 'VE-001', libelle: 'Facture vente 001', debit: 1190000, credit: 0, solde: 2690000, centreCout: 'CC001', tiers: 'Client A', referenceExterne: 'FA-2025-001' },
-        { id: '3', date: '2025-01-20', piece: 'BQ-001', libelle: 'Règlement virement', debit: 0, credit: 1190000, solde: 1500000, centreCout: 'CC001', tiers: 'Client A', referenceExterne: 'VIR-001' },
-        { id: '4', date: '2025-02-01', piece: 'VE-002', libelle: 'Facture vente 002', debit: 950000, credit: 0, solde: 2450000, centreCout: 'CC001', tiers: 'Client A', referenceExterne: 'FA-2025-002' },
-        { id: '5', date: '2025-02-10', piece: 'BQ-002', libelle: 'Règlement partiel', debit: 0, credit: 550000, solde: 1900000, centreCout: 'CC001', tiers: 'Client A', referenceExterne: 'VIR-002' }
-      ]
-    },
-    {
-      compte: '512100',
-      libelle: 'Banque BNP Paribas',
-      soldeOuverture: 3500000,
-      totalDebit: 8500000,
-      totalCredit: 7200000,
-      soldeFermeture: 4800000,
-      nombreEcritures: 89,
-      entries: [
-        { id: '6', date: '2025-01-20', piece: 'BQ-001', libelle: 'Virement reçu Client A', debit: 1190000, credit: 0, solde: 4690000, centreCout: 'CC001', referenceExterne: 'VIR-001' },
-        { id: '7', date: '2025-01-25', piece: 'BQ-003', libelle: 'Paiement fournisseur', debit: 0, credit: 850000, solde: 3840000, centreCout: 'CC001', referenceExterne: 'VIR-003' },
-        { id: '8', date: '2025-02-05', piece: 'BQ-004', libelle: 'Encaissement ventes', debit: 2100000, credit: 0, solde: 5940000, centreCout: 'CC001', referenceExterne: 'VIR-004' }
-      ]
-    },
-    {
-      compte: '607000',
-      libelle: 'Achats de marchandises',
-      soldeOuverture: 15000000,
-      totalDebit: 8500000,
-      totalCredit: 0,
-      soldeFermeture: 23500000,
-      nombreEcritures: 45,
-      entries: [
-        { id: '9', date: '2025-01-10', piece: 'AC-001', libelle: 'Achat ACME SARL', debit: 1000000, credit: 0, solde: 16000000, centreCout: 'CC002', tiers: 'ACME SARL', referenceExterne: 'FA-ACME-001' },
-        { id: '10', date: '2025-01-15', piece: 'AC-002', libelle: 'Achat TechCorp', debit: 750000, credit: 0, solde: 16750000, centreCout: 'CC002', tiers: 'TechCorp', referenceExterne: 'FA-TECH-001' }
-      ]
-    }
-  ];
+  // Charger les données du Grand Livre depuis Dexie
+  const { data: accountsData = [] } = useQuery<AccountData[]>({
+    queryKey: ['advanced-general-ledger', dateRange.start, dateRange.end],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const accounts = await db.accounts.toArray();
+      const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
-  // Données pour graphiques d'évolution
-  const evolutionData = [
-    { periode: 'Jan 2025', actif: 28000000, passif: 17900000, produits: 8200000, charges: 6500000 },
-    { periode: 'Fév 2025', actif: 29200000, passif: 18500000, produits: 9100000, charges: 7800000 },
-    { periode: 'Mar 2025', actif: 31500000, passif: 19200000, produits: 10500000, charges: 8900000 },
-    { periode: 'Avr 2025', actif: 33200000, passif: 20100000, produits: 11800000, charges: 9200000 },
-    { periode: 'Mai 2025', actif: 34800000, passif: 21500000, produits: 12900000, charges: 10100000 },
-    { periode: 'Jun 2025', actif: 36500000, passif: 22800000, produits: 14200000, charges: 11200000 }
-  ];
+      const accountMap = new Map<string, AccountData>();
+      for (const entry of entries) {
+        if (entry.date < dateRange.start || entry.date > dateRange.end) continue;
+        for (const line of entry.lines) {
+          const acc = accountMap.get(line.accountCode) || {
+            compte: line.accountCode,
+            libelle: line.accountName || accountNames.get(line.accountCode) || line.accountCode,
+            soldeOuverture: 0,
+            totalDebit: 0,
+            totalCredit: 0,
+            soldeFermeture: 0,
+            nombreEcritures: 0,
+            entries: [],
+          };
+          acc.totalDebit += line.debit;
+          acc.totalCredit += line.credit;
+          acc.nombreEcritures++;
+          acc.soldeFermeture = acc.soldeOuverture + acc.totalDebit - acc.totalCredit;
+          acc.entries.push({
+            id: `${entry.id}-${line.id}`,
+            date: entry.date,
+            piece: entry.reference || entry.entryNumber,
+            libelle: line.label || entry.label,
+            debit: line.debit,
+            credit: line.credit,
+            solde: acc.soldeFermeture,
+            centreCout: line.analyticalCode,
+            tiers: line.thirdPartyName,
+          });
+          accountMap.set(line.accountCode, acc);
+        }
+      }
+      return Array.from(accountMap.values()).sort((a, b) => a.compte.localeCompare(b.compte));
+    },
+  });
+
+  // Données évolution — vide sans données
+  const evolutionData = useMemo(() => {
+    if (!accountsData.length) return [];
+    return [{
+      periode: `${dateRange.start} - ${dateRange.end}`,
+      actif: 0, passif: 0, produits: 0, charges: 0
+    }];
+  }, [accountsData, dateRange]);
 
   // Calculs des indicateurs
   const indicators = useMemo(() => {
-    const totalComptes = mockAccountsData.length;
-    const comptesActifs = mockAccountsData.filter(acc => acc.nombreEcritures > 0).length;
-    const totalEcritures = mockAccountsData.reduce((sum, acc) => sum + acc.nombreEcritures, 0);
+    const totalComptes = accountsData.length;
+    const comptesActifs = accountsData.filter(acc => acc.nombreEcritures > 0).length;
+    const totalEcritures = accountsData.reduce((sum, acc) => sum + acc.nombreEcritures, 0);
     const moyenneEcritures = totalEcritures / comptesActifs;
-    const comptesPlusActifs = mockAccountsData.filter(acc => acc.nombreEcritures > moyenneEcritures).length;
+    const comptesPlusActifs = accountsData.filter(acc => acc.nombreEcritures > moyenneEcritures).length;
     
     return { totalComptes, comptesActifs, totalEcritures, moyenneEcritures, comptesPlusActifs };
-  }, [mockAccountsData]);
+  }, [accountsData]);
 
   const COLORS = ['#6A8A82', '#B87333', '#E8B4B8', '#A8C8EC', '#D4B5D4', '#FFD93D'];
 
@@ -238,7 +225,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             </button>
             
             <ExportMenu
-              data={mockAccountsData}
+              data={accountsData}
               filename="grand-livre-general"
               columns={[
                 { key: 'compte', label: 'Compte' },
@@ -266,7 +253,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           ].map((view) => (
             <button
               key={view.id}
-              onClick={() => setActiveView(view.id as any)}
+              onClick={() => setActiveView(view.id as typeof activeView)}
               className={`relative px-4 py-2 rounded-lg transition-all duration-200 ${
                 activeView === view.id
                   ? `${view.color} text-white shadow-lg transform scale-105`
@@ -317,7 +304,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
               >
                 <option value="">Tous les comptes</option>
-                {mockAccountsData.map((acc) => (
+                {accountsData.map((acc) => (
                   <option key={acc.compte} value={acc.compte}>
                     {acc.compte} - {acc.libelle}
                   </option>
@@ -479,7 +466,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 ].map(({ mode, icon: Icon, label }) => (
                   <button
                     key={mode}
-                    onClick={() => setViewMode(mode as any)}
+                    onClick={() => setViewMode(mode as typeof viewMode)}
                     className={`flex items-center space-x-2 px-3 py-2 text-sm rounded-md transition-colors ${
                       viewMode === mode
                         ? 'bg-white text-purple-600 shadow-sm'
@@ -529,7 +516,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     title="Exporter les résultats"
                   >
                     <ExportMenu
-                      data={mockAccountsData}
+                      data={accountsData}
                       filename="compte-detail"
                       columns={[
                         { key: 'compte', label: 'Compte' },
@@ -1240,7 +1227,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </button>
               </div>
               <div className="space-y-4">
-                {mockAccountsData
+                {accountsData
                   .sort((a, b) => b.nombreEcritures - a.nombreEcritures)
                   .slice(0, 5)
                   .map((account, index) => (
@@ -1356,7 +1343,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 className="px-4 py-2 border border-gray-300 rounded-lg font-mono"
               >
                 <option value="">-- Sélectionner un compte --</option>
-                {mockAccountsData.map((acc) => (
+                {accountsData.map((acc) => (
                   <option key={acc.compte} value={acc.compte}>
                     {acc.compte} - {acc.libelle} ({acc.nombreEcritures} écritures)
                   </option>
@@ -1369,7 +1356,7 @@ const AdvancedGeneralLedger: React.FC = () => {
           {selectedAccount && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               {(() => {
-                const account = mockAccountsData.find(acc => acc.compte === selectedAccount);
+                const account = accountsData.find(acc => acc.compte === selectedAccount);
                 if (!account) return null;
                 
                 return (
@@ -1484,7 +1471,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   {/* Dropdown Type de Grand Livre */}
                   <select
                     value={ledgerType}
-                    onChange={(e) => setLedgerType(e.target.value as any)}
+                    onChange={(e) => setLedgerType(e.target.value as typeof ledgerType)}
                     className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
                   >
                     <option value="general">Général - Tous comptes/écritures</option>
@@ -2864,7 +2851,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h4 className="text-md font-semibold text-gray-900 mb-4">Comptes les Plus Actifs</h4>
               <div className="space-y-3">
-                {mockAccountsData
+                {accountsData
                   .sort((a, b) => b.nombreEcritures - a.nombreEcritures)
                   .slice(0, 8)
                   .map((account, index) => (
@@ -2891,7 +2878,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h4 className="text-md font-semibold text-gray-900 mb-4">Soldes les Plus Importants</h4>
               <div className="space-y-3">
-                {mockAccountsData
+                {accountsData
                   .sort((a, b) => Math.abs(b.soldeFermeture) - Math.abs(a.soldeFermeture))
                   .slice(0, 8)
                   .map((account, index) => (
@@ -2933,7 +2920,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <label className="text-sm text-gray-600">Format:</label>
                     <select 
                       value={printConfig.format}
-                      onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as any})}
+                      onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as 'A4' | 'A3'})}
                       className="px-2 py-1 border border-gray-300 rounded text-sm"
                     >
                       <option value="A4">A4</option>
@@ -2942,9 +2929,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <label className="text-sm text-gray-600">Orientation:</label>
-                    <select 
+                    <select
                       value={printConfig.orientation}
-                      onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as any})}
+                      onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as 'portrait' | 'landscape'})}
                       className="px-2 py-1 border border-gray-300 rounded text-sm"
                     >
                       <option value="portrait">Portrait</option>
@@ -3010,7 +2997,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               {selectedAccount ? (
                 <div className="mb-6">
                   {(() => {
-                    const account = mockAccountsData.find(acc => acc.compte === selectedAccount);
+                    const account = accountsData.find(acc => acc.compte === selectedAccount);
                     if (!account) return null;
                     
                     return (
@@ -3116,7 +3103,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockAccountsData.slice(0, 10).map((account, index) => (
+                      {accountsData.slice(0, 10).map((account, index) => (
                         <tr key={account.compte} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                           <td className="border border-gray-300 px-3 py-2 font-mono text-blue-600">
                             {account.compte}
@@ -3141,16 +3128,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                           GRAND TOTALS
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-center">
-                          {mockAccountsData.reduce((sum, acc) => sum + acc.nombreEcritures, 0)}
+                          {accountsData.reduce((sum, acc) => sum + acc.nombreEcritures, 0)}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {mockAccountsData.reduce((sum, acc) => sum + acc.totalDebit, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {accountsData.reduce((sum, acc) => sum + acc.totalDebit, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {mockAccountsData.reduce((sum, acc) => sum + acc.totalCredit, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {accountsData.reduce((sum, acc) => sum + acc.totalCredit, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {mockAccountsData.reduce((sum, acc) => sum + acc.soldeFermeture, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {accountsData.reduce((sum, acc) => sum + acc.soldeFermeture, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
                     </tbody>
@@ -3282,7 +3269,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       type="radio"
                       value="excel"
                       checked={exportFormat === 'excel'}
-                      onChange={(e) => setExportFormat(e.target.value as any)}
+                      onChange={(e) => setExportFormat(e.target.value as typeof exportFormat)}
                       className="mr-2"
                     />
                     <FileSpreadsheet className="w-4 h-4 mr-2 text-green-600" />
@@ -3293,7 +3280,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       type="radio"
                       value="pdf"
                       checked={exportFormat === 'pdf'}
-                      onChange={(e) => setExportFormat(e.target.value as any)}
+                      onChange={(e) => setExportFormat(e.target.value as typeof exportFormat)}
                       className="mr-2"
                     />
                     <FileText className="w-4 h-4 mr-2 text-red-600" />
@@ -3304,7 +3291,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       type="radio"
                       value="csv"
                       checked={exportFormat === 'csv'}
-                      onChange={(e) => setExportFormat(e.target.value as any)}
+                      onChange={(e) => setExportFormat(e.target.value as typeof exportFormat)}
                       className="mr-2"
                     />
                     <Database className="w-4 h-4 mr-2 text-blue-600" />
@@ -3337,7 +3324,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 Annuler
               </button>
               <ExportMenu
-                data={mockAccountsData}
+                data={accountsData}
                 filename="grand-livre-export"
                 columns={[
                   { key: 'compte', label: 'Compte' },

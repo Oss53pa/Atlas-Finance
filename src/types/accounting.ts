@@ -19,7 +19,7 @@ export interface TableColumn {
   width?: number;
   sortable?: boolean;
   align?: 'left' | 'center' | 'right';
-  render?: (value: any, record: any) => React.ReactNode;
+  render?: (value: unknown, record: Record<string, unknown>) => React.ReactNode;
 }
 
 export interface FormField {
@@ -27,8 +27,8 @@ export interface FormField {
   label: string;
   type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'checkbox';
   required?: boolean;
-  validation?: any;
-  options?: { label: string; value: any }[];
+  validation?: Record<string, unknown>;
+  options?: { label: string; value: string | number | boolean }[];
 }
 
 export interface PrintOptions {
@@ -50,7 +50,7 @@ export interface FilterOption {
   key: string;
   label: string;
   type: 'text' | 'select' | 'date' | 'number' | 'boolean';
-  options?: { label: string; value: any }[];
+  options?: { label: string; value: string | number | boolean }[];
 }
 
 // Types pour les hooks
@@ -68,7 +68,7 @@ export interface UseTableState<T> {
     field?: string;
     order?: 'asc' | 'desc';
   };
-  filters: Record<string, any>;
+  filters: Record<string, unknown>;
 }
 
 export interface UseFormState<T> {
@@ -105,7 +105,7 @@ export interface NotificationMessage {
 export interface MenuItem {
   key: string;
   label: string;
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<{ className?: string }>;
   path?: string;
   children?: MenuItem[];
   badge?: string | number;
@@ -119,7 +119,7 @@ export interface WidgetProps {
   error?: string;
   actions?: Array<{
     label: string;
-    icon?: React.ComponentType<any>;
+    icon?: React.ComponentType<{ className?: string }>;
     onClick: () => void;
   }>;
 }

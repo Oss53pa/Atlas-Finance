@@ -95,7 +95,7 @@ interface Restriction {
   id: string;
   type: 'time' | 'ip' | 'amount' | 'period' | 'data';
   description: string;
-  value: any;
+  value: string | number | boolean | string[];
   is_active: boolean;
 }
 
@@ -104,7 +104,7 @@ interface Module {
   name: string;
   code: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   actions: Action[];
   category: string;
 }

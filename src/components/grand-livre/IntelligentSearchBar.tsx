@@ -111,14 +111,14 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
       setIsVoiceRecording(true);
 
       // Configuration de la reconnaissance vocale
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const SpeechRecognition = (window as unknown as Record<string, unknown>).webkitSpeechRecognition || (window as unknown as Record<string, unknown>).SpeechRecognition;
       const recognition = new SpeechRecognition();
 
       recognition.lang = 'fr-FR';
       recognition.interimResults = false;
       recognition.continuous = false;
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => {
         const transcript = event.results[0][0].transcript;
         onChange(transcript);
         onSearch(transcript);

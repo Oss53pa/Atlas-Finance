@@ -19,7 +19,7 @@ export interface ChatMessage {
 export interface ChatAction {
   type: 'navigate' | 'open-modal' | 'copy-text' | 'download' | 'external-link';
   label: string;
-  payload: any;
+  payload: string | Record<string, unknown>;
   icon?: string;
 }
 
@@ -37,7 +37,7 @@ export interface ChatContext {
   currentPage?: string;
   currentModule?: string;
   userRole?: string;
-  userPreferences?: any;
+  userPreferences?: Record<string, unknown>;
   recentActions?: string[];
   problemCategory?: string;
 }
