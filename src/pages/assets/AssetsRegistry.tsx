@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'; // Palette Atlas Finance appliquée
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { db } from '../../lib/db';
 import AssetForm from '../../components/assets/AssetForm';
 import {
   Package,
@@ -340,147 +341,58 @@ const AssetsRegistry: React.FC = () => {
     }
   };
 
-  // Mock data for assets registry
-  const mockAssets: Asset[] = [
-    {
-      id: '1',
-      asset_number: '235377',
-      description: 'ARIC TRAVAUX D\'ASSAINISSEMENT',
-      asset_class: '24 - matériel, mobilier',
-      asset_category: 'Matériel technique',
-      asset_identification: 'ID-00333',
-      uom_group: 'Unité',
-      capital_appropriation_number: 'CAR-2024-001',
-      location: 'Dakar Centre',
-      technician: 'Amadou Diallo',
-      employee: 'Fatima Ndiaye',
-      capitalization_date: '2020-01-15',
-      acquisition_date: '2020-01-15',
-      warranty_end: '2025-01-15',
-      last_inventory: '2024-01-15',
-      acquisition_cost: 1500000,
-      historical_apc: 150000,
-      net_book_value: 1350000,
-      historical_nbc: 1350000,
-      ordinary_depreciation: 37500,
-      unplanned_depreciation: 0,
-      special_depreciation: 0,
-      write_up: 0,
-      salvage_value: 50000,
-      asset_group: 'IMMOBILIER',
-      depreciation_group: 'DEP-IMMO',
-      depreciation_method: 'Linéaire',
-      depreciation_rate: 2.5,
-      serial_number: 'IMM-2020-001',
-      quantity: 1,
-      status: 'en_service',
-      supplier: 'Promoteur Immobilier SARL',
-      department: 'Administration',
-      notes: 'Bâtiment principal - 3 étages',
-      // Legacy fields
-      code: 'IMM001',
-      designation: 'Bâtiment Siège Social',
-      category: 'Immobilier',
-      subcategory: 'Bureau',
-      acquisition_value: 1500000,
-      current_value: 1350000,
-      cumulated_depreciation: 150000,
-      net_value: 1350000,
-      responsible: 'Amadou Diallo'
-    },
-    {
-      id: '2',
-      asset_number: '235378',
-      description: 'Serveur Dell PowerEdge R750',
-      asset_class: '21 - équipement informatique',
-      asset_category: 'Matériel informatique',
-      asset_identification: 'ID-00334',
-      uom_group: 'Unité',
-      capital_appropriation_number: 'CAR-2024-002',
-      location: 'Salle serveur - Dakar',
-      technician: 'Mohamed Kane',
-      employee: 'Moussa Seck',
-      capitalization_date: '2023-06-01',
-      acquisition_date: '2023-06-01',
-      warranty_end: '2026-06-01',
-      last_inventory: '2024-06-01',
-      acquisition_cost: 2500000,
-      historical_apc: 312500,
-      net_book_value: 2187500,
-      historical_nbc: 2187500,
-      ordinary_depreciation: 62500,
-      unplanned_depreciation: 0,
-      special_depreciation: 0,
-      write_up: 0,
-      salvage_value: 125000,
-      asset_group: 'INFORMATIQUE',
-      depreciation_group: 'DEP-INFO',
-      depreciation_method: 'Linéaire',
-      depreciation_rate: 25.0,
-      serial_number: 'SRV-2023-001',
-      quantity: 1,
-      status: 'en_service',
-      supplier: 'Dell Technologies',
-      department: 'IT',
-      notes: 'Serveur principal de production',
-      // Legacy fields
-      code: 'SRV001',
-      designation: 'Serveur Dell PowerEdge R750',
-      category: 'Informatique',
-      subcategory: 'Serveur',
-      acquisition_value: 2500000,
-      current_value: 2187500,
-      cumulated_depreciation: 312500,
-      net_value: 2187500,
-      responsible: 'Mohamed Kane'
-    },
-    {
-      id: '3',
-      asset_number: '235379',
-      description: 'Véhicule Mercedes Sprinter',
-      asset_class: '23 - véhicules',
-      asset_category: 'Véhicule utilitaire',
-      asset_identification: 'ID-00335',
-      uom_group: 'Unité',
-      capital_appropriation_number: 'CAR-2024-003',
-      location: 'Parking - Dakar',
-      technician: 'Cheikh Diop',
-      employee: 'Aminata Fall',
-      capitalization_date: '2022-03-01',
-      acquisition_date: '2022-03-01',
-      warranty_end: '2025-03-01',
-      last_inventory: '2024-03-01',
-      acquisition_cost: 18000000,
-      historical_apc: 7200000,
-      net_book_value: 10800000,
-      historical_nbc: 10800000,
-      ordinary_depreciation: 900000,
-      unplanned_depreciation: 0,
-      special_depreciation: 0,
-      write_up: 0,
-      salvage_value: 1800000,
-      asset_group: 'VEHICULE',
-      depreciation_group: 'DEP-VEH',
-      depreciation_method: 'Linéaire',
-      depreciation_rate: 20.0,
-      serial_number: 'VEH-2022-001',
-      quantity: 1,
-      status: 'en_service',
-      supplier: 'Mercedes Benz Sénégal',
-      department: 'Logistique',
-      notes: 'Véhicule de livraison principal',
-      // Legacy fields
-      code: 'VEH001',
-      designation: 'Véhicule Mercedes Sprinter',
-      category: 'Véhicule',
-      subcategory: 'Utilitaire',
-      acquisition_value: 18000000,
-      current_value: 10800000,
-      cumulated_depreciation: 7200000,
-      net_value: 10800000,
-      responsible: 'Cheikh Diop'
+  // Charger les immobilisations depuis Dexie
+  const { data: mockAssets = [] } = useQuery<Asset[]>({
+    queryKey: ['assets-registry'],
+    queryFn: async () => {
+      const dbAssets = await db.assets.toArray();
+      return dbAssets.map((a): Asset => ({
+        id: a.id,
+        asset_number: a.code,
+        description: a.name,
+        asset_class: a.accountCode ? `${a.accountCode.substring(0, 2)} - immobilisation` : '',
+        asset_category: a.category,
+        asset_identification: `ID-${a.code}`,
+        uom_group: 'Unité',
+        capital_appropriation_number: '',
+        location: '',
+        technician: '',
+        employee: '',
+        capitalization_date: a.acquisitionDate,
+        acquisition_date: a.acquisitionDate,
+        warranty_end: '',
+        last_inventory: '',
+        acquisition_cost: a.acquisitionValue,
+        historical_apc: 0,
+        net_book_value: a.acquisitionValue - a.residualValue,
+        historical_nbc: a.acquisitionValue - a.residualValue,
+        ordinary_depreciation: a.usefulLifeYears > 0 ? Math.round(a.acquisitionValue / a.usefulLifeYears) : 0,
+        unplanned_depreciation: 0,
+        special_depreciation: 0,
+        write_up: 0,
+        salvage_value: a.residualValue,
+        asset_group: a.category.toUpperCase(),
+        depreciation_group: `DEP-${a.category.substring(0, 3).toUpperCase()}`,
+        depreciation_method: a.depreciationMethod === 'linear' ? 'Linéaire' : 'Dégressif',
+        depreciation_rate: a.usefulLifeYears > 0 ? Math.round(10000 / a.usefulLifeYears) / 100 : 0,
+        serial_number: a.code,
+        quantity: 1,
+        status: a.status === 'active' ? 'en_service' : a.status === 'disposed' ? 'disposed' : 'inactive',
+        supplier: '',
+        department: '',
+        notes: '',
+        code: a.code,
+        designation: a.name,
+        category: a.category,
+        subcategory: '',
+        acquisition_value: a.acquisitionValue,
+        current_value: a.acquisitionValue - a.residualValue,
+        cumulated_depreciation: a.residualValue,
+        net_value: a.acquisitionValue - a.residualValue,
+        responsible: ''
+      }));
     }
-  ];
+  });
 
   // Fonctions de gestion des actions Asset Master Data
   const handleOpenNewAssetModal = () => {
@@ -605,7 +517,8 @@ const AssetsRegistry: React.FC = () => {
 
   const handleEditAssetModal = (asset: Asset) => {
     setAssetToEdit(asset);
-    setNewAssetForm({
+    setNewAssetForm(prev => ({
+      ...prev,
       asset_number: asset.asset_number,
       description: asset.description,
       asset_class: asset.asset_class,
@@ -643,7 +556,7 @@ const AssetsRegistry: React.FC = () => {
       subcategory: asset.subcategory,
       acquisition_value: asset.acquisition_value,
       responsible: asset.responsible
-    });
+    }));
     setActiveFormTab('general');
     setActiveGeneralTab('basic');
     setModalMode('edit');
@@ -686,49 +599,28 @@ const AssetsRegistry: React.FC = () => {
     }
   };
 
-  // Mock asset categories summary
-  const mockCategories: AssetCategory[] = [
-    {
-      code: 'materiel_informatique',
-      name: 'Matériel Informatique',
-      count: 45,
-      totalValue: 180000,
-      averageAge: 2.3,
-      depreciationRate: 0.25
-    },
-    {
-      code: 'vehicules',
-      name: 'Véhicules',
-      count: 8,
-      totalValue: 320000,
-      averageAge: 3.1,
-      depreciationRate: 0.20
-    },
-    {
-      code: 'mobilier',
-      name: 'Mobilier',
-      count: 120,
-      totalValue: 95000,
-      averageAge: 4.2,
-      depreciationRate: 0.10
-    },
-    {
-      code: 'equipements',
-      name: 'Équipements',
-      count: 25,
-      totalValue: 150000,
-      averageAge: 2.8,
-      depreciationRate: 0.15
-    },
-    {
-      code: 'immobilier',
-      name: 'Immobilier',
-      count: 3,
-      totalValue: 1200000,
-      averageAge: 8.5,
-      depreciationRate: 0.025
+  // Calculer les catégories dynamiquement depuis les immobilisations chargées
+  const mockCategories: AssetCategory[] = useMemo(() => {
+    const catMap: Record<string, { count: number; totalValue: number; totalAge: number; totalRate: number }> = {};
+    const now = new Date();
+    for (const asset of mockAssets) {
+      const cat = asset.category || 'Autre';
+      if (!catMap[cat]) catMap[cat] = { count: 0, totalValue: 0, totalAge: 0, totalRate: 0 };
+      catMap[cat].count++;
+      catMap[cat].totalValue += asset.acquisition_cost || 0;
+      const acqDate = new Date(asset.acquisition_date || now);
+      catMap[cat].totalAge += (now.getTime() - acqDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      catMap[cat].totalRate += asset.depreciation_rate || 0;
     }
-  ];
+    return Object.entries(catMap).map(([name, data]) => ({
+      code: name.toLowerCase().replace(/\s+/g, '_'),
+      name,
+      count: data.count,
+      totalValue: data.totalValue,
+      averageAge: data.count > 0 ? Math.round((data.totalAge / data.count) * 10) / 10 : 0,
+      depreciationRate: data.count > 0 ? Math.round((data.totalRate / data.count) * 100) / 10000 : 0,
+    }));
+  }, [mockAssets]);
 
   // Filter assets based on search and filters
   const filteredAssets = useMemo(() => {
@@ -785,11 +677,11 @@ const AssetsRegistry: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'text-green-600 bg-green-50';
+      case 'active':
+      case 'en_service': return 'text-green-600 bg-green-50';
       case 'inactive': return 'text-gray-600 bg-gray-50';
       case 'maintenance': return 'text-yellow-600 bg-yellow-50';
       case 'disposed': return 'text-red-600 bg-red-50';
-      case 'lost': return 'text-red-800 bg-red-100';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -804,7 +696,7 @@ const AssetsRegistry: React.FC = () => {
     }
   };
 
-  const categoryLabels = {
+  const categoryLabels: Record<string, string> = {
     materiel_informatique: 'Matériel IT',
     vehicules: 'Véhicules',
     mobilier: 'Mobilier',
@@ -813,15 +705,15 @@ const AssetsRegistry: React.FC = () => {
     outillage: 'Outillage'
   };
 
-  const statusLabels = {
+  const statusLabels: Record<Asset['status'], string> = {
     active: 'Actif',
+    en_service: 'En service',
     inactive: 'Inactif',
     maintenance: 'Maintenance',
-    disposed: 'Cédé',
-    lost: 'Perdu'
+    disposed: 'Cédé'
   };
 
-  const conditionLabels = {
+  const conditionLabels: Record<string, string> = {
     excellent: 'Excellent',
     good: 'Bon',
     fair: 'Correct',
