@@ -29,6 +29,8 @@ import ControlesCoherenceSection from './sections/ControlesCoherenceSection';
 import EtatsFinanciersSection from './sections/EtatsFinanciersSection';
 import IAAssistantSection from './sections/IAAssistantSection';
 import DashboardAnalyticsSection from './sections/DashboardAnalyticsSection';
+import ParametragePeriodesSection from './sections/ParametragePeriodes';
+import ValidationFinaleSection from './sections/ValidationFinale';
 
 interface MenuItem {
   id: string;
@@ -225,12 +227,8 @@ const PeriodicClosuresModule: React.FC = () => {
   // Fonction pour rendre le contenu selon la section active
   const renderContent = () => {
     switch (activeSection) {
-      case 'dashboard':
-        return <DashboardPilotage progress={calculateGlobalProgress()} sectionProgress={sectionProgress} />;
       case 'parametrage':
-        return <ParametragePeriodes dateRange={dateRange} setDateRange={setDateRange} showPeriodModal={showPeriodModal} setShowPeriodModal={setShowPeriodModal} />;
-      case 'workflow':
-        return <WorkflowIA status={closureStatus} />;
+        return <ParametragePeriodesSection />;
       case 'tresorerie':
         return <TresorerieSection progress={sectionProgress.tresorerie} />;
       case 'rapprochement':
@@ -249,6 +247,8 @@ const PeriodicClosuresModule: React.FC = () => {
         return <ControlesCoherenceSection progress={sectionProgress.controles} />;
       case 'etats':
         return <EtatsFinanciersSection progress={sectionProgress.etats} />;
+      case 'validation':
+        return <ValidationFinaleSection />;
       case 'assistant':
         return <IAAssistantSection />;
       case 'analytics':
@@ -328,7 +328,14 @@ const PeriodicClosuresModule: React.FC = () => {
                     {item.children.map(child => (
                       <button
                         key={child.id}
-                        onClick={() => setActiveSection(child.id)}
+                        onClick={() => {
+                          if (child.id === 'workflow' || child.id === 'planning') {
+                            setActiveSection('dashboard');
+                            setActiveTab(child.id === 'workflow' ? 'workflow' : 'workflow');
+                          } else {
+                            setActiveSection(child.id);
+                          }
+                        }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-sm ${
                           activeSection === child.id
                             ? 'bg-[#6A8A82]/10 text-[#6A8A82] font-medium'
@@ -369,7 +376,7 @@ const PeriodicClosuresModule: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => navigate('/closures/complete')}
+              onClick={() => navigate('/closures')}
               className="w-full text-xs text-center text-[#767676] hover:text-[#444444]"
             >
               Retour au module principal
@@ -422,7 +429,8 @@ const PeriodicClosuresModule: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation par onglets */}
+      {/* Contenu principal */}
+      {activeSection === 'dashboard' ? (
       <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
         <div className="px-6 border-b border-[#E8E8E8]">
           <nav className="flex space-x-8 overflow-x-auto">
@@ -705,7 +713,7 @@ const PeriodicClosuresModule: React.FC = () => {
                   <div className="space-y-2">
                     {[
                       { action: 'Validation écritures en attente', count: '8', path: '/accounting/entries' },
-                      { action: 'Contrôles automatiques', count: '5', path: '/accounting/validation' },
+                      { action: 'Contrôles automatiques', count: '5', path: '/accounting/entries' },
                       { action: 'Lettrage des comptes', count: '12', path: '/accounting/lettrage' },
                       { action: 'Génération états financiers', count: '3', path: '/financial-statements' }
                     ].map((item, index) => (
@@ -1136,6 +1144,11 @@ const PeriodicClosuresModule: React.FC = () => {
           )}
         </div>
       </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-6">
+          {renderContent()}
+        </div>
+      )}
     </div>
 
     {/* Modal de sélection de période */}
