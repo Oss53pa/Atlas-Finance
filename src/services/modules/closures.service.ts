@@ -1,8 +1,7 @@
 /**
- * Closures Module Service - Re-exports closures with schemas
+ * Closures Module Service - Zod schemas for closure forms
  */
 import { z } from 'zod';
-export { clotureComptableService as closuresService } from '../cloture-comptable.service';
 
 export const executeControleSchema = z.object({
   type_controle: z.string().min(1, 'Type de contrôle requis'),

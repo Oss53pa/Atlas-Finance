@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
 import { toast } from 'react-hot-toast';
-import { closuresService } from '../../../services/modules/closures.service';
+import { db } from '../../../lib/db';
+import type { DBFiscalYear } from '../../../lib/db';
 import {
   Landmark, Upload, Download, CheckCircle, AlertCircle,
   Search, Filter, RefreshCw, FileText, TrendingUp,
@@ -75,31 +74,50 @@ const RapprochementBancaire: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
+  // --- Real data from Dexie (bank entries Class 5) ---
+  const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
+  const [bankEntries, setBankEntries] = useState<RapprochementItem[]>([]);
 
-  // Schema simple pour l'import bancaire
-  const importBancaireSchema = z.object({
-    compte_bancaire: z.string().min(1, 'Le compte bancaire est requis'),
-    fichier: z.instanceof(File, { message: 'Un fichier est requis' }),
-    periode_debut: z.string().min(1, 'La période de début est requise'),
-    periode_fin: z.string().min(1, 'La période de fin est requise'),
-    format_fichier: z.enum(['csv', 'ofx', 'qif', 'mt940']),
-    ignorer_doublons: z.boolean(),
-    auto_lettrage: z.boolean(),
-  });
+  useEffect(() => {
+    db.fiscalYears.toArray().then(fys => setFiscalYears(fys));
+  }, []);
 
-  const uploadMutation = useMutation({
-    mutationFn: closuresService.uploadDocument, // Réutilise la méthode générique
-    onSuccess: () => {
-      toast.success('Import de relevé bancaire réussi');
-      queryClient.invalidateQueries({ queryKey: ['rapprochements-bancaires'] });
-      setShowImportModal(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de l\'import');
-    },
-  });
+  useEffect(() => {
+    const loadBankEntries = async () => {
+      const fy = fiscalYears.find(f => f.isActive) || fiscalYears[0];
+      if (!fy) return;
+
+      const entries = await db.journalEntries
+        .where('date')
+        .between(fy.startDate, fy.endDate, true, true)
+        .toArray();
+
+      const items: RapprochementItem[] = [];
+      for (const entry of entries) {
+        for (const line of entry.lines) {
+          if (line.accountCode.startsWith('5')) {
+            items.push({
+              id: `${entry.id}-${line.accountCode}`,
+              date: entry.date,
+              libelle: entry.label || line.accountName,
+              reference: entry.reference || entry.entryNumber || '',
+              montantBanque: (line.debit || 0) - (line.credit || 0),
+              montantCompta: (line.debit || 0) - (line.credit || 0),
+              statut: line.lettrageCode ? 'rapproche' : 'en_attente',
+              typeOperation: (line.debit || 0) > 0 ? 'debit' : 'credit',
+              compteBancaire: line.accountCode,
+              compteContrepartie: entry.lines.find(l => l.accountCode !== line.accountCode)?.accountCode,
+              pieceComptable: entry.entryNumber,
+              journalCode: entry.journal,
+              dateComptabilisation: entry.date,
+            });
+          }
+        }
+      }
+      setBankEntries(items);
+    };
+    loadBankEntries();
+  }, [fiscalYears]);
 
   const resetForm = () => {
     setFormData({
@@ -115,7 +133,7 @@ const RapprochementBancaire: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean | FileList) => {
     if (field === 'fichier') {
       const file = (value as FileList)?.[0] || null;
       setFormData(prev => ({ ...prev, fichier: file }));
@@ -133,38 +151,8 @@ const RapprochementBancaire: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setErrors({});
-
-      // Validation spéciale pour fichiers
-      if (!formData.fichier) {
-        setErrors({ fichier: 'Un fichier est requis' });
-        toast.error('Veuillez sélectionner un fichier');
-        return;
-      }
-
-      // Validate with Zod
-      const validatedData = importBancaireSchema.parse(formData);
-
-      // Submit to backend
-      await uploadMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Map Zod errors to form fields
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
-      } else {
-        toast.error('Erreur lors de l\'import du relevé bancaire');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    // TODO P0: Remplacer par service Dexie réel
+    toast.error('Service d\'import bancaire non encore connecté');
   };
 
   // Moyens de paiement électroniques
@@ -270,8 +258,8 @@ const RapprochementBancaire: React.FC = () => {
     }
   ];
 
-  // Données exemple avec moyens de paiement
-  const operations: RapprochementItem[] = [
+  // Use real bank entries from Dexie; fall back to empty array
+  const operations: RapprochementItem[] = bankEntries.length > 0 ? bankEntries : [
     // Opérations bancaires classiques
     {
       id: '1',

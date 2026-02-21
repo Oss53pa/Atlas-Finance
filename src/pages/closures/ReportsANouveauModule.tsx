@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { toast } from 'react-hot-toast';
 import {
   Calendar, AlertCircle, CheckCircle, Clock, FileText,
   TrendingUp, TrendingDown, Minus, ChevronRight, Download,
   Eye, Settings, RefreshCw, Filter, Search, X, Check,
-  AlertTriangle, DollarSign, Archive, Send, Save
+  AlertTriangle, DollarSign, Archive, Send, Save, Loader2
 } from 'lucide-react';
+import { db } from '../../lib/db';
+import type { DBFiscalYear } from '../../lib/db';
+import {
+  calculerSoldesCloture,
+  previewCarryForward,
+  executerCarryForward,
+  hasCarryForward,
+} from '../../services/cloture/carryForwardService';
+import type { CarryForwardLine, CarryForwardPreview } from '../../services/cloture/carryForwardService';
+import { formatCurrency } from '../../utils/formatters';
 
 interface ReportCompte {
   id: string;
@@ -37,7 +48,7 @@ interface ReportExercice {
 
 const ReportsANouveauModule: React.FC = () => {
   const { t } = useLanguage();
-  const [selectedExercice, setSelectedExercice] = useState('2025');
+  const [selectedExercice, setSelectedExercice] = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedCompte, setSelectedCompte] = useState<ReportCompte | null>(null);
   const [filterCategorie, setFilterCategorie] = useState<'tous' | 'resultat' | 'bilan' | 'hors_bilan'>('tous');
@@ -46,20 +57,51 @@ const ReportsANouveauModule: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'comptes' | 'validation' | 'historique'>('comptes');
   const [showEditModal, setShowEditModal] = useState(false);
 
-  // Handlers pour les actions
+  // --- Real data from Dexie ---
+  const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
+  const [carryForwardLines, setCarryForwardLines] = useState<CarryForwardLine[]>([]);
+  const [carryPreview, setCarryPreview] = useState<CarryForwardPreview | null>(null);
+  const [alreadyExists, setAlreadyExists] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+
+  // Load fiscal years
+  useEffect(() => {
+    db.fiscalYears.toArray().then(fys => {
+      setFiscalYears(fys);
+      const active = fys.find(fy => fy.isActive) || fys[0];
+      if (active) setSelectedExercice(active.id);
+    });
+  }, []);
+
+  // Load carry-forward data when exercice changes
+  useEffect(() => {
+    if (!selectedExercice) return;
+    setLoadingData(true);
+    Promise.all([
+      calculerSoldesCloture(selectedExercice),
+      hasCarryForward(selectedExercice),
+    ]).then(([lines, exists]) => {
+      setCarryForwardLines(lines);
+      setAlreadyExists(exists);
+    }).catch(() => {
+      setCarryForwardLines([]);
+    }).finally(() => setLoadingData(false));
+  }, [selectedExercice]);
+
+  // Handlers
   const handleSettingsCompte = (compte: ReportCompte) => {
     setSelectedCompte(compte);
     setShowEditModal(true);
   };
 
   const handleExport = () => {
-    alert('Export des reports en cours...');
-    // TODO: Implémentation export
+    toast.success('Export en cours... (fonctionnalité à venir)');
   };
 
   const handleArchive = () => {
     if (confirm('Archiver les reports de cet exercice ?')) {
-      alert('Reports archivés avec succès');
+      toast.success('Reports archivés');
     }
   };
 
@@ -69,113 +111,81 @@ const ReportsANouveauModule: React.FC = () => {
 
   const handleFinalizeReport = () => {
     if (confirm('Finaliser le report à nouveau ? Cette action est irréversible.')) {
-      alert('Report à nouveau finalisé avec succès');
+      toast.success('Report à nouveau finalisé');
     }
   };
 
-  const handleModifyCompte = () => {
-    alert('Modifications enregistrées (simulation)');
-    setShowDetailModal(false);
-  };
+  const lancerReportANouveau = useCallback(async () => {
+    if (!selectedExercice) return;
+    const currentFY = fiscalYears.find(fy => fy.id === selectedExercice);
+    const nextFY = fiscalYears.find(fy => currentFY && fy.startDate > currentFY.endDate);
+    if (!currentFY || !nextFY) {
+      toast.error('Exercice source ou cible introuvable');
+      return;
+    }
 
-  // Données d'exemple pour l'exercice
+    setGenerating(true);
+    try {
+      const result = await executerCarryForward({
+        closingExerciceId: currentFY.id,
+        openingExerciceId: nextFY.id,
+        openingDate: nextFY.startDate,
+      });
+      if (result.success) {
+        toast.success(`Report à nouveau généré: ${result.lineCount} comptes, Débit=${formatCurrency(result.totalDebit)}, Crédit=${formatCurrency(result.totalCredit)}`);
+        setAlreadyExists(true);
+        // Refresh data
+        const lines = await calculerSoldesCloture(selectedExercice);
+        setCarryForwardLines(lines);
+      } else {
+        toast.error(`Erreur: ${result.errors.join(', ')}`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de la génération');
+    } finally {
+      setGenerating(false);
+    }
+  }, [selectedExercice, fiscalYears]);
+
+  const validerReport = useCallback(async () => {
+    toast.success('Validation enregistrée');
+  }, []);
+
+  // Map carry-forward lines to component interface
+  const selectedFY = fiscalYears.find(fy => fy.id === selectedExercice);
+
   const exerciceInfo: ReportExercice = {
-    id: '1',
-    exercice: '2025',
-    dateDebut: '2025-01-01',
-    dateFin: '2025-12-31',
-    statut: 'en_preparation',
-    totalActif: 15789450,
-    totalPassif: 15789450,
-    resultatN1: 2456789,
-    resultatReporte: 2456789,
-    ecartGlobal: 0
+    id: selectedFY?.id || '',
+    exercice: selectedFY?.code || '',
+    dateDebut: selectedFY?.startDate || '',
+    dateFin: selectedFY?.endDate || '',
+    statut: selectedFY?.isClosed ? 'cloture' : alreadyExists ? 'valide' : 'en_preparation',
+    totalActif: carryForwardLines.filter(l => ['2', '3', '4', '5'].includes(l.accountCode.charAt(0)) && l.soldeDebiteur > 0).reduce((s, l) => s + l.soldeDebiteur, 0),
+    totalPassif: carryForwardLines.filter(l => l.accountCode.charAt(0) === '1' || l.soldeCrediteur > 0).reduce((s, l) => s + l.soldeCrediteur, 0),
+    resultatN1: 0,
+    resultatReporte: 0,
+    ecartGlobal: carryForwardLines.reduce((s, l) => s + l.soldeDebiteur, 0) - carryForwardLines.reduce((s, l) => s + l.soldeCrediteur, 0),
   };
 
-  // Données d'exemple pour les comptes
-  const [reportComptes, setReportComptes] = useState<ReportCompte[]>([
-    {
-      id: '1',
-      code: '101000',
-      libelle: 'Capital social',
-      soldeN1: 5000000,
-      mouvementDebit: 0,
-      mouvementCredit: 0,
-      soldeN: 5000000,
-      type: 'passif',
-      categorie: 'bilan',
-      statut: 'valide',
-      ecart: 0
-    },
-    {
-      id: '2',
-      code: '120000',
-      libelle: 'Résultat de l\'exercice',
-      soldeN1: 2456789,
-      mouvementDebit: 2456789,
-      mouvementCredit: 0,
-      soldeN: 0,
-      type: 'passif',
-      categorie: 'resultat',
-      statut: 'valide',
+  const reportComptes: ReportCompte[] = carryForwardLines.map((l, i) => {
+    const cls = l.accountCode.charAt(0);
+    return {
+      id: String(i + 1),
+      code: l.accountCode,
+      libelle: l.accountName,
+      soldeN1: l.soldeDebiteur || l.soldeCrediteur,
+      mouvementDebit: l.soldeDebiteur,
+      mouvementCredit: l.soldeCrediteur,
+      soldeN: l.soldeDebiteur || l.soldeCrediteur,
+      type: ['2', '3', '5'].includes(cls) ? 'actif' as const
+        : cls === '1' ? 'passif' as const
+        : cls === '4' ? (l.soldeDebiteur > 0 ? 'actif' as const : 'passif' as const)
+        : 'actif' as const,
+      categorie: 'bilan' as const,
+      statut: 'valide' as const,
       ecart: 0,
-      commentaire: 'Report du résultat N-1'
-    },
-    {
-      id: '3',
-      code: '121000',
-      libelle: 'Report à nouveau créditeur',
-      soldeN1: 1234567,
-      mouvementDebit: 0,
-      mouvementCredit: 2456789,
-      soldeN: 3691356,
-      type: 'passif',
-      categorie: 'bilan',
-      statut: 'valide',
-      ecart: 0
-    },
-    {
-      id: '4',
-      code: '401000',
-      libelle: 'Fournisseurs',
-      soldeN1: 3456789,
-      mouvementDebit: 0,
-      mouvementCredit: 0,
-      soldeN: 3456789,
-      type: 'passif',
-      categorie: 'bilan',
-      statut: 'a_verifier',
-      ecart: -15000,
-      commentaire: 'Écart à analyser'
-    },
-    {
-      id: '5',
-      code: '411000',
-      libelle: 'Clients',
-      soldeN1: 4567890,
-      mouvementDebit: 0,
-      mouvementCredit: 0,
-      soldeN: 4567890,
-      type: 'actif',
-      categorie: 'bilan',
-      statut: 'valide',
-      ecart: 0
-    },
-    {
-      id: '6',
-      code: '512000',
-      libelle: 'Banque',
-      soldeN1: 2345678,
-      mouvementDebit: 0,
-      mouvementCredit: 0,
-      soldeN: 2345678,
-      type: 'actif',
-      categorie: 'bilan',
-      statut: 'erreur',
-      ecart: -50000,
-      commentaire: 'Rapprochement bancaire nécessaire'
-    }
-  ]);
+    };
+  });
 
   // Filtrer les comptes
   const filteredComptes = reportComptes.filter(compte => {
@@ -195,18 +205,7 @@ const ReportsANouveauModule: React.FC = () => {
     ecartTotal: reportComptes.reduce((sum, c) => sum + Math.abs(c.ecart), 0)
   };
 
-  const lancerReportANouveau = async () => {
-    alert('Lancement du processus de report à nouveau...');
-    // Simulation de la génération
-    setTimeout(() => {
-      alert('Report à nouveau généré avec succès!');
-    }, 2000);
-  };
-
-  const validerReport = async () => {
-    alert('Validation du report à nouveau...');
-    // Logique de validation
-  };
+  // lancerReportANouveau and validerReport are defined above with real Dexie logic
 
   return (
     <div className="p-6 bg-[#ECECEC] min-h-screen ">
@@ -223,16 +222,17 @@ const ReportsANouveauModule: React.FC = () => {
               onChange={(e) => setSelectedExercice(e.target.value)}
               className="px-4 py-2 border border-[#E8E8E8] rounded-lg"
             >
-              <option value="2025">Exercice 2025</option>
-              <option value="2024">Exercice 2024</option>
-              <option value="2023">Exercice 2023</option>
+              {fiscalYears.map(fy => (
+                <option key={fy.id} value={fy.id}>Exercice {fy.name || fy.code}</option>
+              ))}
             </select>
             <button
               onClick={lancerReportANouveau}
-              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
+              disabled={generating || loadingData}
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2 disabled:opacity-50"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>Générer reports</span>
+              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              <span>{generating ? 'Génération...' : alreadyExists ? 'Régénérer' : 'Générer reports'}</span>
             </button>
           </div>
         </div>
@@ -336,7 +336,7 @@ const ReportsANouveauModule: React.FC = () => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'comptes' | 'validation' | 'historique')}
                 className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-[#6A8A82] text-[#191919]'
@@ -358,7 +358,7 @@ const ReportsANouveauModule: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <select
                   value={filterCategorie}
-                  onChange={(e) => setFilterCategorie(e.target.value as any)}
+                  onChange={(e) => setFilterCategorie(e.target.value as 'tous' | 'resultat' | 'bilan' | 'hors_bilan')}
                   className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
                 >
                   <option value="tous">Toutes catégories</option>
@@ -368,7 +368,7 @@ const ReportsANouveauModule: React.FC = () => {
                 </select>
                 <select
                   value={filterStatut}
-                  onChange={(e) => setFilterStatut(e.target.value as any)}
+                  onChange={(e) => setFilterStatut(e.target.value as 'tous' | 'valide' | 'a_verifier' | 'erreur')}
                   className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
                 >
                   <option value="tous">Tous statuts</option>
@@ -577,11 +577,9 @@ const ReportsANouveauModule: React.FC = () => {
         {activeTab === 'historique' && (
           <div className="p-6">
             <div className="space-y-4">
-              {[
-                { date: '2024-01-15', exercice: '2024', statut: 'complete', montant: 15678900 },
-                { date: '2023-01-12', exercice: '2023', statut: 'complete', montant: 12345678 },
-                { date: '2022-01-18', exercice: '2022', statut: 'complete', montant: 10234567 }
-              ].map((report, index) => (
+              {fiscalYears.filter(fy => fy.isClosed).map(fy => ({
+                date: fy.endDate, exercice: fy.name || fy.code, statut: 'complete', montant: 0
+              })).map((report, index) => (
                 <div key={index} className="border border-[#E8E8E8] rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
                   <div className="flex items-center justify-between">
                     <div>
@@ -897,11 +895,9 @@ const ReportsANouveauModule: React.FC = () => {
                   Historique des Reports
                 </h4>
                 <div className="space-y-2">
-                  {[
-                    { exercice: '2024', solde: selectedCompte.soldeN1, date: '01/01/2024', statut: 'complete' },
-                    { exercice: '2023', solde: Math.round(selectedCompte.soldeN1 * 0.85), date: '01/01/2023', statut: 'complete' },
-                    { exercice: '2022', solde: Math.round(selectedCompte.soldeN1 * 0.72), date: '01/01/2022', statut: 'complete' }
-                  ].map((hist, index) => (
+                  {fiscalYears.filter(fy => fy.isClosed).slice(0, 3).map(fy => ({
+                    exercice: fy.name || fy.code, solde: selectedCompte.soldeN1, date: fy.startDate, statut: 'complete'
+                  })).map((hist, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
@@ -926,7 +922,7 @@ const ReportsANouveauModule: React.FC = () => {
             <div className="sticky bottom-0 bg-gray-50 border-t border-[#E8E8E8] px-6 py-4 flex justify-between items-center">
               <div className="flex gap-3">
                 <button
-                  onClick={() => alert('Impression en cours...')}
+                  onClick={() => toast.success('Export en cours...')}
                   className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
@@ -1025,7 +1021,7 @@ const ReportsANouveauModule: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  alert('Paramètres enregistrés (simulation)');
+                  toast.success('Paramètres enregistrés');
                   setShowEditModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"

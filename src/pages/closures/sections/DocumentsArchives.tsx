@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
 import { toast } from 'react-hot-toast';
-import { closuresService, uploadDocumentSchema } from '../../../services/modules/closures.service';
+import { db } from '../../../lib/db';
+import type { DBFiscalYear } from '../../../lib/db';
 import {
   FileText, Upload, Download, FolderOpen, Archive,
   Search, Filter, Clock, CheckCircle, AlertCircle,
@@ -75,312 +74,71 @@ const DocumentsArchives: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
+  // --- Real data from Dexie ---
+  const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
+  const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; entityType: string; entityId: string; details: string; timestamp: string }>>([]);
 
-  const uploadMutation = useMutation({
-    mutationFn: closuresService.uploadDocument,
-    onSuccess: () => {
-      toast.success('Document archivé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
-      setShowUploadModal(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de l\'upload');
-    },
+  useEffect(() => {
+    db.fiscalYears.toArray().then(fys => {
+      setFiscalYears(fys.sort((a, b) => b.startDate.localeCompare(a.startDate)));
+    });
+    db.auditLogs.toArray().then(logs => {
+      setAuditLogs(logs.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')));
+    });
+  }, []);
+
+  // Build dossiers from real fiscal years
+  const dossiersCloture: DossierCloture[] = fiscalYears.map(fy => ({
+    id: fy.id,
+    periode: fy.code || fy.name,
+    type: 'annuelle' as const,
+    dateCreation: fy.startDate,
+    dateCloture: fy.isClosed ? fy.endDate : undefined,
+    statut: fy.isClosed ? 'validee' as const : fy.isActive ? 'en_cours' as const : 'en_cours' as const,
+    responsable: 'Comptable',
+    documentsObligatoires: 10,
+    documentsPresents: fy.isClosed ? 10 : auditLogs.filter(l => l.entityId === fy.id).length,
+    tauxCompletude: fy.isClosed ? 100 : Math.min(100, auditLogs.filter(l => l.entityId === fy.id).length * 10),
+    tailleTotale: '—',
+    conforme: fy.isClosed,
+  }));
+
+  // Build documents from audit logs (virtual documents representing audit trail)
+  const categorieLookup: Record<string, Document['categorie']> = {
+    'CLOSURE': 'audit',
+    'CLOTURE': 'audit',
+    'CARRY_FORWARD': 'balance',
+    'ENTRY_CREATED': 'grand_livre',
+    'ENTRY_VALIDATED': 'grand_livre',
+    'DEPRECIATION': 'immobilisations',
+    'PROVISION': 'provisions',
+    'REVERSAL': 'audit',
+  };
+
+  const documents: Document[] = auditLogs.slice(0, 50).map((log, i) => {
+    const cat = Object.entries(categorieLookup).find(([k]) => log.action.includes(k))?.[1] || 'autre';
+    const fy = fiscalYears.find(f => f.id === log.entityId);
+    return {
+      id: log.id || String(i + 1),
+      nom: `${log.action}_${log.entityId.substring(0, 8)}.log`,
+      type: 'pdf' as const,
+      categorie: cat,
+      periode: fy?.code || log.entityId.substring(0, 7),
+      typeCloture: 'annuelle' as const,
+      taille: `${(log.details?.length || 0)} B`,
+      dateAjout: log.timestamp || '',
+      dateModification: log.timestamp || '',
+      auteur: 'Système',
+      statut: 'valide' as const,
+      tags: [log.action, log.entityType],
+      hash: `SHA256:${log.id}`,
+      verrouille: true,
+      partage: [],
+      commentaires: 0,
+      version: '1.0',
+      conforme: true,
+    };
   });
-
-  // Données exemple - Dossiers de clôture
-  const dossiersCloture: DossierCloture[] = [
-    {
-      id: '1',
-      periode: '2025-01',
-      type: 'mensuelle',
-      dateCreation: '2025-01-05',
-      dateCloture: '2025-02-10',
-      statut: 'validee',
-      responsable: 'Marie Kouadio',
-      documentsObligatoires: 25,
-      documentsPresents: 25,
-      tauxCompletude: 100,
-      tailleTotale: '45.8 MB',
-      conforme: true
-    },
-    {
-      id: '2',
-      periode: '2024-12',
-      type: 'annuelle',
-      dateCreation: '2024-12-15',
-      dateCloture: '2025-01-31',
-      statut: 'complete',
-      responsable: 'Jean Konan',
-      documentsObligatoires: 48,
-      documentsPresents: 46,
-      tauxCompletude: 96,
-      tailleTotale: '125.3 MB',
-      conforme: false
-    },
-    {
-      id: '3',
-      periode: '2024-11',
-      type: 'mensuelle',
-      dateCreation: '2024-11-05',
-      dateCloture: '2024-12-10',
-      statut: 'archivee',
-      responsable: 'Marie Kouadio',
-      documentsObligatoires: 25,
-      documentsPresents: 25,
-      tauxCompletude: 100,
-      tailleTotale: '42.1 MB',
-      conforme: true
-    },
-    {
-      id: '4',
-      periode: 'Q4-2024',
-      type: 'trimestrielle',
-      dateCreation: '2024-10-01',
-      dateCloture: '2025-01-15',
-      statut: 'validee',
-      responsable: 'Paul Yao',
-      documentsObligatoires: 35,
-      documentsPresents: 35,
-      tauxCompletude: 100,
-      tailleTotale: '78.9 MB',
-      conforme: true
-    }
-  ];
-
-  // Documents exemple
-  const documents: Document[] = [
-    // Documents de janvier 2025
-    {
-      id: '1',
-      nom: 'Balance_Generale_012025.pdf',
-      type: 'pdf',
-      categorie: 'balance',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '2.4 MB',
-      dateAjout: '2025-02-01',
-      dateModification: '2025-02-05',
-      auteur: 'Marie Kouadio',
-      statut: 'valide',
-      tags: ['Balance', 'Janvier 2025', 'SYSCOHADA'],
-      hash: 'SHA256:a8f5f167f44f4964e6c998dee827110c',
-      signature: 'MK-2025-02-05-14:23:45',
-      verrouille: true,
-      partage: ['Directeur Financier', 'Commissaire aux comptes'],
-      commentaires: 3,
-      version: '1.2',
-      conforme: true
-    },
-    {
-      id: '2',
-      nom: 'Grand_Livre_012025.xlsx',
-      type: 'excel',
-      categorie: 'grand_livre',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '8.7 MB',
-      dateAjout: '2025-02-01',
-      dateModification: '2025-02-03',
-      auteur: 'Jean Konan',
-      statut: 'valide',
-      tags: ['Grand Livre', 'Janvier 2025', 'Détaillé'],
-      hash: 'SHA256:b9f6g278g55g5075f7d109def938221d',
-      verrouille: true,
-      partage: ['Équipe Comptable'],
-      commentaires: 0,
-      version: '1.0',
-      conforme: true
-    },
-    {
-      id: '3',
-      nom: 'Rapprochement_Bancaire_SGBCI_012025.pdf',
-      type: 'pdf',
-      categorie: 'rapprochement',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '1.2 MB',
-      dateAjout: '2025-02-02',
-      dateModification: '2025-02-02',
-      auteur: 'Awa Diallo',
-      statut: 'valide',
-      tags: ['Rapprochement', 'SGBCI', 'Janvier 2025'],
-      hash: 'SHA256:c1g7h389h66h6186g8e220efg049332e',
-      verrouille: false,
-      partage: ['Trésorier'],
-      commentaires: 2,
-      version: '1.1',
-      conforme: true
-    },
-    {
-      id: '4',
-      nom: 'Inventaire_Stock_012025.xlsx',
-      type: 'excel',
-      categorie: 'inventaire',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '4.5 MB',
-      dateAjout: '2025-01-31',
-      dateModification: '2025-02-04',
-      auteur: 'Kouame Yao',
-      statut: 'en_revision',
-      tags: ['Inventaire', 'Stock', 'Valorisation'],
-      hash: 'SHA256:d2h8i490i77i7297h9f331fg150443f',
-      verrouille: false,
-      partage: ['Gestionnaire Stock', 'Contrôleur de Gestion'],
-      commentaires: 5,
-      version: '2.1',
-      conforme: false
-    },
-    {
-      id: '5',
-      nom: 'Declaration_TVA_012025.pdf',
-      type: 'pdf',
-      categorie: 'etats_fiscaux',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '856 KB',
-      dateAjout: '2025-02-08',
-      dateModification: '2025-02-08',
-      auteur: 'Fatou Sow',
-      statut: 'valide',
-      tags: ['TVA', 'Déclaration', 'DGI'],
-      hash: 'SHA256:e3i9j501j88j8308i0g442gh261554g',
-      signature: 'FS-2025-02-08-10:15:30',
-      verrouille: true,
-      partage: ['Direction', 'Expert-Comptable'],
-      commentaires: 1,
-      version: '1.0',
-      conforme: true
-    },
-    {
-      id: '6',
-      nom: 'Provisions_Creances_012025.pdf',
-      type: 'pdf',
-      categorie: 'provisions',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '1.8 MB',
-      dateAjout: '2025-02-03',
-      dateModification: '2025-02-06',
-      auteur: 'Ibrahim Toure',
-      statut: 'valide',
-      tags: ['Provisions', 'Créances douteuses'],
-      hash: 'SHA256:f4j0k612k99k9419j1h553hi372665h',
-      verrouille: false,
-      partage: ['Risk Manager'],
-      commentaires: 4,
-      version: '1.3',
-      conforme: true
-    },
-    {
-      id: '7',
-      nom: 'Tableau_Amortissements_012025.xlsx',
-      type: 'excel',
-      categorie: 'immobilisations',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '3.2 MB',
-      dateAjout: '2025-02-01',
-      dateModification: '2025-02-01',
-      auteur: 'Seydou Ba',
-      statut: 'valide',
-      tags: ['Amortissements', 'Immobilisations'],
-      hash: 'SHA256:g5k1l723l00l0520k2i664ij483776i',
-      verrouille: true,
-      partage: ['Comptable Principal'],
-      commentaires: 0,
-      version: '1.0',
-      conforme: true
-    },
-    {
-      id: '8',
-      nom: 'PV_Cloture_Mensuelle_012025.pdf',
-      type: 'pdf',
-      categorie: 'pv',
-      periode: '2025-01',
-      typeCloture: 'mensuelle',
-      taille: '245 KB',
-      dateAjout: '2025-02-10',
-      dateModification: '2025-02-10',
-      auteur: 'Marie Kouadio',
-      statut: 'valide',
-      tags: ['PV', 'Clôture', 'Validation'],
-      hash: 'SHA256:h6l2m834m11m1631l3j775jk594887j',
-      signature: 'MK-2025-02-10-16:45:00',
-      verrouille: true,
-      partage: ['Direction', 'Audit'],
-      commentaires: 2,
-      version: '1.0',
-      conforme: true
-    },
-    // Documents année 2024
-    {
-      id: '9',
-      nom: 'Bilan_SYSCOHADA_2024.pdf',
-      type: 'pdf',
-      categorie: 'balance',
-      periode: '2024-12',
-      typeCloture: 'annuelle',
-      taille: '4.8 MB',
-      dateAjout: '2025-01-15',
-      dateModification: '2025-01-28',
-      auteur: 'Jean Konan',
-      statut: 'valide',
-      tags: ['Bilan', 'SYSCOHADA', '2024', 'Annuel'],
-      hash: 'SHA256:i7m3n945n22n2742m4k886kl605998k',
-      signature: 'JK-2025-01-28-09:30:15',
-      verrouille: true,
-      partage: ['Conseil d\'Administration', 'CAC'],
-      commentaires: 8,
-      version: '2.5',
-      conforme: true
-    },
-    {
-      id: '10',
-      nom: 'Compte_Resultat_2024.pdf',
-      type: 'pdf',
-      categorie: 'balance',
-      periode: '2024-12',
-      typeCloture: 'annuelle',
-      taille: '2.1 MB',
-      dateAjout: '2025-01-15',
-      dateModification: '2025-01-25',
-      auteur: 'Jean Konan',
-      statut: 'valide',
-      tags: ['Compte de Résultat', '2024'],
-      hash: 'SHA256:j8n4o056o33o3853n5l997lm716009l',
-      signature: 'JK-2025-01-25-11:20:00',
-      verrouille: true,
-      partage: ['Direction Générale'],
-      commentaires: 5,
-      version: '2.0',
-      conforme: true
-    },
-    {
-      id: '11',
-      nom: 'Rapport_CAC_2024.pdf',
-      type: 'pdf',
-      categorie: 'audit',
-      periode: '2024-12',
-      typeCloture: 'annuelle',
-      taille: '1.5 MB',
-      dateAjout: '2025-01-30',
-      dateModification: '2025-01-30',
-      auteur: 'Cabinet KPMG',
-      statut: 'valide',
-      tags: ['Audit', 'CAC', 'Rapport', '2024'],
-      hash: 'SHA256:k9o5p167p44p4964o6m008mn827110m',
-      signature: 'KPMG-2025-01-30-14:00:00',
-      verrouille: true,
-      partage: ['Direction', 'Conseil d\'Administration'],
-      commentaires: 12,
-      version: '1.0',
-      conforme: true
-    }
-  ];
 
   // Filtrer les documents
   const getFilteredDocuments = () => {
@@ -462,7 +220,7 @@ const DocumentsArchives: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean | FileList) => {
     if (field === 'fichier') {
       const file = (value as FileList)?.[0] || null;
       setFormData(prev => ({ ...prev, fichier: file }));
@@ -483,38 +241,8 @@ const DocumentsArchives: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setErrors({});
-
-      // Validation spéciale pour fichiers
-      if (!formData.fichier) {
-        setErrors({ fichier: 'Un fichier est requis' });
-        toast.error('Veuillez sélectionner un fichier');
-        return;
-      }
-
-      // Validate with Zod
-      const validatedData = uploadDocumentSchema.parse(formData);
-
-      // Submit to backend
-      await uploadMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Map Zod errors to form fields
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
-      } else {
-        toast.error('Erreur lors de l\'archivage du document');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    // TODO P0: Remplacer par service Dexie réel
+    toast.error('Service d\'archivage non encore connecté');
   };
 
   const getStatutColor = (statut: string) => {

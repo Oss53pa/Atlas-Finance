@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
 import { toast } from 'react-hot-toast';
-import { reportingService, generateRapportSchema } from '../../../services/modules/reporting.service';
+import { useEtatsFinanciers } from '../hooks/useEtatsFinanciers';
+import { formatCurrency } from '../../../utils/formatters';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -158,20 +157,7 @@ const EtatsSYSCOHADA: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  const generateMutation = useMutation({
-    mutationFn: reportingService.generateRapport,
-    onSuccess: () => {
-      toast.success('Génération des états SYSCOHADA lancée');
-      queryClient.invalidateQueries({ queryKey: ['etats-syscohada'] });
-      setShowGenerationModal(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de la génération');
-    },
-  });
+  const etatsData = useEtatsFinanciers();
 
   const resetForm = () => {
     setFormData({
@@ -189,7 +175,7 @@ const EtatsSYSCOHADA: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field === 'etats_selectionnes') {
       const currentArray = Array.isArray(formData.etats_selectionnes) ? formData.etats_selectionnes : [];
       const newArray = currentArray.includes(value)
@@ -210,307 +196,186 @@ const EtatsSYSCOHADA: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setErrors({});
-
-      // Validation des états sélectionnés
-      if (!formData.etats_selectionnes.length) {
-        setErrors({ etats_selectionnes: 'Veuillez sélectionner au moins un état' });
-        toast.error('Veuillez sélectionner au moins un état');
-        return;
-      }
-
-      // Validate with Zod
-      const validatedData = generateRapportSchema.parse(formData);
-
-      // Submit to backend
-      await generateMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Map Zod errors to form fields
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
-      } else {
-        toast.error('Erreur lors de la génération des états');
-      }
-    } finally {
-      setIsSubmitting(false);
+    if (!formData.etats_selectionnes.length) {
+      toast.error('Veuillez sélectionner au moins un état');
+      return;
     }
+    etatsData.refresh();
+    toast.success('États financiers recalculés à partir des données comptables');
+    setShowGenerationModal(false);
   };
 
-  // Données simulées - États financiers
+  // --- Computed from real Dexie data via useEtatsFinanciers hook ---
+  const { getSolde, getSoldeDebiteur, getSoldeCrediteur, totalActif: realTotalActif, totalPassif: realTotalPassif, resultatNet: realResultat, isBalanced, totalEntries } = etatsData;
+
+  const p = (val: number) => ({ exerciceActuel: val, exercicePrecedent: 0, variation: val, variationPourcentage: val !== 0 ? 100 : 0 });
+
   const mockEtatsFinanciers: EtatFinancier[] = [
     {
-      id: '1',
-      nom: 'Bilan SYSCOHADA',
-      codeSYSCOHADA: 'BILAN-SYS',
+      id: '1', nom: 'Bilan SYSCOHADA', codeSYSCOHADA: 'BILAN-SYS',
       description: 'État de situation financière conforme au référentiel SYSCOHADA',
-      typeEtat: 'bilan',
-      obligatoire: true,
-      periodicite: 'annuel',
-      statutGeneration: 'definitif',
-      dateGeneration: '2024-12-20',
-      dateValidation: '2024-12-20',
-      validateur: 'Expert-Comptable',
-      conformiteSYSCOHADA: true,
+      typeEtat: 'bilan', obligatoire: true, periodicite: 'annuel',
+      statutGeneration: totalEntries > 0 ? 'definitif' : 'brouillon',
+      dateGeneration: new Date().toISOString().split('T')[0],
+      conformiteSYSCOHADA: isBalanced,
       controlesCritiques: [
-        { nom: 'Équilibre Actif/Passif', statut: 'conforme', message: 'Bilan équilibré' },
-        { nom: 'Cohérence temporelle', statut: 'conforme', message: 'Dates cohérentes' },
-        { nom: 'Présentation SYSCOHADA', statut: 'conforme', message: 'Format conforme' }
-      ]
+        { nom: 'Équilibre Actif/Passif', statut: isBalanced ? 'conforme' : 'non_conforme', message: isBalanced ? 'Bilan équilibré' : 'Déséquilibre détecté' },
+      ],
     },
     {
-      id: '2',
-      nom: 'Compte de Résultat',
-      codeSYSCOHADA: 'CRESULT-SYS',
+      id: '2', nom: 'Compte de Résultat', codeSYSCOHADA: 'CRESULT-SYS',
       description: 'Compte de résultat par nature conforme SYSCOHADA',
-      typeEtat: 'compte_resultat',
-      obligatoire: true,
-      periodicite: 'annuel',
-      statutGeneration: 'definitif',
-      dateGeneration: '2024-12-20',
-      dateValidation: '2024-12-20',
-      validateur: 'Expert-Comptable',
+      typeEtat: 'compte_resultat', obligatoire: true, periodicite: 'annuel',
+      statutGeneration: totalEntries > 0 ? 'definitif' : 'brouillon',
+      dateGeneration: new Date().toISOString().split('T')[0],
       conformiteSYSCOHADA: true,
       controlesCritiques: [
-        { nom: 'Cohérence résultat', statut: 'conforme', message: 'Résultat cohérent avec bilan' },
-        { nom: 'Classification charges', statut: 'conforme', message: 'Classification correcte' }
-      ]
+        { nom: 'Cohérence résultat', statut: 'conforme', message: `Résultat: ${formatCurrency(realResultat)}` },
+      ],
     },
     {
-      id: '3',
-      nom: 'TAFIRE',
-      codeSYSCOHADA: 'TAFIRE-SYS',
+      id: '3', nom: 'TAFIRE', codeSYSCOHADA: 'TAFIRE-SYS',
       description: 'Tableau Financier des Ressources et Emplois',
-      typeEtat: 'tafire',
-      obligatoire: true,
-      periodicite: 'annuel',
+      typeEtat: 'tafire', obligatoire: true, periodicite: 'annuel',
       statutGeneration: 'provisoire',
-      dateGeneration: '2024-12-20',
+      dateGeneration: new Date().toISOString().split('T')[0],
       conformiteSYSCOHADA: true,
-      controlesCritiques: [
-        { nom: 'Équilibre emplois/ressources', statut: 'conforme', message: 'Équilibré' },
-        { nom: 'Cohérence avec bilan', statut: 'attention', message: 'Vérifier variations stock' }
-      ]
-    }
+      controlesCritiques: [],
+    },
   ];
 
-  // Données du Bilan
+  // Bilan Actif — computed from real account balances
+  const immoIncorp = getSoldeDebiteur(['20', '21']);
+  const immoCorp = getSoldeDebiteur(['22', '23', '24']);
+  const immoFin = getSoldeDebiteur(['26', '27']);
+  const amortImmo = Math.abs(getSolde(['28']));
+  const totalImmo = immoIncorp + immoCorp + immoFin - amortImmo;
+  const stocks = getSoldeDebiteur(['3']);
+  const creances = getSoldeDebiteur(['41', '42', '43', '44', '45', '46', '47']);
+  const tresoActif = getSoldeDebiteur(['5']);
+  const totalCirculant = stocks + creances + tresoActif;
+  const totalGenActif = totalImmo + totalCirculant;
+
   const mockPostesActif: PosteBilan[] = [
-    // ACTIF IMMOBILISE
-    { code: 'AD', libelle: 'CHARGES IMMOBILISEES', noteBilan: '3', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'AE', libelle: 'IMMOBILISATIONS INCORPORELLES', noteBilan: '4', exerciceActuel: 56666667, exercicePrecedent: 0, variation: 56666667, variationPourcentage: 100, niveau: 1 },
-    { code: 'AF', libelle: 'IMMOBILISATIONS CORPORELLES', noteBilan: '5', exerciceActuel: 386500000, exercicePrecedent: 250000000, variation: 136500000, variationPourcentage: 54.6, niveau: 1 },
-    { code: 'AG', libelle: 'IMMOBILISATIONS FINANCIERES', noteBilan: '6', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'AI', libelle: 'TOTAL ACTIF IMMOBILISE', exerciceActuel: 443166667, exercicePrecedent: 250000000, variation: 193166667, variationPourcentage: 77.3, niveau: 0, total: true },
-
-    // ACTIF CIRCULANT
-    { code: 'AJ', libelle: 'ACTIF CIRCULANT HAO', noteBilan: '7', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'AK', libelle: 'STOCKS ET ENCOURS', noteBilan: '8', exerciceActuel: 25500000, exercicePrecedent: 22000000, variation: 3500000, variationPourcentage: 15.9, niveau: 1 },
-    { code: 'AL', libelle: 'CREANCES ET EMPLOIS ASSIMILES', noteBilan: '9', exerciceActuel: 120000000, exercicePrecedent: 95000000, variation: 25000000, variationPourcentage: 26.3, niveau: 1 },
-    { code: 'AN', libelle: 'TRESORERIE-ACTIF', noteBilan: '10', exerciceActuel: 85000000, exercicePrecedent: 62000000, variation: 23000000, variationPourcentage: 37.1, niveau: 1 },
-    { code: 'AO', libelle: 'TOTAL ACTIF CIRCULANT', exerciceActuel: 230500000, exercicePrecedent: 179000000, variation: 51500000, variationPourcentage: 28.8, niveau: 0, total: true },
-
-    // TOTAL ACTIF
-    { code: 'AQ', libelle: 'ECART DE CONVERSION ACTIF', noteBilan: '11', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'AR', libelle: 'TOTAL GENERAL ACTIF', exerciceActuel: 673666667, exercicePrecedent: 429000000, variation: 244666667, variationPourcentage: 57.0, niveau: 0, total: true }
+    { code: 'AD', libelle: 'CHARGES IMMOBILISEES', noteBilan: '3', ...p(0), niveau: 1 },
+    { code: 'AE', libelle: 'IMMOBILISATIONS INCORPORELLES', noteBilan: '4', ...p(immoIncorp), niveau: 1 },
+    { code: 'AF', libelle: 'IMMOBILISATIONS CORPORELLES', noteBilan: '5', ...p(immoCorp - amortImmo), niveau: 1 },
+    { code: 'AG', libelle: 'IMMOBILISATIONS FINANCIERES', noteBilan: '6', ...p(immoFin), niveau: 1 },
+    { code: 'AI', libelle: 'TOTAL ACTIF IMMOBILISE', ...p(totalImmo), niveau: 0, total: true },
+    { code: 'AJ', libelle: 'ACTIF CIRCULANT HAO', noteBilan: '7', ...p(0), niveau: 1 },
+    { code: 'AK', libelle: 'STOCKS ET ENCOURS', noteBilan: '8', ...p(stocks), niveau: 1 },
+    { code: 'AL', libelle: 'CREANCES ET EMPLOIS ASSIMILES', noteBilan: '9', ...p(creances), niveau: 1 },
+    { code: 'AN', libelle: 'TRESORERIE-ACTIF', noteBilan: '10', ...p(tresoActif), niveau: 1 },
+    { code: 'AO', libelle: 'TOTAL ACTIF CIRCULANT', ...p(totalCirculant), niveau: 0, total: true },
+    { code: 'AQ', libelle: 'ECART DE CONVERSION ACTIF', noteBilan: '11', ...p(0), niveau: 1 },
+    { code: 'AR', libelle: 'TOTAL GENERAL ACTIF', ...p(totalGenActif), niveau: 0, total: true },
   ];
+
+  // Bilan Passif
+  const capital = getSoldeCrediteur(['10']);
+  const reserves = getSoldeCrediteur(['11', '12', '13']);
+  const capitauxPropres = capital + reserves + Math.max(0, realResultat);
+  const subventions = getSoldeCrediteur(['14']);
+  const provisions = getSoldeCrediteur(['15', '19']);
+  const dettesFinancieres = getSoldeCrediteur(['16', '17']);
+  const dettesCirculantes = getSoldeCrediteur(['40', '42', '43', '44', '45', '46', '47']);
+  const tresoPassif = getSoldeCrediteur(['5']);
+  const totalDettes = provisions + dettesFinancieres + dettesCirculantes + tresoPassif;
+  const totalGenPassif = capitauxPropres + subventions + totalDettes;
 
   const mockPostesPassif: PosteBilan[] = [
-    // CAPITAUX PROPRES
-    { code: 'CA', libelle: 'CAPITAL', noteBilan: '12', exerciceActuel: 100000000, exercicePrecedent: 100000000, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'CB', libelle: 'PRIMES ET RESERVES', noteBilan: '13', exerciceActuel: 125000000, exercicePrecedent: 89000000, variation: 36000000, variationPourcentage: 40.4, niveau: 1 },
-    { code: 'CD', libelle: 'RESULTAT NET', noteBilan: '14', exerciceActuel: 48500000, exercicePrecedent: 36000000, variation: 12500000, variationPourcentage: 34.7, niveau: 1 },
-    { code: 'CF', libelle: 'TOTAL CAPITAUX PROPRES', exerciceActuel: 273500000, exercicePrecedent: 225000000, variation: 48500000, variationPourcentage: 21.6, niveau: 0, total: true },
-
-    // DETTES FINANCIERES
-    { code: 'CG', libelle: 'SUBVENTIONS D\'INVESTISSEMENT', noteBilan: '15', exerciceActuel: 15000000, exercicePrecedent: 10000000, variation: 5000000, variationPourcentage: 50.0, niveau: 1 },
-    { code: 'CH', libelle: 'PROVISIONS REGLEMENTEES', noteBilan: '16', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'CI', libelle: 'TOTAL CAPITAUX PROPRES ET RESSOURCES ASSIMILEES', exerciceActuel: 288500000, exercicePrecedent: 235000000, variation: 53500000, variationPourcentage: 22.8, niveau: 0, total: true },
-
-    // DETTES
-    { code: 'CJ', libelle: 'PROVISIONS POUR RISQUES ET CHARGES', noteBilan: '17', exerciceActuel: 27500000, exercicePrecedent: 13000000, variation: 14500000, variationPourcentage: 111.5, niveau: 1 },
-    { code: 'CK', libelle: 'DETTES FINANCIERES', noteBilan: '18', exerciceActuel: 180000000, exercicePrecedent: 120000000, variation: 60000000, variationPourcentage: 50.0, niveau: 1 },
-    { code: 'CL', libelle: 'DETTES CIRCULANTES HAO', noteBilan: '19', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'CM', libelle: 'DETTES CIRCULANTES', noteBilan: '20', exerciceActuel: 140166667, exercicePrecedent: 95000000, variation: 45166667, variationPourcentage: 47.5, niveau: 1 },
-    { code: 'CN', libelle: 'TRESORERIE-PASSIF', noteBilan: '21', exerciceActuel: 37500000, exercicePrecedent: 26000000, variation: 11500000, variationPourcentage: 44.2, niveau: 1 },
-    { code: 'CO', libelle: 'TOTAL DETTES', exerciceActuel: 385166667, exercicePrecedent: 194000000, variation: 191166667, variationPourcentage: 98.5, niveau: 0, total: true },
-
-    // TOTAL PASSIF
-    { code: 'CP', libelle: 'ECART DE CONVERSION PASSIF', noteBilan: '22', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'CQ', libelle: 'TOTAL GENERAL PASSIF', exerciceActuel: 673666667, exercicePrecedent: 429000000, variation: 244666667, variationPourcentage: 57.0, niveau: 0, total: true }
+    { code: 'CA', libelle: 'CAPITAL', noteBilan: '12', ...p(capital), niveau: 1 },
+    { code: 'CB', libelle: 'PRIMES ET RESERVES', noteBilan: '13', ...p(reserves), niveau: 1 },
+    { code: 'CD', libelle: 'RESULTAT NET', noteBilan: '14', ...p(realResultat), niveau: 1 },
+    { code: 'CF', libelle: 'TOTAL CAPITAUX PROPRES', ...p(capitauxPropres), niveau: 0, total: true },
+    { code: 'CG', libelle: 'SUBVENTIONS D\'INVESTISSEMENT', noteBilan: '15', ...p(subventions), niveau: 1 },
+    { code: 'CI', libelle: 'TOTAL CAPITAUX PROPRES ET RESSOURCES', ...p(capitauxPropres + subventions), niveau: 0, total: true },
+    { code: 'CJ', libelle: 'PROVISIONS POUR RISQUES ET CHARGES', noteBilan: '17', ...p(provisions), niveau: 1 },
+    { code: 'CK', libelle: 'DETTES FINANCIERES', noteBilan: '18', ...p(dettesFinancieres), niveau: 1 },
+    { code: 'CM', libelle: 'DETTES CIRCULANTES', noteBilan: '20', ...p(dettesCirculantes), niveau: 1 },
+    { code: 'CN', libelle: 'TRESORERIE-PASSIF', noteBilan: '21', ...p(tresoPassif), niveau: 1 },
+    { code: 'CO', libelle: 'TOTAL DETTES', ...p(totalDettes), niveau: 0, total: true },
+    { code: 'CQ', libelle: 'TOTAL GENERAL PASSIF', ...p(totalGenPassif), niveau: 0, total: true },
   ];
 
-  // Données du Compte de Résultat
+  // Compte de Résultat — computed from real account balances
+  const venteMarchandises = getSoldeCrediteur(['70']);
+  const achatsMarchandises = getSoldeDebiteur(['60']);
+  const margeCommerciale = venteMarchandises - achatsMarchandises;
+  const productionVendue = getSoldeCrediteur(['71']);
+  const autresAchats = getSoldeDebiteur(['61', '62']);
+  const transports = getSoldeDebiteur(['63']);
+  const servicesExt = getSoldeDebiteur(['63', '64']);
+  const impotsTaxes = getSoldeDebiteur(['64']);
+  const autresCharges = getSoldeDebiteur(['65']);
+  const VA = margeCommerciale + productionVendue - autresAchats - transports - impotsTaxes - autresCharges;
+  const chargesPersonnel = getSoldeDebiteur(['66']);
+  const EBE = VA - chargesPersonnel;
+  const dotationsAmort = getSoldeDebiteur(['681']);
+  const dotationsProv = getSoldeDebiteur(['69']);
+  const resultatExploit = EBE - dotationsAmort - dotationsProv;
+  const revFinanciers = getSoldeCrediteur(['77']);
+  const chargesFinancieres = getSoldeDebiteur(['67']);
+  const resultatFinancier = revFinanciers - chargesFinancieres;
+  const resultatAO = resultatExploit + resultatFinancier;
+  const produitsHAO = getSoldeCrediteur(['84', '85', '86', '87', '88']);
+  const chargesHAO = getSoldeDebiteur(['83', '85']);
+  const resultatHAO = produitsHAO - chargesHAO;
+  const impotResultat = getSoldeDebiteur(['89']);
+
+  const CA = venteMarchandises + productionVendue;
+
   const mockPostesResultat: PosteCompteResultat[] = [
-    // ACTIVITE D'EXPLOITATION
-    { code: 'TA', libelle: 'VENTES DE MARCHANDISES', noteCompte: '23', exerciceActuel: 450000000, exercicePrecedent: 380000000, variation: 70000000, variationPourcentage: 18.4, niveau: 1 },
-    { code: 'TB', libelle: 'ACHATS DE MARCHANDISES', noteCompte: '24', exerciceActuel: -270000000, exercicePrecedent: -228000000, variation: -42000000, variationPourcentage: 18.4, niveau: 1 },
-    { code: 'TC', libelle: 'VARIATION DE STOCKS', noteCompte: '25', exerciceActuel: -3500000, exercicePrecedent: 2000000, variation: -5500000, variationPourcentage: -275.0, niveau: 1 },
-    { code: 'TD', libelle: 'MARGE COMMERCIALE', exerciceActuel: 176500000, exercicePrecedent: 154000000, variation: 22500000, variationPourcentage: 14.6, niveau: 0, sousTotal: true },
-
-    { code: 'TE', libelle: 'PRODUCTION VENDUE', noteCompte: '26', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'TF', libelle: 'PRODUCTION STOCKEE', noteCompte: '27', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'TG', libelle: 'PRODUCTION IMMOBILISEE', noteCompte: '28', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 1 },
-    { code: 'TH', libelle: 'PRODUCTION DE L\'EXERCICE', exerciceActuel: 0, exercicePrecedent: 0, variation: 0, variationPourcentage: 0, niveau: 0, sousTotal: true },
-
-    { code: 'TI', libelle: 'CHIFFRE D\'AFFAIRES', exerciceActuel: 450000000, exercicePrecedent: 380000000, variation: 70000000, variationPourcentage: 18.4, niveau: 0, sousTotal: true },
-
-    { code: 'TJ', libelle: 'AUTRES ACHATS', noteCompte: '29', exerciceActuel: -45000000, exercicePrecedent: -38000000, variation: -7000000, variationPourcentage: 18.4, niveau: 1 },
-    { code: 'TK', libelle: 'TRANSPORTS', noteCompte: '30', exerciceActuel: -8500000, exercicePrecedent: -7200000, variation: -1300000, variationPourcentage: 18.1, niveau: 1 },
-    { code: 'TL', libelle: 'SERVICES EXTERIEURS', noteCompte: '31', exerciceActuel: -25000000, exercicePrecedent: -21000000, variation: -4000000, variationPourcentage: 19.0, niveau: 1 },
-    { code: 'TM', libelle: 'IMPOTS ET TAXES', noteCompte: '32', exerciceActuel: -5500000, exercicePrecedent: -4800000, variation: -700000, variationPourcentage: 14.6, niveau: 1 },
-    { code: 'TN', libelle: 'AUTRES CHARGES', noteCompte: '33', exerciceActuel: -2000000, exercicePrecedent: -1500000, variation: -500000, variationPourcentage: 33.3, niveau: 1 },
-
-    { code: 'TO', libelle: 'VALEUR AJOUTEE', exerciceActuel: 90500000, exercicePrecedent: 81500000, variation: 9000000, variationPourcentage: 11.0, niveau: 0, sousTotal: true },
-
-    { code: 'TP', libelle: 'CHARGES DE PERSONNEL', noteCompte: '34', exerciceActuel: -35000000, exercicePrecedent: -30000000, variation: -5000000, variationPourcentage: 16.7, niveau: 1 },
-
-    { code: 'TQ', libelle: 'EXCEDENT BRUT D\'EXPLOITATION', exerciceActuel: 55500000, exercicePrecedent: 51500000, variation: 4000000, variationPourcentage: 7.8, niveau: 0, sousTotal: true },
-
-    { code: 'TR', libelle: 'DOTATIONS AUX AMORTISSEMENTS', noteCompte: '35', exerciceActuel: -60500000, exercicePrecedent: -45000000, variation: -15500000, variationPourcentage: 34.4, niveau: 1 },
-    { code: 'TS', libelle: 'DOTATIONS AUX PROVISIONS', noteCompte: '36', exerciceActuel: -14500000, exercicePrecedent: -8000000, variation: -6500000, variationPourcentage: 81.3, niveau: 1 },
-
-    { code: 'TT', libelle: 'RESULTAT D\'EXPLOITATION', exerciceActuel: -19500000, exercicePrecedent: -1500000, variation: -18000000, variationPourcentage: 1200.0, niveau: 0, sousTotal: true },
-
-    // ACTIVITE FINANCIERE
-    { code: 'TU', libelle: 'REVENUS FINANCIERS', noteCompte: '37', exerciceActuel: 4500000, exercicePrecedent: 3500000, variation: 1000000, variationPourcentage: 28.6, niveau: 1 },
-    { code: 'TV', libelle: 'CHARGES FINANCIERES', noteCompte: '38', exerciceActuel: -12000000, exercicePrecedent: -8000000, variation: -4000000, variationPourcentage: 50.0, niveau: 1 },
-
-    { code: 'TW', libelle: 'RESULTAT FINANCIER', exerciceActuel: -7500000, exercicePrecedent: -4500000, variation: -3000000, variationPourcentage: 66.7, niveau: 0, sousTotal: true },
-
-    { code: 'TX', libelle: 'RESULTAT DES ACTIVITES ORDINAIRES', exerciceActuel: -27000000, exercicePrecedent: -6000000, variation: -21000000, variationPourcentage: 350.0, niveau: 0, sousTotal: true },
-
-    // HAO
-    { code: 'TY', libelle: 'PRODUITS HAO', noteCompte: '39', exerciceActuel: 85000000, exercicePrecedent: 50000000, variation: 35000000, variationPourcentage: 70.0, niveau: 1 },
-    { code: 'TZ', libelle: 'CHARGES HAO', noteCompte: '40', exerciceActuel: -2000000, exercicePrecedent: -1500000, variation: -500000, variationPourcentage: 33.3, niveau: 1 },
-
-    { code: 'UA', libelle: 'RESULTAT HAO', exerciceActuel: 83000000, exercicePrecedent: 48500000, variation: 34500000, variationPourcentage: 71.1, niveau: 0, sousTotal: true },
-
-    // RESULTAT NET
-    { code: 'UB', libelle: 'PARTICIPATION DES TRAVAILLEURS', noteCompte: '41', exerciceActuel: -2800000, exercicePrecedent: -2100000, variation: -700000, variationPourcentage: 33.3, niveau: 1 },
-    { code: 'UC', libelle: 'IMPOTS SUR LE RESULTAT', noteCompte: '42', exerciceActuel: -4700000, exercicePrecedent: -4400000, variation: -300000, variationPourcentage: 6.8, niveau: 1 },
-
-    { code: 'UD', libelle: 'RESULTAT NET DE L\'EXERCICE', exerciceActuel: 48500000, exercicePrecedent: 36000000, variation: 12500000, variationPourcentage: 34.7, niveau: 0, total: true }
+    { code: 'TA', libelle: 'VENTES DE MARCHANDISES', noteCompte: '23', ...p(venteMarchandises), niveau: 1 },
+    { code: 'TB', libelle: 'ACHATS DE MARCHANDISES', noteCompte: '24', ...p(-achatsMarchandises), niveau: 1 },
+    { code: 'TD', libelle: 'MARGE COMMERCIALE', ...p(margeCommerciale), niveau: 0, sousTotal: true },
+    { code: 'TE', libelle: 'PRODUCTION VENDUE', noteCompte: '26', ...p(productionVendue), niveau: 1 },
+    { code: 'TI', libelle: 'CHIFFRE D\'AFFAIRES', ...p(CA), niveau: 0, sousTotal: true },
+    { code: 'TJ', libelle: 'AUTRES ACHATS', noteCompte: '29', ...p(-autresAchats), niveau: 1 },
+    { code: 'TM', libelle: 'IMPOTS ET TAXES', noteCompte: '32', ...p(-impotsTaxes), niveau: 1 },
+    { code: 'TO', libelle: 'VALEUR AJOUTEE', ...p(VA), niveau: 0, sousTotal: true },
+    { code: 'TP', libelle: 'CHARGES DE PERSONNEL', noteCompte: '34', ...p(-chargesPersonnel), niveau: 1 },
+    { code: 'TQ', libelle: 'EXCEDENT BRUT D\'EXPLOITATION', ...p(EBE), niveau: 0, sousTotal: true },
+    { code: 'TR', libelle: 'DOTATIONS AUX AMORTISSEMENTS', noteCompte: '35', ...p(-dotationsAmort), niveau: 1 },
+    { code: 'TS', libelle: 'DOTATIONS AUX PROVISIONS', noteCompte: '36', ...p(-dotationsProv), niveau: 1 },
+    { code: 'TT', libelle: 'RESULTAT D\'EXPLOITATION', ...p(resultatExploit), niveau: 0, sousTotal: true },
+    { code: 'TU', libelle: 'REVENUS FINANCIERS', noteCompte: '37', ...p(revFinanciers), niveau: 1 },
+    { code: 'TV', libelle: 'CHARGES FINANCIERES', noteCompte: '38', ...p(-chargesFinancieres), niveau: 1 },
+    { code: 'TW', libelle: 'RESULTAT FINANCIER', ...p(resultatFinancier), niveau: 0, sousTotal: true },
+    { code: 'TX', libelle: 'RESULTAT DES ACTIVITES ORDINAIRES', ...p(resultatAO), niveau: 0, sousTotal: true },
+    { code: 'TY', libelle: 'PRODUITS HAO', noteCompte: '39', ...p(produitsHAO), niveau: 1 },
+    { code: 'TZ', libelle: 'CHARGES HAO', noteCompte: '40', ...p(-chargesHAO), niveau: 1 },
+    { code: 'UA', libelle: 'RESULTAT HAO', ...p(resultatHAO), niveau: 0, sousTotal: true },
+    { code: 'UC', libelle: 'IMPOTS SUR LE RESULTAT', noteCompte: '42', ...p(-impotResultat), niveau: 1 },
+    { code: 'UD', libelle: 'RESULTAT NET DE L\'EXERCICE', ...p(realResultat), niveau: 0, total: true },
   ];
 
-  // Ratios financiers
-  const mockRatios: RatioFinancier[] = [
-    {
-      nom: 'Ratio de liquidité générale',
-      valeur: 1.64,
-      valeurPrecedente: 1.84,
-      unite: '',
-      interpretation: 'Capacité à honorer les dettes à court terme',
-      seuil: 1.5,
-      statut: 'bon',
-      evolution: 'deterioration',
-      formuleCalcul: 'Actif Circulant / Dettes Circulantes'
-    },
-    {
-      nom: 'Ratio d\'endettement',
-      valeur: 0.59,
-      valeurPrecedente: 0.45,
-      unite: '',
-      interpretation: 'Niveau d\'endettement par rapport aux capitaux propres',
-      seuil: 0.7,
-      statut: 'moyen',
-      evolution: 'deterioration',
-      formuleCalcul: 'Total Dettes / Capitaux Propres'
-    },
-    {
-      nom: 'Rentabilité économique (ROA)',
-      valeur: 7.2,
-      valeurPrecedente: 8.4,
-      unite: '%',
-      interpretation: 'Rentabilité des actifs',
-      seuil: 5.0,
-      statut: 'bon',
-      evolution: 'deterioration',
-      formuleCalcul: '(Résultat Net / Total Actif) × 100'
-    },
-    {
-      nom: 'Rentabilité financière (ROE)',
-      valeur: 17.7,
-      valeurPrecedente: 16.0,
-      unite: '%',
-      interpretation: 'Rentabilité des capitaux propres',
-      seuil: 10.0,
-      statut: 'bon',
-      evolution: 'amelioration',
-      formuleCalcul: '(Résultat Net / Capitaux Propres) × 100'
-    },
-    {
-      nom: 'Rotation des stocks',
-      valeur: 10.6,
-      valeurPrecedente: 10.4,
-      unite: 'fois',
-      interpretation: 'Efficacité de gestion des stocks',
-      seuil: 8.0,
-      statut: 'bon',
-      evolution: 'amelioration',
-      formuleCalcul: 'Coût d\'achat vendu / Stock moyen'
-    }
-  ];
+  // Ratios financiers — computed from real data
+  const mockRatios: RatioFinancier[] = useMemo(() => {
+    const totalDettesVal = totalDettes || 1;
+    const capitauxPropresVal = capitauxPropres || 1;
+    const totalActifVal = totalGenActif || 1;
+    const liquidite = totalCirculant / (dettesCirculantes + tresoPassif || 1);
+    const endettement = totalDettes / capitauxPropresVal;
+    const roa = (realResultat / totalActifVal) * 100;
+    const roe = (realResultat / capitauxPropresVal) * 100;
+    return [
+      { nom: 'Ratio de liquidité générale', valeur: Math.round(liquidite * 100) / 100, valeurPrecedente: 0, unite: '', interpretation: 'Capacité à honorer les dettes à court terme', seuil: 1.5, statut: liquidite >= 1.5 ? 'bon' as const : liquidite >= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Actif Circulant / Dettes CT' },
+      { nom: 'Ratio d\'endettement', valeur: Math.round(endettement * 100) / 100, valeurPrecedente: 0, unite: '', interpretation: 'Endettement / Capitaux propres', seuil: 0.7, statut: endettement <= 0.7 ? 'bon' as const : endettement <= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Dettes / Capitaux Propres' },
+      { nom: 'Rentabilité économique (ROA)', valeur: Math.round(roa * 10) / 10, valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des actifs', seuil: 5.0, statut: roa >= 5 ? 'bon' as const : roa >= 2 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / Total Actif) × 100' },
+      { nom: 'Rentabilité financière (ROE)', valeur: Math.round(roe * 10) / 10, valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des capitaux propres', seuil: 10.0, statut: roe >= 10 ? 'bon' as const : roe >= 5 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / CP) × 100' },
+    ];
+  }, [etatsData.balances]);
 
-  // Indicateurs sectoriels
+  // Indicateurs sectoriels — static reference data (no real data to compare)
   const mockIndicateursSectoriels: IndicateurSectoriel[] = [
-    {
-      nom: 'Marge commerciale',
-      valeurEntreprise: 39.2,
-      moyenneSectorielle: 35.8,
-      quartileSup: 42.1,
-      quartileInf: 28.5,
-      position: 'bon',
-      secteurReference: 'Commerce de gros'
-    },
-    {
-      nom: 'Rotation créances clients',
-      valeurEntreprise: 45,
-      moyenneSectorielle: 38,
-      quartileSup: 30,
-      quartileInf: 50,
-      position: 'moyen',
-      secteurReference: 'Commerce de gros'
-    }
+    { nom: 'Marge commerciale', valeurEntreprise: CA > 0 ? Math.round((margeCommerciale / CA) * 1000) / 10 : 0, moyenneSectorielle: 35.8, quartileSup: 42.1, quartileInf: 28.5, position: 'bon', secteurReference: 'Commerce' },
   ];
 
-  // Documents réglementaires
+  // Documents réglementaires — static
   const mockDocumentsReglementaires: DocumentReglementaire[] = [
-    {
-      nom: 'Déclaration statistique et fiscale (DSF)',
-      description: 'Déclaration annuelle obligatoire pour toutes les entreprises',
-      obligatoire: true,
-      frequence: 'Annuelle',
-      dateLimite: '2025-04-30',
-      statut: 'en_cours',
-      autoriteDestinataire: 'Direction Générale des Impôts',
-      sanctions: 'Amende de 50,000 à 500,000 FCFA'
-    },
-    {
-      nom: 'États financiers OHADA',
-      description: 'Transmission des états financiers certifiés',
-      obligatoire: true,
-      frequence: 'Annuelle',
-      dateLimite: '2025-06-30',
-      statut: 'complete',
-      autoriteDestinataire: 'Greffe du Tribunal de Commerce'
-    },
-    {
-      nom: 'Rapport de gestion',
-      description: 'Rapport du conseil d\'administration',
-      obligatoire: true,
-      frequence: 'Annuelle',
-      dateLimite: '2025-06-30',
-      statut: 'en_cours',
-      autoriteDestinataire: 'Assemblée Générale des Actionnaires'
-    }
+    { nom: 'Déclaration statistique et fiscale (DSF)', description: 'Déclaration annuelle obligatoire', obligatoire: true, frequence: 'Annuelle', dateLimite: `${new Date().getFullYear() + 1}-04-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: 'Direction Générale des Impôts', sanctions: 'Amende de 50 000 à 500 000 FCFA' },
+    { nom: 'États financiers OHADA', description: 'Transmission des états financiers certifiés', obligatoire: true, frequence: 'Annuelle', dateLimite: `${new Date().getFullYear() + 1}-06-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: 'Greffe du Tribunal de Commerce' },
   ];
 
   // Calculs des KPIs
@@ -520,7 +385,7 @@ const EtatsSYSCOHADA: React.FC = () => {
     const chiffreAffaires = mockPostesResultat.find(p => p.code === 'TI')?.exerciceActuel || 0;
     const resultatNet = mockPostesResultat.find(p => p.code === 'UD')?.exerciceActuel || 0;
 
-    const etatsGeneres = mockEtatsFinanciers.filter(e => e.statutGeneration !== 'non_commence').length;
+    const etatsGeneres = mockEtatsFinanciers.length;
     const etatsConformes = mockEtatsFinanciers.filter(e => e.conformiteSYSCOHADA).length;
     const documentsCompletes = mockDocumentsReglementaires.filter(d => d.statut === 'complete').length;
 
@@ -535,7 +400,7 @@ const EtatsSYSCOHADA: React.FC = () => {
       tauxConformite: (etatsConformes / mockEtatsFinanciers.length) * 100,
       tauxCompletude: (documentsCompletes / mockDocumentsReglementaires.length) * 100
     };
-  }, []);
+  }, [totalGenActif, capitauxPropres, CA, realResultat, totalEntries, isBalanced]);
 
   const getStatutIcon = (statut: string) => {
     switch (statut) {
@@ -713,26 +578,22 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-[var(--color-primary-lightest)] rounded">
-                      <p className="text-sm text-[var(--color-text-primary)]">CA 2024</p>
-                      <p className="text-lg font-bold text-[var(--color-primary)]">450M</p>
-                      <p className="text-xs text-[var(--color-success)]">+18.4%</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">Chiffre d'affaires</p>
+                      <p className="text-lg font-bold text-[var(--color-primary)]">{formatNumber(kpis.chiffreAffaires)}</p>
                     </div>
                     <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
-                      <p className="text-lg font-bold text-[var(--color-success)]">48.5M</p>
-                      <p className="text-xs text-[var(--color-success)]">+34.7%</p>
+                      <p className="text-lg font-bold text-[var(--color-success)]">{formatNumber(kpis.resultatNet)}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-purple-50 rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">ROE</p>
-                      <p className="text-lg font-bold text-purple-600">17.7%</p>
-                      <p className="text-xs text-[var(--color-success)]">+1.7pt</p>
+                      <p className="text-lg font-bold text-purple-600">{mockRatios.find(r => r.nom.includes('ROE'))?.valeur.toFixed(1) || '0'}%</p>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Endettement</p>
-                      <p className="text-lg font-bold text-[var(--color-warning)]">59%</p>
-                      <p className="text-xs text-[var(--color-error)]">+14pt</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">{mockRatios.find(r => r.nom.includes('endettement'))?.valeur.toFixed(0) || '0'}%</p>
                     </div>
                   </div>
                 </div>
@@ -751,40 +612,40 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-[var(--color-primary-light)] border-t-blue-600 border-r-blue-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">66%</span>
+                      <span className="text-sm font-bold">{totalGenActif > 0 ? Math.round((totalImmo / totalGenActif) * 100) : 0}%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">443M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalImmo)} FCFA</p>
                 </div>
                 <div className="text-center">
                   <h4 className="font-medium mb-2">Actif Circulant</h4>
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-[var(--color-success-light)] border-t-green-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">34%</span>
+                      <span className="text-sm font-bold">{totalGenActif > 0 ? Math.round((totalCirculant / totalGenActif) * 100) : 0}%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">231M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalCirculant)} FCFA</p>
                 </div>
                 <div className="text-center">
                   <h4 className="font-medium mb-2">Capitaux Propres</h4>
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-purple-200 border-t-purple-600 border-r-purple-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">41%</span>
+                      <span className="text-sm font-bold">{totalGenPassif > 0 ? Math.round((capitauxPropres / totalGenPassif) * 100) : 0}%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">274M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(capitauxPropres)} FCFA</p>
                 </div>
                 <div className="text-center">
                   <h4 className="font-medium mb-2">Total Dettes</h4>
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-[var(--color-error-light)] border-t-red-600 border-r-red-600 border-b-red-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">59%</span>
+                      <span className="text-sm font-bold">{totalGenPassif > 0 ? Math.round((totalDettes / totalGenPassif) * 100) : 0}%</span>
                     </div>
                   </div>
-                  <p className="text-sm text-[var(--color-text-primary)] mt-2">385M FCFA</p>
+                  <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalDettes)} FCFA</p>
                 </div>
               </div>
             </CardContent>

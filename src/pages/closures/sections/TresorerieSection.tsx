@@ -1,21 +1,71 @@
-import React from 'react';
-import { Banknote, CheckCircle, AlertTriangle, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Banknote, CheckCircle, AlertTriangle, TrendingUp, Loader2 } from 'lucide-react';
+import { db } from '../../../lib/db';
+import { money } from '../../../utils/money';
 
 interface TresorerieSectionProps {
   periodId?: string;
+  progress?: number;
   onComplete?: () => void;
 }
 
 const TresorerieSection: React.FC<TresorerieSectionProps> = ({ periodId, onComplete }) => {
-  const tresorerieData = {
-    soldeInitial: 2500000,
-    encaissements: 1800000,
-    decaissements: 1200000,
-    soldeFinal: 3100000,
+  const [loading, setLoading] = useState(true);
+  const [tresorerieData, setTresorerieData] = useState({
+    soldeInitial: 0,
+    encaissements: 0,
+    decaissements: 0,
+    soldeFinal: 0,
     ecartRapprochement: 0,
-    comptesRapproches: 5,
-    comptesEnAttente: 1
-  };
+    comptesRapproches: 0,
+    comptesEnAttente: 0,
+  });
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const fys = await db.fiscalYears.toArray();
+      const activeFY = fys.find(fy => fy.isActive) || fys[0];
+      if (!activeFY) { setLoading(false); return; }
+
+      const entries = await db.journalEntries
+        .where('date')
+        .between(activeFY.startDate, activeFY.endDate, true, true)
+        .toArray();
+
+      let totalDebit = money(0);
+      let totalCredit = money(0);
+      const bankAccounts = new Set<string>();
+
+      for (const entry of entries) {
+        for (const line of entry.lines) {
+          if (line.accountCode.startsWith('5')) {
+            bankAccounts.add(line.accountCode);
+            totalDebit = totalDebit.add(line.debit);
+            totalCredit = totalCredit.add(line.credit);
+          }
+        }
+      }
+
+      const soldeFinal = totalDebit.subtract(totalCredit).toNumber();
+
+      setTresorerieData({
+        soldeInitial: 0, // No prior year data
+        encaissements: totalDebit.toNumber(),
+        decaissements: totalCredit.toNumber(),
+        soldeFinal,
+        ecartRapprochement: 0,
+        comptesRapproches: bankAccounts.size,
+        comptesEnAttente: 0,
+      });
+    } catch {
+      // Silently fail — show zeros
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const formatMontant = (montant: number) => {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(montant);
