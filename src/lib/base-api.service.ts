@@ -104,11 +104,11 @@ abstract class BaseApiService<T, CreateDto = Partial<T>, UpdateDto = Partial<T>>
   /**
    * Custom action on an entity
    */
-  protected async customAction<R = any>(
+  protected async customAction<R = unknown>(
     method: 'get' | 'post' | 'put' | 'patch' | 'delete',
     action: string,
     id?: string | number,
-    data?: any,
+    data?: unknown,
     options?: CrudOptions
   ): Promise<R> {
     const url = id

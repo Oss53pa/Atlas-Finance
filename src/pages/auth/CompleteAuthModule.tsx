@@ -108,7 +108,7 @@ interface SecurityPolicy {
   id: string;
   name: string;
   type: string;
-  value: any;
+  value: string | number | boolean;
   description: string;
   enabled: boolean;
 }

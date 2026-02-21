@@ -20,8 +20,8 @@ export const useDataTable = <T,>({
     if (!column || !column.sortable) return data;
 
     return [...data].sort((a, b) => {
-      let aVal: any;
-      let bVal: any;
+      let aVal: unknown;
+      let bVal: unknown;
 
       if (column.accessor) {
         if (typeof column.accessor === 'function') {

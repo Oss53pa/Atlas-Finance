@@ -80,7 +80,7 @@ interface ExportJob {
   name: string;
   type: 'FEC' | 'BALANCE' | 'JOURNAL' | 'THIRD_PARTIES' | 'FISCAL_PACKAGE';
   format: 'EXCEL' | 'CSV' | 'XML' | 'PDF';
-  parameters: any;
+  parameters: Record<string, unknown>;
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
   progress: number;
   fileSize?: number;
@@ -303,7 +303,7 @@ const ImportExportManager: React.FC = () => {
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id as any)}
+              onClick={() => setActiveTab(id as typeof activeTab)}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === id
                   ? 'border-indigo-500 text-indigo-600'

@@ -43,7 +43,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { PhysicalCount, InventoryItem, Location } from './types';
+import { PhysicalCount, PhysicalCountForm, InventoryItem, Location } from './types';
 import { mockPhysicalCounts, mockInventoryItems, mockLocations } from './utils/mockData';
 import { InventoryCalculations } from './utils/calculations';
 import CurrencyDisplay from './components/CurrencyDisplay';
@@ -51,10 +51,20 @@ import LoadingSpinner from './components/LoadingSpinner';
 import Pagination from './components/Pagination';
 import ExportButton from './components/ExportButton';
 
+interface CreateCountFormData {
+  type: 'full' | 'cycle' | 'spot';
+  locationId: string;
+  scheduledDate: string;
+  includeCategories: string[];
+  excludeCategories: string[];
+  counters: { userId: string; name: string }[];
+  notes: string;
+}
+
 interface CreateCountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (countData: any) => void;
+  onSubmit: (countData: CreateCountFormData) => void;
 }
 
 const CreateCountModal: React.FC<CreateCountModalProps> = ({
@@ -145,7 +155,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as 'full' | 'cycle' | 'spot' })}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
                   required
                 >
@@ -520,7 +530,7 @@ const PhysicalInventory: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredCounts.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleCreateCount = (countData: any) => {
+  const handleCreateCount = (countData: CreateCountFormData) => {
     const newCount: PhysicalCount = {
       id: `PC${(counts.length + 1).toString().padStart(3, '0')}`,
       countNumber: `PC-2024-${(counts.length + 1).toString().padStart(3, '0')}`,
@@ -532,7 +542,7 @@ const PhysicalInventory: React.FC = () => {
       totalBookValue: 0,
       totalCountValue: 0,
       totalVariance: 0,
-      counters: countData.counters.map((counter: any) => ({
+      counters: countData.counters.map((counter) => ({
         userId: counter.userId,
         name: counter.name,
         assignedItems: []

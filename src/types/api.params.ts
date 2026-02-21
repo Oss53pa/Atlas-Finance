@@ -16,8 +16,8 @@ export interface QueryParams {
   ordering?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-  filters?: Record<string, any>;
-  [key: string]: any;
+  filters?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 /**
@@ -163,7 +163,7 @@ export interface PaginatedResponse<T> {
 /**
  * Réponse API standard
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -184,7 +184,7 @@ export interface SortOptions {
 export interface FilterOptions {
   field: string;
   operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'contains' | 'startswith' | 'endswith' | 'in';
-  value: any;
+  value: string | number | boolean | string[];
 }
 
 export default QueryParams;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatDate } from '../../../../../utils/formatters';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { addressIpApi, authenticated_header } from '../../../../../globals/api';
 import axios, { AxiosError } from 'axios';
@@ -92,15 +93,6 @@ export const FundCallDetails: React.FC = () => {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const formatDateTime = (dateString: string): string => {
     const date = new Date(dateString);

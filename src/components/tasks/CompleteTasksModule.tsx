@@ -92,7 +92,7 @@ interface Task {
   isRecurring?: boolean;
   recurringPattern?: RecurringPattern;
   reminders?: Reminder[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   automationRules?: AutomationRule[];
   labels?: Label[];
   checklist?: ChecklistItem[];
@@ -150,7 +150,7 @@ interface AutomationRule {
   id: string;
   trigger: string;
   action: string;
-  conditions?: Record<string, any>;
+  conditions?: Record<string, unknown>;
 }
 
 interface Label {
@@ -423,21 +423,20 @@ const CompleteTasksModule: React.FC = () => {
   }, [filteredTasks, groupBy]);
 
   const statistics = useMemo(() => {
-    const stats = {
-      total: tasks.length,
-      completed: tasks.filter(t => t.status === 'done').length,
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.status === 'done').length;
+    return {
+      total,
+      completed,
       inProgress: tasks.filter(t => t.status === 'in-progress').length,
       overdue: tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'done').length,
       highPriority: tasks.filter(t => t.priority === 'high' || t.priority === 'urgent').length,
       totalBudget: tasks.reduce((sum, t) => sum + (t.budget || 0), 0),
       totalCost: tasks.reduce((sum, t) => sum + (t.actualCost || 0), 0),
       totalHours: tasks.reduce((sum, t) => sum + (t.actualHours || 0), 0),
-      avgProgress: Math.round(tasks.reduce((sum, t) => sum + (t.progress || 0), 0) / tasks.length)
+      avgProgress: Math.round(tasks.reduce((sum, t) => sum + (t.progress || 0), 0) / total),
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
     };
-
-    stats.completionRate = Math.round((stats.completed / stats.total) * 100);
-
-    return stats;
   }, [tasks]);
 
   const toggleTaskStatus = (taskId: string) => {
@@ -770,7 +769,7 @@ const CompleteTasksModule: React.FC = () => {
             {['tasks', 'projects', 'team', 'reports'].map(tab => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
+                onClick={() => setActiveTab(tab as typeof activeTab)}
                 className={`pb-3 px-1 font-medium text-sm transition-colors border-b-2 ${
                   activeTab === tab
                     ? 'text-[#B87333] border-[#B87333]'
@@ -828,7 +827,7 @@ const CompleteTasksModule: React.FC = () => {
               {/* Grouper par */}
               <select
                 value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value as any)}
+                onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}
                 className="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
               >
                 <option value="status">Grouper par statut</option>
@@ -840,7 +839,7 @@ const CompleteTasksModule: React.FC = () => {
               {/* Trier par */}
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                 className="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
               >
                 <option value="dueDate">Trier par échéance</option>
@@ -1012,7 +1011,7 @@ const CompleteTasksModule: React.FC = () => {
                   </label>
                   <select
                     value={newTask.priority}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as any }))}
+                    onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
                   >
                     <option value="low">Faible</option>
@@ -1028,7 +1027,7 @@ const CompleteTasksModule: React.FC = () => {
                   </label>
                   <select
                     value={newTask.status}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, status: e.target.value as any }))}
+                    onChange={(e) => setNewTask(prev => ({ ...prev, status: e.target.value as Task['status'] }))}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
                   >
                     <option value="todo">À faire</option>

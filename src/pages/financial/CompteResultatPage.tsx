@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -6,31 +7,54 @@ import {
   DollarSign, Target, Activity, FileText, Calculator, PieChart,
   RefreshCw, Eye, X, ChevronRight
 } from 'lucide-react';
+import { db } from '../../lib/db';
+import type { DBJournalEntry } from '../../lib/db';
 
 const CompteResultatPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bilan');
-  const [selectedDetail, setSelectedDetail] = useState<any>(null);
+  const [selectedDetail, setSelectedDetail] = useState<{
+    title?: string;
+    accountCode?: string;
+    month?: string;
+    amount?: number;
+    subAccounts?: Array<{ id: string; code: string; libelle: string; montant: number; pourcentage: number }>;
+    transactions?: Array<{ id: string; date: string; reference: string; libelle: string; tiers: string; piece: string; montant: number }>;
+  } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
 
-  // Données mensuelles pour chaque mois
-  const monthlyData = {
-    '1': { name: 'Janvier', ca: 1850000, charges: 1420000, resultat: 430000, evolution: 8.5 },
-    '2': { name: 'Février', ca: 1920000, charges: 1450000, resultat: 470000, evolution: 12.3 },
-    '3': { name: 'Mars', ca: 2100000, charges: 1580000, resultat: 520000, evolution: 15.8 },
-    '4': { name: 'Avril', ca: 1980000, charges: 1520000, resultat: 460000, evolution: 11.2 },
-    '5': { name: 'Mai', ca: 2050000, charges: 1560000, resultat: 490000, evolution: 13.7 },
-    '6': { name: 'Juin', ca: 2200000, charges: 1680000, resultat: 520000, evolution: 16.4 },
-    '7': { name: 'Juillet', ca: 2300000, charges: 1750000, resultat: 550000, evolution: 18.2 },
-    '8': { name: 'Août', ca: 1980000, charges: 1520000, resultat: 460000, evolution: 10.8 },
-    '9': { name: 'Septembre', ca: 2150000, charges: 1630000, resultat: 520000, evolution: 15.9 },
-    '10': { name: 'Octobre', ca: 2250000, charges: 1710000, resultat: 540000, evolution: 17.3 },
-    '11': { name: 'Novembre', ca: 2180000, charges: 1650000, resultat: 530000, evolution: 16.1 },
-    '12': { name: 'Décembre', ca: 2450000, charges: 1850000, resultat: 600000, evolution: 19.5 }
-  };
+  // Données mensuelles calculées depuis Dexie
+  const { data: allEntries = [] } = useQuery({
+    queryKey: ['compte-resultat-entries'],
+    queryFn: () => db.journalEntries.toArray(),
+  });
+
+  const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+  const monthlyData = useMemo(() => {
+    const result: Record<string, { name: string; ca: number; charges: number; resultat: number; evolution: number }> = {};
+    for (let m = 1; m <= 12; m++) {
+      const mStr = String(m);
+      const padded = mStr.padStart(2, '0');
+      const monthEntries = allEntries.filter(e => {
+        const parts = e.date.split('-');
+        return parts.length >= 2 && parseInt(parts[1]) === m;
+      });
+      let ca = 0, charges = 0;
+      for (const e of monthEntries) {
+        for (const l of e.lines) {
+          if (l.accountCode.startsWith('7')) ca += l.credit - l.debit;
+          if (l.accountCode.startsWith('6')) charges += l.debit - l.credit;
+        }
+      }
+      const resultat = ca - charges;
+      result[mStr] = { name: MONTH_NAMES[m - 1], ca, charges, resultat, evolution: 0 };
+    }
+    return result;
+  }, [allEntries]);
 
   const months = Object.keys(monthlyData);
 
@@ -203,7 +227,7 @@ const CompteResultatPage: React.FC = () => {
 
   // Génération des sous-comptes
   const generateSubAccounts = (mainAccountCode: string, amount: number) => {
-    const subAccounts: any[] = [];
+    const subAccounts: Array<{ id: string; code: string; libelle: string; montant: number; pourcentage: number }> = [];
     const subAccountsConfig = {
       '21': [
         { code: '211', libelle: 'Frais de développement', pourcentage: 0.4 },
@@ -1331,7 +1355,7 @@ const CompteResultatPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedDetail.subAccounts?.map((subAccount: any, index: number) => (
+                      {selectedDetail.subAccounts?.map((subAccount, index: number) => (
                         <tr key={subAccount.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
                           <td className="p-3 border-b border-[#E8E8E8] font-mono font-bold">{subAccount.code}</td>
                           <td className="p-3 border-b border-[#E8E8E8]">{subAccount.libelle}</td>
@@ -1367,7 +1391,7 @@ const CompteResultatPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedDetail.transactions?.map((transaction: any, index: number) => (
+                      {selectedDetail.transactions?.map((transaction, index: number) => (
                         <tr key={transaction.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
                           <td className="p-3 border-b border-[#E8E8E8]">{transaction.date}</td>
                           <td className="p-3 border-b border-[#E8E8E8] font-mono text-xs">{transaction.reference}</td>

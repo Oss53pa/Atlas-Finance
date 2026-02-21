@@ -52,28 +52,28 @@ export const FundCallSummary: React.FC = () => {
     return `${day}/${month}/${year}`;
   };
 
-  // Mock data pour la démonstration
+  // Données depuis le context finance (plus de mock)
   const mockFundCall = {
-    reference: fundCallG.reference || 'AF-2025-0001',
-    request_date: fundCallG.request_date || '2025-01-15',
-    amount_requested: fundCallG.amount_requested || 2500000,
-    previous_arrears: 800000,
-    critical_expense: 1200000,
-    current_arrears: 500000,
-    previous_arrears_requested: 800000,
-    previous_arrears_approved: 600000,
-    critical_expenses_requested: 1200000,
-    critical_expenses_approved: 1200000,
-    current_expenses_requested: 500000,
-    current_expenses_approved: 300000,
-    total_requested: 2500000,
-    total_approved: 2100000,
+    reference: fundCallG.reference || '',
+    request_date: fundCallG.request_date || new Date().toISOString().split('T')[0],
+    amount_requested: fundCallG.amount_requested || 0,
+    previous_arrears: 0,
+    critical_expense: 0,
+    current_arrears: 0,
+    previous_arrears_requested: 0,
+    previous_arrears_approved: 0,
+    critical_expenses_requested: 0,
+    critical_expenses_approved: 0,
+    current_expenses_requested: 0,
+    current_expenses_approved: 0,
+    total_requested: fundCallG.amount_requested || 0,
+    total_approved: 0,
     aging_invoices: {
-      between_0_30_days: { count: 3, amount: 750000, percentage: 30 },
-      between_31_60_days: { count: 2, amount: 500000, percentage: 20 },
-      between_61_90_days: { count: 1, amount: 300000, percentage: 12 },
-      between_91_120_days: { count: 1, amount: 450000, percentage: 18 },
-      more_120_days: { count: 2, amount: 500000, percentage: 20 }
+      between_0_30_days: { count: 0, amount: 0, percentage: 0 },
+      between_31_60_days: { count: 0, amount: 0, percentage: 0 },
+      between_61_90_days: { count: 0, amount: 0, percentage: 0 },
+      between_91_120_days: { count: 0, amount: 0, percentage: 0 },
+      more_120_days: { count: 0, amount: 0, percentage: 0 }
     }
   };
 

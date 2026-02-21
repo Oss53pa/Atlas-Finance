@@ -118,7 +118,7 @@ export class AuthService {
   }
 
   static async updateProfile(userData: Partial<User>): Promise<User> {
-    const backendData: any = {};
+    const backendData: Record<string, string> = {};
     if (userData.firstName) backendData.first_name = userData.firstName;
     if (userData.lastName) backendData.last_name = userData.lastName;
     if (userData.phone) backendData.phone = userData.phone;

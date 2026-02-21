@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChartBarIcon,
@@ -197,14 +198,6 @@ const FinancialAnalysisPage: React.FC = () => {
     return <ArrowRightIcon className="h-5 w-5 text-yellow-500" />;
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const formatNumber = (value: number, decimals: number = 1) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -261,7 +254,7 @@ const FinancialAnalysisPage: React.FC = () => {
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setSelectedView(id as any)}
+              onClick={() => setSelectedView(id as typeof selectedView)}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
                 selectedView === id
                   ? 'border-indigo-500 text-indigo-600'

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CalculatorIcon,
@@ -204,14 +205,6 @@ const VATTaxesConfig: React.FC = () => {
     ]
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: selectedRegion === 'CEMAC' ? 'XAF' : selectedRegion === 'UEMOA' ? 'XOF' : 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const getRegionFlag = (region: string) => {
     switch (region) {
@@ -245,7 +238,7 @@ const VATTaxesConfig: React.FC = () => {
           <div className="flex space-x-4">
             <select
               value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value as any)}
+              onChange={(e) => setSelectedRegion(e.target.value as typeof selectedRegion)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             >
               <option value="CEMAC">{getRegionFlag('CEMAC')} Zone CEMAC</option>
@@ -267,7 +260,7 @@ const VATTaxesConfig: React.FC = () => {
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id as any)}
+              onClick={() => setActiveTab(id as typeof activeTab)}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === id
                   ? 'border-indigo-500 text-indigo-600'

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
@@ -41,13 +41,22 @@ import {
   Layers,
   Command,
   Hash,
-  Code
+  Code,
+  Play,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/Progress';
+import { db } from '../../../lib/db';
+import type { DBFiscalYear } from '../../../lib/db';
+import { closureOrchestrator } from '../../../services/cloture/closureOrchestrator';
+import type { ClotureStep as OrchestratorStep } from '../../../services/cloture/closureOrchestrator';
+import { previewClosure, canClose } from '../../../services/closureService';
+import type { ClosurePreview } from '../../../services/closureService';
+import { toast } from 'react-hot-toast';
 
 interface Message {
   id: string;
@@ -64,7 +73,7 @@ interface Message {
 interface MessageAttachment {
   type: 'chart' | 'table' | 'document' | 'image';
   title: string;
-  data?: any;
+  data?: unknown;
   url?: string;
 }
 
@@ -135,6 +144,95 @@ const IAAssistant: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // --- Real Dexie data for Proph3t context ---
+  const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
+  const [closurePreview, setClosurePreview] = useState<ClosurePreview | null>(null);
+  const [orchSteps, setOrchSteps] = useState<OrchestratorStep[]>(() => closureOrchestrator.getSteps());
+  const [proph3tRunning, setProph3tRunning] = useState(false);
+
+  useEffect(() => {
+    db.fiscalYears.toArray().then(fys => {
+      setFiscalYears(fys);
+      const active = fys.find(f => f.isActive) || fys[0];
+      if (active) {
+        previewClosure(active.id).then(setClosurePreview).catch(() => {});
+      }
+    });
+  }, []);
+
+  // Launch Proph3t closure workflow
+  const handleProph3tClosure = useCallback(async () => {
+    const activeFY = fiscalYears.find(f => f.isActive) || fiscalYears[0];
+    if (!activeFY) {
+      toast.error('Aucun exercice fiscal actif');
+      return;
+    }
+
+    setProph3tRunning(true);
+    setOrchSteps(closureOrchestrator.getSteps());
+
+    // Add a message announcing the execution
+    const startMsg: Message = {
+      id: Date.now().toString(),
+      type: 'assistant',
+      content: `**Proph3t IA** lance la clôture automatique de l'exercice **${activeFY.name || activeFY.code}**...\n\nMode: Proph3t (workflow complet)\nExercice: ${activeFY.startDate} → ${activeFY.endDate}`,
+      timestamp: new Date().toISOString(),
+      confidence: 100,
+      sources: ['closureOrchestrator', 'Dexie DB'],
+    };
+    setMessages(prev => [...prev, startMsg]);
+
+    const nextFY = fiscalYears.find(f => f.startDate > activeFY.endDate);
+
+    try {
+      const results = await closureOrchestrator.executeAll({
+        exerciceId: activeFY.id,
+        mode: 'proph3t',
+        userId: 'proph3t-ia',
+        openingExerciceId: nextFY?.id,
+        onProgress: (step) => {
+          setOrchSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
+        },
+      });
+
+      const done = results.filter(s => s.status === 'done');
+      const errors = results.filter(s => s.status === 'error');
+
+      const resultMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: errors.length === 0
+          ? `**Clôture terminée avec succès !**\n\n${done.map(s => `✅ ${s.label}: ${s.message}`).join('\n')}`
+          : `**Clôture incomplète** — ${errors.length} erreur(s)\n\n${results.map(s =>
+              s.status === 'done' ? `✅ ${s.label}: ${s.message}` :
+              s.status === 'error' ? `❌ ${s.label}: ${s.message}` :
+              `⏳ ${s.label}`
+            ).join('\n')}`,
+        timestamp: new Date().toISOString(),
+        confidence: errors.length === 0 ? 100 : 60,
+        sources: ['closureOrchestrator'],
+      };
+      setMessages(prev => [...prev, resultMsg]);
+
+      if (errors.length === 0) {
+        toast.success('Proph3t: Clôture complète');
+      } else {
+        toast.error(`Proph3t: ${errors.length} étape(s) en erreur`);
+      }
+    } catch (err) {
+      const errorMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `**Erreur Proph3t** : ${err instanceof Error ? err.message : 'Erreur inconnue'}`,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMsg]);
+      toast.error('Proph3t: Erreur lors de l\'exécution');
+    } finally {
+      setProph3tRunning(false);
+    }
+  }, [fiscalYears]);
 
   // Données simulées
   const mockMessages: Message[] = [
@@ -444,6 +542,14 @@ const IAAssistant: React.FC = () => {
 
   const generateAIResponse = (input: string): string => {
     const lowerInput = input.toLowerCase();
+    const p = closurePreview;
+
+    if (lowerInput.includes('clôture') || lowerInput.includes('cloture') || lowerInput.includes('fermer')) {
+      if (p) {
+        return `**Aperçu de la clôture en cours :**\n\n• ${p.totalEntries} écritures au total\n• ${p.entriesToLock} à verrouiller\n• Produits : ${p.totalProduits.toLocaleString()} FCFA\n• Charges : ${p.totalCharges.toLocaleString()} FCFA\n• **Résultat : ${p.resultatNet.toLocaleString()} FCFA** (${p.isBenefice ? 'Bénéfice' : 'Perte'})\n${p.warnings.length > 0 ? `\n⚠️ ${p.warnings.length} avertissement(s):\n${p.warnings.map(w => `  - ${w}`).join('\n')}` : '\n✅ Aucun avertissement'}\n\nVoulez-vous que Proph3t exécute la clôture automatiquement ?`;
+      }
+      return 'Je n\'ai pas pu charger l\'aperçu de clôture. Vérifiez qu\'un exercice fiscal actif existe dans la base de données.';
+    }
 
     if (lowerInput.includes('stock') || lowerInput.includes('inventaire')) {
       return 'Après analyse de vos stocks, je constate :\n\n• 3 articles critiques nécessitant un réapprovisionnement urgent\n• Un écart de valorisation de 50K FCFA à vérifier\n• Des provisions pour obsolescence recommandées : 815K FCFA\n\nSouhaitez-vous que je génère un rapport détaillé ou que je propose des actions correctives ?';
@@ -455,6 +561,10 @@ const IAAssistant: React.FC = () => {
 
     if (lowerInput.includes('provision') || lowerInput.includes('risque')) {
       return 'Analyse des provisions :\n\n• Provisions actuelles : 27.5M FCFA\n• Nouvelles provisions recommandées : 3.2M FCFA\n• Reprises possibles : 1.5M FCFA\n• Taux de couverture des risques : 87%\n\nToutes les provisions respectent les règles SYSCOHADA. Voulez-vous le détail par type de risque ?';
+    }
+
+    if (p) {
+      return `Basé sur l'analyse de vos données (**${p.totalEntries}** écritures, résultat **${p.resultatNet.toLocaleString()} FCFA**), je vais examiner les éléments pertinents. Pouvez-vous préciser le domaine spécifique qui vous intéresse ?\n\nDomaines disponibles : stocks, créances clients, provisions, clôture comptable, amortissements.`;
     }
 
     return 'Je comprends votre question. Basé sur l\'analyse de vos données, je vais examiner les éléments pertinents et vous fournir une réponse détaillée avec des recommandations personnalisées. Pouvez-vous préciser le domaine spécifique qui vous intéresse ?';
@@ -570,14 +680,65 @@ const IAAssistant: React.FC = () => {
         </Card>
       </div>
 
-      {/* Alertes IA */}
+      {/* Proph3t Closure Action */}
       <Alert className="border-l-4 border-l-purple-500">
         <Brain className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Assistant IA Actif:</strong> 3 nouvelles analyses automatiques disponibles.
-          2 recommandations d'optimisation en attente de validation.
+        <AlertDescription className="flex items-center justify-between">
+          <div>
+            <strong>Proph3t IA</strong> — Assistant de clôture automatisée
+            {closurePreview && (
+              <span className="ml-2 text-sm">
+                ({closurePreview.totalEntries} écritures, résultat {closurePreview.resultatNet.toLocaleString()} FCFA)
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleProph3tClosure}
+            disabled={proph3tRunning}
+            className="ml-4 px-4 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 text-sm disabled:opacity-50"
+          >
+            {proph3tRunning ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Exécution...</>
+            ) : (
+              <><Play className="w-4 h-4" /> Lancer Clôture IA</>
+            )}
+          </button>
         </AlertDescription>
       </Alert>
+
+      {/* Proph3t Steps Progress (visible when running or after execution) */}
+      {orchSteps.some(s => s.status !== 'pending') && (
+        <Card>
+          <CardContent className="p-4">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <Brain className="w-4 h-4 text-purple-600" />
+              Workflow Proph3t
+            </h4>
+            <div className="space-y-2">
+              {orchSteps.map(step => (
+                <div key={step.id} className="flex items-center gap-3">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs ${
+                    step.status === 'done' ? 'bg-[var(--color-success)]' :
+                    step.status === 'running' ? 'bg-purple-600' :
+                    step.status === 'error' ? 'bg-[var(--color-error)]' :
+                    'bg-gray-300'
+                  }`}>
+                    {step.status === 'done' ? <CheckCircle className="w-3 h-3" /> :
+                     step.status === 'running' ? <Loader2 className="w-3 h-3 animate-spin" /> :
+                     step.status === 'error' ? '!' : '·'}
+                  </div>
+                  <span className="text-sm flex-1">{step.label}</span>
+                  {step.message && (
+                    <span className={`text-xs ${step.status === 'error' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]'}`}>
+                      {step.message}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs principaux */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>

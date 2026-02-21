@@ -4,8 +4,8 @@
  */
 import { Money, money } from '../../utils/money';
 import { db, logAudit } from '../../lib/db';
-import type { DBJournalEntry, DBJournalLine, DBAsset } from '../../lib/db';
-import { hashEntry } from '../../utils/integrity';
+import type { DBJournalLine, DBAsset } from '../../lib/db';
+import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================
 // TYPES
@@ -187,13 +187,11 @@ export async function executerReevaluation(
     },
   ];
 
-  const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
-  const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
-
   const entryNumber = `REEVAL-${request.dateReevaluation.replace(/-/g, '')}-${request.assetId.substring(0, 6)}`;
+  const entryId = crypto.randomUUID();
 
-  const entry: DBJournalEntry = {
-    id: crypto.randomUUID(),
+  await safeAddEntry({
+    id: entryId,
     entryNumber,
     journal: 'OD',
     date: request.dateReevaluation,
@@ -201,40 +199,18 @@ export async function executerReevaluation(
     label: `Reevaluation ${request.typeReevaluation} - ${impact.assetName}`,
     status: 'draft',
     lines,
-    totalDebit,
-    totalCredit,
     createdAt: now,
-    updatedAt: now,
-  };
-
-  // Hash
-  const lastEntry = await db.journalEntries.orderBy('date').last();
-  const previousHash = lastEntry?.hash || '';
-  entry.hash = await hashEntry(
-    {
-      entryNumber: entry.entryNumber,
-      journal: entry.journal,
-      date: entry.date,
-      lines: entry.lines.map(l => ({
-        accountCode: l.accountCode,
-        debit: l.debit,
-        credit: l.credit,
-        label: l.label,
-      })),
-      totalDebit: entry.totalDebit,
-      totalCredit: entry.totalCredit,
-    },
-    previousHash
-  );
-  entry.previousHash = previousHash;
-
-  // Save entry
-  await db.journalEntries.add(entry);
+    createdBy: 'system',
+  }, { skipSyncValidation: true });
 
   // Update asset
   await db.assets.update(request.assetId, {
     acquisitionValue: request.nouvelleValeur,
   });
+
+  const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
+  const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
+  const entry = { id: entryId, entryNumber, journal: 'OD', date: request.dateReevaluation, label: `Reevaluation ${request.typeReevaluation} - ${impact.assetName}`, lines, totalDebit, totalCredit };
 
   // Audit
   await logAudit('REEVALUATION', 'asset', request.assetId, JSON.stringify({
@@ -243,7 +219,7 @@ export async function executerReevaluation(
     nouvelleValeur: request.nouvelleValeur,
     ecart: impact.ecartReevaluation,
     motif: request.motif,
-    ecritureId: entry.id,
+    ecritureId: entryId,
   }));
 
   return { success: true, ecriture: entry, impact };

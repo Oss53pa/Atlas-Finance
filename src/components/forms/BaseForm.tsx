@@ -8,7 +8,7 @@ export interface FormField {
   required?: boolean;
   placeholder?: string;
   options?: Array<{ value: string; label: string }>;
-  validation?: (value: any) => string | null;
+  validation?: (value: unknown) => string | null;
   disabled?: boolean;
   rows?: number; // For textarea
   min?: number; // For number inputs
@@ -18,14 +18,14 @@ export interface FormField {
 
 export interface FormProps {
   fields: FormField[];
-  initialValues?: Record<string, any>;
-  onSubmit: (data: Record<string, any>) => Promise<void>;
+  initialValues?: Record<string, unknown>;
+  onSubmit: (data: Record<string, unknown>) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
   cancelLabel?: string;
   isLoading?: boolean;
   className?: string;
-  validate?: (data: Record<string, any>) => Record<string, string>;
+  validate?: (data: Record<string, unknown>) => Record<string, string>;
 }
 
 const BaseForm: React.FC<FormProps> = ({
@@ -39,11 +39,11 @@ const BaseForm: React.FC<FormProps> = ({
   className = '',
   validate
 }) => {
-  const [formData, setFormData] = useState<Record<string, any>>(initialValues);
+  const [formData, setFormData] = useState<Record<string, unknown>>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  const validateField = useCallback((field: FormField, value: any): string | null => {
+  const validateField = useCallback((field: FormField, value: unknown): string | null => {
     // Required validation
     if (field.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
       return `Le champ ${field.label} est requis`;
@@ -76,7 +76,7 @@ const BaseForm: React.FC<FormProps> = ({
     return null;
   }, []);
 
-  const handleInputChange = (field: FormField, value: any) => {
+  const handleInputChange = (field: FormField, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field.name]: value }));
     
     // Clear error when user starts typing

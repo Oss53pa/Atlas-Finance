@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { db } from '../../lib/db';
+import { autoLettrage, applyLettrage, applyManualLettrage, delettrage } from '../../services/lettrageService';
+import toast from 'react-hot-toast';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   Search, Filter, Save, RefreshCw, CheckCircle, XCircle,
@@ -53,6 +57,7 @@ interface LettrageHistory {
 
 const Lettrage: React.FC = () => {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [selectedCompte, setSelectedCompte] = useState<string>('411001');
@@ -82,115 +87,45 @@ const Lettrage: React.FC = () => {
     montantNonLettre: 0
   });
 
-  // Données simulées des écritures
-  const mockEntries: LettrageEntry[] = [
-    {
-      id: '1',
-      compte: '411001',
-      libelle: 'Facture client A SARL - Vente marchandises',
-      date: '2024-01-15',
-      piece: 'FAC-2024-001',
-      journal: 'VTE',
-      debit: 1500000,
-      credit: 0,
-      solde: 1500000,
-      tiers: 'Client A SARL',
-      echeance: '2024-02-15'
+  // Charger les écritures depuis Dexie (comptes lettrables : 40x, 41x)
+  const { data: lettrageEntries = [], refetch: refetchEntries } = useQuery({
+    queryKey: ['lettrage-entries', dateRange.start, dateRange.end],
+    queryFn: async () => {
+      const entries = await db.journalEntries.toArray();
+      const result: LettrageEntry[] = [];
+      const soldesByCompte: Record<string, number> = {};
+
+      for (const entry of entries) {
+        if (entry.date < dateRange.start || entry.date > dateRange.end) continue;
+        for (const line of entry.lines) {
+          // Only reconcilable accounts (clients 411x, suppliers 401x, etc.)
+          if (!line.accountCode.startsWith('41') && !line.accountCode.startsWith('40')) continue;
+
+          if (!soldesByCompte[line.accountCode]) soldesByCompte[line.accountCode] = 0;
+          soldesByCompte[line.accountCode] += line.debit - line.credit;
+
+          result.push({
+            id: `${entry.id}-${line.id}`,
+            compte: line.accountCode,
+            libelle: line.label || entry.label,
+            date: entry.date,
+            piece: entry.reference || entry.entryNumber,
+            journal: entry.journal,
+            debit: line.debit,
+            credit: line.credit,
+            solde: soldesByCompte[line.accountCode],
+            lettrage: line.lettrageCode,
+            tiers: line.thirdPartyName,
+          });
+        }
+      }
+      return result.sort((a, b) => a.compte.localeCompare(b.compte) || a.date.localeCompare(b.date));
     },
-    {
-      id: '2',
-      compte: '411001',
-      libelle: 'Règlement partiel client A SARL',
-      date: '2024-01-25',
-      piece: 'CHQ-001',
-      journal: 'BQ1',
-      debit: 0,
-      credit: 800000,
-      solde: 700000,
-      tiers: 'Client A SARL'
-    },
-    {
-      id: '3',
-      compte: '411001',
-      libelle: 'Facture client A SARL - Services',
-      date: '2024-02-01',
-      piece: 'FAC-2024-015',
-      journal: 'VTE',
-      debit: 2200000,
-      credit: 0,
-      solde: 2900000,
-      tiers: 'Client A SARL',
-      echeance: '2024-03-01'
-    },
-    {
-      id: '4',
-      compte: '411001',
-      libelle: 'Règlement solde facture FAC-2024-001',
-      date: '2024-02-10',
-      piece: 'VIR-055',
-      journal: 'BQ1',
-      debit: 0,
-      credit: 700000,
-      solde: 2200000,
-      tiers: 'Client A SARL'
-    },
-    {
-      id: '5',
-      compte: '411002',
-      libelle: 'Facture client B SA',
-      date: '2024-01-20',
-      piece: 'FAC-2024-008',
-      journal: 'VTE',
-      debit: 3500000,
-      credit: 0,
-      solde: 3500000,
-      lettrage: 'A001',
-      tiers: 'Client B SA',
-      echeance: '2024-02-20'
-    },
-    {
-      id: '6',
-      compte: '411002',
-      libelle: 'Règlement client B SA',
-      date: '2024-02-15',
-      piece: 'CHQ-125',
-      journal: 'BQ1',
-      debit: 0,
-      credit: 3500000,
-      solde: 0,
-      lettrage: 'A001',
-      tiers: 'Client B SA'
-    },
-    {
-      id: '7',
-      compte: '401001',
-      libelle: 'Facture fournisseur X',
-      date: '2024-01-10',
-      piece: 'ACH-2024-050',
-      journal: 'ACH',
-      debit: 0,
-      credit: 1200000,
-      solde: -1200000,
-      tiers: 'Fournisseur X',
-      echeance: '2024-02-10'
-    },
-    {
-      id: '8',
-      compte: '401001',
-      libelle: 'Paiement fournisseur X',
-      date: '2024-02-05',
-      piece: 'CHQ-200',
-      journal: 'BQ1',
-      debit: 1200000,
-      credit: 0,
-      solde: 0,
-      tiers: 'Fournisseur X'
-    }
-  ];
+  });
 
   // Grouper les écritures par compte
   const groupedEntries = useMemo(() => {
-    const filtered = mockEntries.filter(entry => {
+    const filtered = lettrageEntries.filter(entry => {
       if (showOnlyNonLettrage && entry.lettrage) return false;
       if (searchTerm && !entry.libelle.toLowerCase().includes(searchTerm.toLowerCase()) &&
           !entry.piece.toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -217,7 +152,7 @@ const Lettrage: React.FC = () => {
     }, {} as Record<string, any>);
 
     return Object.values(grouped);
-  }, [mockEntries, showOnlyNonLettrage, searchTerm]);
+  }, [lettrageEntries, showOnlyNonLettrage, searchTerm]);
 
   const toggleAccountExpansion = (compte: string) => {
     const newExpanded = new Set(expandedAccounts);
@@ -239,73 +174,92 @@ const Lettrage: React.FC = () => {
     setSelectedEntries(newSelected);
   };
 
-  const handleLettrage = useCallback(() => {
-    const selectedEntriesData = mockEntries.filter(e => selectedEntries.has(e.id));
-    const totalDebit = selectedEntriesData.reduce((sum, e) => sum + e.debit, 0);
-    const totalCredit = selectedEntriesData.reduce((sum, e) => sum + e.credit, 0);
+  const handleLettrage = useCallback(async () => {
+    // Build selection from the flat entry list
+    const selectedData = lettrageEntries.filter(e => selectedEntries.has(e.id));
+    if (selectedData.length < 2) return;
 
-    // Générer un nouveau code de lettrage
-    const generateCode = () => {
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const existing = mockEntries.filter(e => e.lettrage).map(e => e.lettrage);
-      let code = 'AA';
-      let counter = 0;
+    // Find original entry/line IDs from db
+    const allEntries = await db.journalEntries.toArray();
+    const selections: Array<{ entryId: string; lineId: string }> = [];
 
-      while (existing.includes(code) && counter < 1000) {
-        const firstChar = Math.floor(counter / 26) % 26;
-        const secondChar = counter % 26;
-        code = letters[firstChar] + letters[secondChar];
-        counter++;
+    for (const sel of selectedData) {
+      for (const entry of allEntries) {
+        for (const line of entry.lines) {
+          if (line.accountCode === sel.compte && entry.date === sel.date
+            && line.debit === sel.debit && line.credit === sel.credit
+            && !line.lettrageCode) {
+            selections.push({ entryId: entry.id, lineId: line.id });
+          }
+        }
       }
-      return code;
-    };
+    }
 
-    const newCode = generateCode();
+    if (selections.length < 2) {
+      toast.error('Impossible de trouver les lignes correspondantes');
+      return;
+    }
 
-    // Enregistrer dans l'historique
+    const code = await applyManualLettrage(selections);
+
     const newHistory: LettrageHistory = {
       id: Date.now().toString(),
       date: new Date(),
       user: 'Utilisateur actuel',
       action: 'create',
-      code: newCode,
+      code,
       ecritures: Array.from(selectedEntries),
-      montant: Math.max(totalDebit, totalCredit)
+      montant: selectedData.reduce((s, e) => s + Math.max(e.debit, e.credit), 0),
     };
-
     setLettrageHistory(prev => [newHistory, ...prev]);
-
-    // Notification de succès
+    toast.success(`Lettrage ${code} appliqué (${selections.length} lignes)`);
     setSelectedEntries(new Set());
-  }, [selectedEntries, mockEntries]);
+    queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
+    refetchEntries();
+  }, [selectedEntries, lettrageEntries, queryClient, refetchEntries]);
 
-  const handleDelettrage = useCallback((code: string) => {
-    const ecritures = mockEntries.filter(e => e.lettrage === code);
+  const handleDelettrage = useCallback(async (code: string) => {
+    const count = await delettrage(code);
 
     const newHistory: LettrageHistory = {
       id: Date.now().toString(),
       date: new Date(),
       user: 'Utilisateur actuel',
       action: 'delete',
-      code: code,
-      ecritures: ecritures.map(e => e.id),
-      montant: ecritures.reduce((sum, e) => sum + (e.debit || e.credit), 0)
+      code,
+      ecritures: [],
+      montant: 0,
     };
-
     setLettrageHistory(prev => [newHistory, ...prev]);
-  }, [mockEntries]);
+    toast.success(`Délettrage ${code} : ${count} ligne(s)`);
+    queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
+    refetchEntries();
+  }, [queryClient, refetchEntries]);
 
-  const runAutoLettrage = useCallback(() => {
-    // Logique de lettrage automatique ici
-    // Simulation d'un résultat
-    setTimeout(() => {
-      alert('Lettrage automatique terminé: 12 écritures lettrées');
-    }, 1000);
-  }, [autoLettrageConfig]);
+  const runAutoLettrage = useCallback(async () => {
+    const result = await autoLettrage({
+      parMontant: autoLettrageConfig.parMontant,
+      parReference: autoLettrageConfig.parReference,
+      parDate: autoLettrageConfig.parDate,
+      parTiers: autoLettrageConfig.parTiers,
+      tolerance: autoLettrageConfig.tolerance,
+      periodeMax: autoLettrageConfig.periodeMax,
+    });
+
+    if (result.matches.length === 0) {
+      toast('Aucun rapprochement trouvé', { icon: '\u2139\uFE0F' });
+      return;
+    }
+
+    const applied = await applyLettrage(result.matches);
+    toast.success(`Lettrage automatique : ${result.matches.length} rapprochements (${result.totalMatched} lignes)`);
+    queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
+    refetchEntries();
+  }, [autoLettrageConfig, queryClient, refetchEntries]);
 
   const canLettrage = useMemo(() => {
     if (selectedEntries.size < 2) return { valid: false, reason: 'Sélectionnez au moins 2 écritures' };
-    const selectedEntriesData = mockEntries.filter(e => selectedEntries.has(e.id));
+    const selectedEntriesData = lettrageEntries.filter(e => selectedEntries.has(e.id));
     const totalDebit = selectedEntriesData.reduce((sum, e) => sum + e.debit, 0);
     const totalCredit = selectedEntriesData.reduce((sum, e) => sum + e.credit, 0);
     const difference = Math.abs(totalDebit - totalCredit);
@@ -327,14 +281,14 @@ const Lettrage: React.FC = () => {
   // Calcul des statistiques
   useEffect(() => {
     const calculateStats = () => {
-      const totalEcritures = mockEntries.length;
-      const ecrituresLettrees = mockEntries.filter(e => e.lettrage).length;
+      const totalEcritures = lettrageEntries.length;
+      const ecrituresLettrees = lettrageEntries.filter(e => e.lettrage).length;
       const ecrituresNonLettrees = totalEcritures - ecrituresLettrees;
-      const montantNonLettre = mockEntries
+      const montantNonLettre = lettrageEntries
         .filter(e => !e.lettrage)
         .reduce((sum, e) => sum + (e.debit || e.credit), 0);
 
-      const comptes = new Set(mockEntries.map(e => e.compte));
+      const comptes = new Set(lettrageEntries.map(e => e.compte));
 
       setStats({
         totalComptes: comptes.size,
@@ -343,7 +297,7 @@ const Lettrage: React.FC = () => {
         ecrituresNonLettrees,
         tauxLettrage: totalEcritures > 0 ? (ecrituresLettrees / totalEcritures) * 100 : 0,
         montantNonLettre,
-        plusAncienneNonLettree: mockEntries
+        plusAncienneNonLettree: lettrageEntries
           .filter(e => !e.lettrage)
           .map(e => new Date(e.date))
           .sort((a, b) => a.getTime() - b.getTime())[0],
@@ -352,7 +306,7 @@ const Lettrage: React.FC = () => {
     };
 
     calculateStats();
-  }, [mockEntries]);
+  }, [lettrageEntries]);
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -893,7 +847,7 @@ const Lettrage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Écritures anciennes non lettrées</h3>
               <div className="space-y-2">
-                {mockEntries
+                {lettrageEntries
                   .filter(e => !e.lettrage)
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                   .slice(0, 5)

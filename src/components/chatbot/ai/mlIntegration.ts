@@ -13,7 +13,7 @@ import mlService, {
 export interface MLCapability {
   name: string;
   description: string;
-  action: (params: any) => Promise<string>;
+  action: (params: Record<string, unknown>) => Promise<string>;
 }
 
 /**
@@ -106,7 +106,7 @@ export class Proph3tMLManager {
    * Prévoit les flux de trésorerie
    */
   private async forecastTreasury(params: {
-    historicalData?: any[];
+    historicalData?: Array<{ date: string; solde: number; entrees: number; sorties: number }>;
     periods?: number;
   }): Promise<string> {
     try {
@@ -266,7 +266,7 @@ export class Proph3tMLManager {
   /**
    * Affiche le dashboard ML
    */
-  private async showMLDashboard(params: any): Promise<string> {
+  private async showMLDashboard(_params: Record<string, unknown>): Promise<string> {
     try {
       const dashboard = await mlService.getDashboard();
 
@@ -308,7 +308,7 @@ export class Proph3tMLManager {
   /**
    * Exécute une capacité ML
    */
-  async executeCapability(capabilityName: string, params: any): Promise<string> {
+  async executeCapability(capabilityName: string, params: Record<string, unknown>): Promise<string> {
     const capability = this.capabilities.get(capabilityName);
 
     if (!capability) {
@@ -325,7 +325,7 @@ export class Proph3tMLManager {
   /**
    * Détecte automatiquement quelle capacité ML utiliser
    */
-  detectMLIntent(message: string): { capability: string; params: any } | null {
+  detectMLIntent(message: string): { capability: string; params: Record<string, unknown> } | null {
     const lowerMsg = message.toLowerCase();
 
     // Recommandation de compte
@@ -399,7 +399,7 @@ export class Proph3tMLManager {
     return emojiMap[type] || '🤖';
   }
 
-  private generateMockHistorical(): any[] {
+  private generateMockHistorical(): Array<{ date: string; solde: number; entrees: number; sorties: number }> {
     // Génère des données historiques simulées
     const data = [];
     const today = new Date();

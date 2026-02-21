@@ -125,7 +125,7 @@ export class AssetDetectionEngine {
 
   static detectAsset(invoice: InvoiceData): AssetDetectionResult {
     let maxConfidence = 0;
-    let bestClassification: any = null;
+    let bestClassification: { category: string; account: string; confidence: number } | null = null;
 
     // Recherche par classification d'actifs
     const classifications = AssetClassificationService.getAllClassifications();

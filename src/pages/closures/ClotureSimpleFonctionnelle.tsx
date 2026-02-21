@@ -14,7 +14,7 @@ import {
 const ClotureSimpleFonctionnelle: React.FC = () => {
   const [operationEnCours, setOperationEnCours] = useState(false);
   const [operationActuelle, setOperationActuelle] = useState('');
-  const [operations, setOperations] = useState<any[]>([]);
+  const [operations, setOperations] = useState<Array<{ nom: string; montant: string; ecritures: number; type: string; status?: string }>>([]);
   const [ongletActif, setOngletActif] = useState<'cloture' | 'operations' | 'controles'>('cloture');
 
   const demarrerCloture = async () => {
@@ -95,7 +95,7 @@ const ClotureSimpleFonctionnelle: React.FC = () => {
               ].map((onglet) => (
                 <button
                   key={onglet.id}
-                  onClick={() => setOngletActif(onglet.id as any)}
+                  onClick={() => setOngletActif(onglet.id as typeof ongletActif)}
                   className={`py-4 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     ongletActif === onglet.id
                       ? 'border-[var(--color-primary)] text-[var(--color-primary)]'

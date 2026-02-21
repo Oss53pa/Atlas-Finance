@@ -36,16 +36,51 @@ import {
   TrendingUp
 } from 'lucide-react';
 
+interface APIKeyData {
+  id: number;
+  name: string;
+  key: string;
+  environment: string;
+  status: string;
+  created: string;
+  lastUsed: string;
+  permissions: string[];
+  rateLimit: string;
+}
+
+interface WebhookData {
+  id: number;
+  url: string;
+  events: string[];
+  status: string;
+  created: string;
+  lastTriggered: string;
+  successRate: number;
+}
+
+interface IntegrationData {
+  id: number;
+  name: string;
+  category: string;
+  status: string;
+  icon: string;
+  description: string;
+  lastSync: string | null;
+  dataPoints: number;
+}
+
+type DeletableItem = APIKeyData | WebhookData | IntegrationData;
+
 const APIIntegrationsPage: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedAPI, setSelectedAPI] = useState<any>(null);
+  const [selectedAPI, setSelectedAPI] = useState<APIKeyData | null>(null);
   const [showAPIKey, setShowAPIKey] = useState<{ [key: string]: boolean }>({});
   const [showNewAPIModal, setShowNewAPIModal] = useState(false);
   const [showNewWebhookModal, setShowNewWebhookModal] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState<any>(null);
-  const [showEditModal, setShowEditModal] = useState<any>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<any>(null);
+  const [showConfigModal, setShowConfigModal] = useState<IntegrationData | null>(null);
+  const [showEditModal, setShowEditModal] = useState<APIKeyData | WebhookData | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<DeletableItem | null>(null);
   const [showCodeExamples, setShowCodeExamples] = useState<string | null>(null);
   const [newAPIForm, setNewAPIForm] = useState({
     name: '',
@@ -291,15 +326,15 @@ const APIIntegrationsPage: React.FC = () => {
     setNewWebhookForm({ url: '', events: [] });
   };
 
-  const handleConfigureIntegration = (integration: any) => {
+  const handleConfigureIntegration = (integration: IntegrationData) => {
     setShowConfigModal(integration);
   };
 
-  const handleDisconnectIntegration = (integration: any) => {
+  const handleDisconnectIntegration = (integration: IntegrationData) => {
     setShowDeleteConfirm(integration);
   };
 
-  const handleConnectIntegration = (integration: any) => {
+  const handleConnectIntegration = (integration: IntegrationData) => {
     toast.success(`Connexion à ${integration.name} initiée...`);
     // Simulate connection process
     setTimeout(() => {
@@ -307,11 +342,11 @@ const APIIntegrationsPage: React.FC = () => {
     }, 2000);
   };
 
-  const handleEditItem = (item: any) => {
+  const handleEditItem = (item: APIKeyData | WebhookData) => {
     setShowEditModal(item);
   };
 
-  const handleDeleteItem = (item: any) => {
+  const handleDeleteItem = (item: DeletableItem) => {
     setShowDeleteConfirm(item);
   };
 

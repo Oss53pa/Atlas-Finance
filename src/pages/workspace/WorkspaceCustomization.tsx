@@ -59,9 +59,9 @@ const WorkspaceCustomization: React.FC = () => {
         setShowWelcome(dashboardData.user_preferences.show_welcome_message ?? true);
         setCompactMode(dashboardData.user_preferences.compact_mode ?? false);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur chargement dashboard:', err);
-      setError(err?.message || 'Erreur lors du chargement');
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
     } finally {
       setLoading(false);
     }
@@ -120,9 +120,9 @@ const WorkspaceCustomization: React.FC = () => {
       // Succès
       alert('Personnalisation enregistrée avec succès!');
       navigate('/workspace');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur sauvegarde:', err);
-      alert(`Erreur: ${err?.message || 'Impossible de sauvegarder'}`);
+      alert(`Erreur: ${err instanceof Error ? err.message : 'Impossible de sauvegarder'}`);
     } finally {
       setSaving(false);
     }
@@ -139,9 +139,9 @@ const WorkspaceCustomization: React.FC = () => {
       // Recharger
       await loadDashboard();
       alert('Personnalisation réinitialisée!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur reset:', err);
-      alert(`Erreur: ${err?.message || 'Impossible de réinitialiser'}`);
+      alert(`Erreur: ${err instanceof Error ? err.message : 'Impossible de réinitialiser'}`);
     } finally {
       setSaving(false);
     }

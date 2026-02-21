@@ -662,7 +662,7 @@ const ChartOfAccountsPage: React.FC = () => {
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                       value={newAccount.classe}
-                      onChange={(e) => setNewAccount({...newAccount, classe: parseInt(e.target.value) as any})}
+                      onChange={(e) => setNewAccount({...newAccount, classe: parseInt(e.target.value) as SyscohadaAccount['classe']})}
                     >
                       <option value={1}>Classe 1 - Ressources Durables</option>
                       <option value={2}>Classe 2 - Actif Immobilisé</option>
@@ -696,7 +696,7 @@ const ChartOfAccountsPage: React.FC = () => {
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                       value={newAccount.nature}
-                      onChange={(e) => setNewAccount({...newAccount, nature: e.target.value as any})}
+                      onChange={(e) => setNewAccount({...newAccount, nature: e.target.value as SyscohadaAccount['nature']})}
                     >
                       <option value="ACTIF">ACTIF</option>
                       <option value="PASSIF">PASSIF</option>
@@ -711,7 +711,7 @@ const ChartOfAccountsPage: React.FC = () => {
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                       value={newAccount.sens_normal}
-                      onChange={(e) => setNewAccount({...newAccount, sens_normal: e.target.value as any})}
+                      onChange={(e) => setNewAccount({...newAccount, sens_normal: e.target.value as SyscohadaAccount['sens_normal']})}
                     >
                       <option value="DEBITEUR">DEBITEUR</option>
                       <option value="CREDITEUR">CREDITEUR</option>
@@ -725,7 +725,7 @@ const ChartOfAccountsPage: React.FC = () => {
                     <select
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       value={newAccount.niveau}
-                      onChange={(e) => setNewAccount({...newAccount, niveau: parseInt(e.target.value) as any})}
+                      onChange={(e) => setNewAccount({...newAccount, niveau: parseInt(e.target.value) as SyscohadaAccount['niveau']})}
                     >
                       <option value={1}>Niveau 1 - Principal</option>
                       <option value={2}>Niveau 2 - Sous-compte</option>

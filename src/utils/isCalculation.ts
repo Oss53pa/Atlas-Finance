@@ -22,6 +22,7 @@ const IS_RATES: Record<string, number> = {
   CD: 30,   // RD Congo 30%
   GQ: 35,   // Guinée Équatoriale 35%
   KM: 50,   // Comores 50%
+  GW: 25,   // Guinée-Bissau 25%
 };
 
 /** Minimum IS rates (% of turnover) */
@@ -30,6 +31,7 @@ const MINIMUM_IS_RATES: Record<string, number> = {
   CM: 2.2,  // 2.2% du CA (minimum de perception)
   SN: 0.5,  // 0.5% du CA
   GA: 1,
+  GW: 1,    // 1% du CA
 };
 
 export interface ISInput {

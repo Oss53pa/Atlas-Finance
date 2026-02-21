@@ -607,7 +607,7 @@ export class AdvancedIntentRecognizer {
     return Math.min(compatibilityScore, 1.0);
   }
 
-  private calculateKnowledgeRelevance(message: string, entry: any): number {
+  private calculateKnowledgeRelevance(message: string, entry: { title: string; keywords?: string[]; content?: string; category?: string }): number {
     const messageWords = this.extractWords(this.normalizeMessage(message));
     let relevanceScore = 0;
 
@@ -844,7 +844,7 @@ export class AdvancedIntentRecognizer {
 
   // Méthodes publiques supplémentaires
 
-  public getConversationInsights(): any {
+  public getConversationInsights(): { topIntents: Array<{ intent: string; count: number }>; entityPatterns: unknown; conversationFlow: unknown } {
     return {
       topIntents: this.getTopUserIntents(),
       entityPatterns: this.getEntityPatterns(),

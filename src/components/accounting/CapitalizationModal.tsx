@@ -142,11 +142,11 @@ const CapitalizationModal: React.FC<CapitalizationModalProps> = ({
     }
   }, [formData.estimatedUsefulLife]);
 
-  const handleInputChange = (field: keyof CapitalizationRequest, value: any) => {
+  const handleInputChange = (field: keyof CapitalizationRequest, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleNestedInputChange = (section: string, field: string, value: any) => {
+  const handleNestedInputChange = (section: string, field: string, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [section]: { ...prev[section as keyof CapitalizationRequest], [field]: value }

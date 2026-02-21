@@ -220,10 +220,10 @@ export interface Database {
           tags: Json;
           created_at: string;
           updated_at: string;
-          [key: string]: any;
+          [key: string]: unknown;
         };
-        Insert: Record<string, any>;
-        Update: Record<string, any>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       customers: {
         Row: {
@@ -240,10 +240,10 @@ export interface Database {
           tags: Json;
           created_at: string;
           updated_at: string;
-          [key: string]: any;
+          [key: string]: unknown;
         };
-        Insert: Record<string, any>;
-        Update: Record<string, any>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       suppliers: {
         Row: {
@@ -259,10 +259,10 @@ export interface Database {
           tags: Json;
           created_at: string;
           updated_at: string;
-          [key: string]: any;
+          [key: string]: unknown;
         };
-        Insert: Record<string, any>;
-        Update: Record<string, any>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       workspaces: {
         Row: {
@@ -277,8 +277,12 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Record<string, any>;
-        Update: Record<string, any>;
+        Insert: Omit<Database['public']['Tables']['workspaces']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['workspaces']['Insert']>;
       };
     };
     Views: Record<string, never>;

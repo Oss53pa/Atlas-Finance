@@ -1013,7 +1013,7 @@ export default budgetService;
 /**
  * @deprecated Use budgetService instead
  */
-export const getBudgets = (filters?: any) => budgetService.getBudgetPlans(filters);
+export const getBudgets = (filters?: Record<string, unknown>) => budgetService.getBudgetPlans(filters);
 
 /**
  * @deprecated Use budgetService.getDashboardStats() instead

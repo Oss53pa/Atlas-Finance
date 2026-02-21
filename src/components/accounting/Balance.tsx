@@ -535,7 +535,7 @@ const Balance: React.FC = () => {
   };
 
   // Calcul des totaux
-  const calculateTotals = (accounts: BalanceAccount[]): any => {
+  const calculateTotals = (accounts: BalanceAccount[]): { soldeDebiteurAN: number; soldeCrediteurAN: number; mouvementsDebit: number; mouvementsCredit: number; soldeDebiteur: number; soldeCrediteur: number } => {
     let totals = {
       soldeDebiteurAN: 0,
       soldeCrediteurAN: 0,
@@ -640,7 +640,7 @@ const Balance: React.FC = () => {
 
             <select
               value={balanceType}
-              onChange={(e) => setBalanceType(e.target.value as any)}
+              onChange={(e) => setBalanceType(e.target.value as typeof balanceType)}
               className="px-3 py-1.5 text-sm border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
             >
               <option value="generale">Balance Générale</option>

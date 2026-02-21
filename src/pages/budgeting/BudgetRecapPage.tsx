@@ -12,7 +12,7 @@ const BudgetRecapPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState('2024');
 
   // Fonction pour calculer les totaux à partir des détails
-  const calculateTotalsFromDetails = (details: any[]) => {
+  const calculateTotalsFromDetails = (details: Array<Record<string, number>>) => {
     const totals = {
       jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0,
       jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0, total: 0

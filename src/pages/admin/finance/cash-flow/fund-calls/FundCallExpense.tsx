@@ -29,14 +29,14 @@ interface SelfDictionary {
 interface ApprovalCase {
   objectId: string;
   object_detail?: {
-    content: any;
+    content: Record<string, unknown>;
   };
 }
 
 interface FundCallNotifyProps {
   case: ApprovalCase;
   header?: React.ReactNode;
-  notif?: any;
+  notif?: Record<string, unknown>;
 }
 
 // Mock session hook
@@ -71,7 +71,7 @@ export const FundCallExpense: React.FC = () => {
   const [detailsFundCall, setDetailsFundCall] = useState(fundCallG.details ?? []);
   const [amountPreApproved, setAmountPreApproved] = useState<number>(0);
 
-  const sweetAlertRef = useRef<any>();
+  const sweetAlertRef = useRef<{ show: (options: Record<string, unknown>) => void } | null>(null);
 
   const getFundCallApprovalInfo = async (): Promise<void> => {
     try {
@@ -245,14 +245,15 @@ export const FundCallExpense: React.FC = () => {
     }
   }, [id_fund_call]);
 
-  const groupInvoicesByVendor = (invoices: any[]): Record<string, any[]> => {
-    return invoices.reduce((acc, invoice) => {
-      if (!acc[invoice.vendor]) {
-        acc[invoice.vendor] = [];
+  const groupInvoicesByVendor = (invoices: Record<string, unknown>[]): Record<string, Record<string, unknown>[]> => {
+    return invoices.reduce((acc: Record<string, Record<string, unknown>[]>, invoice) => {
+      const vendor = invoice.vendor as string;
+      if (!acc[vendor]) {
+        acc[vendor] = [];
       }
-      acc[invoice.vendor].push(invoice);
+      acc[vendor].push(invoice);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {});
   };
 
   const groupedSelectedInvoices = groupInvoicesByVendor(detailsFundCall);

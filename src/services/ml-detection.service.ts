@@ -19,7 +19,7 @@ export interface ModeleML {
   precision: number;
   date_creation: string;
   derniere_prediction?: string;
-  parametres: Record<string, any>;
+  parametres: Record<string, unknown>;
 }
 
 export interface DetectionAnomalie {
@@ -28,7 +28,7 @@ export interface DetectionAnomalie {
   date_detection: string;
   type_anomalie: string;
   score_confiance: number;
-  donnees_analysees: Record<string, any>;
+  donnees_analysees: Record<string, unknown>;
   details: string;
   statut: 'nouvelle' | 'analysee' | 'resolue' | 'faux_positif';
   actions_recommandees?: string[];
@@ -36,12 +36,12 @@ export interface DetectionAnomalie {
 
 export interface PredictionRequest {
   modele_id: string;
-  donnees: Record<string, any>;
+  donnees: Record<string, unknown>;
   seuil_confiance?: number;
 }
 
 export interface PredictionResponse {
-  prediction: any;
+  prediction: unknown;
   confiance: number;
   anomalies_detectees: DetectionAnomalie[];
   recommandations: string[];
@@ -55,7 +55,7 @@ class ModeleMLService extends BaseApiService<ModeleML, Partial<ModeleML>, Partia
   /**
    * Entraîner un modèle ML
    */
-  async entrainer(modeleId: string, donnees: any, options?: CrudOptions) {
+  async entrainer(modeleId: string, donnees: Record<string, unknown>, options?: CrudOptions) {
     return apiClient.post(
       `${this.basePath}/${modeleId}/entrainer/`,
       donnees,

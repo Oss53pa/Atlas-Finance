@@ -5,8 +5,8 @@
  */
 import { Money, money } from '../../utils/money';
 import { db, logAudit } from '../../lib/db';
-import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
-import { hashEntry } from '../../utils/integrity';
+import type { DBJournalLine } from '../../lib/db';
+import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================
 // TYPES
@@ -169,13 +169,8 @@ export async function executerCarryForward(config: CarryForwardConfig): Promise<
     credit: l.soldeCrediteur,
   }));
 
-  // Get hash chain
-  const allEntries = await db.journalEntries.toArray();
-  const lastEntry = allEntries.sort((a, b) => a.createdAt.localeCompare(b.createdAt)).pop();
-  const previousHash = lastEntry?.hash || '';
-
   const entryId = crypto.randomUUID();
-  const entry: DBJournalEntry = {
+  await safeAddEntry({
     id: entryId,
     entryNumber: `AN-${config.openingDate.replace(/-/g, '').substring(0, 8)}-001`,
     journal: 'AN',
@@ -184,20 +179,9 @@ export async function executerCarryForward(config: CarryForwardConfig): Promise<
     label: `Report a nouveau exercice ${closingFY!.name}`,
     status: 'validated',
     lines,
-    totalDebit: preview.totalDebit,
-    totalCredit: preview.totalCredit,
-    hash: '',
-    previousHash,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     createdBy: 'system',
-  };
-
-  // Compute hash
-  entry.hash = await hashEntry(entry);
-
-  // Save
-  await db.journalEntries.add(entry);
+  }, { skipSyncValidation: true });
 
   await logAudit(
     'CARRY_FORWARD',

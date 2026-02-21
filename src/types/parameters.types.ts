@@ -74,7 +74,7 @@ export interface ParametreSysteme {
   type_valeur: ParameterValueType;
   valeur: string;
   valeur_par_defaut: string;
-  valeur_typee?: any;
+  valeur_typee?: unknown;
   requis: boolean;
   modifiable_runtime: boolean;
   visible_interface: boolean;

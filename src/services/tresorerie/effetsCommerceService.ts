@@ -4,8 +4,8 @@
  */
 import { Money, money } from '../../utils/money';
 import { db, logAudit } from '../../lib/db';
-import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
-import { hashEntry } from '../../utils/integrity';
+import type { DBJournalLine } from '../../lib/db';
+import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================
 // TYPES
@@ -260,18 +260,12 @@ export async function transitionEffet(
     return { success: true, effet };
   }
 
-  const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
-  const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
-
-  if (Math.abs(totalDebit - totalCredit) > 0.01) {
-    return { success: false, error: 'Ecriture desequilibree.' };
-  }
-
   const now = new Date().toISOString();
   const entryNumber = `EFF-${date.replace(/-/g, '')}-${effet.numero.substring(4, 10)}`;
+  const entryId = crypto.randomUUID();
 
-  const entry: DBJournalEntry = {
-    id: crypto.randomUUID(),
+  await safeAddEntry({
+    id: entryId,
     entryNumber,
     journal: 'OD',
     date,
@@ -279,45 +273,20 @@ export async function transitionEffet(
     label: `Effet ${effet.type} - ${newStatut} - ${effet.numero}`,
     status: 'draft',
     lines,
-    totalDebit,
-    totalCredit,
     createdAt: now,
-    updatedAt: now,
-  };
-
-  // Hash
-  const lastEntry = await db.journalEntries.orderBy('date').last();
-  const previousHash = lastEntry?.hash || '';
-  entry.hash = await hashEntry(
-    {
-      entryNumber: entry.entryNumber,
-      journal: entry.journal,
-      date: entry.date,
-      lines: entry.lines.map(l => ({
-        accountCode: l.accountCode,
-        debit: l.debit,
-        credit: l.credit,
-        label: l.label,
-      })),
-      totalDebit: entry.totalDebit,
-      totalCredit: entry.totalCredit,
-    },
-    previousHash
-  );
-  entry.previousHash = previousHash;
-
-  await db.journalEntries.add(entry);
+    createdBy: 'system',
+  }, { skipSyncValidation: true });
 
   // Update effet
   effet.statut = newStatut;
   if (fraisEscompte) effet.fraisEscompte = fraisEscompte;
-  effet.ecritureIds.push(entry.id);
+  effet.ecritureIds.push(entryId);
   effet.historique.push({
     date: now,
     action: `Transition vers ${newStatut}`,
     statut: newStatut,
     montant: effet.montant,
-    details: `Ecriture ${entry.entryNumber}`,
+    details: `Ecriture ${entryNumber}`,
   });
 
   await logAudit('EFFET_TRANSITION', 'effet_commerce', effet.id, JSON.stringify({

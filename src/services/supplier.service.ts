@@ -347,7 +347,7 @@ export interface WiseProcureInvoice {
   amount_ttc: number;
   purchase_order_ref?: string;
   delivery_receipt_ref?: string;
-  ocr_data?: Record<string, any>;
+  ocr_data?: Record<string, unknown>;
   items: Array<{
     description: string;
     quantity: number;
@@ -497,7 +497,7 @@ class SupplierService {
     delivery_score: number;
     service_score: number;
     comments?: string;
-  }): Promise<{ message: string; evaluation: any }> {
+  }): Promise<{ message: string; evaluation: PerformanceEvaluation }> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/${supplierId}/evaluer/`, data);
     return response.data;
   }
@@ -512,7 +512,7 @@ class SupplierService {
    */
   async validateSiret(supplierId: string): Promise<{
     valid: boolean;
-    company_data?: Record<string, any>;
+    company_data?: Record<string, unknown>;
     message: string;
   }> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/${supplierId}/valider-siret/`);
@@ -839,8 +839,8 @@ class SupplierService {
    */
   async getAnalytics(params?: {
     companyId?: string;
-    filters?: any;
-  }): Promise<any> {
+    filters?: Record<string, unknown>;
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/analytics/analytics/`, {
       params: {
         company_id: params?.companyId,
@@ -861,7 +861,7 @@ class SupplierService {
   async getPerformanceData(params?: {
     companyId?: string;
     fiscalYearId?: string;
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/analytics/performance/`, {
       params: {
         company_id: params?.companyId,
@@ -879,7 +879,7 @@ class SupplierService {
    *
    * @endpoint GET /api/v1/suppliers/analytics/realtime-metrics/
    */
-  async getRealtimeMetrics(companyId: string): Promise<any> {
+  async getRealtimeMetrics(companyId: string): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/analytics/realtime-metrics/`, {
       params: { company_id: companyId }
     });
@@ -941,7 +941,7 @@ class SupplierService {
   async getKeyIndicators(params?: {
     companyId?: string;
     fiscalYearId?: string;
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/analytics/indicateurs/`, {
       params: {
         company_id: params?.companyId,
@@ -963,9 +963,9 @@ class SupplierService {
     companyId: string;
     metrics: string[];
     dimensions: string[];
-    filters: Record<string, any>;
+    filters: Record<string, unknown>;
     date_range: { from: string; to: string };
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.post(`${BASE_PATH}/analytics/rapport-personnalise/`, config);
     return response.data;
   }
@@ -1152,7 +1152,7 @@ class SupplierService {
     companyId?: string;
     forecastDays?: number;
     includeOptimizations?: boolean;
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/analytics/payment-schedule/`, {
       params: {
         company_id: params?.companyId,
@@ -1224,7 +1224,7 @@ class SupplierService {
    */
   async exportSuppliers(params: {
     format_export: 'CSV' | 'EXCEL' | 'PDF';
-    filtres?: Record<string, any>;
+    filtres?: Record<string, unknown>;
     colonnes?: string[];
   }): Promise<void> {
     const response = await apiService.post(`${BASE_PATH}/suppliers/export/`, params, {
@@ -1256,7 +1256,7 @@ class SupplierService {
    */
   async getPaymentOptimization(params?: {
     companyId?: string;
-    filters?: any;
+    filters?: Record<string, unknown>;
     forecastDays?: number;
     maxAmount?: number;
   }): Promise<PaymentOptimization> {
@@ -1512,7 +1512,7 @@ class SupplierService {
     dateFrom: string;
     dateTo: string;
     includeEvaluations?: boolean;
-  }): Promise<any> {
+  }): Promise<Record<string, unknown>> {
     const response = await apiService.get(`${BASE_PATH}/analytics/performance-report/`, {
       params: {
         company_id: params.companyId,
@@ -1566,7 +1566,7 @@ class SupplierService {
   }): Promise<{
     matched_count: number;
     total_amount: number;
-    details: Array<any>;
+    details: Array<{ invoice_id: string; payment_id: string; amount: number }>;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/automatique-global/`, params);
     return response.data;
@@ -1586,7 +1586,7 @@ class SupplierService {
   }): Promise<{
     matched_count: number;
     total_amount: number;
-    details: Array<any>;
+    details: Array<{ invoice_id: string; payment_id: string; amount: number }>;
   }> {
     const response = await apiService.post(`${BASE_PATH}/lettrage/fournisseur/`, data);
     return response.data;
@@ -1772,7 +1772,7 @@ class SupplierService {
   async exportDashboard(params: {
     companyId: string;
     fiscalYearId?: string;
-    filters?: any;
+    filters?: Record<string, unknown>;
     format: 'pdf' | 'excel';
     view: string;
   }): Promise<{

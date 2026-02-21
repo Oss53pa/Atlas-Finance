@@ -111,9 +111,9 @@ const ValidatorPreview: React.FC = () => {
   // Transformer les données du Grand Livre (identique)
   const vendorInvoices = accountPayableData ?
     Object.fromEntries(
-      Object.entries(accountPayableData.vendors).map(([vendor, data]: [string, any]) => [
+      Object.entries(accountPayableData.vendors).map(([vendor, data]: [string, { invoices: Array<{ id: string; date_piece: string; numero_piece: string; [key: string]: unknown }> }]) => [
         vendor,
-        data.invoices.map((invoice: any) => ({
+        data.invoices.map((invoice: { id: string; date_piece: string; numero_piece: string; [key: string]: unknown }) => ({
           id: invoice.id,
           docDate: invoice.date_piece,
           docNumber: invoice.numero_piece,

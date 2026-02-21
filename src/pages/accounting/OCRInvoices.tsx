@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   ScanLine, Upload, FileText, Check, X, AlertTriangle,
@@ -439,14 +440,6 @@ const OCRInvoices: React.FC = () => {
     return 'text-red-600';
   };
 
-  const formatCurrency = (amount: number, currency: string = 'XAF') => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   const filteredInvoices = scannedInvoices.filter(invoice => {
     if (filter !== 'all' && invoice.status !== filter) return false;
@@ -517,7 +510,7 @@ const OCRInvoices: React.FC = () => {
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors relative ${
                   activeTab === tab.id
                     ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'

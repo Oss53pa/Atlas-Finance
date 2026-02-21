@@ -141,7 +141,7 @@ export class EnhancedApiClient {
   private logger: ApiLogger;
   private retryHandler: RetryHandler;
   private abortControllers: Map<string, AbortController>;
-  private requestQueue: Map<string, Promise<any>>;
+  private requestQueue: Map<string, Promise<unknown>>;
 
   constructor(config: Partial<ApiClientConfig> = {}) {
     const finalConfig = { ...DEFAULT_CONFIG, ...config };
@@ -175,7 +175,7 @@ export class EnhancedApiClient {
         }
 
         // Store start time for duration tracking
-        (config as any).metadata = { startTime };
+        (config as AxiosRequestConfig & { metadata?: { startTime: number } }).metadata = { startTime };
 
         // Log request
         this.logger.log({
@@ -201,7 +201,7 @@ export class EnhancedApiClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        const duration = Date.now() - (response.config as any).metadata?.startTime || 0;
+        const duration = Date.now() - ((response.config as AxiosRequestConfig & { metadata?: { startTime: number } }).metadata?.startTime || 0);
 
         // Log response
         this.logger.log({
@@ -223,9 +223,9 @@ export class EnhancedApiClient {
 
   // ==================== ERROR HANDLING ====================
 
-  private async handleResponseError(error: AxiosError): Promise<any> {
-    const originalRequest = error.config as any;
-    const duration = Date.now() - originalRequest.metadata?.startTime || 0;
+  private async handleResponseError(error: AxiosError): Promise<unknown> {
+    const originalRequest = error.config as AxiosRequestConfig & { metadata?: { startTime: number }; _retry?: boolean; _retryCount?: number };
+    const duration = Date.now() - (originalRequest.metadata?.startTime || 0);
 
     // Log error
     this.logger.log({
@@ -268,7 +268,7 @@ export class EnhancedApiClient {
     return Promise.reject(this.normalizeError(error));
   }
 
-  private async handleTokenRefresh(originalRequest: any): Promise<any> {
+  private async handleTokenRefresh(originalRequest: AxiosRequestConfig & { _retry?: boolean; headers: Record<string, string> }): Promise<unknown> {
     originalRequest._retry = true;
 
     try {
@@ -323,7 +323,7 @@ export class EnhancedApiClient {
   }
 
   private showErrorToast(error: AxiosError) {
-    const apiError = error.response?.data as any;
+    const apiError = error.response?.data as { detail?: string; message?: string; errors?: Record<string, string[]> } | undefined;
 
     if (apiError?.detail) {
       toast.error(apiError.detail);
@@ -332,7 +332,7 @@ export class EnhancedApiClient {
     } else if (apiError?.errors) {
       const firstError = Object.values(apiError.errors)[0];
       if (Array.isArray(firstError) && firstError.length > 0) {
-        toast.error(firstError[0] as string);
+        toast.error(firstError[0]);
       }
     } else if (error.message) {
       // Don't show generic network errors in production
@@ -345,7 +345,7 @@ export class EnhancedApiClient {
   }
 
   private normalizeError(error: AxiosError): ApiError {
-    const apiError = error.response?.data as any;
+    const apiError = error.response?.data as { detail?: string; message?: string; errors?: Record<string, string[]> } | undefined;
 
     return {
       message: apiError?.detail || apiError?.message || error.message || 'Une erreur est survenue',
@@ -361,22 +361,22 @@ export class EnhancedApiClient {
     return response.data;
   }
 
-  async getPaginated<T>(url: string, params?: any): Promise<PaginatedResponse<T>> {
+  async getPaginated<T>(url: string, params?: Record<string, unknown>): Promise<PaginatedResponse<T>> {
     const response: AxiosResponse<PaginatedResponse<T>> = await this.client.get(url, { params });
     return response.data;
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response: AxiosResponse<T> = await this.client.post(url, data, config);
     return response.data;
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response: AxiosResponse<T> = await this.client.put(url, data, config);
     return response.data;
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const response: AxiosResponse<T> = await this.client.patch(url, data, config);
     return response.data;
   }

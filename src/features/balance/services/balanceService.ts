@@ -122,6 +122,39 @@ class BalanceService {
     return new Blob(['Export balance'], { type: 'application/octet-stream' });
   }
 
+  /**
+   * Vérifie l'équilibre de la balance générale.
+   * Total Débits DOIT = Total Crédits (obligation SYSCOHADA).
+   * Utilise Money class pour éviter les erreurs d'arrondi JS.
+   */
+  async verifyEquilibrium(filters: BalanceFilters): Promise<{
+    isBalanced: boolean;
+    totalDebit: number;
+    totalCredit: number;
+    ecart: number;
+    details: string;
+  }> {
+    const accounts = await this.getBalance(filters);
+    const totals = this.calculateTotals(accounts);
+
+    // Use Money class for precise comparison
+    const { money, Money } = await import('../../../utils/money');
+    const totalD = money(totals.mouvementsDebit);
+    const totalC = money(totals.mouvementsCredit);
+    const ecart = totalD.subtract(totalC);
+    const isBalanced = ecart.isZero();
+
+    return {
+      isBalanced,
+      totalDebit: totals.mouvementsDebit,
+      totalCredit: totals.mouvementsCredit,
+      ecart: ecart.toNumber(),
+      details: isBalanced
+        ? `Balance équilibrée : D = C = ${totalD.toNumber().toLocaleString('fr-FR')} FCFA`
+        : `ALERTE : Écart de ${ecart.toNumber().toLocaleString('fr-FR')} FCFA (D = ${totalD.toNumber().toLocaleString('fr-FR')}, C = ${totalC.toNumber().toLocaleString('fr-FR')})`,
+    };
+  }
+
   // ---- Private ----
 
   private buildHierarchy(

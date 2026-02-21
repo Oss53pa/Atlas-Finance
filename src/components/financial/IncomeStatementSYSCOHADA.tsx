@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -79,65 +81,70 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
   const { data: incomeData, isLoading } = useQuery({
     queryKey: ['income-statement-syscohada', selectedPeriod],
     queryFn: async (): Promise<IncomeStatementData> => {
-      // Mock data conforme SYSCOHADA
+      const entries = await db.journalEntries.toArray();
+      const net = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+        return t;
+      };
+      const creditN = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+        return t;
+      };
+
+      const merchandisePurchases = net('601');
+      const merchandiseStockVariation = net('6031');
+      const rawMaterialsPurchases = net('602');
+      const rawMaterialsStockVariation = net('6032');
+      const otherPurchases = net('604', '605', '608');
+      const externalServices = net('61', '62', '63');
+      const taxesAndDuties = net('64');
+      const staffCosts = net('66');
+      const otherOperatingExpenses = net('65');
+      const financialExpenses = net('67');
+      const exceptionalExpenses = net('83', '85', '87');
+      const incomeTax = net('89');
+
+      const totalExpenses = merchandisePurchases + merchandiseStockVariation + rawMaterialsPurchases +
+        rawMaterialsStockVariation + otherPurchases + externalServices + taxesAndDuties +
+        staffCosts + otherOperatingExpenses + financialExpenses + exceptionalExpenses + incomeTax;
+
+      const merchandiseSales = creditN('701');
+      const productionSold = creditN('70');
+      const productionStored = creditN('73');
+      const productionImmobilized = creditN('72');
+      const operatingSubsidies = creditN('74');
+      const otherOperatingIncome = creditN('75');
+      const provisionsReversals = creditN('78', '79');
+      const financialIncome = creditN('77');
+      const exceptionalIncome = creditN('84', '86', '88');
+
+      const totalIncome = merchandiseSales + productionSold + productionStored +
+        productionImmobilized + operatingSubsidies + otherOperatingIncome +
+        provisionsReversals + financialIncome + exceptionalIncome;
+
       return {
         id: '1',
-        company: {
-          name: 'ATLAS FINANCE SARL',
-          address: 'Yaoundé, Cameroun'
-        },
-        fiscalYear: '2024',
-        statementDate: '2024-08-31',
-        
-        // CHARGES
-        merchandisePurchases: 2800000,
-        merchandiseStockVariation: 150000,
-        rawMaterialsPurchases: 1200000,
-        rawMaterialsStockVariation: -80000,
-        otherPurchases: 450000,
-        externalServices: 1800000,
-        taxesAndDuties: 320000,
-        staffCosts: 2100000,
-        otherOperatingExpenses: 280000,
-        
-        financialExpenses: 180000,
-        
-        exceptionalExpenses: 45000,
-        employeeParticipation: 0,
-        incomeTax: 520000,
-        
-        totalExpenses: 9765000,
-        
-        // PRODUITS
-        merchandiseSales: 4200000,
-        productionSold: 7800000,
-        productionStored: 200000,
-        productionImmobilized: 150000,
-        operatingSubsidies: 120000,
-        otherOperatingIncome: 180000,
-        provisionsReversals: 85000,
-        
-        financialIncome: 45000,
-        
-        exceptionalIncome: 80000,
-        
-        totalIncome: 12860000,
-        
-        calculatedNetResult: 3095000,
-        
-        isValidated: true,
-        validatedBy: 'Marie Dubois',
-        validationDate: '2024-08-31T16:30:00Z'
+        company: { name: 'ATLAS FINANCE', address: '' },
+        fiscalYear: new Date().getFullYear().toString(),
+        statementDate: new Date().toISOString().split('T')[0],
+        merchandisePurchases, merchandiseStockVariation, rawMaterialsPurchases,
+        rawMaterialsStockVariation, otherPurchases, externalServices,
+        taxesAndDuties, staffCosts, otherOperatingExpenses,
+        financialExpenses, exceptionalExpenses, employeeParticipation: 0, incomeTax,
+        totalExpenses,
+        merchandiseSales, productionSold, productionStored, productionImmobilized,
+        operatingSubsidies, otherOperatingIncome, provisionsReversals,
+        financialIncome, exceptionalIncome, totalIncome,
+        calculatedNetResult: totalIncome - totalExpenses,
+        isValidated: false
       };
     }
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const calculateMargin = (result: number, revenue: number) => {
     return revenue > 0 ? ((result / revenue) * 100).toFixed(1) : '0.0';

@@ -442,7 +442,7 @@ export interface InventoryReport {
     valuationMethod?: ValuationMethod;
     complianceStandard?: 'IFRS_IAS2' | 'US_GAAP_ASC330' | 'SYSCOHADA';
   };
-  data: any;
+  data: unknown;
   generatedAt: string;
   generatedBy: string;
   format: 'excel' | 'pdf' | 'csv' | 'json';

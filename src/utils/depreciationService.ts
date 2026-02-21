@@ -1,3 +1,5 @@
+import { money } from './money';
+
 export interface Immobilisation {
   id: string;
   code: string;
@@ -37,8 +39,8 @@ export class DepreciationService {
     dureeAnnees: number,
     valeurResiduelle: number = 0
   ): number {
-    const baseAmortissable = valeurAcquisition - valeurResiduelle;
-    return baseAmortissable / dureeAnnees;
+    const baseAmortissable = money(valeurAcquisition).subtract(valeurResiduelle);
+    return baseAmortissable.divide(dureeAnnees).toNumber();
   }
 
   static calculerAmortissementDegressif(
@@ -47,8 +49,8 @@ export class DepreciationService {
     anneesEcoulees: number,
     amortissementsCumules: number
   ): number {
-    const valeurNetteComptable = valeurAcquisition - amortissementsCumules;
-    return valeurNetteComptable * (tauxDegressif / 100);
+    const valeurNetteComptable = money(valeurAcquisition).subtract(amortissementsCumules);
+    return valeurNetteComptable.multiply(tauxDegressif).divide(100).toNumber();
   }
 
   static calculerAmortissementMensuel(
@@ -69,7 +71,7 @@ export class DepreciationService {
             immobilisation.amortissementsCumules
           ) / 12;
 
-    return Math.round(annuiteMensuelle * 100) / 100;
+    return money(annuiteMensuelle).round(0).toNumber();
   }
 
   static calculerAnneesEcoulees(dateAcquisition: string, dateCourante: string): number {
@@ -228,9 +230,9 @@ export class DepreciationService {
       tableau.push({
         annee: parseInt(immobilisation.dateAcquisition.substring(0, 4)) + annee - 1,
         baseAmortissable: immobilisation.valeurAcquisition,
-        dotation: Math.round(dotation * 100) / 100,
-        amortissementCumule: Math.round(amortissementCumule * 100) / 100,
-        valeurNetteComptable: Math.round(valeurNetteComptable * 100) / 100
+        dotation: money(dotation).round(0).toNumber(),
+        amortissementCumule: money(amortissementCumule).round(0).toNumber(),
+        valeurNetteComptable: money(valeurNetteComptable).round(0).toNumber()
       });
 
       if (valeurNetteComptable <= (immobilisation.valeurResiduelle || 0)) {

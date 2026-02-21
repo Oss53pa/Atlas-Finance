@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import {
   ChartBarIcon,
   ChartBarIcon,
@@ -94,74 +96,70 @@ const SIGDashboard: React.FC = () => {
   const { data: sigData, isLoading } = useQuery({
     queryKey: ['sig-data', selectedPeriod],
     queryFn: async (): Promise<SIGData> => {
-      // Mock data - remplacer par vraie API
+      const entries = await db.journalEntries.toArray();
+      const net = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+        return t;
+      };
+      const creditN = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+        return t;
+      };
+
+      const merchandiseSales = creditN('701');
+      const merchandiseCost = net('601', '6031');
+      const commercialMargin = merchandiseSales - merchandiseCost;
+      const productionSold = creditN('70');
+      const productionStored = creditN('73');
+      const productionImmobilized = creditN('72');
+      const periodProduction = productionSold + productionStored + productionImmobilized;
+      const intermediateConsumption = net('60', '61', '62', '63');
+      const addedValue = commercialMargin + periodProduction - intermediateConsumption;
+      const operatingSubsidies = creditN('74');
+      const staffCosts = net('66');
+      const taxesAndDuties = net('64');
+      const grossOperatingSurplus = addedValue + operatingSubsidies - staffCosts - taxesAndDuties;
+      const otherOperatingIncome = creditN('75', '78', '79');
+      const depreciationProvisionsDotations = net('68', '69');
+      const otherOperatingExpenses = net('65');
+      const operatingResult = grossOperatingSurplus + otherOperatingIncome - depreciationProvisionsDotations - otherOperatingExpenses;
+      const financialIncome = creditN('77');
+      const financialExpenses = net('67');
+      const financialResult = financialIncome - financialExpenses;
+      const currentResultBeforeTax = operatingResult + financialResult;
+      const exceptionalIncome = creditN('84', '86', '88');
+      const exceptionalExpenses = net('83', '85', '87');
+      const exceptionalResult = exceptionalIncome - exceptionalExpenses;
+      const incomeTax = net('89');
+      const finalNetResult = currentResultBeforeTax + exceptionalResult - incomeTax;
+      const revenueBase = merchandiseSales + productionSold;
+      const safe = (a: number, b: number) => b === 0 ? 0 : (a / b) * 100;
+
       return {
         id: '1',
-        fiscalYear: '2024',
-        calculationDate: '2024-08-25T10:30:00Z',
-        
-        // 1. Marge commerciale
-        merchandiseSales: 3200000,
-        merchandiseCost: 2100000,
-        commercialMargin: 1100000,
-        
-        // 2. Production
-        productionSold: 8500000,
-        productionStored: 150000,
-        productionImmobilized: 80000,
-        periodProduction: 8730000,
-        
-        // 3. Valeur ajoutée
-        intermediateConsumption: 4030000,
-        addedValue: 5800000,
-        
-        // 4. EBE
-        operatingSubsidies: 120000,
-        staffCosts: 2100000,
-        taxesAndDuties: 970000,
-        grossOperatingSurplus: 2850000,
-        
-        // 5. Résultat d'exploitation
-        otherOperatingIncome: 180000,
-        depreciationProvisionsDotations: 750000,
-        otherOperatingExpenses: 180000,
-        operatingResult: 2100000,
-        
-        // 6. Résultat financier
-        financialIncome: 45000,
-        financialExpenses: 225000,
-        financialResult: -180000,
-        
-        // 7. RCAI
-        currentResultBeforeTax: 1920000,
-        
-        // 8. Résultat exceptionnel
-        exceptionalIncome: 80000,
-        exceptionalExpenses: 30000,
-        exceptionalResult: 50000,
-        
-        // 9. Résultat net
-        incomeTax: 520000,
-        finalNetResult: 1450000,
-        
-        // Taux
-        addedValueRate: 48.3,
-        operatingMarginRate: 17.5,
-        netMarginRate: 12.1,
-        
-        revenueBase: 12000000
+        fiscalYear: new Date().getFullYear().toString(),
+        calculationDate: new Date().toISOString(),
+        merchandiseSales, merchandiseCost, commercialMargin,
+        productionSold, productionStored, productionImmobilized, periodProduction,
+        intermediateConsumption, addedValue,
+        operatingSubsidies, staffCosts, taxesAndDuties, grossOperatingSurplus,
+        otherOperatingIncome, depreciationProvisionsDotations, otherOperatingExpenses, operatingResult,
+        financialIncome, financialExpenses, financialResult,
+        currentResultBeforeTax,
+        exceptionalIncome, exceptionalExpenses, exceptionalResult,
+        incomeTax, finalNetResult,
+        addedValueRate: safe(addedValue, revenueBase),
+        operatingMarginRate: safe(operatingResult, revenueBase),
+        netMarginRate: safe(finalNetResult, revenueBase),
+        revenueBase,
       };
     }
   });
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const formatPercentage = (value: number): string => {
     return `${value.toFixed(1)}%`;

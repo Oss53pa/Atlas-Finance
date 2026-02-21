@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import {
   ChartBarIcon,
   ExclamationTriangleIcon,
@@ -65,95 +66,60 @@ const RatiosDashboard: React.FC = () => {
   const { data: ratiosData, isLoading } = useQuery({
     queryKey: ['financial-ratios', selectedCategory],
     queryFn: async (): Promise<RatioData[]> => {
-      // Mock data - remplacer par vraie API
+      const entries = await db.journalEntries.toArray();
+      const net = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.debit - l.credit;
+        return t;
+      };
+      const creditN = (...pfx: string[]) => {
+        let t = 0;
+        for (const e of entries) for (const l of e.lines)
+          if (pfx.some(p => l.accountCode.startsWith(p))) t += l.credit - l.debit;
+        return t;
+      };
+      const safe = (a: number, b: number) => b === 0 ? 0 : a / b;
+
+      // Key aggregates
+      const totalActif = Math.max(0, net('2', '28', '3', '41', '46', '5'));
+      const cp = creditN('10', '11', '12') + (creditN('7') - net('6'));
+      const dettesFinancieres = creditN('16', '17');
+      const actifCirculant = Math.max(0, net('3', '41', '46', '5'));
+      const passifCirculant = creditN('40', '42', '43', '44', '47');
+      const tresorerie = Math.max(0, net('5'));
+      const creancesClients = Math.max(0, net('41'));
+      const dettesFournisseurs = creditN('40');
+      const stocks = Math.max(0, net('3'));
+      const ca = creditN('70');
+      const achats = net('60');
+      const rn = creditN('7') - net('6');
+      const re = creditN('70', '71', '72', '73', '74', '75', '78', '79') - net('60', '61', '62', '63', '64', '65', '66', '68', '69');
+      const chargesFin = net('67');
+      const va = ca - net('60', '61', '62', '63');
+      const ebe = va + creditN('74') - net('66') - net('64');
+
+      const mkRatio = (id: string, cat: RatioData['category'], type: string, lib: string, val: number, unit: RatioData['unite'], ref: number, formule: string): RatioData => {
+        const ecart = val - ref;
+        const interp = val >= ref ? 'Conforme aux normes' : 'En dessous des normes';
+        const alerte = (cat === 'STRUCTURE' || cat === 'RENTABILITE') ? val < ref * 0.5 : val < ref * 0.7;
+        return { id, category: cat, typeRatio: type, libelle: lib, valeur: Math.round(val * 10) / 10, unite: unit, valeurReference: ref, ecartReference: Math.round(ecart * 10) / 10, interpretation: interp, alerte, niveauAlerte: alerte ? 'ATTENTION' : '', formule };
+      };
+
       return [
-        // Ratios de Structure
-        {
-          id: '1', category: 'STRUCTURE', typeRatio: 'AUTONOMIE_FINANCIERE', libelle: 'Autonomie financière',
-          valeur: 45.2, unite: '%', valeurReference: 33, ecartReference: 12.2, valeurN1: 42.8, variationAbsolue: 2.4, variationRelative: 5.6,
-          benchmarkSectorValue: 38.5, sectorPercentile: 72, interpretation: 'Bonne autonomie financière', alerte: false, niveauAlerte: '',
-          formule: 'Capitaux Propres / Total Actif × 100'
-        },
-        {
-          id: '2', category: 'STRUCTURE', typeRatio: 'ENDETTEMENT_GLOBAL', libelle: 'Endettement global',
-          valeur: 54.8, unite: '%', valeurReference: 67, ecartReference: -12.2, valeurN1: 57.2, variationAbsolue: -2.4, variationRelative: -4.2,
-          interpretation: 'Endettement maîtrisé', alerte: false, niveauAlerte: '',
-          formule: 'Total Dettes / Total Actif × 100'
-        },
-        {
-          id: '3', category: 'STRUCTURE', typeRatio: 'CAPACITE_REMBOURSEMENT', libelle: 'Capacité de remboursement',
-          valeur: 2.1, unite: 'fois', valeurReference: 4, ecartReference: -1.9, valeurN1: 2.8, variationAbsolue: -0.7, variationRelative: -25,
-          interpretation: 'Excellente capacité', alerte: false, niveauAlerte: '',
-          formule: 'Dettes Financières / EBE'
-        },
-
-        // Ratios de Liquidité
-        {
-          id: '4', category: 'LIQUIDITE', typeRatio: 'LIQUIDITE_GENERALE', libelle: 'Liquidité générale',
-          valeur: 1.8, unite: 'ratio', valeurReference: 1.2, ecartReference: 0.6, valeurN1: 1.6, variationAbsolue: 0.2, variationRelative: 12.5,
-          interpretation: 'Excellente liquidité', alerte: false, niveauAlerte: '',
-          formule: 'Actif Circulant / Passif Circulant'
-        },
-        {
-          id: '5', category: 'LIQUIDITE', typeRatio: 'LIQUIDITE_REDUITE', libelle: 'Liquidité réduite',
-          valeur: 1.3, unite: 'ratio', valeurReference: 0.8, ecartReference: 0.5, valeurN1: 1.1, variationAbsolue: 0.2, variationRelative: 18.2,
-          interpretation: 'Bonne liquidité', alerte: false, niveauAlerte: '',
-          formule: '(Créances + Disponibilités) / Passif Circulant'
-        },
-
-        // Ratios d'Activité
-        {
-          id: '6', category: 'ACTIVITE', typeRatio: 'DELAI_CLIENTS', libelle: 'Délai clients (DSO)',
-          valeur: 42, unite: 'jours', valeurReference: 45, ecartReference: -3, valeurN1: 48, variationAbsolue: -6, variationRelative: -12.5,
-          interpretation: 'Bon recouvrement', alerte: false, niveauAlerte: '',
-          formule: '(Créances Clients × 365) / CA TTC'
-        },
-        {
-          id: '7', category: 'ACTIVITE', typeRatio: 'DELAI_FOURNISSEURS', libelle: 'Délai fournisseurs (DPO)',
-          valeur: 58, unite: 'jours', valeurReference: 60, ecartReference: -2, valeurN1: 55, variationAbsolue: 3, variationRelative: 5.5,
-          interpretation: 'Délai optimal', alerte: false, niveauAlerte: '',
-          formule: '(Dettes Fournisseurs × 365) / Achats TTC'
-        },
-        {
-          id: '8', category: 'ACTIVITE', typeRatio: 'ROTATION_STOCKS', libelle: 'Rotation stocks (DIO)',
-          valeur: 35, unite: 'jours', valeurReference: 45, ecartReference: -10, valeurN1: 38, variationAbsolue: -3, variationRelative: -7.9,
-          interpretation: 'Bonne rotation', alerte: false, niveauAlerte: '',
-          formule: '(Stock Moyen × 365) / Coût d\'Achat'
-        },
-
-        // Ratios de Rentabilité
-        {
-          id: '9', category: 'RENTABILITE', typeRatio: 'MARGE_NETTE', libelle: 'Marge nette',
-          valeur: 12.1, unite: '%', valeurReference: 5, ecartReference: 7.1, valeurN1: 10.8, variationAbsolue: 1.3, variationRelative: 12,
-          interpretation: 'Excellente rentabilité', alerte: false, niveauAlerte: '',
-          formule: 'Résultat Net / CA × 100'
-        },
-        {
-          id: '10', category: 'RENTABILITE', typeRatio: 'ROE', libelle: 'ROE (Return on Equity)',
-          valeur: 18.7, unite: '%', valeurReference: 10, ecartReference: 8.7, valeurN1: 16.2, variationAbsolue: 2.5, variationRelative: 15.4,
-          interpretation: 'Très forte rentabilité', alerte: false, niveauAlerte: '',
-          formule: 'Résultat Net / Capitaux Propres × 100'
-        },
-        {
-          id: '11', category: 'RENTABILITE', typeRatio: 'ROA', libelle: 'ROA (Return on Assets)',
-          valeur: 8.4, unite: '%', valeurReference: 5, ecartReference: 3.4, valeurN1: 6.9, variationAbsolue: 1.5, variationRelative: 21.7,
-          interpretation: 'Forte rentabilité des actifs', alerte: false, niveauAlerte: '',
-          formule: 'Résultat Net / Total Actif × 100'
-        },
-
-        // Ratios de Solvabilité
-        {
-          id: '12', category: 'SOLVABILITE', typeRatio: 'COUVERTURE_INTERETS', libelle: 'Couverture des intérêts',
-          valeur: 12.6, unite: 'fois', valeurReference: 3, ecartReference: 9.6, valeurN1: 10.2, variationAbsolue: 2.4, variationRelative: 23.5,
-          interpretation: 'Excellente couverture', alerte: false, niveauAlerte: '',
-          formule: 'EBE / Charges Financières'
-        },
-        {
-          id: '13', category: 'SOLVABILITE', typeRatio: 'DETTE_EBITDA', libelle: 'Dette / EBITDA',
-          valeur: 1.8, unite: 'fois', valeurReference: 4, ecartReference: -2.2, valeurN1: 2.3, variationAbsolue: -0.5, variationRelative: -21.7,
-          interpretation: 'Faible endettement', alerte: false, niveauAlerte: '',
-          formule: 'Dettes Financières / EBE'
-        }
+        mkRatio('1', 'STRUCTURE', 'AUTONOMIE_FINANCIERE', 'Autonomie financière', safe(cp, totalActif) * 100, '%', 33, 'Capitaux Propres / Total Actif × 100'),
+        mkRatio('2', 'STRUCTURE', 'ENDETTEMENT_GLOBAL', 'Endettement global', safe(dettesFinancieres + passifCirculant, totalActif) * 100, '%', 67, 'Total Dettes / Total Actif × 100'),
+        mkRatio('3', 'STRUCTURE', 'CAPACITE_REMBOURSEMENT', 'Capacité de remboursement', safe(dettesFinancieres, ebe), 'fois', 4, 'Dettes Financières / EBE'),
+        mkRatio('4', 'LIQUIDITE', 'LIQUIDITE_GENERALE', 'Liquidité générale', safe(actifCirculant, passifCirculant), 'ratio', 1.2, 'Actif Circulant / Passif Circulant'),
+        mkRatio('5', 'LIQUIDITE', 'LIQUIDITE_REDUITE', 'Liquidité réduite', safe(creancesClients + tresorerie, passifCirculant), 'ratio', 0.8, '(Créances + Disponibilités) / Passif Circulant'),
+        mkRatio('6', 'ACTIVITE', 'DELAI_CLIENTS', 'Délai clients (DSO)', safe(creancesClients, ca) * 365, 'jours', 45, '(Créances Clients × 365) / CA'),
+        mkRatio('7', 'ACTIVITE', 'DELAI_FOURNISSEURS', 'Délai fournisseurs (DPO)', safe(dettesFournisseurs, achats) * 365, 'jours', 60, '(Dettes Fournisseurs × 365) / Achats'),
+        mkRatio('8', 'ACTIVITE', 'ROTATION_STOCKS', 'Rotation stocks (DIO)', safe(stocks, achats) * 365, 'jours', 45, '(Stock Moyen × 365) / Coût d\'Achat'),
+        mkRatio('9', 'RENTABILITE', 'MARGE_NETTE', 'Marge nette', safe(rn, ca) * 100, '%', 5, 'Résultat Net / CA × 100'),
+        mkRatio('10', 'RENTABILITE', 'ROE', 'ROE (Return on Equity)', safe(rn, cp) * 100, '%', 10, 'Résultat Net / Capitaux Propres × 100'),
+        mkRatio('11', 'RENTABILITE', 'ROA', 'ROA (Return on Assets)', safe(rn, totalActif) * 100, '%', 5, 'Résultat Net / Total Actif × 100'),
+        mkRatio('12', 'SOLVABILITE', 'COUVERTURE_INTERETS', 'Couverture des intérêts', safe(ebe, chargesFin), 'fois', 3, 'EBE / Charges Financières'),
+        mkRatio('13', 'SOLVABILITE', 'DETTE_EBITDA', 'Dette / EBITDA', safe(dettesFinancieres, ebe), 'fois', 4, 'Dettes Financières / EBE'),
       ];
     }
   });

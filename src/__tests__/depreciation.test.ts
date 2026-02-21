@@ -37,10 +37,11 @@ describe('Amortissement linéaire', () => {
 });
 
 describe('Amortissement mensuel', () => {
-  it('divise correctement par 12', () => {
+  it('divise correctement par 12 (arrondi entier FCFA)', () => {
     const immo = makeImmobilisation();
     const result = DepreciationService.calculerAmortissementMensuel(immo, '2026-06');
-    expect(result).toBeCloseTo(1666.67, 1);
+    // 100 000 / 5 / 12 = 1 666.67 → arrondi FCFA = 1 667
+    expect(result).toBe(1_667);
   });
 });
 
@@ -63,6 +64,62 @@ describe('Tableau d\'amortissement', () => {
     const tableau = DepreciationService.genererTableauAmortissement(immo);
     const totalAmorti = tableau.reduce((sum, l) => sum + l.dotation, 0);
     expect(totalAmorti).toBeCloseTo(90_000, 0);
+  });
+});
+
+describe('Amortissement — Precision Money class', () => {
+  it('lineaire 10 000 000 sur 5 ans = annuite 2 000 000', () => {
+    const result = DepreciationService.calculerAmortissementLineaire(10_000_000, 5, 0);
+    expect(result).toBe(2_000_000);
+  });
+
+  it('mensualite 10 000 000 sur 5 ans = 166 667 FCFA (arrondi entier)', () => {
+    const immo = makeImmobilisation({
+      valeurAcquisition: 10_000_000,
+      dureeAmortissement: 5,
+    });
+    const result = DepreciationService.calculerAmortissementMensuel(immo, '2026-06');
+    expect(result).toBe(166_667);
+  });
+
+  it('prorata temporis acquisition 01/07: 6 mois = 1 000 000 pour 10M/5ans', () => {
+    const immo = makeImmobilisation({
+      valeurAcquisition: 10_000_000,
+      dureeAmortissement: 5,
+      dateAcquisition: '2026-07-01',
+    });
+    // 6 mois de dotation = 2 000 000 / 12 * 6 = 1 000 000
+    let total = 0;
+    for (let m = 7; m <= 12; m++) {
+      total += DepreciationService.calculerAmortissementMensuel(
+        immo,
+        `2026-${String(m).padStart(2, '0')}`
+      );
+    }
+    // 6 * 166 667 = 1 000 002 (arrondi entier mensuel accumule 1 FCFA/mois d'ecart)
+    // Tolerance de 6 FCFA pour l'arrondi mensuel
+    expect(Math.abs(total - 1_000_000)).toBeLessThanOrEqual(6);
+  });
+
+  it('VNC ne devient jamais negative dans le tableau', () => {
+    const immo = makeImmobilisation({
+      valeurAcquisition: 10_000_000,
+      dureeAmortissement: 5,
+    });
+    const tableau = DepreciationService.genererTableauAmortissement(immo);
+    for (const ligne of tableau) {
+      expect(ligne.valeurNetteComptable).toBeGreaterThanOrEqual(-1); // tolerance 1 FCFA
+    }
+  });
+
+  it('cumul amortissements = valeur origine en fin de vie (lineaire)', () => {
+    const immo = makeImmobilisation({
+      valeurAcquisition: 10_000_000,
+      dureeAmortissement: 5,
+    });
+    const tableau = DepreciationService.genererTableauAmortissement(immo);
+    const derniereLigne = tableau[tableau.length - 1];
+    expect(derniereLigne.amortissementCumule).toBe(10_000_000);
   });
 });
 

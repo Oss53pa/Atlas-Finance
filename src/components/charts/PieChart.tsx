@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface PieChartProps {
-  data: any[];
+  data: Record<string, unknown>[];
   dataKey: string;
   nameKey: string;
   height: number;

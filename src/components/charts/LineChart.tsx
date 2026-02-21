@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface LineChartProps {
-  data: any[];
+  data: Record<string, unknown>[];
   xAxisKey: string;
   lines: Array<{ key: string; name: string; color: string }>;
   height: number;

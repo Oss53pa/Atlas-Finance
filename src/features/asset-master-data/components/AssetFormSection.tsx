@@ -5,7 +5,7 @@ import { AssetMasterData } from '../types/asset-master.types';
 interface AssetFormSectionProps {
   section: 'general' | 'acquisition' | 'immobilisation' | 'maintenance';
   asset: Partial<AssetMasterData>;
-  onChange: (section: string, field: string, value: any) => void;
+  onChange: (section: string, field: string, value: string | number | boolean) => void;
 }
 
 export const AssetFormSection: React.FC<AssetFormSectionProps> = ({

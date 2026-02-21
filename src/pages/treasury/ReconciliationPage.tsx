@@ -47,6 +47,22 @@ import { useBankAccounts } from '../../hooks';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
+interface ReconciliationItem {
+  id: string;
+  date: string;
+  date_valeur?: string;
+  type_mouvement: string;
+  libelle: string;
+  description?: string;
+  reference_comptable?: string;
+  reference_banque?: string;
+  montant_comptable: number;
+  montant_banque: number;
+  ecart_montant: number | null;
+  type_ecart?: string;
+  statut: string;
+}
+
 interface ReconciliationFilters {
   compte: string;
   periode_debut: string;
@@ -77,7 +93,7 @@ const ReconciliationPage: React.FC = () => {
 
   // États pour le modal de détail
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<ReconciliationItem | null>(null);
 
   const { data: bankAccounts } = useBankAccounts({
     page: 1,
@@ -92,13 +108,13 @@ const ReconciliationPage: React.FC = () => {
   const isLoading = false;
 
   const autoReconciliationMutation = {
-    mutate: (data: any) => {
+    mutate: (_data: { compte_id: string; periode_debut: string; periode_fin: string }) => {
       toast.success('Rapprochement automatique simulé');
     },
   };
 
   const manualReconciliationMutation = {
-    mutate: (data: any) => {
+    mutate: (_data: { items: string[] }) => {
       toast.success('Rapprochement manuel simulé');
       setSelectedItems(new Set());
     },
@@ -193,19 +209,19 @@ const ReconciliationPage: React.FC = () => {
   };
 
   // Handlers pour les actions
-  const handleViewDetail = (item: any) => {
+  const handleViewDetail = (item: ReconciliationItem) => {
     setSelectedItem(item);
     setShowDetailModal(true);
   };
 
-  const handleReconcileSingle = (item: any) => {
+  const handleReconcileSingle = (item: ReconciliationItem) => {
     if (confirm(`Confirmer le rapprochement de l'élément "${item.libelle}" ?`)) {
       toast.success(`Élément "${item.libelle}" rapproché avec succès`);
       // TODO: Appel API pour rapprocher l'élément
     }
   };
 
-  const handleCancelReconciliation = (item: any) => {
+  const handleCancelReconciliation = (item: ReconciliationItem) => {
     if (confirm(`Annuler le rapprochement de l'élément "${item.libelle}" ?`)) {
       toast.success(`Rapprochement annulé pour "${item.libelle}"`);
       // TODO: Appel API pour annuler le rapprochement

@@ -22,7 +22,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('WorkspaceDashboard', () => {
-  const mockWorkspace: any = {
+  const mockWorkspace: Record<string, unknown> = {
     id: '1',
     role: 'comptable',
     role_display: 'Comptable',
@@ -38,7 +38,7 @@ describe('WorkspaceDashboard', () => {
     updated_at: '2025-01-01T00:00:00Z',
   };
 
-  const mockDashboard: any = {
+  const mockDashboard: Record<string, unknown> = {
     workspace: mockWorkspace,
     user_preferences: undefined,
     statistics: [

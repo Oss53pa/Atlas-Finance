@@ -90,6 +90,70 @@ export interface AccountingQueryParams {
   status?: string;
 }
 
+export interface ChartOfAccountQueryParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  account_class?: string;
+  account_type?: string;
+  is_active?: boolean;
+}
+
+export interface JournalQueryParams {
+  page?: number;
+  page_size?: number;
+  journal_type?: string;
+  is_active?: boolean;
+}
+
+export interface BalanceQueryParams {
+  company_id?: string;
+  date_from?: string;
+  date_to?: string;
+  fiscal_year_id?: string;
+}
+
+export interface LedgerEntry {
+  entry_id: string;
+  entry_date: string;
+  piece_number: string;
+  description: string;
+  debit_amount: number;
+  credit_amount: number;
+  balance: number;
+}
+
+export interface IncomeStatementResponse {
+  income: BalanceResponse[];
+  expenses: BalanceResponse[];
+  net_income: number;
+}
+
+export interface BalanceSheetResponse {
+  assets: BalanceResponse[];
+  liabilities: BalanceResponse[];
+  equity: BalanceResponse[];
+}
+
+export interface EntryLineWithAccount extends AccountingEntryLine {
+  account?: { code: string; name: string };
+}
+
+export interface AccountingEntryCreateData {
+  company_id?: string;
+  fiscal_year_id?: string;
+  journal_id?: string;
+  piece_number?: string;
+  reference?: string;
+  entry_date?: string;
+  description?: string;
+  total_debit?: number;
+  total_credit?: number;
+  is_balanced?: boolean;
+  source_document?: string;
+  lines?: AccountingEntryLine[];
+}
+
 export interface BalanceResponse {
   account_id: string;
   account_code: string;
@@ -104,9 +168,9 @@ export interface BalanceResponse {
 // ============================================================================
 
 class ChartOfAccountsService {
-  async getAll(params?: any): Promise<{ results: ChartOfAccount[]; count: number }> {
+  async getAll(params?: ChartOfAccountQueryParams): Promise<{ results: ChartOfAccount[]; count: number }> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string | boolean> = {};
       if (params?.account_class) filters.account_class = params.account_class;
       if (params?.account_type) filters.account_type = params.account_type;
       if (params?.is_active !== undefined) filters.is_active = params.is_active;
@@ -133,12 +197,12 @@ class ChartOfAccountsService {
     }
   }
 
-  async create(data: any): Promise<ChartOfAccount> {
-    return await insertRecord<ChartOfAccount>('chart_of_accounts', data);
+  async create(data: Partial<Omit<ChartOfAccount, 'id' | 'created_at' | 'updated_at'>>): Promise<ChartOfAccount> {
+    return await insertRecord<ChartOfAccount>('chart_of_accounts', data as Record<string, unknown>);
   }
 
-  async update(id: string, data: any): Promise<ChartOfAccount> {
-    return await updateRecord<ChartOfAccount>('chart_of_accounts', id, data);
+  async update(id: string, data: Partial<Omit<ChartOfAccount, 'id' | 'created_at' | 'updated_at'>>): Promise<ChartOfAccount> {
+    return await updateRecord<ChartOfAccount>('chart_of_accounts', id, data as Record<string, unknown>);
   }
 
   async delete(id: string): Promise<void> {
@@ -179,9 +243,9 @@ class ChartOfAccountsService {
 // ============================================================================
 
 class JournalsService {
-  async getAll(params?: any): Promise<{ results: Journal[]; count: number }> {
+  async getAll(params?: JournalQueryParams): Promise<{ results: Journal[]; count: number }> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string | boolean> = {};
       if (params?.journal_type) filters.journal_type = params.journal_type;
       if (params?.is_active !== undefined) filters.is_active = params.is_active;
 
@@ -206,12 +270,12 @@ class JournalsService {
     }
   }
 
-  async create(data: any): Promise<Journal> {
-    return await insertRecord<Journal>('journals', data);
+  async create(data: Partial<Omit<Journal, 'id' | 'created_at' | 'updated_at'>>): Promise<Journal> {
+    return await insertRecord<Journal>('journals', data as Record<string, unknown>);
   }
 
-  async update(id: string, data: any): Promise<Journal> {
-    return await updateRecord<Journal>('journals', id, data);
+  async update(id: string, data: Partial<Omit<Journal, 'id' | 'created_at' | 'updated_at'>>): Promise<Journal> {
+    return await updateRecord<Journal>('journals', id, data as Record<string, unknown>);
   }
 
   async delete(id: string): Promise<void> {
@@ -226,7 +290,7 @@ class JournalsService {
 class AccountingEntriesService {
   async getAll(params?: AccountingQueryParams): Promise<{ results: AccountingEntry[]; count: number }> {
     try {
-      const filters: Record<string, any> = {};
+      const filters: Record<string, string | boolean> = {};
       if (params?.journal_id) filters.journal_id = params.journal_id;
       if (params?.status === 'validated') filters.is_validated = true;
       if (params?.status === 'draft') filters.is_validated = false;
@@ -265,7 +329,7 @@ class AccountingEntriesService {
 
       // Map account info to flat fields on lines
       if (data?.lines) {
-        data.lines = data.lines.map((line: any) => ({
+        data.lines = data.lines.map((line: EntryLineWithAccount) => ({
           ...line,
           account_code: line.account?.code,
           account_name: line.account?.name,
@@ -278,15 +342,15 @@ class AccountingEntriesService {
     }
   }
 
-  async create(data: any): Promise<AccountingEntry> {
+  async create(data: AccountingEntryCreateData): Promise<AccountingEntry> {
     const { lines, ...entryData } = data;
 
     // Insert entry
-    const entry = await insertRecord<AccountingEntry>('journal_entries', entryData);
+    const entry = await insertRecord<AccountingEntry>('journal_entries', entryData as Record<string, unknown>);
 
     // Insert lines if provided
     if (lines && lines.length > 0) {
-      const linesWithEntryId = lines.map((line: any, index: number) => ({
+      const linesWithEntryId = lines.map((line: AccountingEntryLine, index: number) => ({
         ...line,
         entry_id: entry.id,
         line_number: index + 1,
@@ -303,10 +367,10 @@ class AccountingEntriesService {
     return entry;
   }
 
-  async update(id: string, data: any): Promise<AccountingEntry> {
+  async update(id: string, data: AccountingEntryCreateData): Promise<AccountingEntry> {
     const { lines, ...entryData } = data;
 
-    const entry = await updateRecord<AccountingEntry>('journal_entries', id, entryData);
+    const entry = await updateRecord<AccountingEntry>('journal_entries', id, entryData as Record<string, unknown>);
 
     // Replace lines if provided
     if (lines) {
@@ -318,7 +382,7 @@ class AccountingEntriesService {
 
       // Insert new lines
       if (lines.length > 0) {
-        const linesWithEntryId = lines.map((line: any, index: number) => ({
+        const linesWithEntryId = lines.map((line: AccountingEntryLine, index: number) => ({
           ...line,
           entry_id: id,
           line_number: index + 1,
@@ -372,7 +436,7 @@ class EntryLinesService {
 
       if (error) throw error;
 
-      return (data || []).map((line: any) => ({
+      return (data || []).map((line: EntryLineWithAccount) => ({
         ...line,
         account_code: line.account?.code,
         account_name: line.account?.name,
@@ -382,15 +446,15 @@ class EntryLinesService {
     }
   }
 
-  async create(entryId: string, data: any): Promise<AccountingEntryLine> {
+  async create(entryId: string, data: Partial<Omit<AccountingEntryLine, 'id' | 'entry_id'>>): Promise<AccountingEntryLine> {
     return await insertRecord<AccountingEntryLine>('journal_entry_lines', {
       ...data,
       entry_id: entryId,
-    });
+    } as Record<string, unknown>);
   }
 
-  async update(entryId: string, lineId: string, data: any): Promise<AccountingEntryLine> {
-    return await updateRecord<AccountingEntryLine>('journal_entry_lines', lineId, data);
+  async update(_entryId: string, lineId: string, data: Partial<Omit<AccountingEntryLine, 'id' | 'entry_id'>>): Promise<AccountingEntryLine> {
+    return await updateRecord<AccountingEntryLine>('journal_entry_lines', lineId, data as Record<string, unknown>);
   }
 
   async delete(entryId: string, lineId: string): Promise<void> {
@@ -403,7 +467,7 @@ class EntryLinesService {
 // ============================================================================
 
 class AccountingReportsService {
-  async getBalance(params?: any): Promise<BalanceResponse[]> {
+  async getBalance(params?: BalanceQueryParams): Promise<BalanceResponse[]> {
     try {
       const result = await callRpc<BalanceResponse[]>('get_trial_balance', {
         p_company_id: params?.company_id || (await supabase.rpc('get_user_company_id')).data,
@@ -416,7 +480,7 @@ class AccountingReportsService {
     }
   }
 
-  async getTrialBalance(params?: any): Promise<{ accounts: BalanceResponse[]; totals: { debit: number; credit: number } }> {
+  async getTrialBalance(params?: BalanceQueryParams): Promise<{ accounts: BalanceResponse[]; totals: { debit: number; credit: number } }> {
     try {
       const accounts = await this.getBalance(params);
       const totals = accounts.reduce(
@@ -432,13 +496,13 @@ class AccountingReportsService {
     }
   }
 
-  async getGeneralLedger(params?: any): Promise<{ entries: any[]; account: ChartOfAccount | null }> {
+  async getGeneralLedger(params?: BalanceQueryParams & { account_id?: string }): Promise<{ entries: LedgerEntry[]; account: ChartOfAccount | null }> {
     try {
       if (!params?.account_id) return { entries: [], account: null };
 
       const [account, ledger] = await Promise.all([
         getById<ChartOfAccount>('chart_of_accounts', params.account_id),
-        callRpc('get_account_ledger', {
+        callRpc<LedgerEntry[]>('get_account_ledger', {
           p_account_id: params.account_id,
           p_start: params.date_from || '1900-01-01',
           p_end: params.date_to || new Date().toISOString().split('T')[0],
@@ -451,9 +515,9 @@ class AccountingReportsService {
     }
   }
 
-  async getIncomeStatement(params?: any): Promise<any> {
+  async getIncomeStatement(params?: BalanceQueryParams): Promise<IncomeStatementResponse> {
     try {
-      const result = await callRpc('get_income_statement', {
+      const result = await callRpc<IncomeStatementResponse>('get_income_statement', {
         p_company_id: params?.company_id || (await supabase.rpc('get_user_company_id')).data,
         p_fiscal_year_id: params?.fiscal_year_id,
       });
@@ -463,9 +527,9 @@ class AccountingReportsService {
     }
   }
 
-  async getBalanceSheet(params?: any): Promise<any> {
+  async getBalanceSheet(params?: BalanceQueryParams): Promise<BalanceSheetResponse> {
     try {
-      const result = await callRpc('get_balance_sheet', {
+      const result = await callRpc<BalanceSheetResponse>('get_balance_sheet', {
         p_company_id: params?.company_id || (await supabase.rpc('get_user_company_id')).data,
         p_fiscal_year_id: params?.fiscal_year_id,
       });

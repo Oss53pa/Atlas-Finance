@@ -585,7 +585,7 @@ const CashFlowPage: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Select value={filters.granularite} onValueChange={(value) => handleFilterChange('granularite', value as any)}>
+            <Select value={filters.granularite} onValueChange={(value) => handleFilterChange('granularite', value as CashFlowFilters['granularite'])}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -597,7 +597,7 @@ const CashFlowPage: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Select value={filters.type_analyse} onValueChange={(value) => handleFilterChange('type_analyse', value as any)}>
+            <Select value={filters.type_analyse} onValueChange={(value) => handleFilterChange('type_analyse', value as CashFlowFilters['type_analyse'])}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

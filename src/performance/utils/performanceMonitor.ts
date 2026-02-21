@@ -83,7 +83,7 @@ export class PerformanceMonitor {
     // LCP Observer
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      const lastEntry = entries[entries.length - 1] as any;
+      const lastEntry = entries[entries.length - 1];
       this.metrics.lcp = lastEntry.startTime;
     });
 
@@ -97,8 +97,9 @@ export class PerformanceMonitor {
     // FID Observer
     const fidObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
-        this.metrics.fid = entry.processingStart - entry.startTime;
+      entries.forEach((entry) => {
+        const fidEntry = entry as PerformanceEventTiming;
+        this.metrics.fid = fidEntry.processingStart - fidEntry.startTime;
       });
     });
 
@@ -113,9 +114,10 @@ export class PerformanceMonitor {
     let clsValue = 0;
     const clsObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
-        if (!entry.hadRecentInput) {
-          clsValue += entry.value;
+      entries.forEach((entry) => {
+        const layoutEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+        if (!layoutEntry.hadRecentInput) {
+          clsValue += layoutEntry.value ?? 0;
           this.metrics.cls = clsValue;
         }
       });
@@ -131,7 +133,7 @@ export class PerformanceMonitor {
     // FCP Observer
     const fcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
+      entries.forEach((entry) => {
         if (entry.name === 'first-contentful-paint') {
           this.metrics.fcp = entry.startTime;
         }
@@ -149,10 +151,11 @@ export class PerformanceMonitor {
   private setupNavigationObserver(): void {
     const navigationObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      entries.forEach((entry: any) => {
-        this.metrics.ttfb = entry.responseStart - entry.requestStart;
-        this.metrics.domContentLoaded = entry.domContentLoadedEventEnd - entry.navigationStart;
-        this.metrics.loadComplete = entry.loadEventEnd - entry.navigationStart;
+      entries.forEach((entry) => {
+        const navEntry = entry as PerformanceNavigationTiming;
+        this.metrics.ttfb = navEntry.responseStart - navEntry.requestStart;
+        this.metrics.domContentLoaded = navEntry.domContentLoadedEventEnd - navEntry.startTime;
+        this.metrics.loadComplete = navEntry.loadEventEnd - navEntry.startTime;
       });
     });
 
@@ -169,9 +172,10 @@ export class PerformanceMonitor {
       const entries = list.getEntries();
       let totalSize = 0;
 
-      entries.forEach((entry: any) => {
-        if (entry.transferSize) {
-          totalSize += entry.transferSize;
+      entries.forEach((entry) => {
+        const resourceEntry = entry as PerformanceResourceTiming;
+        if (resourceEntry.transferSize) {
+          totalSize += resourceEntry.transferSize;
         }
       });
 
@@ -189,7 +193,7 @@ export class PerformanceMonitor {
   private setupMemoryMonitoring(): void {
     if ('memory' in performance) {
       const updateMemory = () => {
-        const memory = (performance as any).memory;
+        const memory = (performance as Performance & { memory: { usedJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
         this.metrics.memoryUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
       };
 
@@ -200,7 +204,7 @@ export class PerformanceMonitor {
 
   private setupNetworkMonitoring(): void {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection: { effectiveType: string; addEventListener: (event: string, handler: () => void) => void } }).connection;
       this.metrics.networkSpeed = connection.effectiveType;
 
       connection.addEventListener('change', () => {

@@ -81,6 +81,191 @@ export interface CashForecast {
   }>;
 }
 
+export interface TreasuryListParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  ordering?: string;
+  companyId?: string;
+  status?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface ReconciliationFilters {
+  companyId?: string;
+  accountId?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+}
+
+export interface ForecastScenario {
+  name: string;
+  adjustments: Record<string, number>;
+  description?: string;
+}
+
+export interface CashOptimizationConstraints {
+  minBalance: number;
+  maxInvestment: number;
+  riskTolerance: 'low' | 'medium' | 'high';
+}
+
+export interface TreasuryTrendData {
+  month: string;
+  inflows: number;
+  outflows: number;
+  netCashFlow: number;
+  balance: number;
+}
+
+export interface TreasuryAlert {
+  id: string;
+  type: string;
+  severity: 'info' | 'warning' | 'critical';
+  message: string;
+  date: string;
+}
+
+export interface AccountConsolidation {
+  totalBalance: number;
+  accounts: BankAccount[];
+  byCurrency: Record<string, number>;
+}
+
+export interface IBANValidationResult {
+  valid: boolean;
+  iban: string;
+  swift?: string;
+  bankName?: string;
+}
+
+export interface BulkValidationResult {
+  validated: number;
+  failed: number;
+  errors: string[];
+}
+
+export interface AccountingExportResult {
+  success: boolean;
+  entryId?: string;
+  message?: string;
+}
+
+export interface FundingNeedsAnalysis {
+  totalNeeded: number;
+  shortfall: number;
+  recommendations: string[];
+}
+
+export interface FundCallAgingData {
+  current: number;
+  overdue30: number;
+  overdue60: number;
+  overdue90: number;
+}
+
+export interface ReconciliationResult {
+  matched: number;
+  unmatched: number;
+  suggestions: Array<{ movementId: string; statementLineId: string; confidence: number }>;
+}
+
+export interface StatementData {
+  lines: Array<{ date: string; description: string; amount: number; reference?: string }>;
+}
+
+export interface BankInfo {
+  id: string;
+  name: string;
+  swift: string;
+  country: string;
+}
+
+export interface BankConnectionStatus {
+  bankId: string;
+  bankName: string;
+  status: 'connected' | 'disconnected' | 'error';
+  lastSync?: string;
+}
+
+export interface CashFlowPrediction {
+  date: string;
+  predictedInflow: number;
+  predictedOutflow: number;
+  confidence: number;
+}
+
+export interface PerformanceAnalytics {
+  period: string;
+  metrics: Record<string, number>;
+}
+
+export interface CashOptimizationResult {
+  recommendations: string[];
+  projectedSavings: number;
+}
+
+export interface AuditTrailEntry {
+  id: string;
+  operation: string;
+  userId: string;
+  timestamp: string;
+  details: string;
+}
+
+export interface SecurityControl {
+  name: string;
+  status: 'pass' | 'fail' | 'warning';
+  lastChecked: string;
+}
+
+export interface ERPExportResult {
+  success: boolean;
+  recordsExported: number;
+}
+
+export interface BankingImportResult {
+  success: boolean;
+  recordsImported: number;
+  errors: string[];
+}
+
+export interface BankingImportParams {
+  dateFrom?: string;
+  dateTo?: string;
+  accountFilter?: string;
+}
+
+export interface CashPlanData {
+  periods: Array<{
+    date: string;
+    projectedInflows: number;
+    projectedOutflows: number;
+    balance: number;
+  }>;
+}
+
+export interface PaymentCreateData {
+  amount: number;
+  description?: string;
+  date?: string;
+  account?: string;
+  beneficiary?: string;
+}
+
+export interface ForecastedFlowData {
+  total: number;
+  items: Array<{ date: string; amount: number; description: string }>;
+}
+
+export interface CashFlowData {
+  inflows: ForecastedFlowData;
+  outflows: ForecastedFlowData;
+  netCashFlow: number;
+  cashPosition: number;
+}
+
 // ============================================================================
 // TREASURY SERVICE
 // ============================================================================
@@ -115,7 +300,7 @@ class TreasuryService {
    * Analyse des tendances sur 12 mois
    * GET /api/v1/treasury/dashboard/trends/
    */
-  async getTrends(params?: { companyId?: string; months?: number }) {
+  async getTrends(params?: { companyId?: string; months?: number }): Promise<TreasuryTrendData[]> {
     const response = await apiService.get(`${BASE_PATH}/dashboard/trends/`, { params });
     return response.data;
   }
@@ -124,7 +309,7 @@ class TreasuryService {
    * Récupère les alertes trésorerie actives
    * GET /api/v1/treasury/dashboard/alertes/
    */
-  async getAlerts(params?: { companyId?: string }) {
+  async getAlerts(params?: { companyId?: string }): Promise<TreasuryAlert[]> {
     const response = await apiService.get(`${BASE_PATH}/dashboard/alertes/`, { params });
     return response.data;
   }
@@ -144,7 +329,7 @@ class TreasuryService {
    * Liste tous les comptes bancaires
    * GET /api/v1/treasury/accounts/
    */
-  async getBankAccounts(params?: any): Promise<{ results: BankAccount[]; count: number }> {
+  async getBankAccounts(params?: TreasuryListParams): Promise<{ results: BankAccount[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/accounts/`, { params });
     return response.data;
   }
@@ -189,7 +374,7 @@ class TreasuryService {
    * Consolidation multi-comptes
    * GET /api/v1/treasury/accounts/consolidation/
    */
-  async getAccountConsolidation(params?: { companyId?: string }) {
+  async getAccountConsolidation(params?: { companyId?: string }): Promise<AccountConsolidation> {
     const response = await apiService.get(`${BASE_PATH}/accounts/consolidation/`, { params });
     return response.data;
   }
@@ -198,7 +383,7 @@ class TreasuryService {
    * Validation IBAN/SWIFT automatique
    * POST /api/v1/treasury/accounts/{id}/valider-iban/
    */
-  async validateIBAN(accountId: string, data: { iban: string; swift?: string }) {
+  async validateIBAN(accountId: string, data: { iban: string; swift?: string }): Promise<IBANValidationResult> {
     const response = await apiService.post(`${BASE_PATH}/accounts/${accountId}/valider-iban/`, data);
     return response.data;
   }
@@ -211,7 +396,7 @@ class TreasuryService {
    * Liste tous les mouvements de trésorerie
    * GET /api/v1/treasury/movements/
    */
-  async getBankMovements(params?: any): Promise<{ results: CashMovement[]; count: number }> {
+  async getBankMovements(params?: TreasuryListParams): Promise<{ results: CashMovement[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/movements/`, { params });
     return response.data;
   }
@@ -256,7 +441,7 @@ class TreasuryService {
    * Dernières transactions
    * GET /api/v1/treasury/movements/dernieres/
    */
-  async getLatestTransactions(params?: { companyId?: string; limit?: number }) {
+  async getLatestTransactions(params?: { companyId?: string; limit?: number }): Promise<CashMovement[]> {
     const response = await apiService.get(`${BASE_PATH}/movements/dernieres/`, { params });
     return response.data;
   }
@@ -265,7 +450,7 @@ class TreasuryService {
    * Validation en lot
    * POST /api/v1/treasury/movements/validation-lot/
    */
-  async bulkValidateMovements(data: { movementIds: string[] }) {
+  async bulkValidateMovements(data: { movementIds: string[] }): Promise<BulkValidationResult> {
     const response = await apiService.post(`${BASE_PATH}/movements/validation-lot/`, data);
     return response.data;
   }
@@ -274,7 +459,7 @@ class TreasuryService {
    * Export vers comptabilité générale
    * POST /api/v1/treasury/movements/export-comptable/
    */
-  async exportToAccounting(data: { movementIds: string[]; journalId?: string }) {
+  async exportToAccounting(data: { movementIds: string[]; journalId?: string }): Promise<AccountingExportResult> {
     const response = await apiService.post(`${BASE_PATH}/movements/export-comptable/`, data);
     return response.data;
   }
@@ -295,7 +480,7 @@ class TreasuryService {
   /**
    * Méthode legacy - alias pour get13WeeksForecast
    */
-  async getCashFlowForecast(params?: { companyId?: string; forecastDays?: number }) {
+  async getCashFlowForecast(params?: { companyId?: string; forecastDays?: number }): Promise<CashForecast> {
     return this.get13WeeksForecast(params);
   }
 
@@ -303,7 +488,7 @@ class TreasuryService {
    * Simulation de scénarios personnalisés
    * POST /api/v1/treasury/forecasting/simulation/
    */
-  async simulateScenarios(data: { companyId: string; scenarios: any[] }) {
+  async simulateScenarios(data: { companyId: string; scenarios: ForecastScenario[] }): Promise<CashForecast[]> {
     const response = await apiService.post(`${BASE_PATH}/forecasting/simulation/`, data);
     return response.data;
   }
@@ -312,7 +497,7 @@ class TreasuryService {
    * Prévisions encaissements
    * GET /api/v1/treasury/forecasting/encaissements/
    */
-  async getForecastedInflows(params: { companyId: string; startDate: string; endDate: string }) {
+  async getForecastedInflows(params: { companyId: string; startDate: string; endDate: string }): Promise<ForecastedFlowData> {
     const response = await apiService.get(`${BASE_PATH}/forecasting/encaissements/`, { params });
     return response.data;
   }
@@ -321,7 +506,7 @@ class TreasuryService {
    * Prévisions décaissements
    * GET /api/v1/treasury/forecasting/decaissements/
    */
-  async getForecastedOutflows(params: { companyId: string; startDate: string; endDate: string }) {
+  async getForecastedOutflows(params: { companyId: string; startDate: string; endDate: string }): Promise<ForecastedFlowData> {
     const response = await apiService.get(`${BASE_PATH}/forecasting/decaissements/`, { params });
     return response.data;
   }
@@ -329,7 +514,7 @@ class TreasuryService {
   /**
    * Méthode legacy - getCashFlow
    */
-  async getCashFlow(period?: string) {
+  async getCashFlow(_period?: string): Promise<CashFlowData> {
     const today = new Date();
     const startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
     const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
@@ -355,7 +540,7 @@ class TreasuryService {
    * Liste tous les appels de fonds
    * GET /api/v1/treasury/fund-calls/
    */
-  async getFundCalls(params?: any): Promise<{ results: FundCall[]; count: number }> {
+  async getFundCalls(params?: TreasuryListParams): Promise<{ results: FundCall[]; count: number }> {
     const response = await apiService.get(`${BASE_PATH}/fund-calls/`, { params });
     return response.data;
   }
@@ -399,7 +584,7 @@ class TreasuryService {
   /**
    * Dashboard appels de fonds (méthode legacy)
    */
-  async getFundCallsDashboard(params?: { companyId?: string }) {
+  async getFundCallsDashboard(params?: { companyId?: string }): Promise<{ results: FundCall[]; count: number }> {
     return this.getFundCalls(params);
   }
 
@@ -407,7 +592,7 @@ class TreasuryService {
    * Analyse automatique des besoins de financement
    * POST /api/v1/treasury/fund-calls/analyser-besoins/
    */
-  async analyzeFundingNeeds(data: { companyId: string; period: string }) {
+  async analyzeFundingNeeds(data: { companyId: string; period: string }): Promise<FundingNeedsAnalysis> {
     const response = await apiService.post(`${BASE_PATH}/fund-calls/analyser-besoins/`, data);
     return response.data;
   }
@@ -416,7 +601,7 @@ class TreasuryService {
    * Création automatique d'appel de fonds
    * POST /api/v1/treasury/fund-calls/creer-automatique/
    */
-  async createAutoFundCall(data: { companyId: string; amount: number; dueDate: string }) {
+  async createAutoFundCall(data: { companyId: string; amount: number; dueDate: string }): Promise<FundCall> {
     const response = await apiService.post(`${BASE_PATH}/fund-calls/creer-automatique/`, data);
     return response.data;
   }
@@ -424,7 +609,7 @@ class TreasuryService {
   /**
    * Exécuter un appel de fonds (méthode legacy)
    */
-  async executeFundCall(data: { fundCallId: string; companyId: string }) {
+  async executeFundCall(data: { fundCallId: string; companyId: string }): Promise<FundCall> {
     return this.updateFundCall(data.fundCallId, { status: 'executed' });
   }
 
@@ -432,7 +617,7 @@ class TreasuryService {
    * Aging analysis d'un appel de fonds
    * GET /api/v1/treasury/fund-calls/{id}/aging/
    */
-  async getFundCallAging(fundCallId: string) {
+  async getFundCallAging(fundCallId: string): Promise<FundCallAgingData> {
     const response = await apiService.get(`${BASE_PATH}/fund-calls/${fundCallId}/aging/`);
     return response.data;
   }
@@ -445,7 +630,7 @@ class TreasuryService {
    * Rapprochement automatique avec IA
    * POST /api/v1/treasury/reconciliation/automatique/
    */
-  async autoReconcile(data: { accountId: string; statementData: any }) {
+  async autoReconcile(data: { accountId: string; statementData: StatementData }): Promise<ReconciliationResult> {
     const response = await apiService.post(`${BASE_PATH}/reconciliation/automatique/`, data);
     return response.data;
   }
@@ -454,7 +639,7 @@ class TreasuryService {
    * Import relevé bancaire (MT940, CSV, Excel)
    * POST /api/v1/treasury/reconciliation/import-releve/
    */
-  async importBankStatement(formData: FormData) {
+  async importBankStatement(formData: FormData): Promise<BankingImportResult> {
     const response = await apiService.post(`${BASE_PATH}/reconciliation/import-releve/`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
@@ -464,7 +649,7 @@ class TreasuryService {
   /**
    * Liste des rapprochements (méthode legacy)
    */
-  async getReconciliations(filters?: any) {
+  async getReconciliations(filters?: ReconciliationFilters): Promise<{ results: CashMovement[]; count: number }> {
     // Cette méthode pourrait appeler un endpoint spécifique si disponible
     // Pour l'instant, on retourne les mouvements avec filtre
     return this.getBankMovements({ ...filters, status: 'reconciled' });
@@ -486,7 +671,7 @@ class TreasuryService {
    * Liste des banques disponibles
    * GET /api/v1/treasury/banks/
    */
-  async getBanks() {
+  async getBanks(): Promise<BankInfo[]> {
     const response = await apiService.get(`${BASE_PATH}/banks/`);
     return response.data;
   }
@@ -495,7 +680,7 @@ class TreasuryService {
    * Statut des connexions bancaires actives
    * GET /api/v1/treasury/connections/status/
    */
-  async getBankConnections(params?: { companyId?: string }) {
+  async getBankConnections(params?: { companyId?: string }): Promise<BankConnectionStatus[]> {
     const response = await apiService.get(`${BASE_PATH}/connections/status/`, { params });
     return response.data;
   }
@@ -515,7 +700,7 @@ class TreasuryService {
    * Prédictions ML de trésorerie
    * POST /api/v1/treasury/ml/predict-cash-flow/
    */
-  async predictCashFlow(data: { companyId: string; horizon: number }) {
+  async predictCashFlow(data: { companyId: string; horizon: number }): Promise<CashFlowPrediction[]> {
     const response = await apiService.post(`${BASE_PATH}/ml/predict-cash-flow/`, data);
     return response.data;
   }
@@ -524,7 +709,7 @@ class TreasuryService {
    * Analytics de performance
    * GET /api/v1/treasury/analytics/performance/
    */
-  async getPerformanceAnalytics(params: { companyId: string; period: string }) {
+  async getPerformanceAnalytics(params: { companyId: string; period: string }): Promise<PerformanceAnalytics> {
     const response = await apiService.get(`${BASE_PATH}/analytics/performance/`, { params });
     return response.data;
   }
@@ -533,7 +718,7 @@ class TreasuryService {
    * Optimisation de la gestion de trésorerie
    * POST /api/v1/treasury/optimize/cash-management/
    */
-  async optimizeCashManagement(data: { companyId: string; constraints: any }) {
+  async optimizeCashManagement(data: { companyId: string; constraints: CashOptimizationConstraints }): Promise<CashOptimizationResult> {
     const response = await apiService.post(`${BASE_PATH}/optimize/cash-management/`, data);
     return response.data;
   }
@@ -546,7 +731,7 @@ class TreasuryService {
    * Audit trail des opérations sensibles
    * GET /api/v1/treasury/audit/operations/
    */
-  async getAuditTrail(params?: { companyId?: string; startDate?: string; endDate?: string }) {
+  async getAuditTrail(params?: { companyId?: string; startDate?: string; endDate?: string }): Promise<AuditTrailEntry[]> {
     const response = await apiService.get(`${BASE_PATH}/audit/operations/`, { params });
     return response.data;
   }
@@ -555,7 +740,7 @@ class TreasuryService {
    * Contrôles sécuritaires
    * GET /api/v1/treasury/security/controls/
    */
-  async getSecurityControls(params?: { companyId?: string }) {
+  async getSecurityControls(params?: { companyId?: string }): Promise<SecurityControl[]> {
     const response = await apiService.get(`${BASE_PATH}/security/controls/`, { params });
     return response.data;
   }
@@ -568,7 +753,7 @@ class TreasuryService {
    * Export vers ERP (SAP, Oracle, Sage)
    * POST /api/v1/treasury/export/erp/
    */
-  async exportToERP(data: { companyId: string; erpType: string; dataToExport: any }) {
+  async exportToERP(data: { companyId: string; erpType: string; dataToExport: Record<string, unknown> }): Promise<ERPExportResult> {
     const response = await apiService.post(`${BASE_PATH}/export/erp/`, data);
     return response.data;
   }
@@ -577,7 +762,7 @@ class TreasuryService {
    * Import depuis systèmes bancaires
    * POST /api/v1/treasury/import/banking-api/
    */
-  async importFromBankingAPI(data: { companyId: string; bankId: string; params: any }) {
+  async importFromBankingAPI(data: { companyId: string; bankId: string; params: BankingImportParams }): Promise<BankingImportResult> {
     const response = await apiService.post(`${BASE_PATH}/import/banking-api/`, data);
     return response.data;
   }
@@ -586,7 +771,7 @@ class TreasuryService {
    * Génération de rapports PDF/Excel
    * POST /api/v1/treasury/reports/generate/
    */
-  async generateReport(data: { companyId: string; reportType: string; format: 'pdf' | 'excel' }) {
+  async generateReport(data: { companyId: string; reportType: string; format: 'pdf' | 'excel' }): Promise<Blob> {
     const response = await apiService.post(`${BASE_PATH}/reports/generate/`, data, {
       responseType: 'blob'
     });
@@ -597,7 +782,7 @@ class TreasuryService {
    * Planning de trésorerie
    * GET /api/v1/treasury/reports/planning/
    */
-  async getCashPlan(params: { companyId: string; startDate: string; endDate: string }) {
+  async getCashPlan(params: { companyId: string; startDate: string; endDate: string }): Promise<CashPlanData> {
     const response = await apiService.get(`${BASE_PATH}/reports/planning/`, { params });
     return response.data;
   }
@@ -610,7 +795,7 @@ class TreasuryService {
    * Créer un paiement (méthode legacy)
    * Note: Cette fonctionnalité pourrait être dans un module séparé
    */
-  async createPayment(data: any) {
+  async createPayment(data: PaymentCreateData): Promise<CashMovement> {
     // À adapter selon l'implémentation backend réelle
     return this.createMovement({
       ...data,
@@ -622,7 +807,7 @@ class TreasuryService {
   /**
    * Exécuter un paiement (méthode legacy)
    */
-  async executePayment(data: { paymentId: string; companyId: string }) {
+  async executePayment(data: { paymentId: string; companyId: string }): Promise<CashMovement> {
     // À adapter selon l'implémentation backend réelle
     return this.updateMovement(data.paymentId, { status: 'validated' });
   }

@@ -70,7 +70,7 @@ const ClosureModulesIndex: React.FC = () => {
       id: 'periodic',
       title: 'Clôtures Périodiques Automatisées',
       description: 'Workflow intelligent BPMN 2.0 avec IA intégrée - Réduction 50% temps de clôture',
-      path: '/closures',
+      path: '/closures/periodic',
       icon: Bot,
       color: 'bg-purple-500',
       features: [
@@ -343,7 +343,7 @@ const ClosureModulesIndex: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
-              to="/closures"
+              to="/closures/periodic"
               className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
             >
               <Bot className="h-8 w-8 text-purple-600" />

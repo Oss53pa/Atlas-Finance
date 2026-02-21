@@ -67,10 +67,11 @@ export class BundleAnalyzer {
     this.performanceObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
 
-      entries.forEach((entry: any) => {
-        if (entry.name.includes('.js') || entry.name.includes('.css')) {
-          this.metrics.totalSize += entry.transferSize || 0;
-          this.metrics.loadTime += entry.duration || 0;
+      entries.forEach((entry) => {
+        const resourceEntry = entry as PerformanceResourceTiming;
+        if (resourceEntry.name.includes('.js') || resourceEntry.name.includes('.css')) {
+          this.metrics.totalSize += resourceEntry.transferSize || 0;
+          this.metrics.loadTime += resourceEntry.duration || 0;
         }
       });
     });
@@ -87,8 +88,8 @@ export class BundleAnalyzer {
 
   private detectDuplicateModules(): void {
     // Analyze webpack module dependencies if available
-    if ((window as any).__webpack_require__) {
-      const webpackRequire = (window as any).__webpack_require__;
+    if ((window as unknown as Record<string, unknown>).__webpack_require__) {
+      const webpackRequire = (window as unknown as Record<string, unknown>).__webpack_require__ as { cache?: Record<string, { exports?: unknown }> };
       const modules = webpackRequire.cache || {};
       const moduleNames: { [key: string]: number } = {};
 
@@ -281,11 +282,12 @@ export class BundleAnalyzer {
 
   public trackChunkLoading(): void {
     // Track dynamic import performance
-    const originalImport = window.__webpack_require__;
+    const windowRecord = window as unknown as Record<string, unknown>;
+    const originalImport = windowRecord.__webpack_require__ as ((...args: unknown[]) => unknown) | undefined;
     if (originalImport) {
-      (window as any).__webpack_require__ = function(...args: any[]) {
+      windowRecord.__webpack_require__ = function(this: unknown, ...args: unknown[]) {
         const start = performance.now();
-        const result = originalImport.apply(this, args);
+        const result = originalImport.apply(this, args) as { then?: (cb: () => void) => void };
 
         if (result && typeof result.then === 'function') {
           result.then(() => {
@@ -316,7 +318,7 @@ export const bundleAnalyzer = new BundleAnalyzer();
 
 // React hook for bundle analysis
 export function useBundleAnalysis() {
-  const [report, setReport] = React.useState<any>(null);
+  const [report, setReport] = React.useState<ReturnType<BundleAnalyzer['generateOptimizationReport']> | null>(null);
 
   React.useEffect(() => {
     const generateReport = () => {

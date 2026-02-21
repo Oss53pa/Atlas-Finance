@@ -587,7 +587,7 @@ const GestionPaiementsPage: React.FC = () => {
                     </label>
                     <select
                       value={newPayment.method}
-                      onChange={(e) => setNewPayment({ ...newPayment, method: e.target.value as any })}
+                      onChange={(e) => setNewPayment({ ...newPayment, method: e.target.value as typeof newPayment.method })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
                     >
                       <option value="sepa">SEPA</option>

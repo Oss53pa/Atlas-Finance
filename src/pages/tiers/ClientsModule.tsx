@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -523,7 +524,7 @@ const ClientsModule: React.FC = () => {
   ];
 
   // Données Balance Âgée
-  const balanceAgeeData: BalanceAgeeItem[] = clients.map(client => ({
+  const balanceAgeeData: BalanceAgeeItem[] = useMemo(() => clients.map(client => ({
     clientId: client.id,
     clientCode: client.code,
     clientNom: client.raisonSociale,
@@ -534,10 +535,10 @@ const ClientsModule: React.FC = () => {
     echu61_90: client.echu61_90,
     echuPlus90: client.echuPlus90,
     provision: client.echuPlus90 * 0.5 + client.echu61_90 * 0.2 // Provision pour créances douteuses
-  }));
+  })), [clients]);
 
   // Calculs totaux Balance Âgée
-  const totauxBalanceAgee = balanceAgeeData.reduce((acc, item) => ({
+  const totauxBalanceAgee = useMemo(() => balanceAgeeData.reduce((acc, item) => ({
     totalCreances: acc.totalCreances + item.totalCreances,
     nonEchu: acc.nonEchu + item.nonEchu,
     echu0_30: acc.echu0_30 + item.echu0_30,
@@ -547,9 +548,9 @@ const ClientsModule: React.FC = () => {
     provision: acc.provision + item.provision
   }), {
     totalCreances: 0, nonEchu: 0, echu0_30: 0, echu31_60: 0, echu61_90: 0, echuPlus90: 0, provision: 0
-  });
+  }), [balanceAgeeData]);
 
-  const filteredClients = clients.filter(client => {
+  const filteredClients = useMemo(() => clients.filter(client => {
     const matchSearch = client.raisonSociale.toLowerCase().includes(searchTerm.toLowerCase()) ||
                        client.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
                        client.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -558,15 +559,8 @@ const ClientsModule: React.FC = () => {
     const matchStatut = selectedStatut === 'all' || client.statut === selectedStatut;
 
     return matchSearch && matchCategory && matchStatut;
-  });
+  }), [clients, searchTerm, selectedCategory, selectedStatut]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
 
   const getCategorieColor = (categorie: string) => {
     switch (categorie) {
@@ -680,10 +674,12 @@ const ClientsModule: React.FC = () => {
   };
 
   // Calcul des statistiques
-  const totalEncours = clients.reduce((sum, c) => sum + c.encoursActuel, 0);
-  const totalCA = clients.reduce((sum, c) => sum + c.chiffreAffaires, 0);
-  const moyenneDSO = Math.round(clients.reduce((sum, c) => sum + c.dso, 0) / clients.length);
-  const clientsActifs = clients.filter(c => c.statut === 'ACTIF').length;
+  const { totalEncours, totalCA, moyenneDSO, clientsActifs } = useMemo(() => ({
+    totalEncours: clients.reduce((sum, c) => sum + c.encoursActuel, 0),
+    totalCA: clients.reduce((sum, c) => sum + c.chiffreAffaires, 0),
+    moyenneDSO: Math.round(clients.reduce((sum, c) => sum + c.dso, 0) / clients.length),
+    clientsActifs: clients.filter(c => c.statut === 'ACTIF').length,
+  }), [clients]);
 
   // Analytics Data
   const analyticsData = {

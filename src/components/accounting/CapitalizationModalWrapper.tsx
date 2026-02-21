@@ -1,12 +1,26 @@
 import React from 'react';
 import CapitalizationModal from './CapitalizationModal';
 
+interface CapitalizationData {
+  description: string;
+  amount: number;
+  date: string;
+  [key: string]: unknown;
+}
+
+interface CapitalizationSuggestion {
+  description?: string;
+  amount?: number;
+  date?: string;
+  [key: string]: unknown;
+}
+
 interface CapitalizationModalWrapperProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
-  initialData?: any;
-  suggestion?: any;
+  onSubmit: (data: CapitalizationData) => void;
+  initialData?: CapitalizationData;
+  suggestion?: CapitalizationSuggestion;
 }
 
 const CapitalizationModalWrapper: React.FC<CapitalizationModalWrapperProps> = ({

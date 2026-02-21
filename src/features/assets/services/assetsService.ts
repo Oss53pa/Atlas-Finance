@@ -215,7 +215,7 @@ class AssetsService {
     });
   }
 
-  async exportAssets(format: 'xlsx' | 'pdf' | 'csv', filters?: any): Promise<Blob> {
+  async exportAssets(format: 'xlsx' | 'pdf' | 'csv', filters?: Record<string, unknown>): Promise<Blob> {
     return Promise.resolve(
       new Blob(['Mock export data'], { type: 'application/octet-stream' })
     );

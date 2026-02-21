@@ -104,7 +104,7 @@ const BankMovementsPage: React.FC = () => {
     // Simulation du rafraîchissement
   };
 
-  const showOperationsDetail = (date: string, type: 'daily' | 'monthly', data: any) => {
+  const showOperationsDetail = (date: string, type: 'daily' | 'monthly', data: Record<string, unknown>) => {
     setSelectedOperations({ date, type, data, operations: [] });
     setShowOperationsModal(true);
   };

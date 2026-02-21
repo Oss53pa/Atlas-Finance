@@ -21,7 +21,7 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<void>;
+  signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
   refreshUserProfile: () => Promise<void>;
@@ -29,45 +29,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user for development when Supabase is not configured
-const DEV_MOCK_USER: User = {
-  id: 'dev-admin-001',
-  name: 'Admin Dev',
-  email: 'admin@atlasfinance.cm',
-  role: 'admin',
-  first_name: 'Admin',
-  last_name: 'Dev',
-  company: 'Atlas Finance',
-  company_id: 'a0000000-0000-0000-0000-000000000001',
-  permissions: [
-    'accounting.view', 'accounting.create', 'accounting.edit', 'accounting.delete', 'accounting.validate',
-    'treasury.view', 'treasury.create', 'treasury.edit',
-    'customers.view', 'customers.create', 'customers.edit',
-    'suppliers.view', 'suppliers.create', 'suppliers.edit',
-    'dashboard.view', 'reports.view', 'reports.export',
-    'admin.users', 'admin.settings', 'admin.roles',
-  ],
-};
-
 function mapRoleCode(code: string): User['role'] {
   // DB enum uses 'accountant', frontend uses 'comptable'
   if (code === 'accountant') return 'comptable';
   return (code as User['role']) || 'user';
 }
 
-function mapProfileToUser(profile: any): User {
+function mapProfileToUser(profile: Record<string, unknown>): User {
+  const firstName = profile.first_name as string | undefined;
+  const lastName = profile.last_name as string | undefined;
   return {
-    id: profile.id,
-    name: profile.first_name && profile.last_name
-      ? `${profile.first_name} ${profile.last_name}`
-      : profile.username || profile.email || 'Utilisateur',
-    email: profile.email,
-    role: mapRoleCode(profile.role?.code),
-    first_name: profile.first_name,
-    last_name: profile.last_name,
-    company: profile.company?.nom,
-    company_id: profile.company_id,
-    photo_url: profile.photo_url,
+    id: String(profile.id),
+    name: firstName && lastName
+      ? `${firstName} ${lastName}`
+      : String(profile.username || profile.email || 'Utilisateur'),
+    email: String(profile.email ?? ''),
+    role: mapRoleCode(String((profile.role as Record<string, unknown>)?.code ?? '')),
+    first_name: firstName,
+    last_name: lastName,
+    company: (profile.company as Record<string, unknown>)?.nom as string | undefined,
+    company_id: profile.company_id as string | undefined,
+    photo_url: profile.photo_url as string | undefined,
   };
 }
 
@@ -76,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Load user profile from Supabase and sync to localStorage
+  // Load user profile from Supabase
   const loadUserProfile = useCallback(async () => {
     try {
       const profile = await getUserProfile();
@@ -85,30 +67,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userData = mapProfileToUser(profile);
         userData.permissions = permissions;
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
       } else {
         setUser(null);
-        localStorage.removeItem('user');
       }
     } catch (error) {
       console.error('Error loading profile:', error);
       setUser(null);
-      localStorage.removeItem('user');
     }
   }, []);
 
   // Initialize auth state
   useEffect(() => {
-    // DEV MODE: no Supabase configured -> use mock user
     if (!isSupabaseConfigured) {
-      console.warn('[AuthContext] Supabase not configured — using dev mock user');
-      setUser(DEV_MOCK_USER);
-      localStorage.setItem('user', JSON.stringify(DEV_MOCK_USER));
+      console.warn('[AuthContext] Supabase not configured — authentication disabled');
       setLoading(false);
       return;
     }
 
-    // PRODUCTION: real Supabase auth
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       if (initialSession) {
@@ -137,10 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (email: string, password: string) => {
     if (!isSupabaseConfigured) {
-      // Dev mode: accept any login
-      setUser(DEV_MOCK_USER);
-      localStorage.setItem('user', JSON.stringify(DEV_MOCK_USER));
-      return;
+      throw new Error('Supabase n\'est pas configuré. Vérifiez les variables d\'environnement VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
     }
 
     setLoading(true);
@@ -163,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [loadUserProfile]);
 
-  const signUp = useCallback(async (email: string, password: string, metadata?: Record<string, any>) => {
+  const signUp = useCallback(async (email: string, password: string, metadata?: Record<string, unknown>) => {
     if (!isSupabaseConfigured) return;
 
     setLoading(true);
@@ -181,7 +153,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setUser(null);
     setSession(null);
-    localStorage.removeItem('user');
   }, []);
 
   const refreshUserProfile = useCallback(async () => {

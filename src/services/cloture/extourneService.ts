@@ -4,8 +4,8 @@
  * Conforme SYSCOHADA revise.
  */
 import { db, logAudit } from '../../lib/db';
-import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
-import { hashEntry } from '../../utils/integrity';
+import type { DBJournalLine } from '../../lib/db';
+import { safeBulkAddEntries } from '../entryGuard';
 
 // ============================================================================
 // TYPES
@@ -104,11 +104,7 @@ export async function genererExtournes(request: ExtourneRequest): Promise<Extour
   }
 
   const now = new Date().toISOString();
-  const ecrituresExtourne: DBJournalEntry[] = [];
-
-  // Get last hash for chain continuity
-  const lastEntry = await db.journalEntries.orderBy('date').last();
-  let previousHash = lastEntry?.hash || '';
+  const ecrituresExtourne: Array<Record<string, unknown>> = [];
 
   for (let i = 0; i < regularisations.length; i++) {
     const { entry: original, type } = regularisations[i];
@@ -126,53 +122,28 @@ export async function genererExtournes(request: ExtourneRequest): Promise<Extour
       analyticalCode: line.analyticalCode,
     }));
 
-    const totalDebit = reversedLines.reduce((s, l) => s + l.debit, 0);
-    const totalCredit = reversedLines.reduce((s, l) => s + l.credit, 0);
-
     const entryNumber = `EXT-${dateExtourne.replace(/-/g, '')}-${String(i + 1).padStart(3, '0')}`;
 
-    const extourne: DBJournalEntry = {
+    const extourne = {
       id: crypto.randomUUID(),
       entryNumber,
       journal: journalCode,
       date: dateExtourne,
       reference: `EXTOURNE-${original.entryNumber}`,
       label: `Extourne ${type} - ${original.label}`,
-      status: 'draft',
+      status: 'draft' as const,
       lines: reversedLines,
-      totalDebit,
-      totalCredit,
       reversalOf: original.id,
       reversalReason: `Extourne automatique regularisation ${type}`,
       createdAt: now,
-      updatedAt: now,
+      createdBy: 'system',
     };
-
-    // Hash
-    extourne.hash = await hashEntry(
-      {
-        entryNumber: extourne.entryNumber,
-        journal: extourne.journal,
-        date: extourne.date,
-        lines: extourne.lines.map(l => ({
-          accountCode: l.accountCode,
-          debit: l.debit,
-          credit: l.credit,
-          label: l.label,
-        })),
-        totalDebit: extourne.totalDebit,
-        totalCredit: extourne.totalCredit,
-      },
-      previousHash
-    );
-    extourne.previousHash = previousHash;
-    previousHash = extourne.hash;
 
     ecrituresExtourne.push(extourne);
   }
 
-  // Persist all extourne entries
-  await db.journalEntries.bulkAdd(ecrituresExtourne);
+  // Persist via entryGuard (handles totalDebit/totalCredit + hash)
+  await safeBulkAddEntries(ecrituresExtourne, { skipSyncValidation: true });
 
   // Mark originals as reversed
   for (const { entry: original } of regularisations) {

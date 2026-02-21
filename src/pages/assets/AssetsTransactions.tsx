@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import {
   ArrowLeftRight, Search, Filter, Calendar,
   Eye, Edit2, Trash2, Plus, TrendingUp, TrendingDown,
@@ -310,14 +311,6 @@ const AssetsTransactions: React.FC = () => {
     visibleColumns[col.key as keyof typeof visibleColumns]
   );
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
 
   const handleColumnToggle = (key: string) => {
     setVisibleColumns(prev => ({

@@ -1,15 +1,15 @@
-export interface Column<T = any> {
+export interface Column<T = Record<string, unknown>> {
   key: string;
   header: string;
-  accessor?: keyof T | ((row: T) => any);
-  render?: (value: any, row: T) => React.ReactNode;
+  accessor?: keyof T | ((row: T) => unknown);
+  render?: (value: unknown, row: T) => React.ReactNode;
   sortable?: boolean;
   width?: string;
   align?: 'left' | 'center' | 'right';
   className?: string;
 }
 
-export interface DataTableProps<T = any> {
+export interface DataTableProps<T = Record<string, unknown>> {
   data: T[];
   columns: Column<T>[];
   loading?: boolean;

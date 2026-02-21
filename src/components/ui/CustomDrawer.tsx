@@ -39,7 +39,7 @@ interface DrawerItem {
 interface CustomSideBarDrawerProps {
   items: DrawerItem[];
   setOpenModalAdd: () => void;
-  setContentDrawerActive: (content: any) => void;
+  setContentDrawerActive: (content: Record<string, unknown>) => void;
   drawer: boolean;
   setDrawer: (open: boolean) => void;
 }

@@ -6,8 +6,8 @@ interface Header {
 }
 
 interface ContentFunCallsProps {
-  contentDrawerActive: any;
-  listFilter: any[];
+  contentDrawerActive: Record<string, unknown> | null;
+  listFilter: Record<string, unknown>[];
   headerList: Header[];
 }
 
@@ -65,8 +65,8 @@ export const cashFlowCashAccountManagement_items_funCalls = [
 
 // Components for Treasury Forecast
 interface ContentPrevisionTresorerieProps {
-  contentDrawerActive: any;
-  listFilter: any[];
+  contentDrawerActive: Record<string, unknown> | null;
+  listFilter: Record<string, unknown>[];
   headerList: Header[];
 }
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
@@ -69,166 +70,25 @@ const ReportsPage: React.FC = () => {
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['reports', searchTerm, selectedType, selectedCategory, selectedStatus, selectedFormat],
     queryFn: async () => {
-      const mockReports: Report[] = [
-        {
-          id: '1',
-          name: 'Bilan Comptable Mensuel',
-          code: 'BCM-001',
-          type: 'financial',
-          category: 'Comptabilité',
-          description: 'Bilan comptable détaillé avec comparaison période précédente et analyse des écarts',
-          template: 'bilan_syscohada_template.xlsx',
-          status: 'active',
-          frequency: 'monthly',
-          format: 'pdf',
-          lastGenerated: '2024-08-25T10:30:00Z',
-          nextGeneration: '2024-09-25T10:30:00Z',
-          generatedBy: 'Marie Dubois',
-          owner: 'Marie Dubois',
-          isPublic: true,
-          isScheduled: true,
-          views: 245,
-          downloads: 89,
-          parameters: ['periode', 'comparaison', 'devise'],
-          filters: ['compte', 'departement', 'montant_min'],
-          tags: ['bilan', 'comptabilité', 'syscohada', 'mensuel'],
-          createdAt: '2024-01-15T00:00:00Z',
-          lastModified: '2024-08-20T14:15:00Z',
-          estimatedDuration: 15
-        },
-        {
-          id: '2',
-          name: 'Analyse Performance Commerciale',
-          code: 'APC-002',
-          type: 'management',
-          category: 'Commercial',
-          description: 'Rapport détaillé des performances commerciales avec KPI et tendances',
-          template: 'performance_commercial_template.xlsx',
-          status: 'active',
-          frequency: 'weekly',
-          format: 'dashboard',
-          lastGenerated: '2024-08-25T08:15:00Z',
-          nextGeneration: '2024-09-01T08:15:00Z',
-          generatedBy: 'Jean Kouassi',
-          owner: 'Jean Kouassi',
-          isPublic: true,
-          isScheduled: true,
-          views: 189,
-          downloads: 45,
-          parameters: ['periode', 'equipe', 'produit'],
-          filters: ['vendeur', 'client', 'montant_vente'],
-          tags: ['commercial', 'kpi', 'ventes', 'performance'],
-          createdAt: '2024-02-01T00:00:00Z',
-          lastModified: '2024-08-22T16:30:00Z',
-          estimatedDuration: 8
-        },
-        {
-          id: '3',
-          name: 'Répartition Centres de Coûts',
-          code: 'RCC-003',
-          type: 'analytical',
-          category: 'Analytique',
-          description: 'Analyse détaillée de la répartition des coûts par centre et comparaison budgétaire',
-          template: 'centres_couts_template.xlsx',
-          status: 'active',
-          frequency: 'monthly',
-          format: 'excel',
-          lastGenerated: '2024-08-24T16:45:00Z',
-          nextGeneration: '2024-09-24T16:45:00Z',
-          generatedBy: 'Paul Martin',
-          owner: 'Paul Martin',
-          isPublic: false,
-          isScheduled: true,
-          views: 67,
-          downloads: 23,
-          parameters: ['periode', 'centre_cout', 'type_charge'],
-          filters: ['montant', 'responsable', 'nature'],
-          tags: ['analytique', 'coûts', 'centres', 'budget'],
-          createdAt: '2024-01-20T00:00:00Z',
-          lastModified: '2024-08-15T11:20:00Z',
-          estimatedDuration: 12
-        },
-        {
-          id: '4',
-          name: 'État des Déclarations Fiscales',
-          code: 'EDF-004',
-          type: 'regulatory',
-          category: 'Fiscalité',
-          description: 'Synthèse des déclarations fiscales avec statuts et échéances',
-          template: 'declarations_fiscales_template.pdf',
-          status: 'active',
-          frequency: 'monthly',
-          format: 'pdf',
-          lastGenerated: '2024-08-20T14:20:00Z',
-          nextGeneration: '2024-09-20T14:20:00Z',
-          generatedBy: 'Sophie Koné',
-          owner: 'Sophie Koné',
-          isPublic: false,
-          isScheduled: true,
-          views: 123,
-          downloads: 67,
-          parameters: ['periode', 'type_declaration'],
-          filters: ['statut', 'echeance', 'montant'],
-          tags: ['fiscalité', 'déclarations', 'regulatory', 'taxes'],
-          createdAt: '2024-01-10T00:00:00Z',
-          lastModified: '2024-08-18T09:45:00Z',
-          estimatedDuration: 20
-        },
-        {
-          id: '5',
-          name: 'Suivi Budget vs Réalisé',
-          code: 'SBR-005',
-          type: 'financial',
-          category: 'Budget',
-          description: 'Comparaison détaillée entre budgets prévisionnels et réalisations avec analyse des écarts',
-          template: 'budget_realise_template.xlsx',
-          status: 'draft',
-          frequency: 'quarterly',
-          format: 'excel',
-          lastGenerated: '2024-08-22T11:10:00Z',
-          generatedBy: 'Marie Dubois',
-          owner: 'Marie Dubois',
-          isPublic: false,
-          isScheduled: false,
-          views: 95,
-          downloads: 31,
-          parameters: ['trimestre', 'departement', 'type_budget'],
-          filters: ['ecart_seuil', 'responsable', 'statut'],
-          tags: ['budget', 'prévisionnel', 'écarts', 'contrôle'],
-          createdAt: '2024-03-01T00:00:00Z',
-          lastModified: '2024-08-22T11:15:00Z',
-          estimatedDuration: 25
-        },
-        {
-          id: '6',
-          name: 'Rapport Trésorerie',
-          code: 'RT-006',
-          type: 'financial',
-          category: 'Trésorerie',
-          description: 'État de la trésorerie avec flux prévisionnels et positions bancaires',
-          template: 'tresorerie_template.pdf',
-          status: 'scheduled',
-          frequency: 'daily',
-          format: 'pdf',
-          lastGenerated: '2024-08-25T07:00:00Z',
-          nextGeneration: '2024-08-26T07:00:00Z',
-          generatedBy: 'Marie Dubois',
-          owner: 'Marie Dubois',
-          isPublic: false,
-          isScheduled: true,
-          views: 156,
-          downloads: 78,
-          parameters: ['date', 'compte_bancaire', 'devise'],
-          filters: ['type_mouvement', 'montant_min', 'statut'],
-          tags: ['trésorerie', 'banque', 'flux', 'quotidien'],
-          createdAt: '2024-02-15T00:00:00Z',
-          lastModified: '2024-08-24T18:00:00Z',
-          estimatedDuration: 5
-        }
+      const latestEntry = await db.journalEntries.orderBy('date').reverse().first();
+      const now = latestEntry?.date ? latestEntry.date + 'T00:00:00Z' : new Date().toISOString();
+      const entryCount = await db.journalEntries.count();
+
+      const catalog: Report[] = [
+        { id: 'bilan', name: 'Bilan SYSCOHADA', code: 'BIL-001', type: 'financial', category: 'Comptabilité', description: 'Bilan comptable conforme SYSCOHADA — Actif/Passif', template: 'bilan_syscohada', status: 'active', frequency: 'annual', format: 'pdf', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: true, isScheduled: false, views: entryCount, downloads: 0, parameters: ['periode', 'devise'], filters: ['compte'], tags: ['bilan', 'syscohada'], createdAt: now, lastModified: now, estimatedDuration: 5 },
+        { id: 'resultat', name: 'Compte de Résultat', code: 'CR-002', type: 'financial', category: 'Comptabilité', description: 'Compte de résultat par nature SYSCOHADA', template: 'compte_resultat', status: 'active', frequency: 'annual', format: 'pdf', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: true, isScheduled: false, views: entryCount, downloads: 0, parameters: ['periode'], filters: ['compte'], tags: ['résultat', 'syscohada'], createdAt: now, lastModified: now, estimatedDuration: 5 },
+        { id: 'balance', name: 'Balance Générale', code: 'BAL-003', type: 'financial', category: 'Comptabilité', description: 'Balance générale des comptes avec vérification D=C', template: 'balance_generale', status: 'active', frequency: 'monthly', format: 'excel', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: true, isScheduled: false, views: entryCount, downloads: 0, parameters: ['periode'], filters: ['compte', 'classe'], tags: ['balance', 'vérification'], createdAt: now, lastModified: now, estimatedDuration: 3 },
+        { id: 'grand-livre', name: 'Grand Livre Général', code: 'GL-004', type: 'financial', category: 'Comptabilité', description: 'Grand livre avec soldes progressifs par compte', template: 'grand_livre', status: 'active', frequency: 'monthly', format: 'excel', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: true, isScheduled: false, views: entryCount, downloads: 0, parameters: ['periode', 'compte'], filters: ['classe'], tags: ['grand livre', 'détail'], createdAt: now, lastModified: now, estimatedDuration: 5 },
+        { id: 'sig', name: 'Soldes Intermédiaires de Gestion', code: 'SIG-005', type: 'analytical', category: 'Analyse', description: 'SIG : MC, VA, EBE, RE, RN — cascade SYSCOHADA', template: 'sig', status: 'active', frequency: 'quarterly', format: 'pdf', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: true, isScheduled: false, views: entryCount, downloads: 0, parameters: ['exercice'], filters: [], tags: ['sig', 'analyse'], createdAt: now, lastModified: now, estimatedDuration: 3 },
+        { id: 'fec', name: 'Fichier des Écritures Comptables (FEC)', code: 'FEC-006', type: 'regulatory', category: 'Fiscalité', description: 'Export FEC conforme Art. A.47 A-1 LPF — 18 colonnes', template: 'fec_export', status: 'active', frequency: 'annual', format: 'csv', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: false, isScheduled: false, views: entryCount, downloads: 0, parameters: ['exercice', 'siren'], filters: [], tags: ['fec', 'fiscal', 'réglementaire'], createdAt: now, lastModified: now, estimatedDuration: 10 },
+        { id: 'ratios', name: 'Ratios Financiers', code: 'RAT-007', type: 'analytical', category: 'Analyse', description: 'Ratios de structure, liquidité, rentabilité et activité', template: 'ratios', status: 'active', frequency: 'quarterly', format: 'dashboard', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: true, isScheduled: false, views: entryCount, downloads: 0, parameters: ['exercice'], filters: [], tags: ['ratios', 'performance'], createdAt: now, lastModified: now, estimatedDuration: 2 },
+        { id: 'budget', name: 'Budget vs Réalisé', code: 'BVR-008', type: 'management', category: 'Budget', description: 'Comparaison budgétaire avec écarts et taux de réalisation', template: 'budget_realise', status: 'active', frequency: 'monthly', format: 'excel', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: false, isScheduled: false, views: entryCount, downloads: 0, parameters: ['exercice', 'departement'], filters: ['ecart_seuil'], tags: ['budget', 'contrôle', 'écarts'], createdAt: now, lastModified: now, estimatedDuration: 5 },
+        { id: 'tresorerie', name: 'Position de Trésorerie', code: 'TRE-009', type: 'management', category: 'Trésorerie', description: 'Soldes bancaires et disponibilités par compte', template: 'tresorerie', status: 'active', frequency: 'daily', format: 'pdf', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: false, isScheduled: false, views: entryCount, downloads: 0, parameters: ['date'], filters: ['compte_bancaire'], tags: ['trésorerie', 'banque'], createdAt: now, lastModified: now, estimatedDuration: 2 },
+        { id: 'balance-agee', name: 'Balance Âgée Clients', code: 'BAC-010', type: 'management', category: 'Tiers', description: 'Vieillissement des créances clients par tranche', template: 'balance_agee', status: 'active', frequency: 'monthly', format: 'excel', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: false, isScheduled: false, views: entryCount, downloads: 0, parameters: ['date_reference'], filters: ['client'], tags: ['clients', 'créances', 'recouvrement'], createdAt: now, lastModified: now, estimatedDuration: 5 },
       ];
-      
-      return mockReports.filter(report =>
-        (searchTerm === '' || 
+
+      return catalog.filter(report =>
+        (searchTerm === '' ||
          report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
          report.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
          report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||

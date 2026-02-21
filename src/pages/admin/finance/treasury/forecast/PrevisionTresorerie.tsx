@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatDate } from '../../../../../utils/formatters';
 import { Link } from 'react-router-dom';
 import Modal from '../../../../../components/common/BootstrapModal';
 import { ModalGlobalTemplateBtn } from '../../../../../components/common/ModalGlobalTemplate';
@@ -66,10 +67,6 @@ export const PrevisionTresorerie: React.FC = () => {
         }).format(amount);
     };
 
-    const formatDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR');
-    };
 
     return (
         <>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Download, FileText, FileSpreadsheet, File } from 'lucide-react';
 
 interface ExportButtonProps {
-  data: any[];
+  data: Record<string, unknown>[];
   filename: string;
   title?: string;
   className?: string;
@@ -44,7 +44,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
     }
   ];
 
-  const generateCSV = (data: any[]): string => {
+  const generateCSV = (data: Record<string, unknown>[]): string => {
     if (!data || data.length === 0) return '';
 
     const headers = Object.keys(data[0]);
@@ -65,18 +65,18 @@ const ExportButton: React.FC<ExportButtonProps> = ({
     return csvContent;
   };
 
-  const generateJSON = (data: any[]): string => {
+  const generateJSON = (data: Record<string, unknown>[]): string => {
     return JSON.stringify(data, null, 2);
   };
 
-  const generateExcel = async (data: any[]): Promise<Blob> => {
+  const generateExcel = async (data: Record<string, unknown>[]): Promise<Blob> => {
     // This is a simplified Excel generation
     // In a real application, you would use a library like xlsx or exceljs
     const csvContent = generateCSV(data);
     return new Blob([csvContent], { type: 'application/vnd.ms-excel' });
   };
 
-  const generatePDF = async (data: any[]): Promise<Blob> => {
+  const generatePDF = async (data: Record<string, unknown>[]): Promise<Blob> => {
     // This is a simplified PDF generation
     // In a real application, you would use a library like jsPDF or pdfmake
     const content = `

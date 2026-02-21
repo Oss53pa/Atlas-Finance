@@ -6,7 +6,7 @@
 
 import { db, logAudit } from '../lib/db';
 import type { DBJournalEntry } from '../lib/db';
-import { hashEntry } from './integrity';
+import { safeAddEntry } from '../services/entryGuard';
 
 export interface ReversalRequest {
   originalEntryId: string;
@@ -54,8 +54,9 @@ export async function reverseEntry(request: ReversalRequest): Promise<ReversalRe
   const entryNumber = await getNextPieceNumber(original.journal);
   const now = new Date().toISOString();
 
-  const reversalEntry: DBJournalEntry = {
-    id: crypto.randomUUID(),
+  const reversalId = crypto.randomUUID();
+  await safeAddEntry({
+    id: reversalId,
     entryNumber,
     journal: original.journal,
     date: request.reversalDate,
@@ -74,45 +75,16 @@ export async function reverseEntry(request: ReversalRequest): Promise<ReversalRe
       analyticalCode: line.analyticalCode,
       lettrageCode: line.lettrageCode,
     })),
-    totalDebit: original.totalCredit,
-    totalCredit: original.totalDebit,
     reversalOf: original.id,
     reversalReason: request.reason,
     createdAt: now,
-    updatedAt: now,
-  };
-
-  // Compute integrity hash
-  const lastValidated = await db.journalEntries
-    .where('status')
-    .anyOf(['validated', 'posted'])
-    .sortBy('createdAt');
-  const previousHash = lastValidated.length > 0
-    ? lastValidated[lastValidated.length - 1].hash || ''
-    : '';
-
-  reversalEntry.hash = await hashEntry({
-    entryNumber: reversalEntry.entryNumber,
-    journal: reversalEntry.journal,
-    date: reversalEntry.date,
-    lines: reversalEntry.lines.map(l => ({
-      accountCode: l.accountCode,
-      debit: l.debit,
-      credit: l.credit,
-      label: l.label,
-    })),
-    totalDebit: reversalEntry.totalDebit,
-    totalCredit: reversalEntry.totalCredit,
-  }, previousHash);
-  reversalEntry.previousHash = previousHash;
-
-  // Save reversal entry
-  await db.journalEntries.add(reversalEntry);
+    createdBy: 'system',
+  }, { skipSyncValidation: true });
 
   // Mark original as reversed
   await db.journalEntries.update(original.id, {
     reversed: true,
-    reversedBy: reversalEntry.id,
+    reversedBy: reversalId,
     reversedAt: now,
     updatedAt: now,
   });
@@ -125,12 +97,13 @@ export async function reverseEntry(request: ReversalRequest): Promise<ReversalRe
     JSON.stringify({
       originalEntryId: original.id,
       originalEntryNumber: original.entryNumber,
-      reversalEntryId: reversalEntry.id,
-      reversalEntryNumber: reversalEntry.entryNumber,
+      reversalEntryId: reversalId,
+      reversalEntryNumber: entryNumber,
       reason: request.reason,
     })
   );
 
+  const reversalEntry = await db.journalEntries.get(reversalId);
   return { success: true, reversalEntry };
 }
 

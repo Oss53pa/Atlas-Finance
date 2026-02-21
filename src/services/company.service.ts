@@ -77,7 +77,7 @@ export const companyService = {
   /**
    * Update company information
    */
-  updateCompany: async (data: any) => {
+  updateCompany: async (data: Partial<Societe> & { id: string }) => {
     if (!data.id) {
       throw new Error('Company ID is required');
     }
@@ -127,7 +127,7 @@ export const companyService = {
     return companyService.getCurrentCompany();
   },
 
-  updateCompanyInfo: async (data: any) => {
+  updateCompanyInfo: async (data: Partial<Societe> & { id: string }) => {
     return { success: true, data: await companyService.updateCompany(data) };
   },
 
@@ -144,7 +144,7 @@ export const companyService = {
     };
   },
 
-  updateSettings: async (settings: any) => {
+  updateSettings: async (settings: Record<string, unknown>) => {
     return { success: true, settings };
   }
 };

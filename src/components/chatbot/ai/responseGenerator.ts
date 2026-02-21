@@ -3,9 +3,9 @@
  * Génère des réponses intelligentes, contextuelles et personnalisées pour Proph3t
  */
 
-import { UserIntent, ChatResponse, ChatAction, ChatContext } from '../types';
+import { UserIntent, ChatResponse, ChatAction, ChatContext, KnowledgeBaseEntry } from '../types';
 import { searchKnowledgeBase, getEntriesByCategory } from '../utils/knowledgeBase';
-import { advancedSearch, advancedSearchKnowledge } from '../knowledge/atlasFinanceKnowledge';
+import { advancedSearch, advancedSearchKnowledge, KnowledgeEntry } from '../knowledge/atlasFinanceKnowledge';
 
 // Interfaces pour la génération avancée
 interface ResponsePersonality {
@@ -472,7 +472,7 @@ export class AdvancedResponseGenerator {
     template: ResponseTemplate,
     intent: UserIntent,
     context: ChatContext,
-    knowledgeResults: any[]
+    knowledgeResults: KnowledgeBaseEntry[]
   ): string {
     let baseMessage = this.selectRandomResponse(template.responses);
 
@@ -699,7 +699,7 @@ export class AdvancedResponseGenerator {
 
   private buildDynamicMessage(
     adaptiveResponse: AdaptiveResponse,
-    knowledgeResults: any[],
+    knowledgeResults: KnowledgeEntry[],
     personality: ResponsePersonality
   ): string {
     let message = adaptiveResponse.message;
@@ -724,7 +724,7 @@ export class AdvancedResponseGenerator {
   private generateIntelligentActions(
     intent: UserIntent,
     context: ChatContext,
-    knowledgeResults: any[]
+    knowledgeResults: KnowledgeEntry[]
   ): ChatAction[] {
     const actions: ChatAction[] = [];
 
@@ -949,7 +949,7 @@ export class AdvancedResponseGenerator {
 
   private calculateDynamicConfidence(
     intent: UserIntent,
-    knowledgeResults: any[],
+    knowledgeResults: KnowledgeEntry[],
     adaptiveResponse: AdaptiveResponse
   ): number {
     let confidence = intent.confidence;
@@ -967,7 +967,7 @@ export class AdvancedResponseGenerator {
     return Math.min(confidence, 1.0);
   }
 
-  private determineResponseSource(knowledgeResults: any[], adaptiveResponse: AdaptiveResponse): string {
+  private determineResponseSource(knowledgeResults: KnowledgeEntry[], adaptiveResponse: AdaptiveResponse): string {
     if (knowledgeResults.length > 0) {
       return 'enhanced-knowledge-base';
     }
@@ -981,7 +981,7 @@ export class AdvancedResponseGenerator {
     return array[Math.floor(Math.random() * array.length)];
   }
 
-  private calculateAdaptationConfidence(template: any, personality: ResponsePersonality): number {
+  private calculateAdaptationConfidence(template: ResponseTemplate | undefined, personality: ResponsePersonality): number {
     let confidence = template ? 0.8 : 0.6;
 
     // Bonus pour la personnalité appropriée
@@ -1030,7 +1030,7 @@ export class AdvancedResponseGenerator {
     return actionMap[intent.intent] || [];
   }
 
-  private generateKnowledgeBasedActions(knowledgeResults: any[]): ChatAction[] {
+  private generateKnowledgeBasedActions(knowledgeResults: KnowledgeEntry[]): ChatAction[] {
     return knowledgeResults
       .filter(result => result.navigationPath)
       .map(result => ({

@@ -20,7 +20,7 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
       autoRefreshToken: isSupabaseConfigured,
       persistSession: isSupabaseConfigured,
       detectSessionInUrl: isSupabaseConfigured,
-      storage: typeof localStorage !== 'undefined' ? localStorage : undefined,
+      storage: typeof sessionStorage !== 'undefined' ? sessionStorage : undefined,
       storageKey: 'atlas-finance-auth',
     },
     realtime: {
@@ -84,7 +84,7 @@ export async function getUserPermissions(): Promise<string[]> {
   if (error) return [];
 
   const permissions = data?.role?.permissions?.map(
-    (rp: any) => rp.permission?.code
+    (rp: Record<string, Record<string, string>>) => rp.permission?.code
   ).filter(Boolean) || [];
 
   return permissions;

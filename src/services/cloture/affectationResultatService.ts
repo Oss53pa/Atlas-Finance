@@ -4,8 +4,8 @@
  */
 import { Money, money, percentage } from '../../utils/money';
 import { db, logAudit } from '../../lib/db';
-import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
-import { hashEntry } from '../../utils/integrity';
+import type { DBJournalLine } from '../../lib/db';
+import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================
 // TYPES
@@ -269,13 +269,11 @@ export async function genererEcrituresAffectation(config: AffectationConfig): Pr
     }
   }
 
-  const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
-  const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
-
   // Build entry
   const entryNumber = `AFF-${dateAffectation.replace(/-/g, '')}`;
-  const entry: DBJournalEntry = {
-    id: crypto.randomUUID(),
+  const entryId = crypto.randomUUID();
+  await safeAddEntry({
+    id: entryId,
     entryNumber,
     journal: 'OD',
     date: dateAffectation,
@@ -283,39 +281,20 @@ export async function genererEcrituresAffectation(config: AffectationConfig): Pr
     label: `Affectation du resultat exercice ${exerciceId}`,
     status: 'draft',
     lines,
-    totalDebit,
-    totalCredit,
     createdAt: now,
-    updatedAt: now,
-  };
-
-  // Hash
-  entry.hash = await hashEntry({
-    entryNumber: entry.entryNumber,
-    journal: entry.journal,
-    date: entry.date,
-    lines: entry.lines.map(l => ({
-      accountCode: l.accountCode,
-      debit: l.debit,
-      credit: l.credit,
-      label: l.label,
-    })),
-    totalDebit: entry.totalDebit,
-    totalCredit: entry.totalCredit,
-  });
-
-  // Save
-  await db.journalEntries.add(entry);
-  await logAudit('AFFECTATION_RESULTAT', 'journal_entry', entry.id, JSON.stringify({
+    createdBy: 'system',
+  }, { skipSyncValidation: true });
+  await logAudit('AFFECTATION_RESULTAT', 'journal_entry', entryId, JSON.stringify({
     resultatNet,
     ventilation,
     exerciceId,
   }));
 
+  const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
   const detail = proposerAffectation(resultatNet, config.capitalSocial, config.reserveLegaleActuelle).detail;
   detail.ventilationFinale = ventilation;
   detail.totalAffecte = totalDebit;
   detail.ecart = Math.abs(resultatNet - totalDebit);
 
-  return { success: true, ecritures: [entry], detail };
+  return { success: true, ecritures: [{ id: entryId, entryNumber, lines }], detail };
 }

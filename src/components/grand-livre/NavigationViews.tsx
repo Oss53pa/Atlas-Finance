@@ -1,11 +1,11 @@
 import React from 'react';
 
 interface SearchResult {
-  entries: any[];
+  entries: Record<string, unknown>[];
   total_count: number;
   response_time_ms: number;
   suggestions: string[];
-  aggregations: Record<string, any>;
+  aggregations: Record<string, unknown>;
   confidence_score: number;
   query_explanation?: string;
 }

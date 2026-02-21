@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -98,194 +99,72 @@ const ReportingSyscohada: React.FC = () => {
   const [reportModal, setReportModal] = useState<ReportModal>({ isOpen: false, mode: 'view' });
   const [selectedPeriod, setSelectedPeriod] = useState('2024');
 
-  // Mock data for SYSCOHADA reports
-  const mockReports: SyscohadaReport[] = [
-    {
-      id: '1',
-      reportType: 'bilan_syscohada',
-      title: 'Bilan SYSCOHADA - Format Normal',
-      period: '2024-12-31',
-      status: 'approved',
-      lastModified: '2024-09-15T14:30:00Z',
-      createdBy: 'Marie Kouadio',
-      reviewedBy: 'Jean Ouattara',
-      approvedBy: 'Sophie Diallo',
-      filedDate: '2024-09-16T09:00:00Z',
-      version: '1.2',
-      country: 'Côte d\'Ivoire',
-      regulatoryRef: 'DGI-CI-2024-001',
-      currency: 'XOF',
-      fileSize: '3.2 MB'
-    },
-    {
-      id: '2',
-      reportType: 'compte_resultat_syscohada',
-      title: 'Compte de Résultat SYSCOHADA',
-      period: '2024-12-31',
-      status: 'review',
-      lastModified: '2024-09-18T16:45:00Z',
-      createdBy: 'Pierre Ndiaye',
-      reviewedBy: 'Marie Kouadio',
-      version: '1.0',
-      country: 'Sénégal',
-      regulatoryRef: 'DGI-SN-2024-002',
-      currency: 'XOF',
-      fileSize: '2.1 MB'
-    },
-    {
-      id: '3',
-      reportType: 'tafire',
-      title: 'TAFIRE - Tableau Financier des Ressources et Emplois',
-      period: '2024-12-31',
-      status: 'draft',
-      lastModified: '2024-09-19T11:20:00Z',
-      createdBy: 'Antoine Bongo',
-      version: '0.5',
-      country: 'Gabon',
-      regulatoryRef: 'DGI-GA-2024-003',
-      currency: 'XAF',
-      fileSize: '1.8 MB'
-    },
-    {
-      id: '4',
-      reportType: 'tableau_tresorerie',
-      title: 'Tableau de Trésorerie SYSCOHADA',
-      period: '2024-12-31',
-      status: 'approved',
-      lastModified: '2024-09-14T13:15:00Z',
-      createdBy: 'Fatou Traore',
-      reviewedBy: 'Jean Ouattara',
-      approvedBy: 'Sophie Diallo',
-      filedDate: '2024-09-16T09:00:00Z',
-      version: '1.1',
-      country: 'Mali',
-      regulatoryRef: 'DGI-ML-2024-004',
-      currency: 'XOF',
-      fileSize: '1.5 MB'
-    },
-    {
-      id: '5',
-      reportType: 'notes_annexes',
-      title: 'Notes aux États Financiers SYSCOHADA',
-      period: '2024-12-31',
-      status: 'review',
-      lastModified: '2024-09-19T09:30:00Z',
-      createdBy: 'Thomas Kone',
-      reviewedBy: 'Sophie Diallo',
-      version: '2.0',
-      country: 'Burkina Faso',
-      regulatoryRef: 'DGI-BF-2024-005',
-      currency: 'XOF',
-      fileSize: '4.8 MB'
-    }
-  ];
+  // Load fiscal years from Dexie to generate SYSCOHADA reports
+  const { data: fiscalYears = [] } = useQuery({
+    queryKey: ['syscohada-fiscal-years'],
+    queryFn: () => db.fiscalYears.toArray(),
+  });
 
-  // Mock SYSCOHADA standards
+  const mockReports: SyscohadaReport[] = useMemo(() => {
+    const types: Array<{ type: SyscohadaReport['reportType']; label: string }> = [
+      { type: 'bilan_syscohada', label: 'Bilan SYSCOHADA' },
+      { type: 'compte_resultat_syscohada', label: 'Compte de Résultat SYSCOHADA' },
+      { type: 'tafire', label: 'TAFIRE' },
+      { type: 'notes_annexes', label: 'Notes Annexes SYSCOHADA' },
+      { type: 'tableau_tresorerie', label: 'Tableau de Trésorerie SYSCOHADA' },
+    ];
+    const result: SyscohadaReport[] = [];
+    for (const fy of fiscalYears) {
+      const fyStatus = (fy as unknown as Record<string, string>).status || 'active';
+      const status: SyscohadaReport['status'] = fyStatus === 'closed' ? 'approved' : 'draft';
+      for (const t of types) {
+        result.push({
+          id: `${fy.id}-${t.type}`,
+          reportType: t.type,
+          title: `${t.label} — ${fy.startDate?.substring(0, 4) || ''}`,
+          period: fy.endDate || '',
+          status,
+          lastModified: fy.endDate || new Date().toISOString().split('T')[0],
+          createdBy: 'system',
+          version: '1.0',
+          country: 'Zone OHADA',
+          regulatoryRef: 'SYSCOHADA Révisé 2017',
+          currency: 'XAF',
+          fileSize: '-',
+        });
+      }
+    }
+    return result;
+  }, [fiscalYears]);
+
+  // Static SYSCOHADA standards (reference data)
   const mockStandards: SyscohadaStandard[] = [
-    {
-      code: 'SYSCOHADA-ART-11',
-      title: 'Présentation du Bilan',
-      category: 'presentation',
-      applicableCountries: ['CI', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ', 'GW'],
-      compliance: 'compliant',
-      lastReview: '2024-08-15',
-      impact: 'high',
-      notes: 'Format standard respecté pour tous les pays OHADA'
-    },
-    {
-      code: 'SYSCOHADA-ART-25',
-      title: 'Compte de Résultat par Nature',
-      category: 'presentation',
-      applicableCountries: ['CI', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ', 'GW'],
-      compliance: 'compliant',
-      lastReview: '2024-09-01',
-      impact: 'high',
-      notes: 'Classification par nature des charges appliquée'
-    },
-    {
-      code: 'SYSCOHADA-ART-35',
-      title: 'Évaluation des Immobilisations',
-      category: 'measurement',
-      applicableCountries: ['CI', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ', 'GW'],
-      compliance: 'partial',
-      lastReview: '2024-07-20',
-      impact: 'medium',
-      notes: 'Adaptation en cours pour nouvelles normes'
-    },
-    {
-      code: 'SYSCOHADA-ART-45',
-      title: 'Provisions et Dépréciations',
-      category: 'measurement',
-      applicableCountries: ['CI', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ', 'GW'],
-      compliance: 'compliant',
-      lastReview: '2024-09-10',
-      impact: 'medium',
-      notes: 'Méthodes de provisionnement conformes'
-    },
-    {
-      code: 'SYSCOHADA-ART-75',
-      title: 'États Annexes et Notes',
-      category: 'disclosure',
-      applicableCountries: ['CI', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ', 'GW'],
-      compliance: 'compliant',
-      lastReview: '2024-08-25',
-      impact: 'high',
-      notes: 'Informations complémentaires détaillées'
-    }
+    { code: 'SYSCOHADA-ART-8', title: 'Principes comptables fondamentaux', category: 'measurement', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Prudence, continuité, coût historique, permanence des méthodes' },
+    { code: 'SYSCOHADA-ART-11', title: 'Présentation du Bilan', category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Structure Actif immobilisé / Circulant / Trésorerie' },
+    { code: 'SYSCOHADA-ART-25', title: 'Compte de Résultat par Nature', category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Classification charges (6) et produits (7) par nature' },
+    { code: 'SYSCOHADA-ART-35', title: 'Évaluation des Immobilisations', category: 'measurement', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: 'Amortissement linéaire et dégressif, réévaluation légale' },
+    { code: 'SYSCOHADA-ART-75', title: 'États Annexes et Notes', category: 'disclosure', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Informations complémentaires obligatoires' },
   ];
 
-  // Mock OHADA countries
+  // Static OHADA zone countries
   const mockCountries: OHADACountry[] = [
-    {
-      code: 'CI',
-      name: 'Côte d\'Ivoire',
-      currency: 'XOF',
-      filingDeadline: '2025-04-30',
-      localRequirements: ['DGI Filing', 'CNPS Declaration', 'Chamber of Commerce'],
-      status: 'active',
-      revenue: 85000000,
-      entities: 3
-    },
-    {
-      code: 'SN',
-      name: 'Sénégal',
-      currency: 'XOF',
-      filingDeadline: '2025-04-30',
-      localRequirements: ['DGI Filing', 'IPRES Declaration'],
-      status: 'active',
-      revenue: 65000000,
-      entities: 2
-    },
-    {
-      code: 'GA',
-      name: 'Gabon',
-      currency: 'XAF',
-      filingDeadline: '2025-03-31',
-      localRequirements: ['DGI Filing', 'CNSS Declaration'],
-      status: 'active',
-      revenue: 45000000,
-      entities: 1
-    },
-    {
-      code: 'ML',
-      name: 'Mali',
-      currency: 'XOF',
-      filingDeadline: '2025-04-30',
-      localRequirements: ['DGI Filing', 'INPS Declaration'],
-      status: 'active',
-      revenue: 32000000,
-      entities: 1
-    },
-    {
-      code: 'BF',
-      name: 'Burkina Faso',
-      currency: 'XOF',
-      filingDeadline: '2025-04-30',
-      localRequirements: ['DGI Filing', 'CNSS Declaration'],
-      status: 'pending',
-      revenue: 28000000,
-      entities: 1
-    }
+    { code: 'CI', name: "Côte d'Ivoire", currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNPS', 'Chambre de Commerce'], status: 'active', revenue: 0, entities: 1 },
+    { code: 'SN', name: 'Sénégal', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'IPRES', 'CSS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'CM', name: 'Cameroun', currency: 'XAF', filingDeadline: '15 mars', localRequirements: ['DGI', 'CNPS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'GA', name: 'Gabon', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'ML', name: 'Mali', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'INPS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'BF', name: 'Burkina Faso', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'BJ', name: 'Bénin', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'TG', name: 'Togo', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'NE', name: 'Niger', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'TD', name: 'Tchad', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI', 'CNPS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'CF', name: 'Centrafrique', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'CG', name: 'Congo', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI', 'CNSS'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'GQ', name: 'Guinée Équatoriale', currency: 'XAF', filingDeadline: '31 mars', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'GW', name: 'Guinée-Bissau', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'KM', name: 'Comores', currency: 'KMF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'CD', name: 'RD Congo', currency: 'CDF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
+    { code: 'GN', name: 'Guinée', currency: 'GNF', filingDeadline: '30 avril', localRequirements: ['DGI'], status: 'active', revenue: 0, entities: 0 },
   ];
 
   // Filter reports based on search and filters

@@ -53,7 +53,7 @@ export const SimpleTabsTrigger: React.FC<{ value: string; children: React.ReactN
     const tabsElement = document.querySelector('[data-value]');
     if (tabsElement) {
       const currentValue = tabsElement.getAttribute('data-value');
-      const onchange = (tabsElement as any).dataset.onchange;
+      const onchange = (tabsElement as HTMLElement).dataset.onchange;
       if (typeof onchange === 'function') {
         onchange(value);
       }

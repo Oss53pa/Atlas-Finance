@@ -8,28 +8,28 @@ export interface UseDataTableOptions<T> {
   initialSortBy?: string;
   initialSortOrder?: 'asc' | 'desc';
   autoFetch?: boolean;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
   onSuccess?: (data: PaginatedResponse<T>) => void;
 }
 
 export interface UseDataTableReturn<T> {
   data: T[];
   loading: boolean;
-  error: any;
+  error: unknown;
   totalCount: number;
   currentPage: number;
   pageSize: number;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
   search: string;
-  filters: Record<string, any>;
-  
+  filters: Record<string, unknown>;
+
   // Actions
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
   setSort: (key: string, direction: 'asc' | 'desc') => void;
   setSearch: (term: string) => void;
-  setFilters: (filters: Record<string, any>) => void;
+  setFilters: (filters: Record<string, unknown>) => void;
   refresh: () => void;
   
   // Helpers
@@ -52,14 +52,14 @@ export function useDataTable<T>(options: UseDataTableOptions<T>): UseDataTableRe
   // États
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<unknown>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [sortBy, setSortBy] = useState(initialSortBy);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(initialSortOrder);
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
 
   // Calculs dérivés
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -89,12 +89,13 @@ export function useDataTable<T>(options: UseDataTableOptions<T>): UseDataTableRe
       if (onSuccess) {
         onSuccess(response);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching data:', err);
       setError(err);
       setData([]);
-      
-      const errorMessage = err.response?.data?.message || err.message || 'Une erreur est survenue';
+
+      const axiosErr = err as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage = axiosErr.response?.data?.message || axiosErr.message || 'Une erreur est survenue';
       toast.error(errorMessage);
       
       if (onError) {
@@ -135,7 +136,7 @@ export function useDataTable<T>(options: UseDataTableOptions<T>): UseDataTableRe
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  const handleSetFilters = (newFilters: Record<string, any>) => {
+  const handleSetFilters = (newFilters: Record<string, unknown>) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filtering
   };

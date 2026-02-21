@@ -63,7 +63,7 @@ const CustomersPage: React.FC = () => {
     commercial: ''
   });
   const [page, setPage] = useState(1);
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Record<string, unknown> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -87,19 +87,19 @@ const CustomersPage: React.FC = () => {
         onSuccess: () => {
           toast.success('Client supprimé avec succès');
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
           toast.error(error?.message || 'Erreur lors de la suppression');
         }
       });
     }
   };
 
-  const handleViewDetails = (customer: any) => {
+  const handleViewDetails = (customer: Record<string, unknown>) => {
     setSelectedCustomer(customer);
     setShowDetailModal(true);
   };
 
-  const handleEditCustomer = (customer: any) => {
+  const handleEditCustomer = (customer: Record<string, unknown>) => {
     setSelectedCustomer(customer);
     setShowEditModal(true);
   };

@@ -257,7 +257,7 @@ export const securityService = {
     return [];
   },
 
-  async getSecurityEvents(filters?: any) {
+  async getSecurityEvents(filters?: Record<string, unknown>) {
     // TODO: Créer endpoint backend /api/security-events/
     console.warn('getSecurityEvents: endpoint backend pas encore implémenté');
     return { events: [], totalPages: 0, totalCount: 0, currentPage: 1 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
   LineChart, Calculator, Percent, ArrowUpRight, ArrowDownRight,
@@ -196,14 +197,6 @@ const FinancialAnalysisDashboard: React.FC = () => {
     return 'text-[var(--color-warning)]';
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   return (
     <div className="p-6 max-w-full">

@@ -117,7 +117,7 @@ export interface JournalEntriesValidationResponse {
     error_type: string;
     error_message: string;
     field?: string;
-    value?: any;
+    value?: unknown;
   }>;
   warnings: string[];
   can_proceed: boolean;
@@ -133,7 +133,7 @@ export interface ImportTemplate {
     example: string;
     description: string;
   }>;
-  sample_data: Array<Record<string, any>>;
+  sample_data: Array<Record<string, unknown>>;
   rules: string[];
 }
 
@@ -307,7 +307,7 @@ class JournalEntriesImportService {
     total: number;
   }> {
     try {
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<{ results: Array<{ id: string; filename: string; status: string; date: string; total_entries: number; processing_time_seconds: number }>; total: number }>(
         '/api/ecritures/import/history/',
         {
           company_id,
@@ -347,7 +347,7 @@ class JournalEntriesImportService {
     message: string;
   }> {
     try {
-      const response = await apiClient.post<any>(
+      const response = await apiClient.post<{ success: boolean; deleted_entries_count: number; message: string }>(
         `/api/ecritures/import/${import_id}/cancel/`
       );
 

@@ -161,7 +161,7 @@ export interface TrialBalance {
   period_start: string;
   period_end: string;
   generated_at: string;
-  accounts_data: any;
+  accounts_data: Record<string, unknown>;
   total_debit: number;
   total_credit: number;
 }

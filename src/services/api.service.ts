@@ -9,7 +9,7 @@
 import { supabase } from '@/lib/supabase';
 
 // Types de base pour les reponses
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -30,14 +30,14 @@ export interface QueryParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string;
-  filters?: Record<string, any>;
-  [key: string]: any;
+  filters?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 /**
  * Helper: Query a Supabase table with pagination, sorting, and filtering
  */
-export async function queryTable<T = any>(
+export async function queryTable<T = unknown>(
   table: string,
   options: {
     select?: string;
@@ -45,7 +45,7 @@ export async function queryTable<T = any>(
     pageSize?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
-    filters?: Record<string, any>;
+    filters?: Record<string, unknown>;
     search?: { column: string; value: string } | null;
   } = {}
 ): Promise<PaginatedResponse<T>> {
@@ -105,7 +105,7 @@ export async function queryTable<T = any>(
 /**
  * Helper: Get a single record by ID
  */
-export async function getById<T = any>(
+export async function getById<T = unknown>(
   table: string,
   id: string,
   select = '*'
@@ -123,9 +123,9 @@ export async function getById<T = any>(
 /**
  * Helper: Insert a record
  */
-export async function insertRecord<T = any>(
+export async function insertRecord<T = unknown>(
   table: string,
-  record: Record<string, any>
+  record: Record<string, unknown>
 ): Promise<T> {
   const { data, error } = await supabase
     .from(table)
@@ -140,10 +140,10 @@ export async function insertRecord<T = any>(
 /**
  * Helper: Update a record
  */
-export async function updateRecord<T = any>(
+export async function updateRecord<T = unknown>(
   table: string,
   id: string,
-  updates: Record<string, any>
+  updates: Record<string, unknown>
 ): Promise<T> {
   const { data, error } = await supabase
     .from(table)
@@ -174,9 +174,9 @@ export async function deleteRecord(
 /**
  * Helper: Call a Supabase Edge Function
  */
-export async function callFunction<T = any>(
+export async function callFunction<T = unknown>(
   functionName: string,
-  body?: Record<string, any>
+  body?: Record<string, unknown>
 ): Promise<T> {
   const { data, error } = await supabase.functions.invoke(functionName, {
     body,
@@ -189,9 +189,9 @@ export async function callFunction<T = any>(
 /**
  * Helper: Call a PostgreSQL RPC function
  */
-export async function callRpc<T = any>(
+export async function callRpc<T = unknown>(
   functionName: string,
-  params?: Record<string, any>
+  params?: Record<string, unknown>
 ): Promise<T> {
   const { data, error } = await supabase.rpc(functionName, params);
 
@@ -257,7 +257,7 @@ export { supabase };
  * This shim wraps responses in { data } format to match Axios conventions.
  * Legacy services will gradually be replaced by Supabase-native *-complete.service.ts files.
  */
-function wrapResponse(data: any) {
+function wrapResponse(data: unknown) {
   return { data: data ?? { results: [], count: 0 } };
 }
 
@@ -275,27 +275,27 @@ export const apiService = {
   supabase,
 
   // Axios-style HTTP methods (compat shim for legacy services)
-  async get(url: string, config?: { params?: Record<string, any> }) {
+  async get(url: string, config?: { params?: Record<string, unknown> }) {
     console.warn(`[apiService.get] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse({ results: [], count: 0 });
   },
 
-  async post(url: string, data?: any, config?: any) {
+  async post(url: string, data?: unknown, config?: Record<string, unknown>) {
     console.warn(`[apiService.post] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse(data ?? {});
   },
 
-  async put(url: string, data?: any, config?: any) {
+  async put(url: string, data?: unknown, config?: Record<string, unknown>) {
     console.warn(`[apiService.put] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse(data ?? {});
   },
 
-  async patch(url: string, data?: any, config?: any) {
+  async patch(url: string, data?: unknown, config?: Record<string, unknown>) {
     console.warn(`[apiService.patch] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse(data ?? {});
   },
 
-  async delete(url: string, config?: any) {
+  async delete(url: string, config?: Record<string, unknown>) {
     console.warn(`[apiService.delete] Legacy call to ${url} — migrate to Supabase-native service`);
     return wrapResponse(null);
   },

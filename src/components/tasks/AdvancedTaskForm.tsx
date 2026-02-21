@@ -239,7 +239,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${
                   activeTab === tab.id
                     ? 'border-b-2 border-primary text-primary bg-card'
@@ -296,7 +296,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                     </label>
                     <select
                       value={formData.priority}
-                      onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as TaskFormData['priority'] }))}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     >
                       <option value="low">Basse</option>
@@ -312,7 +312,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                     </label>
                     <select
                       value={formData.status}
-                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as TaskFormData['status'] }))}
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     >
                       <option value="todo">À faire</option>
@@ -587,7 +587,7 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
                   {formData.isRecurrent && (
                     <select
                       value={formData.recurrencePattern || 'monthly'}
-                      onChange={(e) => setFormData(prev => ({ ...prev, recurrencePattern: e.target.value as any }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, recurrencePattern: e.target.value as TaskFormData['recurrencePattern'] }))}
                       className="mt-2 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
                     >
                       <option value="daily">Quotidien</option>

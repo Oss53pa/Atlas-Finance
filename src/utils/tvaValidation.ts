@@ -3,6 +3,8 @@
  * Conforme SYSCOHADA et normes fiscales OHADA
  */
 
+import { money } from './money';
+
 export interface TVAValidationResult {
   isValid: boolean;
   errors: string[];
@@ -96,7 +98,7 @@ export class TVAValidator {
   private static checkMontantsTVA(lignes: LigneEcriture[], result: TVAValidationResult): void {
     for (const ligne of lignes) {
       if (ligne.montantHT !== undefined && ligne.montantTVA !== undefined && ligne.tauxTVA !== undefined) {
-        const tvaCalculee = ligne.montantHT * (ligne.tauxTVA / 100);
+        const tvaCalculee = money(ligne.montantHT).multiply(ligne.tauxTVA).divide(100).round(0).toNumber();
         const ecart = Math.abs(tvaCalculee - ligne.montantTVA);
 
         // Tolérance de 0.01 (centime) pour les arrondis
@@ -248,9 +250,11 @@ export class TVAValidator {
 
   /**
    * Calculer la TVA à partir d'un montant HT et d'un taux
+   * Utilise Money class pour éviter les erreurs de précision flottante.
+   * round(0) car FCFA n'a pas de centimes.
    */
   static calculerTVA(montantHT: number, tauxTVA: number): number {
-    return Math.round(montantHT * (tauxTVA / 100) * 100) / 100;
+    return money(montantHT).multiply(tauxTVA).divide(100).round(0).toNumber();
   }
 
   /**
@@ -258,14 +262,14 @@ export class TVAValidator {
    */
   static calculerTTC(montantHT: number, tauxTVA: number): number {
     const montantTVA = this.calculerTVA(montantHT, tauxTVA);
-    return montantHT + montantTVA;
+    return money(montantHT).add(montantTVA).round(0).toNumber();
   }
 
   /**
    * Calculer le montant HT à partir du TTC
    */
   static calculerHT(montantTTC: number, tauxTVA: number): number {
-    return Math.round((montantTTC / (1 + tauxTVA / 100)) * 100) / 100;
+    return money(montantTTC).divide(1 + tauxTVA / 100).round(0).toNumber();
   }
 
   /**
@@ -306,6 +310,56 @@ export class TVAValidator {
 
     return report;
   }
+}
+
+/**
+ * Taux TVA par pays OHADA (taux normal + taux réduits)
+ */
+export const TAUX_TVA_PAR_PAYS: Record<string, { normal: number; reduits: number[]; libelle: string }> = {
+  CI: { normal: 18, reduits: [9], libelle: 'Côte d\'Ivoire' },
+  SN: { normal: 18, reduits: [10], libelle: 'Sénégal' },
+  CM: { normal: 19.25, reduits: [0], libelle: 'Cameroun' },
+  GA: { normal: 18, reduits: [10, 5], libelle: 'Gabon' },
+  BF: { normal: 18, reduits: [0], libelle: 'Burkina Faso' },
+  ML: { normal: 18, reduits: [5], libelle: 'Mali' },
+  NE: { normal: 19, reduits: [5], libelle: 'Niger' },
+  TG: { normal: 18, reduits: [10], libelle: 'Togo' },
+  BJ: { normal: 18, reduits: [0], libelle: 'Bénin' },
+  GN: { normal: 18, reduits: [0], libelle: 'Guinée' },
+  TD: { normal: 18, reduits: [9], libelle: 'Tchad' },
+  CF: { normal: 19, reduits: [5], libelle: 'Centrafrique' },
+  CG: { normal: 18.9, reduits: [5], libelle: 'Congo' },
+  CD: { normal: 16, reduits: [8], libelle: 'RD Congo' },
+  GQ: { normal: 15, reduits: [6], libelle: 'Guinée Équatoriale' },
+  KM: { normal: 10, reduits: [5], libelle: 'Comores' },
+  GW: { normal: 15, reduits: [0], libelle: 'Guinée-Bissau' },
+};
+
+/**
+ * Obtenir le taux TVA normal d'un pays
+ */
+export function getTauxTVA(countryCode: string): number {
+  return TAUX_TVA_PAR_PAYS[countryCode]?.normal ?? 18;
+}
+
+/**
+ * Calcul TVA pour un pays donné
+ */
+export function calculerTVAPays(montantHT: number, countryCode: string, tauxReduit?: boolean): number {
+  const config = TAUX_TVA_PAR_PAYS[countryCode];
+  if (!config) return TVAValidator.calculerTVA(montantHT, 18);
+  const taux = tauxReduit && config.reduits.length > 0 ? config.reduits[0] : config.normal;
+  return TVAValidator.calculerTVA(montantHT, taux);
+}
+
+/**
+ * Calcul TVA spécial Cameroun (19.25% = 17.5% TVA + 10% CAC sur TVA)
+ */
+export function calculerTVACameroun(montantHT: number): { tva: number; cac: number; total: number } {
+  const tvaBase = money(montantHT).multiply(17.5).divide(100).round(0).toNumber();
+  const cac = money(tvaBase).multiply(10).divide(100).round(0).toNumber();
+  const total = money(tvaBase).add(cac).round(0).toNumber();
+  return { tva: tvaBase, cac, total };
 }
 
 export default TVAValidator;

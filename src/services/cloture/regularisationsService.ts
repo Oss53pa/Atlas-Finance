@@ -4,8 +4,8 @@
  */
 import { Money, money } from '../../utils/money';
 import { db, logAudit } from '../../lib/db';
-import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
-import { hashEntry } from '../../utils/integrity';
+import type { DBJournalLine } from '../../lib/db';
+import { safeBulkAddEntries } from '../entryGuard';
 
 // ============================================================================
 // TYPES
@@ -226,75 +226,41 @@ export async function genererEcrituresRegularisation(
   }
 
   const now = new Date().toISOString();
-  const ecritures: DBJournalEntry[] = [];
-
-  const lastEntry = await db.journalEntries.orderBy('date').last();
-  let previousHash = lastEntry?.hash || '';
+  const ecritures: Array<{ id: string; entryNumber: string; journal: string; date: string; reference: string; label: string; status: string; lines: DBJournalLine[]; createdAt: string; createdBy?: string }> = [];
 
   for (let i = 0; i < regularisations.length; i++) {
     const regul = regularisations[i];
     if (regul.montant <= 0) continue;
 
     const lines = buildRegulLines(regul);
-    const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
-    const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
-
-    if (Math.abs(totalDebit - totalCredit) > 0.01) {
-      return {
-        success: false,
-        error: `Regularisation "${regul.libelle}" desequilibree : D=${totalDebit.toFixed(2)}, C=${totalCredit.toFixed(2)}.`,
-      };
-    }
-
     const entryNumber = `REG-${regul.type}-${dateRegularisation.replace(/-/g, '')}-${String(i + 1).padStart(3, '0')}`;
 
-    const entry: DBJournalEntry = {
+    const entry = {
       id: crypto.randomUUID(),
       entryNumber,
       journal: 'OD',
       date: dateRegularisation,
       reference: `REGUL-${regul.type}-${regul.id}`,
       label: `Regularisation ${regul.type} - ${regul.libelle}`,
-      status: 'draft',
+      status: 'draft' as const,
       lines,
-      totalDebit,
-      totalCredit,
       createdAt: now,
-      updatedAt: now,
+      createdBy: 'system',
     };
-
-    entry.hash = await hashEntry(
-      {
-        entryNumber: entry.entryNumber,
-        journal: entry.journal,
-        date: entry.date,
-        lines: entry.lines.map(l => ({
-          accountCode: l.accountCode,
-          debit: l.debit,
-          credit: l.credit,
-          label: l.label,
-        })),
-        totalDebit: entry.totalDebit,
-        totalCredit: entry.totalCredit,
-      },
-      previousHash
-    );
-    entry.previousHash = previousHash;
-    previousHash = entry.hash;
 
     ecritures.push(entry);
     regul.ecritureId = entry.id;
     regul.statut = 'comptabilisee';
   }
 
-  // Save all entries
-  await db.journalEntries.bulkAdd(ecritures);
+  // Save all entries via entryGuard (handles totalDebit/totalCredit + hash)
+  await safeBulkAddEntries(ecritures as unknown as Parameters<typeof safeBulkAddEntries>[0], { skipSyncValidation: true });
 
   // Audit
   await logAudit('REGULARISATION', 'fiscal_year', config.exerciceId, JSON.stringify({
     count: ecritures.length,
     types: regularisations.map(r => r.type),
-    total: ecritures.reduce((s, e) => s + e.totalDebit, 0),
+    total: ecritures.reduce((s, e) => e.lines.reduce((ls, l) => ls + l.debit, 0) + s, 0),
   }));
 
   return { success: true, ecritures };

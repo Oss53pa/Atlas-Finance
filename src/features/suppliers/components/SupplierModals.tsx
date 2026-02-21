@@ -166,13 +166,13 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
       toast.success('Fournisseur créé avec succès');
       onSuccess?.();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur création fournisseur:', error);
-      toast.error(error?.message || 'Erreur lors de la création du fournisseur');
+      toast.error((error instanceof Error ? error.message : null) || 'Erreur lors de la création du fournisseur');
     }
   };
 
-  const handleInputChange = (field: keyof SupplierFormData, value: any) => {
+  const handleInputChange = (field: keyof SupplierFormData, value: SupplierFormData[keyof SupplierFormData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -273,7 +273,7 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
                   </label>
                   <Select
                     value={formData.type_fournisseur}
-                    onValueChange={(value: any) => handleInputChange('type_fournisseur', value)}
+                    onValueChange={(value: string) => handleInputChange('type_fournisseur', value as SupplierFormData['type_fournisseur'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -321,7 +321,7 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
                   </label>
                   <Select
                     value={formData.categorie}
-                    onValueChange={(value: any) => handleInputChange('categorie', value)}
+                    onValueChange={(value: string) => handleInputChange('categorie', value as SupplierFormData['categorie'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -343,7 +343,7 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
                   </label>
                   <Select
                     value={formData.statut}
-                    onValueChange={(value: any) => handleInputChange('statut', value)}
+                    onValueChange={(value: string) => handleInputChange('statut', value as SupplierFormData['statut'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -673,10 +673,16 @@ export const CreateSupplierModal: React.FC<CreateSupplierModalProps> = ({
   );
 };
 
+interface SupplierRecord extends SupplierFormData {
+  id: string;
+  achats_annuels?: number;
+  solde_compte?: number;
+}
+
 interface EditSupplierModalProps {
   isOpen: boolean;
   onClose: () => void;
-  supplier: any;
+  supplier: SupplierRecord | null;
   onSuccess?: () => void;
 }
 
@@ -765,6 +771,7 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
     }
 
     try {
+      if (!supplier) return;
       await updateSupplier.mutateAsync({
         id: supplier.id,
         data: formData
@@ -773,13 +780,13 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
       toast.success('Fournisseur modifié avec succès');
       onSuccess?.();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur modification fournisseur:', error);
-      toast.error(error?.message || 'Erreur lors de la modification du fournisseur');
+      toast.error((error instanceof Error ? error.message : null) || 'Erreur lors de la modification du fournisseur');
     }
   };
 
-  const handleInputChange = (field: keyof SupplierFormData, value: any) => {
+  const handleInputChange = (field: keyof SupplierFormData, value: SupplierFormData[keyof SupplierFormData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -876,7 +883,7 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
                   </label>
                   <Select
                     value={formData.type_fournisseur}
-                    onValueChange={(value: any) => handleInputChange('type_fournisseur', value)}
+                    onValueChange={(value: string) => handleInputChange('type_fournisseur', value as SupplierFormData['type_fournisseur'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -922,7 +929,7 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
                   </label>
                   <Select
                     value={formData.categorie}
-                    onValueChange={(value: any) => handleInputChange('categorie', value)}
+                    onValueChange={(value: string) => handleInputChange('categorie', value as SupplierFormData['categorie'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -944,7 +951,7 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
                   </label>
                   <Select
                     value={formData.statut}
-                    onValueChange={(value: any) => handleInputChange('statut', value)}
+                    onValueChange={(value: string) => handleInputChange('statut', value as SupplierFormData['statut'])}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -1031,7 +1038,7 @@ export const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
 interface SupplierDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  supplier: any;
+  supplier: SupplierRecord | null;
   onEdit?: () => void;
 }
 

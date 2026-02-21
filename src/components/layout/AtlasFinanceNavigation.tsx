@@ -45,7 +45,7 @@ import { dashboardService } from '../../services';
 
 interface NavigationProps {
   companyId: string;
-  currentUser: any;
+  currentUser: Record<string, unknown>;
   className?: string;
 }
 

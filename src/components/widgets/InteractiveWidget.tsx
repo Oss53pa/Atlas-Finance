@@ -37,16 +37,34 @@ import {
 import { LineChart, BarChart, PieChart } from '../charts';
 import { formatCurrency, formatDate, formatPercent } from '../../lib/utils';
 
+interface WidgetConfig {
+  refreshInterval?: number;
+  showSubMetrics?: boolean;
+  chartType?: 'line' | 'bar' | 'pie';
+  xAxisKey?: string;
+  lines?: Array<{ dataKey: string; color: string }>;
+  bars?: Array<{ dataKey: string; color: string }>;
+  realtime?: boolean;
+  [key: string]: unknown;
+}
+
+interface WidgetPosition {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 interface WidgetProps {
   id: string;
   title: string;
   type: 'kpi' | 'chart' | 'table' | 'alert' | 'metric';
   size: 'small' | 'medium' | 'large';
   dataSource: string;
-  config: any;
-  position?: { x: number; y: number; w: number; h: number };
-  onResize?: (id: string, size: any) => void;
-  onMove?: (id: string, position: any) => void;
+  config: WidgetConfig;
+  position?: WidgetPosition;
+  onResize?: (id: string, size: WidgetPosition) => void;
+  onMove?: (id: string, position: WidgetPosition) => void;
   onConfigure?: (id: string) => void;
   onRemove?: (id: string) => void;
   className?: string;
@@ -378,7 +396,7 @@ const InteractiveWidget: React.FC<WidgetProps> = ({
 
 // Widget Factory pour création dynamique
 export const WidgetFactory = {
-  createKPIWidget: (config: any) => ({
+  createKPIWidget: (config: Record<string, unknown>) => ({
     type: 'kpi' as const,
     component: InteractiveWidget,
     defaultSize: 'medium' as const,
@@ -387,7 +405,7 @@ export const WidgetFactory = {
     ...config
   }),
 
-  createChartWidget: (config: any) => ({
+  createChartWidget: (config: Record<string, unknown>) => ({
     type: 'chart' as const,
     component: InteractiveWidget,
     defaultSize: 'large' as const,
@@ -396,7 +414,7 @@ export const WidgetFactory = {
     ...config
   }),
 
-  createTableWidget: (config: any) => ({
+  createTableWidget: (config: Record<string, unknown>) => ({
     type: 'table' as const,
     component: InteractiveWidget,
     defaultSize: 'large' as const,

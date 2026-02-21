@@ -61,6 +61,19 @@ interface Session {
   progression: number;
 }
 
+interface ScheduleData {
+  id: string;
+  rapport: string;
+  frequence: string;
+  heure: string;
+  fuseau: string;
+  format: string;
+  destinataires: string;
+  actif: boolean;
+  notifEchec: boolean;
+  piecesJointes: boolean;
+}
+
 
 const CustomReportsPage: React.FC = () => {
   const { t } = useLanguage();
@@ -74,8 +87,8 @@ const CustomReportsPage: React.FC = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showScheduleSettingsModal, setShowScheduleSettingsModal] = useState(false);
   const [selectedReportData, setSelectedReportData] = useState<Rapport | null>(null);
-  const [selectedScheduleData, setSelectedScheduleData] = useState<any>(null);
-  const [shareItem, setShareItem] = useState<any>(null);
+  const [selectedScheduleData, setSelectedScheduleData] = useState<ScheduleData | null>(null);
+  const [shareItem, setShareItem] = useState<Rapport | null>(null);
   const [shareType, setShareType] = useState<'rapport' | 'template'>('rapport');
   const [filterModule, setFilterModule] = useState('tous');
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,7 +120,7 @@ const CustomReportsPage: React.FC = () => {
       setShowScheduleModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création de la planification');
     },
   });
@@ -129,7 +142,7 @@ const CustomReportsPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     if (field === 'destinataires_input') {
       setFormData(prev => ({ ...prev, destinataires_input: value }));
       // Parser les emails et mettre à jour destinataires
@@ -191,30 +204,30 @@ const CustomReportsPage: React.FC = () => {
     setShowDownloadReportModal(true);
   };
 
-  const handleShareReport = (item: any, type: 'rapport' | 'template') => {
+  const handleShareReport = (item: Rapport, type: 'rapport' | 'template') => {
     setShareItem(item);
     setShareType(type);
     setShowShareModal(true);
   };
 
-  const handleScheduleSettings = (schedule: any) => {
+  const handleScheduleSettings = (schedule: ScheduleData) => {
     setSelectedScheduleData(schedule);
     setShowScheduleSettingsModal(true);
   };
 
-  const handleSaveReport = (data: any) => {
+  const handleSaveReport = (data: Rapport) => {
     toast.success('Rapport modifié avec succès');
   };
 
-  const handleSaveSchedule = (data: any) => {
+  const handleSaveSchedule = (data: ScheduleData) => {
     toast.success('Planification modifiée avec succès');
   };
 
-  const handlePlaySchedule = (schedule: any) => {
+  const handlePlaySchedule = (schedule: ScheduleData) => {
     toast.success('Planification lancée');
   };
 
-  const handlePauseExecution = (execution: any) => {
+  const handlePauseExecution = (execution: Session) => {
     toast.success("Exécution mise en pause");
   };
 
@@ -1023,7 +1036,7 @@ const CustomReportsPage: React.FC = () => {
                               <button className="flex-1 px-3 py-1 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded text-xs hover:bg-[var(--color-primary-dark)]">
                                 UTILISER
                               </button>
-                              <button type="button" onClick={() => handleViewReport(template as any)} className="px-2 py-1 border border-[var(--color-border)] rounded text-xs hover:bg-[var(--color-background-secondary)]">
+                              <button type="button" onClick={() => handleViewReport(template as unknown as Rapport)} className="px-2 py-1 border border-[var(--color-border)] rounded text-xs hover:bg-[var(--color-background-secondary)]">
                                 <Eye className="w-3 h-3" />
                               </button>
                               <button className="px-2 py-1 border border-[var(--color-border)] rounded text-xs hover:bg-[var(--color-background-secondary)]">
@@ -1127,7 +1140,7 @@ const CustomReportsPage: React.FC = () => {
                               <button className="px-3 py-1 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded text-xs hover:bg-[var(--color-primary-dark)]">
                                 UTILISER
                               </button>
-                              <button type="button" onClick={() => handleEditReport(template as any)} className="px-2 py-1 border border-[var(--color-border)] rounded text-xs hover:bg-[var(--color-background-secondary)]">
+                              <button type="button" onClick={() => handleEditReport(template as unknown as Rapport)} className="px-2 py-1 border border-[var(--color-border)] rounded text-xs hover:bg-[var(--color-background-secondary)]">
                                 <Edit className="w-3 h-3" />
                               </button>
                               <button type="button" onClick={() => handleShareReport(template, 'template')} className="px-2 py-1 border border-[var(--color-border)] rounded text-xs hover:bg-[var(--color-background-secondary)]">
@@ -1370,7 +1383,7 @@ const CustomReportsPage: React.FC = () => {
                                 <button type="button" onClick={() => handlePauseExecution(execution)} className="p-1 hover:bg-[var(--color-background-hover)] rounded" title="Pause">
                                   <Pause className="w-4 h-4 text-[var(--color-text-secondary)]" />
                                 </button>
-                                <button type="button" onClick={() => handleEditReport(execution as any)} className="p-1 hover:bg-[var(--color-background-hover)] rounded" title={t('common.edit')}>
+                                <button type="button" onClick={() => handleEditReport(execution as unknown as Rapport)} className="p-1 hover:bg-[var(--color-background-hover)] rounded" title={t('common.edit')}>
                                   <Edit className="w-4 h-4 text-[var(--color-text-secondary)]" />
                                 </button>
                                 <button type="button" className="p-1 hover:bg-[var(--color-background-hover)] rounded" title="Historique">

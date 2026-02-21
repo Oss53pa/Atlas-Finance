@@ -59,7 +59,91 @@ export interface QueryParams {
   page_size?: number;
   search?: string;
   ordering?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
+}
+
+/** Backend tiers record shape (snake_case from API) */
+interface BackendTiers {
+  id: string;
+  code: string;
+  nom: string;
+  type: 'CLIENT' | 'FOURNISSEUR' | 'EMPLOYE' | 'AUTRE';
+  statut: 'ACTIF' | 'INACTIF' | 'BLOQUE';
+  email?: string;
+  telephone?: string;
+  website?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Backend tiers data for create/update (subset of fields) */
+interface BackendTiersData {
+  code?: string;
+  nom?: string;
+  type?: string;
+  statut?: string;
+  email?: string;
+  telephone?: string;
+  website?: string;
+  notes?: string;
+}
+
+/** Backend adresse record shape */
+interface BackendAdresse {
+  id: string;
+  tiers: string;
+  type: string;
+  adresse: string;
+  ville?: string;
+  code_postal?: string;
+  pays?: string;
+  est_principale: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Backend adresse data for create/update */
+interface BackendAdresseData {
+  tiers?: string;
+  type?: string;
+  adresse?: string;
+  ville?: string;
+  code_postal?: string;
+  pays?: string;
+  est_principale?: boolean;
+}
+
+/** Backend contact record shape */
+interface BackendContact {
+  id: string;
+  tiers: string;
+  nom: string;
+  fonction?: string;
+  email?: string;
+  telephone?: string;
+  est_principal: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Backend contact data for create/update */
+interface BackendContactData {
+  tiers?: string;
+  nom?: string;
+  fonction?: string;
+  email?: string;
+  telephone?: string;
+  est_principal?: boolean;
+}
+
+/** Statistics returned by getStatistics */
+export interface ThirdPartyStatistics {
+  totalClients: number;
+  totalFournisseurs: number;
+  totalEmployes: number;
+  totalActive: number;
+  totalBlocked: number;
 }
 
 /**
@@ -191,14 +275,14 @@ class ThirdPartyService {
   /**
    * Get third party statistics
    */
-  async getStatistics(): Promise<any> {
+  async getStatistics(): Promise<ThirdPartyStatistics> {
     return backendTiersService.getStatistics();
   }
 
   /**
    * Transform backend format to frontend format
    */
-  private transformToFrontend(tiers: any): ThirdParty {
+  private transformToFrontend(tiers: BackendTiers): ThirdParty {
     return {
       id: tiers.id,
       code: tiers.code,
@@ -217,8 +301,8 @@ class ThirdPartyService {
   /**
    * Transform frontend format to backend format
    */
-  private transformToBackend(tiers: Partial<ThirdParty>): any {
-    const data: any = {};
+  private transformToBackend(tiers: Partial<ThirdParty>): BackendTiersData {
+    const data: BackendTiersData = {};
     if (tiers.code) data.code = tiers.code;
     if (tiers.nom) data.nom = tiers.nom;
     if (tiers.type) data.type = tiers.type;
@@ -304,11 +388,11 @@ class ThirdPartyAddressService {
   /**
    * Transform backend format to frontend format
    */
-  private transformToFrontend(adresse: any): ThirdPartyAddress {
+  private transformToFrontend(adresse: BackendAdresse): ThirdPartyAddress {
     return {
       id: adresse.id,
       tiers: adresse.tiers,
-      type: adresse.type,
+      type: adresse.type as ThirdPartyAddress['type'],
       adresse: adresse.adresse,
       ville: adresse.ville || '',
       codePostal: adresse.code_postal || '',
@@ -322,8 +406,8 @@ class ThirdPartyAddressService {
   /**
    * Transform frontend format to backend format
    */
-  private transformToBackend(adresse: Partial<ThirdPartyAddress>): any {
-    const data: any = {};
+  private transformToBackend(adresse: Partial<ThirdPartyAddress>): BackendAdresseData {
+    const data: BackendAdresseData = {};
     if (adresse.tiers) data.tiers = adresse.tiers;
     if (adresse.type) data.type = adresse.type;
     if (adresse.adresse) data.adresse = adresse.adresse;
@@ -400,7 +484,7 @@ class ThirdPartyContactService {
   /**
    * Transform backend format to frontend format
    */
-  private transformToFrontend(contact: any): ThirdPartyContact {
+  private transformToFrontend(contact: BackendContact): ThirdPartyContact {
     return {
       id: contact.id,
       tiers: contact.tiers,
@@ -417,8 +501,8 @@ class ThirdPartyContactService {
   /**
    * Transform frontend format to backend format
    */
-  private transformToBackend(contact: Partial<ThirdPartyContact>): any {
-    const data: any = {};
+  private transformToBackend(contact: Partial<ThirdPartyContact>): BackendContactData {
+    const data: BackendContactData = {};
     if (contact.tiers) data.tiers = contact.tiers;
     if (contact.nom) data.nom = contact.nom;
     if (contact.fonction) data.fonction = contact.fonction;

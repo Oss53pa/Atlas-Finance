@@ -29,6 +29,7 @@ db.sqlite3-journal
 .env.local
 .env.production
 .env.*.local
+frontend/.env
 supabase/.env
 
 # IDEs
@@ -107,6 +108,12 @@ ENV/
 nul
 chart-data-fix.txt
 renderSyntheseFix.txt
+
+# Source dumps (audit artifacts)
+AUDIT_REPORT.md
+CRITICAL_SOURCE.txt
+FULL_SOURCE_DUMP.txt
+SOURCE_DUMP_PARTS/
 
 # Batch/Shell scripts (local)
 *.bat

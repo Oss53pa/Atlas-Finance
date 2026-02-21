@@ -354,7 +354,7 @@ class ReportsService {
     filename?: string
   ): Promise<void> {
     try {
-      const blob = await this.exportReport(reportType as any, filters);
+      const blob = await this.exportReport(reportType as 'balance' | 'grand_livre' | 'bilan' | 'resultat' | 'tresorerie', filters);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

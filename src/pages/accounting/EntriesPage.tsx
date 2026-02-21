@@ -29,9 +29,9 @@ const EntriesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('brouillard');
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<any>(null);
+  const [editingEntry, setEditingEntry] = useState<Record<string, unknown> | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [selectedEntry, setSelectedEntry] = useState<Record<string, unknown> | null>(null);
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
@@ -281,13 +281,13 @@ const EntriesPage: React.FC = () => {
   ];
 
   // Fonction pour ouvrir le modal d'édition
-  const handleEditEntry = (entry: any) => {
+  const handleEditEntry = (entry: Record<string, unknown>) => {
     setEditingEntry(entry);
     setShowEditModal(true);
   };
 
   // Fonction pour voir les détails d'une écriture
-  const handleViewEntry = (entry: any) => {
+  const handleViewEntry = (entry: Record<string, unknown>) => {
     setSelectedEntry(entry);
     setShowDetailsModal(true);
   };

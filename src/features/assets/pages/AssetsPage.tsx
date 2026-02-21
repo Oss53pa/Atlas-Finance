@@ -97,7 +97,7 @@ const AssetsPage: React.FC = () => {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={`px-4 py-3 border-b-2 transition-colors ${
               activeTab === tab.id
                 ? 'border-[#6A8A82] text-[#6A8A82] font-semibold'

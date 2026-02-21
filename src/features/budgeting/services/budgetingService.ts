@@ -224,7 +224,7 @@ class BudgetingService {
     );
   }
 
-  async exportBudget(format: 'xlsx' | 'pdf' | 'csv', filters?: any): Promise<Blob> {
+  async exportBudget(format: 'xlsx' | 'pdf' | 'csv', filters?: Record<string, unknown>): Promise<Blob> {
     return Promise.resolve(new Blob(['Mock export data'], { type: 'application/octet-stream' }));
   }
 

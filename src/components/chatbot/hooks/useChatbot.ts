@@ -16,7 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Interfaces pour le contexte conversationnel avancé
 interface ConversationMemory {
-  userPreferences: Map<string, any>;
+  userPreferences: Map<string, unknown>;
   frequentTopics: Map<string, number>;
   sessionPatterns: string[];
   emotionalState: 'neutral' | 'frustrated' | 'confused' | 'satisfied' | 'urgent';
@@ -104,7 +104,7 @@ class ConversationContextManager {
     }
   }
 
-  updateConversationContext(query: string, intent: string, entities: any, response: string): AdvancedChatContext {
+  updateConversationContext(query: string, intent: string, entities: Record<string, unknown>, response: string): AdvancedChatContext {
     // Mettre à jour les topics fréquents
     const currentCount = this.memory.frequentTopics.get(intent) || 0;
     this.memory.frequentTopics.set(intent, currentCount + 1);
@@ -151,7 +151,7 @@ class ConversationContextManager {
     };
   }
 
-  private detectEmotionalState(query: string, history: any[]): ConversationMemory['emotionalState'] {
+  private detectEmotionalState(query: string, history: Array<{ query: string; response: string; satisfaction?: number; timestamp: Date }>): ConversationMemory['emotionalState'] {
     const frustrationKeywords = ['ne marche pas', 'problème', 'bug', 'aidez-moi', 'je n\'arrive pas', 'impossible'];
     const urgentKeywords = ['urgent', 'important', 'rapide', 'vite', 'immédiat'];
     const confusionKeywords = ['je ne comprends pas', 'comment', 'pourquoi', 'expliquer', 'clarifier'];
@@ -202,7 +202,7 @@ class ConversationContextManager {
     return 'intermediate';
   }
 
-  private calculateContextRelevance(intent: string, entities: any): number {
+  private calculateContextRelevance(intent: string, entities: Record<string, unknown>): number {
     let score = 0.5; // Score de base
 
     // Bonus pour la cohérence avec les intentions récentes
@@ -574,7 +574,7 @@ export function useChatbot() {
       let responseMessage: string;
       let responseConfidence: number;
       let responseSources: string[] | undefined;
-      let responseActions: any[] | undefined;
+      let responseActions: Array<{ type: string; payload: Record<string, unknown> }> | undefined;
       let detectedIntent: string;
 
       if (mlIntent) {
@@ -683,7 +683,7 @@ export function useChatbot() {
     return [...new Set(suggestions)].slice(0, 6);
   }, []);
 
-  const handleError = useCallback((error: any) => {
+  const handleError = useCallback((error: unknown) => {
     const contextManager = contextManagerRef.current;
     const memory = contextManager.getMemory();
 
@@ -725,7 +725,7 @@ export function useChatbot() {
     initializeChatSession();
   }, [initializeChatSession]);
 
-  const executeAction = useCallback((action: any) => {
+  const executeAction = useCallback((action: { type: string; payload: Record<string, string> }) => {
     switch (action.type) {
       case 'navigate':
         // Navigation - intégration avec React Router

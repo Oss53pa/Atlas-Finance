@@ -188,7 +188,7 @@ const ParametragePeriodes: React.FC = () => {
       setShowCreateModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création');
     },
   });
@@ -208,7 +208,7 @@ const ParametragePeriodes: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     if (field === 'controles_obligatoires') {
       const controlsArray = typeof value === 'string' ? value.split(',').map(item => item.trim()).filter(item => item) : value;
       setFormData(prev => ({ ...prev, [field]: controlsArray }));

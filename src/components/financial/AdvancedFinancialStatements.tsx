@@ -1,5 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
+import type { DBJournalEntry } from '../../lib/db';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area
@@ -128,52 +131,76 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
     title: 'États Financiers'
   });
 
-  // Données simulées
-  const bilanData: BilanData = {
-    actifImmobilise: {
-      immobilisationsIncorporelles: 2500000,
-      immobilisationsCorporelles: 45000000,
-      immobilisationsFinancieres: 8500000,
-      amortissements: -15000000
-    },
-    actifCirculant: {
-      stocks: 12500000,
-      creancesClients: 8900000,
-      autresCreances: 2100000,
-      disponibilites: 6800000
-    },
-    capitauxPropres: {
-      capitalSocial: 25000000,
-      reserves: 12000000,
-      reportANouveau: 3500000,
-      resultatExercice: 8200000
-    },
-    dettes: {
-      dettesFinancieres: 18500000,
-      dettesFournisseurs: 6900000,
-      dettesExploitation: 4800000,
-      autresDettes: 2100000
-    }
-  };
+  // Load journal entries from Dexie
+  const { data: entries = [] } = useQuery({
+    queryKey: ['financial-statements-entries'],
+    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
+  });
 
-  const compteResultatData: CompteResultatData = {
-    produits: {
-      chiffreAffaires: 85000000,
-      productionStockee: 2500000,
-      autresProduits: 1200000,
-      produitsFinanciers: 800000,
-      produitsExceptionnels: 300000
-    },
-    charges: {
-      achatsConsommes: 42000000,
-      servicesExterieurs: 15000000,
-      personnel: 18500000,
-      amortissements: 5200000,
-      chargesFinancieres: 2800000,
-      chargesExceptionnelles: 500000,
-      impotsSocietes: 2500000
-    }
-  };
+  // Compute bilan & compte de résultat from real entries
+  const { bilanData, compteResultatData } = useMemo(() => {
+    const net = (prefix: string | string[]) => {
+      const prefixes = Array.isArray(prefix) ? prefix : [prefix];
+      let debit = 0, credit = 0;
+      for (const e of entries) {
+        for (const l of e.lines) {
+          if (prefixes.some(p => l.accountCode.startsWith(p))) {
+            debit += l.debit; credit += l.credit;
+          }
+        }
+      }
+      return debit - credit;
+    };
+    const creditNet = (prefix: string | string[]) => -net(prefix);
+
+    const bilan: BilanData = {
+      actifImmobilise: {
+        immobilisationsIncorporelles: net('21'),
+        immobilisationsCorporelles: net('22') + net('23') + net('24'),
+        immobilisationsFinancieres: net('25') + net('26') + net('27'),
+        amortissements: -(creditNet('28') + creditNet('29')),
+      },
+      actifCirculant: {
+        stocks: net('3'),
+        creancesClients: net('41'),
+        autresCreances: net('42') + net('43') + net('44') + net('45') + net('46') + net('47'),
+        disponibilites: net('5'),
+      },
+      capitauxPropres: {
+        capitalSocial: creditNet('101') + creditNet('102') + creditNet('103') + creditNet('104'),
+        reserves: creditNet('11'),
+        reportANouveau: creditNet('12'),
+        resultatExercice: creditNet('13'),
+      },
+      dettes: {
+        dettesFinancieres: creditNet('16') + creditNet('17'),
+        dettesFournisseurs: creditNet('40'),
+        dettesExploitation: creditNet('42') + creditNet('43') + creditNet('44'),
+        autresDettes: creditNet('45') + creditNet('46') + creditNet('47') + creditNet('48'),
+      },
+    };
+
+    const cr: CompteResultatData = {
+      produits: {
+        chiffreAffaires: creditNet('70') + creditNet('71') + creditNet('72'),
+        productionStockee: creditNet('73'),
+        autresProduits: creditNet('74') + creditNet('75') + creditNet('78'),
+        produitsFinanciers: creditNet('76') + creditNet('77'),
+        produitsExceptionnels: creditNet('84') + creditNet('86') + creditNet('88'),
+      },
+      charges: {
+        achatsConsommes: net('60') + net('61'),
+        servicesExterieurs: net('62') + net('63'),
+        personnel: net('64') + net('66'),
+        amortissements: net('68'),
+        chargesFinancieres: net('67'),
+        chargesExceptionnelles: net('83') + net('85') + net('87'),
+        impotsSocietes: net('89'),
+      },
+    };
+
+    return { bilanData: bilan, compteResultatData: cr };
+  }, [entries]);
 
   // Calculs des SIG
   const sigData: SIGData = useMemo(() => {
@@ -274,7 +301,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
           <div className="flex items-center space-x-3">
             <select 
               value={config.norme}
-              onChange={(e) => setConfig({...config, norme: e.target.value as any})}
+              onChange={(e) => setConfig({...config, norme: e.target.value as 'SYSCOHADA' | 'IFRS' | 'PCG'})}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
               <option value="SYSCOHADA">SYSCOHADA</option>
@@ -327,7 +354,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
           ].map((view) => (
             <button
               key={view.id}
-              onClick={() => setActiveView(view.id as any)}
+              onClick={() => setActiveView(view.id as typeof activeView)}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeView === view.id 
                   ? 'bg-[#6A8A82] text-white' 
@@ -481,12 +508,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={[
-                  { periode: 'Jan', va: 25000000, ebe: 18000000, re: 12000000, rn: 8000000 },
-                  { periode: 'Fév', va: 27000000, ebe: 19500000, re: 13200000, rn: 8500000 },
-                  { periode: 'Mar', va: 29000000, ebe: 21000000, re: 14500000, rn: 9200000 },
-                  { periode: 'Avr', va: 31000000, ebe: 22500000, re: 15800000, rn: 9800000 },
-                  { periode: 'Mai', va: 28000000, ebe: 20000000, re: 13500000, rn: 8200000 },
-                  { periode: 'Jun', va: 32000000, ebe: 24000000, re: 17000000, rn: 10500000 }
+                  { periode: 'Exercice', va: sigData.valeurAjoutee, ebe: sigData.excedentBrutExploitation, re: sigData.resultatExploitation, rn: sigData.resultatNet },
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="periode" />
@@ -1300,7 +1322,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <label className="text-sm text-gray-600">Format:</label>
                     <select 
                       value={config.format}
-                      onChange={(e) => setConfig({...config, format: e.target.value as any})}
+                      onChange={(e) => setConfig({...config, format: e.target.value as 'A4' | 'A3'})}
                       className="px-2 py-1 border border-gray-300 rounded text-sm"
                     >
                       <option value="A4">A4</option>
@@ -1311,7 +1333,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <label className="text-sm text-gray-600">Orientation:</label>
                     <select 
                       value={config.orientation}
-                      onChange={(e) => setConfig({...config, orientation: e.target.value as any})}
+                      onChange={(e) => setConfig({...config, orientation: e.target.value as 'portrait' | 'landscape'})}
                       className="px-2 py-1 border border-gray-300 rounded text-sm"
                     >
                       <option value="portrait">Portrait</option>

@@ -50,6 +50,25 @@ import { toast } from 'react-hot-toast';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 
+interface DepreciationRecord {
+  id: string;
+  immobilisation_id?: string;
+  exercice?: string;
+  date_amortissement: string;
+  nom_actif: string;
+  code_actif: string;
+  methode: string;
+  periode: string;
+  valeur_base: number;
+  taux_amortissement: number;
+  montant_dotation: number;
+  cumul_amortissements: number;
+  valeur_nette_comptable: number;
+  statut: string;
+  date_debut?: string;
+  date_fin?: string;
+}
+
 interface DepreciationFilters {
   search: string;
   actif: string;
@@ -72,7 +91,7 @@ const DepreciationPage: React.FC = () => {
     date_fin: new Date().toISOString().split('T')[0]
   });
   const [page, setPage] = useState(1);
-  const [selectedDepreciation, setSelectedDepreciation] = useState<any>(null);
+  const [selectedDepreciation, setSelectedDepreciation] = useState<DepreciationRecord | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [calculationMode, setCalculationMode] = useState<'manuel' | 'auto'>('auto');
   const [formData, setFormData] = useState({
@@ -89,7 +108,7 @@ const DepreciationPage: React.FC = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [showComptabiliserModal, setShowComptabiliserModal] = useState(false);
   const [showEditDepreciationModal, setShowEditDepreciationModal] = useState(false);
-  const [depreciationToEdit, setDepreciationToEdit] = useState<any>(null);
+  const [depreciationToEdit, setDepreciationToEdit] = useState<DepreciationRecord | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -102,7 +121,7 @@ const DepreciationPage: React.FC = () => {
       setShowCreateModal(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création');
     },
   });
@@ -170,7 +189,7 @@ const DepreciationPage: React.FC = () => {
     }
   });
 
-  const handleComptabiliser = (depreciation: any) => {
+  const handleComptabiliser = (depreciation: DepreciationRecord) => {
     setSelectedDepreciation(depreciation);
     setShowComptabiliserModal(true);
   };
@@ -181,7 +200,7 @@ const DepreciationPage: React.FC = () => {
     }
   };
 
-  const handleEditDepreciation = (depreciation: any) => {
+  const handleEditDepreciation = (depreciation: DepreciationRecord) => {
     setDepreciationToEdit(depreciation);
     setFormData({
       immobilisation_id: depreciation.immobilisation_id || '',
@@ -252,7 +271,7 @@ const DepreciationPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {

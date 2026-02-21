@@ -209,7 +209,7 @@ const SetupWizardPage: React.FC = () => {
     const currentStepName = stepNames[currentStep];
     
     if (currentStepName) {
-      const isValid = await methods.trigger(currentStepName as any);
+      const isValid = await methods.trigger(currentStepName as keyof SetupData);
       if (!isValid) return;
     }
     
@@ -390,7 +390,7 @@ const SetupWizardPage: React.FC = () => {
           <CardContent>
             <RadioGroup 
               value={methods.watch('accounting.referentiel')} 
-              onValueChange={(value: any) => methods.setValue('accounting.referentiel', value)}
+              onValueChange={(value: string) => methods.setValue('accounting.referentiel', value as SetupData['accounting']['referentiel'])}
               className="space-y-4"
             >
               <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
@@ -434,7 +434,7 @@ const SetupWizardPage: React.FC = () => {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="planComptable">Type de Plan</Label>
-              <Select onValueChange={(value: any) => methods.setValue('accounting.planComptable', value)}>
+              <Select onValueChange={(value: string) => methods.setValue('accounting.planComptable', value as SetupData['accounting']['planComptable'])}>
                 <SelectTrigger>
                   <SelectValue placeholder="Plan Général" />
                 </SelectTrigger>
@@ -449,7 +449,7 @@ const SetupWizardPage: React.FC = () => {
 
             <div>
               <Label htmlFor="longueurComptes">Longueur des Comptes</Label>
-              <Select onValueChange={(value) => methods.setValue('accounting.longueurComptes', parseInt(value) as any)}>
+              <Select onValueChange={(value) => methods.setValue('accounting.longueurComptes', parseInt(value) as SetupData['accounting']['longueurComptes'])}>
                 <SelectTrigger>
                   <SelectValue placeholder="9 positions" />
                 </SelectTrigger>
@@ -464,7 +464,7 @@ const SetupWizardPage: React.FC = () => {
 
             <div>
               <Label htmlFor="devisePrincipale">Devise Principale</Label>
-              <Select onValueChange={(value: any) => methods.setValue('accounting.devisePrincipale', value)}>
+              <Select onValueChange={(value: string) => methods.setValue('accounting.devisePrincipale', value as SetupData['accounting']['devisePrincipale'])}>
                 <SelectTrigger>
                   <SelectValue placeholder="XAF" />
                 </SelectTrigger>
@@ -573,7 +573,7 @@ const SetupWizardPage: React.FC = () => {
         <Label>Périodes Comptables</Label>
         <RadioGroup 
           value={methods.watch('fiscalYear.periodesComptables')} 
-          onValueChange={(value: any) => methods.setValue('fiscalYear.periodesComptables', value)}
+          onValueChange={(value: string) => methods.setValue('fiscalYear.periodesComptables', value as SetupData['fiscalYear']['periodesComptables'])}
           className="mt-2"
         >
           <div className="flex items-center space-x-2">
@@ -595,7 +595,7 @@ const SetupWizardPage: React.FC = () => {
         <Label>Mode de Clôture</Label>
         <RadioGroup 
           value={methods.watch('fiscalYear.clotureMode')} 
-          onValueChange={(value: any) => methods.setValue('fiscalYear.clotureMode', value)}
+          onValueChange={(value: string) => methods.setValue('fiscalYear.clotureMode', value as SetupData['fiscalYear']['clotureMode'])}
           className="mt-2"
         >
           <div className="flex items-center space-x-2">

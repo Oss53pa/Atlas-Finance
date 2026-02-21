@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { db } from '../../lib/db';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   PieChart,
@@ -60,167 +61,151 @@ const RatiosFinanciersPage: React.FC = () => {
   }, []);
 
   const loadRatios = async () => {
-    // Simulation de données
-    const mockCategories: RatioCategory[] = [
-      {
-        id: 'structure',
-        name: 'Ratios de Structure',
-        color: 'blue',
-        icon: BarChart3,
-        ratios: [
-          {
-            id: 'autonomie_financiere',
-            name: 'Ratio d\'Autonomie Financière',
-            name_en: 'Financial Autonomy Ratio',
-            value: 65.5,
-            benchmark: 50,
-            benchmark_cemac: 45,
-            benchmark_uemoa: 55,
-            trend: 'up',
-            category: 'structure',
-            interpretation: 'Excellente autonomie financière conforme aux standards SYSCOHADA',
-            interpretation_en: 'Excellent financial autonomy compliant with SYSCOHADA standards',
-            formula: '(CP / TB) × 100',
-            formula_detail: '(Capitaux Propres / Total Bilan) × 100',
-            syscohada_reference: 'SYSCOHADA Art. 75 - Analyse financière',
-            sector_benchmark: {
-              'commercial': 55,
-              'industrial': 60,
-              'services': 50,
-              'banking': 15,
-              'insurance': 25
-            },
-            region: 'both',
-            is_syscohada_required: true,
-            calculation_method: 'syscohada',
-            historical_data: [
-              { period: '2023', value: 62.1 },
-              { period: '2022', value: 58.7 },
-              { period: '2021', value: 55.3 }
-            ],
-            alert_thresholds: { min: 30, max: 80, severity: 'warning' }
-          },
-          {
-            id: 'endettement_global',
-            name: 'Ratio d\'Endettement Global',
-            name_en: 'Global Debt Ratio',
-            value: 34.5,
-            benchmark: 50,
-            benchmark_cemac: 55,
-            benchmark_uemoa: 45,
-            trend: 'down',
-            category: 'structure',
-            interpretation: 'Endettement maîtrisé, structure financière saine',
-            interpretation_en: 'Controlled debt, healthy financial structure',
-            formula: '(DT / TB) × 100',
-            formula_detail: '(Dettes Totales / Total Bilan) × 100',
-            syscohada_reference: 'SYSCOHADA Art. 76 - Structure financière',
-            sector_benchmark: {
-              'commercial': 45,
-              'industrial': 40,
-              'services': 50,
-              'banking': 85,
-              'insurance': 75
-            },
-            region: 'both',
-            is_syscohada_required: true,
-            calculation_method: 'syscohada',
-            historical_data: [
-              { period: '2023', value: 37.9 },
-              { period: '2022', value: 41.3 },
-              { period: '2021', value: 44.7 }
-            ],
-            alert_thresholds: { min: 20, max: 70, severity: 'warning' }
-          }
-        ]
-      },
-      {
-        id: 'liquidite',
-        name: 'Ratios de Liquidité',
-        color: 'green',
-        icon: DollarSign,
-        ratios: [
-          {
-            id: 'liquidite_generale',
-            name: 'Liquidité Générale',
-            value: 2.3,
-            benchmark: 1.5,
-            trend: 'up',
-            category: 'liquidite',
-            interpretation: 'Excellente liquidité',
-            formula: 'Actif Circulant / Passif Circulant'
-          },
-          {
-            id: 'liquidite_reduite',
-            name: 'Liquidité Réduite',
-            value: 1.8,
-            benchmark: 1.0,
-            trend: 'stable',
-            category: 'liquidite',
-            interpretation: 'Bonne capacité de paiement',
-            formula: '(Créances + Trésorerie) / Passif Circulant'
-          }
-        ]
-      },
-      {
-        id: 'activite',
-        name: 'Ratios d\'Activité',
-        color: 'purple',
-        icon: Target,
-        ratios: [
-          {
-            id: 'rotation_stocks',
-            name: 'Rotation des Stocks',
-            value: 8.5,
-            benchmark: 6,
-            trend: 'up',
-            category: 'activite',
-            interpretation: 'Bonne rotation',
-            formula: 'CAMV / Stock Moyen'
-          },
-          {
-            id: 'dso',
-            name: 'DSO (jours)',
-            value: 45,
-            benchmark: 60,
-            trend: 'down',
-            category: 'activite',
-            interpretation: 'Délai client acceptable',
-            formula: 'Créances Clients x 360 / CA TTC'
-          }
-        ]
-      },
-      {
-        id: 'rentabilite',
-        name: 'Ratios de Rentabilité',
-        color: 'orange',
-        icon: TrendingUp,
-        ratios: [
-          {
-            id: 'roe',
-            name: 'ROE (%)',
-            value: 15.2,
-            benchmark: 12,
-            trend: 'up',
-            category: 'rentabilite',
-            interpretation: 'Excellente rentabilité',
-            formula: 'Résultat Net / Capitaux Propres'
-          },
-          {
-            id: 'marge_operationnelle',
-            name: 'Marge Opérationnelle (%)',
-            value: 18.7,
-            benchmark: 15,
-            trend: 'up',
-            category: 'rentabilite',
-            interpretation: 'Très bonne marge',
-            formula: 'Résultat Opérationnel / CA'
-          }
-        ]
+    try {
+      const entries = await db.journalEntries.toArray();
+      const filtered = entries.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
+
+      // Calculate account balances from entries
+      const balances: Record<string, number> = {};
+      for (const entry of filtered) {
+        for (const line of entry.lines) {
+          if (!balances[line.accountCode]) balances[line.accountCode] = 0;
+          balances[line.accountCode] += line.debit - line.credit;
+        }
       }
-    ];
-    
-    setCategories(mockCategories);
+
+      // Helper: sum balances starting with prefix
+      const sumD = (prefix: string) => Object.entries(balances)
+        .filter(([code]) => code.startsWith(prefix))
+        .reduce((s, [, v]) => s + Math.max(v, 0), 0);
+      const sumC = (prefix: string) => Object.entries(balances)
+        .filter(([code]) => code.startsWith(prefix))
+        .reduce((s, [, v]) => s + Math.max(-v, 0), 0);
+      const sumNet = (prefix: string) => Object.entries(balances)
+        .filter(([code]) => code.startsWith(prefix))
+        .reduce((s, [, v]) => s + v, 0);
+
+      // Key aggregates
+      const capitauxPropres = sumC('1');
+      const dettes = sumC('16') + sumC('17') + sumC('18') + sumC('19') + sumC('40') + sumC('42') + sumC('43') + sumC('44');
+      const totalBilan = capitauxPropres + dettes;
+      const actifCirculant = sumD('3') + sumD('41') + sumD('42') + sumD('45') + sumD('46') + sumD('47');
+      const tresorerie = sumD('5');
+      const passifCirculant = sumC('40') + sumC('42') + sumC('43') + sumC('44') + sumC('45');
+      const stocks = sumD('3');
+      const ca = sumC('70');
+      const creancesClients = sumD('41');
+      const charges = sumD('6');
+      const resultatNet = ca - charges;
+      const resultatExploitation = sumC('7') - sumD('6');
+
+      const safe = (num: number, den: number) => den !== 0 ? Math.round((num / den) * 1000) / 10 : 0;
+
+      const computedCategories: RatioCategory[] = [
+        {
+          id: 'structure',
+          name: 'Ratios de Structure',
+          color: 'blue',
+          icon: BarChart3,
+          ratios: [
+            {
+              id: 'autonomie_financiere', name: 'Ratio d\'Autonomie Financière',
+              value: safe(capitauxPropres, totalBilan), benchmark: 50, trend: 'stable' as const,
+              category: 'structure', interpretation: capitauxPropres > totalBilan * 0.5 ? 'Bonne autonomie financière' : 'Autonomie financière faible',
+              formula: '(CP / TB) × 100', formula_detail: '(Capitaux Propres / Total Bilan) × 100',
+              region: 'both' as const, is_syscohada_required: true, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 30, max: 80, severity: 'warning' as const }
+            },
+            {
+              id: 'endettement_global', name: 'Ratio d\'Endettement Global',
+              value: safe(dettes, totalBilan), benchmark: 50, trend: 'stable' as const,
+              category: 'structure', interpretation: dettes < totalBilan * 0.5 ? 'Endettement maîtrisé' : 'Endettement élevé',
+              formula: '(DT / TB) × 100', formula_detail: '(Dettes Totales / Total Bilan) × 100',
+              region: 'both' as const, is_syscohada_required: true, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 20, max: 70, severity: 'warning' as const }
+            }
+          ]
+        },
+        {
+          id: 'liquidite', name: 'Ratios de Liquidité', color: 'green', icon: DollarSign,
+          ratios: [
+            {
+              id: 'liquidite_generale', name: 'Liquidité Générale',
+              value: passifCirculant !== 0 ? Math.round((actifCirculant / passifCirculant) * 100) / 100 : 0,
+              benchmark: 1.5, trend: 'stable' as const, category: 'liquidite',
+              interpretation: actifCirculant > passifCirculant * 1.5 ? 'Excellente liquidité' : 'Liquidité suffisante',
+              formula: 'Actif Circulant / Passif Circulant',
+              formula_detail: 'Actif Circulant / Passif Circulant',
+              region: 'both' as const, is_syscohada_required: true, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 1, max: 5, severity: 'warning' as const }
+            },
+            {
+              id: 'liquidite_reduite', name: 'Liquidité Réduite',
+              value: passifCirculant !== 0 ? Math.round(((creancesClients + tresorerie) / passifCirculant) * 100) / 100 : 0,
+              benchmark: 1.0, trend: 'stable' as const, category: 'liquidite',
+              interpretation: 'Capacité de paiement',
+              formula: '(Créances + Trésorerie) / Passif Circulant',
+              formula_detail: '(Créances + Trésorerie) / Passif Circulant',
+              region: 'both' as const, is_syscohada_required: false, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 0.5, max: 4, severity: 'info' as const }
+            }
+          ]
+        },
+        {
+          id: 'activite', name: 'Ratios d\'Activité', color: 'purple', icon: Target,
+          ratios: [
+            {
+              id: 'rotation_stocks', name: 'Rotation des Stocks',
+              value: stocks !== 0 ? Math.round((charges / stocks) * 10) / 10 : 0,
+              benchmark: 6, trend: 'stable' as const, category: 'activite',
+              interpretation: 'Rotation des stocks', formula: 'CAMV / Stock Moyen',
+              formula_detail: 'Coût Achat Marchandises Vendues / Stock Moyen',
+              region: 'both' as const, is_syscohada_required: false, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 2, max: 20, severity: 'info' as const }
+            },
+            {
+              id: 'dso', name: 'DSO (jours)',
+              value: ca !== 0 ? Math.round((creancesClients / ca) * 360) : 0,
+              benchmark: 60, trend: 'stable' as const, category: 'activite',
+              interpretation: ca !== 0 && (creancesClients / ca) * 360 < 60 ? 'Délai client acceptable' : 'Délai client élevé',
+              formula: 'Créances Clients x 360 / CA TTC',
+              formula_detail: '(Créances Clients × 360) / Chiffre d\'Affaires TTC',
+              region: 'both' as const, is_syscohada_required: true, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 0, max: 90, severity: 'warning' as const }
+            }
+          ]
+        },
+        {
+          id: 'rentabilite', name: 'Ratios de Rentabilité', color: 'orange', icon: TrendingUp,
+          ratios: [
+            {
+              id: 'roe', name: 'ROE (%)',
+              value: safe(resultatNet, capitauxPropres),
+              benchmark: 12, trend: resultatNet > 0 ? 'up' as const : 'down' as const, category: 'rentabilite',
+              interpretation: resultatNet > 0 ? 'Rentabilité positive' : 'Rentabilité négative',
+              formula: 'Résultat Net / Capitaux Propres',
+              formula_detail: 'Résultat Net / Capitaux Propres × 100',
+              region: 'both' as const, is_syscohada_required: true, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 0, max: 50, severity: 'warning' as const }
+            },
+            {
+              id: 'marge_operationnelle', name: 'Marge Opérationnelle (%)',
+              value: safe(resultatExploitation, ca),
+              benchmark: 15, trend: resultatExploitation > 0 ? 'up' as const : 'down' as const, category: 'rentabilite',
+              interpretation: resultatExploitation > 0 ? 'Marge positive' : 'Marge négative',
+              formula: 'Résultat Opérationnel / CA',
+              formula_detail: 'Résultat d\'Exploitation / Chiffre d\'Affaires × 100',
+              region: 'both' as const, is_syscohada_required: true, calculation_method: 'syscohada' as const,
+              alert_thresholds: { min: 0, max: 40, severity: 'warning' as const }
+            }
+          ]
+        }
+      ];
+
+      setCategories(computedCategories);
+    } catch (err) {
+      console.error('Erreur chargement ratios:', err);
+    }
     setLoading(false);
   };
 

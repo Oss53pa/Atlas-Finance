@@ -46,6 +46,21 @@ import { formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 import { CreateContactModal, EditContactModal, ContactDetailModal } from '../../features/contacts/components';
 
+interface ContactRecord {
+  id: string;
+  nom: string;
+  prenom?: string;
+  email?: string;
+  telephone?: string;
+  mobile?: string;
+  fonction?: string;
+  tiers?: string;
+  tiers_name?: string;
+  principal?: boolean;
+  actif?: boolean;
+  [key: string]: unknown;
+}
+
 interface ContactsFilters {
   search: string;
   type_tiers: string;
@@ -63,7 +78,7 @@ const ContactsPage: React.FC = () => {
     ville: ''
   });
   const [page, setPage] = useState(1);
-  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [selectedContact, setSelectedContact] = useState<ContactRecord | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -107,12 +122,12 @@ const ContactsPage: React.FC = () => {
     }
   };
 
-  const handleViewDetails = (contact: any) => {
+  const handleViewDetails = (contact: ContactRecord) => {
     setSelectedContact(contact);
     setShowDetailModal(true);
   };
 
-  const handleEditContact = (contact: any) => {
+  const handleEditContact = (contact: ContactRecord) => {
     setSelectedContact(contact);
     setShowEditModal(true);
   };

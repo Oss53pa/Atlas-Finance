@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
@@ -45,10 +46,24 @@ import {
   Switch
 } from '../ui';
 
+interface SuggestedAccount {
+  id: string;
+  code: string;
+  name: string;
+  suggestedDescription: string;
+}
+
+interface TemplateSuggestionPayload {
+  transactionType: string;
+  template: TemplateSuggestion;
+}
+
+type SuggestionPayload = TemplateSuggestionPayload | SuggestedAccount[] | VentilationSuggestion | number;
+
 interface IntelligentSuggestion {
   type: 'ACCOUNT' | 'AMOUNT' | 'THIRD_PARTY' | 'VAT' | 'SPLIT' | 'TEMPLATE';
   confidence: number;
-  suggestion: any;
+  suggestion: SuggestionPayload;
   reasoning: string;
   autoApply: boolean;
 }
@@ -65,12 +80,31 @@ interface VentilationSuggestion {
   confidence: number;
 }
 
+interface TemplateStructureLine {
+  accountId: string;
+  description: string;
+  debitAmount?: number;
+  creditAmount?: number;
+  thirdParty?: string;
+  analytics?: {
+    costCenter: string;
+    project: string;
+    department: string;
+    analyticalAccount: string;
+    tags: string[];
+  };
+}
+
+interface TemplateStructure {
+  lines?: TemplateStructureLine[];
+}
+
 interface TemplateSuggestion {
   id: string;
   name: string;
   description: string;
   matchScore: number;
-  structure: any;
+  structure: TemplateStructure;
   usage: number;
 }
 
@@ -79,7 +113,7 @@ const IntelligentEntryAssistant: React.FC = () => {
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [assistantMode, setAssistantMode] = useState<'GUIDED' | 'SMART' | 'EXPERT'>('SMART');
-  const [currentContext, setCurrentContext] = useState<any>({});
+  const [currentContext, setCurrentContext] = useState<Record<string, unknown>>({});
   const [suggestions, setSuggestions] = useState<IntelligentSuggestion[]>([]);
   const [showAIPanel, setShowAIPanel] = useState(true);
   const [autoAcceptSuggestions, setAutoAcceptSuggestions] = useState(false);
@@ -179,7 +213,7 @@ const IntelligentEntryAssistant: React.FC = () => {
   const calculatedMetrics = useMemo(() => {
     const totalDebit = watchedEntries.reduce((sum, entry) => {
       if (entry.intelligentSplit?.enabled) {
-        return sum + (entry.intelligentSplit?.splitLines?.reduce((s: number, line: any) => s + (line.amount || 0), 0) || 0);
+        return sum + (entry.intelligentSplit?.splitLines?.reduce((s: number, line: { amount?: number }) => s + (line.amount || 0), 0) || 0);
       }
       return sum + (entry.debitAmount || 0);
     }, 0);
@@ -255,10 +289,10 @@ const IntelligentEntryAssistant: React.FC = () => {
   const applySuggestion = (suggestion: IntelligentSuggestion) => {
     switch (suggestion.type) {
       case 'TEMPLATE':
-        applyTemplate(suggestion.suggestion.template);
+        applyTemplate((suggestion.suggestion as TemplateSuggestionPayload).template);
         break;
       case 'ACCOUNT':
-        suggestion.suggestion.forEach((account: any, index: number) => {
+        (suggestion.suggestion as SuggestedAccount[]).forEach((account: SuggestedAccount, index: number) => {
           if (entries[index]) {
             setValue(`entries.${index}.account`, account.id);
             setValue(`entries.${index}.description`, account.suggestedDescription);
@@ -266,7 +300,7 @@ const IntelligentEntryAssistant: React.FC = () => {
         });
         break;
       case 'SPLIT':
-        applySplitSuggestion(suggestion.suggestion);
+        applySplitSuggestion(suggestion.suggestion as VentilationSuggestion);
         break;
     }
   };
@@ -281,7 +315,7 @@ const IntelligentEntryAssistant: React.FC = () => {
     }
     
     // Ajouter les lignes du template
-    templateStructure.lines?.forEach((line: any) => {
+    templateStructure.lines?.forEach((line: TemplateStructureLine) => {
       addEntry({
         id: crypto.randomUUID(),
         account: line.accountId,
@@ -320,14 +354,6 @@ const IntelligentEntryAssistant: React.FC = () => {
     })));
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -761,11 +787,47 @@ const IntelligentEntryAssistant: React.FC = () => {
 };
 
 // Composant pour une ligne d'écriture intelligente
+interface EntryField {
+  id: string;
+  account: string;
+  description: string;
+  debitAmount: number;
+  creditAmount: number;
+  thirdParty: string;
+  intelligentSplit?: {
+    enabled: boolean;
+    method: string;
+    totalAmount: number;
+    splitLines: { account: string; description: string; amount: number; percentage: number }[];
+  };
+  analytics?: {
+    costCenter: string;
+    project: string;
+    department: string;
+    analyticalAccount: string;
+    tags: string[];
+  };
+  lineNotes: string;
+  confidence: number;
+  aiSuggested: boolean;
+}
+
+interface ContextAnalysisResult {
+  transactionType: string | null;
+  suggestedAccounts: SuggestedAccount[];
+  templateMatches: TemplateSuggestion[];
+  vatApplicable: boolean;
+  thirdPartyDetected: string | null;
+  amountEstimate: number;
+  splitSuggestion: VentilationSuggestion | null;
+  confidence: number;
+}
+
 const IntelligentEntryLine: React.FC<{
-  entry: any;
+  entry: EntryField;
   index: number;
-  control: any;
-  contextAnalysis: any;
+  control: ReturnType<typeof useForm>['control'];
+  contextAnalysis: ContextAnalysisResult | null | undefined;
   onRemove: () => void;
   assistantMode: string;
 }> = ({ entry, index, control, contextAnalysis, onRemove, assistantMode }) => {
@@ -827,7 +889,7 @@ const IntelligentEntryLine: React.FC<{
                     <SelectValue placeholder="Sélectionner ou taper..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {contextAnalysis?.suggestedAccounts?.map((account: any) => (
+                    {contextAnalysis?.suggestedAccounts?.map((account: SuggestedAccount) => (
                       <SelectItem key={account.id} value={account.id}>
                         <div className="flex items-center">
                           <Badge className="bg-purple-100 text-purple-800 mr-2 text-xs">Suggéré</Badge>
@@ -915,10 +977,10 @@ const IntelligentEntryLine: React.FC<{
 
 // Panel de ventilation intelligente
 const IntelligentVentilationPanel: React.FC<{
-  control: any;
+  control: ReturnType<typeof useForm>['control'];
   lineIndex: number;
-  entry: any;
-  contextAnalysis: any;
+  entry: EntryField;
+  contextAnalysis: ContextAnalysisResult | null | undefined;
 }> = ({ control, lineIndex, entry, contextAnalysis }) => {
   return (
     <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
@@ -978,7 +1040,7 @@ const IntelligentVentilationPanel: React.FC<{
               // Suggérer des comptes basés sur l'analyse
               if (contextAnalysis?.splitSuggestion) {
                 setValue(`entries.${lineIndex}.intelligentSplit.splitLines`, 
-                  contextAnalysis.splitSuggestion.accounts.map((acc: any) => ({
+                  contextAnalysis.splitSuggestion.accounts.map((acc: VentilationSuggestion['accounts'][number]) => ({
                     account: acc.code,
                     description: acc.name,
                     amount: acc.suggestedAmount,
@@ -1147,7 +1209,7 @@ const calculateConfidenceScore = (description: string): number => {
   return Math.min(100, score);
 };
 
-const calculateComplexityScore = (entries: any[]): number => {
+const calculateComplexityScore = (entries: EntryField[]): number => {
   let complexity = 0;
   
   // Facteurs de complexité
