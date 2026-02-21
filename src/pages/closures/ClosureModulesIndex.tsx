@@ -87,7 +87,7 @@ const ClosureModulesIndex: React.FC = () => {
       id: 'workflow-designer',
       title: 'Designer de Workflow BPMN 2.0',
       description: 'Créez vos workflows de clôture personnalisés avec éditeur graphique',
-      path: '/closures/workflow-designer',
+      path: '/closures/periodic',
       icon: GitBranch,
       color: 'bg-[var(--color-primary)]',
       features: [
@@ -104,7 +104,7 @@ const ClosureModulesIndex: React.FC = () => {
       id: 'formula-editor',
       title: 'Éditeur de Formules Avancé',
       description: 'Créez des formules complexes avec variables contextuelles et validation SYSCOHADA',
-      path: '/closures/formula-editor',
+      path: '/closures/periodic',
       icon: Calculator,
       color: 'bg-[var(--color-success)]',
       features: [
@@ -121,7 +121,7 @@ const ClosureModulesIndex: React.FC = () => {
       id: 'complete',
       title: 'Module Clôture Complet',
       description: 'Interface complète avec toutes les fonctionnalités de clôture avancées',
-      path: '/closures/complete',
+      path: '/closures/periodic',
       icon: Layers,
       color: 'bg-indigo-500',
       features: [
@@ -137,7 +137,7 @@ const ClosureModulesIndex: React.FC = () => {
       id: 'enhanced',
       title: 'Clôtures Améliorées',
       description: 'Module enhanced avec fonctionnalités avancées et analytics',
-      path: '/closures/enhanced',
+      path: '/closures/periodic',
       icon: Zap,
       color: 'bg-[var(--color-warning)]',
       features: [
@@ -153,7 +153,7 @@ const ClosureModulesIndex: React.FC = () => {
       id: 'basic',
       title: 'Clôture Standard',
       description: 'Module de base pour clôtures simples et apprentissage',
-      path: '/closures/basic',
+      path: '/closures/periodic',
       icon: Lock,
       color: 'bg-gray-500',
       features: [
@@ -169,7 +169,7 @@ const ClosureModulesIndex: React.FC = () => {
       id: 'annex-notes',
       title: 'Générateur d\'Annexes',
       description: 'Génération automatique des notes annexes aux états financiers',
-      path: '/closures/annex-notes',
+      path: '/closures/periodic',
       icon: FileText,
       color: 'bg-teal-500',
       features: [
@@ -354,7 +354,7 @@ const ClosureModulesIndex: React.FC = () => {
             </Link>
 
             <Link
-              to="/closures/workflow-designer"
+              to="/closures/periodic"
               className="flex items-center space-x-3 p-4 bg-[var(--color-primary-lightest)] rounded-lg hover:bg-[var(--color-primary-lighter)] transition-colors"
             >
               <GitBranch className="h-8 w-8 text-[var(--color-primary)]" />
@@ -365,7 +365,7 @@ const ClosureModulesIndex: React.FC = () => {
             </Link>
 
             <Link
-              to="/closures/formula-editor"
+              to="/closures/periodic"
               className="flex items-center space-x-3 p-4 bg-[var(--color-success-lightest)] rounded-lg hover:bg-[var(--color-success-lighter)] transition-colors"
             >
               <Calculator className="h-8 w-8 text-[var(--color-success)]" />
@@ -376,7 +376,7 @@ const ClosureModulesIndex: React.FC = () => {
             </Link>
 
             <Link
-              to="/closures/enhanced"
+              to="/closures/periodic"
               className="flex items-center space-x-3 p-4 bg-[var(--color-warning-lightest)] rounded-lg hover:bg-[var(--color-warning-lighter)] transition-colors"
             >
               <Brain className="h-8 w-8 text-[var(--color-warning)]" />
