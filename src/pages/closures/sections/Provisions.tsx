@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { db } from '../../../lib/db';
+import type { DBProvision } from '../../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Shield,
@@ -136,225 +138,73 @@ const Provisions: React.FC = () => {
   const [showChargeModal, setShowChargeModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Données simulées
-  const mockProvisions: Provision[] = [
-    {
-      id: '1',
-      numero: 'PROV-2024-001',
-      designation: 'Provision pour créances douteuses - Client KOUASSI',
-      typeProvision: 'creances_douteuses',
-      natureRisque: 'Impayé client dépassant 90 jours',
-      dateCreation: '2024-03-15',
-      dateRevision: '2024-12-01',
-      montantInitial: 3000000,
-      montantActuel: 4500000,
-      dotationExercice: 1500000,
+  // Real data from Dexie
+  const [dbProvisions, setDbProvisions] = useState<DBProvision[]>([]);
+
+  const loadProvisions = useCallback(async () => {
+    try {
+      const provs = await db.provisions.toArray();
+      setDbProvisions(provs);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadProvisions(); }, [loadProvisions]);
+
+  // Map real DBProvision → component Provision interface
+  const mockProvisions: Provision[] = useMemo(() => {
+    return dbProvisions.map((prov, idx) => ({
+      id: prov.id,
+      numero: `PROV-${idx + 1}`,
+      designation: `Provision créances douteuses - ${prov.client}`,
+      typeProvision: 'creances_douteuses' as const,
+      natureRisque: `Créance ${prov.client} ancienneté ${prov.anciennete}j`,
+      dateCreation: prov.dateProposition,
+      montantInitial: prov.montantProvision,
+      montantActuel: prov.montantProvision,
+      dotationExercice: prov.montantProvision,
       repriseExercice: 0,
-      solde: 4500000,
-      tauxCouverture: 75,
-      probabiliteRealisation: 80,
-      echeancePrevue: '2025-06-30',
-      statutJuridique: 'probable',
-      baseCalcul: '75% de la créance échue depuis plus de 90 jours',
-      methodeEvaluation: 'statistique',
-      documentJustificatif: 'Analyse aging des créances',
-      responsableGestion: 'Direction Financière',
-      derniereMiseAJour: '2024-12-20',
-      conformiteSYSCOHADA: true,
-      impactFiscal: -1350000,
-      observations: 'Client en difficulté financière confirmée'
-    },
-    {
-      id: '2',
-      numero: 'PROV-2024-002',
-      designation: 'Provision pour litige commercial - Fournisseur ABC',
-      typeProvision: 'litiges',
-      natureRisque: 'Litige contractuel en cours',
-      dateCreation: '2024-07-10',
-      montantInitial: 8000000,
-      montantActuel: 8000000,
-      dotationExercice: 8000000,
-      repriseExercice: 0,
-      solde: 8000000,
-      tauxCouverture: 100,
-      probabiliteRealisation: 60,
-      echeancePrevue: '2025-12-31',
-      statutJuridique: 'possible',
-      baseCalcul: 'Évaluation avocat + coûts de procédure',
-      methodeEvaluation: 'expertise',
-      documentJustificatif: 'Rapport avocat conseil',
-      responsableGestion: 'Direction Juridique',
-      derniereMiseAJour: '2024-12-15',
-      conformiteSYSCOHADA: true,
+      solde: prov.montantProvision,
+      tauxCouverture: prov.tauxProvision,
+      probabiliteRealisation: prov.tauxProvision,
+      echeancePrevue: '',
+      statutJuridique: 'probable' as const,
+      baseCalcul: `${prov.tauxProvision}% de ${prov.solde} FCFA`,
+      methodeEvaluation: 'statistique' as const,
+      documentJustificatif: '',
+      responsableGestion: '',
+      derniereMiseAJour: prov.dateValidation || prov.dateProposition,
+      conformiteSYSCOHADA: prov.statut === 'VALIDEE',
       impactFiscal: 0,
-      observations: 'Procédure en cours devant le tribunal de commerce'
-    },
-    {
-      id: '3',
-      numero: 'PROV-2024-003',
-      designation: 'Provision pour garanties produits vendus',
-      typeProvision: 'garanties',
-      natureRisque: 'Garantie contractuelle sur produits',
-      dateCreation: '2024-01-01',
-      dateRevision: '2024-12-01',
-      montantInitial: 12000000,
-      montantActuel: 15000000,
-      dotationExercice: 5000000,
-      repriseExercice: 2000000,
-      solde: 15000000,
-      tauxCouverture: 3,
-      probabiliteRealisation: 95,
-      echeancePrevue: '2026-12-31',
-      statutJuridique: 'probable',
-      baseCalcul: '3% du chiffre d\'affaires produits avec garantie',
-      methodeEvaluation: 'statistique',
-      documentJustificatif: 'Historique des retours produits',
-      responsableGestion: 'Direction Commerciale',
-      derniereMiseAJour: '2024-12-20',
-      conformiteSYSCOHADA: true,
-      impactFiscal: -4500000,
-      observations: 'Basé sur historique 5 ans des retours'
-    }
-  ];
+      observations: `Statut: ${prov.statut}`,
+    }));
+  }, [dbProvisions]);
 
-  const mockChargesAPayer: ChargeAPayerAComptabiliser[] = [
-    {
-      id: '1',
-      designation: 'Congés payés non pris exercice 2024',
-      categorie: 'charges_personnel',
-      montant: 25000000,
-      exerciceConcerne: '2024',
-      compteComptable: '428100',
-      dateEcheance: '2025-03-31',
-      statutValidation: 'valide',
-      utilisateurCreation: 'Marie KOUAME',
-      dateCreation: '2024-12-20'
-    },
-    {
-      id: '2',
-      designation: 'Intérêts courus emprunt bancaire',
-      categorie: 'charges_financieres',
-      montant: 8500000,
-      exerciceConcerne: '2024',
-      compteComptable: '416000',
-      fournisseur: 'SGBCI',
-      dateEcheance: '2025-01-15',
-      statutValidation: 'valide',
-      utilisateurCreation: 'Paul KONE',
-      dateCreation: '2024-12-19'
-    },
-    {
-      id: '3',
-      designation: 'Facture électricité décembre 2024',
-      categorie: 'charges_exploitation',
-      montant: 3200000,
-      exerciceConcerne: '2024',
-      compteComptable: '605100',
-      fournisseur: 'CIE',
-      dateEcheance: '2025-01-10',
-      statutValidation: 'brouillon',
-      utilisateurCreation: 'Sophie DIABATE',
-      dateCreation: '2024-12-20'
-    }
-  ];
+  // No charge/product accrual data or rules in DB — empty
+  const mockChargesAPayer: ChargeAPayerAComptabiliser[] = [];
+  const mockProduitsARecevoir: ProduitARecevoir[] = [];
 
-  const mockProduitsARecevoir: ProduitARecevoir[] = [
-    {
-      id: '1',
-      designation: 'Produits financiers placement bancaire',
-      categorie: 'produits_financiers',
-      montant: 4500000,
-      exerciceConcerne: '2024',
-      compteComptable: '438100',
-      client: 'BACI',
-      dateEncaissement: '2025-01-05',
-      statutValidation: 'valide',
-      utilisateurCreation: 'Jean TRAORE',
-      dateCreation: '2024-12-20'
-    },
-    {
-      id: '2',
-      designation: 'Subvention formation professionnelle',
-      categorie: 'subventions',
-      montant: 15000000,
-      exerciceConcerne: '2024',
-      compteComptable: '131000',
-      client: 'FDFP',
-      dateEncaissement: '2025-02-28',
-      statutValidation: 'valide',
-      utilisateurCreation: 'Marc KOFFI',
-      dateCreation: '2024-12-18'
-    }
-  ];
-
+  // Static SYSCOHADA rules reference
   const mockRegles: RegleProvisionSYSCOHADA[] = [
     {
       type: 'creances_douteuses',
       description: 'Provisions pour créances douteuses',
-      conditionsApplication: [
-        'Créances échues depuis plus de 6 mois',
-        'Client en difficulté financière avérée',
-        'Procédures de recouvrement infructueuses'
-      ],
+      conditionsApplication: ['Créances échues depuis plus de 6 mois', 'Client en difficulté financière avérée'],
       baseCalcul: 'Pourcentage de la créance selon ancienneté',
       tauxRecommande: 50,
       obligatoire: true,
-      exemples: ['25% pour 6-12 mois', '50% pour 12-24 mois', '100% au-delà de 24 mois']
-    },
-    {
-      type: 'depreciation_stocks',
-      description: 'Provisions pour dépréciation des stocks',
-      conditionsApplication: [
-        'Stocks obsolètes ou détériorés',
-        'Valeur nette réalisable inférieure au coût',
-        'Rotation très lente'
-      ],
-      baseCalcul: 'Différence entre coût et valeur nette réalisable',
-      obligatoire: true,
-      exemples: ['Stocks périmés: 100%', 'Rotation lente: 10-30%', 'Obsolescence: 50-100%']
+      exemples: ['25% pour 6-12 mois', '50% pour 12-24 mois', '100% au-delà de 24 mois'],
     },
     {
       type: 'litiges',
       description: 'Provisions pour litiges et contentieux',
-      conditionsApplication: [
-        'Procédure judiciaire en cours',
-        'Risque de condamnation probable',
-        'Montant évaluable avec fiabilité'
-      ],
+      conditionsApplication: ['Procédure judiciaire en cours', 'Risque de condamnation probable'],
       baseCalcul: 'Évaluation du risque par expert juridique',
       obligatoire: false,
-      exemples: ['Litiges commerciaux', 'Contentieux social', 'Amendes et pénalités']
-    }
+      exemples: ['Litiges commerciaux', 'Contentieux social', 'Amendes et pénalités'],
+    },
   ];
 
-  const mockAnalysesRisque: AnalyseRisque[] = [
-    {
-      domaineRisque: 'Créances clients',
-      niveauRisque: 'modere',
-      probabilite: 75,
-      impactFinancier: 12000000,
-      mesuresPreventives: [
-        'Renforcement du suivi des créances',
-        'Révision des conditions de crédit',
-        'Assurance crédit pour gros clients'
-      ],
-      provisionsRecommandees: 4500000,
-      derniereMiseAJour: '2024-12-20'
-    },
-    {
-      domaineRisque: 'Litiges commerciaux',
-      niveauRisque: 'eleve',
-      probabilite: 60,
-      impactFinancier: 8000000,
-      mesuresPreventives: [
-        'Révision des contrats types',
-        'Formation équipes commerciales',
-        'Médiation préventive'
-      ],
-      provisionsRecommandees: 8000000,
-      derniereMiseAJour: '2024-12-15'
-    }
-  ];
+  const mockAnalysesRisque: AnalyseRisque[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
@@ -365,7 +215,7 @@ const Provisions: React.FC = () => {
     const totalChargesAPayer = mockChargesAPayer.reduce((sum, charge) => sum + charge.montant, 0);
     const totalProduitsARecevoir = mockProduitsARecevoir.reduce((sum, produit) => sum + produit.montant, 0);
     const provisionsConformes = mockProvisions.filter(prov => prov.conformiteSYSCOHADA).length;
-    const tauxConformite = provisionsConformes / mockProvisions.length * 100;
+    const tauxConformite = mockProvisions.length > 0 ? (provisionsConformes / mockProvisions.length) * 100 : 100;
 
     return {
       totalProvisions,
@@ -378,7 +228,7 @@ const Provisions: React.FC = () => {
       nombreProvisions: mockProvisions.length,
       impactNetExercice: dotationsExercice - reprisesExercice
     };
-  }, []);
+  }, [dbProvisions]);
 
   // Filtrage des provisions
   const provisionsFiltrees = useMemo(() => {
@@ -390,7 +240,7 @@ const Provisions: React.FC = () => {
         provision.numero.toLowerCase().includes(searchTerm.toLowerCase());
       return matchType && matchStatut && matchSearch;
     });
-  }, [filterType, filterStatut, searchTerm]);
+  }, [mockProvisions, filterType, filterStatut, searchTerm]);
 
   const getTypeProvisionIcon = (type: string) => {
     switch (type) {

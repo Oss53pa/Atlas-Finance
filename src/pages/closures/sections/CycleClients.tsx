@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { db } from '../../../lib/db';
+import { money } from '../../../utils/money';
 import { motion } from 'framer-motion';
 import {
   Users,
@@ -28,18 +30,17 @@ import {
   Phone,
   Shield,
   Activity,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/Progress';
-import { closuresService, createProvisionSchema } from '../../../services/modules/closures.service';
-import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Input } from '../../../components/ui/Input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/Select';
 import { toast } from 'react-hot-toast';
-import { LoadingSpinner, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui';
 
 interface Client {
   id: string;
@@ -117,20 +118,7 @@ const CycleClients: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  const createMutation = useMutation({
-    mutationFn: closuresService.createProvision,
-    onSuccess: () => {
-      toast.success('Provision créée avec succès');
-      queryClient.invalidateQueries({ queryKey: ['provisions'] });
-      setShowProvisionModal(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de la création de la provision');
-    },
-  });
+  // TODO P0: Remplacer par service Dexie réel
 
   const resetForm = () => {
     setFormData({
@@ -148,7 +136,7 @@ const CycleClients: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => {
@@ -160,147 +148,69 @@ const CycleClients: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setErrors({});
-
-      const submitData = {
-        ...formData,
-        montant: formData.montant ? parseFloat(formData.montant) : 0,
-        base_calcul: formData.base_calcul ? parseFloat(formData.base_calcul) : 0,
-      };
-
-      const validatedData = createProvisionSchema.parse(submitData);
-      await createMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
-      } else {
-        toast.error('Erreur lors de la création');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    // TODO P0: Remplacer par service Dexie réel
+    toast.error('Service de provision non encore connecté');
   };
 
-  // Données simulées
-  const mockClients: Client[] = [
-    {
-      id: '1',
-      code: 'CL001',
-      nom: 'SOCIETE IVOIRIENNE DE DISTRIBUTION',
-      type: 'entreprise',
-      secteur: 'Distribution',
-      email: 'contact@sid.ci',
-      telephone: '+225 27 20 30 40 50',
-      adresse: 'Abidjan, Plateau',
-      limiteCredit: 50000000,
-      delaiPaiement: 30,
-      statutRisque: 'modere',
-      chiffreAffaires: 120000000,
-      encours: 25000000,
-      dernierPaiement: '2024-12-10',
-      dateCreation: '2020-01-15'
-    },
-    {
-      id: '2',
-      code: 'CL002',
-      nom: 'MINISTERE DES FINANCES',
-      type: 'administration',
-      secteur: 'Public',
-      email: 'marches@finances.gouv.ci',
-      telephone: '+225 27 20 21 08 00',
-      adresse: 'Abidjan, Plateau',
-      limiteCredit: 200000000,
-      delaiPaiement: 60,
-      statutRisque: 'faible',
-      chiffreAffaires: 500000000,
-      encours: 180000000,
-      dernierPaiement: '2024-11-30',
-      dateCreation: '2019-06-01'
-    },
-    {
-      id: '3',
-      code: 'CL003',
-      nom: 'ENTREPRISE KOUASSI & FILS',
-      type: 'entreprise',
-      secteur: 'BTP',
-      email: 'info@kouassi-fils.ci',
-      telephone: '+225 07 08 09 10 11',
-      adresse: 'Yamoussoukro',
-      limiteCredit: 15000000,
-      delaiPaiement: 45,
-      statutRisque: 'eleve',
-      chiffreAffaires: 35000000,
-      encours: 18000000,
-      dernierPaiement: '2024-10-15',
-      dateCreation: '2021-03-20'
-    }
-  ];
+  // Real data from Dexie — 411 (client) account balances
+  const [clientBalances, setClientBalances] = useState<Map<string, { name: string; debit: number; credit: number }>>(new Map());
 
-  const mockCreances: Creance[] = [
-    {
-      id: '1',
-      clientId: '1',
-      clientNom: 'SOCIETE IVOIRIENNE DE DISTRIBUTION',
-      numeroFacture: 'FA2024-0156',
-      dateFacture: '2024-10-01',
-      dateEcheance: '2024-10-31',
-      montantTTC: 5000000,
-      montantRegle: 0,
-      solde: 5000000,
-      statut: 'echue',
-      joursRetard: 60,
-      tauxProvision: 25,
-      montantProvision: 1250000,
-      actionsRelance: [
-        {
-          id: '1',
-          date: '2024-11-05',
-          type: 'email',
-          statut: 'execute',
-          resultat: 'Email envoyé, pas de réponse'
-        },
-        {
-          id: '2',
-          date: '2024-11-15',
-          type: 'telephone',
-          statut: 'execute',
-          resultat: 'Promesse de paiement sous 15 jours'
+  const loadClientData = useCallback(async () => {
+    try {
+      const fys = await db.fiscalYears.toArray();
+      const activeFY = fys.find(fy => fy.isActive) || fys[0];
+      if (!activeFY) return;
+
+      const entries = await db.journalEntries
+        .where('date')
+        .between(activeFY.startDate, activeFY.endDate, true, true)
+        .toArray();
+
+      const balMap = new Map<string, { name: string; debit: number; credit: number }>();
+      for (const entry of entries) {
+        for (const line of entry.lines) {
+          if (line.accountCode.startsWith('411')) {
+            const existing = balMap.get(line.accountCode) || { name: line.accountName, debit: 0, credit: 0 };
+            existing.debit += line.debit;
+            existing.credit += line.credit;
+            balMap.set(line.accountCode, existing);
+          }
         }
-      ]
-    },
-    {
-      id: '2',
-      clientId: '3',
-      clientNom: 'ENTREPRISE KOUASSI & FILS',
-      numeroFacture: 'FA2024-0089',
-      dateFacture: '2024-08-15',
-      dateEcheance: '2024-09-29',
-      montantTTC: 8000000,
-      montantRegle: 2000000,
-      solde: 6000000,
-      statut: 'contentieux',
-      joursRetard: 92,
-      tauxProvision: 50,
-      montantProvision: 3000000,
-      actionsRelance: [
-        {
-          id: '3',
-          date: '2024-12-01',
-          type: 'mise_en_demeure',
-          statut: 'execute',
-          resultat: 'Mise en demeure envoyée'
-        }
-      ]
-    }
-  ];
+      }
+      setClientBalances(balMap);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadClientData(); }, [loadClientData]);
+
+  // Map real 411 accounts to Client interface
+  const mockClients: Client[] = useMemo(() => {
+    let idx = 0;
+    return Array.from(clientBalances.entries()).map(([code, bal]) => {
+      idx++;
+      const encours = money(bal.debit).subtract(money(bal.credit)).toNumber();
+      return {
+        id: String(idx),
+        code,
+        nom: bal.name || `Client ${code}`,
+        type: 'entreprise' as const,
+        secteur: '',
+        email: '',
+        telephone: '',
+        adresse: '',
+        limiteCredit: 0,
+        delaiPaiement: 30,
+        statutRisque: encours > 0 ? 'modere' as const : 'faible' as const,
+        chiffreAffaires: bal.credit,
+        encours: Math.max(0, encours),
+        dernierPaiement: '',
+        dateCreation: '',
+      };
+    });
+  }, [clientBalances]);
+
+  // No invoice-level data available — empty
+  const mockCreances: Creance[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
@@ -885,7 +795,6 @@ const CycleClients: React.FC = () => {
                       <Select
                         value={formData.type}
                         onValueChange={(value) => handleInputChange('type', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type" />
@@ -1038,7 +947,7 @@ const CycleClients: React.FC = () => {
                 className="bg-[var(--color-warning)] text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
                 {isSubmitting ? (
                   <>
-                    <LoadingSpinner size="sm" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Traitement...</span>
                   </>
                 ) : (

@@ -11,6 +11,7 @@ import { NavigationProvider } from './contexts/NavigationContext';
 import { ToastProvider } from './hooks/useToast';
 import { ChatbotProvider } from './components/layout/ChatbotProvider';
 import ErrorBoundary from './components/ErrorBoundary';
+import FeatureErrorBoundary from './components/FeatureErrorBoundary';
 import './styles/globals.css';
 
 // Pages publiques
@@ -155,6 +156,7 @@ const MobileAppPage = React.lazy(() => import('./pages/settings/MobileAppPage'))
 const OfflineModePage = React.lazy(() => import('./pages/settings/OfflineModePage'));
 const IAConfigPage = React.lazy(() => import('./pages/settings/IAConfigPage'));
 const TrackChangePage = React.lazy(() => import('./pages/settings/TrackChangePage'));
+const TypographyGuide = React.lazy(() => import('./pages/settings/TypographyGuide'));
 
 // Config
 const PlanSYSCOHADAPage = React.lazy(() => import('./pages/config/PlanSYSCOHADAPage'));
@@ -211,93 +213,109 @@ function App() {
                         <Route path="/dashboard/workflows" element={<WorkflowsManager />} />
 
                         {/* Comptabilite */}
-                        <Route path="/accounting" element={<AccountingDashboard />} />
-                        <Route path="/accounting/journals" element={<JournalsPage />} />
-                        <Route path="/accounting/entries" element={<EntriesPage />} />
-                        <Route path="/accounting/balance" element={<BalancePage />} />
-                        <Route path="/accounting/chart-of-accounts" element={<ChartOfAccountsPage />} />
-                        <Route path="/accounting/general-ledger" element={<GeneralLedgerPage />} />
-                        <Route path="/accounting/lettrage" element={<LettragePage />} />
-                        <Route path="/accounting/lettrage-auto" element={<LettrageAutomatiquePage />} />
-                        <Route path="/accounting/ocr" element={<OCRInvoices />} />
-                        <Route path="/accounting/signature" element={<ElectronicSignature />} />
-                        <Route path="/accounting/financial-statements" element={<FinancialStatementsPage />} />
-                        <Route path="/accounting/income-statement" element={<IncomeStatementPage />} />
-                        <Route path="/accounting/balance-sheet" element={<BalanceSheetPage />} />
-                        <Route path="/accounting/cash-flow" element={<CashFlowPageAccounting />} />
-                        <Route path="/accounting/ratios" element={<FinancialRatiosPage />} />
-                        <Route path="/accounting/reports" element={<ReportsPageAccounting />} />
+                        <Route element={<FeatureErrorBoundary feature="Comptabilité" />}>
+                          <Route path="/accounting" element={<AccountingDashboard />} />
+                          <Route path="/accounting/journals" element={<JournalsPage />} />
+                          <Route path="/accounting/entries" element={<EntriesPage />} />
+                          <Route path="/accounting/balance" element={<BalancePage />} />
+                          <Route path="/accounting/chart-of-accounts" element={<ChartOfAccountsPage />} />
+                          <Route path="/accounting/general-ledger" element={<GeneralLedgerPage />} />
+                          <Route path="/accounting/lettrage" element={<LettragePage />} />
+                          <Route path="/accounting/lettrage-auto" element={<LettrageAutomatiquePage />} />
+                          <Route path="/accounting/ocr" element={<OCRInvoices />} />
+                          <Route path="/accounting/signature" element={<ElectronicSignature />} />
+                          <Route path="/accounting/financial-statements" element={<FinancialStatementsPage />} />
+                          <Route path="/accounting/income-statement" element={<IncomeStatementPage />} />
+                          <Route path="/accounting/balance-sheet" element={<BalanceSheetPage />} />
+                          <Route path="/accounting/cash-flow" element={<CashFlowPageAccounting />} />
+                          <Route path="/accounting/ratios" element={<FinancialRatiosPage />} />
+                          <Route path="/accounting/reports" element={<ReportsPageAccounting />} />
+                        </Route>
 
                         {/* Tiers */}
-                        <Route path="/tiers" element={<TiersDashboard />} />
-                        <Route path="/tiers/clients" element={<ClientsModule />} />
-                        <Route path="/tiers/fournisseurs" element={<FournisseursModule />} />
-                        <Route path="/tiers/recouvrement" element={<RecouvrementModule />} />
-                        <Route path="/tiers/contacts" element={<ContactsModule />} />
-                        <Route path="/tiers/lettrage" element={<LettrageModule />} />
-                        <Route path="/tiers/partenaires" element={<PartenairesModule />} />
-                        <Route path="/tiers/prospects" element={<ProspectsModule />} />
-                        <Route path="/third-party" element={<ThirdPartyDashboard />} />
+                        <Route element={<FeatureErrorBoundary feature="Tiers" />}>
+                          <Route path="/tiers" element={<TiersDashboard />} />
+                          <Route path="/tiers/clients" element={<ClientsModule />} />
+                          <Route path="/tiers/fournisseurs" element={<FournisseursModule />} />
+                          <Route path="/tiers/recouvrement" element={<RecouvrementModule />} />
+                          <Route path="/tiers/contacts" element={<ContactsModule />} />
+                          <Route path="/tiers/lettrage" element={<LettrageModule />} />
+                          <Route path="/tiers/partenaires" element={<PartenairesModule />} />
+                          <Route path="/tiers/prospects" element={<ProspectsModule />} />
+                          <Route path="/third-party" element={<ThirdPartyDashboard />} />
+                        </Route>
 
                         {/* Tresorerie */}
-                        <Route path="/treasury" element={<TreasuryDashboard />} />
-                        <Route path="/treasury/accounts" element={<BankAccountsPage />} />
-                        <Route path="/treasury/fund-calls" element={<FundCallsPage />} />
-                        <Route path="/treasury/positions" element={<TreasuryPositions />} />
-                        <Route path="/treasury/cash-flow" element={<CashFlowPage />} />
-                        <Route path="/treasury/reconciliation" element={<ReconciliationPage />} />
-                        <Route path="/treasury/financing" element={<TreasuryDashboard />} />
-                        <Route path="/treasury/multi-currency" element={<MultiCurrency />} />
-                        <Route path="/treasury/movements" element={<BankMovementsPage />} />
-                        <Route path="/treasury/connections" element={<ConnexionsBancairesPage />} />
-                        <Route path="/treasury/payments" element={<GestionPaiementsPage />} />
-                        <Route path="/treasury/forecast" element={<PrevisionsTresoreriePage />} />
-                        <Route path="/treasury/position" element={<PositionTresoreriePage />} />
+                        <Route element={<FeatureErrorBoundary feature="Trésorerie" />}>
+                          <Route path="/treasury" element={<TreasuryDashboard />} />
+                          <Route path="/treasury/accounts" element={<BankAccountsPage />} />
+                          <Route path="/treasury/fund-calls" element={<FundCallsPage />} />
+                          <Route path="/treasury/positions" element={<TreasuryPositions />} />
+                          <Route path="/treasury/cash-flow" element={<CashFlowPage />} />
+                          <Route path="/treasury/reconciliation" element={<ReconciliationPage />} />
+                          <Route path="/treasury/financing" element={<TreasuryDashboard />} />
+                          <Route path="/treasury/multi-currency" element={<MultiCurrency />} />
+                          <Route path="/treasury/movements" element={<BankMovementsPage />} />
+                          <Route path="/treasury/connections" element={<ConnexionsBancairesPage />} />
+                          <Route path="/treasury/payments" element={<GestionPaiementsPage />} />
+                          <Route path="/treasury/forecast" element={<PrevisionsTresoreriePage />} />
+                          <Route path="/treasury/position" element={<PositionTresoreriePage />} />
+                        </Route>
 
                         {/* Immobilisations */}
-                        <Route path="/assets" element={<AssetsDashboard />} />
-                        <Route path="/assets/fixed" element={<FixedAssetsPage />} />
-                        <Route path="/assets/depreciation" element={<DepreciationPage />} />
-                        <Route path="/assets/summary" element={<AssetsSummary />} />
-                        <Route path="/assets/registry" element={<AssetsRegistry />} />
-                        <Route path="/assets/transactions" element={<AssetsTransactions />} />
-                        <Route path="/assets/categories" element={<AssetsCategories />} />
-                        <Route path="/assets/classes" element={<AssetsClasses />} />
-                        <Route path="/assets/journal" element={<AssetsJournal />} />
-                        <Route path="/assets/disposals" element={<AssetsDisposals />} />
-                        <Route path="/assets/inventory" element={<AssetsRegistry />} />
-                        <Route path="/assets/maintenance" element={<AssetsMaintenance />} />
-                        <Route path="/assets/physical-inventory" element={<InventairePhysiquePage />} />
+                        <Route element={<FeatureErrorBoundary feature="Immobilisations" />}>
+                          <Route path="/assets" element={<AssetsDashboard />} />
+                          <Route path="/assets/fixed" element={<FixedAssetsPage />} />
+                          <Route path="/assets/depreciation" element={<DepreciationPage />} />
+                          <Route path="/assets/summary" element={<AssetsSummary />} />
+                          <Route path="/assets/registry" element={<AssetsRegistry />} />
+                          <Route path="/assets/transactions" element={<AssetsTransactions />} />
+                          <Route path="/assets/categories" element={<AssetsCategories />} />
+                          <Route path="/assets/classes" element={<AssetsClasses />} />
+                          <Route path="/assets/journal" element={<AssetsJournal />} />
+                          <Route path="/assets/disposals" element={<AssetsDisposals />} />
+                          <Route path="/assets/inventory" element={<AssetsRegistry />} />
+                          <Route path="/assets/maintenance" element={<AssetsMaintenance />} />
+                          <Route path="/assets/physical-inventory" element={<InventairePhysiquePage />} />
+                        </Route>
 
                         {/* Budget */}
-                        <Route path="/budgeting" element={<BudgetingDashboard />} />
-                        <Route path="/budgeting/list" element={<BudgetsPage />} />
-                        <Route path="/budgeting/control" element={<BudgetControlPage />} />
-                        <Route path="/budgeting/detail/:id" element={<BudgetDetailPage />} />
+                        <Route element={<FeatureErrorBoundary feature="Budget" />}>
+                          <Route path="/budgeting" element={<BudgetingDashboard />} />
+                          <Route path="/budgeting/list" element={<BudgetsPage />} />
+                          <Route path="/budgeting/control" element={<BudgetControlPage />} />
+                          <Route path="/budgeting/detail/:id" element={<BudgetDetailPage />} />
+                        </Route>
 
                         {/* Clotures */}
-                        <Route path="/closures" element={<ClosureModulesIndex />} />
-                        <Route path="/closures/periodic" element={<PeriodicClosuresModule />} />
-                        <Route path="/closures/revisions" element={<RevisionsModule />} />
-                        <Route path="/closures/carry-forward" element={<ReportsANouveauModule />} />
-                        <Route path="/closures/audit-trail" element={<PisteAuditModule />} />
-                        <Route path="/closures/periodiques" element={<CloturesPeriodiquesPage />} />
-                        <Route path="/closures/annual" element={<ClotureAnnuelle />} />
+                        <Route element={<FeatureErrorBoundary feature="Clôtures" />}>
+                          <Route path="/closures" element={<ClosureModulesIndex />} />
+                          <Route path="/closures/periodic" element={<PeriodicClosuresModule />} />
+                          <Route path="/closures/periodiques" element={<CloturesPeriodiquesPage />} />
+                          <Route path="/closures/revisions" element={<RevisionsModule />} />
+                          <Route path="/closures/carry-forward" element={<ReportsANouveauModule />} />
+                          <Route path="/closures/audit-trail" element={<PisteAuditModule />} />
+                          <Route path="/closures/annual" element={<ClotureAnnuelle />} />
+                        </Route>
 
                         {/* Etats financiers */}
-                        <Route path="/financial-statements" element={<FinancialStatementsIndexPage />} />
-                        <Route path="/financial-statements/balance" element={<BilanSYSCOHADAPage />} />
-                        <Route path="/financial-statements/income" element={<CompteResultatPage />} />
-                        <Route path="/financial-statements/analysis" element={<FinancialAnalysisPage />} />
+                        <Route element={<FeatureErrorBoundary feature="États financiers" />}>
+                          <Route path="/financial-statements" element={<FinancialStatementsIndexPage />} />
+                          <Route path="/financial-statements/balance" element={<BilanSYSCOHADAPage />} />
+                          <Route path="/financial-statements/income" element={<CompteResultatPage />} />
+                          <Route path="/financial-statements/analysis" element={<FinancialAnalysisPage />} />
+                        </Route>
 
                         {/* Reporting */}
-                        <Route path="/reporting" element={<ReportingDashboard />} />
-                        <Route path="/reporting/dashboards" element={<DashboardsPage />} />
-                        <Route path="/reporting/tax" element={<TaxReportingPage />} />
-                        <Route path="/reporting/custom" element={<CustomReportsPage />} />
-                        <Route path="/reporting/syscohada" element={<ReportingSyscohada />} />
-                        <Route path="/reporting/ifrs" element={<ReportingIFRS />} />
-                        <Route path="/reports" element={<ReportingDashboard />} />
+                        <Route element={<FeatureErrorBoundary feature="Reporting" />}>
+                          <Route path="/reporting" element={<ReportingDashboard />} />
+                          <Route path="/reporting/dashboards" element={<DashboardsPage />} />
+                          <Route path="/reporting/tax" element={<TaxReportingPage />} />
+                          <Route path="/reporting/custom" element={<CustomReportsPage />} />
+                          <Route path="/reporting/syscohada" element={<ReportingSyscohada />} />
+                          <Route path="/reporting/ifrs" element={<ReportingIFRS />} />
+                          <Route path="/reports" element={<ReportingDashboard />} />
+                        </Route>
 
                         {/* Analytics */}
                         <Route path="/analytics" element={<AnalyticsDashboard />} />
@@ -313,16 +331,20 @@ function App() {
                         <Route path="/inventory/valuation" element={<InventoryValuation />} />
 
                         {/* Fiscalite */}
-                        <Route path="/taxation" element={<TaxationDashboard />} />
-                        <Route path="/taxation/declarations" element={<TaxDeclarationsPage />} />
-                        <Route path="/taxation/liasse" element={<LiasseFiscalePage />} />
-                        <Route path="/taxation/echeances" element={<EcheancesFiscalesPage />} />
+                        <Route element={<FeatureErrorBoundary feature="Fiscalité" />}>
+                          <Route path="/taxation" element={<TaxationDashboard />} />
+                          <Route path="/taxation/declarations" element={<TaxDeclarationsPage />} />
+                          <Route path="/taxation/liasse" element={<LiasseFiscalePage />} />
+                          <Route path="/taxation/echeances" element={<EcheancesFiscalesPage />} />
+                        </Route>
 
                         {/* Securite */}
-                        <Route path="/security" element={<SecurityDashboard />} />
-                        <Route path="/security/users" element={<UsersPage />} />
-                        <Route path="/security/roles" element={<RolesPage />} />
-                        <Route path="/security/permissions" element={<PermissionsPage />} />
+                        <Route element={<FeatureErrorBoundary feature="Sécurité" />}>
+                          <Route path="/security" element={<SecurityDashboard />} />
+                          <Route path="/security/users" element={<UsersPage />} />
+                          <Route path="/security/roles" element={<RolesPage />} />
+                          <Route path="/security/permissions" element={<PermissionsPage />} />
+                        </Route>
 
                         {/* Settings */}
                         <Route path="/settings" element={<AccountingSettingsPage />} />
@@ -336,6 +358,7 @@ function App() {
                         <Route path="/settings/offline" element={<OfflineModePage />} />
                         <Route path="/settings/ia" element={<IAConfigPage />} />
                         <Route path="/settings/track-change" element={<TrackChangePage />} />
+                        <Route path="/settings/typography" element={<TypographyGuide />} />
                         <Route path="/parameters" element={<AccountingSettingsPage />} />
 
                         {/* Config */}

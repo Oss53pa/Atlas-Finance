@@ -1,5 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { previewClosure, canClose } from '../../../services/closureService';
+import type { ClosurePreview } from '../../../services/closureService';
+import { closureOrchestrator } from '../../../services/cloture/closureOrchestrator';
+import type { ClotureMode, ClotureStep as OrchestratorStep } from '../../../services/cloture/closureOrchestrator';
+import { db } from '../../../lib/db';
+import type { DBFiscalYear } from '../../../lib/db';
+import { formatCurrency } from '../../../utils/formatters';
 import { motion } from 'framer-motion';
 import {
   CheckCircle,
@@ -40,18 +47,17 @@ import {
   Database,
   BarChart3,
   PieChart,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/Progress';
-import { closuresService, createValidationSchema } from '../../../services/modules/closures.service';
-import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Input } from '../../../components/ui/Input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/Select';
 import { toast } from 'react-hot-toast';
-import { LoadingSpinner, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui';
 
 interface EtapeValidation {
   id: string;
@@ -124,20 +130,25 @@ const ValidationFinale: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
+  // --- Orchestrator mode & steps ---
+  const [clotureMode, setClotureMode] = useState<ClotureMode>('manual');
+  const [orchSteps, setOrchSteps] = useState<OrchestratorStep[]>(() => closureOrchestrator.getSteps());
 
-  const createMutation = useMutation({
-    mutationFn: closuresService.createValidation,
-    onSuccess: () => {
-      toast.success('Validation de clôture enregistrée avec succès');
-      queryClient.invalidateQueries({ queryKey: ['validations'] });
-      setShowValidationModal(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de la validation');
-    },
-  });
+  // --- Fiscal years + closure preview from Dexie ---
+  const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
+  const [preview, setPreview] = useState<ClosurePreview | null>(null);
+  const [canCloseResult, setCanCloseResult] = useState<{ canClose: boolean; reasons: string[] } | null>(null);
+
+  useEffect(() => {
+    db.fiscalYears.toArray().then(fys => {
+      setFiscalYears(fys);
+      const active = fys.find(fy => fy.isActive) || fys[0];
+      if (active) {
+        previewClosure(active.id).then(setPreview).catch(() => {});
+        canClose(active.id).then(setCanCloseResult).catch(() => {});
+      }
+    });
+  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -152,7 +163,7 @@ const ValidationFinale: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => {
@@ -163,138 +174,144 @@ const ValidationFinale: React.FC = () => {
     }
   };
 
+  // --- Execute ALL steps via orchestrator (full workflow) ---
   const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setErrors({});
+    const activeFY = fiscalYears.find(fy => fy.isActive) || fiscalYears[0];
+    if (!activeFY) {
+      toast.error('Aucun exercice fiscal sélectionné');
+      return;
+    }
 
-      const validatedData = createValidationSchema.parse(formData);
-      await createMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
-      } else {
-        toast.error('Erreur lors de la création');
+    if (!formData.verrouillage_definitif) {
+      toast.error('Vous devez confirmer le verrouillage définitif');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setOrchSteps(closureOrchestrator.getSteps());
+
+    try {
+      const nextFY = fiscalYears.find(fy => fy.startDate > activeFY.endDate);
+
+      const results = await closureOrchestrator.executeAll({
+        exerciceId: activeFY.id,
+        mode: clotureMode,
+        userId: 'current-user',
+        openingExerciceId: nextFY?.id,
+        onProgress: (step) => {
+          setOrchSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
+        },
+        onError: (step, error) => {
+          toast.error(`Étape "${step.label}" : ${error.message}`);
+        },
+      });
+
+      const allDone = results.every(s => s.status === 'done');
+      const errors = results.filter(s => s.status === 'error');
+
+      if (allDone) {
+        toast.success('Clôture complète — toutes les étapes réussies');
+        setShowValidationModal(false);
+        resetForm();
+        const fys = await db.fiscalYears.toArray();
+        setFiscalYears(fys);
+        setOrchSteps(closureOrchestrator.getSteps());
+      } else if (errors.length > 0) {
+        toast.error(`${errors.length} étape(s) en erreur — vérifiez le détail`);
       }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de la clôture');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Données simulées
-  const mockPeriodes: PeriodeCloture[] = [
-    {
-      id: '1',
-      periode: '2024-12',
-      type: 'mensuelle',
-      dateDebut: '2024-12-01',
-      dateFin: '2024-12-31',
-      dateEcheance: '2025-01-10',
-      statut: 'en_cours',
-      responsableFinal: 'Marie KOUASSI - Directrice Financière',
-      progression: 85,
-      etapes: [
-        {
-          id: '1',
-          nom: 'Vérification Trésorerie',
-          description: 'Contrôle des soldes de caisse et rapprochements bancaires',
-          responsable: 'Jean OULAI - Comptable',
-          dateEcheance: '2025-01-05',
-          statut: 'complete',
-          progression: 100,
-          controles: [
-            {
-              id: '1',
-              nom: 'Rapprochement Bancaire',
-              type: 'automatique',
-              criticite: 'elevee',
-              statut: 'reussi',
-              resultat: 'Tous les comptes rapprochés',
-              dernierExecution: '2025-01-02'
-            }
-          ],
-          dependances: [],
-          documentsRequis: ['Relevés bancaires', 'Bordereaux de caisse'],
-          documentsJoints: ['releve_dec_2024.pdf', 'bordereau_caisse.xlsx']
-        },
-        {
-          id: '2',
-          nom: 'Validation Cycle Clients',
-          description: 'Contrôle des créances et provisions clients',
-          responsable: 'Fatou DIALLO - Responsable Crédit',
-          dateEcheance: '2025-01-07',
-          statut: 'en_cours',
-          progression: 75,
-          controles: [
-            {
-              id: '2',
-              nom: 'Balance âgée créances',
-              type: 'mixte',
-              criticite: 'elevee',
-              statut: 'alerte',
-              resultat: '3 créances douteuses détectées',
-              valeurAttendue: '< 5% créances &gt; 90j',
-              valeurObtenue: '7.2% créances &gt; 90j'
-            }
-          ],
-          dependances: ['1'],
-          documentsRequis: ['Balance clients', 'Justificatifs provisions'],
-          documentsJoints: ['balance_clients_dec.xlsx']
-        },
-        {
-          id: '3',
-          nom: 'Contrôle États SYSCOHADA',
-          description: 'Validation finale des états financiers',
-          responsable: 'Marie KOUASSI - Directrice Financière',
-          dateEcheance: '2025-01-10',
-          statut: 'en_attente',
-          progression: 0,
-          controles: [
-            {
-              id: '3',
-              nom: 'Cohérence Bilan/Résultat',
-              type: 'automatique',
-              criticite: 'critique',
-              statut: 'non_execute'
-            }
-          ],
-          dependances: ['1', '2'],
-          documentsRequis: ['Bilan SYSCOHADA', 'Compte de résultat', 'TAFIRE'],
-          documentsJoints: []
-        }
-      ],
-      approbations: [
-        {
-          id: '1',
-          etapeId: '1',
-          utilisateur: 'Jean OULAI',
-          role: 'Comptable',
-          dateApprobation: '2025-01-05',
-          statut: 'approuve',
-          commentaire: 'Trésorerie conforme'
-        }
-      ]
-    },
-    {
-      id: '2',
-      periode: '2024-Q4',
-      type: 'trimestrielle',
-      dateDebut: '2024-10-01',
-      dateFin: '2024-12-31',
-      dateEcheance: '2025-01-31',
-      statut: 'en_attente',
-      responsableFinal: 'Marie KOUASSI - Directrice Financière',
-      progression: 0,
-      etapes: [],
-      approbations: []
+  // --- Execute ONE step (manual step-by-step mode) ---
+  const handleExecuteStep = async (stepId: string) => {
+    const activeFY = fiscalYears.find(fy => fy.isActive) || fiscalYears[0];
+    if (!activeFY) {
+      toast.error('Aucun exercice fiscal sélectionné');
+      return;
     }
-  ];
+
+    setOrchSteps(prev => prev.map(s => s.id === stepId ? { ...s, status: 'running' } : s));
+
+    try {
+      const nextFY = fiscalYears.find(fy => fy.startDate > activeFY.endDate);
+
+      const result = await closureOrchestrator.executeStep(stepId, {
+        exerciceId: activeFY.id,
+        mode: 'manual',
+        userId: 'current-user',
+        openingExerciceId: nextFY?.id,
+      });
+
+      setOrchSteps(prev => prev.map(s => s.id === stepId ? { ...result } : s));
+
+      if (result.status === 'done') {
+        toast.success(`${result.label} : ${result.message}`);
+        // Refresh preview after each step
+        previewClosure(activeFY.id).then(setPreview).catch(() => {});
+        canClose(activeFY.id).then(setCanCloseResult).catch(() => {});
+      } else {
+        toast.error(`${result.label} : ${result.message}`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur');
+      setOrchSteps(prev => prev.map(s => s.id === stepId ? { ...s, status: 'error', message: String(err) } : s));
+    }
+  };
+
+  // Build periodes from real fiscal years
+  const mockPeriodes: PeriodeCloture[] = fiscalYears.map(fy => ({
+    id: fy.id,
+    periode: fy.code,
+    type: 'annuelle' as const,
+    dateDebut: fy.startDate,
+    dateFin: fy.endDate,
+    dateEcheance: fy.endDate,
+    statut: fy.isClosed ? 'cloturee' as const : fy.isActive ? 'en_cours' as const : 'ouverte' as const,
+    responsableFinal: 'Directeur Financier',
+    progression: fy.isClosed ? 100 : (preview && fy.isActive ? 50 : 0),
+    etapes: fy.isActive && preview ? [
+      {
+        id: 'e1',
+        nom: 'Vérification des pré-requis',
+        description: `${preview.totalEntries} écritures, ${preview.entriesToLock} à verrouiller`,
+        responsable: 'Système',
+        dateEcheance: fy.endDate,
+        statut: preview.warnings.length === 0 ? 'complete' as const : 'en_cours' as const,
+        progression: preview.warnings.length === 0 ? 100 : 50,
+        controles: [{
+          id: 'c1', nom: 'Équilibre écritures', type: 'automatique' as const,
+          criticite: 'critique' as const,
+          statut: preview.warnings.length === 0 ? 'reussi' as const : 'alerte' as const,
+          resultat: preview.warnings.length === 0 ? 'OK' : preview.warnings.join(', '),
+        }],
+        dependances: [],
+        documentsRequis: [],
+        documentsJoints: [],
+      },
+      {
+        id: 'e2',
+        nom: 'Calcul du résultat',
+        description: `Produits: ${formatCurrency(preview.totalProduits)} — Charges: ${formatCurrency(preview.totalCharges)}`,
+        responsable: 'Système',
+        dateEcheance: fy.endDate,
+        statut: 'en_attente' as const,
+        progression: 0,
+        controles: [{
+          id: 'c2', nom: 'Résultat net', type: 'automatique' as const,
+          criticite: 'elevee' as const, statut: 'non_execute' as const,
+          resultat: `Résultat prévisionnel: ${formatCurrency(preview.resultatNet)}`,
+        }],
+        dependances: ['e1'],
+        documentsRequis: ['Bilan', 'Compte de résultat'],
+        documentsJoints: [],
+      },
+    ] : [],
+    approbations: [],
+  }));
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
@@ -312,10 +329,10 @@ const ValidationFinale: React.FC = () => {
       controlesEchoues,
       approbationsPendantes,
       progressionGlobale: periodeEnCours?.progression || 0,
-      tempsRestant: 3, // jours
-      alertesCritiques: 2
+      tempsRestant: canCloseResult?.canClose ? 0 : canCloseResult?.reasons.length || 0,
+      alertesCritiques: preview?.warnings.length || 0,
     };
-  }, []);
+  }, [fiscalYears, preview, canCloseResult]);
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
@@ -426,7 +443,7 @@ const ValidationFinale: React.FC = () => {
           <TabsTrigger value="historique">Historique</TabsTrigger>
         </TabsList>
 
-        {/* Progression */}
+        {/* Progression — Orchestrator Steps */}
         <TabsContent value="progression" className="space-y-4">
           <Card>
             <CardHeader>
@@ -434,83 +451,170 @@ const ValidationFinale: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Sélection de période */}
+                {/* Période + Mode Toggle */}
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-lg font-semibold">Période: {mockPeriodes[0].periode}</h3>
-                    <p className="text-sm text-[var(--color-text-primary)]">
-                      Échéance: {new Date(mockPeriodes[0].dateEcheance).toLocaleDateString()}
-                    </p>
+                    <h3 className="text-lg font-semibold">
+                      Période: {mockPeriodes[0]?.periode || '—'}
+                    </h3>
+                    {preview && (
+                      <p className="text-sm text-[var(--color-text-secondary)]">
+                        {preview.totalEntries} écritures — Résultat: {formatCurrency(preview.resultatNet)}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
-                      <Play className="w-4 h-4" />
-                      Lancer Validation
-                    </button>
-                    <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
+                  <div className="flex items-center gap-3">
+                    {/* Mode toggle */}
+                    <div className="flex items-center gap-2 bg-[var(--color-background-secondary)] rounded-lg p-1">
+                      <button
+                        onClick={() => setClotureMode('manual')}
+                        className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                          clotureMode === 'manual'
+                            ? 'bg-[var(--color-primary)] text-white'
+                            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                        }`}
+                      >
+                        Manuel
+                      </button>
+                      <button
+                        onClick={() => setClotureMode('proph3t')}
+                        className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                          clotureMode === 'proph3t'
+                            ? 'bg-purple-600 text-white'
+                            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                        }`}
+                      >
+                        Proph3t IA
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setShowValidationModal(true)}
+                      disabled={isSubmitting || !canCloseResult?.canClose}
+                      className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2 disabled:opacity-50"
+                    >
                       <Shield className="w-4 h-4" />
-                      Valider Définitivement
+                      Tout Exécuter
                     </button>
                   </div>
                 </div>
 
-                {/* Workflow visuel */}
+                {/* Pre-check warnings */}
+                {canCloseResult && !canCloseResult.canClose && (
+                  <Alert className="border-l-4 border-l-orange-500">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Pré-requis non satisfaits :</strong>
+                      <ul className="list-disc ml-4 mt-1 text-sm">
+                        {canCloseResult.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Orchestrator Steps Workflow */}
                 <div className="space-y-4">
-                  <h4 className="font-medium">Workflow de Validation</h4>
+                  <h4 className="font-medium">
+                    Workflow de Clôture — Mode {clotureMode === 'manual' ? 'Manuel' : 'Proph3t IA'}
+                  </h4>
                   <div className="space-y-3">
-                    {mockPeriodes[0].etapes.map((etape, index) => (
-                      <div key={etape.id} className="relative">
+                    {orchSteps.map((step, index) => (
+                      <div key={step.id} className="relative">
                         <div className={`flex items-center p-4 border rounded-lg ${
-                          etape.statut === 'complete' ? 'bg-[var(--color-success-lightest)] border-[var(--color-success-light)]' :
-                          etape.statut === 'en_cours' ? 'bg-[var(--color-primary-lightest)] border-[var(--color-primary-light)]' :
-                          etape.statut === 'bloque' ? 'bg-[var(--color-error-lightest)] border-[var(--color-error-light)]' :
+                          step.status === 'done' ? 'bg-[var(--color-success-lightest)] border-[var(--color-success-light)]' :
+                          step.status === 'running' ? 'bg-[var(--color-primary-lightest)] border-[var(--color-primary-light)]' :
+                          step.status === 'error' ? 'bg-[var(--color-error-lightest)] border-[var(--color-error-light)]' :
                           'bg-[var(--color-background-secondary)] border-[var(--color-border)]'
                         }`}>
                           <div className="flex items-center gap-4 flex-1">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              etape.statut === 'complete' ? 'bg-[var(--color-success)]' :
-                              etape.statut === 'en_cours' ? 'bg-[var(--color-primary)]' :
-                              etape.statut === 'bloque' ? 'bg-[var(--color-error)]' :
+                              step.status === 'done' ? 'bg-[var(--color-success)]' :
+                              step.status === 'running' ? 'bg-[var(--color-primary)]' :
+                              step.status === 'error' ? 'bg-[var(--color-error)]' :
                               'bg-gray-400'
                             }`}>
-                              {etape.statut === 'complete' ? (
+                              {step.status === 'done' ? (
                                 <CheckCircle className="w-5 h-5 text-white" />
-                              ) : etape.statut === 'en_cours' ? (
-                                <Clock className="w-5 h-5 text-white" />
-                              ) : etape.statut === 'bloque' ? (
+                              ) : step.status === 'running' ? (
+                                <Loader2 className="w-5 h-5 text-white animate-spin" />
+                              ) : step.status === 'error' ? (
                                 <XCircle className="w-5 h-5 text-white" />
                               ) : (
                                 <span className="text-white font-bold">{index + 1}</span>
                               )}
                             </div>
                             <div className="flex-1">
-                              <h5 className="font-medium">{etape.nom}</h5>
-                              <p className="text-sm text-[var(--color-text-primary)]">{etape.description}</p>
-                              <p className="text-xs text-[var(--color-text-secondary)]">Responsable: {etape.responsable}</p>
+                              <h5 className="font-medium">{step.label}</h5>
+                              {step.message && (
+                                <p className={`text-sm ${step.status === 'error' ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]'}`}>
+                                  {step.message}
+                                </p>
+                              )}
+                              {step.timestamp && (
+                                <p className="text-xs text-[var(--color-text-secondary)]">
+                                  {new Date(step.timestamp).toLocaleTimeString()}
+                                </p>
+                              )}
                             </div>
-                            <div className="text-right">
-                              <Badge className={getStatutBadge(etape.statut)}>
-                                {etape.statut}
+                            <div className="flex items-center gap-2">
+                              <Badge className={
+                                step.status === 'done' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
+                                step.status === 'running' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]' :
+                                step.status === 'error' ? 'bg-[var(--color-error-lighter)] text-red-800' :
+                                'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
+                              }>
+                                {step.status === 'done' ? 'Terminé' :
+                                 step.status === 'running' ? 'En cours...' :
+                                 step.status === 'error' ? 'Erreur' :
+                                 'En attente'}
                               </Badge>
-                              <div className="mt-2 w-32">
-                                <Progress value={etape.progression} className="h-2" />
-                                <p className="text-xs text-[var(--color-text-secondary)] mt-1">{etape.progression}%</p>
-                              </div>
+                              {/* Manual mode: execute single step */}
+                              {clotureMode === 'manual' && step.status === 'pending' && !isSubmitting && (
+                                <button
+                                  onClick={() => handleExecuteStep(step.id)}
+                                  className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary-dark)] flex items-center gap-1"
+                                >
+                                  <Play className="w-3 h-3" />
+                                  Exécuter
+                                </button>
+                              )}
+                              {/* Retry on error */}
+                              {step.status === 'error' && !isSubmitting && (
+                                <button
+                                  onClick={() => handleExecuteStep(step.id)}
+                                  className="px-3 py-1.5 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 flex items-center gap-1"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  Réessayer
+                                </button>
+                              )}
                             </div>
-                            <button
-                              onClick={() => setSelectedEtape(etape)}
-                              className="p-2 hover:bg-[var(--color-background-hover)] rounded"
-                            >
-                              <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
-                            </button>
                           </div>
                         </div>
-                        {index < mockPeriodes[0].etapes.length - 1 && (
+                        {index < orchSteps.length - 1 && (
                           <div className="absolute left-5 top-16 w-0.5 h-4 bg-[var(--color-border-dark)]"></div>
                         )}
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Summary bar */}
+                <div className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
+                  <div className="flex gap-4 text-sm">
+                    <span className="text-[var(--color-success)]">
+                      {orchSteps.filter(s => s.status === 'done').length} terminée(s)
+                    </span>
+                    <span className="text-[var(--color-error)]">
+                      {orchSteps.filter(s => s.status === 'error').length} erreur(s)
+                    </span>
+                    <span className="text-[var(--color-text-secondary)]">
+                      {orchSteps.filter(s => s.status === 'pending').length} en attente
+                    </span>
+                  </div>
+                  <Progress
+                    value={(orchSteps.filter(s => s.status === 'done').length / orchSteps.length) * 100}
+                    className="w-48 h-2"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -917,7 +1021,6 @@ const ValidationFinale: React.FC = () => {
                       <Select
                         value={formData.niveau}
                         onValueChange={(value) => handleInputChange('niveau', value)}
-                        disabled={isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le niveau" />
@@ -1028,7 +1131,7 @@ const ValidationFinale: React.FC = () => {
               >
                 {isSubmitting ? (
                   <>
-                    <LoadingSpinner size="sm" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Traitement...</span>
                   </>
                 ) : (

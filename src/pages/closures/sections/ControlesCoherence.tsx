@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { useControlesCoherence } from '../hooks/useControlesCoherence';
+import type { ControleResult } from '../hooks/useControlesCoherence';
 import { motion } from 'framer-motion';
 import {
   Shield,
@@ -43,18 +45,16 @@ import {
   Flag,
   CheckSquare,
   AlertOctagon,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/Progress';
-import { closuresService, executeControleSchema } from '../../../services/modules/closures.service';
-import { z } from 'zod';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Input } from '../../../components/ui/Input';
 import { toast } from 'react-hot-toast';
-import { LoadingSpinner, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui';
 
 interface ControleCoherence {
   id: string;
@@ -158,20 +158,24 @@ const ControlesCoherence: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
+  const { controles: hookControles, loading: controlesLoading, refresh: refreshControles } = useControlesCoherence();
 
-  const executeMutation = useMutation({
-    mutationFn: closuresService.executeControles,
-    onSuccess: () => {
-      toast.success('Exécution des contrôles lancée avec succès');
-      queryClient.invalidateQueries({ queryKey: ['controles-execution'] });
-      setShowExecutionModal(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Erreur lors de l\'exécution des contrôles');
-    },
-  });
+  const handleInputChange = (field: string, value: string | number | boolean | string[]) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleControleToggle = (controleId: string) => {
+    const updatedIds = formData.controle_ids.includes(controleId)
+      ? formData.controle_ids.filter(id => id !== controleId)
+      : [...formData.controle_ids, controleId];
+    handleInputChange('controle_ids', updatedIds);
+  };
+
+  const handleSubmit = async () => {
+    await refreshControles();
+    toast.success('Contrôles exécutés avec succès');
+    setShowExecutionModal(false);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -185,314 +189,113 @@ const ControlesCoherence: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
+  // Real data from Dexie via hook — mapped to component interface
+  const mockControles: ControleCoherence[] = hookControles.map(c => ({
+    ...c,
+    statut: c.statut === 'non_applicable' ? 'en_attente' as const : c.statut as ControleCoherence['statut'],
+  }));
 
-  const handleControleToggle = (controleId: string) => {
-    const updatedIds = formData.controle_ids.includes(controleId)
-      ? formData.controle_ids.filter(id => id !== controleId)
-      : [...formData.controle_ids, controleId];
-    handleInputChange('controle_ids', updatedIds);
-  };
+  // Derive anomalies from non-conforming controls
+  const mockAnomalies: RapportAnomalies[] = hookControles
+    .filter(c => c.statut === 'non_conforme' || c.statut === 'attention')
+    .map((c, i) => ({
+      id: `A${i + 1}`,
+      typeAnomalie: 'violation_regle' as const,
+      severite: c.priorite === 'critique' ? 'critique' as const
+        : c.priorite === 'elevee' ? 'majeure' as const
+        : 'mineure' as const,
+      module: c.modulesConcernes[0] || 'Comptabilité',
+      description: c.messageResultat,
+      valeurDetectee: c.valeurReelle !== undefined ? String(c.valeurReelle) : '-',
+      valeurAttendue: c.valeurAttendue !== undefined ? String(c.valeurAttendue) : undefined,
+      compteImpacte: c.comptesConcernes?.[0],
+      montantImpact: c.ecart ? Math.abs(c.ecart) : undefined,
+      dateDetection: c.dateExecution,
+      statut: 'nouveau' as const,
+      actionsCorrectives: c.recommandations,
+    }));
 
-  const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setErrors({});
-
-      const validatedData = executeControleSchema.parse(formData);
-      await executeMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
-      } else {
-        toast.error('Erreur lors de la création');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Données simulées
-  const mockControles: ControleCoherence[] = [
-    {
-      id: '1',
-      nom: 'Équilibre Balance Générale',
-      description: 'Vérification que le total des débits égale le total des crédits',
-      categorie: 'balance',
-      priorite: 'critique',
-      statut: 'conforme',
-      valeurAttendue: 0,
-      valeurReelle: 0,
-      ecart: 0,
-      ecartPourcentage: 0,
-      tolerance: 1000,
-      dateExecution: '2024-12-20T10:30:00',
-      tempsExecution: 2.5,
-      messageResultat: 'Balance parfaitement équilibrée',
-      recommandations: [],
-      reglesMetier: ['Total Débits = Total Crédits', 'Écart toléré < 1000 FCFA'],
-      comptesConcernes: ['TOUS'],
-      modulesConcernes: ['Comptabilité Générale'],
-      automatique: true,
-      utilisateurExecution: 'Système'
-    },
-    {
-      id: '2',
-      nom: 'Cohérence Stocks - Comptabilité',
-      description: 'Validation entre valeur stock physique et comptable',
-      categorie: 'validation_croisee',
-      priorite: 'elevee',
-      statut: 'attention',
-      valeurAttendue: 25500000,
-      valeurReelle: 25450000,
-      ecart: -50000,
-      ecartPourcentage: -0.2,
-      tolerance: 100000,
-      dateExecution: '2024-12-20T11:15:00',
-      tempsExecution: 5.8,
-      messageResultat: 'Écart mineur détecté entre stock physique et comptable',
-      recommandations: [
-        'Vérifier les derniers mouvements de stock',
-        'Contrôler les évaluations en cours'
-      ],
-      reglesMetier: ['Écart < 0.5% acceptable', 'Justification requise pour écarts > 100K'],
-      comptesConcernes: ['31', '37'],
-      modulesConcernes: ['Gestion Stocks', 'Comptabilité'],
-      automatique: true,
-      utilisateurExecution: 'Système'
-    },
-    {
-      id: '3',
-      nom: 'Validation Créances - Encaissements',
-      description: 'Cohérence entre soldes clients et encaissements',
-      categorie: 'validation_croisee',
-      priorite: 'elevee',
-      statut: 'conforme',
-      valeurAttendue: 120000000,
-      valeurReelle: 120000000,
-      ecart: 0,
-      ecartPourcentage: 0,
-      tolerance: 50000,
-      dateExecution: '2024-12-20T09:45:00',
-      tempsExecution: 3.2,
-      messageResultat: 'Parfaite cohérence entre créances et encaissements',
-      recommandations: [],
-      reglesMetier: ['Solde client = Factures - Encaissements', 'Lettrage obligatoire'],
-      comptesConcernes: ['411', '512'],
-      modulesConcernes: ['Cycle Clients', 'Trésorerie'],
-      automatique: true,
-      utilisateurExecution: 'Système'
-    },
-    {
-      id: '4',
-      nom: 'Contrôle Amortissements SYSCOHADA',
-      description: 'Vérification conformité calculs amortissements',
-      categorie: 'conformite_syscohada',
-      priorite: 'elevee',
-      statut: 'conforme',
-      valeurAttendue: 60500000,
-      valeurReelle: 60500000,
-      ecart: 0,
-      ecartPourcentage: 0,
-      tolerance: 10000,
-      dateExecution: '2024-12-20T14:20:00',
-      tempsExecution: 8.5,
-      messageResultat: 'Tous les amortissements conformes aux règles SYSCOHADA',
-      recommandations: [],
-      reglesMetier: [
-        'Méthodes autorisées: linéaire, dégressive, unité d\'œuvre',
-        'Durées conformes aux minima/maxima',
-        'Calculs mathématiquement corrects'
-      ],
-      comptesConcernes: ['2', '681'],
-      modulesConcernes: ['Immobilisations'],
-      automatique: true,
-      utilisateurExecution: 'Système'
-    },
-    {
-      id: '5',
-      nom: 'Cohérence Temporelle Écritures',
-      description: 'Vérification chronologie et dates cohérentes',
-      categorie: 'coherence_temporelle',
-      priorite: 'moyenne',
-      statut: 'non_conforme',
-      dateExecution: '2024-12-20T13:10:00',
-      tempsExecution: 1.8,
-      messageResultat: '3 écritures avec dates incohérentes détectées',
-      recommandations: [
-        'Corriger les dates d\'écriture postérieures aux dates de pièce',
-        'Vérifier les paramètres de saisie automatique'
-      ],
-      reglesMetier: [
-        'Date écriture >= Date pièce',
-        'Date écriture <= Date du jour',
-        'Exercice comptable cohérent'
-      ],
-      modulesConcernes: ['Saisie Comptable'],
-      automatique: true,
-      utilisateurExecution: 'Système'
-    }
-  ];
-
-  const mockAnomalies: RapportAnomalies[] = [
-    {
-      id: '1',
-      typeAnomalie: 'ecart_balance',
-      severite: 'mineure',
-      module: 'Gestion Stocks',
-      description: 'Écart de valorisation entre stock physique et comptable',
-      valeurDetectee: '25,450,000 FCFA',
-      valeurAttendue: '25,500,000 FCFA',
-      compteImpacte: '31000',
-      montantImpact: 50000,
-      dateDetection: '2024-12-20T11:15:00',
-      statut: 'nouveau',
-      actionsCorrectives: [
-        'Vérifier les derniers mouvements de stock du jour',
-        'Contrôler les méthodes de valorisation appliquées'
-      ]
-    },
-    {
-      id: '2',
-      typeAnomalie: 'incoherence_temporelle',
-      severite: 'majeure',
-      module: 'Saisie Comptable',
-      description: 'Écritures saisies avec date antérieure à la date de pièce',
-      valeurDetectee: '3 écritures concernées',
-      dateDetection: '2024-12-20T13:10:00',
-      statut: 'en_cours',
-      actionsCorrectives: [
-        'Corriger les dates des écritures concernées',
-        'Réviser les paramètres de contrôle de saisie'
-      ],
-      responsableCorrection: 'Marie KOUAME'
-    },
-    {
-      id: '3',
-      typeAnomalie: 'violation_regle',
-      severite: 'critique',
-      module: 'Provisions',
-      description: 'Provision créée sans justification documentée',
-      valeurDetectee: 'PROV-2024-004',
-      montantImpact: 2500000,
-      dateDetection: '2024-12-19T16:30:00',
-      statut: 'resolu',
-      actionsCorrectives: [
-        'Compléter la documentation de la provision',
-        'Valider par le responsable juridique'
-      ],
-      responsableCorrection: 'Paul KONE',
-      dateResolution: '2024-12-20T09:00:00',
-      commentaires: 'Documentation complétée et validée'
-    }
-  ];
-
-  const mockIndicateurs: IndicateurPerformance[] = [
-    {
-      nom: 'Taux de Conformité Contrôles',
-      valeur: 87.5,
-      objectif: 95,
-      unite: '%',
-      tendance: 'hausse',
-      categorie: 'qualite',
-      description: 'Pourcentage de contrôles conformes sur le total des contrôles exécutés',
-      formuleCalcul: '(Contrôles Conformes / Total Contrôles) × 100'
-    },
-    {
-      nom: 'Temps Moyen Exécution',
-      valeur: 4.2,
-      objectif: 3.0,
-      unite: 'sec',
-      tendance: 'baisse',
-      categorie: 'operationnel',
-      description: 'Temps moyen d\'exécution des contrôles automatiques',
-      formuleCalcul: 'Moyenne(Temps Exécution Contrôles)'
-    },
-    {
-      nom: 'Anomalies Critiques',
-      valeur: 1,
-      objectif: 0,
-      unite: 'nb',
-      tendance: 'baisse',
-      categorie: 'qualite',
-      description: 'Nombre d\'anomalies de sévérité critique non résolues',
-      formuleCalcul: 'Count(Anomalies WHERE Sévérité = Critique AND Statut ≠ Résolu)'
-    }
-  ];
-
-  const mockValidationsCroisees: ValidationCroisee[] = [
-    {
-      id: '1',
-      nom: 'Équilibre Clients-Encaissements',
-      module1: 'Cycle Clients',
-      module2: 'Trésorerie',
-      typeValidation: 'coherence_montants',
-      description: 'Validation entre total factures clients et encaissements comptabilisés',
-      resultats: {
-        conforme: true,
-        details: 'Parfaite cohérence entre les deux modules',
-        recommandation: 'Maintenir la fréquence de contrôle actuelle'
+  // Derive indicators from real data
+  const mockIndicateurs: IndicateurPerformance[] = useMemo(() => {
+    if (hookControles.length === 0) return [];
+    const applicable = hookControles.filter(c => c.statut !== 'non_applicable');
+    const conformes = applicable.filter(c => c.statut === 'conforme').length;
+    const tauxConformite = applicable.length > 0 ? (conformes / applicable.length) * 100 : 100;
+    const tempsMoyen = applicable.length > 0
+      ? applicable.reduce((s, c) => s + c.tempsExecution, 0) / applicable.length
+      : 0;
+    const anomaliesCritiques = hookControles.filter(c =>
+      (c.statut === 'non_conforme') && c.priorite === 'critique'
+    ).length;
+    return [
+      {
+        nom: 'Taux de Conformité',
+        valeur: Math.round(tauxConformite * 10) / 10,
+        objectif: 95,
+        unite: '%',
+        tendance: tauxConformite >= 80 ? 'hausse' as const : 'baisse' as const,
+        categorie: 'qualite' as const,
+        description: 'Pourcentage de contrôles conformes',
+        formuleCalcul: '(Conformes / Total) × 100',
       },
-      derniereMiseAJour: '2024-12-20T09:45:00'
-    },
-    {
-      id: '2',
-      nom: 'Stocks Physique-Comptable',
-      module1: 'Gestion Stocks',
-      module2: 'Comptabilité',
-      typeValidation: 'equilibre_comptable',
-      description: 'Comparaison valeur stock physique vs valorisation comptable',
-      resultats: {
-        conforme: false,
-        details: 'Écart mineur de 50,000 FCFA détecté',
-        ecartDetecte: 50000,
-        recommandation: 'Analyser les derniers mouvements et ajuster si nécessaire'
+      {
+        nom: 'Temps Moyen Exécution',
+        valeur: Math.round(tempsMoyen * 10) / 10,
+        objectif: 5.0,
+        unite: 'ms',
+        tendance: 'stable' as const,
+        categorie: 'operationnel' as const,
+        description: 'Temps moyen d\'exécution des contrôles',
+        formuleCalcul: 'Moyenne(Temps Exécution)',
       },
-      derniereMiseAJour: '2024-12-20T11:15:00'
-    }
-  ];
+      {
+        nom: 'Anomalies Critiques',
+        valeur: anomaliesCritiques,
+        objectif: 0,
+        unite: 'nb',
+        tendance: anomaliesCritiques === 0 ? 'baisse' as const : 'hausse' as const,
+        categorie: 'qualite' as const,
+        description: 'Nombre d\'anomalies critiques non résolues',
+        formuleCalcul: 'Count(Critique AND Non Conforme)',
+      },
+    ];
+  }, [hookControles]);
 
-  const mockReglesMetier: RegleMetier[] = [
-    {
-      id: '1',
-      nom: 'Équilibre Balance',
-      description: 'Le total des débits doit égaler le total des crédits',
-      domaine: 'Comptabilité Générale',
-      typeRegle: 'validation',
-      expression: 'SUM(Débits) = SUM(Crédits)',
-      messageErreur: 'Balance déséquilibrée: écart de {ecart} FCFA',
+  // Derive cross-validations from relevant controls
+  const mockValidationsCroisees: ValidationCroisee[] = hookControles
+    .filter(c => c.categorie === 'validation_croisee')
+    .map(c => ({
+      id: c.id,
+      nom: c.nom,
+      module1: c.modulesConcernes[0] || '',
+      module2: c.modulesConcernes[1] || '',
+      typeValidation: 'coherence_montants' as const,
+      description: c.description,
+      resultats: {
+        conforme: c.statut === 'conforme',
+        details: c.messageResultat,
+        ecartDetecte: c.ecart ? Math.abs(c.ecart) : undefined,
+        recommandation: c.recommandations[0],
+      },
+      derniereMiseAJour: c.dateExecution,
+    }));
+
+  // Derive business rules from control rules
+  const mockReglesMetier: RegleMetier[] = hookControles
+    .filter(c => c.reglesMetier.length > 0)
+    .slice(0, 10)
+    .map((c, i) => ({
+      id: `R${i + 1}`,
+      nom: c.nom,
+      description: c.reglesMetier[0],
+      domaine: c.modulesConcernes[0] || 'Comptabilité',
+      typeRegle: 'validation' as const,
+      expression: c.reglesMetier[0],
+      messageErreur: c.messageResultat,
       actif: true,
-      dateCreation: '2024-01-01',
-      derniereMiseAJour: '2024-06-15'
-    },
-    {
-      id: '2',
-      nom: 'Cohérence Dates',
-      description: 'Date d\'écriture postérieure ou égale à date de pièce',
-      domaine: 'Saisie Comptable',
-      typeRegle: 'contrainte',
-      expression: 'DateEcriture >= DatePiece',
-      messageErreur: 'Date d\'écriture antérieure à la date de pièce',
-      actif: true,
-      dateCreation: '2024-01-01',
-      derniereMiseAJour: '2024-12-01'
-    }
-  ];
+      dateCreation: c.dateExecution.split('T')[0],
+      derniereMiseAJour: c.dateExecution.split('T')[0],
+    }));
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
@@ -500,12 +303,14 @@ const ControlesCoherence: React.FC = () => {
     const controlesConformes = mockControles.filter(c => c.statut === 'conforme').length;
     const controlesNonConformes = mockControles.filter(c => c.statut === 'non_conforme').length;
     const controlesAttention = mockControles.filter(c => c.statut === 'attention').length;
-    const tauxConformite = (controlesConformes / totalControles) * 100;
+    const tauxConformite = totalControles > 0 ? (controlesConformes / totalControles) * 100 : 0;
 
     const anomaliesNonResolues = mockAnomalies.filter(a => a.statut !== 'resolu').length;
     const anomaliesCritiques = mockAnomalies.filter(a => a.severite === 'critique' && a.statut !== 'resolu').length;
 
-    const tempsExecutionMoyen = mockControles.reduce((sum, c) => sum + c.tempsExecution, 0) / mockControles.length;
+    const tempsExecutionMoyen = totalControles > 0
+      ? mockControles.reduce((sum, c) => sum + c.tempsExecution, 0) / totalControles
+      : 0;
 
     return {
       totalControles,
@@ -517,7 +322,7 @@ const ControlesCoherence: React.FC = () => {
       anomaliesCritiques,
       tempsExecutionMoyen
     };
-  }, []);
+  }, [hookControles]);
 
   // Filtrage des contrôles
   const controlesFiltres = useMemo(() => {
@@ -529,7 +334,7 @@ const ControlesCoherence: React.FC = () => {
         controle.description.toLowerCase().includes(searchTerm.toLowerCase());
       return matchCategorie && matchStatut && matchSearch;
     });
-  }, [filterCategorie, filterStatut, searchTerm]);
+  }, [filterCategorie, filterStatut, searchTerm, hookControles]);
 
   const getStatutIcon = (statut: string) => {
     switch (statut) {
@@ -1471,7 +1276,7 @@ const ControlesCoherence: React.FC = () => {
               >
                 {isSubmitting ? (
                   <>
-                    <LoadingSpinner size="sm" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Traitement...</span>
                   </>
                 ) : (

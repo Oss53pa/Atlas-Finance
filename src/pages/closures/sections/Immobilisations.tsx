@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { db } from '../../../lib/db';
+import type { DBAsset } from '../../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Building,
@@ -153,163 +155,61 @@ const Immobilisations: React.FC = () => {
     setShowAmortissementModal(true);
   };
 
-  // Données simulées
-  const mockImmobilisations: Immobilisation[] = [
-    {
-      id: '1',
-      code: 'IMM001',
-      designation: 'Bâtiment Administratif Principal',
-      categorie: 'corporelle',
-      sousCategorie: 'Constructions',
-      dateAcquisition: '2018-03-15',
-      dateMiseEnService: '2018-06-01',
-      valeurAcquisition: 450000000,
-      valeurBrute: 450000000,
-      amortissementsCumules: 90000000,
-      valeurNette: 360000000,
-      dureeAmortissement: 25,
-      methodeAmortissement: 'lineaire',
-      tauxAmortissement: 4,
-      amortissementAnnuel: 18000000,
-      fournisseur: 'SOGEA-SATOM',
-      localisation: 'Plateau, Abidjan',
-      responsable: 'Direction Patrimoine',
-      etatPhysique: 'bon',
-      statutComptable: 'actif',
-      valeurAssurance: 500000000,
-      derniereMaintenance: '2024-09-15',
-      prochaineMaintenance: '2025-03-15'
-    },
-    {
-      id: '2',
-      code: 'IMM002',
-      designation: 'Logiciel ERP Atlas Finance',
-      categorie: 'incorporelle',
-      sousCategorie: 'Logiciels',
-      dateAcquisition: '2023-01-10',
-      dateMiseEnService: '2023-02-01',
-      valeurAcquisition: 85000000,
-      valeurBrute: 85000000,
-      amortissementsCumules: 28333333,
-      valeurNette: 56666667,
-      dureeAmortissement: 3,
-      methodeAmortissement: 'lineaire',
-      tauxAmortissement: 33.33,
-      amortissementAnnuel: 28333333,
-      fournisseur: 'Atlas Finance Solutions',
-      localisation: 'Serveurs Cloud',
-      responsable: 'Direction Informatique',
-      etatPhysique: 'excellent',
-      statutComptable: 'actif',
-      numeroSerie: 'WB-2023-001',
-      garantieJusquau: '2026-01-10'
-    },
-    {
-      id: '3',
-      code: 'IMM003',
-      designation: 'Véhicule de Service Toyota Prado',
-      categorie: 'corporelle',
-      sousCategorie: 'Matériel de transport',
-      dateAcquisition: '2020-07-20',
-      dateMiseEnService: '2020-07-25',
-      valeurAcquisition: 35000000,
-      valeurBrute: 35000000,
-      amortissementsCumules: 21000000,
-      valeurNette: 14000000,
-      dureeAmortissement: 5,
-      methodeAmortissement: 'degressive',
-      tauxAmortissement: 20,
-      amortissementAnnuel: 5600000,
-      fournisseur: 'CFAO Motors',
-      localisation: 'Garage Principal',
-      responsable: 'Service Logistique',
-      etatPhysique: 'bon',
-      statutComptable: 'actif',
-      valeurAssurance: 25000000,
-      numeroSerie: 'TYT-PRD-2020-001',
-      derniereMaintenance: '2024-11-10',
-      prochaineMaintenance: '2025-05-10'
-    },
-    {
-      id: '4',
-      code: 'IMM004',
-      designation: 'Serveurs Dell PowerEdge R750',
-      categorie: 'corporelle',
-      sousCategorie: 'Matériel informatique',
-      dateAcquisition: '2022-06-15',
-      dateMiseEnService: '2022-07-01',
-      valeurAcquisition: 25000000,
-      valeurBrute: 25000000,
-      amortissementsCumules: 12500000,
-      valeurNette: 12500000,
-      dureeAmortissement: 4,
-      methodeAmortissement: 'lineaire',
-      tauxAmortissement: 25,
-      amortissementAnnuel: 6250000,
-      fournisseur: 'Dell Technologies',
-      localisation: 'Salle Serveur',
-      responsable: 'Admin Système',
-      etatPhysique: 'excellent',
-      statutComptable: 'actif',
-      valeurAssurance: 30000000,
-      numeroSerie: 'DELL-R750-2022',
-      garantieJusquau: '2025-06-15'
-    }
-  ];
+  // Real data from Dexie
+  const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+  const [assetsLoading, setAssetsLoading] = useState(true);
 
-  const mockMouvements: MouvementImmobilisation[] = [
-    {
-      id: '1',
-      immobilisationId: '2',
-      immobilisationCode: 'IMM002',
-      type: 'amortissement',
-      date: '2024-12-31',
-      montant: 28333333,
-      description: 'Dotation aux amortissements exercice 2024',
-      reference: 'DOT-2024-002',
-      utilisateur: 'Système Comptable',
-      impactComptable: {
-        compteDebit: '681100',
-        compteCredit: '205000',
-        montantDebit: 28333333,
-        montantCredit: 28333333
-      }
-    },
-    {
-      id: '2',
-      immobilisationId: '4',
-      immobilisationCode: 'IMM004',
-      type: 'acquisition',
-      date: '2022-06-15',
-      montant: 25000000,
-      description: 'Acquisition serveurs Dell PowerEdge',
-      reference: 'ACQ-2022-004',
-      utilisateur: 'Marie KOUAME',
-      pieceJustificative: 'Facture-DELL-2022-001.pdf',
-      impactComptable: {
-        compteDebit: '244000',
-        compteCredit: '481000',
-        montantDebit: 25000000,
-        montantCredit: 25000000
-      }
+  const loadAssets = useCallback(async () => {
+    setAssetsLoading(true);
+    try {
+      const assets = await db.assets.toArray();
+      setDbAssets(assets);
+    } catch {
+      // silently fail
+    } finally {
+      setAssetsLoading(false);
     }
-  ];
+  }, []);
 
-  const mockTestsDepreciation: TestDepreciation[] = [
-    {
-      immobilisationId: '3',
-      dateTest: '2024-12-31',
-      valeurComptable: 14000000,
-      valeurRecouvrable: 18000000,
-      valeurUtilite: 20000000,
-      justeValeur: 18000000,
-      depreciationCalculee: 0,
-      depreciationComptabilisee: 0,
-      resultatTest: 'aucune_depreciation',
-      justification: 'Valeur recouvrable supérieure à la valeur comptable',
-      prochainTest: '2025-12-31'
-    }
-  ];
+  useEffect(() => { loadAssets(); }, [loadAssets]);
+
+  // Map DBAsset → component Immobilisation interface
+  const mockImmobilisations: Immobilisation[] = useMemo(() => {
+    return dbAssets.map(asset => {
+      const taux = asset.usefulLifeYears > 0 ? 100 / asset.usefulLifeYears : 0;
+      const annuel = asset.usefulLifeYears > 0 ? (asset.acquisitionValue - asset.residualValue) / asset.usefulLifeYears : 0;
+      const yearsElapsed = Math.max(0, Math.floor((Date.now() - new Date(asset.acquisitionDate).getTime()) / (365.25 * 86400000)));
+      const cumules = Math.min(annuel * yearsElapsed, asset.acquisitionValue - asset.residualValue);
+      const categorie: 'corporelle' | 'incorporelle' | 'financiere' =
+        asset.accountCode.startsWith('20') || asset.accountCode.startsWith('21') ? 'incorporelle' :
+        asset.accountCode.startsWith('26') || asset.accountCode.startsWith('27') ? 'financiere' : 'corporelle';
+      return {
+        id: asset.id,
+        code: asset.code,
+        designation: asset.name,
+        categorie,
+        sousCategorie: asset.category,
+        dateAcquisition: asset.acquisitionDate,
+        dateMiseEnService: asset.acquisitionDate,
+        valeurAcquisition: asset.acquisitionValue,
+        valeurBrute: asset.acquisitionValue,
+        amortissementsCumules: Math.round(cumules),
+        valeurNette: Math.round(asset.acquisitionValue - cumules),
+        dureeAmortissement: asset.usefulLifeYears,
+        methodeAmortissement: asset.depreciationMethod === 'linear' ? 'lineaire' as const : 'degressive' as const,
+        tauxAmortissement: Math.round(taux * 100) / 100,
+        amortissementAnnuel: Math.round(annuel),
+        fournisseur: '',
+        localisation: '',
+        responsable: '',
+        etatPhysique: 'bon' as const,
+        statutComptable: asset.status === 'active' ? 'actif' as const : asset.status === 'disposed' ? 'cede' as const : 'reforme' as const,
+      };
+    });
+  }, [dbAssets]);
+
+  const mockMouvements: MouvementImmobilisation[] = [];
+  const mockTestsDepreciation: TestDepreciation[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {

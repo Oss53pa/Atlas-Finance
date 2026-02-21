@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { db } from '../../../lib/db';
+import { money } from '../../../utils/money';
 import { motion } from 'framer-motion';
 import {
   Building,
@@ -115,143 +117,69 @@ const CycleFournisseurs: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedFacture, setSelectedFacture] = useState<FactureFournisseur | null>(null);
 
-  // Données simulées
-  const mockFournisseurs: Fournisseur[] = [
-    {
-      id: '1',
-      code: 'FR001',
-      nom: 'NESTLE CI',
-      type: 'groupe',
-      categorie: 'Matières premières',
-      email: 'commandes@nestle.ci',
-      telephone: '+225 27 20 31 41 51',
-      adresse: 'Zone Industrielle, Yopougon',
-      pays: 'Côte d\'Ivoire',
-      delaiLivraison: 7,
-      delaiPaiement: 30,
-      devise: 'FCFA',
-      statutContrat: 'actif',
-      volumeAchats: 850000000,
-      encoursDettes: 120000000,
-      dernierePaiement: '2024-12-20',
-      dateCreation: '2019-01-15',
-      evaluation: 4.5
-    },
-    {
-      id: '2',
-      code: 'FR002',
-      nom: 'EQUIPEMENT INDUSTRIEL SA',
-      type: 'international',
-      categorie: 'Équipements',
-      email: 'export@equipind.fr',
-      telephone: '+33 1 45 67 89 00',
-      adresse: 'Paris, France',
-      pays: 'France',
-      delaiLivraison: 45,
-      delaiPaiement: 60,
-      devise: 'EUR',
-      statutContrat: 'actif',
-      volumeAchats: 450000000,
-      encoursDettes: 250000000,
-      dernierePaiement: '2024-11-30',
-      dateCreation: '2020-06-01',
-      evaluation: 4.0
-    },
-    {
-      id: '3',
-      code: 'FR003',
-      nom: 'FOURNITURES BUREAU ABIDJAN',
-      type: 'local',
-      categorie: 'Fournitures',
-      email: 'contact@fba.ci',
-      telephone: '+225 07 08 09 10 12',
-      adresse: 'Marcory, Abidjan',
-      pays: 'Côte d\'Ivoire',
-      delaiLivraison: 2,
-      delaiPaiement: 15,
-      devise: 'FCFA',
-      statutContrat: 'actif',
-      volumeAchats: 25000000,
-      encoursDettes: 5000000,
-      dernierePaiement: '2024-12-15',
-      dateCreation: '2021-03-20',
-      evaluation: 3.5
-    }
-  ];
+  // Real data from Dexie — 401 (supplier) account balances
+  const [supplierBalances, setSupplierBalances] = useState<Map<string, { name: string; debit: number; credit: number }>>(new Map());
 
-  const mockFactures: FactureFournisseur[] = [
-    {
-      id: '1',
-      fournisseurId: '1',
-      fournisseurNom: 'NESTLE CI',
-      numeroFacture: 'FCT-2024-0892',
-      numeroBonCommande: 'BC-2024-0156',
-      dateFacture: '2024-11-15',
-      dateEcheance: '2024-12-15',
-      dateReception: '2024-11-18',
-      montantHT: 15000000,
-      montantTVA: 2700000,
-      montantTTC: 17700000,
-      montantPaye: 0,
-      solde: 17700000,
-      statut: 'approuvee',
-      workflow: {
-        reception: true,
-        validation: true,
-        approbation: true,
-        comptabilisation: false,
-        paiement: false
-      }
-    },
-    {
-      id: '2',
-      fournisseurId: '2',
-      fournisseurNom: 'EQUIPEMENT INDUSTRIEL SA',
-      numeroFacture: 'INV-2024-4567',
-      numeroBonCommande: 'BC-2024-0089',
-      dateFacture: '2024-10-01',
-      dateEcheance: '2024-11-30',
-      dateReception: '2024-10-05',
-      montantHT: 50000000,
-      montantTVA: 9000000,
-      montantTTC: 59000000,
-      montantPaye: 20000000,
-      solde: 39000000,
-      statut: 'validee',
-      workflow: {
-        reception: true,
-        validation: true,
-        approbation: false,
-        comptabilisation: false,
-        paiement: false
-      }
-    }
-  ];
+  const loadSupplierData = useCallback(async () => {
+    try {
+      const fys = await db.fiscalYears.toArray();
+      const activeFY = fys.find(fy => fy.isActive) || fys[0];
+      if (!activeFY) return;
 
-  const mockBonsCommande: BonCommande[] = [
-    {
-      id: '1',
-      numero: 'BC-2024-0198',
-      fournisseurId: '1',
-      fournisseurNom: 'NESTLE CI',
-      dateCommande: '2024-12-15',
-      dateLivraisonPrevue: '2024-12-22',
-      montantTotal: 25000000,
-      statut: 'confirme',
-      tauxRealisation: 0
-    },
-    {
-      id: '2',
-      numero: 'BC-2024-0199',
-      fournisseurId: '3',
-      fournisseurNom: 'FOURNITURES BUREAU ABIDJAN',
-      dateCommande: '2024-12-20',
-      dateLivraisonPrevue: '2024-12-22',
-      montantTotal: 3500000,
-      statut: 'envoye',
-      tauxRealisation: 0
-    }
-  ];
+      const entries = await db.journalEntries
+        .where('date')
+        .between(activeFY.startDate, activeFY.endDate, true, true)
+        .toArray();
+
+      const balMap = new Map<string, { name: string; debit: number; credit: number }>();
+      for (const entry of entries) {
+        for (const line of entry.lines) {
+          if (line.accountCode.startsWith('401')) {
+            const existing = balMap.get(line.accountCode) || { name: line.accountName, debit: 0, credit: 0 };
+            existing.debit += line.debit;
+            existing.credit += line.credit;
+            balMap.set(line.accountCode, existing);
+          }
+        }
+      }
+      setSupplierBalances(balMap);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadSupplierData(); }, [loadSupplierData]);
+
+  // Map real 401 accounts to Fournisseur interface
+  const mockFournisseurs: Fournisseur[] = useMemo(() => {
+    let idx = 0;
+    return Array.from(supplierBalances.entries()).map(([code, bal]) => {
+      idx++;
+      const encours = money(bal.credit).subtract(money(bal.debit)).toNumber();
+      return {
+        id: String(idx),
+        code,
+        nom: bal.name || `Fournisseur ${code}`,
+        type: 'local' as const,
+        categorie: '',
+        email: '',
+        telephone: '',
+        adresse: '',
+        pays: '',
+        delaiLivraison: 0,
+        delaiPaiement: 30,
+        devise: 'FCFA',
+        statutContrat: 'actif' as const,
+        volumeAchats: bal.credit,
+        encoursDettes: Math.max(0, encours),
+        dernierePaiement: '',
+        dateCreation: '',
+        evaluation: 0,
+      };
+    });
+  }, [supplierBalances]);
+
+  // No invoice-level or PO data available
+  const mockFactures: FactureFournisseur[] = [];
+  const mockBonsCommande: BonCommande[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
@@ -295,7 +223,7 @@ const CycleFournisseurs: React.FC = () => {
     return variants[statut] || 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
   };
 
-  const getWorkflowStep = (workflow: any) => {
+  const getWorkflowStep = (workflow: Record<string, boolean>) => {
     if (!workflow.reception) return 0;
     if (!workflow.validation) return 1;
     if (!workflow.approbation) return 2;

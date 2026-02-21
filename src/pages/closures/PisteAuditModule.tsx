@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { db } from '../../lib/db';
+import type { DBAuditLog } from '../../lib/db';
 import {
   Activity, User, Calendar, Clock, FileText,
   Search, Filter, Download, Eye, ChevronRight,
@@ -21,8 +23,8 @@ interface AuditEntry {
   ipAddress: string;
   navigateur: string;
   impact: 'faible' | 'moyen' | 'eleve' | 'critique';
-  ancienneValeur?: any;
-  nouvelleValeur?: any;
+  ancienneValeur?: Record<string, unknown>;
+  nouvelleValeur?: Record<string, unknown>;
 }
 
 interface AuditStats {
@@ -43,107 +45,55 @@ const PisteAuditModule: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
   const [activeTab, setActiveTab] = useState<'journal' | 'statistiques' | 'configuration'>('journal');
 
-  // Données d'exemple pour la piste d'audit
-  const [auditEntries] = useState<AuditEntry[]>([
-    {
-      id: '1',
-      timestamp: new Date().toISOString(),
-      utilisateur: 'Jean Dupont',
-      action: 'creation',
-      entite: 'ecriture',
-      entiteId: 'ECR-2025-001',
-      entiteNom: 'Écriture de vente #001',
-      details: 'Création d\'une écriture de vente pour le client ABC',
-      ipAddress: '192.168.1.100',
-      navigateur: 'Chrome 120.0',
-      impact: 'moyen',
-      nouvelleValeur: { montant: 150000, compte: '701000' }
-    },
-    {
-      id: '2',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      utilisateur: 'Marie Martin',
-      action: 'modification',
-      entite: 'compte',
-      entiteId: '401000',
-      entiteNom: 'Compte Fournisseurs',
-      details: 'Modification du libellé du compte',
-      ipAddress: '192.168.1.101',
-      navigateur: 'Firefox 121.0',
-      impact: 'faible',
-      ancienneValeur: { libelle: 'Fournisseurs' },
-      nouvelleValeur: { libelle: 'Fournisseurs d\'exploitation' }
-    },
-    {
-      id: '3',
-      timestamp: new Date(Date.now() - 7200000).toISOString(),
-      utilisateur: 'Admin Système',
-      action: 'suppression',
-      entite: 'ecriture',
-      entiteId: 'ECR-2025-002',
-      entiteNom: 'Écriture erronée',
-      details: 'Suppression d\'une écriture erronée après validation',
-      ipAddress: '192.168.1.1',
-      navigateur: 'Edge 120.0',
-      impact: 'eleve',
-      ancienneValeur: { montant: 500000, statut: 'valide' }
-    },
-    {
-      id: '4',
-      timestamp: new Date(Date.now() - 10800000).toISOString(),
-      utilisateur: 'Pierre Durand',
-      action: 'validation',
-      entite: 'journal',
-      entiteId: 'JRN-VTE-202501',
-      entiteNom: 'Journal des ventes Janvier 2025',
-      details: 'Validation du journal des ventes',
-      ipAddress: '192.168.1.102',
-      navigateur: 'Safari 17.0',
-      impact: 'eleve'
-    },
-    {
-      id: '5',
-      timestamp: new Date(Date.now() - 14400000).toISOString(),
-      utilisateur: 'Sophie Lambert',
-      action: 'consultation',
-      entite: 'exercice',
-      entiteId: '2024',
-      entiteNom: 'Exercice 2024',
-      details: 'Consultation du bilan de l\'exercice 2024',
-      ipAddress: '192.168.1.103',
-      navigateur: 'Chrome 120.0',
-      impact: 'faible'
-    },
-    {
-      id: '6',
-      timestamp: new Date(Date.now() - 18000000).toISOString(),
-      utilisateur: 'Admin Système',
-      action: 'modification',
-      entite: 'utilisateur',
-      entiteId: 'USR-005',
-      entiteNom: 'Utilisateur Thomas Blanc',
-      details: 'Modification des droits d\'accès',
-      ipAddress: '192.168.1.1',
-      navigateur: 'Chrome 120.0',
-      impact: 'critique',
-      ancienneValeur: { role: 'comptable' },
-      nouvelleValeur: { role: 'administrateur' }
-    },
-    {
-      id: '7',
-      timestamp: new Date(Date.now() - 21600000).toISOString(),
-      utilisateur: 'Jean Dupont',
-      action: 'creation',
-      entite: 'parametre',
-      entiteId: 'PARAM-TVA',
-      entiteNom: 'Taux de TVA',
-      details: 'Ajout d\'un nouveau taux de TVA',
-      ipAddress: '192.168.1.100',
-      navigateur: 'Chrome 120.0',
-      impact: 'eleve',
-      nouvelleValeur: { taux: 18, libelle: 'TVA normale' }
-    }
-  ]);
+  // Real data from Dexie audit logs
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+
+  const loadAuditLogs = useCallback(async () => {
+    try {
+      const logs = await db.auditLogs.toArray();
+      // Sort by timestamp descending
+      logs.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+
+      const mapped: AuditEntry[] = logs.map(log => {
+        // Map action string to typed action
+        const actionMap: Record<string, AuditEntry['action']> = {
+          create: 'creation', add: 'creation', insert: 'creation',
+          update: 'modification', edit: 'modification', modify: 'modification',
+          delete: 'suppression', remove: 'suppression',
+          validate: 'validation', approve: 'validation', post: 'validation',
+        };
+        const action = actionMap[log.action.toLowerCase()] || 'consultation';
+
+        // Map entityType to typed entite
+        const entiteMap: Record<string, AuditEntry['entite']> = {
+          journalEntry: 'ecriture', entry: 'ecriture',
+          account: 'compte',
+          journal: 'journal',
+          fiscalYear: 'exercice',
+          user: 'utilisateur',
+          setting: 'parametre',
+        };
+        const entite = entiteMap[log.entityType] || 'ecriture';
+
+        return {
+          id: log.id,
+          timestamp: log.timestamp,
+          utilisateur: log.userId || 'Système',
+          action,
+          entite,
+          entiteId: log.entityId,
+          entiteNom: log.entityType + ' ' + log.entityId,
+          details: log.details,
+          ipAddress: '',
+          navigateur: '',
+          impact: action === 'suppression' ? 'eleve' as const : action === 'validation' ? 'moyen' as const : 'faible' as const,
+        };
+      });
+      setAuditEntries(mapped);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadAuditLogs(); }, [loadAuditLogs]);
 
   // Statistiques
   const stats: AuditStats = {
@@ -237,7 +187,7 @@ const PisteAuditModule: React.FC = () => {
           <div className="flex items-center space-x-3">
             <select
               value={selectedPeriode}
-              onChange={(e) => setSelectedPeriode(e.target.value as any)}
+              onChange={(e) => setSelectedPeriode(e.target.value as typeof selectedPeriode)}
               className="px-4 py-2 border border-[#E8E8E8] rounded-lg"
             >
               <option value="jour">{t('common.today')}</option>
@@ -299,7 +249,7 @@ const PisteAuditModule: React.FC = () => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-[#6A8A82] text-[#191919]'
@@ -321,7 +271,7 @@ const PisteAuditModule: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <select
                   value={filterAction}
-                  onChange={(e) => setFilterAction(e.target.value as any)}
+                  onChange={(e) => setFilterAction(e.target.value as typeof filterAction)}
                   className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
                 >
                   <option value="tous">Toutes actions</option>
@@ -333,7 +283,7 @@ const PisteAuditModule: React.FC = () => {
                 </select>
                 <select
                   value={filterEntite}
-                  onChange={(e) => setFilterEntite(e.target.value as any)}
+                  onChange={(e) => setFilterEntite(e.target.value as typeof filterEntite)}
                   className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
                 >
                   <option value="tous">Toutes entités</option>
