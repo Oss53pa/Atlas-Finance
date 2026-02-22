@@ -37,6 +37,7 @@ import {
 // import { useChartOfAccounts } from '../../hooks'; // Désactivé - données locales
 import { formatCurrency } from '../../lib/utils';
 import { NouveauCompteWizard } from '../../components/plan-comptable/NouveauCompteWizard';
+import { ImportPlanComptable } from '../../components/plan-comptable/ImportPlanComptable';
 
 // Types SYSCOHADA pour le plan comptable
 interface SyscohadaAccount {
@@ -878,74 +879,12 @@ const ChartOfAccountsPage: React.FC = () => {
 
       {/* Modal Import */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4"
-          >
-            <div className="p-6 border-b border-neutral-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-neutral-800">Importer un Plan Comptable</h2>
-                <button
-                  onClick={() => setShowImportModal(false)}
-                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                >
-                  <AlertCircle className="w-5 h-5 text-neutral-500" />
-                </button>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="border-2 border-dashed border-neutral-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors">
-                <Upload className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                <p className="text-lg font-medium text-neutral-700 mb-2">Glissez votre fichier ici</p>
-                <p className="text-sm text-neutral-500 mb-4">ou cliquez pour sélectionner</p>
-                <input
-                  type="file"
-                  accept=".csv,.xlsx,.xls"
-                  className="hidden"
-                  id="file-import"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      toast(`Fichier sélectionné: ${e.target.files[0].name}`);
-                    }
-                  }}
-                />
-                <label
-                  htmlFor="file-import"
-                  className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
-                >
-                  Sélectionner un fichier
-                </label>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-2">Formats acceptés:</h4>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• CSV avec séparateur point-virgule (;)</li>
-                  <li>• Excel (.xlsx, .xls)</li>
-                  <li>• Colonnes requises: Code, Libellé, Classe, Nature, Sens</li>
-                </ul>
-              </div>
-            </div>
-            <div className="p-6 border-t border-neutral-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => {
-                  toast('Import lancé !');
-                  setShowImportModal(false);
-                }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Importer
-              </button>
-            </div>
-          </motion.div>
-        </div>
+        <ImportPlanComptable
+          onClose={() => setShowImportModal(false)}
+          onSuccess={() => {
+            toast.success('Import termine avec succes');
+          }}
+        />
       )}
 
       {/* Modal Filtres Avancés */}
