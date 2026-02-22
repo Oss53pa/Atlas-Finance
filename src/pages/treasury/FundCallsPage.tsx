@@ -5,7 +5,8 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import {
   CreditCard,
   Plus,
@@ -116,127 +117,75 @@ const FundCallsPage: React.FC = () => {
   const [groupBy, setGroupBy] = useState<'vendor' | 'type' | 'priority' | 'none'>('vendor');
   const [showFutureTransactions, setShowFutureTransactions] = useState(false);
 
-  // Récupération des comptes à payer
-  const { data: payables, isLoading } = useQuery({
-    queryKey: ['payables', 'outstanding'],
-    queryFn: async (): Promise<PayableItem[]> => [
-      {
-        id: '1',
-        vendor: 'CAMTEL SERVICES',
-        vendorCode: 'F001',
-        documentDate: new Date(2024, 6, 15),
-        documentNumber: 'FACT-2024-0156',
-        reference: 'TEL-INTERNET-Q3',
-        description: 'Facture téléphonie et internet Q3 2024',
-        dueAmount: 450000,
-        outstanding: 450000,
-        invoiceType: 'PRESTATION',
-        arrearsAging: 25,
-        dueDate: new Date(2024, 7, 15),
-        paymentTerms: '30 jours',
-        priority: 'MEDIUM',
-        account: '401100',
-        recommendation: 'PAIEMENT_COMPLET'
-      },
-      {
-        id: '2',
-        vendor: 'ENEO CAMEROUN',
-        vendorCode: 'F002',
-        documentDate: new Date(2024, 6, 20),
-        documentNumber: 'ELEC-2024-789',
-        reference: 'ELEC-JUILLET-2024',
-        description: 'Facture électricité juillet 2024',
-        dueAmount: 1250000,
-        outstanding: 1250000,
-        invoiceType: 'PRESTATION',
-        arrearsAging: 15,
-        dueDate: new Date(2024, 7, 20),
-        paymentTerms: '15 jours',
-        priority: 'HIGH',
-        account: '401100',
-        recommendation: 'URGENT'
-      },
-      {
-        id: '3',
-        vendor: 'SOCIÉTÉ GÉNÉRALE',
-        vendorCode: 'F015',
-        documentDate: new Date(2024, 6, 1),
-        documentNumber: 'AGI-2024-Q2',
-        reference: 'AGIOS-T2-2024',
-        description: 'Agios et commissions T2 2024',
-        dueAmount: 180000,
-        outstanding: 180000,
-        invoiceType: 'AUTRE',
-        arrearsAging: 45,
-        dueDate: new Date(2024, 6, 31),
-        paymentTerms: 'Immédiat',
-        priority: 'CRITICAL',
-        account: '627000',
-        recommendation: 'URGENT'
-      },
-      {
-        id: '4',
-        vendor: 'MATÉRIEL BUREAU SARL',
-        vendorCode: 'F025',
-        documentDate: new Date(2024, 7, 5),
-        documentNumber: 'MAT-2024-145',
-        reference: 'FOURNITURES-AOUT',
-        description: 'Fournitures de bureau août 2024',
-        dueAmount: 320000,
-        outstanding: 320000,
-        invoiceType: 'ACHAT',
-        arrearsAging: 10,
-        dueDate: new Date(2024, 8, 5),
-        paymentTerms: '30 jours',
-        priority: 'LOW',
-        account: '401100',
-        recommendation: 'REPORTER'
-      },
-      {
-        id: '5',
-        vendor: 'TRACTEURS & ÉQUIPEMENTS',
-        vendorCode: 'F030',
-        documentDate: new Date(2024, 5, 10),
-        documentNumber: 'TRAC-2024-012',
-        reference: 'EQUIPEMENT-PRODUCTION',
-        description: 'Acquisition équipement production',
-        dueAmount: 8500000,
-        outstanding: 8500000,
-        invoiceType: 'IMMOBILISATION',
-        arrearsAging: 65,
-        dueDate: new Date(2024, 6, 10),
-        paymentTerms: '30 jours',
-        priority: 'CRITICAL',
-        account: '404100',
-        recommendation: 'PAIEMENT_PARTIEL'
-      }
-    ]
-  });
+  // Load payables from Dexie settings, derive from journal entries for supplier accounts (401/404)
+  const journalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+  const fundCallsSetting = useLiveQuery(() => db.settings.get('fund_calls'));
+  const payablesSetting = useLiveQuery(() => db.settings.get('fund_call_payables'));
+  const isLoading = payablesSetting === undefined;
 
-  // Appels de fonds existants
-  const { data: fundCalls } = useQuery({
-    queryKey: ['fund-calls'],
-    queryFn: async (): Promise<FundCall[]> => [
-      {
-        id: 'FC-2024-001',
-        reference: 'AF-AOÛT-2024-001',
-        date: new Date(2024, 7, 1),
-        requestedBy: 'Marie DUPONT',
-        totalAmount: 2750000,
-        status: 'APPROUVE',
-        workflowStep: 'EXECUTION',
-        approvers: {
-          comptable: { name: 'Pierre MARTIN', date: new Date(2024, 7, 2), comment: 'Factures vérifiées' },
-          financier: { name: 'Sophie BERNARD', date: new Date(2024, 7, 3), comment: 'Trésorerie disponible' },
-          direction: { name: 'Jean KOUAM', date: new Date(2024, 7, 4), comment: 'Validé pour paiement' }
-        },
-        items: [],
-        justification: 'Paiement fournisseurs critiques et charges courantes',
-        paymentDate: new Date(2024, 7, 5),
-        bankAccount: '521100'
-      }
-    ]
-  });
+  // Build payables from settings or derive from journal entries
+  const payables: PayableItem[] = useMemo(() => {
+    if (payablesSetting) {
+      const stored: PayableItem[] = JSON.parse(payablesSetting.value);
+      // Rehydrate Date objects from stored strings
+      return stored.map(item => ({
+        ...item,
+        documentDate: new Date(item.documentDate),
+        dueDate: new Date(item.dueDate),
+      }));
+    }
+    // Derive payables from journal entries on supplier accounts (401xxx, 404xxx)
+    const supplierLines: PayableItem[] = [];
+    journalEntries
+      .filter(e => e.status === 'validated' || e.status === 'posted')
+      .forEach(entry => {
+        entry.lines
+          .filter(line => line.accountCode.startsWith('401') || line.accountCode.startsWith('404'))
+          .filter(line => line.credit > 0)
+          .forEach(line => {
+            supplierLines.push({
+              id: line.id,
+              vendor: line.thirdPartyName || line.accountName,
+              vendorCode: line.thirdPartyCode || line.accountCode,
+              documentDate: new Date(entry.date),
+              documentNumber: entry.entryNumber,
+              reference: entry.reference,
+              description: line.label || entry.label,
+              dueAmount: line.credit,
+              outstanding: line.credit,
+              invoiceType: line.accountCode.startsWith('404') ? 'IMMOBILISATION' : 'ACHAT',
+              arrearsAging: Math.max(0, Math.floor((Date.now() - new Date(entry.date).getTime()) / (1000 * 60 * 60 * 24)) - 30),
+              dueDate: new Date(new Date(entry.date).getTime() + 30 * 24 * 60 * 60 * 1000),
+              paymentTerms: '30 jours',
+              priority: 'MEDIUM',
+              account: line.accountCode,
+            });
+          });
+      });
+    return supplierLines;
+  }, [payablesSetting, journalEntries]);
+
+  // Load fund calls from Dexie settings
+  const fundCalls: FundCall[] = useMemo(() => {
+    if (!fundCallsSetting) return [];
+    const stored: FundCall[] = JSON.parse(fundCallsSetting.value);
+    return stored.map(fc => ({
+      ...fc,
+      date: new Date(fc.date),
+      paymentDate: fc.paymentDate ? new Date(fc.paymentDate) : undefined,
+      items: (fc.items || []).map(item => ({
+        ...item,
+        documentDate: new Date(item.documentDate),
+        dueDate: new Date(item.dueDate),
+      })),
+      approvers: {
+        ...fc.approvers,
+        comptable: fc.approvers?.comptable ? { ...fc.approvers.comptable, date: fc.approvers.comptable.date ? new Date(fc.approvers.comptable.date) : undefined } : undefined,
+        financier: fc.approvers?.financier ? { ...fc.approvers.financier, date: fc.approvers.financier.date ? new Date(fc.approvers.financier.date) : undefined } : undefined,
+        direction: fc.approvers?.direction ? { ...fc.approvers.direction, date: fc.approvers.direction.date ? new Date(fc.approvers.direction.date) : undefined } : undefined,
+      },
+    }));
+  }, [fundCallsSetting]);
 
   const handleItemSelect = (itemId: string) => {
     const newSelected = new Set(selectedItems);

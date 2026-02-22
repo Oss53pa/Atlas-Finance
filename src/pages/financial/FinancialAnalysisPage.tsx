@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import {
   ChartBarIcon,
   DocumentTextIcon,
   CurrencyDollarIcon,
-  ArrowArrowTrendingDownIcon,
+  ArrowTrendingDownIcon,
   ArrowRightIcon,
   CalendarIcon,
   ExclamationTriangleIcon,
@@ -123,74 +124,187 @@ const FinancialAnalysisPage: React.FC = () => {
   const [selectedView, setSelectedView] = useState<'overview' | 'tafire' | 'sig' | 'functional' | 'ratios' | 'forecast'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
-  const { data: financialData, isLoading } = useQuery({
-    queryKey: ['financial-analysis', selectedPeriod],
-    queryFn: async () => {
-      const mockData: FinancialData = {
-        tafire: {
-          operatingCashFlow: 2450000,
-          investmentCashFlow: -850000,
-          financingCashFlow: -650000,
-          netCashFlow: 950000,
-          selfFinancingCapacity: 2100000,
-          freeCashFlow: 1600000,
-          openingCash: 580000,
-          closingCash: 1530000
-        },
-        sig: {
-          commercialMargin: 3200000,
-          production: 8500000,
-          addedValue: 5800000,
-          grossOperatingSurplus: 2850000,
-          operatingResult: 2100000,
-          financialResult: -180000,
-          currentResultBeforeTax: 1920000,
-          exceptionalResult: 50000,
-          netResult: 1450000,
-          addedValueRate: 48.3,
-          operatingMarginRate: 17.5,
-          netMarginRate: 12.1
-        },
-        functionalBalance: {
-          workingCapitalFund: 1800000,
-          totalWorkingCapitalNeed: 950000,
-          netTreasury: 850000,
-          operatingWorkingCapitalNeed: 1200000,
-          stableUses: 4500000,
-          stableResources: 6300000,
-          coverageRatio: 140,
-          bfrRotationDays: 28.5,
-          treasuryAutonomyDays: 85
-        },
-        ratios: [
-          { category: 'LIQUIDITE', name: 'Liquidité générale', value: 1.8, unit: 'ratio', reference: 1.2, variation: 0.2, interpretation: 'Bonne liquidité', alert: false, alertLevel: '' },
-          { category: 'STRUCTURE', name: 'Autonomie financière', value: 45.2, unit: '%', reference: 33, variation: 2.1, interpretation: 'Bonne autonomie', alert: false, alertLevel: '' },
-          { category: 'RENTABILITE', name: 'ROE', value: 18.7, unit: '%', reference: 10, variation: 1.5, interpretation: 'Excellente rentabilité', alert: false, alertLevel: '' },
-          { category: 'ACTIVITE', name: 'Délai clients', value: 42, unit: 'jours', reference: 45, variation: -3, interpretation: 'Bon recouvrement', alert: false, alertLevel: '' },
-          { category: 'SOLVABILITE', name: 'Dette/EBITDA', value: 2.1, unit: 'fois', reference: 4, variation: -0.3, interpretation: 'Faible endettement', alert: false, alertLevel: '' }
-        ],
-        cashFlowForecast: {
-          monthlyForecasts: [
-            { month: 'Jan', inflows: 1200000, outflows: 980000, netFlow: 220000, cumulativeCash: 1750000 },
-            { month: 'Fév', inflows: 1350000, outflows: 1020000, netFlow: 330000, cumulativeCash: 2080000 },
-            { month: 'Mar', inflows: 1180000, outflows: 1100000, netFlow: 80000, cumulativeCash: 2160000 },
-            { month: 'Avr', inflows: 1400000, outflows: 1050000, netFlow: 350000, cumulativeCash: 2510000 },
-            { month: 'Mai', inflows: 1250000, outflows: 1080000, netFlow: 170000, cumulativeCash: 2680000 },
-            { month: 'Jun', inflows: 1320000, outflows: 1150000, netFlow: 170000, cumulativeCash: 2850000 }
-          ],
-          scenarios: [
-            { name: 'Optimiste', type: 'OPTIMISTIC', averageCashFlow: 285000, minimumCash: 1200000, confidenceLevel: 75 },
-            { name: 'Réaliste', type: 'REALISTIC', averageCashFlow: 220000, minimumCash: 800000, confidenceLevel: 85 },
-            { name: 'Pessimiste', type: 'PESSIMISTIC', averageCashFlow: 120000, minimumCash: 400000, confidenceLevel: 90 }
-          ],
-          burnRate: 180000,
-          runway: 8.5
-        }
-      };
-      
-      return mockData;
-    }
+  // Load journal entries from Dexie
+  const { data: entries = [], isLoading: entriesLoading } = useQuery({
+    queryKey: ['financial-analysis-entries', selectedPeriod],
+    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
   });
+
+  const isLoading = entriesLoading;
+
+  // Compute all financial data from real journal entries
+  const financialData: FinancialData | undefined = useMemo(() => {
+    if (entries.length === 0) return undefined;
+
+    // Helper: sum debit - credit for account prefixes
+    const net = (prefixes: string[]) => {
+      let debit = 0, credit = 0;
+      for (const e of entries) {
+        for (const l of e.lines) {
+          if (prefixes.some(p => l.accountCode.startsWith(p))) {
+            debit += l.debit;
+            credit += l.credit;
+          }
+        }
+      }
+      return debit - credit;
+    };
+    const creditNet = (prefixes: string[]) => -net(prefixes);
+
+    // SIG computation (SYSCOHADA classes 6/7)
+    const chiffreAffaires = creditNet(['70', '71', '72']);
+    const achatsConsommes = net(['60', '61']);
+    const servicesExterieurs = net(['62', '63']);
+    const personnel = net(['64', '66']);
+    const amortissements = net(['68']);
+    const chargesFinancieres = net(['67']);
+    const produitsFinanciers = creditNet(['76', '77']);
+    const chargesExceptionnelles = net(['83', '85', '87']);
+    const produitsExceptionnels = creditNet(['84', '86', '88']);
+    const impots = net(['89']);
+    const productionStockee = creditNet(['73']);
+
+    const commercialMargin = chiffreAffaires - achatsConsommes;
+    const production = chiffreAffaires + productionStockee;
+    const addedValue = commercialMargin + productionStockee - servicesExterieurs;
+    const grossOperatingSurplus = addedValue - personnel;
+    const operatingResult = grossOperatingSurplus - amortissements;
+    const financialResult = produitsFinanciers - chargesFinancieres;
+    const currentResultBeforeTax = operatingResult + financialResult;
+    const exceptionalResult = produitsExceptionnels - chargesExceptionnelles;
+    const netResult = currentResultBeforeTax + exceptionalResult - impots;
+    const selfFinancingCapacity = netResult + amortissements;
+
+    const addedValueRate = chiffreAffaires !== 0 ? (addedValue / chiffreAffaires) * 100 : 0;
+    const operatingMarginRate = chiffreAffaires !== 0 ? (operatingResult / chiffreAffaires) * 100 : 0;
+    const netMarginRate = chiffreAffaires !== 0 ? (netResult / chiffreAffaires) * 100 : 0;
+
+    // Balance sheet items for functional balance
+    const immobilisations = net(['2']);
+    const stocks = net(['3']);
+    const creancesClients = net(['41']);
+    const disponibilites = net(['5']);
+    const capitauxPropres = creditNet(['10', '11', '12', '13']);
+    const dettesFinancieres = creditNet(['16', '17']);
+    const dettesFournisseurs = creditNet(['40']);
+
+    const stableResources = capitauxPropres + dettesFinancieres;
+    const stableUses = immobilisations;
+    const workingCapitalFund = stableResources - stableUses;
+    const operatingWorkingCapitalNeed = stocks + creancesClients - dettesFournisseurs;
+    const netTreasury = workingCapitalFund - operatingWorkingCapitalNeed;
+    const coverageRatio = stableUses !== 0 ? (stableResources / Math.abs(stableUses)) * 100 : 0;
+    const bfrRotationDays = chiffreAffaires !== 0 ? (operatingWorkingCapitalNeed / chiffreAffaires) * 365 : 0;
+    const treasuryAutonomyDays = chiffreAffaires !== 0 ? (disponibilites / (chiffreAffaires / 365)) : 0;
+
+    // TAFIRE
+    const operatingCashFlow = selfFinancingCapacity;
+    const investmentCashFlow = -Math.abs(net(['21', '22', '23', '24', '25']));
+    const financingCashFlow = creditNet(['16']) - net(['16']);
+    const netCashFlow = operatingCashFlow + investmentCashFlow + financingCashFlow;
+
+    const totalActif = immobilisations + stocks + creancesClients + disponibilites;
+
+    // Ratios
+    const liquiditeGenerale = (dettesFournisseurs !== 0) ? (stocks + creancesClients + disponibilites) / dettesFournisseurs : 0;
+    const autonomieFinanciere = totalActif !== 0 ? (capitauxPropres / totalActif) * 100 : 0;
+    const roe = capitauxPropres !== 0 ? (netResult / capitauxPropres) * 100 : 0;
+    const dso = chiffreAffaires !== 0 ? (creancesClients / chiffreAffaires) * 365 : 0;
+    const debtToEbitda = grossOperatingSurplus !== 0 ? dettesFinancieres / grossOperatingSurplus : 0;
+
+    // Monthly forecasts from entries grouped by month
+    const monthlyMap = new Map<string, { inflows: number; outflows: number }>();
+    const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    for (const e of entries) {
+      const d = new Date(e.date);
+      const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`;
+      if (!monthlyMap.has(key)) monthlyMap.set(key, { inflows: 0, outflows: 0 });
+      const m = monthlyMap.get(key)!;
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith('5')) {
+          m.inflows += l.debit;
+          m.outflows += l.credit;
+        }
+      }
+    }
+    const sortedMonths = Array.from(monthlyMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).slice(-6);
+    let cumulative = disponibilites;
+    const monthlyForecasts: MonthlyForecast[] = sortedMonths.map(([key, val]) => {
+      const monthIdx = parseInt(key.split('-')[1]);
+      const flow = val.inflows - val.outflows;
+      cumulative += flow;
+      return {
+        month: monthNames[monthIdx] || key,
+        inflows: val.inflows,
+        outflows: val.outflows,
+        netFlow: flow,
+        cumulativeCash: cumulative,
+      };
+    });
+
+    const avgMonthlyOutflow = monthlyForecasts.length > 0
+      ? monthlyForecasts.reduce((sum, m) => sum + m.outflows, 0) / monthlyForecasts.length
+      : 0;
+    const avgNetFlow = monthlyForecasts.length > 0
+      ? monthlyForecasts.reduce((sum, m) => sum + m.netFlow, 0) / monthlyForecasts.length
+      : 0;
+    const runway = avgMonthlyOutflow !== 0 ? disponibilites / avgMonthlyOutflow : 0;
+
+    return {
+      tafire: {
+        operatingCashFlow,
+        investmentCashFlow,
+        financingCashFlow,
+        netCashFlow,
+        selfFinancingCapacity,
+        freeCashFlow: operatingCashFlow + investmentCashFlow,
+        openingCash: disponibilites - netCashFlow,
+        closingCash: disponibilites,
+      },
+      sig: {
+        commercialMargin,
+        production,
+        addedValue,
+        grossOperatingSurplus,
+        operatingResult,
+        financialResult,
+        currentResultBeforeTax,
+        exceptionalResult,
+        netResult,
+        addedValueRate,
+        operatingMarginRate,
+        netMarginRate,
+      },
+      functionalBalance: {
+        workingCapitalFund,
+        totalWorkingCapitalNeed: operatingWorkingCapitalNeed,
+        netTreasury,
+        operatingWorkingCapitalNeed,
+        stableUses,
+        stableResources,
+        coverageRatio,
+        bfrRotationDays: Math.abs(bfrRotationDays),
+        treasuryAutonomyDays: Math.abs(treasuryAutonomyDays),
+      },
+      ratios: [
+        { category: 'LIQUIDITE', name: 'Liquidité générale', value: liquiditeGenerale, unit: 'ratio', reference: 1.2, variation: 0, interpretation: liquiditeGenerale >= 1.2 ? 'Bonne liquidité' : 'Liquidité faible', alert: liquiditeGenerale < 1, alertLevel: liquiditeGenerale < 1 ? 'high' : '' },
+        { category: 'STRUCTURE', name: 'Autonomie financière', value: autonomieFinanciere, unit: '%', reference: 33, variation: 0, interpretation: autonomieFinanciere >= 33 ? 'Bonne autonomie' : 'Autonomie faible', alert: autonomieFinanciere < 20, alertLevel: autonomieFinanciere < 20 ? 'high' : '' },
+        { category: 'RENTABILITE', name: 'ROE', value: roe, unit: '%', reference: 10, variation: 0, interpretation: roe >= 10 ? 'Excellente rentabilité' : 'Rentabilité faible', alert: roe < 5, alertLevel: roe < 5 ? 'medium' : '' },
+        { category: 'ACTIVITE', name: 'Délai clients', value: Math.abs(dso), unit: 'jours', reference: 45, variation: 0, interpretation: Math.abs(dso) <= 45 ? 'Bon recouvrement' : 'Recouvrement lent', alert: Math.abs(dso) > 60, alertLevel: Math.abs(dso) > 60 ? 'medium' : '' },
+        { category: 'SOLVABILITE', name: 'Dette/EBITDA', value: Math.abs(debtToEbitda), unit: 'fois', reference: 4, variation: 0, interpretation: Math.abs(debtToEbitda) <= 4 ? 'Faible endettement' : 'Endettement élevé', alert: Math.abs(debtToEbitda) > 5, alertLevel: Math.abs(debtToEbitda) > 5 ? 'high' : '' },
+      ],
+      cashFlowForecast: {
+        monthlyForecasts,
+        scenarios: [
+          { name: 'Optimiste', type: 'OPTIMISTIC', averageCashFlow: avgNetFlow * 1.3, minimumCash: disponibilites * 0.8, confidenceLevel: 75 },
+          { name: 'Réaliste', type: 'REALISTIC', averageCashFlow: avgNetFlow, minimumCash: disponibilites * 0.5, confidenceLevel: 85 },
+          { name: 'Pessimiste', type: 'PESSIMISTIC', averageCashFlow: avgNetFlow * 0.5, minimumCash: disponibilites * 0.2, confidenceLevel: 90 },
+        ],
+        burnRate: avgMonthlyOutflow,
+        runway: Math.abs(runway),
+      },
+    };
+  }, [entries]);
 
   const getStatusIcon = (value: number, reference: number) => {
     if (value >= reference * 1.1) return <ChartBarIcon className="h-5 w-5 text-green-500" />;

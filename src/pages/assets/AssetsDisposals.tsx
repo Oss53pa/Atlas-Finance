@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type DBAsset } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   Trash2,
@@ -45,7 +46,6 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { assetsService } from '../../services/assets.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { toast } from 'react-hot-toast';
@@ -107,162 +107,51 @@ const AssetsDisposals: React.FC = () => {
   const [disposalModal, setDisposalModal] = useState<DisposalModal>({ isOpen: false, mode: 'view' });
   const [selectedDisposals, setSelectedDisposals] = useState<string[]>([]);
 
-  // Mock data for asset disposals
-  const mockDisposals: AssetDisposal[] = [
-    {
-      id: '1',
-      assetId: 'IT005',
-      assetName: 'MacBook Pro 2019',
-      assetTag: 'IT005',
-      category: 'materiel_informatique',
-      disposalType: 'sale',
-      status: 'completed',
-      reason: 'Fin de vie utile - remplacement par nouveau modèle',
-      initiatedDate: '2024-08-01T09:00:00Z',
-      plannedDate: '2024-08-15T10:00:00Z',
-      completedDate: '2024-08-14T15:30:00Z',
-      originalCost: 2800,
-      bookValue: 800,
-      disposalValue: 1200,
-      gainLoss: 400,
-      buyer: 'Société RecycleIT',
-      method: 'Vente à un revendeur spécialisé',
-      location: 'Bureau Paris',
-      initiatedBy: 'Marie Dubois',
-      approvedBy: 'Jean Martin',
-      responsiblePerson: 'Service IT',
-      documentation: ['Certificat effacement données', 'Facture vente', 'Bon de sortie'],
-      environmentalCompliance: true,
-      dataWiping: true,
-      certificateNumber: 'CERT-2024-IT005',
-      notes: 'Effacement sécurisé des données effectué selon norme NIST'
-    },
-    {
-      id: '2',
-      assetId: 'VH003',
-      assetName: 'Renault Kangoo 2018',
-      assetTag: 'VH003',
-      category: 'vehicules',
-      disposalType: 'trade_in',
-      status: 'in_process',
-      reason: 'Échange contre véhicule électrique',
-      initiatedDate: '2024-09-01T10:00:00Z',
-      plannedDate: '2024-09-30T14:00:00Z',
-      originalCost: 28000,
-      bookValue: 15000,
-      disposalValue: 16500,
-      gainLoss: 1500,
-      buyer: 'Concessionnaire Renault',
-      method: 'Reprise concessionnaire',
-      location: 'Parking principal',
-      initiatedBy: 'Pierre Durand',
-      approvedBy: 'Sophie Laurent',
-      responsiblePerson: 'Service Flotte',
-      documentation: ['Certificat de cession', 'Contrôle technique', 'Carte grise'],
-      environmentalCompliance: true,
-      notes: 'Reprise dans le cadre de l\'achat d\'un véhicule électrique'
-    },
-    {
-      id: '3',
-      assetId: 'EQ003',
-      assetName: 'Photocopieur Canon 2020',
-      assetTag: 'EQ003',
-      category: 'equipements',
-      disposalType: 'donation',
-      status: 'planned',
-      reason: 'Don à association caritative',
-      initiatedDate: '2024-09-10T11:00:00Z',
-      plannedDate: '2024-10-15T09:00:00Z',
-      originalCost: 3500,
-      bookValue: 1200,
-      disposalValue: 0,
-      gainLoss: -1200,
-      recipient: 'Association Aide Numérique',
-      method: 'Don avec reçu fiscal',
-      location: 'Bureau administration',
-      initiatedBy: 'Isabelle Moreau',
-      responsiblePerson: 'Service Administratif',
-      documentation: ['Demande de don', 'Évaluation de l\'actif'],
-      environmentalCompliance: true,
-      notes: 'Don déductible fiscalement'
-    },
-    {
-      id: '4',
-      assetId: 'MO001',
-      assetName: 'Ancien mobilier bureau',
-      assetTag: 'MO001',
-      category: 'mobilier',
-      disposalType: 'destruction',
-      status: 'completed',
-      reason: 'Mobilier détérioré non réparable',
-      initiatedDate: '2024-07-15T08:00:00Z',
-      plannedDate: '2024-07-25T10:00:00Z',
-      completedDate: '2024-07-24T16:00:00Z',
-      originalCost: 1500,
-      bookValue: 150,
-      disposalValue: 0,
-      gainLoss: -150,
-      method: 'Destruction par entreprise spécialisée',
-      location: 'Entrepôt stockage',
-      initiatedBy: 'Thomas Bernard',
-      approvedBy: 'Jean Martin',
-      responsiblePerson: 'Service Maintenance',
-      documentation: ['Certificat de destruction', 'Bon d\'enlèvement'],
-      environmentalCompliance: true,
-      notes: 'Destruction écologique respectueuse de l\'environnement'
-    },
-    {
-      id: '5',
-      assetId: 'IT006',
-      assetName: 'Serveurs ancienne génération',
-      assetTag: 'IT006',
-      category: 'materiel_informatique',
-      disposalType: 'scrap',
-      status: 'planned',
-      reason: 'Matériel obsolète, fin de support',
-      initiatedDate: '2024-09-15T14:00:00Z',
-      plannedDate: '2024-10-30T10:00:00Z',
-      originalCost: 12000,
-      bookValue: 0,
-      disposalValue: 300,
-      gainLoss: 300,
-      buyer: 'Recyclage Métaux Précieux',
-      method: 'Démantèlement et récupération métaux',
-      location: 'Salle serveur',
-      initiatedBy: 'Marc Technician',
-      responsiblePerson: 'Service IT',
-      documentation: ['Évaluation technique', 'Devis récupération'],
-      environmentalCompliance: true,
-      dataWiping: true,
-      notes: 'Effacement sécurisé des disques durs obligatoire'
-    }
-  ];
+  // Live Dexie query - fetch disposed/scrapped assets
+  const dbDisposedAssets = useLiveQuery(
+    () => db.assets.where('status').anyOf('disposed', 'scrapped').toArray()
+  ) || [];
 
-  // Mock approval workflow
-  const mockApprovals: DisposalApproval[] = [
-    {
-      id: '1',
-      disposalId: '3',
-      approver: 'Jean Martin',
-      approvalDate: '2024-09-12T09:00:00Z',
-      status: 'pending',
-      comments: 'En attente de validation du service comptable',
-      conditions: ['Évaluation fiscale du don', 'Accord association']
-    },
-    {
-      id: '2',
-      disposalId: '5',
-      approver: 'Sophie Laurent',
-      approvalDate: '2024-09-16T10:30:00Z',
-      status: 'pending',
-      comments: 'Vérification procédure effacement données',
-      conditions: ['Certificat effacement conforme', 'Procédure sécurité IT']
-    }
-  ];
+  // Map Dexie assets to AssetDisposal shape
+  const disposals: AssetDisposal[] = useMemo(() => {
+    return dbDisposedAssets.map((asset: DBAsset) => {
+      const bookValue = asset.residualValue;
+      const disposalValue = asset.status === 'disposed' ? asset.residualValue : 0;
+      const gainLoss = disposalValue - bookValue;
+
+      return {
+        id: asset.id,
+        assetId: asset.code,
+        assetName: asset.name,
+        assetTag: asset.code,
+        category: asset.category,
+        disposalType: asset.status === 'disposed' ? 'sale' as const : 'scrap' as const,
+        status: 'completed' as const,
+        reason: asset.status === 'disposed' ? 'Cession' : 'Mise au rebut',
+        initiatedDate: asset.acquisitionDate,
+        plannedDate: asset.acquisitionDate,
+        completedDate: asset.acquisitionDate,
+        originalCost: asset.acquisitionValue,
+        bookValue,
+        disposalValue,
+        gainLoss,
+        method: asset.status === 'disposed' ? 'Vente' : 'Mise au rebut',
+        location: '',
+        initiatedBy: '',
+        responsiblePerson: '',
+        documentation: [],
+        environmentalCompliance: true,
+        notes: `Méthode amortissement: ${asset.depreciationMethod}`
+      };
+    });
+  }, [dbDisposedAssets]);
+
+  // Approvals derived from disposals (none pending for completed disposals)
+  const approvals: DisposalApproval[] = [];
 
   // Filter disposals based on search and filters
   const filteredDisposals = useMemo(() => {
-    return mockDisposals.filter(disposal => {
+    return disposals.filter(disposal => {
       const matchesSearch = disposal.assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           disposal.assetTag.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           disposal.reason.toLowerCase().includes(searchTerm.toLowerCase());
@@ -294,7 +183,7 @@ const AssetsDisposals: React.FC = () => {
 
       return matchesSearch && matchesStatus && matchesType && matchesCategory && matchesPeriod;
     });
-  }, [searchTerm, filterStatus, filterType, filterCategory, filterPeriod, mockDisposals]);
+  }, [searchTerm, filterStatus, filterType, filterCategory, filterPeriod, disposals]);
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
@@ -309,7 +198,7 @@ const AssetsDisposals: React.FC = () => {
     const totalGainLoss = filteredDisposals.reduce((sum, d) => sum + d.gainLoss, 0);
 
     const environmentalCompliant = filteredDisposals.filter(d => d.environmentalCompliance).length;
-    const pendingApprovals = mockApprovals.filter(a => a.status === 'pending').length;
+    const pendingApprovals = approvals.filter(a => a.status === 'pending').length;
 
     return {
       totalDisposals,
@@ -324,7 +213,7 @@ const AssetsDisposals: React.FC = () => {
       pendingApprovals,
       complianceRate: environmentalCompliant / totalDisposals
     };
-  }, [filteredDisposals, mockApprovals]);
+  }, [filteredDisposals, approvals]);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -770,8 +659,8 @@ const AssetsDisposals: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {mockApprovals.filter(a => a.status === 'pending').map((approval, index) => {
-                  const disposal = mockDisposals.find(d => d.id === approval.disposalId);
+                {approvals.filter(a => a.status === 'pending').map((approval, index) => {
+                  const disposal = disposals.find(d => d.id === approval.disposalId);
                   if (!disposal) return null;
 
                   return (

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -57,59 +58,67 @@ const ReportingDashboard: React.FC = () => {
   const [selectedView, setSelectedView] = useState<'overview' | 'reports' | 'dashboards'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
 
-  const { data: reports = [], isLoading: reportsLoading } = useQuery({
-    queryKey: ['reports'],
-    queryFn: async () => {
-      const mockReports: Report[] = [
-        {
-          id: '1',
-          name: 'Bilan Comptable Mensuel',
-          type: 'financial',
-          category: 'Comptabilité',
-          description: 'Bilan comptable détaillé avec comparaison période précédente',
-          lastGenerated: '2024-08-25T10:30:00Z',
-          generatedBy: 'Marie Dubois',
-          views: 245,
-          status: 'active',
-          frequency: 'monthly',
-          format: 'pdf',
-          isPublic: true,
-          tags: ['bilan', 'comptabilité', 'syscohada']
-        },
-        {
-          id: '2',
-          name: 'Tableau de Bord Commercial',
-          type: 'management',
-          category: 'Commercial',
-          description: 'Indicateurs de performance commerciale en temps réel',
-          lastGenerated: '2024-08-25T08:15:00Z',
-          generatedBy: 'Jean Kouassi',
-          views: 189,
-          status: 'active',
-          frequency: 'daily',
-          format: 'dashboard',
-          isPublic: false,
-          tags: ['commercial', 'kpi', 'ventes']
-        },
-        {
-          id: '3',
-          name: 'Analyse de Rentabilité',
-          type: 'analytical',
-          category: 'Analyse',
-          description: 'Analyse détaillée de la rentabilité par produit et service',
-          lastGenerated: '2024-08-24T16:45:00Z',
-          generatedBy: 'Fatou Traoré',
-          views: 127,
-          status: 'active',
-          frequency: 'weekly',
-          format: 'excel',
-          isPublic: true,
-          tags: ['rentabilité', 'analyse', 'produits']
-        }
-      ];
-      return mockReports;
-    }
+  // Load fiscal years and journal entries from Dexie
+  const { data: fiscalYears = [], isLoading: fyLoading } = useQuery({
+    queryKey: ['dashboard-fiscal-years'],
+    queryFn: () => db.fiscalYears.toArray(),
   });
+
+  const { data: journalEntries = [], isLoading: jeLoading } = useQuery({
+    queryKey: ['dashboard-journal-entries'],
+    queryFn: () => db.journalEntries.toArray(),
+  });
+
+  // Build report list from real data
+  const reports: Report[] = useMemo(() => {
+    const result: Report[] = [];
+
+    // Financial report per fiscal year
+    for (const fy of fiscalYears) {
+      result.push({
+        id: `fy-${fy.id}`,
+        name: `Bilan Comptable — ${fy.name || fy.code}`,
+        type: 'financial',
+        category: 'Comptabilité',
+        description: `États financiers pour l'exercice ${fy.startDate?.substring(0, 4) || ''}`,
+        lastGenerated: fy.endDate || new Date().toISOString(),
+        generatedBy: 'system',
+        views: 0,
+        status: fy.isClosed ? 'active' : 'draft',
+        frequency: 'annual',
+        format: 'pdf',
+        isPublic: true,
+        tags: ['bilan', 'comptabilité', 'syscohada'],
+      });
+    }
+
+    // Analytical report if entries exist
+    if (journalEntries.length > 0) {
+      const latestEntry = journalEntries.reduce((latest, e) => e.date > latest.date ? e : latest, journalEntries[0]);
+      result.push({
+        id: 'analytical-current',
+        name: 'Analyse de Rentabilité',
+        type: 'analytical',
+        category: 'Analyse',
+        description: `Analyse basée sur ${journalEntries.length} écritures comptables`,
+        lastGenerated: latestEntry.date,
+        generatedBy: 'system',
+        views: 0,
+        status: 'active',
+        frequency: 'monthly',
+        format: 'excel',
+        isPublic: true,
+        tags: ['rentabilité', 'analyse'],
+      });
+    }
+
+    return result;
+  }, [fiscalYears, journalEntries]);
+
+  const reportsLoading = fyLoading || jeLoading;
+
+  // Compute total entry count for "Générations" KPI
+  const totalGenerations = journalEntries.length.toString();
 
   const getReportTypeColor = (type: string) => {
     switch (type) {
@@ -202,9 +211,9 @@ const ReportingDashboard: React.FC = () => {
             withChart={true}
           />
           <KPICard
-            title="Générations"
-            value="247"
-            subtitle="Cette semaine"
+            title="Écritures"
+            value={totalGenerations}
+            subtitle="Total enregistré"
             icon={Download}
             color="neutral"
             delay={0.4}
@@ -357,10 +366,10 @@ const ReportingDashboard: React.FC = () => {
                 className="p-6 rounded-2xl border bg-[#B87333]/5 border-[#B87333]/20"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[#B87333]">Fréquence Moyenne</span>
-                  <span className="font-bold text-xl text-[#B87333]">5.2</span>
+                  <span className="text-sm font-semibold text-[#B87333]">Exercices</span>
+                  <span className="font-bold text-xl text-[#B87333]">{fiscalYears.length}</span>
                 </div>
-                <p className="text-sm text-[#B87333]/80">Générations par semaine</p>
+                <p className="text-sm text-[#B87333]/80">Exercices comptables</p>
               </motion.div>
             </div>
           </UnifiedCard>

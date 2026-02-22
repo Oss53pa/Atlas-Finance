@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type DBAsset } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   Wrench,
@@ -44,7 +45,6 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { assetsService } from '../../services/assets.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 
 interface MaintenanceRecord {
@@ -128,179 +128,60 @@ const AssetsMaintenance: React.FC = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Mock data for maintenance records
-  const mockMaintenanceRecords: MaintenanceRecord[] = [
-    {
-      id: '1',
-      assetId: 'IT001',
-      assetName: 'MacBook Pro 16" M3',
-      assetTag: 'IT001',
-      category: 'materiel_informatique',
-      maintenanceType: 'preventive',
-      status: 'scheduled',
-      priority: 'medium',
-      scheduledDate: '2024-09-25T09:00:00Z',
+  // Live Dexie query
+  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
+
+  // Map assets to maintenance records
+  const maintenanceRecords: MaintenanceRecord[] = useMemo(() => {
+    return dbAssets.map((asset: DBAsset) => ({
+      id: asset.id,
+      assetId: asset.code,
+      assetName: asset.name,
+      assetTag: asset.code,
+      category: asset.category,
+      maintenanceType: 'preventive' as const,
+      status: asset.status === 'active' ? 'scheduled' as const : 'completed' as const,
+      priority: 'medium' as const,
+      scheduledDate: asset.acquisitionDate,
       estimatedDuration: 2,
       cost: 0,
-      estimatedCost: 150,
-      assignedTo: 'Service IT',
-      technician: 'Marc Technician',
-      description: 'Nettoyage interne, mise à jour système, vérification hardware',
-      location: 'Bureau Paris - 2ème étage',
-      nextMaintenanceDate: '2025-03-25T09:00:00Z',
-      notes: 'Maintenance préventive trimestrielle'
-    },
-    {
-      id: '2',
-      assetId: 'VH001',
-      assetName: 'Mercedes Sprinter',
-      assetTag: 'VH001',
-      category: 'vehicules',
-      maintenanceType: 'preventive',
-      status: 'completed',
-      priority: 'high',
-      scheduledDate: '2024-09-15T08:00:00Z',
-      completedDate: '2024-09-15T17:00:00Z',
-      estimatedDuration: 8,
-      actualDuration: 9,
-      cost: 850,
-      estimatedCost: 800,
-      assignedTo: 'Garage Partenaire',
-      technician: 'Pierre Mécanicien',
-      supplier: 'Mercedes Service',
-      description: 'Révision complète 20 000 km',
-      workPerformed: 'Vidange, changement filtres, contrôle freins, pneus, éclairage',
-      partsUsed: ['Huile moteur', 'Filtre à huile', 'Filtre à air', 'Plaquettes de frein'],
-      location: 'Garage Mercedes - Zone industrielle',
-      nextMaintenanceDate: '2025-03-15T08:00:00Z',
-      notes: 'Révision effectuée selon le plan d\'entretien constructeur'
-    },
-    {
-      id: '3',
-      assetId: 'EQ001',
-      assetName: 'Imprimante 3D Ultimaker',
-      assetTag: 'EQ001',
-      category: 'equipements',
-      maintenanceType: 'corrective',
-      status: 'in_progress',
-      priority: 'high',
-      scheduledDate: '2024-09-20T14:00:00Z',
-      estimatedDuration: 4,
-      cost: 320,
-      estimatedCost: 400,
-      assignedTo: 'Service Technique',
-      technician: 'Sophie Technicienne',
-      supplier: 'Ultimaker Support',
-      description: 'Remplacement tête d\'impression défaillante',
-      location: 'Atelier prototype',
-      notes: 'Panne détectée lors de l\'utilisation'
-    },
-    {
-      id: '4',
-      assetId: 'AC001',
-      assetName: 'Climatisation Bureau Principal',
-      assetTag: 'AC001',
-      category: 'equipements',
-      maintenanceType: 'preventive',
-      status: 'overdue',
-      priority: 'critical',
-      scheduledDate: '2024-09-10T10:00:00Z',
-      estimatedDuration: 3,
-      cost: 0,
-      estimatedCost: 200,
-      assignedTo: 'Service Maintenance',
-      description: 'Nettoyage filtres, contrôle système, recharge gaz',
-      location: 'Bureau principal',
-      notes: 'Maintenance en retard - priorité élevée'
-    },
-    {
-      id: '5',
-      assetId: 'PR001',
-      assetName: 'Imprimante laser HP',
-      assetTag: 'PR001',
-      category: 'materiel_informatique',
-      maintenanceType: 'corrective',
-      status: 'scheduled',
-      priority: 'medium',
-      scheduledDate: '2024-09-22T11:00:00Z',
-      estimatedDuration: 1,
-      cost: 0,
-      estimatedCost: 80,
-      assignedTo: 'Service IT',
-      technician: 'Marc Technician',
-      description: 'Remplacement cartouche et nettoyage',
-      location: 'Bureau comptabilité',
-      notes: 'Problème de qualité d\'impression'
-    }
-  ];
+      estimatedCost: asset.acquisitionValue * 0.02,
+      assignedTo: '',
+      description: `Maintenance de ${asset.name}`,
+      location: '',
+      notes: `Méthode: ${asset.depreciationMethod}, Durée de vie: ${asset.usefulLifeYears} ans`
+    }));
+  }, [dbAssets]);
 
-  // Mock maintenance schedule
-  const mockMaintenanceSchedule: MaintenanceSchedule[] = [
-    {
-      assetId: 'IT002',
-      assetName: 'Serveur Dell R740',
-      assetTag: 'IT002',
-      category: 'materiel_informatique',
-      location: 'Salle serveur',
-      maintenanceType: 'Maintenance préventive',
-      frequency: 'quarterly',
-      lastMaintenance: '2024-06-15',
-      nextMaintenance: '2024-09-15',
-      daysUntilDue: -4,
-      isOverdue: true,
-      estimatedCost: 300,
-      assignedTo: 'Service IT'
-    },
-    {
-      assetId: 'VH002',
-      assetName: 'Camion de livraison',
-      assetTag: 'VH002',
-      category: 'vehicules',
-      location: 'Parking',
-      maintenanceType: 'Révision technique',
-      frequency: 'annually',
-      lastMaintenance: '2023-10-01',
-      nextMaintenance: '2024-10-01',
-      daysUntilDue: 12,
-      isOverdue: false,
-      estimatedCost: 1200,
-      assignedTo: 'Garage Partenaire'
-    },
-    {
-      assetId: 'EQ002',
-      assetName: 'Compresseur d\'air',
-      assetTag: 'EQ002',
-      category: 'equipements',
-      location: 'Atelier',
-      maintenanceType: 'Contrôle sécurité',
-      frequency: 'bi_annually',
-      lastMaintenance: '2024-03-01',
-      nextMaintenance: '2024-09-01',
-      daysUntilDue: -18,
-      isOverdue: true,
-      estimatedCost: 250,
-      assignedTo: 'Organisme agréé'
-    },
-    {
-      assetId: 'IT003',
-      assetName: 'Système de sauvegarde',
-      assetTag: 'IT003',
-      category: 'materiel_informatique',
-      location: 'Salle serveur',
-      maintenanceType: 'Test de sauvegarde',
-      frequency: 'monthly',
-      lastMaintenance: '2024-08-15',
-      nextMaintenance: '2024-09-15',
-      daysUntilDue: -4,
-      isOverdue: true,
-      estimatedCost: 100,
-      assignedTo: 'Service IT'
-    }
-  ];
+  // Map assets to maintenance schedule
+  const maintenanceSchedule: MaintenanceSchedule[] = useMemo(() => {
+    return dbAssets.filter((a: DBAsset) => a.status === 'active').map((asset: DBAsset) => {
+      const nextDate = new Date(asset.acquisitionDate);
+      nextDate.setFullYear(nextDate.getFullYear() + 1);
+      const now = new Date();
+      const daysUntilDue = Math.floor((nextDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      return {
+        assetId: asset.code,
+        assetName: asset.name,
+        assetTag: asset.code,
+        category: asset.category,
+        location: '',
+        maintenanceType: 'Maintenance préventive',
+        frequency: 'annually' as const,
+        lastMaintenance: asset.acquisitionDate,
+        nextMaintenance: nextDate.toISOString().split('T')[0],
+        daysUntilDue,
+        isOverdue: daysUntilDue < 0,
+        estimatedCost: asset.acquisitionValue * 0.02,
+        assignedTo: ''
+      };
+    });
+  }, [dbAssets]);
 
   // Filter maintenance records
   const filteredRecords = useMemo(() => {
-    return mockMaintenanceRecords.filter(record => {
+    return maintenanceRecords.filter(record => {
       const matchesSearch = record.assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           record.assetTag.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           record.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -312,7 +193,7 @@ const AssetsMaintenance: React.FC = () => {
 
       return matchesSearch && matchesStatus && matchesType && matchesPriority && matchesTechnician;
     });
-  }, [searchTerm, filterStatus, filterType, filterPriority, filterTechnician, mockMaintenanceRecords]);
+  }, [searchTerm, filterStatus, filterType, filterPriority, filterTechnician, maintenanceRecords]);
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
@@ -329,8 +210,8 @@ const AssetsMaintenance: React.FC = () => {
       .filter(r => r.actualDuration)
       .reduce((sum, r, _, arr) => sum + (r.actualDuration || 0) / arr.length, 0);
 
-    const overdueScheduled = mockMaintenanceSchedule.filter(s => s.isOverdue).length;
-    const upcomingScheduled = mockMaintenanceSchedule.filter(s => !s.isOverdue && s.daysUntilDue <= 30).length;
+    const overdueScheduled = maintenanceSchedule.filter(s => s.isOverdue).length;
+    const upcomingScheduled = maintenanceSchedule.filter(s => !s.isOverdue && s.daysUntilDue <= 30).length;
 
     return {
       totalRecords,
@@ -344,7 +225,7 @@ const AssetsMaintenance: React.FC = () => {
       overdueScheduled,
       upcomingScheduled
     };
-  }, [filteredRecords, mockMaintenanceSchedule]);
+  }, [filteredRecords, maintenanceSchedule]);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -408,7 +289,7 @@ const AssetsMaintenance: React.FC = () => {
     emergency: 'Urgence'
   };
 
-  const uniqueTechnicians = [...new Set(mockMaintenanceRecords.map(r => r.technician).filter(Boolean))];
+  const uniqueTechnicians = [...new Set(maintenanceRecords.map(r => r.technician).filter(Boolean))];
 
   // Form handlers
   const handleFormChange = (field: string, value: string | number | boolean) => {
@@ -872,7 +753,7 @@ const AssetsMaintenance: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockMaintenanceSchedule.map((schedule, index) => (
+                    {maintenanceSchedule.map((schedule, index) => (
                       <motion.tr
                         key={schedule.assetId}
                         initial={{ opacity: 0, y: 20 }}

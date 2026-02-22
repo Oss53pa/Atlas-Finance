@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
@@ -57,164 +59,25 @@ const RolesPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: roles = [], isLoading } = useQuery({
-    queryKey: ['roles', searchTerm, selectedCategory, selectedModule],
-    queryFn: async () => {
-      const mockRoles: Role[] = [
-        {
-          id: '1',
-          name: 'Administrateur Système',
-          code: 'ADMIN_SYS',
-          description: 'Accès complet au système avec tous les privilèges administrateurs',
-          permissions: ['all_access', 'user_management', 'system_config', 'audit_logs', 'backup_restore'],
-          usersCount: 2,
-          isSystemRole: true,
-          createdAt: '2024-01-01T00:00:00Z',
-          lastModified: '2024-08-15T10:30:00Z',
-          createdBy: 'Système',
-          category: 'admin'
-        },
-        {
-          id: '2',
-          name: 'Directeur Financier',
-          code: 'DIR_FIN',
-          description: 'Responsable de la gestion financière et comptable de l\'entreprise',
-          permissions: ['finance_read', 'finance_write', 'accounting_full', 'budget_full', 'reporting_full', 'treasury_full'],
-          usersCount: 1,
-          isSystemRole: false,
-          createdAt: '2024-01-15T00:00:00Z',
-          lastModified: '2024-07-20T14:15:00Z',
-          createdBy: 'Marie Dubois',
-          category: 'management'
-        },
-        {
-          id: '3',
-          name: 'Manager Commercial',
-          code: 'MGR_COM',
-          description: 'Gestion de l\'équipe commerciale et du portefeuille clients',
-          permissions: ['commercial_read', 'commercial_write', 'client_management', 'contracts_management', 'sales_reporting'],
-          usersCount: 3,
-          isSystemRole: false,
-          createdAt: '2024-02-01T00:00:00Z',
-          lastModified: '2024-08-10T09:45:00Z',
-          createdBy: 'Marie Dubois',
-          category: 'management'
-        },
-        {
-          id: '4',
-          name: 'Contrôleur de Gestion',
-          code: 'CTRL_GEST',
-          description: 'Analyse et contrôle des performances financières et opérationnelles',
-          permissions: ['analytics_read', 'analytics_write', 'budget_read', 'budget_write', 'cost_centers', 'reporting_read'],
-          usersCount: 2,
-          isSystemRole: false,
-          createdAt: '2024-01-20T00:00:00Z',
-          lastModified: '2024-06-15T11:20:00Z',
-          createdBy: 'Marie Dubois',
-          category: 'operational'
-        },
-        {
-          id: '5',
-          name: 'Comptable',
-          code: 'COMPTABLE',
-          description: 'Saisie et traitement des opérations comptables courantes',
-          permissions: ['accounting_read', 'entries_write', 'journals_read', 'balance_read', 'third_party_read'],
-          usersCount: 4,
-          isSystemRole: false,
-          createdAt: '2024-02-15T00:00:00Z',
-          lastModified: '2024-08-05T16:30:00Z',
-          createdBy: 'Paul Martin',
-          category: 'operational'
-        },
-        {
-          id: '6',
-          name: 'RH Manager',
-          code: 'RH_MGR',
-          description: 'Gestion des ressources humaines et administration du personnel',
-          permissions: ['hr_read', 'hr_write', 'employee_management', 'payroll_access', 'hr_reporting'],
-          usersCount: 1,
-          isSystemRole: false,
-          createdAt: '2024-03-01T00:00:00Z',
-          lastModified: '2024-07-10T13:45:00Z',
-          createdBy: 'Marie Dubois',
-          category: 'management'
-        },
-        {
-          id: '7',
-          name: 'Analyste Financier',
-          code: 'ANALYST_FIN',
-          description: 'Analyse financière et élaboration de rapports de performance',
-          permissions: ['finance_read', 'reporting_read', 'analytics_read', 'treasury_read', 'dashboard_access'],
-          usersCount: 3,
-          isSystemRole: false,
-          createdAt: '2024-02-20T00:00:00Z',
-          lastModified: '2024-08-01T08:15:00Z',
-          createdBy: 'Paul Martin',
-          category: 'operational'
-        },
-        {
-          id: '8',
-          name: 'Utilisateur Consultation',
-          code: 'USER_READ',
-          description: 'Accès en lecture seule aux données de base',
-          permissions: ['dashboard_read', 'reports_read', 'basic_data_read'],
-          usersCount: 5,
-          isSystemRole: false,
-          createdAt: '2024-04-01T00:00:00Z',
-          lastModified: '2024-05-15T12:00:00Z',
-          createdBy: 'Sophie Koné',
-          category: 'readonly'
-        }
-      ];
-      
-      return mockRoles.filter(role =>
-        (searchTerm === '' || 
-         role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         role.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         role.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (selectedCategory === 'all' || role.category === selectedCategory)
-      );
-    }
-  });
+  // Load roles from Dexie settings
+  const rolesSetting = useLiveQuery(() => db.settings.get('roles_config'));
+  const allRoles: Role[] = rolesSetting ? JSON.parse(rolesSetting.value) : [];
+  const isLoading = rolesSetting === undefined;
 
-  const { data: permissions = [] } = useQuery({
-    queryKey: ['permissions'],
-    queryFn: async () => {
-      const mockPermissions: Permission[] = [
-        // Système
-        { id: '1', name: 'Accès Complet', module: 'Système', action: 'all', description: 'Accès total au système', category: 'system' },
-        { id: '2', name: 'Gestion Utilisateurs', module: 'Système', action: 'users', description: 'Gestion des utilisateurs', category: 'system' },
-        { id: '3', name: 'Configuration Système', module: 'Système', action: 'config', description: 'Configuration du système', category: 'system' },
-        
-        // Finance
-        { id: '4', name: 'Lecture Finance', module: 'Finance', action: 'read', description: 'Consultation des données financières', category: 'finance' },
-        { id: '5', name: 'Écriture Finance', module: 'Finance', action: 'write', description: 'Modification des données financières', category: 'finance' },
-        { id: '6', name: 'Gestion Trésorerie', module: 'Finance', action: 'treasury', description: 'Accès à la trésorerie', category: 'finance' },
-        
-        // Comptabilité
-        { id: '7', name: 'Lecture Comptabilité', module: 'Comptabilité', action: 'read', description: 'Consultation comptable', category: 'accounting' },
-        { id: '8', name: 'Saisie Écritures', module: 'Comptabilité', action: 'entries', description: 'Saisie des écritures', category: 'accounting' },
-        { id: '9', name: 'Gestion Journaux', module: 'Comptabilité', action: 'journals', description: 'Gestion des journaux', category: 'accounting' },
-        
-        // Commercial
-        { id: '10', name: 'Lecture Commercial', module: 'Commercial', action: 'read', description: 'Consultation commerciale', category: 'commercial' },
-        { id: '11', name: 'Écriture Commercial', module: 'Commercial', action: 'write', description: 'Modification commerciale', category: 'commercial' },
-        { id: '12', name: 'Gestion Clients', module: 'Commercial', action: 'clients', description: 'Gestion des clients', category: 'commercial' },
-        
-        // Budget
-        { id: '13', name: 'Lecture Budget', module: 'Budget', action: 'read', description: 'Consultation des budgets', category: 'budget' },
-        { id: '14', name: 'Écriture Budget', module: 'Budget', action: 'write', description: 'Modification des budgets', category: 'budget' },
-        { id: '15', name: 'Validation Budget', module: 'Budget', action: 'validate', description: 'Validation des budgets', category: 'budget' },
-        
-        // Reporting
-        { id: '16', name: 'Lecture Rapports', module: 'Reporting', action: 'read', description: 'Consultation des rapports', category: 'reporting' },
-        { id: '17', name: 'Création Rapports', module: 'Reporting', action: 'create', description: 'Création de rapports', category: 'reporting' },
-        { id: '18', name: 'Tableaux de Bord', module: 'Reporting', action: 'dashboard', description: 'Accès aux tableaux de bord', category: 'reporting' }
-      ];
-      
-      return mockPermissions;
-    }
-  });
+  // Filter roles based on search/filter criteria
+  const roles = useMemo(() => {
+    return allRoles.filter(role =>
+      (searchTerm === '' ||
+       role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       role.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       role.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (selectedCategory === 'all' || role.category === selectedCategory)
+    );
+  }, [allRoles, searchTerm, selectedCategory]);
+
+  // Load permissions from Dexie settings
+  const permissionsSetting = useLiveQuery(() => db.settings.get('permissions_config'));
+  const permissions: Permission[] = permissionsSetting ? JSON.parse(permissionsSetting.value) : [];
 
   const duplicateRoleMutation = useMutation({
     mutationFn: async (roleId: string) => {

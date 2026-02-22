@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Building2,
@@ -104,134 +105,14 @@ const MultiSocietesPage: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
 
-  // Mock data for companies
-  const mockCompanies: Company[] = [
-    {
-      id: '1',
-      code: 'WB001',
-      name: 'Atlas Finance Holding SA',
-      legal_form: 'SA',
-      rccm: 'CI-ABJ-2024-B-12345',
-      nif: '0987654321',
-      address: 'Boulevard de la République',
-      city: 'Abidjan',
-      country: 'CI',
-      phone: '+225 20 30 40 50',
-      email: 'contact@atlasfinance-holding.com',
-      currency: 'XOF',
-      fiscal_year_start: '01-01',
-      status: 'active',
-      is_parent: true,
-      created_date: '2024-01-15',
-      last_activity: '2024-01-30',
-      users_count: 15,
-      transactions_count: 1250,
-      consolidation_level: 0
-    },
-    {
-      id: '2',
-      code: 'WB002',
-      name: 'Atlas Finance Services SARL',
-      legal_form: 'SARL',
-      rccm: 'CI-ABJ-2024-B-12346',
-      nif: '0987654322',
-      address: 'Zone 4, Marcory',
-      city: 'Abidjan',
-      country: 'CI',
-      phone: '+225 21 30 40 50',
-      email: 'services@atlasfinance.com',
-      currency: 'XOF',
-      fiscal_year_start: '01-01',
-      status: 'active',
-      is_parent: false,
-      parent_id: '1',
-      created_date: '2024-01-20',
-      last_activity: '2024-01-30',
-      users_count: 8,
-      transactions_count: 850,
-      consolidation_level: 1
-    },
-    {
-      id: '3',
-      code: 'WB003',
-      name: 'Atlas Finance Sénégal SA',
-      legal_form: 'SA',
-      rccm: 'SN-DKR-2024-B-001',
-      nif: '1234567890',
-      address: 'Avenue Bourguiba',
-      city: 'Dakar',
-      country: 'SN',
-      phone: '+221 33 123 45 67',
-      email: 'senegal@atlasfinance.com',
-      currency: 'XOF',
-      fiscal_year_start: '01-01',
-      status: 'active',
-      is_parent: false,
-      parent_id: '1',
-      created_date: '2024-02-01',
-      last_activity: '2024-01-29',
-      users_count: 5,
-      transactions_count: 420,
-      consolidation_level: 1
-    },
-    {
-      id: '4',
-      code: 'WB004',
-      name: 'Atlas Finance Tech SARL',
-      legal_form: 'SARL',
-      rccm: 'CI-ABJ-2024-B-12347',
-      nif: '0987654323',
-      address: 'Plateau, Rue du Commerce',
-      city: 'Abidjan',
-      country: 'CI',
-      phone: '+225 22 30 40 50',
-      email: 'tech@atlasfinance.com',
-      currency: 'XOF',
-      fiscal_year_start: '01-01',
-      status: 'inactive',
-      is_parent: false,
-      parent_id: '2',
-      created_date: '2024-02-10',
-      last_activity: '2024-01-25',
-      users_count: 3,
-      transactions_count: 125,
-      consolidation_level: 2
-    }
-  ];
+  // Load companies from Dexie settings
+  const companiesSetting = useLiveQuery(() => db.settings.get('companies_list'));
+  const companies: Company[] = companiesSetting ? JSON.parse(companiesSetting.value) : [];
+  const isLoading = companiesSetting === undefined;
 
-  // Mock data for consolidation groups
-  const mockGroups: ConsolidationGroup[] = [
-    {
-      id: '1',
-      name: 'Groupe Atlas Finance',
-      parent_company: 'Atlas Finance Holding SA',
-      subsidiaries: ['WB002', 'WB003'],
-      consolidation_type: 'full',
-      consolidation_percentage: 100,
-      last_consolidation: '2024-01-31',
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Filiales Techniques',
-      parent_company: 'Atlas Finance Services SARL',
-      subsidiaries: ['WB004'],
-      consolidation_type: 'proportional',
-      consolidation_percentage: 75,
-      last_consolidation: '2024-01-31',
-      status: 'active'
-    }
-  ];
-
-  const { data: companies = mockCompanies, isLoading } = useQuery({
-    queryKey: ['companies', searchTerm, selectedStatus, selectedCountry],
-    queryFn: () => Promise.resolve(mockCompanies),
-  });
-
-  const { data: consolidationGroups = mockGroups } = useQuery({
-    queryKey: ['consolidation-groups'],
-    queryFn: () => Promise.resolve(mockGroups),
-  });
+  // Load consolidation groups from Dexie settings
+  const consolidationGroupsSetting = useLiveQuery(() => db.settings.get('consolidation_groups'));
+  const consolidationGroups: ConsolidationGroup[] = consolidationGroupsSetting ? JSON.parse(consolidationGroupsSetting.value) : [];
 
   // Filter companies
   const filteredCompanies = companies.filter(company => {

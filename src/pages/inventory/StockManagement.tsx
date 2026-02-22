@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Package,
   MapPin,
@@ -17,9 +17,9 @@ import {
   Truck,
   Clock
 } from 'lucide-react';
-import { StockLevel, InventoryItem, Location, ReorderRules, InventoryFilters, SortOption } from './types';
-import { mockStockLevels, mockInventoryItems, mockLocations, mockReorderRules } from './utils/mockData';
-import { InventoryCalculations } from './utils/calculations';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, DBInventoryItem } from '../../lib/db';
+import { InventoryFilters, SortOption } from './types';
 import FilterComponent from './components/InventoryFilters';
 import StockStatusBadge from './components/StockStatusBadge';
 import ValuationMethodBadge from './components/ValuationMethodBadge';
@@ -28,10 +28,64 @@ import LoadingSpinner from './components/LoadingSpinner';
 import Pagination from './components/Pagination';
 import ExportButton from './components/ExportButton';
 
-interface StockLevelWithItem extends StockLevel {
-  item: InventoryItem;
-  location: Location;
-  reorderRule?: ReorderRules;
+/** Adapted view-model mapped from DBInventoryItem for the stock table */
+interface StockLevelWithItem {
+  itemId: string;
+  locationId: string;
+  quantityOnHand: number;
+  quantityAvailable: number;
+  quantityAllocated: number;
+  quantityOnOrder: number;
+  totalValue: number;
+  valuationMethod: 'FIFO' | 'LIFO' | 'WEIGHTED_AVERAGE' | 'SPECIFIC_IDENTIFICATION' | 'STANDARD_COST';
+  lastMovementDate: string;
+  item: {
+    name: string;
+    sku: string;
+    description: string;
+    category: { id: string; name: string; code: string };
+    type: string;
+  };
+  location: {
+    id: string;
+    name: string;
+  };
+  reorderRule?: {
+    minimumStock: number;
+    maximumStock: number;
+    reorderPoint: number;
+  };
+}
+
+/** Convert a DBInventoryItem to the view-model used by the table */
+function toStockLevelWithItem(item: DBInventoryItem): StockLevelWithItem {
+  return {
+    itemId: item.id,
+    locationId: item.location,
+    quantityOnHand: item.quantity,
+    quantityAvailable: item.quantity,
+    quantityAllocated: 0,
+    quantityOnOrder: 0,
+    totalValue: item.quantity * item.unitCost,
+    valuationMethod: 'WEIGHTED_AVERAGE',
+    lastMovementDate: item.lastMovementDate || item.updatedAt,
+    item: {
+      name: item.name,
+      sku: item.code,
+      description: item.name,
+      category: { id: item.category, name: item.category, code: item.category },
+      type: 'merchandise',
+    },
+    location: {
+      id: item.location,
+      name: item.location,
+    },
+    reorderRule: {
+      minimumStock: item.minStock,
+      maximumStock: item.maxStock,
+      reorderPoint: item.minStock,
+    },
+  };
 }
 
 interface StockMovementModalProps {
@@ -39,13 +93,15 @@ interface StockMovementModalProps {
   onClose: () => void;
   stockLevel: StockLevelWithItem | null;
   type: 'adjustment' | 'transfer' | 'view';
+  locations: Array<{ id: string; name: string }>;
 }
 
 const StockMovementModal: React.FC<StockMovementModalProps> = ({
   isOpen,
   onClose,
   stockLevel,
-  type
+  type,
+  locations
 }) => {
   const [formData, setFormData] = useState({
     quantity: 0,
@@ -185,7 +241,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                     required
                   >
                     <option value="">Select location...</option>
-                    {mockLocations
+                    {locations
                       .filter(loc => loc.id !== stockLevel.locationId)
                       .map(location => (
                         <option key={location.id} value={location.id}>
@@ -284,8 +340,25 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
 };
 
 const StockManagement: React.FC = () => {
-  const [stockLevels, setStockLevels] = useState<StockLevelWithItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const inventoryItems = useLiveQuery(() => db.inventoryItems.toArray()) || [];
+
+  const stockLevels = React.useMemo(
+    () => inventoryItems.map(toStockLevelWithItem),
+    [inventoryItems]
+  );
+
+  // Derive unique locations for the transfer modal
+  const uniqueLocations = React.useMemo(() => {
+    const locSet = new Map<string, string>();
+    inventoryItems.forEach(item => {
+      if (!locSet.has(item.location)) {
+        locSet.set(item.location, item.location);
+      }
+    });
+    return Array.from(locSet.entries()).map(([id, name]) => ({ id, name }));
+  }, [inventoryItems]);
+
+  const isLoading = inventoryItems === undefined;
   const [filters, setFilters] = useState<InventoryFilters>({});
   const [sortOption, setSortOption] = useState<SortOption>({ field: 'item.name', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
@@ -293,37 +366,6 @@ const StockManagement: React.FC = () => {
   const [selectedStock, setSelectedStock] = useState<StockLevelWithItem | null>(null);
   const [modalType, setModalType] = useState<'adjustment' | 'transfer' | 'view'>('view');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Initialize data
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Combine stock levels with item and location data
-      const enrichedStockLevels: StockLevelWithItem[] = mockStockLevels.map(stock => {
-        const item = mockInventoryItems.find(item => item.id === stock.itemId)!;
-        const location = mockLocations.find(loc => loc.id === stock.locationId)!;
-        const reorderRule = mockReorderRules.find(rule =>
-          rule.itemId === stock.itemId && rule.locationId === stock.locationId
-        );
-
-        return {
-          ...stock,
-          item,
-          location,
-          reorderRule
-        };
-      });
-
-      setStockLevels(enrichedStockLevels);
-      setIsLoading(false);
-    };
-
-    loadData();
-  }, []);
 
   // Filter and sort data
   const filteredAndSortedData = React.useMemo(() => {
@@ -647,6 +689,7 @@ const StockManagement: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         stockLevel={selectedStock}
         type={modalType}
+        locations={uniqueLocations}
       />
     </div>
   );

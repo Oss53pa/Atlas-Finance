@@ -6,6 +6,7 @@ import {
   Zap, AlertCircle, RefreshCw
 } from 'lucide-react';
 import { AssetClassification, AssetClassificationService } from '../../data/assetClassification';
+import { Money } from '@/utils/money';
 
 // ────────────────────────────────────────────────────
 // Types
@@ -226,7 +227,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
     let cumul = 0;
 
     if (method === 'lineaire') {
-      const dotationAnnuelle = Math.round((base / years) * 100) / 100;
+      const dotationAnnuelle = new Money(base).divide(years).round().toNumber();
 
       for (let i = 0; i < years; i++) {
         const annee = startYear + i;
@@ -234,11 +235,11 @@ const AssetForm: React.FC<AssetFormProps> = ({
         let dotation = dotationAnnuelle;
         if (i === 0 && startMonth > 0) {
           const moisRestants = 12 - startMonth;
-          dotation = Math.round((dotationAnnuelle * moisRestants / 12) * 100) / 100;
+          dotation = new Money(dotationAnnuelle).multiply(moisRestants).divide(12).round().toNumber();
         }
         // Last year: complement of prorata
         if (i === years - 1 && startMonth > 0) {
-          dotation = Math.round((base - cumul) * 100) / 100;
+          dotation = new Money(base).subtract(cumul).round().toNumber();
         }
         // Extra year for prorata
         if (i === years - 1 && startMonth > 0) {
@@ -247,12 +248,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
 
         // Cap: don't exceed base
         if (cumul + dotation > base) {
-          dotation = Math.round((base - cumul) * 100) / 100;
+          dotation = new Money(base).subtract(cumul).round().toNumber();
         }
         if (dotation <= 0) break;
 
         cumul += dotation;
-        const vnc = Math.round((cost - cumul) * 100) / 100;
+        const vnc = new Money(cost).subtract(cumul).round().toNumber();
 
         tableau.push({
           annee,
@@ -260,7 +261,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
           dateFin: `${annee}-12-31`,
           baseAmortissable: base,
           dotation,
-          amortissementCumule: Math.round(cumul * 100) / 100,
+          amortissementCumule: new Money(cumul).round().toNumber(),
           vnc: Math.max(vnc, residual),
         });
       }
@@ -268,7 +269,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       // Extra year if prorata applied and there's remaining
       if (startMonth > 0 && cumul < base) {
         const annee = startYear + years;
-        const dotation = Math.round((base - cumul) * 100) / 100;
+        const dotation = new Money(base).subtract(cumul).round().toNumber();
         cumul += dotation;
         tableau.push({
           annee,
@@ -276,7 +277,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
           dateFin: `${annee}-${String(startMonth).padStart(2, '0')}-${new Date(annee, startMonth, 0).getDate()}`,
           baseAmortissable: base,
           dotation,
-          amortissementCumule: Math.round(cumul * 100) / 100,
+          amortissementCumule: new Money(cumul).round().toNumber(),
           vnc: residual,
         });
       }
@@ -292,9 +293,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
         if (vncAvant <= residual + 0.01) break;
 
         // Switch to linear when linear > degressif
-        const dotationDegressive = Math.round((vncAvant * tauxDegressif / 100) * 100) / 100;
+        const dotationDegressive = new Money(vncAvant).multiply(tauxDegressif).divide(100).round().toNumber();
         const dotationLineaire = anneesRestantes > 0
-          ? Math.round(((vncAvant - residual) / anneesRestantes) * 100) / 100
+          ? new Money(vncAvant).subtract(residual).divide(anneesRestantes).round().toNumber()
           : vncAvant - residual;
 
         let dotation = Math.max(dotationDegressive, dotationLineaire);
@@ -302,12 +303,12 @@ const AssetForm: React.FC<AssetFormProps> = ({
         // Prorata first year
         if (i === 0 && startMonth > 0) {
           const moisRestants = 12 - startMonth;
-          dotation = Math.round((dotation * moisRestants / 12) * 100) / 100;
+          dotation = new Money(dotation).multiply(moisRestants).divide(12).round().toNumber();
         }
 
         // Cap
         if (cumul + dotation > base) {
-          dotation = Math.round((base - cumul) * 100) / 100;
+          dotation = new Money(base).subtract(cumul).round().toNumber();
         }
         if (dotation <= 0) break;
 
@@ -317,10 +318,10 @@ const AssetForm: React.FC<AssetFormProps> = ({
           annee,
           dateDebut: i === 0 ? startDate : `${annee}-01-01`,
           dateFin: `${annee}-12-31`,
-          baseAmortissable: Math.round(vncAvant * 100) / 100,
+          baseAmortissable: new Money(vncAvant).round().toNumber(),
           dotation,
-          amortissementCumule: Math.round(cumul * 100) / 100,
-          vnc: Math.max(Math.round((cost - cumul) * 100) / 100, residual),
+          amortissementCumule: new Money(cumul).round().toNumber(),
+          vnc: Math.max(new Money(cost).subtract(cumul).round().toNumber(), residual),
         });
       }
     }
@@ -383,7 +384,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       ...prev,
       useful_life_years: years,
       useful_life_months: y > 0 ? (y * 12).toString() : '',
-      depreciation_rate: y > 0 ? (Math.round((100 / y) * 100) / 100).toString() : '',
+      depreciation_rate: y > 0 ? new Money(100).divide(y).round().toNumber().toString() : '',
     }));
   }, []);
 
@@ -394,7 +395,7 @@ const AssetForm: React.FC<AssetFormProps> = ({
       ...prev,
       useful_life_months: months,
       useful_life_years: m > 0 ? Math.round(y).toString() : '',
-      depreciation_rate: y > 0 ? (Math.round((100 / y) * 100) / 100).toString() : '',
+      depreciation_rate: y > 0 ? new Money(100).divide(y).round().toNumber().toString() : '',
     }));
   }, []);
 

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import PrintableArea from '../ui/PrintableArea';
 import './AdvancedBalance.css';
+import { formatCurrency } from '@/utils/formatters';
 
 interface LedgerEntry {
   id: string;
@@ -652,14 +653,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                         {entry.debit > 0 ? (
-                          <span className="text-green-600 font-mono font-medium">{entry.debit.toLocaleString()}</span>
+                          <span className="text-green-600 font-mono font-medium">{formatCurrency(entry.debit)}</span>
                         ) : (
                           <span className="text-gray-700">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                         {entry.credit > 0 ? (
-                          <span className="text-red-600 font-mono font-medium">{entry.credit.toLocaleString()}</span>
+                          <span className="text-red-600 font-mono font-medium">{formatCurrency(entry.credit)}</span>
                         ) : (
                           <span className="text-gray-700">-</span>
                         )}
@@ -824,7 +825,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <h4 className="font-semibold text-gray-900">{day.date}</h4>
                           <div className="flex items-center space-x-4 text-sm">
                             <span className="text-gray-600">{day.entries} écritures</span>
-                            <span className="font-medium text-gray-900">{day.total.toLocaleString()} XOF</span>
+                            <span className="font-medium text-gray-900">{formatCurrency(day.total)}</span>
                           </div>
                         </div>
 
@@ -840,7 +841,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 <span className="text-sm text-gray-600">{entry.libelle}</span>
                               </div>
                               <span className={`text-sm font-semibold ${entry.type === 'debit' ? 'text-green-600' : 'text-red-600'}`}>
-                                {entry.montant.toLocaleString()} XOF
+                                {formatCurrency(entry.montant)}
                               </span>
                             </div>
                           ))}
@@ -976,7 +977,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                     <span className="text-sm text-gray-600">{compte.libelle}</span>
                                   </div>
                                   <span className={`text-sm font-semibold ${compte.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {compte.solde.toLocaleString()} XOF
+                                    {formatCurrency(compte.solde)}
                                   </span>
                                 </div>
                               </div>
@@ -991,7 +992,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                           <span className="text-xs text-gray-600">{sousCompte.libelle}</span>
                                         </div>
                                         <span className={`text-xs font-semibold ${sousCompte.solde > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                          {sousCompte.solde.toLocaleString()} XOF
+                                          {formatCurrency(sousCompte.solde)}
                                         </span>
                                       </div>
                                     </div>
@@ -1430,13 +1431,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-900">{entry.libelle}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-blue-600">
-                                {entry.debit > 0 ? entry.debit.toLocaleString() : '-'}
+                                {entry.debit > 0 ? formatCurrency(entry.debit) : '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-green-600">
-                                {entry.credit > 0 ? entry.credit.toLocaleString() : '-'}
+                                {entry.credit > 0 ? formatCurrency(entry.credit) : '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right font-medium text-gray-900">
-                                {entry.solde.toLocaleString()}
+                                {formatCurrency(entry.solde)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
                                 {entry.centreCout || '-'}

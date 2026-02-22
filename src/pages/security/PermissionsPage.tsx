@@ -1,18 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
+import {
   Shield, Users, Key, Lock, ArrowLeft, Home, Plus, Edit, Eye,
   CheckCircle, X, Settings, UserCheck, Clock, AlertTriangle
 } from 'lucide-react';
+
+interface PermissionMatrixRow {
+  module: string;
+  comptable: boolean;
+  manager: boolean;
+  admin: boolean;
+  consultant: boolean;
+}
+
+interface RoleCard {
+  role: string;
+  users: number;
+  permissions: string[];
+  color: string;
+}
 
 const PermissionsPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('matrix');
 
+  // Load permission matrix from Dexie
+  const matrixSetting = useLiveQuery(() => db.settings.get('permission_matrix'));
+  const permissionMatrix: PermissionMatrixRow[] = matrixSetting ? JSON.parse(matrixSetting.value) : [];
+
+  // Load roles cards from Dexie
+  const rolesSetting = useLiveQuery(() => db.settings.get('roles_config'));
+  const rolesCards: RoleCard[] = useMemo(() => {
+    if (!rolesSetting) return [];
+    const parsed = JSON.parse(rolesSetting.value);
+    // If stored data has the card shape, use it directly; otherwise map from roles list
+    if (Array.isArray(parsed) && parsed.length > 0 && 'permissions' in parsed[0] && 'color' in parsed[0]) {
+      return parsed as RoleCard[];
+    }
+    return parsed.map((r: Record<string, unknown>) => ({
+      role: (r.name || r.role || '') as string,
+      users: (r.usersCount || r.users || 0) as number,
+      permissions: (r.permissions || []) as string[],
+      color: (r.color || '#7A99AC') as string,
+    }));
+  }, [rolesSetting]);
+
   // Onglets permissions
+  const rolesCount = rolesCards.length > 0 ? String(rolesCards.length) : '0';
   const tabs = [
     { id: 'matrix', label: 'Matrice Permissions', icon: Shield },
-    { id: 'roles', label: 'Rôles', icon: Users, badge: '6' },
+    { id: 'roles', label: 'Rôles', icon: Users, badge: rolesCount },
     { id: 'users', label: 'Utilisateurs', icon: UserCheck, badge: '24' },
     { id: 'policies', label: 'Politiques', icon: Lock },
     { id: 'audit', label: 'Audit', icon: Clock },
@@ -113,14 +152,7 @@ const PermissionsPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {[
-                        { module: 'Saisie écritures', comptable: true, manager: false, admin: true, consultant: false },
-                        { module: 'Validation', comptable: true, manager: true, admin: true, consultant: false },
-                        { module: 'États financiers', comptable: true, manager: true, admin: true, consultant: true },
-                        { module: 'Configuration', comptable: false, manager: false, admin: true, consultant: false },
-                        { module: 'Utilisateurs', comptable: false, manager: false, admin: true, consultant: false },
-                        { module: 'Rapports', comptable: true, manager: true, admin: true, consultant: true }
-                      ].map((perm, index) => (
+                      {permissionMatrix.map((perm, index) => (
                         <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 text-sm font-medium text-[#191919]">{perm.module}</td>
                           <td className="py-3 text-center">
@@ -163,26 +195,7 @@ const PermissionsPage: React.FC = () => {
           {activeTab === 'roles' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  {
-                    role: 'Comptable',
-                    users: 8,
-                    permissions: ['Saisie écritures', 'Consultation', 'Validation', 'États financiers'],
-                    color: '#6A8A82'
-                  },
-                  {
-                    role: 'Manager', 
-                    users: 4,
-                    permissions: ['Consultation avancée', 'Analyses', 'Rapports', 'Budgets'],
-                    color: '#B87333'
-                  },
-                  {
-                    role: 'Administrateur',
-                    users: 2, 
-                    permissions: ['Gestion complète', 'Configuration', 'Sécurité', 'Système'],
-                    color: '#7A99AC'
-                  }
-                ].map((role, index) => (
+                {rolesCards.map((role, index) => (
                   <div key={index} className="bg-white rounded-lg p-6 border border-[#E8E8E8] hover:shadow-lg transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="font-semibold text-[#191919]">{role.role}</h4>

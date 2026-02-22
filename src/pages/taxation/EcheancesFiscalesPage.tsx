@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Calendar,
@@ -75,109 +76,18 @@ const EcheancesFiscalesPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('tous');
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
 
-  // Mock tax deadlines data
-  const mockDeadlines: TaxDeadline[] = [
-    {
-      id: '1',
-      nom: 'Déclaration TVA Mensuelle',
-      type: 'TVA',
-      description: 'Déclaration et paiement de la TVA collectée du mois précédent',
-      date_echeance: '2024-02-15',
-      statut: 'urgent',
-      montant_estimé: 7200000,
-      periodicite: 'mensuel',
-      rappel_actif: true,
-      rappel_jours: 7,
-      obligatoire: true,
-      derniere_declaration: '2024-01-15',
-      prochaine_echeance: '2024-03-15'
-    },
-    {
-      id: '2',
-      nom: 'Acompte IS T1',
-      type: 'IS',
-      description: 'Premier acompte d\'impôt sur les sociétés',
-      date_echeance: '2024-02-28',
-      statut: 'à_venir',
-      montant_estimé: 4500000,
-      periodicite: 'trimestriel',
-      rappel_actif: true,
-      rappel_jours: 14,
-      obligatoire: true,
-      prochaine_echeance: '2024-05-31'
-    },
-    {
-      id: '3',
-      nom: 'IRPP Salaires Janvier',
-      type: 'IRPP',
-      description: 'Déclaration et versement IRPP sur salaires',
-      date_echeance: '2024-02-10',
-      statut: 'dépassé',
-      montant_estimé: 4200000,
-      periodicite: 'mensuel',
-      rappel_actif: true,
-      rappel_jours: 5,
-      obligatoire: true,
-      derniere_declaration: '2024-01-10'
-    },
-    {
-      id: '4',
-      nom: 'Taxe Chiffre d\'Affaires',
-      type: 'TCA',
-      description: 'Déclaration de la taxe sur le chiffre d\'affaires',
-      date_echeance: '2024-02-20',
-      statut: 'à_venir',
-      montant_estimé: 2500000,
-      periodicite: 'mensuel',
-      rappel_actif: false,
-      rappel_jours: 3,
-      obligatoire: true,
-      prochaine_echeance: '2024-03-20'
-    },
-    {
-      id: '5',
-      nom: 'Taxe Foncière sur Propriétés',
-      type: 'TFP',
-      description: 'Paiement annuel de la taxe foncière',
-      date_echeance: '2024-03-31',
-      statut: 'à_venir',
-      montant_estimé: 1800000,
-      periodicite: 'annuel',
-      rappel_actif: true,
-      rappel_jours: 30,
-      obligatoire: true
-    },
-    {
-      id: '6',
-      nom: 'Déclaration Statistique',
-      type: 'AUTRES',
-      description: 'Déclaration statistique trimestrielle',
-      date_echeance: '2024-04-15',
-      statut: 'à_venir',
-      periodicite: 'trimestriel',
-      rappel_actif: true,
-      rappel_jours: 10,
-      obligatoire: false
-    },
-    {
-      id: '7',
-      nom: 'TVA Export Trimestrielle',
-      type: 'TVA',
-      description: 'Déclaration TVA pour les exportations',
-      date_echeance: '2024-04-30',
-      statut: 'à_venir',
-      montant_estimé: 0,
-      periodicite: 'trimestriel',
-      rappel_actif: true,
-      rappel_jours: 15,
-      obligatoire: true
-    }
-  ];
-
-  const { data: deadlines = mockDeadlines, isLoading } = useQuery({
-    queryKey: ['tax-deadlines', selectedMonth, selectedType],
-    queryFn: () => Promise.resolve(mockDeadlines),
-  });
+  // Load fiscal deadlines from Dexie settings
+  const deadlinesSetting = useLiveQuery(() => db.settings.get('fiscal_deadlines'));
+  const deadlines: TaxDeadline[] = (() => {
+    try {
+      if (deadlinesSetting?.value) {
+        const parsed = JSON.parse(deadlinesSetting.value);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { /* ignore parse errors */ }
+    return [];
+  })();
+  const isLoading = deadlinesSetting === undefined;
 
   const getStatusColor = (statut: string) => {
     switch (statut) {

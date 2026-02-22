@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, DBAsset } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -140,340 +141,134 @@ const InventairePhysiquePage: React.FC = () => {
   const [showQrCodeModal, setShowQrCodeModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
-  // Mock inventory sessions
-  const mockSessions: InventorySession[] = [
-    {
+  // Live Dexie query for assets
+  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
+
+  // Map DBAsset to InventoryItem interface
+  const allInventoryItems: InventoryItem[] = useMemo(() => {
+    return dbAssets.map((a: DBAsset) => {
+      const now = new Date();
+      const acqDate = new Date(a.acquisitionDate);
+      const ageYears = (now.getTime() - acqDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const depreciableBase = a.acquisitionValue - a.residualValue;
+      const annualDepreciation = a.usefulLifeYears > 0 ? depreciableBase / a.usefulLifeYears : 0;
+      const totalDepreciation = Math.min(annualDepreciation * ageYears, depreciableBase);
+      const vnc = Math.max(a.acquisitionValue - totalDepreciation, a.residualValue);
+
+      // Determine physical state based on depreciation ratio
+      const depRatio = a.usefulLifeYears > 0 ? ageYears / a.usefulLifeYears : 0;
+      let etatPhysique: InventoryItem['etat_physique'] = 'bon';
+      if (depRatio < 0.2) etatPhysique = 'excellent';
+      else if (depRatio < 0.5) etatPhysique = 'bon';
+      else if (depRatio < 0.8) etatPhysique = 'moyen';
+      else if (depRatio < 1.0) etatPhysique = 'mauvais';
+      else etatPhysique = 'hors_service';
+
+      // Default counting status: active items marked as counted
+      let statutComptage: InventoryItem['statut_comptage'] = 'compte';
+      if (a.status === 'disposed' || a.status === 'scrapped') statutComptage = 'ecart';
+      else if (depRatio > 0.9) statutComptage = 'ecart';
+
+      return {
+        id: a.id,
+        numero_inventaire: a.code,
+        nom: a.name,
+        categorie: a.category,
+        localisation_theorique: a.category,
+        localisation_reelle: a.status === 'active' ? a.category : undefined,
+        responsable: a.category,
+        statut_comptage: statutComptage,
+        date_comptage: a.status === 'active' ? new Date().toISOString() : undefined,
+        compteur: '',
+        valeur_nette_comptable: vnc,
+        etat_physique: etatPhysique,
+        code_barre: a.code
+      };
+    });
+  }, [dbAssets]);
+
+  // Build sessions from asset data
+  const sessions: InventorySession[] = useMemo(() => {
+    const totalItems = allInventoryItems.length;
+    const counted = allInventoryItems.filter(i => i.statut_comptage === 'compte').length;
+    const ecarts = allInventoryItems.filter(i => i.statut_comptage === 'ecart').length;
+    const tauxRealisation = totalItems > 0 ? counted / totalItems : 0;
+
+    return [{
       id: 'current',
-      nom: 'Inventaire Annuel 2024',
-      date_debut: '2024-02-01',
-      date_fin_prevue: '2024-02-15',
-      statut: 'en_cours',
-      responsable: 'Marie KOUASSI',
-      equipes: ['Équipe A', 'Équipe B', 'Équipe C'],
-      perimetre: 'Tous les sites - Abidjan',
-      nb_items_total: 2847,
-      nb_items_comptes: 1923,
-      nb_ecarts: 47,
-      taux_realisation: 0.675
-    },
-    {
-      id: '2023',
-      nom: 'Inventaire Annuel 2023',
-      date_debut: '2023-02-01',
-      date_fin_prevue: '2023-02-15',
-      date_fin_reelle: '2023-02-18',
-      statut: 'termine',
-      responsable: 'Jean-Baptiste KONE',
+      nom: `Inventaire Annuel ${new Date().getFullYear()}`,
+      date_debut: `${new Date().getFullYear()}-01-01`,
+      date_fin_prevue: `${new Date().getFullYear()}-12-31`,
+      statut: 'en_cours' as const,
+      responsable: 'Direction Générale',
       equipes: ['Équipe A', 'Équipe B'],
-      perimetre: 'Siège social uniquement',
-      nb_items_total: 2654,
-      nb_items_comptes: 2654,
-      nb_ecarts: 32,
-      taux_realisation: 1.0
+      perimetre: 'Tous les sites',
+      nb_items_total: totalItems,
+      nb_items_comptes: counted,
+      nb_ecarts: ecarts,
+      taux_realisation: tauxRealisation
+    }];
+  }, [allInventoryItems]);
+
+  // Filter inventory items
+  const inventoryItems: InventoryItem[] = useMemo(() => {
+    return allInventoryItems.filter(item => {
+      const matchesStatus = selectedStatus === 'tous' || selectedStatus === 'all' || item.statut_comptage === selectedStatus;
+      const matchesZone = selectedZone === 'toutes' || selectedZone === 'all' || item.categorie === selectedZone;
+      const matchesSearch = searchTerm === '' ||
+        item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.numero_inventaire.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesStatus && matchesZone && matchesSearch;
+    });
+  }, [allInventoryItems, selectedStatus, selectedZone, searchTerm]);
+
+  const itemsLoading = false; // useLiveQuery handles loading via || []
+
+  // Build discrepancies from items with ecart status
+  const discrepancies: InventoryDiscrepancy[] = useMemo(() => {
+    return allInventoryItems
+      .filter(item => item.statut_comptage === 'ecart')
+      .map((item, idx) => ({
+        id: `disc-${item.id}`,
+        session_id: 'current',
+        item_id: item.id,
+        type_ecart: (item.etat_physique === 'hors_service' ? 'etat' :
+                     item.etat_physique === 'mauvais' ? 'etat' : 'valeur') as InventoryDiscrepancy['type_ecart'],
+        description: `Écart détecté pour ${item.nom}`,
+        impact_financier: item.valeur_nette_comptable,
+        statut_resolution: (idx % 2 === 0 ? 'en_cours' : 'resolu') as InventoryDiscrepancy['statut_resolution'],
+        responsable_resolution: item.responsable,
+        date_resolution: idx % 2 !== 0 ? new Date().toISOString().slice(0, 10) : undefined,
+        action_corrective: idx % 2 !== 0 ? 'Action corrective appliquée' : undefined
+      }));
+  }, [allInventoryItems]);
+
+  // Build team members from category groupings
+  const teamMembers: TeamMember[] = useMemo(() => {
+    const categoryMap = new Map<string, { total: number; counted: number }>();
+    for (const item of allInventoryItems) {
+      const existing = categoryMap.get(item.categorie) || { total: 0, counted: 0 };
+      existing.total += 1;
+      if (item.statut_comptage === 'compte') existing.counted += 1;
+      categoryMap.set(item.categorie, existing);
     }
-  ];
 
-  // Mock inventory items avec plus de données
-  const mockInventoryItems: InventoryItem[] = [
-    {
-      id: '1',
-      numero_inventaire: 'IT-2023-001',
-      nom: 'Serveur Dell PowerEdge R750',
-      categorie: 'Matériel Informatique',
-      localisation_theorique: 'Salle Serveur - Étage 2',
-      localisation_reelle: 'Salle Serveur - Étage 2',
-      responsable: 'Service IT',
-      statut_comptage: 'compte',
-      date_comptage: '2024-02-05T14:30:00Z',
-      compteur: 'Alain DIABATE',
-      valeur_nette_comptable: 7225000,
-      etat_physique: 'bon',
-      code_barre: '1234567890123',
-      qr_code: 'QR-IT-2023-001',
-      derniere_maintenance: '2024-01-15'
-    },
-    {
-      id: '2',
-      numero_inventaire: 'VH-2022-003',
-      nom: 'Véhicule Toyota Hilux',
-      categorie: 'Matériel de Transport',
-      localisation_theorique: 'Garage Principal',
-      localisation_reelle: 'En mission extérieure',
-      responsable: 'Service Logistique',
-      statut_comptage: 'ecart',
-      date_comptage: '2024-02-03T10:15:00Z',
-      compteur: 'Fatou TRAORE',
-      observations: 'Véhicule en mission à Bouaké - Retour prévu le 10/02',
-      valeur_nette_comptable: 12950000,
-      etat_physique: 'bon',
-      code_barre: '2345678901234'
-    },
-    {
-      id: '3',
-      numero_inventaire: 'MO-2023-015',
-      nom: 'Mobilier Bureau Direction',
-      categorie: 'Mobilier',
-      localisation_theorique: 'Bureau Direction - Étage 3',
-      localisation_reelle: 'Bureau Direction - Étage 3',
-      responsable: 'Direction Générale',
-      statut_comptage: 'compte',
-      date_comptage: '2024-02-04T16:45:00Z',
-      compteur: 'Ibrahim SANOGO',
-      valeur_nette_comptable: 2850000,
-      etat_physique: 'excellent',
-      code_barre: '3456789012345'
-    },
-    {
-      id: '4',
-      numero_inventaire: 'EQ-2021-007',
-      nom: 'Imprimante HP LaserJet Pro',
-      categorie: 'Équipement Bureau',
-      localisation_theorique: 'Service Comptabilité',
-      responsable: 'Service Comptabilité',
-      statut_comptage: 'non_compte',
-      valeur_nette_comptable: 450000,
-      etat_physique: 'moyen',
-      code_barre: '4567890123456'
-    },
-    {
-      id: '5',
-      numero_inventaire: 'IN-2023-022',
-      nom: 'Ordinateur Portable Lenovo',
-      categorie: 'Matériel Informatique',
-      localisation_theorique: 'Service Commercial',
-      localisation_reelle: 'Introuvable',
-      responsable: 'Service Commercial',
-      statut_comptage: 'ecart',
-      date_comptage: '2024-02-06T09:20:00Z',
-      compteur: 'Aminata BAMBA',
-      observations: 'Matériel non localisé - Possible vol ou perte',
-      valeur_nette_comptable: 1850000,
-      etat_physique: 'bon',
-      code_barre: '5678901234567'
-    },
-    {
-      id: '6',
-      numero_inventaire: 'IT-2023-045',
-      nom: 'Ordinateur Desktop HP ProDesk',
-      categorie: 'Matériel Informatique',
-      localisation_theorique: 'Bureau Comptabilité',
-      localisation_reelle: 'Bureau Comptabilité',
-      responsable: 'Service Comptabilité',
-      statut_comptage: 'compte',
-      date_comptage: '2024-02-05T10:20:00Z',
-      compteur: 'Alain DIABATE',
-      valeur_nette_comptable: 850000,
-      etat_physique: 'bon',
-      code_barre: '6789012345678'
-    },
-    {
-      id: '7',
-      numero_inventaire: 'MO-2023-021',
-      nom: 'Bureau Exécutif',
-      categorie: 'Mobilier',
-      localisation_theorique: 'Bureau DG',
-      localisation_reelle: 'Bureau DG',
-      responsable: 'Direction Générale',
-      statut_comptage: 'compte',
-      date_comptage: '2024-02-04T15:30:00Z',
-      compteur: 'Ibrahim SANOGO',
-      valeur_nette_comptable: 1250000,
-      etat_physique: 'excellent',
-      code_barre: '7890123456789'
-    },
-    {
-      id: '8',
-      numero_inventaire: 'CL-2022-010',
-      nom: 'Climatiseur LG 2.5CV',
-      categorie: 'Équipement Bureau',
-      localisation_theorique: 'Salle de Réunion',
-      localisation_reelle: 'Salle de Réunion',
-      responsable: 'Services Généraux',
-      statut_comptage: 'non_compte',
-      valeur_nette_comptable: 425000,
-      etat_physique: 'bon',
-      code_barre: '8901234567890'
-    },
-    {
-      id: '9',
-      numero_inventaire: 'VH-2023-001',
-      nom: 'Véhicule Peugeot 308',
-      categorie: 'Matériel de Transport',
-      localisation_theorique: 'Parking Principal',
-      localisation_reelle: 'Parking Principal',
-      responsable: 'Service Logistique',
-      statut_comptage: 'compte',
-      date_comptage: '2024-02-03T14:00:00Z',
-      compteur: 'Fatou TRAORE',
-      valeur_nette_comptable: 8500000,
-      etat_physique: 'excellent',
-      code_barre: '9012345678901'
-    },
-    {
-      id: '10',
-      numero_inventaire: 'IT-2023-089',
-      nom: 'Switch Cisco 48 ports',
-      categorie: 'Matériel Informatique',
-      localisation_theorique: 'Salle Serveur',
-      localisation_reelle: 'Salle Serveur',
-      responsable: 'Service IT',
-      statut_comptage: 'compte',
-      date_comptage: '2024-02-05T11:45:00Z',
-      compteur: 'Alain DIABATE',
-      valeur_nette_comptable: 2150000,
-      etat_physique: 'bon',
-      code_barre: '0123456789012'
+    const members: TeamMember[] = [];
+    let idx = 0;
+    for (const [category, counts] of categoryMap.entries()) {
+      members.push({
+        id: `team-${idx}`,
+        nom: `Équipe ${category}`,
+        role: (idx === 0 ? 'responsable' : 'compteur') as TeamMember['role'],
+        zone_affectee: category,
+        nb_items_assignes: counts.total,
+        nb_items_comptes: counts.counted,
+        taux_completion: counts.total > 0 ? counts.counted / counts.total : 0
+      });
+      idx++;
     }
-  ];
-
-  // Mock discrepancies avec plus de données
-  const mockDiscrepancies: InventoryDiscrepancy[] = [
-    {
-      id: '1',
-      session_id: 'current',
-      item_id: '2',
-      type_ecart: 'localisation',
-      description: 'Véhicule en mission extérieure non disponible pour comptage',
-      impact_financier: 0,
-      statut_resolution: 'resolu',
-      responsable_resolution: 'Chef Logistique',
-      date_resolution: '2024-02-04',
-      action_corrective: 'Comptage programmé au retour de mission'
-    },
-    {
-      id: '2',
-      session_id: 'current',
-      item_id: '5',
-      type_ecart: 'manquant',
-      description: 'Ordinateur portable non retrouvé malgré les recherches',
-      impact_financier: 1850000,
-      statut_resolution: 'en_cours',
-      responsable_resolution: 'Responsable Sécurité'
-    },
-    {
-      id: '3',
-      session_id: 'current',
-      item_id: '8',
-      type_ecart: 'etat',
-      description: 'Climatiseur présente des signes de dysfonctionnement',
-      impact_financier: 125000,
-      statut_resolution: 'en_cours',
-      responsable_resolution: 'Services Généraux',
-      action_corrective: 'Maintenance préventive à planifier'
-    },
-    {
-      id: '4',
-      session_id: 'current',
-      item_id: '3',
-      type_ecart: 'valeur',
-      description: 'Valeur comptable à réévaluer suite à amortissement',
-      impact_financier: -285000,
-      statut_resolution: 'accepte',
-      responsable_resolution: 'Service Comptabilité',
-      date_resolution: '2024-02-05',
-      action_corrective: 'Mise à jour du plan d\'amortissement'
-    },
-    {
-      id: '5',
-      session_id: 'current',
-      item_id: '6',
-      type_ecart: 'excedent',
-      description: 'Matériel non répertorié dans la base initiale',
-      impact_financier: 850000,
-      statut_resolution: 'resolu',
-      responsable_resolution: 'Service IT',
-      date_resolution: '2024-02-06',
-      action_corrective: 'Ajouté à l\'inventaire avec numéro de série'
-    }
-  ];
-
-  // Mock team members avec plus de données
-  const mockTeamMembers: TeamMember[] = [
-    {
-      id: '1',
-      nom: 'Alain DIABATE',
-      role: 'responsable',
-      zone_affectee: 'Matériel Informatique',
-      nb_items_assignes: 156,
-      nb_items_comptes: 142,
-      taux_completion: 0.91
-    },
-    {
-      id: '2',
-      nom: 'Fatou TRAORE',
-      role: 'compteur',
-      zone_affectee: 'Matériel de Transport',
-      nb_items_assignes: 28,
-      nb_items_comptes: 25,
-      taux_completion: 0.89
-    },
-    {
-      id: '3',
-      nom: 'Ibrahim SANOGO',
-      role: 'compteur',
-      zone_affectee: 'Mobilier et Équipements',
-      nb_items_assignes: 234,
-      nb_items_comptes: 198,
-      taux_completion: 0.85
-    },
-    {
-      id: '4',
-      nom: 'Aminata BAMBA',
-      role: 'verificateur',
-      zone_affectee: 'Tous secteurs',
-      nb_items_assignes: 2847,
-      nb_items_comptes: 1923,
-      taux_completion: 0.675
-    },
-    {
-      id: '5',
-      nom: 'Koffi KOUAME',
-      role: 'compteur',
-      zone_affectee: 'Services Généraux',
-      nb_items_assignes: 87,
-      nb_items_comptes: 65,
-      taux_completion: 0.75
-    },
-    {
-      id: '6',
-      nom: 'Marie KOUASSI',
-      role: 'responsable',
-      zone_affectee: 'Coordination Générale',
-      nb_items_assignes: 2847,
-      nb_items_comptes: 1923,
-      taux_completion: 0.675
-    }
-  ];
-
-  const { data: sessions = mockSessions, isLoading: sessionsLoading } = useQuery({
-    queryKey: ['inventory-sessions'],
-    queryFn: () => Promise.resolve(mockSessions),
-  });
-
-  // Filtrer les articles en fonction des critères sélectionnés et du terme de recherche
-  const filteredInventoryItems = mockInventoryItems.filter(item => {
-    const matchesStatus = selectedStatus === 'tous' || selectedStatus === 'all' || item.statut_comptage === selectedStatus;
-    const matchesZone = selectedZone === 'toutes' || selectedZone === 'all' || item.categorie === selectedZone;
-    const matchesSearch = searchTerm === '' ||
-      item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.numero_inventaire.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesZone && matchesSearch;
-  });
-
-  const { data: inventoryItems = filteredInventoryItems, isLoading: itemsLoading } = useQuery({
-    queryKey: ['inventory-items', selectedSession, selectedZone, selectedStatus, searchTerm],
-    queryFn: () => Promise.resolve(filteredInventoryItems),
-  });
-
-  const { data: discrepancies = mockDiscrepancies } = useQuery({
-    queryKey: ['inventory-discrepancies', selectedSession],
-    queryFn: () => Promise.resolve(mockDiscrepancies),
-  });
-
-  const { data: teamMembers = mockTeamMembers } = useQuery({
-    queryKey: ['team-members'],
-    queryFn: () => Promise.resolve(mockTeamMembers),
-  });
+    return members;
+  }, [allInventoryItems]);
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
@@ -577,9 +372,9 @@ const InventairePhysiquePage: React.FC = () => {
   };
 
   const currentSession = sessions.find(s => s.id === selectedSession) || sessions[0];
-  const countedItems = mockInventoryItems.filter(item => item.statut_comptage === 'compte').length;
-  const discrepanciesCount = mockInventoryItems.filter(item => item.statut_comptage === 'ecart').length;
-  const totalValue = mockInventoryItems.reduce((sum, item) => sum + item.valeur_nette_comptable, 0);
+  const countedItems = allInventoryItems.filter(item => item.statut_comptage === 'compte').length;
+  const discrepanciesCount = allInventoryItems.filter(item => item.statut_comptage === 'ecart').length;
+  const totalValue = allInventoryItems.reduce((sum, item) => sum + item.valeur_nette_comptable, 0);
   const completionRate = currentSession ? (currentSession.nb_items_comptes / currentSession.nb_items_total) : 0;
 
   return (

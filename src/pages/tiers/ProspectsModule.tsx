@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import {
   Target, Plus, Search, Filter, Download, Eye, Edit, Trash2,
   ArrowLeft, Phone, Mail, MapPin, Calendar, DollarSign,
@@ -94,125 +96,49 @@ const ProspectsModule: React.FC = () => {
   const [showProspectModal, setShowProspectModal] = useState(false);
   const [showInteractionModal, setShowInteractionModal] = useState(false);
 
-  // Mock Prospects Data
-  const mockProspects: Prospect[] = [
-    {
-      id: '1',
-      code: 'PROS001',
-      nom: 'CEMAC LOGISTICS',
-      type: 'PROSPECT',
-      statut: 'NEGOCIATION',
-      source: 'REFERRAL',
-      secteurActivite: 'Transport & Logistique',
-      scoreProspection: 85,
-      probabiliteConversion: 75,
-      valeurPotentielle: 450000,
-      dateCreation: '2024-08-15',
-      dateContact: '2024-08-20',
-      prochaineSuivi: '2024-09-25',
-      responsableCommercial: 'Marie Kouam',
+  // Live data from Dexie — filter for prospects (customers with zero balance or all customers)
+  const thirdParties = useLiveQuery(() => db.thirdParties.toArray()) || [];
+
+  // Map third parties to prospect format — treat customers with zero balance as prospects
+  const mockProspects: Prospect[] = thirdParties
+    .filter(tp => tp.type === 'customer' || tp.type === 'both')
+    .map((tp, index) => ({
+      id: tp.id,
+      code: tp.code,
+      nom: tp.name,
+      type: 'PROSPECT' as const,
+      statut: tp.balance === 0 ? 'NOUVEAU' as const : 'QUALIFIE' as const,
+      source: 'SITE_WEB' as const,
+      secteurActivite: 'Général',
+      scoreProspection: tp.balance === 0 ? 50 : 75,
+      probabiliteConversion: tp.balance === 0 ? 30 : 60,
+      valeurPotentielle: Math.abs(tp.balance) || 100000,
+      dateCreation: new Date().toISOString().split('T')[0],
+      dateContact: new Date().toISOString().split('T')[0],
+      prochaineSuivi: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      responsableCommercial: 'Non assigné',
       contact: {
-        nom: 'OBIANG',
-        prenom: 'Michel',
-        fonction: 'Directeur Opérations',
-        telephone: '+241 06 12 34 56',
-        email: 'm.obiang@cemaclogistics.ga'
+        nom: tp.name.split(' ').slice(1).join(' ') || tp.name,
+        prenom: tp.name.split(' ')[0] || '',
+        fonction: 'Contact principal',
+        telephone: tp.phone || '',
+        email: tp.email || '',
       },
       adresse: {
-        rue: '789 Avenue Bouët',
-        ville: 'Libreville',
-        pays: 'Gabon',
-        region: 'Estuaire'
+        rue: tp.address || '',
+        ville: '',
+        pays: '',
+        region: '',
       },
-      interactions: [
-        {
-          id: 'int1',
-          type: 'REUNION',
-          date: '2024-09-15',
-          description: 'Présentation de notre solution ERP',
-          resultat: 'POSITIF',
-          prochaineSuivi: '2024-09-25',
-          responsable: 'Marie Kouam'
-        }
-      ],
-      opportunites: [
-        {
-          id: 'opp1',
-          nom: 'Implémentation ERP Complet',
-          valeur: 450000,
-          probabilite: 75,
-          dateCreation: '2024-08-20',
-          dateFermeturePrevue: '2024-11-30',
-          statut: 'OUVERTE',
-          phase: 'Négociation'
-        }
-      ],
-      notes: 'Prospect très intéressé par la solution complète. Budget confirmé.',
-      stadeEntonnoir: 'NEGOCIATION',
-      besoinsIdentifies: ['ERP Comptabilité', 'Gestion Stock', 'CRM'],
-      concurrents: ['SAGE', 'SAP'],
-      budgetEstime: 450000,
-      tempsVentePrevue: 90
-    },
-    {
-      id: '2',
-      code: 'PROS002',
-      nom: 'BANQUE CENTRALE CEMAC',
-      type: 'PROSPECT',
-      statut: 'INTERESSE',
-      source: 'SALON',
-      secteurActivite: 'Services Financiers',
-      scoreProspection: 92,
-      probabiliteConversion: 60,
-      valeurPotentielle: 850000,
-      dateCreation: '2024-09-01',
-      dateContact: '2024-09-05',
-      prochaineSuivi: '2024-09-28',
-      responsableCommercial: 'Paul Mbeki',
-      contact: {
-        nom: 'NGOZI',
-        prenom: 'Fatima',
-        fonction: 'Directrice Informatique',
-        telephone: '+237 6 22 33 44 55',
-        email: 'f.ngozi@beac.int'
-      },
-      adresse: {
-        rue: 'Avenue Monseigneur Vogt',
-        ville: 'Yaoundé',
-        pays: 'Cameroun',
-        region: 'Centre'
-      },
-      interactions: [
-        {
-          id: 'int2',
-          type: 'DEMO',
-          date: '2024-09-10',
-          description: 'Démonstration module Treasury Management',
-          resultat: 'POSITIF',
-          prochaineSuivi: '2024-09-28',
-          responsable: 'Paul Mbeki'
-        }
-      ],
-      opportunites: [
-        {
-          id: 'opp2',
-          nom: 'Solution Treasury Management',
-          valeur: 850000,
-          probabilite: 60,
-          dateCreation: '2024-09-05',
-          dateFermeturePrevue: '2024-12-31',
-          statut: 'OUVERTE',
-          phase: 'Proposition'
-        }
-      ],
-      notes: 'Appel d\'offres prévu Q4 2024. Très haute valeur stratégique.',
-      stadeEntonnoir: 'PROPOSITION',
-      besoinsIdentifies: ['Treasury Management', 'Reporting Réglementaire', 'Analytics'],
-      concurrents: ['Oracle', 'Misys'],
-      budgetEstime: 850000,
-      tempsVentePrevue: 120
-    }
-  ];
+      interactions: [],
+      opportunites: [],
+      notes: `Code: ${tp.code}${tp.taxId ? ` | NIF: ${tp.taxId}` : ''}`,
+      stadeEntonnoir: 'DECOUVERTE' as const,
+      besoinsIdentifies: [],
+      concurrents: [],
+      budgetEstime: Math.abs(tp.balance) || 100000,
+      tempsVentePrevue: 90,
+    }));
 
   // Mock Analytics
   const analytics: ProspectAnalytics = {

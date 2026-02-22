@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
@@ -62,154 +64,28 @@ const UsersPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['users', searchTerm, selectedDepartment, selectedRole, selectedStatus],
-    queryFn: async () => {
-      const mockUsers: User[] = [
-        {
-          id: '1',
-          firstName: 'Marie',
-          lastName: 'Dubois',
-          email: 'marie.dubois@atlasfinance.com',
-          phone: '+225 01 23 45 67',
-          status: 'active',
-          role: 'Administrateur',
-          department: 'Finance',
-          position: 'Directrice Financière',
-          lastLogin: '2024-08-25T09:15:00Z',
-          createdAt: '2024-01-15T00:00:00Z',
-          lastModified: '2024-08-20T14:30:00Z',
-          permissions: ['all_access', 'user_management', 'system_config'],
-          failedLogins: 0,
-          passwordLastChanged: '2024-07-15T00:00:00Z',
-          isEmailVerified: true,
-          is2FAEnabled: true
-        },
-        {
-          id: '2',
-          firstName: 'Jean',
-          lastName: 'Kouassi',
-          email: 'jean.kouassi@atlasfinance.com',
-          phone: '+225 02 34 56 78',
-          status: 'active',
-          role: 'Manager Commercial',
-          department: 'Commercial',
-          position: 'Directeur Commercial',
-          lastLogin: '2024-08-25T08:30:00Z',
-          createdAt: '2024-02-01T00:00:00Z',
-          lastModified: '2024-08-22T16:45:00Z',
-          permissions: ['commercial_read', 'commercial_write', 'client_management'],
-          failedLogins: 1,
-          passwordLastChanged: '2024-06-20T00:00:00Z',
-          isEmailVerified: true,
-          is2FAEnabled: false
-        },
-        {
-          id: '3',
-          firstName: 'Paul',
-          lastName: 'Martin',
-          email: 'paul.martin@atlasfinance.com',
-          phone: '+225 03 45 67 89',
-          status: 'active',
-          role: 'Contrôleur de Gestion',
-          department: 'Gestion',
-          position: 'Contrôleur de Gestion Senior',
-          lastLogin: '2024-08-24T16:45:00Z',
-          createdAt: '2024-01-20T00:00:00Z',
-          lastModified: '2024-08-15T11:20:00Z',
-          permissions: ['budget_read', 'budget_write', 'analytics_access'],
-          failedLogins: 0,
-          passwordLastChanged: '2024-05-10T00:00:00Z',
-          isEmailVerified: true,
-          is2FAEnabled: true
-        },
-        {
-          id: '4',
-          firstName: 'Sophie',
-          lastName: 'Koné',
-          email: 'sophie.kone@atlasfinance.com',
-          phone: '+225 04 56 78 90',
-          status: 'locked',
-          role: 'RH Manager',
-          department: 'RH',
-          position: 'Responsable Ressources Humaines',
-          lastLogin: '2024-08-23T14:20:00Z',
-          createdAt: '2024-03-01T00:00:00Z',
-          lastModified: '2024-08-23T14:25:00Z',
-          permissions: ['hr_read', 'hr_write', 'employee_management'],
-          failedLogins: 5,
-          passwordLastChanged: '2024-04-15T00:00:00Z',
-          isEmailVerified: true,
-          is2FAEnabled: false
-        },
-        {
-          id: '5',
-          firstName: 'Ahmed',
-          lastName: 'Diallo',
-          email: 'ahmed.diallo@atlasfinance.com',
-          phone: '+225 05 67 89 01',
-          status: 'inactive',
-          role: 'Comptable',
-          department: 'Comptabilité',
-          position: 'Comptable Junior',
-          lastLogin: '2024-08-20T10:15:00Z',
-          createdAt: '2024-04-01T00:00:00Z',
-          lastModified: '2024-08-21T09:00:00Z',
-          permissions: ['accounting_read', 'entries_write'],
-          failedLogins: 0,
-          passwordLastChanged: '2024-08-01T00:00:00Z',
-          isEmailVerified: false,
-          is2FAEnabled: false
-        },
-        {
-          id: '6',
-          firstName: 'Fatima',
-          lastName: 'Traoré',
-          email: 'fatima.traore@atlasfinance.com',
-          phone: '+225 06 78 90 12',
-          status: 'active',
-          role: 'Analyste Financier',
-          department: 'Finance',
-          position: 'Analyste Financier Senior',
-          lastLogin: '2024-08-24T17:30:00Z',
-          createdAt: '2024-02-15T00:00:00Z',
-          lastModified: '2024-08-20T08:15:00Z',
-          permissions: ['finance_read', 'reporting_access', 'treasury_read'],
-          failedLogins: 0,
-          passwordLastChanged: '2024-07-01T00:00:00Z',
-          isEmailVerified: true,
-          is2FAEnabled: true
-        }
-      ];
-      
-      return mockUsers.filter(user =>
-        (searchTerm === '' || 
-         user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         user.position.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (selectedDepartment === 'all' || user.department === selectedDepartment) &&
-        (selectedRole === 'all' || user.role === selectedRole) &&
-        (selectedStatus === 'all' || user.status === selectedStatus)
-      );
-    }
-  });
+  // Load users from Dexie settings
+  const usersSetting = useLiveQuery(() => db.settings.get('users_list'));
+  const allUsers: User[] = usersSetting ? JSON.parse(usersSetting.value) : [];
+  const isLoading = usersSetting === undefined;
 
-  const { data: roles = [] } = useQuery({
-    queryKey: ['roles'],
-    queryFn: async () => {
-      const mockRoles: Role[] = [
-        { id: '1', name: 'Administrateur', description: 'Accès complet au système', permissions: ['all_access'] },
-        { id: '2', name: 'Manager Commercial', description: 'Gestion commerciale et clients', permissions: ['commercial_read', 'commercial_write'] },
-        { id: '3', name: 'Contrôleur de Gestion', description: 'Contrôle budgétaire et analytique', permissions: ['budget_read', 'analytics_access'] },
-        { id: '4', name: 'RH Manager', description: 'Gestion des ressources humaines', permissions: ['hr_read', 'hr_write'] },
-        { id: '5', name: 'Comptable', description: 'Saisie et consultation comptable', permissions: ['accounting_read', 'entries_write'] },
-        { id: '6', name: 'Analyste Financier', description: 'Analyse financière et reporting', permissions: ['finance_read', 'reporting_access'] }
-      ];
-      
-      return mockRoles;
-    }
-  });
+  // Filter users based on search/filter criteria
+  const users = useMemo(() => {
+    return allUsers.filter(user =>
+      (searchTerm === '' ||
+       user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       user.position.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (selectedDepartment === 'all' || user.department === selectedDepartment) &&
+      (selectedRole === 'all' || user.role === selectedRole) &&
+      (selectedStatus === 'all' || user.status === selectedStatus)
+    );
+  }, [allUsers, searchTerm, selectedDepartment, selectedRole, selectedStatus]);
+
+  // Load roles from Dexie settings
+  const rolesSetting = useLiveQuery(() => db.settings.get('roles_config'));
+  const roles: Role[] = rolesSetting ? JSON.parse(rolesSetting.value) : [];
 
   const toggleUserStatusMutation = useMutation({
     mutationFn: async ({ userId, newStatus }: { userId: string; newStatus: string }) => {

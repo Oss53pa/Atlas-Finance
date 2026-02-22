@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatDate } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import {
   MessageSquare, Plus, Search, Filter, Download, Eye, Edit, Trash2,
   ArrowLeft, Send, Paperclip, Phone, Video, Users, Settings,
@@ -23,188 +25,58 @@ const CollaborationModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock Chat Data
-  const mockChats = [
-    {
-      id: '1',
-      type: 'tiers',
-      name: 'SARL CONGO BUSINESS',
-      lastMessage: 'Merci pour la proposition, nous allons étudier cela.',
-      lastMessageTime: '2024-09-19T14:30:00Z',
-      unreadCount: 2,
-      isOnline: true,
-      participants: [
-        { id: 'u1', name: 'Jean MAMBOU', role: 'Directeur Commercial', avatar: 'JM' },
-        { id: 'u2', name: 'Marie Kouam', role: 'Commercial Atlas Finance', avatar: 'MK' }
-      ],
-      tiersInfo: {
-        type: 'CLIENT',
-        chiffreAffaires: 245000,
-        encours: 15000
-      },
-      messages: [
-        {
-          id: 'm1',
-          senderId: 'u1',
-          senderName: 'Jean MAMBOU',
-          content: 'Bonjour, j\'aimerais discuter des nouvelles conditions commerciales.',
-          timestamp: '2024-09-19T10:15:00Z',
-          type: 'text',
-          isOwn: false
-        },
-        {
-          id: 'm2',
-          senderId: 'u2',
-          senderName: 'Marie Kouam',
-          content: 'Bonjour Jean, bien sûr ! Je vous prépare une proposition détaillée.',
-          timestamp: '2024-09-19T10:18:00Z',
-          type: 'text',
-          isOwn: true
-        },
-        {
-          id: 'm3',
-          senderId: 'u2',
-          senderName: 'Marie Kouam',
-          content: 'Voici la proposition commerciale que nous avions évoquée.',
-          timestamp: '2024-09-19T14:25:00Z',
-          type: 'file',
-          fileName: 'Proposition_Commerciale_Q4.pdf',
-          fileSize: 2.5,
-          isOwn: true
-        },
-        {
-          id: 'm4',
-          senderId: 'u1',
-          senderName: 'Jean MAMBOU',
-          content: 'Merci pour la proposition, nous allons étudier cela.',
-          timestamp: '2024-09-19T14:30:00Z',
-          type: 'text',
-          isOwn: false
-        }
-      ]
-    },
-    {
-      id: '2',
-      type: 'team',
-      name: 'Équipe Commercial',
-      lastMessage: 'Réunion prévue demain à 14h.',
-      lastMessageTime: '2024-09-19T13:45:00Z',
-      unreadCount: 0,
-      isOnline: false,
-      participants: [
-        { id: 'u2', name: 'Marie Kouam', role: 'Commercial', avatar: 'MK' },
-        { id: 'u3', name: 'Paul Mbeki', role: 'Commercial', avatar: 'PM' },
-        { id: 'u4', name: 'Sophie Ndong', role: 'Manager', avatar: 'SN' }
-      ],
-      messages: [
-        {
-          id: 'm5',
-          senderId: 'u4',
-          senderName: 'Sophie Ndong',
-          content: 'Équipe, nous devons faire le point sur les prospects Q4.',
-          timestamp: '2024-09-19T13:30:00Z',
-          type: 'text',
-          isOwn: false
-        },
-        {
-          id: 'm6',
-          senderId: 'u4',
-          senderName: 'Sophie Ndong',
-          content: 'Réunion prévue demain à 14h.',
-          timestamp: '2024-09-19T13:45:00Z',
-          type: 'text',
-          isOwn: false
-        }
-      ]
-    },
-    {
-      id: '3',
-      type: 'tiers',
-      name: 'CEMAC SUPPLIES',
-      lastMessage: 'Les délais de livraison sont confirmés.',
-      lastMessageTime: '2024-09-19T11:20:00Z',
-      unreadCount: 1,
-      isOnline: true,
-      participants: [
-        { id: 'u5', name: 'Martin NKOMO', role: 'Directeur Commercial', avatar: 'MN' },
-        { id: 'u6', name: 'Jean Akono', role: 'Acheteur Atlas Finance', avatar: 'JA' }
-      ],
-      tiersInfo: {
-        type: 'FOURNISSEUR',
-        chiffreAffaires: 850000,
-        evaluation: 9.2
-      },
-      messages: [
-        {
-          id: 'm7',
-          senderId: 'u6',
-          senderName: 'Jean Akono',
-          content: 'Bonjour Martin, pouvez-vous confirmer les délais pour la commande 2024-045 ?',
-          timestamp: '2024-09-19T11:10:00Z',
-          type: 'text',
-          isOwn: true
-        },
-        {
-          id: 'm8',
-          senderId: 'u5',
-          senderName: 'Martin NKOMO',
-          content: 'Les délais de livraison sont confirmés.',
-          timestamp: '2024-09-19T11:20:00Z',
-          type: 'text',
-          isOwn: false
-        }
-      ]
-    }
-  ];
+  // Live data from Dexie
+  const thirdParties = useLiveQuery(() => db.thirdParties.toArray()) || [];
+  const settings = useLiveQuery(() => db.settings.toArray()) || [];
 
-  // Mock Collaborations Data
-  const mockCollaborations = [
-    {
-      id: '1',
-      title: 'Négociation Contrat CONGO BUSINESS',
-      description: 'Négociation du nouveau contrat cadre pour 2025',
-      status: 'ACTIVE',
-      priority: 'HAUTE',
-      dueDate: '2024-10-15',
+  // Build chat data from third parties
+  const mockChats = thirdParties.map((tp) => {
+    const typeLabel = tp.type === 'customer' ? 'CLIENT' : tp.type === 'supplier' ? 'FOURNISSEUR' : 'CLIENT/FOURNISSEUR';
+    return {
+      id: tp.id,
+      type: 'tiers' as const,
+      name: tp.name,
+      lastMessage: `Dernier échange avec ${tp.name}`,
+      lastMessageTime: new Date().toISOString(),
+      unreadCount: 0,
+      isOnline: tp.isActive,
       participants: [
-        { id: 'u1', name: 'Jean MAMBOU', role: 'Client' },
-        { id: 'u2', name: 'Marie Kouam', role: 'Commercial' },
-        { id: 'u7', name: 'David Morin', role: 'Juridique' }
+        { id: `contact-${tp.id}`, name: tp.name, role: typeLabel, avatar: tp.name.substring(0, 2).toUpperCase() },
       ],
-      tasks: [
-        { id: 't1', title: 'Rédiger proposition commerciale', status: 'TERMINE', assignee: 'Marie Kouam' },
-        { id: 't2', title: 'Révision juridique', status: 'EN_COURS', assignee: 'David Morin' },
-        { id: 't3', title: 'Validation client', status: 'A_FAIRE', assignee: 'Jean MAMBOU' }
-      ],
-      progress: 67,
-      documents: [
-        { id: 'd1', name: 'Proposition_v2.pdf', size: 1.2, uploadedBy: 'Marie Kouam' },
-        { id: 'd2', name: 'Conditions_Generales.docx', size: 0.8, uploadedBy: 'David Morin' }
-      ]
-    },
-    {
-      id: '2',
-      title: 'Audit Qualité CEMAC SUPPLIES',
-      description: 'Audit qualité annuel et renouvellement certification',
+      tiersInfo: {
+        type: typeLabel,
+        chiffreAffaires: Math.abs(tp.balance),
+        encours: tp.balance > 0 ? tp.balance : 0,
+      },
+      messages: [] as Array<{
+        id: string;
+        senderId: string;
+        senderName: string;
+        content: string;
+        timestamp: string;
+        type: string;
+        isOwn: boolean;
+      }>,
+    };
+  });
+
+  // Build collaborations from third parties with active status
+  const mockCollaborations = thirdParties
+    .filter(tp => tp.isActive)
+    .map((tp) => ({
+      id: `collab-${tp.id}`,
+      title: `Collaboration avec ${tp.name}`,
+      description: `Suivi collaboratif pour ${tp.name} (${tp.code})`,
       status: 'ACTIVE',
-      priority: 'NORMALE',
-      dueDate: '2024-11-30',
+      priority: Math.abs(tp.balance) > 500000 ? 'HAUTE' : 'NORMALE',
+      dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
       participants: [
-        { id: 'u5', name: 'Martin NKOMO', role: 'Fournisseur' },
-        { id: 'u6', name: 'Jean Akono', role: 'Acheteur' },
-        { id: 'u8', name: 'Claire Essomo', role: 'Qualité' }
+        { id: `contact-${tp.id}`, name: tp.name, role: tp.type === 'customer' ? 'Client' : 'Fournisseur' },
       ],
-      tasks: [
-        { id: 't4', title: 'Planifier audit sur site', status: 'TERMINE', assignee: 'Claire Essomo' },
-        { id: 't5', title: 'Audit documentation', status: 'EN_COURS', assignee: 'Claire Essomo' },
-        { id: 't6', title: 'Rapport final', status: 'A_FAIRE', assignee: 'Claire Essomo' }
-      ],
-      progress: 40,
-      documents: [
-        { id: 'd3', name: 'Checklist_Audit.xlsx', size: 0.5, uploadedBy: 'Claire Essomo' }
-      ]
-    }
-  ];
+      tasks: [] as Array<{ id: string; title: string; status: string; assignee: string }>,
+      progress: 0,
+      documents: [] as Array<{ id: string; name: string; size: number; uploadedBy: string }>,
+    }));
 
   // Mock Analytics Data
   const analyticsData = {

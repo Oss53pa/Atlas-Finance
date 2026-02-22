@@ -57,19 +57,20 @@ export class DepreciationService {
     immobilisation: Immobilisation,
     mois: string
   ): number {
-    const annuiteMensuelle =
+    const annuiteAnnuelle =
       immobilisation.modeAmortissement === 'lineaire'
         ? this.calculerAmortissementLineaire(
             immobilisation.valeurAcquisition,
             immobilisation.dureeAmortissement,
             immobilisation.valeurResiduelle
-          ) / 12
+          )
         : this.calculerAmortissementDegressif(
             immobilisation.valeurAcquisition,
             immobilisation.tauxAmortissement,
             this.calculerAnneesEcoulees(immobilisation.dateAcquisition, mois),
             immobilisation.amortissementsCumules
-          ) / 12;
+          );
+    const annuiteMensuelle = money(annuiteAnnuelle).divide(12).toNumber();
 
     return money(annuiteMensuelle).round(0).toNumber();
   }

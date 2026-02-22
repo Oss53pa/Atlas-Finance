@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 
 const PrevisionsTresoreriePage: React.FC = () => {
@@ -13,22 +15,79 @@ const PrevisionsTresoreriePage: React.FC = () => {
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
-  // Tous les comptes de trésorerie
-  const allTreasuryAccounts = [
-    { number: '521007', description: 'B2 nsia charges d\'explotations', iban: 'CI33390420121602278890200496', swift: 'BIAOCIABXXX', amount: -64051588, bank: 'NSIA' },
-    { number: '521008', description: 'B1 nsia domiciliation', iban: 'CI33390420121602278890200205', swift: 'BIAOCIABXXX', amount: -1791064, bank: 'NSIA' },
-    { number: '521201', description: 'BCA Compte Principal', iban: 'CI33390420121602278890200301', swift: 'BCAOCIABXXX', amount: 8200000, bank: 'BCA' },
-    { number: '521301', description: 'Banque Atlantique Trésorerie', iban: 'CI33390420121602278890200401', swift: 'BATLCIABXXX', amount: 1800000, bank: 'ATLANTIQUE' },
-    { number: '520001', description: 'Caisse Centrale', iban: '-', swift: '-', amount: 2500000, bank: 'CAISSE' }
-  ];
+  // Load treasury accounts from Dexie: accounts starting with 52 (bank) or 57 (cash)
+  const dbAccounts = useLiveQuery(() => db.accounts.toArray()) || [];
+  const journalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+  const treasurySettingRaw = useLiveQuery(() => db.settings.get('treasury_accounts'));
+  const forecastSettingRaw = useLiveQuery(() => db.settings.get('treasury_forecasts'));
+  const treasuryPlansSetting = useLiveQuery(() => db.settings.get('treasury_plans'));
+  const treasuryPlans = treasuryPlansSetting ? JSON.parse(treasuryPlansSetting.value) : [];
 
-  // Événements par banque
-  const futureTransactions = [
-    { codeJournal: 'BQ01', numFacture: 'F001', numPiece: 'P001', docDate: '20/10/2025', transDate: '22/10/2025', glAccount: '521007', glDescription: 'Virement fournisseur', cashTransaction: 'OUT', amount: -5000000, collectionDate: '22/10/2025', accountant: 'Jean Dupont', bank: 'NSIA' },
-    { codeJournal: 'BQ02', numFacture: 'F002', numPiece: 'P002', docDate: '25/10/2025', transDate: '25/10/2025', glAccount: '521008', glDescription: 'Encaissement client', cashTransaction: 'IN', amount: 15000000, collectionDate: '25/10/2025', accountant: 'Marie Martin', bank: 'NSIA' },
-    { codeJournal: 'BQ03', numFacture: 'F003', numPiece: 'P003', docDate: '15/11/2025', transDate: '15/11/2025', glAccount: '521201', glDescription: 'Prélèvement charges', cashTransaction: 'OUT', amount: -3000000, collectionDate: '15/11/2025', accountant: 'Paul Durand', bank: 'BCA' },
-    { codeJournal: 'BQ04', numFacture: 'F004', numPiece: 'P004', docDate: '30/11/2025', transDate: '30/11/2025', glAccount: '521301', glDescription: 'Virement salaires', cashTransaction: 'OUT', amount: -12000000, collectionDate: '30/11/2025', accountant: 'Sophie Moreau', bank: 'ATLANTIQUE' }
-  ];
+  // Build treasury accounts: prefer settings, fallback to accounts table with computed balances
+  const allTreasuryAccounts = useMemo(() => {
+    if (treasurySettingRaw) {
+      return JSON.parse(treasurySettingRaw.value) as Array<{ number: string; description: string; iban: string; swift: string; amount: number; bank: string }>;
+    }
+    // Derive from accounts table (class 5 = treasury)
+    const treasuryAccts = dbAccounts.filter(a => a.code.startsWith('52') || a.code.startsWith('57'));
+    return treasuryAccts.map(acct => {
+      // Compute balance from journal entries
+      let balance = 0;
+      journalEntries
+        .filter(e => e.status === 'validated' || e.status === 'posted')
+        .forEach(entry => {
+          entry.lines.forEach(line => {
+            if (line.accountCode === acct.code) {
+              balance += line.debit - line.credit;
+            }
+          });
+        });
+      const bankName = acct.code.startsWith('57') ? 'CAISSE' : acct.name.split(' ')[0]?.toUpperCase() || 'BANQUE';
+      return {
+        number: acct.code,
+        description: acct.name,
+        iban: '-',
+        swift: '-',
+        amount: balance,
+        bank: bankName,
+      };
+    });
+  }, [treasurySettingRaw, dbAccounts, journalEntries]);
+
+  // Build future transactions from settings or derive from recent journal entries
+  const futureTransactions = useMemo(() => {
+    if (forecastSettingRaw) {
+      return JSON.parse(forecastSettingRaw.value) as Array<{ codeJournal: string; numFacture: string; numPiece: string; docDate: string; transDate: string; glAccount: string; glDescription: string; cashTransaction: string; amount: number; collectionDate: string; accountant: string; bank: string }>;
+    }
+    // Derive from recent draft journal entries on treasury accounts
+    const treasuryCodes = new Set(allTreasuryAccounts.map(a => a.number));
+    const txns: Array<{ codeJournal: string; numFacture: string; numPiece: string; docDate: string; transDate: string; glAccount: string; glDescription: string; cashTransaction: string; amount: number; collectionDate: string; accountant: string; bank: string }> = [];
+    journalEntries
+      .filter(e => e.status === 'draft')
+      .forEach(entry => {
+        entry.lines.forEach(line => {
+          if (treasuryCodes.has(line.accountCode)) {
+            const amount = line.debit > 0 ? line.debit : -line.credit;
+            const matchingAcct = allTreasuryAccounts.find(a => a.number === line.accountCode);
+            txns.push({
+              codeJournal: entry.journal,
+              numFacture: entry.reference,
+              numPiece: entry.entryNumber,
+              docDate: new Date(entry.date).toLocaleDateString('fr-FR'),
+              transDate: new Date(entry.date).toLocaleDateString('fr-FR'),
+              glAccount: line.accountCode,
+              glDescription: line.label || entry.label,
+              cashTransaction: amount >= 0 ? 'IN' : 'OUT',
+              amount,
+              collectionDate: new Date(entry.date).toLocaleDateString('fr-FR'),
+              accountant: entry.createdBy || '',
+              bank: matchingAcct?.bank || '',
+            });
+          }
+        });
+      });
+    return txns;
+  }, [forecastSettingRaw, journalEntries, allTreasuryAccounts]);
 
   // Fonctions de sélection
   const toggleAccountSelection = (accountNumber: string) => {
@@ -248,19 +307,27 @@ const PrevisionsTresoreriePage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-white rounded border">
                   <div className="text-sm text-gray-600">Incoming</div>
-                  <div className="font-bold text-green-600">0</div>
+                  <div className="font-bold text-green-600">
+                    {new Intl.NumberFormat('fr-FR').format(getFilteredTransactions().filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0))}
+                  </div>
                 </div>
                 <div className="text-center p-3 bg-white rounded border">
                   <div className="text-sm text-gray-600">Outcoming</div>
-                  <div className="font-bold text-red-600">0</div>
+                  <div className="font-bold text-red-600">
+                    {new Intl.NumberFormat('fr-FR').format(getFilteredTransactions().filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0))}
+                  </div>
                 </div>
                 <div className="text-center p-3 bg-white rounded border">
                   <div className="text-sm text-gray-600">Total</div>
-                  <div className="font-bold text-red-600">-65,842,652</div>
+                  <div className="font-bold text-red-600">
+                    {new Intl.NumberFormat('fr-FR').format(getTotalAmount())}
+                  </div>
                 </div>
                 <div className="text-center p-3 bg-[var(--color-primary)]/10 rounded border border-[var(--color-primary)]">
                   <div className="text-sm text-[var(--color-text-primary)] font-medium">Solde Final</div>
-                  <div className="font-bold text-red-600">-65,842,652</div>
+                  <div className="font-bold text-red-600">
+                    {new Intl.NumberFormat('fr-FR').format(getTotalAmount() + getFilteredTransactionsTotal())}
+                  </div>
                 </div>
               </div>
             </div>
@@ -298,114 +365,69 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Octobre 2025</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-medium">-95,194,202</td>
-                    <td className="px-4 py-3 text-right text-green-600 font-semibold">+15,000,000</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-semibold">-8,500,000</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-bold">-88,694,202</td>
-                    <td className="px-4 py-3">85%</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        En cours
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center space-x-1">
-                        <button
-                          className="p-1 text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/80 hover:bg-[var(--color-primary)]/10 rounded transition-colors"
-                          title="Voir les détails"
-                        >
-                          👁️
-                        </button>
-                        <button
-                          onClick={() => navigate('/treasury/cash-flow/plan/1')}
-                          className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded transition-colors"
-                          title="Modifier le plan"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
-                          title="Supprimer le plan"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Novembre 2025</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-medium">-88,694,202</td>
-                    <td className="px-4 py-3 text-right text-green-600 font-semibold">+22,000,000</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-semibold">-12,000,000</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-bold">-78,694,202</td>
-                    <td className="px-4 py-3">78%</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
-                        Planifié
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center space-x-1">
-                        <button
-                          className="p-1 text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/80 hover:bg-[var(--color-primary)]/10 rounded transition-colors"
-                          title="Voir les détails"
-                        >
-                          👁️
-                        </button>
-                        <button
-                          onClick={() => navigate('/treasury/cash-flow/plan/2')}
-                          className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded transition-colors"
-                          title="Modifier le plan"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
-                          title="Supprimer le plan"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Décembre 2025</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-medium">-78,694,202</td>
-                    <td className="px-4 py-3 text-right text-green-600 font-semibold">+35,000,000</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-semibold">-25,000,000</td>
-                    <td className="px-4 py-3 text-right text-red-600 font-bold">-68,694,202</td>
-                    <td className="px-4 py-3">72%</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        Prévisionnel
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center space-x-1">
-                        <button
-                          className="p-1 text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/80 hover:bg-[var(--color-primary)]/10 rounded transition-colors"
-                          title="Voir les détails"
-                        >
-                          👁️
-                        </button>
-                        <button
-                          onClick={() => navigate('/treasury/cash-flow/plan/3')}
-                          className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded transition-colors"
-                          title="Modifier le plan"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
-                          title="Supprimer le plan"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                  {treasuryPlans.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center text-gray-700">
+                        Aucun plan de tresorerie. Cliquez sur "Nouveau Plan" pour en creer un.
+                      </td>
+                    </tr>
+                  ) : (
+                    treasuryPlans.map((plan: { id: string; periode: string; soldeDebut: number; encaissements: number; decaissements: number; soldeFin: number; confiance: string; statut: string }) => {
+                      const getStatusStyle = (statut: string) => {
+                        switch (statut) {
+                          case 'En cours': return 'bg-yellow-100 text-yellow-800';
+                          case 'Planifie': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
+                          default: return 'bg-gray-100 text-gray-800';
+                        }
+                      };
+                      return (
+                        <tr key={plan.id}>
+                          <td className="px-4 py-3 font-medium">{plan.periode}</td>
+                          <td className="px-4 py-3 text-right text-red-600 font-medium">
+                            {new Intl.NumberFormat('fr-FR').format(plan.soldeDebut)}
+                          </td>
+                          <td className="px-4 py-3 text-right text-green-600 font-semibold">
+                            +{new Intl.NumberFormat('fr-FR').format(plan.encaissements)}
+                          </td>
+                          <td className="px-4 py-3 text-right text-red-600 font-semibold">
+                            {new Intl.NumberFormat('fr-FR').format(plan.decaissements)}
+                          </td>
+                          <td className="px-4 py-3 text-right text-red-600 font-bold">
+                            {new Intl.NumberFormat('fr-FR').format(plan.soldeFin)}
+                          </td>
+                          <td className="px-4 py-3">{plan.confiance}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(plan.statut)}`}>
+                              {plan.statut}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <div className="flex items-center justify-center space-x-1">
+                              <button
+                                className="p-1 text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/80 hover:bg-[var(--color-primary)]/10 rounded transition-colors"
+                                title="Voir les details"
+                              >
+                                👁️
+                              </button>
+                              <button
+                                onClick={() => navigate(`/treasury/cash-flow/plan/${plan.id}`)}
+                                className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded transition-colors"
+                                title="Modifier le plan"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                                title="Supprimer le plan"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

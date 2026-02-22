@@ -7,6 +7,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
 import { authenticateUser, AuthError, errorResponse } from '../_shared/auth.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
+import { checkRateLimit, getUserIdFromRequest } from '../_shared/rateLimit.ts'
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -277,6 +278,10 @@ serve(async (req: Request) => {
   // CORS preflight
   const corsResponse = handleCors(req)
   if (corsResponse) return corsResponse
+
+  // Rate limiting
+  const rateLimitResponse = checkRateLimit(getUserIdFromRequest(req));
+  if (rateLimitResponse) return rateLimitResponse;
 
   try {
     // Authenticate

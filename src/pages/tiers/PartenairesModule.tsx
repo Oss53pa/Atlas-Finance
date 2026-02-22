@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users, Plus, Search, Filter, Download, Eye, Edit, Trash2,
@@ -195,178 +197,70 @@ const PartenairesModule: React.FC = () => {
     }
   };
 
-  // Mock Partenaires Data
-  const mockPartenaires: Partenaire[] = [
-    {
-      id: '1',
-      code: 'PART001',
-      nom: 'CEMAC TECH SOLUTIONS',
-      type: 'INTEGRATEUR',
-      statut: 'ACTIF',
-      niveau: 'PLATINUM',
-      secteurActivite: 'Intégration Systèmes',
-      zoneCouverture: ['Cameroun', 'Gabon', 'Guinée Équatoriale'],
-      dateDebut: '2022-01-15',
-      dateFinContrat: '2025-01-15',
-      chiffreAffairesAnnuel: 2450000,
-      commissionRate: 15,
-      scorePerformance: 94,
-      certifications: ['Atlas Finance Certified Partner', 'Advanced Implementation', 'Technical Support'],
-      contact: {
-        nom: 'MVONDO',
-        prenom: 'Patrick',
-        fonction: 'Directeur Partenariats',
-        telephone: '+237 6 99 88 77 66',
-        email: 'p.mvondo@cemactech.cm'
-      },
-      adresse: {
-        rue: 'Immeuble CEMAC, Avenue Kennedy',
-        ville: 'Yaoundé',
-        pays: 'Cameroun',
-        region: 'Centre'
-      },
-      indicateursPerformance: {
-        ventesGenerees: 2450000,
-        clientsApportes: 45,
-        satisfactionClients: 4.7,
-        respectObjectifs: 112,
-        qualiteLivraisons: 96
-      },
-      collaboration: {
-        projetsCommuns: 23,
-        formationsRealisees: 8,
-        evenementsParticipes: 12,
-        supportTechnique: 'PREMIUM'
-      },
-      contrat: {
-        typeContrat: 'ZONE_EXCLUSIVE',
-        conditionsCommerciales: '15% commission + bonus performance',
-        objectifsAnnuels: 2200000,
-        bonusPerformance: 50000
-      },
-      historique: [
-        {
-          id: 'h1',
-          date: '2024-09-15',
-          type: 'VENTE',
-          description: 'Signature contrat BANQUE POPULAIRE - 450k FCFA',
-          valeur: 450000,
-          responsable: 'Patrick MVONDO'
-        }
-      ],
-      notes: 'Partenaire stratégique clé pour la zone CEMAC. Excellent performer.',
-      documents: ['Contrat_CEMAC_TECH.pdf', 'Certifications.pdf']
-    },
-    {
-      id: '2',
-      code: 'PART002',
-      nom: 'AFRICA BUSINESS CONSULTING',
-      type: 'CONSULTANT',
-      statut: 'ACTIF',
-      niveau: 'GOLD',
-      secteurActivite: 'Conseil en Management',
-      zoneCouverture: ['Congo', 'RDC', 'Tchad'],
-      dateDebut: '2023-03-20',
-      dateFinContrat: '2026-03-20',
-      chiffreAffairesAnnuel: 1850000,
-      commissionRate: 12,
-      scorePerformance: 88,
-      certifications: ['Atlas Finance Certified Consultant', 'Business Process'],
-      contact: {
-        nom: 'KONGO',
-        prenom: 'Marie',
-        fonction: 'Directrice Générale',
-        telephone: '+242 06 77 88 99 00',
-        email: 'm.kongo@africabusiness.cg'
-      },
-      adresse: {
-        rue: 'Centre-ville, Rue Patrice Lumumba',
-        ville: 'Brazzaville',
-        pays: 'Congo',
-        region: 'Pool'
-      },
-      indicateursPerformance: {
-        ventesGenerees: 1850000,
-        clientsApportes: 32,
-        satisfactionClients: 4.4,
-        respectObjectifs: 98,
-        qualiteLivraisons: 92
-      },
-      collaboration: {
-        projetsCommuns: 18,
-        formationsRealisees: 5,
-        evenementsParticipes: 8,
-        supportTechnique: 'AVANCE'
-      },
-      contrat: {
-        typeContrat: 'NON_EXCLUSIF',
-        conditionsCommerciales: '12% commission + frais formation',
-        objectifsAnnuels: 1900000,
-        bonusPerformance: 30000
-      },
-      historique: [
-        {
-          id: 'h2',
-          date: '2024-09-10',
-          type: 'FORMATION',
-          description: 'Formation Atlas Finance Advanced pour 8 consultants',
-          responsable: 'Marie KONGO'
-        }
-      ],
-      notes: 'Expertise forte en change management. Bon potentiel de croissance.',
-      documents: ['Contrat_ABC.pdf', 'Plan_Formation.pdf']
-    },
-    {
-      id: '3',
-      code: 'PART003',
-      nom: 'GABON DIGITAL SERVICES',
-      type: 'DISTRIBUTEUR',
-      statut: 'ACTIF',
-      niveau: 'SILVER',
-      secteurActivite: 'Distribution Logiciels',
-      zoneCouverture: ['Gabon'],
-      dateDebut: '2023-08-01',
-      chiffreAffairesAnnuel: 950000,
+  // Live data from Dexie
+  const thirdParties = useLiveQuery(() => db.thirdParties.toArray()) || [];
+
+  // Map third parties to partenaire format
+  const mockPartenaires: Partenaire[] = thirdParties.map((tp) => {
+    const typeMap: Record<string, Partenaire['type']> = {
+      customer: 'DISTRIBUTEUR',
+      supplier: 'INTEGRATEUR',
+      both: 'STRATEGIQUE',
+    };
+    return {
+      id: tp.id,
+      code: tp.code,
+      nom: tp.name,
+      type: typeMap[tp.type] || 'CONSULTANT',
+      statut: tp.isActive ? 'ACTIF' as const : 'INACTIF' as const,
+      niveau: Math.abs(tp.balance) > 1000000 ? 'PLATINUM' as const
+        : Math.abs(tp.balance) > 500000 ? 'GOLD' as const
+        : Math.abs(tp.balance) > 100000 ? 'SILVER' as const
+        : 'BRONZE' as const,
+      secteurActivite: 'Général',
+      zoneCouverture: ['National'],
+      dateDebut: new Date().toISOString().split('T')[0],
+      chiffreAffairesAnnuel: Math.abs(tp.balance),
       commissionRate: 10,
-      scorePerformance: 75,
-      certifications: ['Atlas Finance Reseller'],
+      scorePerformance: tp.isActive ? 80 : 40,
+      certifications: [],
       contact: {
-        nom: 'ONDO',
-        prenom: 'Jean-Claude',
-        fonction: 'Directeur Commercial',
-        telephone: '+241 07 11 22 33 44',
-        email: 'jc.ondo@gabondigital.ga'
+        nom: tp.name.split(' ').slice(1).join(' ') || tp.name,
+        prenom: tp.name.split(' ')[0] || '',
+        fonction: 'Contact principal',
+        telephone: tp.phone || '',
+        email: tp.email || '',
       },
       adresse: {
-        rue: 'Quartier Gros-Bouquet',
-        ville: 'Libreville',
-        pays: 'Gabon',
-        region: 'Estuaire'
+        rue: tp.address || '',
+        ville: '',
+        pays: '',
+        region: '',
       },
       indicateursPerformance: {
-        ventesGenerees: 950000,
-        clientsApportes: 18,
-        satisfactionClients: 4.1,
-        respectObjectifs: 85,
-        qualiteLivraisons: 88
+        ventesGenerees: Math.abs(tp.balance),
+        clientsApportes: 0,
+        satisfactionClients: 4.0,
+        respectObjectifs: 80,
+        qualiteLivraisons: 90,
       },
       collaboration: {
-        projetsCommuns: 8,
-        formationsRealisees: 2,
-        evenementsParticipes: 4,
-        supportTechnique: 'BASIQUE'
+        projetsCommuns: 0,
+        formationsRealisees: 0,
+        evenementsParticipes: 0,
+        supportTechnique: 'BASIQUE' as const,
       },
       contrat: {
-        typeContrat: 'EXCLUSIF',
-        conditionsCommerciales: '10% commission',
-        objectifsAnnuels: 1200000,
-        bonusPerformance: 15000
+        typeContrat: 'NON_EXCLUSIF' as const,
+        conditionsCommerciales: 'Standard',
+        objectifsAnnuels: Math.abs(tp.balance),
+        bonusPerformance: 0,
       },
       historique: [],
-      notes: 'Nouveau partenaire prometteur. À accompagner pour atteindre objectifs.',
-      documents: ['Contrat_GDS.pdf']
-    }
-  ];
+      notes: `Code: ${tp.code}${tp.taxId ? ` | NIF: ${tp.taxId}` : ''}`,
+      documents: [],
+    };
+  });
 
   // Mock Analytics
   const analytics: PartenaireAnalytics = {

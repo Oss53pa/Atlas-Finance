@@ -7,6 +7,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
 import { authenticateUser, AuthError, errorResponse } from '../_shared/auth.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
+import { checkRateLimit, getUserIdFromRequest } from '../_shared/rateLimit.ts'
 
 const LLM_BASE_URL = Deno.env.get('LLM_BASE_URL') || 'http://localhost:11434'
 const EMBED_MODEL = Deno.env.get('EMBED_MODEL') || 'nomic-embed-text'
@@ -45,6 +46,10 @@ async function generateEmbeddingsBatch(texts: string[]): Promise<number[][]> {
 serve(async (req: Request) => {
   const corsResponse = handleCors(req)
   if (corsResponse) return corsResponse
+
+  // Rate limiting
+  const rateLimitResponse = checkRateLimit(getUserIdFromRequest(req));
+  if (rateLimitResponse) return rateLimitResponse;
 
   try {
     const user = await authenticateUser(req)

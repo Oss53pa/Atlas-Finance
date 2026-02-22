@@ -2,6 +2,7 @@
 // Compliant with IFRS IAS 2, US GAAP ASC 330, and SYSCOHADA
 
 import { CostLayer, ValuationMethod, InventoryTurnover, ABCAnalysis } from '../types';
+import { Money } from '@/utils/money';
 
 export class InventoryCalculations {
 
@@ -214,8 +215,8 @@ export class InventoryCalculations {
     const daysInInventory = turnoverRatio > 0 ? 365 / turnoverRatio : 0;
 
     return {
-      turnoverRatio: Number(turnoverRatio.toFixed(2)),
-      daysInInventory: Number(daysInInventory.toFixed(0))
+      turnoverRatio: new Money(turnoverRatio).round().toNumber(),
+      daysInInventory: new Money(daysInInventory).round(0).toNumber()
     };
   }
 
@@ -273,11 +274,11 @@ export class InventoryCalculations {
         annualUsage: item.annualUsage,
         unitCost: item.unitCost,
         annualValue: item.annualValue,
-        percentageOfTotal: Number(percentageOfTotal.toFixed(2)),
-        cumulativePercentage: Number(cumulativePercentage.toFixed(2)),
+        percentageOfTotal: new Money(percentageOfTotal).round().toNumber(),
+        cumulativePercentage: new Money(cumulativePercentage).round().toNumber(),
         classification,
-        turnoverRatio: Number(turnoverRatio.toFixed(2)),
-        daysInInventory: Number(daysInInventory.toFixed(0))
+        turnoverRatio: new Money(turnoverRatio).round().toNumber(),
+        daysInInventory: new Money(daysInInventory).round(0).toNumber()
       };
     });
   }
@@ -333,8 +334,8 @@ export class InventoryCalculations {
 
     return {
       eoq: Math.ceil(eoq),
-      totalCost: Number(totalCost.toFixed(2)),
-      orderFrequency: Number(orderFrequency.toFixed(2))
+      totalCost: new Money(totalCost).round().toNumber(),
+      orderFrequency: new Money(orderFrequency).round().toNumber()
     };
   }
 
@@ -412,7 +413,7 @@ export class InventoryCalculations {
     return {
       quantityShrinkage,
       valueShrinkage,
-      shrinkageRate: Number(shrinkageRate.toFixed(2))
+      shrinkageRate: new Money(shrinkageRate).round().toNumber()
     };
   }
 
@@ -437,7 +438,7 @@ export class InventoryCalculations {
     const baseQuantity = quantity * fromFactor;
     const convertedQuantity = baseQuantity / toFactor;
 
-    return Number(convertedQuantity.toFixed(6));
+    return new Money(convertedQuantity).round(6).toNumber();
   }
 
   /**
@@ -453,9 +454,9 @@ export class InventoryCalculations {
     const dailyCarryingCost = annualCarryingCost / 365;
 
     return {
-      annualCarryingCost: Number(annualCarryingCost.toFixed(2)),
-      monthlyCarryingCost: Number(monthlyCarryingCost.toFixed(2)),
-      dailyCarryingCost: Number(dailyCarryingCost.toFixed(2))
+      annualCarryingCost: new Money(annualCarryingCost).round().toNumber(),
+      monthlyCarryingCost: new Money(monthlyCarryingCost).round().toNumber(),
+      dailyCarryingCost: new Money(dailyCarryingCost).round().toNumber()
     };
   }
 }

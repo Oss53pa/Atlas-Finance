@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -85,148 +86,74 @@ const LiasseFiscalePage: React.FC = () => {
   const [selectedRegime, setSelectedRegime] = useState<string>('normal');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Mock company data
-  const mockCompanyInfo: CompanyInfo = {
-    raison_sociale: 'SOCIÉTÉ EXEMPLE SARL',
-    numero_rccm: 'CI-ABJ-2020-B-12345',
-    numero_contribuable: '1234567890123',
-    regime_fiscal: 'Régime Normal',
-    exercice_debut: '2024-01-01',
-    exercice_fin: '2024-12-31',
-    capital_social: 5000000,
-    chiffre_affaires: 125000000
-  };
+  // Real data from Dexie
+  const dbFiscalYears = useLiveQuery(() => db.fiscalYears.toArray()) || [];
+  const dbJournalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+  const companyInfoSetting = useLiveQuery(() => db.settings.get('company_info'));
+  const fiscalDocsSetting = useLiveQuery(() => db.settings.get('fiscal_documents'));
+  const fiscalRatiosSetting = useLiveQuery(() => db.settings.get('fiscal_ratios'));
 
-  // Mock fiscal documents
-  const mockDocuments: FiscalDocument[] = [
-    {
-      id: '1',
-      nom: 'Déclaration Statistique et Fiscale (DSF)',
-      type: 'DSF',
-      statut: 'complété',
-      progression: 100,
-      obligatoire: true,
-      echeance: '2024-04-30',
-      montant: 0
-    },
-    {
-      id: '2',
-      nom: 'Bilan Comptable',
-      type: 'BILAN',
-      statut: 'complété',
-      progression: 100,
-      obligatoire: true,
-      echeance: '2024-04-30'
-    },
-    {
-      id: '3',
-      nom: 'Compte de Résultat',
-      type: 'COMPTE_RESULTAT',
-      statut: 'complété',
-      progression: 100,
-      obligatoire: true,
-      echeance: '2024-04-30'
-    },
-    {
-      id: '4',
-      nom: 'Tableau des Flux de Trésorerie',
-      type: 'FLUX_TRESORERIE',
-      statut: 'en_cours',
-      progression: 75,
-      obligatoire: true,
-      echeance: '2024-04-30'
-    },
-    {
-      id: '5',
-      nom: 'État Annexé',
-      type: 'ANNEXE',
-      statut: 'en_cours',
-      progression: 60,
-      obligatoire: true,
-      echeance: '2024-04-30'
-    },
-    {
-      id: '6',
-      nom: 'Déclaration IS',
-      type: 'IS',
-      statut: 'non_commence',
-      progression: 0,
-      obligatoire: true,
-      echeance: '2024-04-30',
-      montant: 13500000
-    },
-    {
-      id: '7',
-      nom: 'Déclaration TVA Annuelle',
-      type: 'TVA',
-      statut: 'complété',
-      progression: 100,
-      obligatoire: true,
-      echeance: '2024-04-30',
-      montant: 7200000
+  const isLoading = dbFiscalYears === undefined;
+
+  // Build company info from settings or fiscal year data
+  const mockCompanyInfo: CompanyInfo = useMemo(() => {
+    // Try to parse from settings
+    try {
+      if (companyInfoSetting?.value) {
+        const parsed = JSON.parse(companyInfoSetting.value);
+        if (parsed.raison_sociale) return parsed;
+      }
+    } catch { /* ignore */ }
+
+    // Derive from fiscal year data
+    const selectedFY = dbFiscalYears.find(fy => fy.code === selectedYear || fy.name.includes(selectedYear));
+    const fyEntries = selectedFY
+      ? dbJournalEntries.filter(e => e.date >= selectedFY.startDate && e.date <= selectedFY.endDate)
+      : dbJournalEntries;
+
+    // Compute chiffre d'affaires from class 7 accounts
+    let chiffreAffaires = 0;
+    for (const entry of fyEntries) {
+      for (const line of entry.lines) {
+        if (line.accountCode.startsWith('7')) {
+          chiffreAffaires += line.credit - line.debit;
+        }
+      }
     }
-  ];
 
-  // Mock fiscal ratios
-  const mockRatios: FiscalRatio[] = [
-    {
-      nom: 'Ratio de Liquidité',
-      valeur: 1.25,
-      unite: 'ratio',
-      evolution: 0.15,
-      seuil_alerte: 1.0,
-      statut: 'bon'
-    },
-    {
-      nom: 'Ratio d\'Endettement',
-      valeur: 0.65,
-      unite: 'ratio',
-      evolution: -0.08,
-      seuil_alerte: 0.7,
-      statut: 'bon'
-    },
-    {
-      nom: 'Marge Brute',
-      valeur: 0.28,
-      unite: '%',
-      evolution: 0.03,
-      seuil_alerte: 0.15,
-      statut: 'bon'
-    },
-    {
-      nom: 'ROE (Return on Equity)',
-      valeur: 0.18,
-      unite: '%',
-      evolution: 0.02,
-      seuil_alerte: 0.10,
-      statut: 'bon'
-    },
-    {
-      nom: 'Rotation des Stocks',
-      valeur: 8.5,
-      unite: 'fois',
-      evolution: 1.2,
-      statut: 'bon'
-    },
-    {
-      nom: 'Délai de Recouvrement',
-      valeur: 45,
-      unite: 'jours',
-      evolution: -5,
-      seuil_alerte: 60,
-      statut: 'bon'
-    }
-  ];
+    return {
+      raison_sociale: '',
+      numero_rccm: '',
+      numero_contribuable: '',
+      regime_fiscal: '',
+      exercice_debut: selectedFY?.startDate || `${selectedYear}-01-01`,
+      exercice_fin: selectedFY?.endDate || `${selectedYear}-12-31`,
+      capital_social: 0,
+      chiffre_affaires: chiffreAffaires,
+    };
+  }, [companyInfoSetting, dbFiscalYears, dbJournalEntries, selectedYear]);
 
-  const { data: documents = mockDocuments, isLoading } = useQuery({
-    queryKey: ['fiscal-documents', selectedYear],
-    queryFn: () => Promise.resolve(mockDocuments),
-  });
+  // Build fiscal documents from settings
+  const documents: FiscalDocument[] = useMemo(() => {
+    try {
+      if (fiscalDocsSetting?.value) {
+        const parsed = JSON.parse(fiscalDocsSetting.value);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { /* ignore */ }
+    return [];
+  }, [fiscalDocsSetting]);
 
-  const { data: ratios = mockRatios } = useQuery({
-    queryKey: ['fiscal-ratios', selectedYear],
-    queryFn: () => Promise.resolve(mockRatios),
-  });
+  // Build fiscal ratios from settings
+  const ratios: FiscalRatio[] = useMemo(() => {
+    try {
+      if (fiscalRatiosSetting?.value) {
+        const parsed = JSON.parse(fiscalRatiosSetting.value);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { /* ignore */ }
+    return [];
+  }, [fiscalRatiosSetting]);
 
   const handleGenerateLiasse = async () => {
     setIsGenerating(true);

@@ -463,6 +463,78 @@ class ClosuresService {
   async updateProgression(sessionId: string | number, progression: number): Promise<void> {
     await db.closureSessions.update(String(sessionId), { progression });
   }
+
+  /**
+   * Validate that the period is ready for closure.
+   * Checks: no draft entries, balanced accounts, provisions calculated.
+   */
+  async validateClosureReadiness(sessionId: string | number): Promise<{
+    ready: boolean;
+    checks: Array<{ name: string; passed: boolean; message: string }>;
+  }> {
+    const sid = String(sessionId);
+    const session = await db.closureSessions.get(sid);
+    if (!session) throw new Error(`Session ${sid} introuvable`);
+
+    const checks: Array<{ name: string; passed: boolean; message: string }> = [];
+
+    // Check 1: No draft entries in period
+    const draftEntries = await db.journalEntries
+      .where('date')
+      .between(session.dateDebut, session.dateFin, true, true)
+      .filter(e => e.status === 'draft')
+      .count();
+    checks.push({
+      name: 'Ecritures validees',
+      passed: draftEntries === 0,
+      message: draftEntries === 0
+        ? 'Toutes les ecritures sont validees'
+        : `${draftEntries} ecriture(s) en brouillon`,
+    });
+
+    // Check 2: All entries are balanced (debit = credit)
+    const unbalanced = await db.journalEntries
+      .where('date')
+      .between(session.dateDebut, session.dateFin, true, true)
+      .filter(e => Math.abs(e.totalDebit - e.totalCredit) > 0.01)
+      .count();
+    checks.push({
+      name: 'Equilibre debit/credit',
+      passed: unbalanced === 0,
+      message: unbalanced === 0
+        ? 'Toutes les ecritures sont equilibrees'
+        : `${unbalanced} ecriture(s) desequilibree(s)`,
+    });
+
+    // Check 3: Provisions have been reviewed
+    const pendingProvisions = await db.provisions
+      .where('sessionId')
+      .equals(sid)
+      .filter(p => p.statut === 'PROPOSEE')
+      .count();
+    checks.push({
+      name: 'Provisions revues',
+      passed: pendingProvisions === 0,
+      message: pendingProvisions === 0
+        ? 'Toutes les provisions ont ete traitees'
+        : `${pendingProvisions} provision(s) en attente de validation`,
+    });
+
+    // Check 4: Session not already closed
+    const notClosed = session.statut !== 'CLOTUREE';
+    checks.push({
+      name: 'Session active',
+      passed: notClosed,
+      message: notClosed
+        ? 'La session est active'
+        : 'La session est deja cloturee',
+    });
+
+    return {
+      ready: checks.every(c => c.passed),
+      checks,
+    };
+  }
 }
 
 export const closuresService = new ClosuresService();
