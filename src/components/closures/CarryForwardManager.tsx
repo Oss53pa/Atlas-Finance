@@ -566,10 +566,7 @@ const CarryForwardManager: React.FC = () => {
                         <div className="text-center p-4 bg-gray-50 rounded-lg">
                           <p className="text-sm text-gray-600">Valeur Actuelle</p>
                           <p className="text-lg font-bold text-gray-900">
-                            {control.currentValue.toLocaleString('fr-FR', { 
-                              minimumFractionDigits: control.metricName.includes('RATIO') ? 1 : 0,
-                              maximumFractionDigits: control.metricName.includes('RATIO') ? 2 : 0
-                            })}
+                            {formatCurrency(control.currentValue)}
                             {control.metricName.includes('RATIO') && control.metricName.includes('RATIO') ? '' : ''}
                           </p>
                         </div>

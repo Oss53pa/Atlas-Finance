@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users, Plus, Search, Filter, Download, Eye, Edit, Trash2,
@@ -197,8 +196,17 @@ const PartenairesModule: React.FC = () => {
     }
   };
 
-  // Live data from Dexie
-  const thirdParties = useLiveQuery(() => db.thirdParties.toArray()) || [];
+  // Data from DataContext
+  const { adapter } = useData();
+  const [thirdParties, setThirdParties] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const tps = await adapter.getAll('thirdParties');
+      setThirdParties(tps as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Map third parties to partenaire format
   const mockPartenaires: Partenaire[] = thirdParties.map((tp) => {

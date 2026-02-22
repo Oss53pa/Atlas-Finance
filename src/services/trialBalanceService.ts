@@ -10,7 +10,7 @@
  * Conforme SYSCOHADA — balance de vérification obligatoire avant clôture.
  */
 
-import { db } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import type { DBJournalEntry } from '../lib/db';
 import { money, Money } from '../utils/money';
 
@@ -43,8 +43,8 @@ export interface TrialBalanceResult {
 /**
  * Run full trial balance verification.
  */
-export async function verifyTrialBalance(fiscalYear?: string): Promise<TrialBalanceResult> {
-  let entries = await db.journalEntries.toArray();
+export async function verifyTrialBalance(adapter: DataAdapter, fiscalYear?: string): Promise<TrialBalanceResult> {
+  let entries = await adapter.getAll('journalEntries');
 
   // Filter by fiscal year if specified
   if (fiscalYear) {

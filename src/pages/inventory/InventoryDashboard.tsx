@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Package,
   TrendingUp,
@@ -12,8 +12,7 @@ import {
   MapPin,
   DollarSign
 } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   BarChart,
@@ -112,7 +111,16 @@ const KPICard: React.FC<KPICardProps> = ({
 };
 
 const InventoryDashboard: React.FC = () => {
-  const inventoryItems = useLiveQuery(() => db.inventoryItems.toArray()) || [];
+  const { adapter } = useData();
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const items = await adapter.getAll('inventoryItems');
+      setInventoryItems(items as any[]);
+    };
+    load();
+  }, [adapter]);
 
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -281,8 +289,9 @@ const InventoryDashboard: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsLoading(true);
-    // Re-read triggers automatically via useLiveQuery; small delay for UX
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Re-read data via adapter
+    const items = await adapter.getAll('inventoryItems');
+    setInventoryItems(items as any[]);
     setIsLoading(false);
   };
 

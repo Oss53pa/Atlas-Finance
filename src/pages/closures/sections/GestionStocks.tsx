@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBInventoryItem } from '../../../lib/db';
 import { motion } from 'framer-motion';
 import {
@@ -128,6 +128,7 @@ interface ProvisionStock {
 
 const GestionStocks: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [filterCategorie, setFilterCategorie] = useState<string>('toutes');
@@ -143,10 +144,10 @@ const GestionStocks: React.FC = () => {
 
   const loadItems = useCallback(async () => {
     try {
-      const items = await db.inventoryItems.toArray();
+      const items = await adapter.getAll<DBInventoryItem>('inventoryItems');
       setDbItems(items);
     } catch { /* silent */ }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadItems(); }, [loadItems]);
 

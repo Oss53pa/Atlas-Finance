@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '../../../../../utils/formatters';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { db } from '../../../../../lib/db';
+import { useData } from '../../../../../contexts/DataContext';
 import Spinner from '../../../../../components/common/Spinner';
 import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
 import { FaLock, FaLockOpen, BsThreeDotsVertical } from '../../../../../components/ui/Icons';
@@ -36,6 +36,7 @@ export const FundCallDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const { adapter } = useData();
   const [loading, setLoading] = useState<boolean>(true);
   const [fundCall, setFundCall] = useState<FundCallDetails | null>(null);
   const [error, setError] = useState<string>('');
@@ -46,7 +47,7 @@ export const FundCallDetails: React.FC = () => {
 
       try {
         setLoading(true);
-        const setting = await db.settings.get('fund_calls');
+        const setting = await adapter.getById<{ value: string }>('settings', 'fund_calls');
         if (setting) {
           const parsed = JSON.parse(setting.value);
           const allCalls: FundCallDetails[] = Array.isArray(parsed) ? parsed : [];
@@ -70,7 +71,7 @@ export const FundCallDetails: React.FC = () => {
     };
 
     fetchFundCallDetails();
-  }, [id]);
+  }, [id, adapter]);
 
   const formatAmount = (amount: number): string => {
     return new Intl.NumberFormat('fr-FR', {

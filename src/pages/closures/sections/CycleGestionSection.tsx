@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, CheckCircle, TrendingUp, TrendingDown, AlertCircle, Loader2 } from 'lucide-react';
-import { db } from '../../../lib/db';
-import type { DBFiscalYear } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
+import type { DBFiscalYear, DBJournalEntry } from '../../../lib/db';
 import { formatCurrency } from '../../../utils/formatters';
 
 interface CycleGestionSectionProps {
@@ -42,6 +42,7 @@ const PRODUITS_CLASSES = [
 ];
 
 const CycleGestionSection: React.FC<CycleGestionSectionProps> = ({ periodId, onComplete }) => {
+  const { adapter } = useData();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<GestionData | null>(null);
   const [fiscalYear, setFiscalYear] = useState<DBFiscalYear | null>(null);
@@ -50,15 +51,13 @@ const CycleGestionSection: React.FC<CycleGestionSectionProps> = ({ periodId, onC
     const loadData = async () => {
       setLoading(true);
       try {
-        const fys = await db.fiscalYears.toArray();
+        const fys = await adapter.getAll<DBFiscalYear>('fiscalYears');
         const fy = (periodId ? fys.find(f => f.id === periodId) : fys.find(f => f.isActive)) || fys[0];
         if (!fy) { setLoading(false); return; }
         setFiscalYear(fy);
 
-        const entries = await db.journalEntries
-          .where('date')
-          .between(fy.startDate, fy.endDate, true, true)
-          .toArray();
+        const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+        const entries = allEntries.filter(e => e.date >= fy.startDate && e.date <= fy.endDate);
 
         const computeTotal = (prefix: string): number => {
           let total = 0;
@@ -101,7 +100,7 @@ const CycleGestionSection: React.FC<CycleGestionSectionProps> = ({ periodId, onC
       }
     };
     loadData();
-  }, [periodId]);
+  }, [periodId, adapter]);
 
   if (loading) {
     return (

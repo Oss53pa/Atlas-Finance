@@ -50,7 +50,7 @@ import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/Progress';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import { closureOrchestrator } from '../../../services/cloture/closureOrchestrator';
 import type { ClotureStep as OrchestratorStep } from '../../../services/cloture/closureOrchestrator';
@@ -137,6 +137,7 @@ interface ConversationTemplate {
 }
 
 const IAAssistant: React.FC = () => {
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -152,14 +153,14 @@ const IAAssistant: React.FC = () => {
   const [proph3tRunning, setProph3tRunning] = useState(false);
 
   useEffect(() => {
-    db.fiscalYears.toArray().then(fys => {
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => {
       setFiscalYears(fys);
       const active = fys.find(f => f.isActive) || fys[0];
       if (active) {
         previewClosure(active.id).then(setClosurePreview).catch(() => {});
       }
     });
-  }, []);
+  }, [adapter]);
 
   // Launch Proph3t closure workflow
   const handleProph3tClosure = useCallback(async () => {
@@ -242,17 +243,17 @@ const IAAssistant: React.FC = () => {
 
   useEffect(() => {
     Promise.all([
-      db.journalEntries.count(),
-      db.closureSessions.count(),
-      db.provisions.count(),
-      db.assets.count(),
+      adapter.count('journalEntries'),
+      adapter.count('closureSessions'),
+      adapter.count('provisions'),
+      adapter.count('assets'),
     ]).then(([entries, sessions, provisions, assets]) => {
       setEntryCount(entries);
       setSessionCount(sessions);
       setProvisionCount(provisions);
       setAssetCount(assets);
     }).catch(() => {});
-  }, []);
+  }, [adapter]);
 
   // Analyses derived from real data counts
   const analysesAutomatiques: AnalyseAutomatique[] = useMemo(() => {

@@ -2,8 +2,9 @@
  * Alias Tiers Service — CRUD pour la gestion des alias tiers (Dexie IndexedDB).
  * Gère la création, l'incrémentation et le rattachement d'alias aux comptes comptables.
  */
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBAliasTiers, DBAliasPrefixConfig } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import { ALIAS_PREFIX_MAPPINGS } from '../../data/alias-tiers-config';
 
 class AliasTiersService {
@@ -11,13 +12,13 @@ class AliasTiersService {
    * Initialise la table aliasPrefixConfig depuis les données statiques.
    * Ne fait rien si la table contient déjà des données.
    */
-  async seedPrefixConfig(): Promise<number> {
-    const existing = await db.aliasPrefixConfig.count();
+  async seedPrefixConfig(adapter: DataAdapter): Promise<number> {
+    const existing = await adapter.count('aliasPrefixConfig');
     if (existing > 0) return 0;
 
     let count = 0;
     for (const mapping of ALIAS_PREFIX_MAPPINGS) {
-      await db.aliasPrefixConfig.add({
+      await adapter.create('aliasPrefixConfig', {
         id: crypto.randomUUID(),
         sousCompteCode: mapping.sousCompteCode,
         prefix: mapping.prefix,
@@ -32,11 +33,8 @@ class AliasTiersService {
    * Calcule le prochain alias disponible pour un préfixe donné.
    * Ex: CLL001, CLL002, ..., CLL999
    */
-  async getNextAlias(prefix: string): Promise<string> {
-    const existing = await db.aliasTiers
-      .where('prefix')
-      .equals(prefix)
-      .toArray();
+  async getNextAlias(adapter: DataAdapter, prefix: string): Promise<string> {
+    const existing = await adapter.getAll('aliasTiers', { where: { prefix } });
 
     if (existing.length === 0) {
       return `${prefix}001`;
@@ -59,7 +57,7 @@ class AliasTiersService {
   /**
    * Crée un nouvel alias tiers.
    */
-  async createAlias(params: {
+  async createAlias(adapter: DataAdapter, params: {
     alias: string;
     prefix: string;
     label: string;
@@ -75,7 +73,7 @@ class AliasTiersService {
       createdAt: new Date().toISOString(),
     };
 
-    await db.aliasTiers.add(record);
+    await adapter.create('aliasTiers', record);
 
     await logAudit(
       'ALIAS_CREATE',
@@ -90,8 +88,8 @@ class AliasTiersService {
   /**
    * Rattache un code comptable à un alias existant.
    */
-  async attachAccountToAlias(aliasId: string, accountCode: string): Promise<DBAliasTiers> {
-    const alias = await db.aliasTiers.get(aliasId);
+  async attachAccountToAlias(adapter: DataAdapter, aliasId: string, accountCode: string): Promise<DBAliasTiers> {
+    const alias = await adapter.getById('aliasTiers', aliasId);
     if (!alias) throw new Error(`Alias ${aliasId} introuvable`);
 
     if (alias.comptesComptables.includes(accountCode)) {
@@ -99,7 +97,7 @@ class AliasTiersService {
     }
 
     const updatedComptes = [...alias.comptesComptables, accountCode];
-    await db.aliasTiers.update(aliasId, { comptesComptables: updatedComptes });
+    await adapter.update('aliasTiers', aliasId, { comptesComptables: updatedComptes });
 
     await logAudit(
       'ALIAS_ATTACH',
@@ -114,20 +112,17 @@ class AliasTiersService {
   /**
    * Liste les alias par préfixe (pour le dropdown "rattacher existant").
    */
-  async getAliasesByPrefix(prefix: string): Promise<DBAliasTiers[]> {
-    return db.aliasTiers
-      .where('prefix')
-      .equals(prefix)
-      .toArray();
+  async getAliasesByPrefix(adapter: DataAdapter, prefix: string): Promise<DBAliasTiers[]> {
+    return adapter.getAll('aliasTiers', { where: { prefix } });
   }
 
   /**
    * Recherche d'alias par nom ou code alias.
    */
-  async searchAliases(query: string): Promise<DBAliasTiers[]> {
+  async searchAliases(adapter: DataAdapter, query: string): Promise<DBAliasTiers[]> {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
-    const all = await db.aliasTiers.toArray();
+    const all = await adapter.getAll('aliasTiers');
     return all.filter(a =>
       a.alias.toLowerCase().includes(q) ||
       a.label.toLowerCase().includes(q)
@@ -137,8 +132,8 @@ class AliasTiersService {
   /**
    * Récupère tous les alias.
    */
-  async getAllAliases(): Promise<DBAliasTiers[]> {
-    return db.aliasTiers.toArray();
+  async getAllAliases(adapter: DataAdapter): Promise<DBAliasTiers[]> {
+    return adapter.getAll('aliasTiers');
   }
 }
 

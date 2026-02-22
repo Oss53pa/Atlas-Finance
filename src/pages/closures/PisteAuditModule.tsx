@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import type { DBAuditLog } from '../../lib/db';
 import {
   Activity, User, Calendar, Clock, FileText,
@@ -37,6 +37,7 @@ interface AuditStats {
 
 const PisteAuditModule: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedPeriode, setSelectedPeriode] = useState<'jour' | 'semaine' | 'mois' | 'annee'>('jour');
   const [filterAction, setFilterAction] = useState<'tous' | AuditEntry['action']>('tous');
   const [filterEntite, setFilterEntite] = useState<'tous' | AuditEntry['entite']>('tous');
@@ -51,7 +52,7 @@ const PisteAuditModule: React.FC = () => {
 
   const loadAuditLogs = useCallback(async () => {
     try {
-      const logs = await db.auditLogs.toArray();
+      const logs = await adapter.getAll<DBAuditLog>('auditLogs');
       // Sort by timestamp descending
       logs.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 
@@ -92,7 +93,7 @@ const PisteAuditModule: React.FC = () => {
       });
       setAuditEntries(mapped);
     } catch { /* silent */ }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadAuditLogs(); }, [loadAuditLogs]);
 

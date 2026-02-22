@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type DBAsset } from '../../lib/db';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useData } from '../../contexts/DataContext';
+import type { DBAsset } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Building2,
@@ -128,9 +128,18 @@ const AssetsSummary: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const { adapter } = useData();
 
-  // Live Dexie query
-  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
+  // Assets from DataContext
+  const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const assets = await adapter.getAll('assets') as DBAsset[];
+      setDbAssets(assets);
+    };
+    load();
+  }, [adapter]);
 
   // Compute KPIs from Dexie data
   const totalAcquisitionValue = useMemo(() => dbAssets.reduce((sum, a) => sum + a.acquisitionValue, 0), [dbAssets]);

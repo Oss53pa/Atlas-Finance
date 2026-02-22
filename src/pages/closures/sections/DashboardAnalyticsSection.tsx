@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, CheckCircle, TrendingUp, FileText, AlertTriangle, Clock, Loader2 } from 'lucide-react';
-import { db } from '../../../lib/db';
-import type { DBFiscalYear } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
+import type { DBFiscalYear, DBJournalEntry } from '../../../lib/db';
 import { formatCurrency } from '../../../utils/formatters';
 
 interface DashboardAnalyticsSectionProps {
@@ -22,6 +22,7 @@ interface AnalyticsData {
 }
 
 const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps> = ({ periodId, onComplete }) => {
+  const { adapter } = useData();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [fiscalYear, setFiscalYear] = useState<DBFiscalYear | null>(null);
@@ -30,15 +31,13 @@ const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps> = ({ p
     const loadData = async () => {
       setLoading(true);
       try {
-        const fys = await db.fiscalYears.toArray();
+        const fys = await adapter.getAll<DBFiscalYear>('fiscalYears');
         const fy = (periodId ? fys.find(f => f.id === periodId) : fys.find(f => f.isActive)) || fys[0];
         if (!fy) { setLoading(false); return; }
         setFiscalYear(fy);
 
-        const entries = await db.journalEntries
-          .where('date')
-          .between(fy.startDate, fy.endDate, true, true)
-          .toArray();
+        const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+        const entries = allEntries.filter(e => e.date >= fy.startDate && e.date <= fy.endDate);
 
         const accountsSet = new Set<string>();
         const journalsSet = new Set<string>();
@@ -83,7 +82,7 @@ const DashboardAnalyticsSection: React.FC<DashboardAnalyticsSectionProps> = ({ p
       }
     };
     loadData();
-  }, [periodId]);
+  }, [periodId, adapter]);
 
   if (loading) {
     return (

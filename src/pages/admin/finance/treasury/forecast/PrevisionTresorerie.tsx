@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../../../../lib/db';
+import React, { useState, useEffect } from 'react';
+import { useData } from '../../../../../contexts/DataContext';
 import { formatDate } from '../../../../../utils/formatters';
 import { Link } from 'react-router-dom';
 import Modal from '../../../../../components/common/BootstrapModal';
@@ -43,20 +42,26 @@ export const PrevisionTresorerie: React.FC = () => {
         { name: "Déc/2025" },
     ];
 
+    const { adapter } = useData();
     const [contentDrawerActive, setContentDrawerActive] = useState<any>();
     const [drawer, setDrawer] = useState<boolean>(false);
     const [showModal, setShowModal] = useState<boolean>(false);
 
-    const plansFromDb = useLiveQuery(async () => {
-        const setting = await db.settings.get('treasury_plans');
-        if (!setting) return [];
-        try {
-            const parsed: TreasuryPlan[] = JSON.parse(setting.value);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch {
-            return [];
-        }
-    }, []);
+    const [plansFromDb, setPlansFromDb] = useState<TreasuryPlan[] | undefined>(undefined);
+
+    useEffect(() => {
+        const load = async () => {
+            const setting = await adapter.getById('settings', 'treasury_plans') as any;
+            if (!setting) { setPlansFromDb([]); return; }
+            try {
+                const parsed: TreasuryPlan[] = JSON.parse(setting.value);
+                setPlansFromDb(Array.isArray(parsed) ? parsed : []);
+            } catch {
+                setPlansFromDb([]);
+            }
+        };
+        load();
+    }, [adapter]);
 
     const mockPlans: TreasuryPlan[] = plansFromDb ?? [];
 

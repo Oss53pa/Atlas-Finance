@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Progress } from '../../../components/ui/Progress';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import { canClose } from '../../../services/closureService';
 
@@ -55,6 +55,7 @@ interface RegleCloture {
 
 const ControlePeriodes: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedPeriode, setSelectedPeriode] = useState<string>('2025-01');
   const [showClotureModal, setShowClotureModal] = useState(false);
   const [showForceClotureModal, setShowForceClotureModal] = useState(false);
@@ -62,12 +63,12 @@ const ControlePeriodes: React.FC = () => {
 
   const dateActuelle = new Date();
 
-  // Load fiscal years from Dexie
+  // Load fiscal years from adapter
   useEffect(() => {
-    db.fiscalYears.toArray().then(fys => {
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => {
       setFiscalYears(fys.sort((a, b) => b.startDate.localeCompare(a.startDate)));
     });
-  }, []);
+  }, [adapter]);
 
   // Map fiscal years to PeriodeComptable interface
   const periodes: PeriodeComptable[] = fiscalYears.map(fy => {

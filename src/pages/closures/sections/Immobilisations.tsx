@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBAsset } from '../../../lib/db';
 import { Money } from '@/utils/money';
 import { motion } from 'framer-motion';
@@ -131,6 +131,7 @@ interface PlanAmortissement {
 
 const Immobilisations: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedImmobilisation, setSelectedImmobilisation] = useState<Immobilisation | null>(null);
   const [filterCategorie, setFilterCategorie] = useState<string>('toutes');
@@ -164,14 +165,14 @@ const Immobilisations: React.FC = () => {
   const loadAssets = useCallback(async () => {
     setAssetsLoading(true);
     try {
-      const assets = await db.assets.toArray();
+      const assets = await adapter.getAll<DBAsset>('assets');
       setDbAssets(assets);
     } catch {
       // silently fail
     } finally {
       setAssetsLoading(false);
     }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadAssets(); }, [loadAssets]);
 

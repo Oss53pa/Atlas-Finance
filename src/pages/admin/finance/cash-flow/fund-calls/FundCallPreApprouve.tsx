@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../../../../lib/db';
+import React, { useState, useEffect } from 'react';
+import { useData } from '../../../../../contexts/DataContext';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 import { TbSquareMinusFilled, BsPlusSquareFill } from '../../../../../components/ui/Icons';
@@ -27,29 +26,36 @@ interface Invoice {
 export const FundCallPreApprouve: React.FC = () => {
   const { t } = useLanguage();
   const { fundCallG } = useFinanceContext();
+  const { adapter } = useData();
 
-  const preApprovedFromDb = useLiveQuery(async () => {
-    if (!fundCallG.id) return [];
-    const setting = await db.settings.get('fund_calls');
-    if (!setting) return [];
-    try {
-      const parsed = JSON.parse(setting.value);
-      const allCalls = Array.isArray(parsed) ? parsed : [];
-      const found = allCalls.find(
-        (fc: Record<string, unknown>) => String(fc.id) === String(fundCallG.id)
-      );
-      if (found && Array.isArray(found.details)) {
-        return (found.details as Invoice[]).filter(
-          (inv: Invoice) => inv.is_pre_approved === true
+  const [preApprovedFromDb, setPreApprovedFromDb] = useState<Invoice[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!fundCallG.id) { setPreApprovedFromDb([]); return; }
+      const setting = await adapter.getById('settings', 'fund_calls') as any;
+      if (!setting) { setPreApprovedFromDb([]); return; }
+      try {
+        const parsed = JSON.parse(setting.value);
+        const allCalls = Array.isArray(parsed) ? parsed : [];
+        const found = allCalls.find(
+          (fc: Record<string, unknown>) => String(fc.id) === String(fundCallG.id)
         );
+        if (found && Array.isArray(found.details)) {
+          setPreApprovedFromDb((found.details as Invoice[]).filter(
+            (inv: Invoice) => inv.is_pre_approved === true
+          ));
+        } else {
+          setPreApprovedFromDb([]);
+        }
+      } catch {
+        setPreApprovedFromDb([]);
       }
-      return [];
-    } catch {
-      return [];
-    }
-  }, [fundCallG.id]);
+    };
+    load();
+  }, [adapter, fundCallG.id]);
 
-  const detailsFundCall: Invoice[] = preApprovedFromDb ?? [];
+  const detailsFundCall: Invoice[] = preApprovedFromDb;
   const [showContent, setShowContent] = useState<ShowContentState>({});
 
   const formattedDate = (date: string): string => {

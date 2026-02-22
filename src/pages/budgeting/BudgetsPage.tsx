@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { getBudgetAnalysis } from '../../services/budgetAnalysisService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -43,6 +43,7 @@ interface Budget {
 
 const BudgetsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -66,8 +67,8 @@ const BudgetsPage: React.FC = () => {
   const { data: budgets = [], isLoading } = useQuery({
     queryKey: ['budgets', searchTerm, selectedType, selectedStatus, selectedDepartment],
     queryFn: async () => {
-      const budgetLines = await db.budgetLines.toArray();
-      const fiscalYears = await db.fiscalYears.toArray();
+      const budgetLines = await adapter.getAll('budgetLines');
+      const fiscalYears = await adapter.getAll('fiscalYears');
 
       // Group budget lines by fiscalYear to build Budget summaries
       const byFY = new Map<string, typeof budgetLines>();

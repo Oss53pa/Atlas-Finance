@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -74,6 +74,7 @@ interface IncomeStatementData {
 
 const IncomeStatementSYSCOHADA: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const [showComparison, setShowComparison] = useState(true);
   const [viewMode, setViewMode] = useState<'nature' | 'function'>('nature');
@@ -81,7 +82,7 @@ const IncomeStatementSYSCOHADA: React.FC = () => {
   const { data: incomeData, isLoading } = useQuery({
     queryKey: ['income-statement-syscohada', selectedPeriod],
     queryFn: async (): Promise<IncomeStatementData> => {
-      const entries = await db.journalEntries.toArray();
+      const entries = await adapter.getAll('journalEntries');
       const net = (...pfx: string[]) => {
         let t = 0;
         for (const e of entries) for (const l of e.lines)

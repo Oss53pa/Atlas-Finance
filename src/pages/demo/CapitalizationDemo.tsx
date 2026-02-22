@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/formatters';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import CapitalizationModal from '../../components/accounting/CapitalizationModal';
@@ -138,7 +139,7 @@ const CapitalizationDemo: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <Euro className="w-3 h-3" />
                         <span className="font-semibold text-[var(--color-text-primary)]">
-                          {invoice.amount.toLocaleString()}€
+                          {formatCurrency(invoice.amount)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">

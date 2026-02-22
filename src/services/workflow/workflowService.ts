@@ -13,8 +13,9 @@
  * - posted : génère hash d'intégrité final
  */
 
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBJournalEntry } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import { money, Money } from '../../utils/money';
 import { validateJournalEntry } from '../../validators/journalEntryValidator';
 import { hashEntry } from '../../utils/integrity';
@@ -116,13 +117,14 @@ function validateSeparationOfDuties(entry: DBJournalEntry, approverId: string): 
  * - Au moins 2 lignes
  */
 export async function validateEntry(
+  adapter: DataAdapter,
   entryId: string,
   userId: string
 ): Promise<WorkflowResult> {
   const errors: string[] = [];
 
   // 1. Récupérer l'écriture
-  const entry = await db.journalEntries.get(entryId);
+  const entry = await adapter.getById('journalEntries', entryId);
   if (!entry) {
     return { success: false, errors: ['Écriture introuvable'] };
   }
@@ -143,7 +145,7 @@ export async function validateEntry(
 
   // 4. Mettre à jour le statut
   const now = new Date().toISOString();
-  await db.journalEntries.update(entryId, {
+  await adapter.update('journalEntries', entryId, {
     status: 'validated',
     updatedAt: now,
   });
@@ -175,13 +177,14 @@ export async function validateEntry(
  * - Génération du hash d'intégrité final
  */
 export async function postEntry(
+  adapter: DataAdapter,
   entryId: string,
   userId: string
 ): Promise<WorkflowResult> {
   const errors: string[] = [];
 
   // 1. Récupérer l'écriture
-  const entry = await db.journalEntries.get(entryId);
+  const entry = await adapter.getById('journalEntries', entryId);
   if (!entry) {
     return { success: false, errors: ['Écriture introuvable'] };
   }
@@ -203,9 +206,8 @@ export async function postEntry(
   // 4. Générer le hash d'intégrité final si absent
   let finalHash = entry.hash;
   if (!finalHash) {
-    const lastEntry = await db.journalEntries
-      .orderBy('date')
-      .last();
+    const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'date', direction: 'asc' } });
+    const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
     const previousHash = lastEntry?.hash ?? '';
     finalHash = await hashEntry(
       {
@@ -222,7 +224,7 @@ export async function postEntry(
 
   // 5. Mettre à jour le statut et le hash
   const now = new Date().toISOString();
-  await db.journalEntries.update(entryId, {
+  await adapter.update('journalEntries', entryId, {
     status: 'posted',
     hash: finalHash,
     updatedAt: now,
@@ -253,6 +255,7 @@ export async function postEntry(
  * Permet de renvoyer une écriture en correction avant comptabilisation.
  */
 export async function rejectEntry(
+  adapter: DataAdapter,
   entryId: string,
   userId: string,
   reason: string
@@ -260,7 +263,7 @@ export async function rejectEntry(
   const errors: string[] = [];
 
   // 1. Récupérer l'écriture
-  const entry = await db.journalEntries.get(entryId);
+  const entry = await adapter.getById('journalEntries', entryId);
   if (!entry) {
     return { success: false, errors: ['Écriture introuvable'] };
   }
@@ -283,7 +286,7 @@ export async function rejectEntry(
 
   // 4. Mettre à jour le statut
   const now = new Date().toISOString();
-  await db.journalEntries.update(entryId, {
+  await adapter.update('journalEntries', entryId, {
     status: 'draft',
     updatedAt: now,
   });
@@ -315,6 +318,7 @@ export async function rejectEntry(
  * Les succès et échecs sont retournés séparément.
  */
 export async function bulkValidate(
+  adapter: DataAdapter,
   entryIds: string[],
   userId: string
 ): Promise<BulkWorkflowResult> {
@@ -322,7 +326,7 @@ export async function bulkValidate(
   const failed: Array<{ id: string; errors: string[] }> = [];
 
   for (const entryId of entryIds) {
-    const result = await validateEntry(entryId, userId);
+    const result = await validateEntry(adapter, entryId, userId);
     if (result.success) {
       succeeded.push(entryId);
     } else {
@@ -338,11 +342,8 @@ export async function bulkValidate(
  *
  * Parse les logs d'audit de type WORKFLOW_TRANSITION pour l'écriture donnée.
  */
-export async function getWorkflowHistory(entryId: string): Promise<WorkflowTransition[]> {
-  const logs = await db.auditLogs
-    .where('entityId')
-    .equals(entryId)
-    .toArray();
+export async function getWorkflowHistory(adapter: DataAdapter, entryId: string): Promise<WorkflowTransition[]> {
+  const logs = await adapter.getAll('auditLogs', { where: { entityId: entryId } });
 
   const workflowLogs = logs.filter(log => log.action === 'WORKFLOW_TRANSITION');
 

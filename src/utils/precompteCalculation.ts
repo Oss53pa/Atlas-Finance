@@ -3,6 +3,7 @@
  * Retenue à la source sur achats de biens et prestations de services.
  */
 import { Money, money } from './money';
+import { formatCurrency } from './formatters';
 
 /** Précompte rates by country */
 const PRECOMPTE_RATES: Record<string, {
@@ -83,7 +84,7 @@ export function calculatePrecompte(input: PrecompteInput): PrecompteResult {
       montantPrecompte: money(0),
       montantNet: ht,
       applicable: false,
-      motifNonApplication: `Montant < seuil (${config.seuil.toLocaleString('fr-FR')} FCFA)`,
+      motifNonApplication: `Montant < seuil (${formatCurrency(config.seuil)})`,
     };
   }
 

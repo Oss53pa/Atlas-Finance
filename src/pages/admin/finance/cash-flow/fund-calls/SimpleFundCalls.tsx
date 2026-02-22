@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../../../../lib/db';
+import { useData } from '../../../../../contexts/DataContext';
 import { formatDate } from '../../../../../utils/formatters';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
@@ -20,18 +19,24 @@ interface FundCall {
 
 export const SimpleFundCalls: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [showModal, setShowModal] = useState<boolean>(false);
 
-  const fundCallsData = useLiveQuery(async () => {
-    const setting = await db.settings.get('fund_calls');
-    if (!setting) return [];
-    try {
-      const parsed: FundCall[] = JSON.parse(setting.value);
-      return parsed;
-    } catch {
-      return [];
-    }
-  }, []);
+  const [fundCallsData, setFundCallsData] = useState<FundCall[] | undefined>(undefined);
+
+  useEffect(() => {
+    const load = async () => {
+      const setting = await adapter.getById('settings', 'fund_calls') as any;
+      if (!setting) { setFundCallsData([]); return; }
+      try {
+        const parsed: FundCall[] = JSON.parse(setting.value);
+        setFundCallsData(parsed);
+      } catch {
+        setFundCallsData([]);
+      }
+    };
+    load();
+  }, [adapter]);
 
   const loading = fundCallsData === undefined;
   const fundsCall: FundCall[] = fundCallsData ?? [];

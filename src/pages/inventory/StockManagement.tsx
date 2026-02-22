@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Package,
   MapPin,
@@ -17,8 +17,8 @@ import {
   Truck,
   Clock
 } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, DBInventoryItem } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
+import { DBInventoryItem } from '../../lib/db';
 import { InventoryFilters, SortOption } from './types';
 import FilterComponent from './components/InventoryFilters';
 import StockStatusBadge from './components/StockStatusBadge';
@@ -340,7 +340,16 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
 };
 
 const StockManagement: React.FC = () => {
-  const inventoryItems = useLiveQuery(() => db.inventoryItems.toArray()) || [];
+  const { adapter } = useData();
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const items = await adapter.getAll('inventoryItems');
+      setInventoryItems(items as any[]);
+    };
+    load();
+  }, [adapter]);
 
   const stockLevels = React.useMemo(
     () => inventoryItems.map(toStockLevelWithItem),

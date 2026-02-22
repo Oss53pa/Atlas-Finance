@@ -4,7 +4,8 @@
  * The only way to cancel a validated entry is to create a reversal entry.
  */
 
-import { db, logAudit } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../lib/db';
 import type { DBJournalEntry } from '../lib/db';
 import { safeAddEntry } from '../services/entryGuard';
 
@@ -21,11 +22,9 @@ export interface ReversalResult {
 }
 
 /** Get the next sequential piece number for a journal */
-async function getNextPieceNumber(journal: string): Promise<string> {
-  const entries = await db.journalEntries
-    .where('journal')
-    .equals(journal)
-    .sortBy('entryNumber');
+async function getNextPieceNumber(adapter: DataAdapter, journal: string): Promise<string> {
+  const allEntries = await adapter.getAll('journalEntries', { where: { journal } });
+  const entries = allEntries.sort((a: DBJournalEntry, b: DBJournalEntry) => a.entryNumber.localeCompare(b.entryNumber));
 
   const lastNumber = entries.length > 0
     ? parseInt(entries[entries.length - 1].entryNumber.replace(/\D/g, '') || '0', 10)
@@ -36,8 +35,8 @@ async function getNextPieceNumber(journal: string): Promise<string> {
 }
 
 /** Create a reversal entry for a validated journal entry */
-export async function reverseEntry(request: ReversalRequest): Promise<ReversalResult> {
-  const original = await db.journalEntries.get(request.originalEntryId);
+export async function reverseEntry(adapter: DataAdapter, request: ReversalRequest): Promise<ReversalResult> {
+  const original = await adapter.getById('journalEntries', request.originalEntryId);
 
   if (!original) {
     return { success: false, error: 'Écriture introuvable.' };
@@ -51,11 +50,11 @@ export async function reverseEntry(request: ReversalRequest): Promise<ReversalRe
     return { success: false, error: 'Cette écriture a déjà été contrepassée.' };
   }
 
-  const entryNumber = await getNextPieceNumber(original.journal);
+  const entryNumber = await getNextPieceNumber(adapter, original.journal);
   const now = new Date().toISOString();
 
   const reversalId = crypto.randomUUID();
-  await safeAddEntry({
+  await safeAddEntry(adapter, {
     id: reversalId,
     entryNumber,
     journal: original.journal,
@@ -82,7 +81,7 @@ export async function reverseEntry(request: ReversalRequest): Promise<ReversalRe
   }, { skipSyncValidation: true });
 
   // Mark original as reversed
-  await db.journalEntries.update(original.id, {
+  await adapter.update('journalEntries', original.id, {
     reversed: true,
     reversedBy: reversalId,
     reversedAt: now,
@@ -103,7 +102,7 @@ export async function reverseEntry(request: ReversalRequest): Promise<ReversalRe
     })
   );
 
-  const reversalEntry = await db.journalEntries.get(reversalId);
+  const reversalEntry = await adapter.getById('journalEntries', reversalId);
   return { success: true, reversalEntry };
 }
 

@@ -2,8 +2,9 @@
  * Service de regularisations comptables CCA/FNP/FAE/PCA.
  * Conforme SYSCOHADA revise — comptes 408, 418, 476/486, 477/487.
  */
+import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBJournalLine } from '../../lib/db';
 import { safeBulkAddEntries } from '../entryGuard';
 
@@ -217,6 +218,7 @@ function buildRegulLines(regul: Regularisation): DBJournalLine[] {
  * Generate journal entries for all regularisations.
  */
 export async function genererEcrituresRegularisation(
+  adapter: DataAdapter,
   config: RegularisationConfig
 ): Promise<RegularisationResult> {
   const { dateRegularisation, regularisations } = config;

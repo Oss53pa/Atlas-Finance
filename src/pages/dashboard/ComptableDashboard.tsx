@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { 
   Calculator, 
@@ -33,6 +32,7 @@ const ComptableDashboard: React.FC = () => {
     status: 'all',
     type: 'all'
   });
+  const { adapter } = useData();
 
   const handleExportData = () => {
     const csvContent = recentEntries.map(e =>
@@ -51,49 +51,54 @@ const ComptableDashboard: React.FC = () => {
     window.location.href = path;
   };
 
-  // Live metrics from Dexie
-  const liveData = useLiveQuery(async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const allEntries = await db.journalEntries.toArray();
-    const todayEntries = allEntries.filter(e => e.date === today);
-    const pendingEntries = allEntries.filter(e => e.status === 'draft' || e.status === 'pending');
-    const validatedEntries = allEntries.filter(e => e.status === 'posted');
+  // Metrics from DataContext
+  const [liveData, setLiveData] = useState<{ todayCount: number; pendingCount: number; validatedCount: number; treasuryBalance: number; recentEntries: any[] }>({ todayCount: 0, pendingCount: 0, validatedCount: 0, treasuryBalance: 0, recentEntries: [] });
 
-    // Compute treasury balance from class 5 accounts
-    let treasuryBalance = 0;
-    for (const entry of allEntries) {
-      for (const line of entry.lines) {
-        if (line.accountCode.startsWith('5')) {
-          treasuryBalance += line.debit - line.credit;
+  useEffect(() => {
+    const load = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const allEntries = await adapter.getAll('journalEntries') as any[];
+      const todayEntries = allEntries.filter((e: any) => e.date === today);
+      const pendingEntries = allEntries.filter((e: any) => e.status === 'draft' || e.status === 'pending');
+      const validatedEntries = allEntries.filter((e: any) => e.status === 'posted');
+
+      // Compute treasury balance from class 5 accounts
+      let treasuryBalance = 0;
+      for (const entry of allEntries) {
+        for (const line of entry.lines) {
+          if (line.accountCode.startsWith('5')) {
+            treasuryBalance += line.debit - line.credit;
+          }
         }
       }
-    }
 
-    // Recent entries
-    const recent = allEntries
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 10)
-      .map(e => {
-        const totalDebit = e.lines.reduce((s, l) => s + l.debit, 0);
-        const totalCredit = e.lines.reduce((s, l) => s + l.credit, 0);
-        return {
-          id: e.entryNumber || e.id,
-          date: new Date(e.date).toLocaleDateString('fr-FR'),
-          description: e.description || e.reference || '-',
-          debit: formatCurrency(totalDebit),
-          credit: formatCurrency(totalCredit),
-          status: e.status === 'posted' ? 'validated' : e.status === 'draft' ? 'draft' : 'pending',
-        };
+      // Recent entries
+      const recent = allEntries
+        .sort((a: any, b: any) => b.date.localeCompare(a.date))
+        .slice(0, 10)
+        .map((e: any) => {
+          const totalDebit = e.lines.reduce((s: number, l: any) => s + l.debit, 0);
+          const totalCredit = e.lines.reduce((s: number, l: any) => s + l.credit, 0);
+          return {
+            id: e.entryNumber || e.id,
+            date: new Date(e.date).toLocaleDateString('fr-FR'),
+            description: e.description || e.reference || '-',
+            debit: formatCurrency(totalDebit),
+            credit: formatCurrency(totalCredit),
+            status: e.status === 'posted' ? 'validated' : e.status === 'draft' ? 'draft' : 'pending',
+          };
+        });
+
+      setLiveData({
+        todayCount: todayEntries.length,
+        pendingCount: pendingEntries.length,
+        validatedCount: validatedEntries.length,
+        treasuryBalance,
+        recentEntries: recent,
       });
-
-    return {
-      todayCount: todayEntries.length,
-      pendingCount: pendingEntries.length,
-      validatedCount: validatedEntries.length,
-      treasuryBalance,
-      recentEntries: recent,
     };
-  }, []) || { todayCount: 0, pendingCount: 0, validatedCount: 0, treasuryBalance: 0, recentEntries: [] };
+    load();
+  }, [adapter]);
 
   const metrics = [
     {

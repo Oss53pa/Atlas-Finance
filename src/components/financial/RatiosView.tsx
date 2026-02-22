@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '@/utils/formatters';
 import {
   PresentationChartLineIcon,
   ChartBarIcon,
@@ -286,7 +287,7 @@ const RatiosView: React.FC = () => {
       {/* Détails du calcul */}
       <div className="bg-gray-50 p-3 rounded-lg mb-4">
         <div className="text-sm text-gray-600">
-          <span className="font-medium">Calcul:</span> {ratio.numerateur.toLocaleString()} ÷ {ratio.denominateur.toLocaleString()}
+          <span className="font-medium">Calcul:</span> {formatCurrency(ratio.numerateur)} ÷ {formatCurrency(ratio.denominateur)}
         </div>
       </div>
 

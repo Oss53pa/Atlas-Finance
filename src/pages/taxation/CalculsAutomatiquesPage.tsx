@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   Calculator,
@@ -80,11 +79,24 @@ const CalculsAutomatiquesPage: React.FC = () => {
   );
   const [selectedType, setSelectedType] = useState<string>('tous');
   const [isCalculating, setIsCalculating] = useState(false);
+  const { adapter } = useData();
+  const [taxCalcsSetting, setTaxCalcsSetting] = useState<any>(undefined);
+  const [taxRulesSetting, setTaxRulesSetting] = useState<any>(undefined);
+  const [dbJournalEntries, setDbJournalEntries] = useState<any[]>([]);
 
-  // Real data from Dexie
-  const taxCalcsSetting = useLiveQuery(() => db.settings.get('tax_calculations'));
-  const taxRulesSetting = useLiveQuery(() => db.settings.get('calculation_rules'));
-  const dbJournalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+  useEffect(() => {
+    const load = async () => {
+      const [tc, tr, je] = await Promise.all([
+        adapter.getById('settings', 'tax_calculations'),
+        adapter.getById('settings', 'calculation_rules'),
+        adapter.getAll('journalEntries'),
+      ]);
+      setTaxCalcsSetting(tc);
+      setTaxRulesSetting(tr);
+      setDbJournalEntries(je as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Parse calculations from settings, computing from journal entries if available
   const calculations: TaxCalculation[] = useMemo(() => {

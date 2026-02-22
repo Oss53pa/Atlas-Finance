@@ -22,9 +22,11 @@ import {
   UserPlus,
   RefreshCw
 } from 'lucide-react';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
+import type { DBAuditLog } from '../../lib/db';
 
 const AdminDashboard: React.FC = () => {
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('system');
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [showUserDetailModal, setShowUserDetailModal] = useState(false);
@@ -39,13 +41,16 @@ const AdminDashboard: React.FC = () => {
   // Load real data from IndexedDB on mount
   const loadLiveData = useCallback(async () => {
     try {
-      const [entriesCount, accountsCount, tpCount, assetsCount, logs] = await Promise.all([
-        db.journalEntries.count(),
-        db.accounts.count(),
-        db.thirdParties.count(),
-        db.assets.count(),
-        db.auditLogs.orderBy('timestamp').reverse().limit(10).toArray(),
+      const [entriesCount, accountsCount, tpCount, assetsCount, allLogs] = await Promise.all([
+        adapter.count('journalEntries'),
+        adapter.count('accounts'),
+        adapter.count('thirdParties'),
+        adapter.count('assets'),
+        adapter.getAll<DBAuditLog>('auditLogs'),
       ]);
+      const logs = allLogs
+        .sort((a, b) => (b.timestamp > a.timestamp ? 1 : -1))
+        .slice(0, 10);
       setLiveMetrics({ entries: entriesCount, accounts: accountsCount, thirdParties: tpCount, assets: assetsCount });
       setLiveAuditLogs(logs.map(l => ({
         time: new Date(l.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
@@ -57,7 +62,7 @@ const AdminDashboard: React.FC = () => {
     } catch {
       // Fallback silently if DB not available
     }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => {
     loadLiveData();
@@ -81,11 +86,11 @@ const AdminDashboard: React.FC = () => {
     setIsBackingUp(true);
     try {
       const data = {
-        journalEntries: await db.journalEntries.toArray(),
-        accounts: await db.accounts.toArray(),
-        thirdParties: await db.thirdParties.toArray(),
-        assets: await db.assets.toArray(),
-        settings: await db.settings.toArray(),
+        journalEntries: await adapter.getAll('journalEntries'),
+        accounts: await adapter.getAll('accounts'),
+        thirdParties: await adapter.getAll('thirdParties'),
+        assets: await adapter.getAll('assets'),
+        settings: await adapter.getAll('settings'),
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBClosureSession, DBFiscalYear } from '../../../lib/db';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -174,6 +174,7 @@ interface CalendrierPays {
 
 const ParametragePeriodes: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('periodes');
   const [selectedPeriode, setSelectedPeriode] = useState<PeriodeComptable | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -284,13 +285,13 @@ const ParametragePeriodes: React.FC = () => {
   const loadPeriodData = useCallback(async () => {
     try {
       const [sessions, fys] = await Promise.all([
-        db.closureSessions.toArray(),
-        db.fiscalYears.toArray(),
+        adapter.getAll<DBClosureSession>('closureSessions'),
+        adapter.getAll<DBFiscalYear>('fiscalYears'),
       ]);
       setDbSessions(sessions);
       setDbFiscalYears(fys);
     } catch { /* silent */ }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadPeriodData(); }, [loadPeriodData]);
 

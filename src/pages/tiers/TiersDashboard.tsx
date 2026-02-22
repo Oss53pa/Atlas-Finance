@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useData } from '../../contexts/DataContext';
 import {
   Users, Building2, UserCheck, Clock, DollarSign, TrendingUp,
   ArrowLeft, Plus, Download, Eye, Edit, Search, Filter,
@@ -21,33 +20,39 @@ import { TiersKPI, ClientAnalytics, SupplierAnalytics, ThirdParty, Client, Suppl
 const TiersDashboard: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState('30d');
 
-  // Live KPIs from Dexie
-  const liveTiers = useLiveQuery(async () => {
-    const tps = await db.thirdParties.toArray();
-    const clients = tps.filter(tp => tp.type === 'client');
-    const fournisseurs = tps.filter(tp => tp.type === 'supplier');
-    const entries = await db.journalEntries.toArray();
-    // Compute revenue from class 7
-    let ca = 0, encours = 0;
-    for (const e of entries) {
-      for (const l of e.lines) {
-        if (l.accountCode.startsWith('7')) ca += l.credit - l.debit;
-        if (l.accountCode.startsWith('411')) encours += l.debit - l.credit;
+  // KPIs from DataContext
+  const [liveTiers, setLiveTiers] = useState({ totalClients: 0, totalFournisseurs: 0, totalContacts: 0, chiffreAffairesTotal: 0, encoursClients: 0 });
+
+  useEffect(() => {
+    const load = async () => {
+      const tps = (await adapter.getAll('thirdParties')) as any[];
+      const clients = tps.filter(tp => tp.type === 'client');
+      const fournisseurs = tps.filter(tp => tp.type === 'supplier');
+      const entries = (await adapter.getAll('journalEntries')) as any[];
+      // Compute revenue from class 7
+      let ca = 0, encours = 0;
+      for (const e of entries) {
+        for (const l of e.lines) {
+          if (l.accountCode.startsWith('7')) ca += l.credit - l.debit;
+          if (l.accountCode.startsWith('411')) encours += l.debit - l.credit;
+        }
       }
-    }
-    return {
-      totalClients: clients.length,
-      totalFournisseurs: fournisseurs.length,
-      totalContacts: tps.length,
-      chiffreAffairesTotal: ca,
-      encoursClients: encours > 0 ? encours : 0,
+      setLiveTiers({
+        totalClients: clients.length,
+        totalFournisseurs: fournisseurs.length,
+        totalContacts: tps.length,
+        chiffreAffairesTotal: ca,
+        encoursClients: encours > 0 ? encours : 0,
+      });
     };
-  }, []) || { totalClients: 0, totalFournisseurs: 0, totalContacts: 0, chiffreAffairesTotal: 0, encoursClients: 0 };
+    load();
+  }, [adapter]);
 
   const kpis: TiersKPI = {
     totalClients: liveTiers.totalClients,

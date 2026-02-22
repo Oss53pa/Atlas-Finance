@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   ChartBarIcon,
   ChartBarIcon,
@@ -90,13 +90,14 @@ interface SIGData {
 
 const SIGDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedView, setSelectedView] = useState<'waterfall' | 'breakdown' | 'evolution'>('waterfall');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
   const { data: sigData, isLoading } = useQuery({
     queryKey: ['sig-data', selectedPeriod],
     queryFn: async (): Promise<SIGData> => {
-      const entries = await db.journalEntries.toArray();
+      const entries = await adapter.getAll('journalEntries');
       const net = (...pfx: string[]) => {
         let t = 0;
         for (const e of entries) for (const l of e.lines)

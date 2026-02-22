@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   ArrowLeft, Calendar, DollarSign, Users, CheckCircle, BarChart3,
   Plus, Eye, Edit, Target
@@ -48,6 +47,7 @@ interface AttachedFile {
 
 const FundCallDetails: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('position_avant');
@@ -65,8 +65,33 @@ const FundCallDetails: React.FC = () => {
   const [invoiceNotes, setInvoiceNotes] = useState<Record<string, string>>({});
   const [newExpenses, setNewExpenses] = useState<Array<{ id: string; vendor: string; docDate: string; docNumber: string; reference: string; description: string; dueAmount: number; outstanding: number; type: string; days: number }>>([]);
 
-  // Load fund call data from Dexie
-  const fundCallsSetting = useLiveQuery(() => db.settings.get('fund_calls'));
+  const [fundCallsSetting, setFundCallsSetting] = useState<any>(undefined);
+  const [payableSetting, setPayableSetting] = useState<any>(undefined);
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [workflowSetting, setWorkflowSetting] = useState<any>(undefined);
+  const [aggregateSetting, setAggregateSetting] = useState<any>(undefined);
+  const [attachmentsSetting, setAttachmentsSetting] = useState<any>(undefined);
+
+  useEffect(() => {
+    const load = async () => {
+      const [fc, pay, entries, wf, agg, att] = await Promise.all([
+        adapter.getById('settings', 'fund_calls'),
+        adapter.getById('settings', 'fund_call_payables'),
+        adapter.getAll('journalEntries'),
+        adapter.getById('settings', 'fund_call_workflow'),
+        adapter.getById('settings', 'fund_call_aggregates'),
+        adapter.getById('settings', 'fund_call_attachments'),
+      ]);
+      setFundCallsSetting(fc);
+      setPayableSetting(pay);
+      setJournalEntries(entries as any[]);
+      setWorkflowSetting(wf);
+      setAggregateSetting(agg);
+      setAttachmentsSetting(att);
+    };
+    load();
+  }, [adapter]);
+
   const fundCallData: FundCallRecord = useMemo(() => {
     if (fundCallsSetting) {
       const allCalls: FundCallRecord[] = JSON.parse(fundCallsSetting.value);
@@ -87,12 +112,7 @@ const FundCallDetails: React.FC = () => {
     };
   }, [fundCallsSetting, id]);
 
-  // Load account payable data from Dexie (replaces axios API call)
-  const payableSetting = useLiveQuery(() => db.settings.get('fund_call_payables'));
-  const journalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
-
   // Load workflow steps from Dexie
-  const workflowSetting = useLiveQuery(() => db.settings.get('fund_call_workflow'));
   const workflowSteps: WorkflowStep[] = useMemo(() => {
     if (workflowSetting) {
       const allWorkflows = JSON.parse(workflowSetting.value);
@@ -108,11 +128,9 @@ const FundCallDetails: React.FC = () => {
   }, [workflowSetting, id]);
 
   // Load aggregate categories from Dexie
-  const aggregateSetting = useLiveQuery(() => db.settings.get('fund_call_aggregates'));
   const aggregateCategories: AggregateCategory[] = aggregateSetting ? JSON.parse(aggregateSetting.value) : [];
 
   // Load attachments from Dexie
-  const attachmentsSetting = useLiveQuery(() => db.settings.get('fund_call_attachments'));
   const attachedFiles: AttachedFile[] = useMemo(() => {
     if (attachmentsSetting) {
       const allAttachments = JSON.parse(attachmentsSetting.value);

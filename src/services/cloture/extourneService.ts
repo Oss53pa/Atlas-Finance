@@ -3,7 +3,8 @@
  * au premier jour du nouvel exercice.
  * Conforme SYSCOHADA revise.
  */
-import { db, logAudit } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../../lib/db';
 import type { DBJournalLine } from '../../lib/db';
 import { safeBulkAddEntries } from '../entryGuard';
 
@@ -65,14 +66,15 @@ function detectRegularisationType(entry: DBJournalEntry): TypeRegularisation | n
  * Find all regularisation entries in a fiscal year.
  */
 export async function findRegularisations(
+  adapter: DataAdapter,
   startDate: string,
   endDate: string
 ): Promise<RegularisationEntry[]> {
-  const entries = await db.journalEntries
-    .where('date')
-    .between(startDate, endDate, true, true)
-    .filter(e => (e.status === 'validated' || e.status === 'posted') && !e.reversed)
-    .toArray();
+  const allEntries = await adapter.getAll('journalEntries');
+  const entries = allEntries.filter(
+    (e: any) => e.date >= startDate && e.date <= endDate &&
+      (e.status === 'validated' || e.status === 'posted') && !e.reversed
+  );
 
   const result: RegularisationEntry[] = [];
   for (const entry of entries) {
@@ -87,18 +89,18 @@ export async function findRegularisations(
 /**
  * Generate extourne (reversal) entries for all regularisations of a closed fiscal year.
  */
-export async function genererExtournes(request: ExtourneRequest): Promise<ExtourneResult> {
+export async function genererExtournes(adapter: DataAdapter, request: ExtourneRequest): Promise<ExtourneResult> {
   const { exerciceClotureId, dateExtourne, journal } = request;
   const journalCode = journal || 'OD';
 
   // Find the fiscal year to get dates
-  const fiscalYear = await db.fiscalYears.get(exerciceClotureId);
+  const fiscalYear = await adapter.getById('fiscalYears', exerciceClotureId);
   if (!fiscalYear) {
     return { success: false, error: `Exercice ${exerciceClotureId} introuvable.` };
   }
 
   // Find regularisations
-  const regularisations = await findRegularisations(fiscalYear.startDate, fiscalYear.endDate);
+  const regularisations = await findRegularisations(adapter, fiscalYear.startDate, fiscalYear.endDate);
   if (regularisations.length === 0) {
     return { success: true, ecrituresExtourne: [], count: 0 };
   }
@@ -149,7 +151,7 @@ export async function genererExtournes(request: ExtourneRequest): Promise<Extour
   for (const { entry: original } of regularisations) {
     const extourne = ecrituresExtourne.find(e => e.reversalOf === original.id);
     if (extourne) {
-      await db.journalEntries.update(original.id, {
+      await adapter.update('journalEntries', original.id, {
         reversed: true,
         reversedBy: extourne.id,
         reversedAt: now,
@@ -175,11 +177,12 @@ export async function genererExtournes(request: ExtourneRequest): Promise<Extour
  * Preview extournes without saving them.
  */
 export async function previewExtournes(
+  adapter: DataAdapter,
   exerciceClotureId: string
 ): Promise<{ regularisations: RegularisationEntry[]; count: number }> {
-  const fiscalYear = await db.fiscalYears.get(exerciceClotureId);
+  const fiscalYear = await adapter.getById('fiscalYears', exerciceClotureId);
   if (!fiscalYear) return { regularisations: [], count: 0 };
 
-  const regularisations = await findRegularisations(fiscalYear.startDate, fiscalYear.endDate);
+  const regularisations = await findRegularisations(adapter, fiscalYear.startDate, fiscalYear.endDate);
   return { regularisations, count: regularisations.length };
 }

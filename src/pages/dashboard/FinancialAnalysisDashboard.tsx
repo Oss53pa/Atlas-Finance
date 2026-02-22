@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
-import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useData } from '../../contexts/DataContext';
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
   LineChart, Calculator, Percent, ArrowUpRight, ArrowDownRight,
@@ -40,23 +39,29 @@ ChartJS.register(
 const FinancialAnalysisDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('ytd');
   const [comparisonMode, setComparisonMode] = useState('previous');
+  const { adapter } = useData();
 
-  // Live Financial Metrics from Dexie
-  const liveFinancials = useLiveQuery(async () => {
-    const entries = await db.journalEntries.toArray();
-    let revenue = 0, expenses = 0, treasury = 0;
-    const monthlyRev = new Array(12).fill(0);
-    const monthlyExp = new Array(12).fill(0);
-    for (const e of entries) {
-      const m = new Date(e.date).getMonth();
-      for (const l of e.lines) {
-        if (l.accountCode.startsWith('7')) { const v = l.credit - l.debit; revenue += v; monthlyRev[m] += v; }
-        if (l.accountCode.startsWith('6')) { const v = l.debit - l.credit; expenses += v; monthlyExp[m] += v; }
-        if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
+  // Financial Metrics from DataContext
+  const [liveFinancials, setLiveFinancials] = useState<{ revenue: number; expenses: number; treasury: number; monthlyRev: number[]; monthlyExp: number[] }>({ revenue: 0, expenses: 0, treasury: 0, monthlyRev: new Array(12).fill(0), monthlyExp: new Array(12).fill(0) });
+
+  useEffect(() => {
+    const load = async () => {
+      const entries = await adapter.getAll('journalEntries') as any[];
+      let revenue = 0, expenses = 0, treasury = 0;
+      const monthlyRev = new Array(12).fill(0);
+      const monthlyExp = new Array(12).fill(0);
+      for (const e of entries) {
+        const m = new Date(e.date).getMonth();
+        for (const l of e.lines) {
+          if (l.accountCode.startsWith('7')) { const v = l.credit - l.debit; revenue += v; monthlyRev[m] += v; }
+          if (l.accountCode.startsWith('6')) { const v = l.debit - l.credit; expenses += v; monthlyExp[m] += v; }
+          if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
+        }
       }
-    }
-    return { revenue, expenses, treasury, monthlyRev, monthlyExp };
-  }, []) || { revenue: 0, expenses: 0, treasury: 0, monthlyRev: new Array(12).fill(0), monthlyExp: new Array(12).fill(0) };
+      setLiveFinancials({ revenue, expenses, treasury, monthlyRev, monthlyExp });
+    };
+    load();
+  }, [adapter]);
 
   const financialMetrics = {
     revenue: {

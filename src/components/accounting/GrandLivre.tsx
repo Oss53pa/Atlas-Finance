@@ -142,7 +142,7 @@ const GrandLivre: React.FC = () => {
   });
 
   const formatAmount = (amount: number) => {
-    return amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return formatCurrency(amount);
   };
 
   // Calcul des totaux généraux

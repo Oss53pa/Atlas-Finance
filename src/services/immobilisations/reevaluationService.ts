@@ -2,8 +2,9 @@
  * Reevaluation des immobilisations — SYSCOHADA revise.
  * Reevaluation libre et legale avec ecart de reevaluation (compte 105).
  */
+import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBJournalLine, DBAsset } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 
@@ -102,9 +103,10 @@ export function recalculerAmortissement(
  * Preview the impact of a revaluation without saving.
  */
 export async function previewReevaluation(
+  adapter: DataAdapter,
   request: ReevaluationRequest
 ): Promise<{ success: boolean; impact?: ReevaluationImpact; error?: string }> {
-  const asset = await db.assets.get(request.assetId);
+  const asset = await adapter.getById<DBAsset>('assets', request.assetId);
   if (!asset) {
     return { success: false, error: `Immobilisation ${request.assetId} introuvable.` };
   }
@@ -153,10 +155,11 @@ export async function previewReevaluation(
  * Execute the revaluation: update asset, generate journal entry.
  */
 export async function executerReevaluation(
+  adapter: DataAdapter,
   request: ReevaluationRequest
 ): Promise<ReevaluationResult> {
   // Preview first for validation
-  const preview = await previewReevaluation(request);
+  const preview = await previewReevaluation(adapter, request);
   if (!preview.success || !preview.impact) {
     return { success: false, error: preview.error };
   }
@@ -204,7 +207,7 @@ export async function executerReevaluation(
   }, { skipSyncValidation: true });
 
   // Update asset
-  await db.assets.update(request.assetId, {
+  await adapter.update('assets', request.assetId, {
     acquisitionValue: request.nouvelleValeur,
   });
 

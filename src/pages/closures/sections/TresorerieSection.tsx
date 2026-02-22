@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Banknote, CheckCircle, AlertTriangle, TrendingUp, Loader2 } from 'lucide-react';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
+import type { DBFiscalYear, DBJournalEntry } from '../../../lib/db';
 import { money } from '../../../utils/money';
 
 interface TresorerieSectionProps {
@@ -10,6 +11,7 @@ interface TresorerieSectionProps {
 }
 
 const TresorerieSection: React.FC<TresorerieSectionProps> = ({ periodId, onComplete }) => {
+  const { adapter } = useData();
   const [loading, setLoading] = useState(true);
   const [tresorerieData, setTresorerieData] = useState({
     soldeInitial: 0,
@@ -24,14 +26,12 @@ const TresorerieSection: React.FC<TresorerieSectionProps> = ({ periodId, onCompl
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const fys = await db.fiscalYears.toArray();
+      const fys = await adapter.getAll<DBFiscalYear>('fiscalYears');
       const activeFY = fys.find(fy => fy.isActive) || fys[0];
       if (!activeFY) { setLoading(false); return; }
 
-      const entries = await db.journalEntries
-        .where('date')
-        .between(activeFY.startDate, activeFY.endDate, true, true)
-        .toArray();
+      const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const entries = allEntries.filter(e => e.date >= activeFY.startDate && e.date <= activeFY.endDate);
 
       let totalDebit = money(0);
       let totalCredit = money(0);
@@ -63,7 +63,7 @@ const TresorerieSection: React.FC<TresorerieSectionProps> = ({ periodId, onCompl
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

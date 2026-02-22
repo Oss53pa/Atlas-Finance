@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   CurrencyDollarIcon,
   CheckCircleIcon,
@@ -65,6 +65,7 @@ interface CashFlowStatementData {
 }
 
 const CashFlowStatementSYSCOHADA: React.FC = () => {
+  const { adapter } = useData();
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const [showMethodDetails, setShowMethodDetails] = useState(true);
   const [viewMode, setViewMode] = useState<'standard' | 'analysis'>('standard');
@@ -72,7 +73,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   const { data: cashFlowData, isLoading } = useQuery({
     queryKey: ['cash-flow-statement-syscohada', selectedPeriod],
     queryFn: async (): Promise<CashFlowStatementData> => {
-      const entries = await db.journalEntries.toArray();
+      const entries = await adapter.getAll('journalEntries');
       const net = (...pfx: string[]) => {
         let t = 0;
         for (const e of entries) for (const l of e.lines)

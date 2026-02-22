@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, DBAsset } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
+import { DBAsset } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -103,12 +103,21 @@ interface DepreciationSchedule {
 
 const CycleVieCompletPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedCategory, setSelectedCategory] = useState<string>('tous');
   const [selectedPhase, setSelectedPhase] = useState<string>('tous');
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
 
-  // Live Dexie query
-  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
+  // Load assets via DataContext adapter
+  const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const assets = await adapter.getAll('assets');
+      setDbAssets(assets as DBAsset[]);
+    };
+    load();
+  }, [adapter]);
 
   // Map DBAsset to component Asset interface
   const allAssets: Asset[] = useMemo(() => {
@@ -176,7 +185,7 @@ const CycleVieCompletPage: React.FC = () => {
     );
   }, [allAssets, selectedCategory, selectedPhase]);
 
-  const isLoading = false; // useLiveQuery handles loading via || []
+  const isLoading = false; // data loaded via useEffect
 
   // Build maintenance events from assets
   const maintenanceEvents: MaintenanceEvent[] = useMemo(() => {

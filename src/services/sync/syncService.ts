@@ -23,9 +23,9 @@
  * - inventory_items ↔ inventoryItems
  */
 
-import { db } from '../../lib/db';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { logAudit } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 
 // ============================================================================
 // TYPES
@@ -68,8 +68,8 @@ export interface SyncState {
 const QUEUE_KEY = 'sync_queue';
 const LAST_SYNC_KEY = 'sync_last_timestamp';
 
-async function getQueue(): Promise<SyncQueueItem[]> {
-  const setting = await db.settings.get(QUEUE_KEY);
+async function getQueue(adapter: DataAdapter): Promise<SyncQueueItem[]> {
+  const setting = await adapter.getById('settings', QUEUE_KEY);
   if (!setting?.value) return [];
   try {
     return JSON.parse(setting.value);
@@ -78,21 +78,21 @@ async function getQueue(): Promise<SyncQueueItem[]> {
   }
 }
 
-async function saveQueue(queue: SyncQueueItem[]): Promise<void> {
-  await db.settings.put({
+async function saveQueue(adapter: DataAdapter, queue: SyncQueueItem[]): Promise<void> {
+  await adapter.create('settings', {
     key: QUEUE_KEY,
     value: JSON.stringify(queue),
     updatedAt: new Date().toISOString(),
   });
 }
 
-async function getLastSyncTimestamp(): Promise<string | null> {
-  const setting = await db.settings.get(LAST_SYNC_KEY);
+async function getLastSyncTimestamp(adapter: DataAdapter): Promise<string | null> {
+  const setting = await adapter.getById('settings', LAST_SYNC_KEY);
   return setting?.value || null;
 }
 
-async function setLastSyncTimestamp(ts: string): Promise<void> {
-  await db.settings.put({
+async function setLastSyncTimestamp(adapter: DataAdapter, ts: string): Promise<void> {
+  await adapter.create('settings', {
     key: LAST_SYNC_KEY,
     value: ts,
     updatedAt: new Date().toISOString(),
@@ -108,6 +108,7 @@ async function setLastSyncTimestamp(ts: string): Promise<void> {
  * Call this after any write to Dexie to track what needs pushing.
  */
 export async function enqueueChange(
+  adapter: DataAdapter,
   table: string,
   operation: 'insert' | 'update' | 'delete',
   recordId: string,
@@ -115,7 +116,7 @@ export async function enqueueChange(
 ): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  const queue = await getQueue();
+  const queue = await getQueue(adapter);
 
   // Deduplicate: if same record+table already queued, update it
   const existing = queue.findIndex(q => q.table === table && q.recordId === recordId);
@@ -138,7 +139,7 @@ export async function enqueueChange(
     });
   }
 
-  await saveQueue(queue);
+  await saveQueue(adapter, queue);
 }
 
 // ============================================================================
@@ -381,8 +382,8 @@ const TABLE_MAPPINGS: TableMapping[] = [
 // PUSH — Local → Supabase
 // ============================================================================
 
-async function pushChanges(): Promise<{ pushed: number; errors: string[] }> {
-  const queue = await getQueue();
+async function pushChanges(adapter: DataAdapter): Promise<{ pushed: number; errors: string[] }> {
+  const queue = await getQueue(adapter);
   if (queue.length === 0) return { pushed: 0, errors: [] };
 
   let pushed = 0;
@@ -424,7 +425,7 @@ async function pushChanges(): Promise<{ pushed: number; errors: string[] }> {
     }
   }
 
-  await saveQueue(remaining);
+  await saveQueue(adapter, remaining);
   return { pushed, errors };
 }
 
@@ -432,7 +433,7 @@ async function pushChanges(): Promise<{ pushed: number; errors: string[] }> {
 // PULL — Supabase → Local
 // ============================================================================
 
-async function pullChanges(since: string | null): Promise<{ pulled: number; errors: string[] }> {
+async function pullChanges(adapter: DataAdapter, since: string | null): Promise<{ pulled: number; errors: string[] }> {
   let pulled = 0;
   const errors: string[] = [];
 
@@ -448,11 +449,10 @@ async function pullChanges(since: string | null): Promise<{ pulled: number; erro
       if (error) throw error;
       if (!data || data.length === 0) continue;
 
-      const dexieTable = (db as unknown as Record<string, unknown>)[mapping.dexieTable] as import('dexie').Table;
-      if (!dexieTable) continue;
-
       const mapped = data.map(r => mapping.mapFromSupabase(r as Record<string, unknown>));
-      await dexieTable.bulkPut(mapped as never[]);
+      for (const record of mapped) {
+        await adapter.create(mapping.dexieTable, record);
+      }
       pulled += mapped.length;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -484,7 +484,7 @@ export function getSyncState(): SyncState {
 /**
  * Run a full sync cycle: push local changes, then pull remote changes.
  */
-export async function sync(direction: SyncDirection = 'both'): Promise<SyncResult> {
+export async function sync(adapter: DataAdapter, direction: SyncDirection = 'both'): Promise<SyncResult> {
   if (!isSupabaseConfigured) {
     return { pushed: 0, pulled: 0, conflicts: 0, errors: ['Supabase non configuré'], duration: 0 };
   }
@@ -495,7 +495,7 @@ export async function sync(direction: SyncDirection = 'both'): Promise<SyncResul
 
   currentState.status = 'syncing';
   const startTime = performance.now();
-  const lastSync = await getLastSyncTimestamp();
+  const lastSync = await getLastSyncTimestamp(adapter);
 
   let pushed = 0;
   let pulled = 0;
@@ -504,20 +504,20 @@ export async function sync(direction: SyncDirection = 'both'): Promise<SyncResul
   try {
     // Push first (local changes take priority)
     if (direction === 'push' || direction === 'both') {
-      const pushResult = await pushChanges();
+      const pushResult = await pushChanges(adapter);
       pushed = pushResult.pushed;
       allErrors.push(...pushResult.errors);
     }
 
     // Then pull
     if (direction === 'pull' || direction === 'both') {
-      const pullResult = await pullChanges(lastSync);
+      const pullResult = await pullChanges(adapter, lastSync);
       pulled = pullResult.pulled;
       allErrors.push(...pullResult.errors);
     }
 
     const now = new Date().toISOString();
-    await setLastSyncTimestamp(now);
+    await setLastSyncTimestamp(adapter, now);
 
     const result: SyncResult = {
       pushed,
@@ -530,7 +530,7 @@ export async function sync(direction: SyncDirection = 'both'): Promise<SyncResul
     currentState = {
       status: allErrors.length > 0 ? 'error' : 'idle',
       lastSyncAt: now,
-      pendingChanges: (await getQueue()).length,
+      pendingChanges: (await getQueue(adapter)).length,
       lastResult: result,
     };
 
@@ -558,16 +558,16 @@ export async function sync(direction: SyncDirection = 'both'): Promise<SyncResul
 /**
  * Get count of pending (unsynced) local changes.
  */
-export async function getPendingCount(): Promise<number> {
-  const queue = await getQueue();
+export async function getPendingCount(adapter: DataAdapter): Promise<number> {
+  const queue = await getQueue(adapter);
   return queue.length;
 }
 
 /**
  * Clear the sync queue (use with caution — discards unsynced changes).
  */
-export async function clearQueue(): Promise<void> {
-  await saveQueue([]);
+export async function clearQueue(adapter: DataAdapter): Promise<void> {
+  await saveQueue(adapter, []);
 }
 
 /**

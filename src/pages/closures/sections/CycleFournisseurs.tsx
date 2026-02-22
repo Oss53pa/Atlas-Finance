@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import { money } from '../../../utils/money';
 import { motion } from 'framer-motion';
 import {
@@ -110,6 +110,7 @@ interface Paiement {
 
 const CycleFournisseurs: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedFournisseur, setSelectedFournisseur] = useState<Fournisseur | null>(null);
   const [filterStatut, setFilterStatut] = useState<string>('tous');
@@ -122,14 +123,12 @@ const CycleFournisseurs: React.FC = () => {
 
   const loadSupplierData = useCallback(async () => {
     try {
-      const fys = await db.fiscalYears.toArray();
+      const fys = await adapter.getAll<{ id: string; isActive: boolean; startDate: string; endDate: string }>('fiscalYears');
       const activeFY = fys.find(fy => fy.isActive) || fys[0];
       if (!activeFY) return;
 
-      const entries = await db.journalEntries
-        .where('date')
-        .between(activeFY.startDate, activeFY.endDate, true, true)
-        .toArray();
+      const allEntries = await adapter.getAll<{ date: string; lines: { accountCode: string; accountName: string; debit: number; credit: number }[] }>('journalEntries');
+      const entries = allEntries.filter(e => e.date >= activeFY.startDate && e.date <= activeFY.endDate);
 
       const balMap = new Map<string, { name: string; debit: number; credit: number }>();
       for (const entry of entries) {
@@ -144,7 +143,7 @@ const CycleFournisseurs: React.FC = () => {
       }
       setSupplierBalances(balMap);
     } catch { /* silent */ }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadSupplierData(); }, [loadSupplierData]);
 

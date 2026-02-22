@@ -1,4 +1,4 @@
-import { db } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import { money, Money } from '../../utils/money';
 
 export interface TAFIREData {
@@ -54,11 +54,11 @@ export interface TAFIREAnalysis {
  * @param fiscalYear - Optional fiscal year filter (YYYY format)
  * @returns TAFIREData with all cash flow calculations
  */
-export async function calculateTAFIRE(fiscalYear?: string): Promise<TAFIREData> {
+export async function calculateTAFIRE(adapter: DataAdapter, fiscalYear?: string): Promise<TAFIREData> {
   const startTime = performance.now();
 
   // Fetch journal entries
-  let entries = await db.journalEntries.toArray();
+  let entries = await adapter.getAll<any>('journalEntries');
 
   // Filter by fiscal year if provided
   if (fiscalYear) {

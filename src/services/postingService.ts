@@ -5,7 +5,8 @@
  *
  * Conforme SYSCOHADA révisé.
  */
-import { db, logAudit } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../lib/db';
 import type { DBJournalLine, DBAsset } from '../lib/db';
 import { money } from '../utils/money';
 import { safeAddEntry } from './entryGuard';
@@ -77,12 +78,9 @@ function assetToImmobilisation(asset: DBAsset): Immobilisation {
 /**
  * Calculate cumulated depreciation for an asset from existing journal entries.
  */
-async function getCumulatedDepreciation(assetId: string): Promise<number> {
-  const entries = await db.journalEntries
-    .where('journal')
-    .equals('OD')
-    .filter(e => e.reference?.startsWith(`AMORT-`) && e.label.includes(assetId))
-    .toArray();
+async function getCumulatedDepreciation(adapter: DataAdapter, assetId: string): Promise<number> {
+  const allEntries = await adapter.getAll('journalEntries', { where: { journal: 'OD' } });
+  const entries = allEntries.filter(e => e.reference?.startsWith(`AMORT-`) && e.label.includes(assetId));
 
   let total = 0;
   for (const entry of entries) {
@@ -98,11 +96,10 @@ async function getCumulatedDepreciation(assetId: string): Promise<number> {
 /**
  * Check if depreciation entry already exists for an asset/period.
  */
-async function hasDepreciationEntry(assetCode: string, periode: string): Promise<boolean> {
+async function hasDepreciationEntry(adapter: DataAdapter, assetCode: string, periode: string): Promise<boolean> {
   const ref = `AMORT-${periode}-${assetCode}`;
-  const existing = await db.journalEntries
-    .filter(e => e.reference === ref)
-    .first();
+  const allEntries = await adapter.getAll('journalEntries');
+  const existing = allEntries.find(e => e.reference === ref);
   return !!existing;
 }
 
@@ -113,6 +110,7 @@ async function hasDepreciationEntry(assetCode: string, periode: string): Promise
  * @param dryRun If true, return what would be posted without saving
  */
 export async function posterAmortissements(
+  adapter: DataAdapter,
   periode: string,
   dryRun = false
 ): Promise<DepreciationPostingResult> {
@@ -122,7 +120,7 @@ export async function posterAmortissements(
   let assetsProcessed = 0;
 
   // Load active assets
-  const assets = await db.assets.where('status').equals('active').toArray();
+  const assets = await adapter.getAll('assets', { where: { status: 'active' } });
 
   if (assets.length === 0) {
     return { success: true, entries: [], totalAmount: 0, assetsProcessed: 0, errors: ['Aucune immobilisation active'] };
@@ -132,13 +130,13 @@ export async function posterAmortissements(
 
   for (const asset of assets) {
     // Skip if already posted for this period
-    if (await hasDepreciationEntry(asset.code, periode)) {
+    if (await hasDepreciationEntry(adapter, asset.code, periode)) {
       continue;
     }
 
     // Convert to Immobilisation with real cumulated depreciation
     const immo = assetToImmobilisation(asset);
-    immo.amortissementsCumules = await getCumulatedDepreciation(asset.id);
+    immo.amortissementsCumules = await getCumulatedDepreciation(adapter, asset.id);
 
     // Check if asset should still be depreciated
     if (!DepreciationService.doitEtreAmorti(immo, periode)) {
@@ -214,9 +212,10 @@ export async function posterAmortissements(
  * Post depreciation entries for a full fiscal year (12 months).
  */
 export async function posterAmortissementsAnnuels(
+  adapter: DataAdapter,
   exerciceId: string
 ): Promise<DepreciationPostingResult> {
-  const fiscalYear = await db.fiscalYears.get(exerciceId);
+  const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
   if (!fiscalYear) {
     return { success: false, entries: [], totalAmount: 0, assetsProcessed: 0, errors: [`Exercice ${exerciceId} introuvable`] };
   }
@@ -231,7 +230,7 @@ export async function posterAmortissementsAnnuels(
   const current = new Date(start);
   while (current <= end) {
     const periode = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-    const result = await posterAmortissements(periode);
+    const result = await posterAmortissements(adapter, periode);
 
     allResults.push(...result.entries);
     allErrors.push(...result.errors);

@@ -3,7 +3,8 @@
  * Implements ISA 315/320/500 audit revision workflow.
  * Manages lead schedules, audit assertions, and revision items.
  */
-import { db, logAudit } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../../../lib/db';
 import type { DBRevisionItem } from '../../../lib/db';
 
 // ============================================================================
@@ -107,17 +108,14 @@ class RevisionsService {
   /**
    * Get all revision items for a session.
    */
-  async getRevisionItems(sessionId: string): Promise<RevisionItem[]> {
-    return db.revisionItems
-      .where('sessionId')
-      .equals(sessionId)
-      .toArray();
+  async getRevisionItems(adapter: DataAdapter, sessionId: string): Promise<RevisionItem[]> {
+    return adapter.getAll<RevisionItem>('revisionItems', { where: { sessionId } });
   }
 
   /**
    * Create a revision item.
    */
-  async createRevisionItem(item: Omit<RevisionItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<RevisionItem> {
+  async createRevisionItem(adapter: DataAdapter, item: Omit<RevisionItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<RevisionItem> {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const record: DBRevisionItem = {
@@ -136,7 +134,7 @@ class RevisionsService {
       updatedAt: now,
     };
 
-    await db.revisionItems.add(record);
+    await adapter.create('revisionItems', record);
 
     await logAudit(
       'REVISION_ITEM_CREATE',
@@ -152,10 +150,11 @@ class RevisionsService {
    * Update a revision item status, findings, or conclusion.
    */
   async updateRevisionItem(
+    adapter: DataAdapter,
     id: string,
     updates: Partial<Pick<RevisionItem, 'status' | 'findings' | 'conclusion' | 'reviewer' | 'riskLevel'>>
   ): Promise<RevisionItem> {
-    const item = await db.revisionItems.get(id);
+    const item = await adapter.getById<DBRevisionItem>('revisionItems', id);
     if (!item) throw new Error(`Revision item ${id} introuvable`);
 
     const updatedFields = {
@@ -163,7 +162,7 @@ class RevisionsService {
       updatedAt: new Date().toISOString(),
     };
 
-    await db.revisionItems.update(id, updatedFields);
+    await adapter.update('revisionItems', id, updatedFields);
 
     if (updates.status) {
       await logAudit(
@@ -180,15 +179,15 @@ class RevisionsService {
   /**
    * Delete a revision item.
    */
-  async deleteRevisionItem(id: string): Promise<void> {
-    await db.revisionItems.delete(id);
+  async deleteRevisionItem(adapter: DataAdapter, id: string): Promise<void> {
+    await adapter.delete('revisionItems', id);
   }
 
   /**
    * Generate lead schedules grouped by SYSCOHADA account class.
    */
-  async getLeadSchedules(sessionId: string): Promise<LeadSchedule[]> {
-    const items = await this.getRevisionItems(sessionId);
+  async getLeadSchedules(adapter: DataAdapter, sessionId: string): Promise<LeadSchedule[]> {
+    const items = await this.getRevisionItems(adapter, sessionId);
     const schedules: LeadSchedule[] = [];
 
     for (const [classCode, className] of Object.entries(SYSCOHADA_CLASSES)) {
@@ -219,17 +218,18 @@ class RevisionsService {
    * Creates one item per account per key assertion.
    */
   async autoGenerateRevisionItems(
+    adapter: DataAdapter,
     sessionId: string,
     dateDebut: string,
     dateFin: string,
     reviewer: string
   ): Promise<number> {
     // Get accounts with movements in the period
-    const entries = await db.journalEntries
-      .where('date')
-      .between(dateDebut, dateFin, true, true)
-      .filter(e => e.status === 'validated' || e.status === 'posted')
-      .toArray();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const entries = allEntries.filter(
+      (e: any) => e.date >= dateDebut && e.date <= dateFin &&
+        (e.status === 'validated' || e.status === 'posted')
+    );
 
     const accountMap = new Map<string, string>();
     for (const entry of entries) {
@@ -241,7 +241,7 @@ class RevisionsService {
     }
 
     // Check existing items to avoid duplicates
-    const existing = await this.getRevisionItems(sessionId);
+    const existing = await this.getRevisionItems(adapter, sessionId);
     const existingKeys = new Set(existing.map(e => `${e.accountCode}-${e.isaAssertion}`));
 
     // Key assertions per class type
@@ -264,7 +264,7 @@ class RevisionsService {
         const key = `${accountCode}-${assertion}`;
         if (existingKeys.has(key)) continue;
 
-        await this.createRevisionItem({
+        await this.createRevisionItem(adapter, {
           sessionId,
           accountCode,
           accountName,
@@ -315,8 +315,8 @@ class RevisionsService {
   /**
    * Get revision statistics.
    */
-  async getStats(sessionId: string): Promise<RevisionStats> {
-    const items = await this.getRevisionItems(sessionId);
+  async getStats(adapter: DataAdapter, sessionId: string): Promise<RevisionStats> {
+    const items = await this.getRevisionItems(adapter, sessionId);
 
     const completed = items.filter(i => i.status === 'valide' || i.status === 'approuve').length;
     const inProgress = items.filter(i => i.status === 'en_cours' || i.status === 'revise').length;
@@ -336,8 +336,8 @@ class RevisionsService {
   /**
    * Extract findings (issues found during revision).
    */
-  async getFindings(sessionId: string): Promise<AuditFinding[]> {
-    const items = await this.getRevisionItems(sessionId);
+  async getFindings(adapter: DataAdapter, sessionId: string): Promise<AuditFinding[]> {
+    const items = await this.getRevisionItems(adapter, sessionId);
     return items
       .filter(i => i.findings.trim().length > 0)
       .map(i => ({
@@ -360,8 +360,8 @@ class RevisionsService {
   /**
    * Export revision report as CSV.
    */
-  async exportReport(sessionId: string): Promise<Blob> {
-    const items = await this.getRevisionItems(sessionId);
+  async exportReport(adapter: DataAdapter, sessionId: string): Promise<Blob> {
+    const items = await this.getRevisionItems(adapter, sessionId);
     const header = 'Compte;Libelle;Assertion ISA;Risque;Type Test;Statut;Constatations;Conclusion;Reviseur';
     const rows = items
       .sort((a, b) => a.accountCode.localeCompare(b.accountCode))

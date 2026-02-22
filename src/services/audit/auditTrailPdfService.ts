@@ -10,8 +10,8 @@
  * Utilise jsPDF pour la génération PDF.
  */
 
-import { db } from '../../lib/db';
 import type { DBAuditLog } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import { jsPDF } from 'jspdf';
 
 // ============================================================================
@@ -44,8 +44,8 @@ export interface AuditIntegrityResult {
 /**
  * Verify the audit trail hash chain integrity.
  */
-export async function verifyAuditIntegrity(logs?: DBAuditLog[]): Promise<AuditIntegrityResult> {
-  const allLogs = logs || await db.auditLogs.orderBy('timestamp').toArray();
+export async function verifyAuditIntegrity(adapter: DataAdapter, logs?: DBAuditLog[]): Promise<AuditIntegrityResult> {
+  const allLogs = logs || await adapter.getAll('auditLogs', { orderBy: { field: 'timestamp', direction: 'asc' } });
 
   const result: AuditIntegrityResult = {
     totalLogs: allLogs.length,
@@ -79,9 +79,9 @@ export async function verifyAuditIntegrity(logs?: DBAuditLog[]): Promise<AuditIn
 /**
  * Generate a PDF audit trail report.
  */
-export async function generateAuditTrailPdf(options: AuditTrailReportOptions = {}): Promise<Blob> {
+export async function generateAuditTrailPdf(adapter: DataAdapter, options: AuditTrailReportOptions = {}): Promise<Blob> {
   // Fetch and filter logs
-  let logs = await db.auditLogs.orderBy('timestamp').toArray();
+  let logs = await adapter.getAll('auditLogs', { orderBy: { field: 'timestamp', direction: 'asc' } });
 
   if (options.startDate) {
     logs = logs.filter(l => l.timestamp >= options.startDate!);
@@ -100,7 +100,7 @@ export async function generateAuditTrailPdf(options: AuditTrailReportOptions = {
   }
 
   // Verify integrity if requested
-  const integrity = options.verifyIntegrity !== false ? await verifyAuditIntegrity(logs) : null;
+  const integrity = options.verifyIntegrity !== false ? await verifyAuditIntegrity(adapter, logs) : null;
 
   // Create PDF
   const pdf = new jsPDF('landscape', 'mm', 'a4');
@@ -255,8 +255,8 @@ export async function generateAuditTrailPdf(options: AuditTrailReportOptions = {
 /**
  * Download the audit trail PDF directly.
  */
-export async function downloadAuditTrailPdf(options: AuditTrailReportOptions = {}): Promise<void> {
-  const blob = await generateAuditTrailPdf(options);
+export async function downloadAuditTrailPdf(adapter: DataAdapter, options: AuditTrailReportOptions = {}): Promise<void> {
+  const blob = await generateAuditTrailPdf(adapter, options);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

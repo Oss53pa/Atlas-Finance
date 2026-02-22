@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type DBAsset } from '../../lib/db';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useData } from '../../contexts/DataContext';
+import type { DBAsset } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
@@ -106,11 +106,18 @@ const AssetsDisposals: React.FC = () => {
   const [viewMode, setViewMode] = useState<'disposals' | 'approvals' | 'analytics'>('disposals');
   const [disposalModal, setDisposalModal] = useState<DisposalModal>({ isOpen: false, mode: 'view' });
   const [selectedDisposals, setSelectedDisposals] = useState<string[]>([]);
+  const { adapter } = useData();
 
-  // Live Dexie query - fetch disposed/scrapped assets
-  const dbDisposedAssets = useLiveQuery(
-    () => db.assets.where('status').anyOf('disposed', 'scrapped').toArray()
-  ) || [];
+  // Disposed/scrapped assets from DataContext
+  const [dbDisposedAssets, setDbDisposedAssets] = useState<DBAsset[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const allAssets = await adapter.getAll('assets') as DBAsset[];
+      setDbDisposedAssets(allAssets.filter(a => a.status === 'disposed' || a.status === 'scrapped'));
+    };
+    load();
+  }, [adapter]);
 
   // Map Dexie assets to AssetDisposal shape
   const disposals: AssetDisposal[] = useMemo(() => {

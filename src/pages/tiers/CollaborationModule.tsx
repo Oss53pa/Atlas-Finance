@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatDate } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   MessageSquare, Plus, Search, Filter, Download, Eye, Edit, Trash2,
   ArrowLeft, Send, Paperclip, Phone, Video, Users, Settings,
@@ -25,9 +24,22 @@ const CollaborationModule: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Live data from Dexie
-  const thirdParties = useLiveQuery(() => db.thirdParties.toArray()) || [];
-  const settings = useLiveQuery(() => db.settings.toArray()) || [];
+  // Data from DataContext
+  const { adapter } = useData();
+  const [thirdParties, setThirdParties] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [tps, stgs] = await Promise.all([
+        adapter.getAll('thirdParties'),
+        adapter.getAll('settings'),
+      ]);
+      setThirdParties(tps as any[]);
+      setSettings(stgs as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Build chat data from third parties
   const mockChats = thirdParties.map((tp) => {

@@ -7,12 +7,13 @@ import {
   DollarSign, Target, Activity, FileText, Calculator, PieChart,
   RefreshCw, Eye, X, ChevronRight
 } from 'lucide-react';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import type { DBJournalEntry } from '../../lib/db';
 
 const CompteResultatPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('bilan');
   const [selectedDetail, setSelectedDetail] = useState<{
     title?: string;
@@ -29,7 +30,7 @@ const CompteResultatPage: React.FC = () => {
   // Données mensuelles calculées depuis Dexie
   const { data: allEntries = [] } = useQuery({
     queryKey: ['compte-resultat-entries'],
-    queryFn: () => db.journalEntries.toArray(),
+    queryFn: () => adapter.getAll('journalEntries'),
   });
 
   const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];

@@ -3,7 +3,8 @@
  * Generates journal entries from bank movements.
  * SYSCOHADA: DR 512x (bank accounts), CR counterpart account.
  */
-import { db, logAudit } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../../lib/db';
 import type { DBJournalEntry } from '../../lib/db';
 import { hashEntry } from '../../utils/integrity';
 
@@ -23,12 +24,13 @@ export interface BankMovementPost {
  * Positive amount = receipt (DR bank, CR counterpart)
  * Negative amount = payment (DR counterpart, CR bank)
  */
-export async function postBankMovement(movement: BankMovementPost): Promise<string> {
+export async function postBankMovement(adapter: DataAdapter, movement: BankMovementPost): Promise<string> {
   const id = crypto.randomUUID();
   const absAmount = Math.abs(movement.amount);
   const isReceipt = movement.amount >= 0;
 
-  const lastEntry = await db.journalEntries.orderBy('entryNumber').last();
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries', { orderBy: { field: 'entryNumber', direction: 'asc' } });
+  const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
   const nextNum = lastEntry ? parseInt(lastEntry.entryNumber.replace(/\D/g, '') || '0') + 1 : 1;
   const entryNumber = `BQ-${String(nextNum).padStart(6, '0')}`;
 
@@ -67,12 +69,13 @@ export async function postBankMovement(movement: BankMovementPost): Promise<stri
   };
 
   // Hash chain
-  const prev = await db.journalEntries.orderBy('createdAt').last();
+  const allByDate = await adapter.getAll<DBJournalEntry>('journalEntries', { orderBy: { field: 'createdAt', direction: 'asc' } });
+  const prev = allByDate.length > 0 ? allByDate[allByDate.length - 1] : undefined;
   const previousHash = prev?.hash || '';
   entry.previousHash = previousHash;
   entry.hash = await hashEntry(entry, previousHash);
 
-  await db.journalEntries.add(entry);
+  await adapter.create('journalEntries', entry);
 
   await logAudit(
     'TREASURY_POSTING',
@@ -87,10 +90,10 @@ export async function postBankMovement(movement: BankMovementPost): Promise<stri
 /**
  * Post multiple bank movements in batch.
  */
-export async function postBankMovements(movements: BankMovementPost[]): Promise<string[]> {
+export async function postBankMovements(adapter: DataAdapter, movements: BankMovementPost[]): Promise<string[]> {
   const ids: string[] = [];
   for (const movement of movements) {
-    const id = await postBankMovement(movement);
+    const id = await postBankMovement(adapter, movement);
     ids.push(id);
   }
   return ids;

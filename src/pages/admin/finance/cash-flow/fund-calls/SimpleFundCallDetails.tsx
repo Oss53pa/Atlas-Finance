@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../../../../lib/db';
+import { useData } from '../../../../../contexts/DataContext';
 import { formatDate } from '../../../../../utils/formatters';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useParams, Link } from 'react-router-dom';
@@ -19,6 +19,7 @@ interface FundCallDetails {
 export const SimpleFundCallDetails: React.FC = () => {
   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
+  const { adapter } = useData();
   const [fundCall, setFundCall] = useState<FundCallDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -29,7 +30,7 @@ export const SimpleFundCallDetails: React.FC = () => {
         return;
       }
       try {
-        const setting = await db.settings.get('fund_calls');
+        const setting = await adapter.getById<{ value: string }>('settings', 'fund_calls');
         if (setting) {
           const parsed = JSON.parse(setting.value);
           const allCalls: FundCallDetails[] = Array.isArray(parsed) ? parsed : [];
@@ -46,7 +47,7 @@ export const SimpleFundCallDetails: React.FC = () => {
       setLoading(false);
     };
     fetchDetails();
-  }, [id]);
+  }, [id, adapter]);
 
   const formatAmount = (amount: number): string => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';

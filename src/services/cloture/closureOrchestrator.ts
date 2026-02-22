@@ -19,13 +19,14 @@
  *   8. Reports à nouveau N+1
  *   9. Archivage états financiers
  */
-import { db, logAudit } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import type { DBFiscalYear } from '../../lib/db';
 import { previewClosure, executerCloture, canClose } from '../closureService';
 import type { ClosureConfig, ClosurePreview } from '../closureService';
 import { posterAmortissements } from '../postingService';
 import { executerCarryForward, previewCarryForward } from './carryForwardService';
 import { genererExtournes } from './extourneService';
+import { formatCurrency } from '../../utils/formatters';
 
 // ============================================================================
 // TYPES
@@ -34,6 +35,7 @@ import { genererExtournes } from './extourneService';
 export type ClotureMode = 'manual' | 'proph3t';
 
 export interface ClotureContext {
+  adapter: DataAdapter;
   exerciceId: string;
   mode: ClotureMode;
   userId: string;
@@ -164,7 +166,7 @@ export const closureOrchestrator = {
     ctx: ClotureContext,
     initiatedBy: string
   ): Promise<string> {
-    const fy = await db.fiscalYears.get(ctx.exerciceId);
+    const fy = await ctx.adapter.getById<DBFiscalYear>('fiscalYears', ctx.exerciceId);
     if (!fy) throw new Error(`Exercice ${ctx.exerciceId} introuvable`);
 
     switch (stepId) {
@@ -191,7 +193,7 @@ export const closureOrchestrator = {
         const current = new Date(start);
         while (current <= end) {
           const periode = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-          const result = await posterAmortissements(periode);
+          const result = await posterAmortissements(ctx.adapter, periode);
           totalPosted += result.assetsProcessed;
           current.setMonth(current.getMonth() + 1);
         }
@@ -200,7 +202,7 @@ export const closureOrchestrator = {
 
       case 'REGULARISATIONS': {
         // Auto-extourne des régularisations de l'exercice précédent
-        const result = await genererExtournes({
+        const result = await genererExtournes(ctx.adapter, {
           exerciceClotureId: ctx.exerciceId,
           dateExtourne: fy.startDate,
         });
@@ -210,14 +212,13 @@ export const closureOrchestrator = {
       }
 
       case 'VERROUILLAGE': {
-        const entries = await db.journalEntries
-          .where('date')
-          .between(fy.startDate, fy.endDate, true, true)
-          .filter(e => e.status !== 'validated')
-          .toArray();
+        const allEntries = await ctx.adapter.getAll('journalEntries');
+        const entries = (allEntries as any[]).filter(
+          e => e.date >= fy.startDate && e.date <= fy.endDate && e.status !== 'validated'
+        );
 
         for (const entry of entries) {
-          await db.journalEntries.update(entry.id, {
+          await ctx.adapter.update('journalEntries', entry.id, {
             status: 'validated',
             updatedAt: new Date().toISOString(),
           });
@@ -228,17 +229,17 @@ export const closureOrchestrator = {
       case 'CALCUL_RESULTAT': {
         const preview = await previewClosure(ctx.exerciceId);
         const { resultatNet, isBenefice, totalProduits, totalCharges } = preview;
-        return `${isBenefice ? 'Bénéfice' : 'Perte'} : ${resultatNet.toLocaleString()} FCFA (Produits: ${totalProduits.toLocaleString()}, Charges: ${totalCharges.toLocaleString()})`;
+        return `${isBenefice ? 'Bénéfice' : 'Perte'} : ${formatCurrency(resultatNet)} (Produits: ${formatCurrency(totalProduits)}, Charges: ${formatCurrency(totalCharges)})`;
       }
 
       case 'REPORTS': {
         const openingId = ctx.openingExerciceId;
         if (!openingId) throw new Error('Exercice N+1 non défini — requis pour les reports à nouveau');
 
-        const openingFY = await db.fiscalYears.get(openingId);
+        const openingFY = await ctx.adapter.getById<DBFiscalYear>('fiscalYears', openingId);
         if (!openingFY) throw new Error(`Exercice d'ouverture ${openingId} introuvable`);
 
-        const result = await executerCarryForward({
+        const result = await executerCarryForward(ctx.adapter, {
           closingExerciceId: ctx.exerciceId,
           openingExerciceId: openingId,
           openingDate: openingFY.startDate,
@@ -246,17 +247,19 @@ export const closureOrchestrator = {
         });
 
         if (!result.success) throw new Error(result.errors.join(', '));
-        return `${result.lineCount} compte(s) reporté(s), D=${result.totalDebit.toLocaleString()} C=${result.totalCredit.toLocaleString()}`;
+        return `${result.lineCount} compte(s) reporté(s), D=${formatCurrency(result.totalDebit)} C=${formatCurrency(result.totalCredit)}`;
       }
 
       case 'FINALISATION': {
-        await db.fiscalYears.update(ctx.exerciceId, { isClosed: true });
-        await logAudit(
-          'CLOSURE_COMPLETE',
-          'fiscalYear',
-          ctx.exerciceId,
-          JSON.stringify({ mode: ctx.mode, userId: ctx.userId, initiatedBy })
-        );
+        await ctx.adapter.update('fiscalYears', ctx.exerciceId, { isClosed: true });
+        await ctx.adapter.logAudit({
+          action: 'CLOSURE_COMPLETE',
+          entityType: 'fiscalYear',
+          entityId: ctx.exerciceId,
+          details: JSON.stringify({ mode: ctx.mode, userId: ctx.userId, initiatedBy }),
+          timestamp: new Date().toISOString(),
+          previousHash: '',
+        });
         return `Exercice ${fy.name} clôturé`;
       }
 
@@ -272,16 +275,18 @@ export const closureOrchestrator = {
   async _logAudit(ctx: ClotureContext, steps: ClotureStep[]): Promise<void> {
     const completed = steps.filter(s => s.status === 'done').length;
     const failed = steps.filter(s => s.status === 'error').length;
-    await logAudit(
-      'CLOTURE_ORCHESTRATOR',
-      'closureSession',
-      ctx.exerciceId,
-      JSON.stringify({
+    await ctx.adapter.logAudit({
+      action: 'CLOTURE_ORCHESTRATOR',
+      entityType: 'closureSession',
+      entityId: ctx.exerciceId,
+      details: JSON.stringify({
         mode: ctx.mode,
         userId: ctx.userId,
         steps: steps.map(s => ({ id: s.id, status: s.status, message: s.message })),
         summary: `${completed} ok, ${failed} erreur(s)`,
-      })
-    );
+      }),
+      timestamp: new Date().toISOString(),
+      previousHash: '',
+    });
   },
 };

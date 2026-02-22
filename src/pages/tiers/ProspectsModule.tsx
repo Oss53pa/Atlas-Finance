@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   Target, Plus, Search, Filter, Download, Eye, Edit, Trash2,
   ArrowLeft, Phone, Mail, MapPin, Calendar, DollarSign,
@@ -96,8 +95,18 @@ const ProspectsModule: React.FC = () => {
   const [showProspectModal, setShowProspectModal] = useState(false);
   const [showInteractionModal, setShowInteractionModal] = useState(false);
 
-  // Live data from Dexie — filter for prospects (customers with zero balance or all customers)
-  const thirdParties = useLiveQuery(() => db.thirdParties.toArray()) || [];
+  const { adapter } = useData();
+
+  // Data from DataContext — filter for prospects (customers with zero balance or all customers)
+  const [thirdParties, setThirdParties] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const tps = await adapter.getAll('thirdParties');
+      setThirdParties(tps as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Map third parties to prospect format — treat customers with zero balance as prospects
   const mockProspects: Prospect[] = thirdParties

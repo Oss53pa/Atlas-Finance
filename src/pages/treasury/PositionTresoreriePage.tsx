@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   Wallet,
@@ -48,11 +47,23 @@ interface TreasuryPosition {
 }
 
 const PositionTresoreriePage: React.FC = () => {
+  const { adapter } = useData();
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  // Live Dexie queries
-  const exchangeRatesData = useLiveQuery(() => db.exchangeRates.toArray()) || [];
-  const hedgingPositionsData = useLiveQuery(() => db.hedgingPositions.toArray()) || [];
+  const [exchangeRatesData, setExchangeRatesData] = useState<any[]>([]);
+  const [hedgingPositionsData, setHedgingPositionsData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [er, hp] = await Promise.all([
+        adapter.getAll('exchangeRates'),
+        adapter.getAll('hedgingPositions'),
+      ]);
+      setExchangeRatesData(er as any[]);
+      setHedgingPositionsData(hp as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Build the treasury position from Dexie data
   const position: TreasuryPosition = useMemo(() => {
@@ -81,7 +92,7 @@ const PositionTresoreriePage: React.FC = () => {
 
   // Dummy refresh function for the button
   const loadTreasuryPosition = () => {
-    // Data is live via useLiveQuery; no manual fetch needed
+    // Data is loaded via useEffect; no manual fetch needed
   };
 
   return (

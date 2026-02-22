@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type DBAsset } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
+import { type DBAsset } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
@@ -99,6 +99,7 @@ interface MaintenanceModal {
 
 const AssetsMaintenance: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -129,8 +130,16 @@ const AssetsMaintenance: React.FC = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Live Dexie query
-  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
+  // Load assets via DataContext adapter
+  const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const assets = await adapter.getAll('assets');
+      setDbAssets(assets as DBAsset[]);
+    };
+    load();
+  }, [adapter]);
 
   // Map assets to maintenance records
   const maintenanceRecords: MaintenanceRecord[] = useMemo(() => {

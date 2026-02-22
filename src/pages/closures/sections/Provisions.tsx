@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBProvision } from '../../../lib/db';
 import { motion } from 'framer-motion';
 import {
@@ -129,6 +129,7 @@ interface AnalyseRisque {
 
 const Provisions: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedProvision, setSelectedProvision] = useState<Provision | null>(null);
   const [filterType, setFilterType] = useState<string>('tous');
@@ -143,10 +144,10 @@ const Provisions: React.FC = () => {
 
   const loadProvisions = useCallback(async () => {
     try {
-      const provs = await db.provisions.toArray();
+      const provs = await adapter.getAll<DBProvision>('provisions');
       setDbProvisions(provs);
     } catch { /* silent */ }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadProvisions(); }, [loadProvisions]);
 

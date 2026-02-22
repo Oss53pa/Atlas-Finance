@@ -8,7 +8,8 @@
  * 4. updatedAt toujours présent
  */
 
-import { db, type DBJournalEntry } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import type { DBJournalEntry } from '../lib/db';
 import { money, Money } from '../utils/money';
 import { validateJournalEntrySync, type ValidationResult } from '../validators/journalEntryValidator';
 import { hashEntry } from '../utils/integrity';
@@ -30,6 +31,7 @@ export class EntryGuardError extends Error {
  *        défaut pour toute saisie utilisateur.
  */
 export async function safeAddEntry(
+  adapter: DataAdapter,
   entry: Omit<DBJournalEntry, 'totalDebit' | 'totalCredit' | 'hash' | 'updatedAt'> & {
     totalDebit?: number;
     totalCredit?: number;
@@ -66,15 +68,14 @@ export async function safeAddEntry(
   } as DBJournalEntry;
 
   // 4. Hash with chain
-  const lastEntry = await db.journalEntries
-    .orderBy('date')
-    .last();
+  const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'date', direction: 'asc' } });
+  const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
   const previousHash = lastEntry?.hash ?? '';
   finalEntry.previousHash = previousHash;
   finalEntry.hash = await hashEntry(finalEntry, previousHash);
 
   // 5. Persist
-  await db.journalEntries.add(finalEntry);
+  await adapter.create('journalEntries', finalEntry);
   return finalEntry.id;
 }
 
@@ -82,6 +83,7 @@ export async function safeAddEntry(
  * Insert multiple entries in bulk, each validated individually.
  */
 export async function safeBulkAddEntries(
+  adapter: DataAdapter,
   entries: Array<
     Omit<DBJournalEntry, 'totalDebit' | 'totalCredit' | 'hash' | 'updatedAt'> & {
       totalDebit?: number;
@@ -95,7 +97,7 @@ export async function safeBulkAddEntries(
   const ids: string[] = [];
   // Sequential to maintain hash chain ordering
   for (const entry of entries) {
-    const id = await safeAddEntry(entry, options);
+    const id = await safeAddEntry(adapter, entry, options);
     ids.push(id);
   }
   return ids;

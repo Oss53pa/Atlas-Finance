@@ -3,7 +3,8 @@
  * Posts depreciation journal entries.
  * SYSCOHADA: DR 681x (dotation), CR 28xx (amortissement cumule).
  */
-import { db, logAudit } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../../../lib/db';
 import type { DBJournalEntry, DBAsset } from '../../../lib/db';
 import { Money } from '@/utils/money';
 
@@ -54,13 +55,14 @@ export function computeDepreciations(assets: DBAsset[], date: string): Depreciat
 /**
  * Post depreciation entries to the journal.
  */
-export async function postDepreciations(depreciations: DepreciationEntry[]): Promise<string[]> {
+export async function postDepreciations(adapter: DataAdapter, depreciations: DepreciationEntry[]): Promise<string[]> {
   const ids: string[] = [];
   const now = new Date().toISOString();
 
   for (const dep of depreciations) {
     const id = crypto.randomUUID();
-    const lastEntry = await db.journalEntries.orderBy('entryNumber').last();
+    const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'entryNumber', direction: 'asc' } });
+    const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
     const nextNum = lastEntry ? parseInt(lastEntry.entryNumber.replace(/\D/g, '') || '0') + 1 : 1;
     const entryNumber = `OD-${String(nextNum).padStart(6, '0')}`;
 
@@ -96,7 +98,7 @@ export async function postDepreciations(depreciations: DepreciationEntry[]): Pro
       updatedAt: now,
     };
 
-    await db.journalEntries.add(entry);
+    await adapter.create('journalEntries', entry);
     ids.push(id);
 
     await logAudit(
@@ -113,8 +115,8 @@ export async function postDepreciations(depreciations: DepreciationEntry[]): Pro
 /**
  * Run depreciation for all active assets and post entries.
  */
-export async function runDepreciation(date: string): Promise<string[]> {
-  const assets = await db.assets.where('status').equals('active').toArray();
+export async function runDepreciation(adapter: DataAdapter, date: string): Promise<string[]> {
+  const assets = await adapter.getAll('assets', { where: { status: 'active' } });
   const depreciations = computeDepreciations(assets, date);
-  return postDepreciations(depreciations);
+  return postDepreciations(adapter, depreciations);
 }

@@ -9,13 +9,14 @@ import {
 } from 'lucide-react';
 import PrintableArea from '../../components/ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import type { DBJournalEntry } from '../../lib/db';
 import { money } from '../../utils/money';
 
 const BilanSYSCOHADAPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('bilan');
   const [periode, setPeriode] = useState('current');
 
@@ -45,7 +46,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
   // ========== DONNÉES RÉELLES DEPUIS DEXIE ==========
   const { data: rawEntries = [] } = useQuery({
     queryKey: ['bilan-syscohada-entries'],
-    queryFn: () => db.journalEntries.toArray(),
+    queryFn: () => adapter.getAll('journalEntries'),
   });
 
   // Helper: net balance (debit - credit) for account prefixes

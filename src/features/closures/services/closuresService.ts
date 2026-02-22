@@ -3,8 +3,9 @@
  * Manages closure sessions, provisions, amortissements, and closure entries.
  * Conforme SYSCOHADA révisé.
  */
+import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../../utils/money';
-import { db, logAudit } from '../../../lib/db';
+import { logAudit } from '../../../lib/db';
 import type { DBClosureSession, DBProvision } from '../../../lib/db';
 import { safeAddEntry } from '../../../services/entryGuard';
 import {
@@ -43,8 +44,8 @@ class ClosuresService {
   /**
    * Get all closure sessions from Dexie.
    */
-  async getSessions(): Promise<ClotureSession[]> {
-    const sessions = await db.closureSessions.toArray();
+  async getSessions(adapter: DataAdapter): Promise<ClotureSession[]> {
+    const sessions = await adapter.getAll<DBClosureSession>('closureSessions');
     if (sessions.length === 0) return [];
     return sessions
       .sort((a, b) => b.dateCreation.localeCompare(a.dateCreation))
@@ -54,7 +55,7 @@ class ClosuresService {
   /**
    * Create a new closure session.
    */
-  async createSession(session: Omit<ClotureSession, 'id'>): Promise<ClotureSession> {
+  async createSession(adapter: DataAdapter, session: Omit<ClotureSession, 'id'>): Promise<ClotureSession> {
     const id = crypto.randomUUID();
     const newSession: DBClosureSession = {
       id,
@@ -69,7 +70,7 @@ class ClosuresService {
       progression: 0,
     };
 
-    await db.closureSessions.add(newSession);
+    await adapter.create('closureSessions', newSession);
 
     await logAudit(
       'CLOSURE_SESSION_CREATE',
@@ -84,15 +85,15 @@ class ClosuresService {
   /**
    * Get balance snapshot for a closure session period from real journal entries.
    */
-  async getBalance(sessionId: string | number): Promise<BalanceAccount[]> {
-    const session = await db.closureSessions.get(String(sessionId));
+  async getBalance(adapter: DataAdapter, sessionId: string | number): Promise<BalanceAccount[]> {
+    const session = await adapter.getById<DBClosureSession>('closureSessions', String(sessionId));
     if (!session) return [];
 
-    const entries = await db.journalEntries
-      .where('date')
-      .between(session.dateDebut, session.dateFin, true, true)
-      .filter(e => e.status === 'validated' || e.status === 'posted')
-      .toArray();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const entries = allEntries.filter(
+      (e: any) => e.date >= session.dateDebut && e.date <= session.dateFin &&
+        (e.status === 'validated' || e.status === 'posted')
+    );
 
     const balances = new Map<string, { name: string; debit: number; credit: number }>();
 
@@ -130,25 +131,22 @@ class ClosuresService {
    * Compute provisions for doubtful debts based on aging analysis.
    * Scans 411xxx client accounts for overdue debit balances.
    */
-  async getProvisions(sessionId: string | number): Promise<Provision[]> {
+  async getProvisions(adapter: DataAdapter, sessionId: string | number): Promise<Provision[]> {
     // First check if provisions are already stored
-    const stored = await db.provisions
-      .where('sessionId')
-      .equals(String(sessionId))
-      .toArray();
+    const stored = await adapter.getAll<DBProvision>('provisions', { where: { sessionId: String(sessionId) } });
     if (stored.length > 0) {
       return stored.map(p => ({ ...p, id: p.id }));
     }
 
     // Compute from journal entries
-    const session = await db.closureSessions.get(String(sessionId));
+    const session = await adapter.getById<DBClosureSession>('closureSessions', String(sessionId));
     if (!session) return [];
 
-    const entries = await db.journalEntries
-      .where('date')
-      .between(session.dateDebut, session.dateFin, true, true)
-      .filter(e => e.status === 'validated' || e.status === 'posted')
-      .toArray();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const entries = allEntries.filter(
+      (e: any) => e.date >= session.dateDebut && e.date <= session.dateFin &&
+        (e.status === 'validated' || e.status === 'posted')
+    );
 
     // Find 411xxx client accounts with debit balances
     const clientBalances = new Map<string, { name: string; debit: number; credit: number; earliestDate: string }>();
@@ -200,7 +198,7 @@ class ClosuresService {
       provisions.push(provision);
 
       // Store in DB
-      await db.provisions.add({
+      await adapter.create('provisions', {
         ...provision,
         id: String(provision.id),
         sessionId: String(sessionId),
@@ -214,17 +212,18 @@ class ClosuresService {
    * Validate or reject a provision.
    */
   async validerProvision(
+    adapter: DataAdapter,
     provisionId: string | number,
     action: 'VALIDER' | 'REJETER'
   ): Promise<Provision> {
     const id = String(provisionId);
-    const provision = await db.provisions.get(id);
+    const provision = await adapter.getById<DBProvision>('provisions', id);
     if (!provision) throw new Error(`Provision ${id} introuvable`);
 
     const newStatut = action === 'VALIDER' ? 'VALIDEE' : 'REJETEE';
     const dateValidation = new Date().toISOString();
 
-    await db.provisions.update(id, {
+    await adapter.update('provisions', id, {
       statut: newStatut,
       dateValidation,
     });
@@ -246,11 +245,11 @@ class ClosuresService {
   /**
    * Compute depreciation (amortissements) from assets table.
    */
-  async getAmortissements(sessionId: string | number): Promise<Amortissement[]> {
-    const session = await db.closureSessions.get(String(sessionId));
+  async getAmortissements(adapter: DataAdapter, sessionId: string | number): Promise<Amortissement[]> {
+    const session = await adapter.getById<DBClosureSession>('closureSessions', String(sessionId));
     if (!session) return [];
 
-    const assets = await db.assets.where('status').equals('active').toArray();
+    const assets = await adapter.getAll<any>('assets', { where: { status: 'active' } });
     const result: Amortissement[] = [];
 
     for (const asset of assets) {
@@ -295,21 +294,17 @@ class ClosuresService {
   /**
    * Get closure entries (OD journal entries in the session period with CL- prefix).
    */
-  async getEcritures(sessionId: string | number): Promise<EcritureCloture[]> {
-    const session = await db.closureSessions.get(String(sessionId));
+  async getEcritures(adapter: DataAdapter, sessionId: string | number): Promise<EcritureCloture[]> {
+    const session = await adapter.getById<DBClosureSession>('closureSessions', String(sessionId));
     if (!session) return [];
 
-    const entries = await db.journalEntries
-      .where('journal')
-      .equals('OD')
-      .filter(e =>
-        e.date >= session.dateDebut &&
-        e.date <= session.dateFin &&
+    const allEntries = await adapter.getAll<any>('journalEntries', { where: { journal: 'OD' } });
+    const entries = allEntries.filter(
+      (e: any) => e.date >= session.dateDebut && e.date <= session.dateFin &&
         e.entryNumber.startsWith('CL-')
-      )
-      .toArray();
+    );
 
-    return entries.map(e => ({
+    return entries.map((e: any) => ({
       id: e.id,
       numero: e.entryNumber,
       date: e.date,
@@ -333,7 +328,7 @@ class ClosuresService {
   /**
    * Create a closure journal entry (OD journal with CL- prefix).
    */
-  async createEcriture(ecriture: Omit<EcritureCloture, 'id'>): Promise<EcritureCloture> {
+  async createEcriture(adapter: DataAdapter, ecriture: Omit<EcritureCloture, 'id'>): Promise<EcritureCloture> {
     const id = crypto.randomUUID();
 
     await safeAddEntry({
@@ -379,12 +374,12 @@ class ClosuresService {
   /**
    * Validate a closure entry (change status to validated).
    */
-  async validerEcriture(ecritureId: string | number): Promise<EcritureCloture> {
+  async validerEcriture(adapter: DataAdapter, ecritureId: string | number): Promise<EcritureCloture> {
     const id = String(ecritureId);
-    const entry = await db.journalEntries.get(id);
+    const entry = await adapter.getById<any>('journalEntries', id);
     if (!entry) throw new Error(`Écriture ${id} introuvable`);
 
-    await db.journalEntries.update(id, {
+    await adapter.update('journalEntries', id, {
       status: 'validated',
       updatedAt: new Date().toISOString(),
     });
@@ -412,12 +407,12 @@ class ClosuresService {
   /**
    * Compute closure session statistics from real data.
    */
-  async getStats(sessionId: string | number): Promise<ClotureStats> {
+  async getStats(adapter: DataAdapter, sessionId: string | number): Promise<ClotureStats> {
     const sid = String(sessionId);
 
-    const provisions = await db.provisions.where('sessionId').equals(sid).toArray();
-    const amortissements = await this.getAmortissements(sessionId);
-    const ecritures = await this.getEcritures(sessionId);
+    const provisions = await adapter.getAll<DBProvision>('provisions', { where: { sessionId: sid } });
+    const amortissements = await this.getAmortissements(adapter, sessionId);
+    const ecritures = await this.getEcritures(adapter, sessionId);
 
     const regularisations = ecritures.filter(e => e.typeOperation === 'REGULARISATION').length;
 
@@ -434,12 +429,12 @@ class ClosuresService {
   /**
    * Close a session: set status to CLOTUREE, progression to 100.
    */
-  async cloturerSession(sessionId: string | number): Promise<ClotureSession> {
+  async cloturerSession(adapter: DataAdapter, sessionId: string | number): Promise<ClotureSession> {
     const id = String(sessionId);
-    const session = await db.closureSessions.get(id);
+    const session = await adapter.getById<DBClosureSession>('closureSessions', id);
     if (!session) throw new Error(`Session ${id} introuvable`);
 
-    await db.closureSessions.update(id, {
+    await adapter.update('closureSessions', id, {
       statut: 'CLOTUREE',
       progression: 100,
     });
@@ -461,30 +456,29 @@ class ClosuresService {
   /**
    * Update session progression percentage.
    */
-  async updateProgression(sessionId: string | number, progression: number): Promise<void> {
-    await db.closureSessions.update(String(sessionId), { progression });
+  async updateProgression(adapter: DataAdapter, sessionId: string | number, progression: number): Promise<void> {
+    await adapter.update('closureSessions', String(sessionId), { progression });
   }
 
   /**
    * Validate that the period is ready for closure.
    * Checks: no draft entries, balanced accounts, provisions calculated.
    */
-  async validateClosureReadiness(sessionId: string | number): Promise<{
+  async validateClosureReadiness(adapter: DataAdapter, sessionId: string | number): Promise<{
     ready: boolean;
     checks: Array<{ name: string; passed: boolean; message: string }>;
   }> {
     const sid = String(sessionId);
-    const session = await db.closureSessions.get(sid);
+    const session = await adapter.getById<DBClosureSession>('closureSessions', sid);
     if (!session) throw new Error(`Session ${sid} introuvable`);
 
     const checks: Array<{ name: string; passed: boolean; message: string }> = [];
 
     // Check 1: No draft entries in period
-    const draftEntries = await db.journalEntries
-      .where('date')
-      .between(session.dateDebut, session.dateFin, true, true)
-      .filter(e => e.status === 'draft')
-      .count();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const draftEntries = allEntries.filter(
+      (e: any) => e.date >= session.dateDebut && e.date <= session.dateFin && e.status === 'draft'
+    ).length;
     checks.push({
       name: 'Ecritures validees',
       passed: draftEntries === 0,
@@ -494,11 +488,10 @@ class ClosuresService {
     });
 
     // Check 2: All entries are balanced (debit = credit)
-    const unbalanced = await db.journalEntries
-      .where('date')
-      .between(session.dateDebut, session.dateFin, true, true)
-      .filter(e => Math.abs(e.totalDebit - e.totalCredit) > 0.01)
-      .count();
+    const unbalanced = allEntries.filter(
+      (e: any) => e.date >= session.dateDebut && e.date <= session.dateFin &&
+        Math.abs(e.totalDebit - e.totalCredit) > 0.01
+    ).length;
     checks.push({
       name: 'Equilibre debit/credit',
       passed: unbalanced === 0,
@@ -508,11 +501,8 @@ class ClosuresService {
     });
 
     // Check 3: Provisions have been reviewed
-    const pendingProvisions = await db.provisions
-      .where('sessionId')
-      .equals(sid)
-      .filter(p => p.statut === 'PROPOSEE')
-      .count();
+    const allProvisions = await adapter.getAll<DBProvision>('provisions', { where: { sessionId: sid } });
+    const pendingProvisions = allProvisions.filter(p => p.statut === 'PROPOSEE').length;
     checks.push({
       name: 'Provisions revues',
       passed: pendingProvisions === 0,

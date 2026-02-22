@@ -1,4 +1,5 @@
-import { db, logAudit } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../../../lib/db';
 import type { DBBudgetLine } from '../../../lib/db';
 import {
   BudgetSession,
@@ -16,8 +17,8 @@ import {
 
 const SESSIONS_KEY = 'budget_sessions';
 
-async function loadSessions(): Promise<BudgetSession[]> {
-  const setting = await db.settings.get(SESSIONS_KEY);
+async function loadSessions(adapter: DataAdapter): Promise<BudgetSession[]> {
+  const setting = await adapter.getById<{ key: string; value: string }>('settings', SESSIONS_KEY);
   if (!setting) return [];
   try {
     return JSON.parse(setting.value) as BudgetSession[];
@@ -26,8 +27,8 @@ async function loadSessions(): Promise<BudgetSession[]> {
   }
 }
 
-async function saveSessions(sessions: BudgetSession[]): Promise<void> {
-  await db.settings.put({
+async function saveSessions(adapter: DataAdapter, sessions: BudgetSession[]): Promise<void> {
+  await adapter.create('settings', {
     key: SESSIONS_KEY,
     value: JSON.stringify(sessions),
     updatedAt: new Date().toISOString(),
@@ -35,18 +36,18 @@ async function saveSessions(sessions: BudgetSession[]): Promise<void> {
 }
 
 class BudgetingService {
-  async getSessions(): Promise<BudgetSession[]> {
-    return loadSessions();
+  async getSessions(adapter: DataAdapter): Promise<BudgetSession[]> {
+    return loadSessions(adapter);
   }
 
-  async createSession(session: Omit<BudgetSession, 'id'>): Promise<BudgetSession> {
-    const sessions = await loadSessions();
+  async createSession(adapter: DataAdapter, session: Omit<BudgetSession, 'id'>): Promise<BudgetSession> {
+    const sessions = await loadSessions(adapter);
     const newSession: BudgetSession = {
       ...session,
       id: Date.now(),
     };
     sessions.push(newSession);
-    await saveSessions(sessions);
+    await saveSessions(adapter, sessions);
 
     await logAudit(
       'BUDGET_SESSION_CREATE',
@@ -58,29 +59,29 @@ class BudgetingService {
     return newSession;
   }
 
-  async updateSession(id: number | string, updates: Partial<BudgetSession>): Promise<BudgetSession> {
-    const sessions = await loadSessions();
+  async updateSession(adapter: DataAdapter, id: number | string, updates: Partial<BudgetSession>): Promise<BudgetSession> {
+    const sessions = await loadSessions(adapter);
     const index = sessions.findIndex(s => String(s.id) === String(id));
     if (index === -1) throw new Error(`Session ${id} introuvable`);
 
     sessions[index] = { ...sessions[index], ...updates };
-    await saveSessions(sessions);
+    await saveSessions(adapter, sessions);
     return sessions[index];
   }
 
-  async deleteSession(id: number | string): Promise<void> {
-    const sessions = await loadSessions();
+  async deleteSession(adapter: DataAdapter, id: number | string): Promise<void> {
+    const sessions = await loadSessions(adapter);
     const filtered = sessions.filter(s => String(s.id) !== String(id));
-    await saveSessions(filtered);
+    await saveSessions(adapter, filtered);
   }
 
   /**
    * Get department budgets by aggregating db.budgetLines and computing actual
    * amounts from db.journalEntries for matching account codes.
    */
-  async getDepartmentBudgets(year?: string, period?: string): Promise<DepartmentBudget[]> {
+  async getDepartmentBudgets(adapter: DataAdapter, year?: string, period?: string): Promise<DepartmentBudget[]> {
     // Query budget lines, optionally filtered
-    let budgetLines = await db.budgetLines.toArray();
+    let budgetLines = await adapter.getAll<DBBudgetLine>('budgetLines');
 
     if (year) {
       budgetLines = budgetLines.filter(bl => bl.fiscalYear === year);
@@ -103,14 +104,15 @@ class BudgetingService {
     }
 
     // Fetch all journal entries to compute actuals
-    const allEntries = await db.journalEntries
-      .filter(e => e.status === 'validated' || e.status === 'posted')
-      .toArray();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const validatedEntries = allEntries.filter(
+      (e: any) => e.status === 'validated' || e.status === 'posted'
+    );
 
     // Filter by year if provided
     const filteredEntries = year
-      ? allEntries.filter(e => e.date.startsWith(year))
-      : allEntries;
+      ? validatedEntries.filter((e: any) => e.date.startsWith(year))
+      : validatedEntries;
 
     // Compute actual amounts per account code
     const actualByAccount = new Map<string, number>();
@@ -181,12 +183,12 @@ class BudgetingService {
   /**
    * Get budget lines from Dexie, optionally filtered.
    */
-  async getBudgetLines(filters?: {
+  async getBudgetLines(adapter: DataAdapter, filters?: {
     department?: string;
     year?: string;
     period?: string;
   }): Promise<BudgetLine[]> {
-    let dbLines = await db.budgetLines.toArray();
+    let dbLines = await adapter.getAll<DBBudgetLine>('budgetLines');
 
     if (filters?.year) {
       dbLines = dbLines.filter(bl => bl.fiscalYear === filters.year);
@@ -198,13 +200,14 @@ class BudgetingService {
     if (dbLines.length === 0) return [];
 
     // Fetch actual amounts from journal entries
-    const allEntries = await db.journalEntries
-      .filter(e => e.status === 'validated' || e.status === 'posted')
-      .toArray();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const validatedEntries = allEntries.filter(
+      (e: any) => e.status === 'validated' || e.status === 'posted'
+    );
 
     const filteredEntries = filters?.year
-      ? allEntries.filter(e => e.date.startsWith(filters.year!))
-      : allEntries;
+      ? validatedEntries.filter((e: any) => e.date.startsWith(filters.year!))
+      : validatedEntries;
 
     const actualByAccount = new Map<string, number>();
     for (const entry of filteredEntries) {
@@ -215,7 +218,7 @@ class BudgetingService {
     }
 
     // Look up account names
-    const accounts = await db.accounts.toArray();
+    const accounts = await adapter.getAll<any>('accounts');
     const accountNames = new Map<string, string>();
     for (const acc of accounts) {
       accountNames.set(acc.code, acc.name);
@@ -243,7 +246,7 @@ class BudgetingService {
     });
   }
 
-  async createBudgetLine(line: Omit<BudgetLine, 'id'>): Promise<BudgetLine> {
+  async createBudgetLine(adapter: DataAdapter, line: Omit<BudgetLine, 'id'>): Promise<BudgetLine> {
     const id = crypto.randomUUID();
 
     const dbLine: DBBudgetLine = {
@@ -255,7 +258,7 @@ class BudgetingService {
       actual: line.actualAmount,
     };
 
-    await db.budgetLines.add(dbLine);
+    await adapter.create('budgetLines', dbLine);
 
     await logAudit(
       'BUDGET_LINE_CREATE',
@@ -270,9 +273,9 @@ class BudgetingService {
     };
   }
 
-  async updateBudgetLine(id: number | string, updates: Partial<BudgetLine>): Promise<BudgetLine> {
+  async updateBudgetLine(adapter: DataAdapter, id: number | string, updates: Partial<BudgetLine>): Promise<BudgetLine> {
     const sid = String(id);
-    const existing = await db.budgetLines.get(sid);
+    const existing = await adapter.getById<DBBudgetLine>('budgetLines', sid);
     if (!existing) throw new Error(`Ligne budget ${sid} introuvable`);
 
     const dbUpdates: Partial<DBBudgetLine> = {};
@@ -282,9 +285,9 @@ class BudgetingService {
     if (updates.period !== undefined) dbUpdates.period = updates.period;
     if (updates.accountCode !== undefined) dbUpdates.accountCode = updates.accountCode;
 
-    await db.budgetLines.update(sid, dbUpdates);
+    await adapter.update('budgetLines', sid, dbUpdates);
 
-    const updated = await db.budgetLines.get(sid);
+    const updated = await adapter.getById<DBBudgetLine>('budgetLines', sid);
     return {
       id: sid,
       accountCode: updated?.accountCode || existing.accountCode,
@@ -299,15 +302,15 @@ class BudgetingService {
     } as BudgetLine;
   }
 
-  async deleteBudgetLine(id: number | string): Promise<void> {
-    await db.budgetLines.delete(String(id));
+  async deleteBudgetLine(adapter: DataAdapter, id: number | string): Promise<void> {
+    await adapter.delete('budgetLines', String(id));
   }
 
   /**
    * Compute budget statistics from real data in db.budgetLines and db.journalEntries.
    */
-  async getStats(year?: string, period?: string): Promise<BudgetStats> {
-    let budgetLines = await db.budgetLines.toArray();
+  async getStats(adapter: DataAdapter, year?: string, period?: string): Promise<BudgetStats> {
+    let budgetLines = await adapter.getAll<DBBudgetLine>('budgetLines');
 
     if (year) {
       budgetLines = budgetLines.filter(bl => bl.fiscalYear === year);
@@ -319,13 +322,14 @@ class BudgetingService {
     const totalBudget = budgetLines.reduce((sum, bl) => sum + bl.budgeted, 0);
 
     // Compute actual from journal entries
-    const allEntries = await db.journalEntries
-      .filter(e => e.status === 'validated' || e.status === 'posted')
-      .toArray();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const validatedEntries = allEntries.filter(
+      (e: any) => e.status === 'validated' || e.status === 'posted'
+    );
 
     const filteredEntries = year
-      ? allEntries.filter(e => e.date.startsWith(year))
-      : allEntries;
+      ? validatedEntries.filter((e: any) => e.date.startsWith(year))
+      : validatedEntries;
 
     const budgetAccountCodes = new Set(budgetLines.map(bl => bl.accountCode));
     let totalActual = 0;
@@ -346,7 +350,7 @@ class BudgetingService {
     const departments = new Set(budgetLines.map(bl => bl.accountCode.substring(0, 2)));
 
     // Count active sessions
-    const sessions = await loadSessions();
+    const sessions = await loadSessions(adapter);
     const activeSessions = sessions.filter(s => s.status === 'active').length;
 
     return {
@@ -360,28 +364,25 @@ class BudgetingService {
     };
   }
 
-  async getMonthlyBudgets(year: string, department?: string): Promise<MonthlyBudget[]> {
+  async getMonthlyBudgets(adapter: DataAdapter, year: string, department?: string): Promise<MonthlyBudget[]> {
     const months = [
       'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
       'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre',
     ];
 
     // Get budget lines for the year
-    let budgetLines = await db.budgetLines
-      .where('fiscalYear')
-      .equals(year)
-      .toArray();
+    let budgetLines = await adapter.getAll<DBBudgetLine>('budgetLines', { where: { fiscalYear: year } });
 
     if (department) {
       budgetLines = budgetLines.filter(bl => bl.accountCode.startsWith(department));
     }
 
     // Get journal entries for the year
-    const entries = await db.journalEntries
-      .where('date')
-      .between(`${year}-01-01`, `${year}-12-31`, true, true)
-      .filter(e => e.status === 'validated' || e.status === 'posted')
-      .toArray();
+    const allEntries = await adapter.getAll<any>('journalEntries');
+    const entries = allEntries.filter(
+      (e: any) => e.date >= `${year}-01-01` && e.date <= `${year}-12-31` &&
+        (e.status === 'validated' || e.status === 'posted')
+    );
 
     const budgetAccountCodes = new Set(budgetLines.map(bl => bl.accountCode));
 
@@ -417,8 +418,8 @@ class BudgetingService {
    * Generate alerts from real budget data.
    * Triggers when actual exceeds budget or approaches threshold.
    */
-  async getAlerts(): Promise<BudgetAlert[]> {
-    const departments = await this.getDepartmentBudgets();
+  async getAlerts(adapter: DataAdapter): Promise<BudgetAlert[]> {
+    const departments = await this.getDepartmentBudgets(adapter);
     const alerts: BudgetAlert[] = [];
     let alertId = 1;
 
@@ -457,8 +458,8 @@ class BudgetingService {
     return alerts;
   }
 
-  async getForecasts(year: string, department?: string): Promise<BudgetForecast[]> {
-    const monthlyBudgets = await this.getMonthlyBudgets(year, department);
+  async getForecasts(adapter: DataAdapter, year: string, department?: string): Promise<BudgetForecast[]> {
+    const monthlyBudgets = await this.getMonthlyBudgets(adapter, year, department);
     const monthsShort = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     return monthlyBudgets.map((mb, index) => ({
@@ -469,8 +470,8 @@ class BudgetingService {
     }));
   }
 
-  async exportBudget(format: 'xlsx' | 'pdf' | 'csv', filters?: Record<string, unknown>): Promise<Blob> {
-    const lines = await this.getBudgetLines({
+  async exportBudget(adapter: DataAdapter, format: 'xlsx' | 'pdf' | 'csv', filters?: Record<string, unknown>): Promise<Blob> {
+    const lines = await this.getBudgetLines(adapter, {
       year: filters?.year as string | undefined,
       department: filters?.department as string | undefined,
       period: filters?.period as string | undefined,
@@ -489,7 +490,7 @@ class BudgetingService {
     return new Blob([data], { type: 'application/octet-stream' });
   }
 
-  async importBudget(file: File): Promise<{ success: boolean; imported: number; errors?: string[] }> {
+  async importBudget(adapter: DataAdapter, file: File): Promise<{ success: boolean; imported: number; errors?: string[] }> {
     try {
       const text = await file.text();
       const rows = text.split('\n').filter(r => r.trim().length > 0);
@@ -514,7 +515,7 @@ class BudgetingService {
           continue;
         }
 
-        await db.budgetLines.add({
+        await adapter.create('budgetLines', {
           id: crypto.randomUUID(),
           accountCode: accountCode.trim(),
           fiscalYear: year?.trim() || new Date().getFullYear().toString(),

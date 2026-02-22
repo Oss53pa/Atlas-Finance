@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FilePlus, BookOpen, Users, Settings,
   ArrowRight, AlertCircle, Calendar, Clock,
 } from 'lucide-react';
-import { db } from '../lib/db';
+import { useData } from '../contexts/DataContext';
 
 interface Stats {
   ecritures: number;
@@ -21,6 +21,7 @@ interface Alerts {
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [stats, setStats] = useState<Stats>({ ecritures: 0, comptes: 0, tiers: 0, immobilisations: 0 });
   const [alerts, setAlerts] = useState<Alerts>({ brouillons: 0, exercice: '', derniereActivite: '' });
 
@@ -29,28 +30,23 @@ const LandingPage: React.FC = () => {
     const load = async () => {
       try {
         const [ecritures, comptes, tiers, immobilisations] = await Promise.all([
-          db.journalEntries.count(),
-          db.accounts.count(),
-          db.thirdParties.count(),
-          db.assets.count(),
+          adapter.count('journalEntries'),
+          adapter.count('accounts'),
+          adapter.count('thirdParties'),
+          adapter.count('assets'),
         ]);
         if (mounted) setStats({ ecritures, comptes, tiers, immobilisations });
 
         // Brouillons à valider
-        const drafts = await db.journalEntries
-          .where('status')
-          .equals('draft')
-          .count();
+        const drafts = await adapter.count('journalEntries', { where: { status: 'draft' } });
 
         // Exercice actif
-        const activeYear = await db.fiscalYears
-          .filter((fy) => fy.isActive)
-          .first();
+        const allYears = await adapter.getAll<{ name: string; isActive: boolean }>('fiscalYears');
+        const activeYear = allYears.find((fy) => fy.isActive) ?? null;
 
         // Dernière activité
-        const lastLog = await db.auditLogs
-          .orderBy('timestamp')
-          .last();
+        const allLogs = await adapter.getAll<{ timestamp: string }>('auditLogs', { orderBy: { field: 'timestamp', direction: 'desc' }, limit: 1 });
+        const lastLog = allLogs[0] ?? null;
 
         if (mounted) {
           setAlerts({
@@ -65,7 +61,7 @@ const LandingPage: React.FC = () => {
     };
     load();
     return () => { mounted = false; };
-  }, []);
+  }, [adapter]);
 
   const navItems = [
     { label: 'Tableau de bord', icon: LayoutDashboard, path: '/dashboard' },

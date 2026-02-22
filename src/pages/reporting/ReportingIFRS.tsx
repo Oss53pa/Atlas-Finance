@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -90,6 +90,7 @@ interface ReportModal {
 
 const ReportingIFRS: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -101,13 +102,16 @@ const ReportingIFRS: React.FC = () => {
   // Load fiscal years from Dexie to generate IFRS reports
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['ifrs-fiscal-years'],
-    queryFn: () => db.fiscalYears.toArray(),
+    queryFn: () => adapter.getAll('fiscalYears'),
   });
 
   // Load journal entries to compute revenue/assets for consolidation view
   const { data: journalEntries = [] } = useQuery({
     queryKey: ['ifrs-journal-entries'],
-    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
+    queryFn: async () => {
+      const all = await adapter.getAll<any>('journalEntries');
+      return all.filter(e => e.status === 'validated' || e.status === 'posted');
+    },
   });
 
   // Build IFRS reports from fiscal years

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { db } from '../lib/db';
+import { useData } from '../contexts/DataContext';
 
 export interface BalanceData {
   compte: string;
@@ -59,6 +59,7 @@ function getAccountType(code: string): 'actif' | 'passif' | 'charges' | 'produit
 }
 
 export const useBalanceData = (filters: BalanceFilters) => {
+  const { adapter } = useData();
   const [data, setData] = useState<BalanceData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,8 +70,8 @@ export const useBalanceData = (filters: BalanceFilters) => {
       setLoading(true);
       setError(null);
       try {
-        const entries = await db.journalEntries.toArray();
-        const accounts = await db.accounts.toArray();
+        const entries = await adapter.getAll<any>('journalEntries');
+        const accounts = await adapter.getAll<any>('accounts');
 
         // Build account name map
         const accountNames = new Map<string, string>();

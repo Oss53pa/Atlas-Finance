@@ -4,7 +4,7 @@ import { previewClosure, canClose } from '../../../services/closureService';
 import type { ClosurePreview } from '../../../services/closureService';
 import { closureOrchestrator } from '../../../services/cloture/closureOrchestrator';
 import type { ClotureMode, ClotureStep as OrchestratorStep } from '../../../services/cloture/closureOrchestrator';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import { formatCurrency } from '../../../utils/formatters';
 import { motion } from 'framer-motion';
@@ -114,6 +114,7 @@ interface PeriodeCloture {
 
 const ValidationFinale: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('progression');
   const [selectedPeriode, setSelectedPeriode] = useState<PeriodeCloture | null>(null);
   const [filterStatut, setFilterStatut] = useState<string>('tous');
@@ -140,7 +141,7 @@ const ValidationFinale: React.FC = () => {
   const [canCloseResult, setCanCloseResult] = useState<{ canClose: boolean; reasons: string[] } | null>(null);
 
   useEffect(() => {
-    db.fiscalYears.toArray().then(fys => {
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => {
       setFiscalYears(fys);
       const active = fys.find(fy => fy.isActive) || fys[0];
       if (active) {
@@ -148,7 +149,7 @@ const ValidationFinale: React.FC = () => {
         canClose(active.id).then(setCanCloseResult).catch(() => {});
       }
     });
-  }, []);
+  }, [adapter]);
 
   const resetForm = () => {
     setFormData({
@@ -213,7 +214,7 @@ const ValidationFinale: React.FC = () => {
         toast.success('Clôture complète — toutes les étapes réussies');
         setShowValidationModal(false);
         resetForm();
-        const fys = await db.fiscalYears.toArray();
+        const fys = await adapter.getAll<DBFiscalYear>('fiscalYears');
         setFiscalYears(fys);
         setOrchSteps(closureOrchestrator.getSteps());
       } else if (errors.length > 0) {

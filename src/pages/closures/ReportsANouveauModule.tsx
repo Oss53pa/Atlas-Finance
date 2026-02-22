@@ -7,7 +7,7 @@ import {
   Eye, Settings, RefreshCw, Filter, Search, X, Check,
   AlertTriangle, DollarSign, Archive, Send, Save, Loader2
 } from 'lucide-react';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import type { DBFiscalYear } from '../../lib/db';
 import {
   calculerSoldesCloture,
@@ -48,6 +48,7 @@ interface ReportExercice {
 
 const ReportsANouveauModule: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedExercice, setSelectedExercice] = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedCompte, setSelectedCompte] = useState<ReportCompte | null>(null);
@@ -67,12 +68,12 @@ const ReportsANouveauModule: React.FC = () => {
 
   // Load fiscal years
   useEffect(() => {
-    db.fiscalYears.toArray().then(fys => {
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => {
       setFiscalYears(fys);
       const active = fys.find(fy => fy.isActive) || fys[0];
       if (active) setSelectedExercice(active.id);
     });
-  }, []);
+  }, [adapter]);
 
   // Load carry-forward data when exercice changes
   useEffect(() => {

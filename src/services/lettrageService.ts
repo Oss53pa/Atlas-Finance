@@ -14,7 +14,8 @@
  * Conforme SYSCOHADA — classes 40 (fournisseurs) et 41 (clients).
  */
 
-import { db, logAudit } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../lib/db';
 import type { DBJournalEntry, DBJournalLine } from '../lib/db';
 
 // ============================================================================
@@ -76,8 +77,8 @@ const DEFAULT_CONFIG: LettrageConfig = {
 /**
  * Generate the next available lettrage code (AA, AB, ..., ZZ).
  */
-async function getNextLettrageCode(): Promise<string> {
-  const entries = await db.journalEntries.toArray();
+async function getNextLettrageCode(adapter: DataAdapter): Promise<string> {
+  const entries = await adapter.getAll('journalEntries');
   const existing = new Set<string>();
   for (const e of entries) {
     for (const l of e.lines) {
@@ -218,10 +219,11 @@ function matchSumN(
  * Returns proposed matches without persisting — call `applyLettrage` to persist.
  */
 export async function autoLettrage(
+  adapter: DataAdapter,
   config: Partial<LettrageConfig> = {},
 ): Promise<LettrageResult> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
-  const entries = await db.journalEntries.toArray();
+  const entries = await adapter.getAll('journalEntries');
   const allLines = flattenEntries(entries);
 
   // Group by account code
@@ -314,11 +316,11 @@ export async function autoLettrage(
  * Apply lettrage matches to the database.
  * Writes lettrageCode on each matched line.
  */
-export async function applyLettrage(matches: LettrageMatch[]): Promise<number> {
+export async function applyLettrage(adapter: DataAdapter, matches: LettrageMatch[]): Promise<number> {
   let applied = 0;
 
   for (const match of matches) {
-    const code = await getNextLettrageCode();
+    const code = await getNextLettrageCode(adapter);
     const allLineIds = new Set([
       ...match.debitEntries.map(e => e.lineId),
       ...match.creditEntries.map(e => e.lineId),
@@ -330,7 +332,7 @@ export async function applyLettrage(matches: LettrageMatch[]): Promise<number> {
     ]);
 
     for (const entryId of entryIds) {
-      const entry = await db.journalEntries.get(entryId);
+      const entry = await adapter.getById('journalEntries', entryId);
       if (!entry) continue;
 
       let modified = false;
@@ -342,7 +344,7 @@ export async function applyLettrage(matches: LettrageMatch[]): Promise<number> {
       }
 
       if (modified) {
-        await db.journalEntries.update(entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
+        await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
         applied++;
       }
     }
@@ -362,9 +364,10 @@ export async function applyLettrage(matches: LettrageMatch[]): Promise<number> {
  * Apply manual lettrage: assign a code to selected lines.
  */
 export async function applyManualLettrage(
+  adapter: DataAdapter,
   selections: Array<{ entryId: string; lineId: string }>,
 ): Promise<string> {
-  const code = await getNextLettrageCode();
+  const code = await getNextLettrageCode(adapter);
 
   const byEntry = new Map<string, string[]>();
   for (const s of selections) {
@@ -374,7 +377,7 @@ export async function applyManualLettrage(
   }
 
   for (const [entryId, lineIds] of byEntry) {
-    const entry = await db.journalEntries.get(entryId);
+    const entry = await adapter.getById('journalEntries', entryId);
     if (!entry) continue;
 
     const lineIdSet = new Set(lineIds);
@@ -383,7 +386,7 @@ export async function applyManualLettrage(
         line.lettrageCode = code;
       }
     }
-    await db.journalEntries.update(entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
+    await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
   }
 
   await logAudit(
@@ -399,8 +402,8 @@ export async function applyManualLettrage(
 /**
  * Remove lettrage code from all lines with a given code.
  */
-export async function delettrage(code: string): Promise<number> {
-  const entries = await db.journalEntries.toArray();
+export async function delettrage(adapter: DataAdapter, code: string): Promise<number> {
+  const entries = await adapter.getAll('journalEntries');
   let count = 0;
 
   for (const entry of entries) {
@@ -413,7 +416,7 @@ export async function delettrage(code: string): Promise<number> {
       }
     }
     if (modified) {
-      await db.journalEntries.update(entry.id, { lines: entry.lines, updatedAt: new Date().toISOString() });
+      await adapter.update('journalEntries', entry.id, { lines: entry.lines, updatedAt: new Date().toISOString() });
     }
   }
 
@@ -424,7 +427,7 @@ export async function delettrage(code: string): Promise<number> {
 /**
  * Get lettrage statistics for a given account prefix.
  */
-export async function getLettrageStats(accountPrefix?: string): Promise<{
+export async function getLettrageStats(adapter: DataAdapter, accountPrefix?: string): Promise<{
   totalLines: number;
   letteredLines: number;
   unletteredLines: number;
@@ -432,7 +435,7 @@ export async function getLettrageStats(accountPrefix?: string): Promise<{
   montantNonLettre: number;
   codes: number;
 }> {
-  const entries = await db.journalEntries.toArray();
+  const entries = await adapter.getAll('journalEntries');
   let totalLines = 0;
   let letteredLines = 0;
   let montantNonLettre = 0;
