@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
@@ -395,7 +396,7 @@ const LettrageAutomatiquePage: React.FC = () => {
                       <div className="flex items-center space-x-4 text-sm text-gray-600">
                         <span className="flex items-center">
                           <DollarSign className="h-4 w-4 mr-1" />
-                          {match.amount.toLocaleString()} XOF
+                          {formatCurrency(match.amount)} XOF
                         </span>
                         <span className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1" />

@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -374,7 +375,7 @@ const GestionPaiementsPage: React.FC = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-gray-900">
-                {stats.totalAmount.toLocaleString()}
+                {formatCurrency(stats.totalAmount)}
               </p>
               <p className="text-gray-600 text-sm">XOF traités</p>
             </div>
@@ -476,7 +477,7 @@ const GestionPaiementsPage: React.FC = () => {
                           <span>{payment.beneficiary}</span>
                           <span className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1" />
-                            {payment.amount.toLocaleString()} {payment.currency}
+                            {formatCurrency(payment.amount)}
                           </span>
                           <span className="flex items-center">
                             {getMethodIcon(payment.method)}
@@ -733,7 +734,7 @@ const GestionPaiementsPage: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Montant:</span>
-                    <span className="font-medium">{selectedPayment.amount.toLocaleString()} {selectedPayment.currency}</span>
+                    <span className="font-medium">{formatCurrency(selectedPayment.amount)}</span>
                   </div>
                 </div>
               </div>
@@ -790,7 +791,7 @@ const GestionPaiementsPage: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Montant:</span>
-                    <span className="font-medium">{selectedPayment.amount.toLocaleString()} {selectedPayment.currency}</span>
+                    <span className="font-medium">{formatCurrency(selectedPayment.amount)}</span>
                   </div>
                 </div>
               </div>
@@ -847,7 +848,7 @@ const GestionPaiementsPage: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Montant</span>
-                    <span className="font-medium text-lg">{selectedPayment.amount.toLocaleString()} {selectedPayment.currency}</span>
+                    <span className="font-medium text-lg">{formatCurrency(selectedPayment.amount)}</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Méthode</span>

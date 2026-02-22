@@ -448,7 +448,7 @@ const EtatsSYSCOHADA: React.FC = () => {
     } else if (Math.abs(num) >= 1000) {
       return (num / 1000).toFixed(0) + 'K';
     }
-    return num.toLocaleString();
+    return formatCurrency(num);
   };
 
   return (

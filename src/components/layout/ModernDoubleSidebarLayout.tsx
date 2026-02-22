@@ -13,7 +13,7 @@ import {
   MessageSquare, Smartphone, Workflow, RefreshCw, Wifi,
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
-  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Zap
+  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBadgeCounts } from '../../hooks/useBadgeCounts';

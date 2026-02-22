@@ -3846,7 +3846,7 @@ Service Contentieux
                                   {new Date(dep.date).toLocaleDateString('fr-FR')}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900">
-                                  {dep.montant.toLocaleString()} FCFA
+                                  {formatCurrency(dep.montant)}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-600">
                                   {dep.destinataire || '-'}
@@ -3883,7 +3883,7 @@ Service Contentieux
                               return (
                                 <div key={type.value} className="flex justify-between items-center text-sm">
                                   <span className="text-gray-600">{type.label}:</span>
-                                  <span className="font-medium text-gray-800">{total.toLocaleString()} FCFA</span>
+                                  <span className="font-medium text-gray-800">{formatCurrency(total)}</span>
                                 </div>
                               );
                             })}
@@ -3895,26 +3895,26 @@ Service Contentieux
                           <div className="flex justify-between items-center mb-3">
                             <span className="text-sm text-gray-600">Créance (principal + intérêts):</span>
                             <span className="font-semibold text-orange-700">
-                              {(getTotalByType('creance_principale') + getTotalByType('interets_retard')).toLocaleString()} FCFA
+                              {formatCurrency((getTotalByType('creance_principale') + getTotalByType('interets_retard')))}
                             </span>
                           </div>
                           <div className="flex justify-between items-center mb-3">
                             <span className="text-sm text-gray-600">Frais de procédure:</span>
                             <span className="font-semibold text-orange-700">
-                              {(getTotalDepenses() - getTotalByType('creance_principale') - getTotalByType('interets_retard') - getTotalByType('provision')).toLocaleString()} FCFA
+                              {formatCurrency((getTotalDepenses() - getTotalByType('creance_principale') - getTotalByType('interets_retard') - getTotalByType('provision')))}
                             </span>
                           </div>
                           <div className="flex justify-between items-center pt-3 border-t border-orange-200">
                             <span className="font-medium text-gray-700">MONTANT TOTAL:</span>
                             <span className="text-lg font-bold text-orange-600">
-                              {getTotalDepenses().toLocaleString()} FCFA
+                              {formatCurrency(getTotalDepenses())}
                             </span>
                           </div>
                           <div className="mt-3 pt-3 border-t border-orange-200">
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-gray-600">Provision constituée:</span>
                               <span className="font-medium text-yellow-700">
-                                {getTotalByType('provision').toLocaleString()} FCFA
+                                {formatCurrency(getTotalByType('provision'))}
                               </span>
                             </div>
                           </div>
@@ -4651,7 +4651,7 @@ Service Contentieux
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Montant à recouvrer:</span>
-                        <span className="font-medium text-[#171717]">{selectedExecutionDossier.montant.toLocaleString()} FCFA</span>
+                        <span className="font-medium text-[#171717]">{formatCurrency(selectedExecutionDossier.montant)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Statut:</span>
@@ -4715,7 +4715,7 @@ Service Contentieux
                         <div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Montant saisi:</span>
-                            <span className="font-semibold text-green-600">{selectedExecutionDossier.montantSaisi?.toLocaleString()} FCFA</span>
+                            <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantSaisi)}</span>
                           </div>
                         </div>
                       </div>
@@ -4737,7 +4737,7 @@ Service Contentieux
                         <div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Valeur estimée:</span>
-                            <span className="font-semibold text-blue-600">{selectedExecutionDossier.montantEstime?.toLocaleString()} FCFA</span>
+                            <span className="font-semibold text-blue-600">{formatCurrency(selectedExecutionDossier.montantEstime)}</span>
                           </div>
                         </div>
                       </div>
@@ -4752,11 +4752,11 @@ Service Contentieux
                           </div>
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-gray-600">Saisie mensuelle:</span>
-                            <span className="font-medium">{selectedExecutionDossier.montantMensuel?.toLocaleString()} FCFA</span>
+                            <span className="font-medium">{formatCurrency(selectedExecutionDossier.montantMensuel)}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600">Montant récupéré:</span>
-                            <span className="font-semibold text-green-600">{selectedExecutionDossier.montantRecupere?.toLocaleString()} FCFA</span>
+                            <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantRecupere)}</span>
                           </div>
                         </div>
                       </div>
@@ -4765,7 +4765,7 @@ Service Contentieux
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Frais d'huissier:</span>
-                        <span className="font-medium text-red-600">{selectedExecutionDossier.fraisHuissier?.toLocaleString()} FCFA</span>
+                        <span className="font-medium text-red-600">{formatCurrency(selectedExecutionDossier.fraisHuissier)}</span>
                       </div>
                     </div>
                   </div>
@@ -4835,7 +4835,7 @@ Service Contentieux
               <div className="text-right">
                 <div className="text-sm text-gray-700">Montant Total</div>
                 <div className="text-lg font-bold text-red-600">
-                  {selectedContentieuxDetail.montantTotal?.toLocaleString()} FCFA
+                  {formatCurrency(selectedContentieuxDetail.montantTotal)}
                 </div>
               </div>
             </div>
@@ -4933,19 +4933,19 @@ Service Contentieux
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Principal:</span>
-                  <span className="font-medium text-[#171717]">{selectedContentieuxDetail.montantPrincipal?.toLocaleString()} FCFA</span>
+                  <span className="font-medium text-[#171717]">{formatCurrency(selectedContentieuxDetail.montantPrincipal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Intérêts de retard:</span>
-                  <span className="font-medium text-orange-600">{selectedContentieuxDetail.interetsRetard?.toLocaleString()} FCFA</span>
+                  <span className="font-medium text-orange-600">{formatCurrency(selectedContentieuxDetail.interetsRetard)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Frais de procédure:</span>
-                  <span className="font-medium text-red-600">{selectedContentieuxDetail.fraisProcedure?.toLocaleString()} FCFA</span>
+                  <span className="font-medium text-red-600">{formatCurrency(selectedContentieuxDetail.fraisProcedure)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
                   <span className="text-gray-600 font-semibold">Montant total:</span>
-                  <span className="font-bold text-[#171717]">{selectedContentieuxDetail.montantTotal?.toLocaleString()} FCFA</span>
+                  <span className="font-bold text-[#171717]">{formatCurrency(selectedContentieuxDetail.montantTotal)}</span>
                 </div>
               </div>
             </div>
@@ -5603,7 +5603,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Total Frais</p>
-                  <p className="text-lg font-bold text-blue-900">{(totalFrais).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-blue-900">{formatCurrency((totalFrais))}</p>
                 </div>
                 <Wallet className="w-8 h-8 text-blue-600" />
               </div>
@@ -5612,7 +5612,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Payés</p>
-                  <p className="text-lg font-bold text-green-900">{(fraisPayes).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-green-900">{formatCurrency((fraisPayes))}</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
@@ -5621,7 +5621,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-orange-600">À Payer</p>
-                  <p className="text-lg font-bold text-orange-900">{(fraisFactures).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-orange-900">{formatCurrency((fraisFactures))}</p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-orange-600" />
               </div>
@@ -5630,7 +5630,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-purple-600">Imputables</p>
-                  <p className="text-lg font-bold text-purple-900">{(fraisImputables).toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-purple-900">{formatCurrency((fraisImputables))}</p>
                 </div>
                 <RefreshCw className="w-8 h-8 text-purple-600" />
               </div>
@@ -5724,7 +5724,7 @@ Service Contentieux
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">{frais.fournisseur}</td>
                         <td className="px-6 py-4">
-                          <div className="text-sm font-bold text-gray-900">{frais.montant.toLocaleString()} FCFA</div>
+                          <div className="text-sm font-bold text-gray-900">{formatCurrency(frais.montant)}</div>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statutColors[frais.statut]}`}>
@@ -6378,7 +6378,7 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-green-600">Montant Recouvré</p>
-                  <p className="text-lg font-bold text-green-900">{totalRecouvert.toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-green-900">{formatCurrency(totalRecouvert)}</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-600" />
               </div>
@@ -6503,7 +6503,7 @@ Service Contentieux
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm font-bold text-gray-900">
-                            {(mesure.montantSaisi || mesure.montantEstime || mesure.totalAstreinte || mesure.montantBloque || 0).toLocaleString()} FCFA
+                            {formatCurrency((mesure.montantSaisi || mesure.montantEstime || mesure.totalAstreinte || mesure.montantBloque || 0))}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -6747,8 +6747,8 @@ Service Contentieux
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600">Montant Recouvré</p>
-                  <p className="text-lg font-bold text-blue-900">{montantRecouvert.toLocaleString()}</p>
-                  <p className="text-xs text-blue-600 mt-1">/ {montantInitial.toLocaleString()} FCFA</p>
+                  <p className="text-lg font-bold text-blue-900">{formatCurrency(montantRecouvert)}</p>
+                  <p className="text-xs text-blue-600 mt-1">/ {formatCurrency(montantInitial)}</p>
                 </div>
                 <DollarSign className="w-10 h-10 text-blue-600" />
               </div>
@@ -6791,15 +6791,15 @@ Service Contentieux
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="text-center">
-                  <p className="font-medium text-gray-900">{montantRecouvert.toLocaleString()} FCFA</p>
+                  <p className="font-medium text-gray-900">{formatCurrency(montantRecouvert)}</p>
                   <p className="text-gray-700">Recouvré</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-medium text-red-900">{(montantInitial - montantRecouvert).toLocaleString()} FCFA</p>
+                  <p className="font-medium text-red-900">{formatCurrency((montantInitial - montantRecouvert))}</p>
                   <p className="text-gray-700">Reste à recouvrer</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-medium text-blue-900">{fraisTotaux.toLocaleString()} FCFA</p>
+                  <p className="font-medium text-blue-900">{formatCurrency(fraisTotaux)}</p>
                   <p className="text-gray-700">Frais engagés</p>
                 </div>
               </div>
@@ -6821,7 +6821,7 @@ Service Contentieux
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                        <span className="text-sm font-bold text-green-600">+{item.montant.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-green-600">+{formatCurrency(item.montant)}</span>
                       </div>
                       <p className="text-xs text-gray-700">{item.source}</p>
                       <p className="text-xs text-gray-700">{item.date}</p>
@@ -6903,7 +6903,7 @@ Service Contentieux
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                     <span className="text-sm font-semibold text-gray-900">Total recouvré</span>
-                    <span className="text-sm font-bold text-green-600">{montantRecouvert.toLocaleString()} FCFA</span>
+                    <span className="text-sm font-bold text-green-600">{formatCurrency(montantRecouvert)}</span>
                   </div>
                 </div>
               </div>
@@ -6924,7 +6924,7 @@ Service Contentieux
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                     <span className="text-sm font-semibold text-gray-900">Total frais</span>
-                    <span className="text-sm font-bold text-red-600">{fraisTotaux.toLocaleString()} FCFA</span>
+                    <span className="text-sm font-bold text-red-600">{formatCurrency(fraisTotaux)}</span>
                   </div>
                 </div>
               </div>
@@ -6932,7 +6932,7 @@ Service Contentieux
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold text-gray-900">Bénéfice Net</span>
-                <span className="text-lg font-bold text-green-600">{beneficeNet.toLocaleString()} FCFA</span>
+                <span className="text-lg font-bold text-green-600">{formatCurrency(beneficeNet)}</span>
               </div>
               <p className="text-sm text-gray-700 mt-1">
                 Rentabilité: {rentabilite.toFixed(1)}% | Efficacité: {tauxRecouvrement.toFixed(1)}%
@@ -6983,11 +6983,11 @@ Service Contentieux
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>Montant initial:</span>
-                        <span>{montantInitial.toLocaleString()} FCFA</span>
+                        <span>{formatCurrency(montantInitial)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Montant recouvré:</span>
-                        <span className="text-green-600">{montantRecouvert.toLocaleString()} FCFA</span>
+                        <span className="text-green-600">{formatCurrency(montantRecouvert)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Taux de recouvrement:</span>
@@ -10386,11 +10386,11 @@ Service Contentieux
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Total receivables</span>
-                          <span className="text-sm font-medium">{selectedDossierDetail.montantTotal.toLocaleString()}</span>
+                          <span className="text-sm font-medium">{formatCurrency(selectedDossierDetail.montantTotal)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Total overdue</span>
-                          <span className="text-sm font-medium">{selectedDossierDetail.montantTotal.toLocaleString()}</span>
+                          <span className="text-sm font-medium">{formatCurrency(selectedDossierDetail.montantTotal)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">Total interest</span>
@@ -10683,7 +10683,7 @@ Service Contentieux
 
                       <div className="text-center">
                         <div className="text-sm text-gray-600">Total créances</div>
-                        <div className="text-lg font-bold text-gray-900">{selectedDossierDetail.montantTotal.toLocaleString()}</div>
+                        <div className="text-lg font-bold text-gray-900">{formatCurrency(selectedDossierDetail.montantTotal)}</div>
                       </div>
                     </div>
 
@@ -10950,17 +10950,17 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-red-600">
-                                  {facture.debit.toLocaleString()} FCFA
+                                  {formatCurrency(facture.debit)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-green-600">
-                                  {facture.credit > 0 ? `${facture.credit.toLocaleString()} FCFA` : '-'}
+                                  {facture.credit > 0 ? `${formatCurrency(facture.credit)}` : '-'}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className={`text-sm font-medium ${facture.solde > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                                  {facture.solde.toLocaleString()} FCFA
+                                  {formatCurrency(facture.solde)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -11005,19 +11005,19 @@ Service Contentieux
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Débit</div>
                       <div className="text-lg font-bold text-blue-900">
-                        {(5000 + 6000 + 5000).toLocaleString()} FCFA
+                        {formatCurrency((5000 + 6000 + 5000))}
                       </div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Total Crédit</div>
                       <div className="text-lg font-bold text-green-900">
-                        {(2000).toLocaleString()} FCFA
+                        {formatCurrency((2000))}
                       </div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Solde Total</div>
                       <div className="text-lg font-bold text-orange-900">
-                        {(5000 + 6000 + 3000).toLocaleString()} FCFA
+                        {formatCurrency((5000 + 6000 + 3000))}
                       </div>
                     </div>
                     <div className="bg-red-50 rounded-lg p-4">
@@ -11179,12 +11179,12 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-green-600">
-                                  {contrat.loyerMensuel.toLocaleString()} FCFA
+                                  {formatCurrency(contrat.loyerMensuel)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-blue-600">
-                                  {contrat.chargesMensuelles.toLocaleString()} FCFA
+                                  {formatCurrency(contrat.chargesMensuelles)}
                                 </div>
                               </td>
                             </tr>
@@ -11344,7 +11344,7 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-green-600">
-                                  {relance.montantEvoque.toLocaleString()} FCFA
+                                  {formatCurrency(relance.montantEvoque)}
                                 </div>
                               </td>
                               <td className="px-6 py-4">
@@ -11513,7 +11513,7 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-bold text-green-600">
-                                  {paiement.montant.toLocaleString()} FCFA
+                                  {formatCurrency(paiement.montant)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -11597,7 +11597,7 @@ Service Contentieux
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="mois" />
                           <YAxis />
-                          <Tooltip formatter={(value) => [`${value.toLocaleString()} FCFA`, 'Montant']} />
+                          <Tooltip formatter={(value) => [`${formatCurrency(value)}`, 'Montant']} />
                           <Area type="monotone" dataKey="montant" stroke="#22c55e" fill="#22c55e" fillOpacity={0.1} />
                         </AreaChart>
                       </ResponsiveContainer>
@@ -11624,7 +11624,7 @@ Service Contentieux
                               dataKey="value"
                               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                             />
-                            <Tooltip formatter={(value) => [`${value.toLocaleString()} FCFA`, 'Montant']} />
+                            <Tooltip formatter={(value) => [`${formatCurrency(value)}`, 'Montant']} />
                           </RechartsPieChart>
                         </ResponsiveContainer>
                       </div>
@@ -11759,7 +11759,7 @@ Service Contentieux
                               montantPenalite: 200,
                               statut: 'Validée',
                               dateValidation: '2024-03-11',
-                              validateur: 'Marie Dupont'
+                              validateur: ''
                             },
                             {
                               id: 'PEN-003',
@@ -11787,7 +11787,7 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-gray-900">
-                                  {penalite.montantCreance.toLocaleString()} FCFA
+                                  {formatCurrency(penalite.montantCreance)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -11805,7 +11805,7 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-bold text-red-600">
-                                  {penalite.montantPenalite.toLocaleString()} FCFA
+                                  {formatCurrency(penalite.montantPenalite)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -12141,12 +12141,12 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-gray-900">
-                                  {plan.montantInitial.toLocaleString()} FCFA
+                                  {formatCurrency(plan.montantInitial)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-orange-600">
-                                  {plan.interetsPenalites.toLocaleString()} FCFA
+                                  {formatCurrency(plan.interetsPenalites)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -12166,17 +12166,17 @@ Service Contentieux
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-bold text-green-600">
-                                  {plan.montantMensuel.toLocaleString()} FCFA
+                                  {formatCurrency(plan.montantMensuel)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-red-600">
-                                  {plan.interetTotal.toLocaleString()} FCFA
+                                  {formatCurrency(plan.interetTotal)}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-bold text-purple-600">
-                                  {plan.montantTotal.toLocaleString()} FCFA
+                                  {formatCurrency(plan.montantTotal)}
                                 </div>
                               </td>
                               <td className="px-6 py-4">
@@ -12319,10 +12319,10 @@ Service Contentieux
                             <tr key={index} className="hover:bg-gray-50">
                               <td className="px-4 py-3 font-medium">{echeance.echeance}</td>
                               <td className="px-4 py-3">{echeance.date}</td>
-                              <td className="px-4 py-3 font-medium">{echeance.capital.toLocaleString()} FCFA</td>
-                              <td className="px-4 py-3 text-orange-600">{echeance.interets.toLocaleString()} FCFA</td>
-                              <td className="px-4 py-3 font-bold text-green-600">{echeance.mensualite.toLocaleString()} FCFA</td>
-                              <td className="px-4 py-3">{echeance.restant.toLocaleString()} FCFA</td>
+                              <td className="px-4 py-3 font-medium">{formatCurrency(echeance.capital)}</td>
+                              <td className="px-4 py-3 text-orange-600">{formatCurrency(echeance.interets)}</td>
+                              <td className="px-4 py-3 font-bold text-green-600">{formatCurrency(echeance.mensualite)}</td>
+                              <td className="px-4 py-3">{formatCurrency(echeance.restant)}</td>
                               <td className="px-4 py-3">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                   echeance.statut === 'Payé' ? 'bg-green-100 text-green-800' :
@@ -12397,7 +12397,7 @@ Service Contentieux
                             type: 'Paiement',
                             action: 'Paiement partiel reçu',
                             description: 'Paiement de 2,000 FCFA reçu par virement bancaire pour la facture FAC003',
-                            user: 'Marie Dupont',
+                            user: '',
                             statut: 'Succès',
                             icon: DollarSign,
                             iconColor: 'text-green-500',
@@ -12436,7 +12436,7 @@ Service Contentieux
                             type: 'Pénalité',
                             action: 'Pénalité créée',
                             description: 'Création d\'une pénalité de 250 FCFA pour retard de paiement sur FAC001 (5% sur 45 jours)',
-                            user: 'Marie Dupont',
+                            user: '',
                             statut: 'En attente',
                             icon: AlertTriangle,
                             iconColor: 'text-yellow-500',
@@ -12475,7 +12475,7 @@ Service Contentieux
                             type: 'SMS',
                             action: 'SMS de rappel',
                             description: 'Envoi d\'un SMS de rappel courtois concernant l\'échéance dépassée',
-                            user: 'Marie Dupont',
+                            user: '',
                             statut: 'Échec',
                             icon: MessageSquare,
                             iconColor: 'text-red-500',
@@ -12488,7 +12488,7 @@ Service Contentieux
                             type: 'Paiement',
                             action: 'Paiement groupé',
                             description: 'Paiement de 8,000 FCFA par chèque pour les factures FAC001 et FAC002',
-                            user: 'Marie Dupont',
+                            user: '',
                             statut: 'Validé',
                             icon: Banknote,
                             iconColor: 'text-green-500',
@@ -12767,7 +12767,7 @@ Service Contentieux
                               type: 'Facture',
                               taille: '245 KB',
                               dateAjout: '2024-03-20',
-                              ajoutePar: 'Marie Dupont',
+                              ajoutePar: '',
                               description: 'Facture originale FAC001 - Prestation janvier',
                               extension: 'pdf'
                             },
@@ -12803,7 +12803,7 @@ Service Contentieux
                               type: 'Paiement',
                               taille: '1.8 MB',
                               dateAjout: '2024-03-20',
-                              ajoutePar: 'Marie Dupont',
+                              ajoutePar: '',
                               description: 'Justificatif de virement bancaire 2000 FCFA',
                               extension: 'jpg'
                             },
@@ -12899,7 +12899,7 @@ Service Contentieux
                         {
                           action: 'Document ajouté',
                           document: 'Virement_2000_FCFA.jpg',
-                          user: 'Marie Dupont',
+                          user: '',
                           date: '2024-03-20 14:30',
                           description: 'Justificatif de paiement ajouté au dossier'
                         },
@@ -13114,15 +13114,15 @@ Service Contentieux
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-bold text-gray-900">
-                        {plan.montantTotal.toLocaleString()} FCFA
+                        {formatCurrency(plan.montantTotal)}
                       </div>
                       <div className="text-xs text-gray-700">
-                        Reste: {plan.montantRestant.toLocaleString()} FCFA
+                        Reste: {formatCurrency(plan.montantRestant)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-green-600">
-                        {plan.mensualite.toLocaleString()} FCFA
+                        {formatCurrency(plan.mensualite)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -13285,7 +13285,7 @@ Service Contentieux
                   Responsable
                 </label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option value="marie_dupont">Marie Dupont</option>
+                  <option value="marie_dupont">—</option>
                   <option value="jean_martin">Jean Martin</option>
                   <option value="sophie_bernard">Sophie Bernard</option>
                 </select>
@@ -14625,11 +14625,11 @@ Service Contentieux
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Montant total:</span>
-                      <span className="font-medium text-[#171717]">{selectedPlan.montantTotal.toLocaleString()} FCFA</span>
+                      <span className="font-medium text-[#171717]">{formatCurrency(selectedPlan.montantTotal)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Mensualité:</span>
-                      <span className="font-medium">{selectedPlan.mensualite.toLocaleString()} FCFA</span>
+                      <span className="font-medium">{formatCurrency(selectedPlan.mensualite)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Durée:</span>
@@ -14647,11 +14647,11 @@ Service Contentieux
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Montant payé:</span>
-                      <span className="font-medium text-green-600">{selectedPlan.montantPaye.toLocaleString()} FCFA</span>
+                      <span className="font-medium text-green-600">{formatCurrency(selectedPlan.montantPaye)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Montant restant:</span>
-                      <span className="font-medium text-orange-600">{selectedPlan.montantRestant.toLocaleString()} FCFA</span>
+                      <span className="font-medium text-orange-600">{formatCurrency(selectedPlan.montantRestant)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Progression:</span>
@@ -14688,7 +14688,7 @@ Service Contentieux
                           <tr key={i} className={isCurrentMonth ? 'bg-yellow-50' : ''}>
                             <td className="px-4 py-3 text-sm">Échéance {i + 1}</td>
                             <td className="px-4 py-3 text-sm">{echeanceDate.toLocaleDateString()}</td>
-                            <td className="px-4 py-3 text-sm font-medium">{selectedPlan.mensualite.toLocaleString()} FCFA</td>
+                            <td className="px-4 py-3 text-sm font-medium">{formatCurrency(selectedPlan.mensualite)}</td>
                             <td className="px-4 py-3 text-sm">
                               {isPaid ? new Date(Date.now() - (selectedPlan.echeancesPayees - i) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : '-'}
                             </td>
@@ -14767,15 +14767,15 @@ Service Contentieux
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Montant total:</span>
-                    <div className="font-medium">{selectedPlan.montantTotal.toLocaleString()} FCFA</div>
+                    <div className="font-medium">{formatCurrency(selectedPlan.montantTotal)}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Montant restant:</span>
-                    <div className="font-medium text-orange-600">{selectedPlan.montantRestant.toLocaleString()} FCFA</div>
+                    <div className="font-medium text-orange-600">{formatCurrency(selectedPlan.montantRestant)}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Mensualité:</span>
-                    <div className="font-medium">{selectedPlan.mensualite.toLocaleString()} FCFA</div>
+                    <div className="font-medium">{formatCurrency(selectedPlan.mensualite)}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Prochaine échéance:</span>
@@ -14930,7 +14930,7 @@ Service Contentieux
                   </div>
                   <div>
                     <span className="text-gray-600">Montant attendu:</span>
-                    <div className="font-medium">{selectedPlan.mensualite.toLocaleString()} FCFA</div>
+                    <div className="font-medium">{formatCurrency(selectedPlan.mensualite)}</div>
                   </div>
                   <div>
                     <span className="text-gray-600">Retard:</span>
@@ -14990,7 +14990,7 @@ Service Contentieux
                   rows={6}
                   defaultValue={`Madame, Monsieur ${selectedPlan.client},
 
-Nous vous rappelons que votre plan de remboursement ${selectedPlan.reference} prévoit une échéance de ${selectedPlan.mensualite.toLocaleString()} FCFA pour le ${new Date(selectedPlan.prochaineEcheance).toLocaleDateString()}.
+Nous vous rappelons que votre plan de remboursement ${selectedPlan.reference} prévoit une échéance de ${formatCurrency(selectedPlan.mensualite)} pour le ${new Date(selectedPlan.prochaineEcheance).toLocaleDateString()}.
 
 ${selectedPlan.statut === 'En retard' ?
   `Nous constatons un retard de paiement. Nous vous remercions de bien vouloir régulariser votre situation dans les plus brefs délais.` :
@@ -15152,8 +15152,8 @@ L'équipe recouvrement`}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   <option value="">Sélectionner un responsable...</option>
-                  <option value="Jean Dupont">Jean Dupont</option>
-                  <option value="Marie Martin">Marie Martin</option>
+                  <option value="">—</option>
+                  <option value="">—</option>
                   <option value="Pierre Bernard">Pierre Bernard</option>
                   <option value="Sophie Dubois">Sophie Dubois</option>
                   <option value="Luc Moreau">Luc Moreau</option>

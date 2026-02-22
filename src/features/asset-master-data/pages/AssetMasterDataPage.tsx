@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Info, DollarSign, Building, Wrench, FileText, Edit, ArrowLeft } from 'lucide-react';
@@ -173,7 +174,7 @@ const AssetMasterDataPage: React.FC = () => {
                     <div>
                       <label className="text-sm text-[#737373]">Coût d'acquisition</label>
                       <p className="font-medium text-[#171717]">
-                        {asset.acquisition.acquisition_cost.toLocaleString()} FCFA
+                        {formatCurrency(asset.acquisition.acquisition_cost)}
                       </p>
                     </div>
                     <div>
@@ -199,13 +200,13 @@ const AssetMasterDataPage: React.FC = () => {
                     <div>
                       <label className="text-sm text-[#737373]">Valeur nette comptable</label>
                       <p className="font-medium text-[#171717]">
-                        {asset.immobilisation.net_book_value.toLocaleString()} FCFA
+                        {formatCurrency(asset.immobilisation.net_book_value)}
                       </p>
                     </div>
                     <div>
                       <label className="text-sm text-[#737373]">Amortissement cumulé</label>
                       <p className="font-medium text-[#171717]">
-                        {asset.immobilisation.accumulated_depreciation.toLocaleString()} FCFA
+                        {formatCurrency(asset.immobilisation.accumulated_depreciation)}
                       </p>
                     </div>
                   </div>

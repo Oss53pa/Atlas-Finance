@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -351,7 +352,7 @@ const PisteAuditModule: React.FC = () => {
                           </div>
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
-                            <span>{new Date(entry.timestamp).toLocaleString('fr-FR')}</span>
+                            <span>{formatCurrency(new Date(entry.timestamp))}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Database className="w-3 h-3" />
@@ -628,7 +629,7 @@ const PisteAuditModule: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#737373] mb-1">Date et heure</p>
                   <p className="font-semibold">
-                    {new Date(selectedEntry.timestamp).toLocaleString('fr-FR')}
+                    {formatCurrency(new Date(selectedEntry.timestamp))}
                   </p>
                 </div>
               </div>

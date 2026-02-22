@@ -5,6 +5,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { revisionsService } from '../features/closures/services/revisionsService';
 import { db } from '../lib/db';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 describe('RevisionsService (Dexie)', () => {
   const sessionId = 'REV-SESSION-001';
@@ -56,7 +59,7 @@ describe('RevisionsService (Dexie)', () => {
 
   describe('createRevisionItem', () => {
     it('should create a revision item', async () => {
-      const item = await revisionsService.createRevisionItem({
+      const item = await revisionsService.createRevisionItem(adapter, {
         sessionId,
         accountCode: '411000',
         accountName: 'Clients',
@@ -76,7 +79,7 @@ describe('RevisionsService (Dexie)', () => {
     });
 
     it('should log audit trail', async () => {
-      await revisionsService.createRevisionItem({
+      await revisionsService.createRevisionItem(adapter, {
         sessionId,
         accountCode: '521000',
         accountName: 'Banque',
@@ -97,7 +100,7 @@ describe('RevisionsService (Dexie)', () => {
 
   describe('updateRevisionItem', () => {
     it('should update status and findings', async () => {
-      const item = await revisionsService.createRevisionItem({
+      const item = await revisionsService.createRevisionItem(adapter, {
         sessionId,
         accountCode: '411000',
         accountName: 'Clients',
@@ -110,7 +113,7 @@ describe('RevisionsService (Dexie)', () => {
         reviewer: 'Auditeur A',
       });
 
-      const updated = await revisionsService.updateRevisionItem(item.id, {
+      const updated = await revisionsService.updateRevisionItem(adapter, item.id, {
         status: 'en_cours',
         findings: 'Échantillon de 30 clients vérifié',
       });
@@ -122,7 +125,7 @@ describe('RevisionsService (Dexie)', () => {
 
   describe('autoGenerateRevisionItems', () => {
     it('should generate items for all accounts with movements', async () => {
-      const count = await revisionsService.autoGenerateRevisionItems(
+      const count = await revisionsService.autoGenerateRevisionItems(adapter,
         sessionId,
         '2025-06-01',
         '2025-06-30',
@@ -137,17 +140,17 @@ describe('RevisionsService (Dexie)', () => {
     });
 
     it('should not create duplicates on second run', async () => {
-      await revisionsService.autoGenerateRevisionItems(sessionId, '2025-06-01', '2025-06-30', 'A');
-      const secondCount = await revisionsService.autoGenerateRevisionItems(sessionId, '2025-06-01', '2025-06-30', 'A');
+      await revisionsService.autoGenerateRevisionItems(adapter, sessionId, '2025-06-01', '2025-06-30', 'A');
+      const secondCount = await revisionsService.autoGenerateRevisionItems(adapter, sessionId, '2025-06-01', '2025-06-30', 'A');
       expect(secondCount).toBe(0);
     });
   });
 
   describe('getLeadSchedules', () => {
     it('should group items by SYSCOHADA class', async () => {
-      await revisionsService.autoGenerateRevisionItems(sessionId, '2025-06-01', '2025-06-30', 'A');
+      await revisionsService.autoGenerateRevisionItems(adapter, sessionId, '2025-06-01', '2025-06-30', 'A');
 
-      const schedules = await revisionsService.getLeadSchedules(sessionId);
+      const schedules = await revisionsService.getLeadSchedules(adapter, sessionId);
       expect(schedules.length).toBeGreaterThan(0);
 
       const class4 = schedules.find(s => s.accountClass === '4');
@@ -157,9 +160,9 @@ describe('RevisionsService (Dexie)', () => {
     });
 
     it('should compute completion rate', async () => {
-      await revisionsService.autoGenerateRevisionItems(sessionId, '2025-06-01', '2025-06-30', 'A');
+      await revisionsService.autoGenerateRevisionItems(adapter, sessionId, '2025-06-01', '2025-06-30', 'A');
 
-      const schedules = await revisionsService.getLeadSchedules(sessionId);
+      const schedules = await revisionsService.getLeadSchedules(adapter, sessionId);
       const class4 = schedules.find(s => s.accountClass === '4')!;
       expect(class4.completionRate).toBe(0); // All en_attente
     });
@@ -167,9 +170,9 @@ describe('RevisionsService (Dexie)', () => {
 
   describe('getStats', () => {
     it('should return revision statistics', async () => {
-      await revisionsService.autoGenerateRevisionItems(sessionId, '2025-06-01', '2025-06-30', 'A');
+      await revisionsService.autoGenerateRevisionItems(adapter, sessionId, '2025-06-01', '2025-06-30', 'A');
 
-      const stats = await revisionsService.getStats(sessionId);
+      const stats = await revisionsService.getStats(adapter, sessionId);
       expect(stats.totalItems).toBe(15);
       expect(stats.pending).toBe(15);
       expect(stats.completed).toBe(0);
@@ -177,9 +180,9 @@ describe('RevisionsService (Dexie)', () => {
     });
 
     it('should count high risk items', async () => {
-      await revisionsService.autoGenerateRevisionItems(sessionId, '2025-06-01', '2025-06-30', 'A');
+      await revisionsService.autoGenerateRevisionItems(adapter, sessionId, '2025-06-01', '2025-06-30', 'A');
 
-      const stats = await revisionsService.getStats(sessionId);
+      const stats = await revisionsService.getStats(adapter, sessionId);
       // Class 4 and 5 accounts are high risk
       expect(stats.highRiskItems).toBeGreaterThan(0);
     });
@@ -187,7 +190,7 @@ describe('RevisionsService (Dexie)', () => {
 
   describe('getFindings', () => {
     it('should extract items with findings', async () => {
-      const item = await revisionsService.createRevisionItem({
+      const item = await revisionsService.createRevisionItem(adapter, {
         sessionId,
         accountCode: '411000',
         accountName: 'Clients',
@@ -200,7 +203,7 @@ describe('RevisionsService (Dexie)', () => {
         reviewer: 'A',
       });
 
-      const findings = await revisionsService.getFindings(sessionId);
+      const findings = await revisionsService.getFindings(adapter, sessionId);
       expect(findings.length).toBe(1);
       expect(findings[0].finding).toBe('Écart de 50 000 XAF constaté');
       expect(findings[0].recommendation).toBe('Ajustement requis');
@@ -209,8 +212,8 @@ describe('RevisionsService (Dexie)', () => {
 
   describe('exportReport', () => {
     it('should export as CSV', async () => {
-      await revisionsService.autoGenerateRevisionItems(sessionId, '2025-06-01', '2025-06-30', 'A');
-      const blob = await revisionsService.exportReport(sessionId);
+      await revisionsService.autoGenerateRevisionItems(adapter, sessionId, '2025-06-01', '2025-06-30', 'A');
+      const blob = await revisionsService.exportReport(adapter, sessionId);
       expect(blob.size).toBeGreaterThan(0);
       expect(blob.type).toContain('csv');
     });

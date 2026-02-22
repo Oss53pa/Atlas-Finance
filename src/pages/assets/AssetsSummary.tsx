@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
@@ -152,7 +153,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'total_value',
       title: 'Valeur Totale des Actifs',
-      value: `${totalAcquisitionValue.toLocaleString()} \u20AC`,
+      value: `${formatCurrency(totalAcquisitionValue)} \u20AC`,
       change: 0,
       changeLabel: 'depuis Dexie',
       icon: <DollarSign className="w-6 h-6" />,
@@ -163,7 +164,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'net_book_value',
       title: 'Valeur Nette Comptable',
-      value: `${totalResidualValue.toLocaleString()} \u20AC`,
+      value: `${formatCurrency(totalResidualValue)} \u20AC`,
       change: 0,
       changeLabel: 'depuis Dexie',
       icon: <Building2 className="w-6 h-6" />,
@@ -185,7 +186,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'maintenance_cost',
       title: 'Coûts de Maintenance',
-      value: `${(totalAcquisitionValue * 0.02).toLocaleString()} \u20AC`,
+      value: `${formatCurrency((totalAcquisitionValue * 0.02))} \u20AC`,
       change: 0,
       changeLabel: 'estimation',
       icon: <Wrench className="w-6 h-6" />,
@@ -196,7 +197,7 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'asset_count',
       title: 'Nombre d\'Actifs',
-      value: dbAssets.length.toLocaleString(),
+      value: formatCurrency(dbAssets.length),
       change: 0,
       changeLabel: 'depuis Dexie',
       icon: <Package className="w-6 h-6" />,
@@ -326,7 +327,7 @@ const AssetsSummary: React.FC = () => {
     const categoryData = mockCategories.map(cat => ({
       'Catégorie': cat.name,
       'Nombre': cat.count,
-      'Valeur': `${cat.value.toLocaleString()} €`,
+      'Valeur': `${formatCurrency(cat.value)}`,
       'Pourcentage': `${cat.percentage}%`
     }));
     const categorySheet = XLSX.utils.json_to_sheet(categoryData);
@@ -336,7 +337,7 @@ const AssetsSummary: React.FC = () => {
     const geoData = mockGeographicData.map(geo => ({
       'Localisation': geo.location,
       'Nombre': geo.count,
-      'Valeur': `${geo.value.toLocaleString()} €`,
+      'Valeur': `${formatCurrency(geo.value)}`,
       'Pourcentage': `${geo.percentage}%`,
       'Niveau de Risque': geo.riskLevel
     }));
@@ -394,7 +395,7 @@ const AssetsSummary: React.FC = () => {
 
     pdf.setFontSize(10);
     mockCategories.forEach(cat => {
-      pdf.text(`${cat.name}: ${cat.count} actifs - ${cat.value.toLocaleString()} € (${cat.percentage}%)`, 20, yPos);
+      pdf.text(`${cat.name}: ${cat.count} actifs - ${formatCurrency(cat.value)} (${cat.percentage}%)`, 20, yPos);
       yPos += 8;
     });
 
@@ -550,7 +551,7 @@ const AssetsSummary: React.FC = () => {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [`${value.toLocaleString()} €`, 'Valeur']}
+                  formatter={(value: number) => [`${formatCurrency(value)}`, 'Valeur']}
                 />
               </RechartsPieChart>
             </ResponsiveContainer>
@@ -588,7 +589,7 @@ const AssetsSummary: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-slate-900">
-                      {category.value.toLocaleString()} €
+                      {formatCurrency(category.value)}
                     </p>
                     <p className="text-sm text-slate-500">{category.percentage}%</p>
                   </div>
@@ -607,7 +608,7 @@ const AssetsSummary: React.FC = () => {
                           <div className="flex items-center gap-4">
                             <span className="text-slate-500">{sub.count} actifs</span>
                             <span className="font-medium text-slate-700">
-                              {sub.value.toLocaleString()} €
+                              {formatCurrency(sub.value)}
                             </span>
                           </div>
                         </div>
@@ -697,7 +698,7 @@ const AssetsSummary: React.FC = () => {
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip
-                formatter={(value: number) => [`${value.toLocaleString()} €`, '']}
+                formatter={(value: number) => [`${formatCurrency(value)}`, '']}
                 labelFormatter={(label) => `Mois: ${label}`}
               />
               <Legend />
@@ -773,7 +774,7 @@ const AssetsSummary: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className="font-semibold text-slate-900">
-                  {location.value.toLocaleString()} €
+                  {formatCurrency(location.value)}
                 </p>
                 <p className="text-sm text-slate-500">{location.percentage}%</p>
               </div>
@@ -822,7 +823,7 @@ const AssetsSummary: React.FC = () => {
               <XAxis dataKey="location" angle={-45} textAnchor="end" height={80} />
               <YAxis />
               <Tooltip
-                formatter={(value: number) => [`${value.toLocaleString()} €`, 'Valeur']}
+                formatter={(value: number) => [`${formatCurrency(value)}`, 'Valeur']}
               />
               <Bar dataKey="value" fill="#171717" />
             </BarChart>
@@ -860,7 +861,7 @@ const AssetsSummary: React.FC = () => {
           </div>
           <div className="text-center p-4 rounded-lg bg-[#171717]/10 border border-[#171717]/20">
             <div className="text-lg font-bold text-[#171717]">
-              {totalMaintenanceCost.toLocaleString()} €
+              {formatCurrency(totalMaintenanceCost)}
             </div>
             <div className="text-sm text-[#171717]">Coût total</div>
           </div>

@@ -1084,7 +1084,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                       <div className="flex-1">
                         <div className="text-sm text-gray-900">
-                          <span className="font-medium">Jean Dupont</span> a commenté l'écriture 512000
+                          <span className="font-medium">—</span> a commenté l'écriture 512000
                         </div>
                         <div className="text-xs text-gray-700 mt-1">
                           "Virement important à vérifier avec la direction"

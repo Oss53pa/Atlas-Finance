@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Package,
@@ -66,7 +67,7 @@ const KPICard: React.FC<KPICardProps> = ({
       return `${val}%`;
     }
     if (typeof val === 'number' && format === 'number') {
-      return val.toLocaleString();
+      return formatCurrency(val);
     }
     return val;
   };
@@ -500,7 +501,7 @@ const InventoryDashboard: React.FC = () => {
               <XAxis dataKey="month" />
               <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
               <Tooltip
-                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']}
+                formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']}
                 labelFormatter={(label) => `Month: ${label}`}
               />
               <Area
@@ -532,7 +533,7 @@ const InventoryDashboard: React.FC = () => {
               <YAxis />
               <Tooltip
                 formatter={(value: number, name: string) => [
-                  name === 'turnover' ? `${value}x` : `$${value.toLocaleString()}`,
+                  name === 'turnover' ? `${value}x` : `$${formatCurrency(value)}`,
                   name === 'turnover' ? 'Turnover Ratio' : 'Inventory Value'
                 ]}
               />
@@ -562,7 +563,7 @@ const InventoryDashboard: React.FC = () => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']} />
+              <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
             </RechartsPieChart>
           </ResponsiveContainer>
         </div>
@@ -575,7 +576,7 @@ const InventoryDashboard: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`} />
               <YAxis type="category" dataKey="period" width={80} />
-              <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']} />
+              <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
               <Bar dataKey="value" fill="#F59E0B" />
             </BarChart>
           </ResponsiveContainer>
@@ -591,7 +592,7 @@ const InventoryDashboard: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="method" />
               <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
-              <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, 'Inventory Value']} />
+              <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']} />
               <Bar dataKey="value" fill="#525252" />
             </BarChart>
           </ResponsiveContainer>

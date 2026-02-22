@@ -2,6 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import 'fake-indexeddb/auto';
 import { db } from '../lib/db';
 import { safeAddEntry, safeBulkAddEntries, EntryGuardError } from '../services/entryGuard';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 // ============================================================================
 // SEED DATA
@@ -32,7 +35,7 @@ beforeEach(async () => {
 
 describe('safeAddEntry', () => {
   it('insere une ecriture equilibree et calcule totalDebit/totalCredit', async () => {
-    const id = await safeAddEntry({
+    const id = await safeAddEntry(adapter, {
       id: 'entry-1',
       entryNumber: 'AC-001',
       date: '2026-03-15',
@@ -59,7 +62,7 @@ describe('safeAddEntry', () => {
 
   it('rejette une ecriture desequilibree (D != C)', async () => {
     await expect(
-      safeAddEntry({
+      safeAddEntry(adapter, {
         id: 'entry-bad',
         entryNumber: 'AC-002',
         date: '2026-03-15',
@@ -79,7 +82,7 @@ describe('safeAddEntry', () => {
   it('accepte une ecriture systeme avec skipSyncValidation', async () => {
     // An entry with only 1 line would normally fail validation,
     // but skipSyncValidation bypasses the sync check
-    const id = await safeAddEntry(
+    const id = await safeAddEntry(adapter,
       {
         id: 'sys-1',
         entryNumber: 'SYS-001',
@@ -101,7 +104,7 @@ describe('safeAddEntry', () => {
   });
 
   it('chaine les hashes entre ecritures successives', async () => {
-    await safeAddEntry({
+    await safeAddEntry(adapter, {
       id: 'chain-1',
       entryNumber: 'AC-010',
       date: '2026-03-15',
@@ -116,7 +119,7 @@ describe('safeAddEntry', () => {
       createdAt: '2026-03-15T10:00:00.000Z',
     });
 
-    await safeAddEntry({
+    await safeAddEntry(adapter, {
       id: 'chain-2',
       entryNumber: 'AC-011',
       date: '2026-03-16',
@@ -143,7 +146,7 @@ describe('safeAddEntry', () => {
 
 describe('safeBulkAddEntries', () => {
   it('insere plusieurs ecritures en sequence', async () => {
-    const ids = await safeBulkAddEntries([
+    const ids = await safeBulkAddEntries(adapter, [
       {
         id: 'bulk-1',
         entryNumber: 'AC-100',

@@ -290,7 +290,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
                   <Input
                     value={formData.nom}
                     onChange={(e) => handleInputChange('nom', e.target.value)}
-                    placeholder="Dupont"
+                    placeholder="Nom"
                     error={errors.nom}
                   />
                   {errors.nom && (

@@ -107,11 +107,11 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
 
   // Données mockées (à remplacer par des appels API)
   const availableUsers: User[] = [
-    { id: '1', name: 'Marie Dupont', email: 'marie.dupont@company.com', department: 'Comptabilité' },
-    { id: '2', name: 'Jean Martin', email: 'jean.martin@company.com', department: 'Finance' },
-    { id: '3', name: 'Sophie Bernard', email: 'sophie.bernard@company.com', department: 'RH' },
-    { id: '4', name: 'Pierre Moreau', email: 'pierre.moreau@company.com', department: 'IT' },
-    { id: '5', name: 'Emma Laurent', email: 'emma.laurent@company.com', department: 'Marketing' }
+    { id: '1', name: '', email: '', department: 'Comptabilité' },
+    { id: '2', name: '', email: '', department: 'Finance' },
+    { id: '3', name: '', email: '', department: 'RH' },
+    { id: '4', name: '', email: '', department: 'IT' },
+    { id: '5', name: '', email: '', department: 'Marketing' }
   ];
 
   const availableTeams: Team[] = [

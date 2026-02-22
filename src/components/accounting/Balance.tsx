@@ -353,7 +353,7 @@ const Balance: React.FC = () => {
   };
 
   const formatAmount = (amount: number) => {
-    return amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return formatCurrency(amount);
   };
 
   // Fonctions pour les actions rapides
@@ -1245,7 +1245,7 @@ const Balance: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Fournisseur ACME */}
+                  {/* Fournisseur auxiliaire */}
                   <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
@@ -1254,7 +1254,7 @@ const Balance: React.FC = () => {
                       </div>
                     </div>
 
-                    <h4 className="text-sm mb-3 font-semibold">Fournisseur ACME</h4>
+                    <h4 className="text-sm mb-3 font-semibold">Fournisseur auxiliaire</h4>
 
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between items-center p-2 bg-blue-50 rounded">

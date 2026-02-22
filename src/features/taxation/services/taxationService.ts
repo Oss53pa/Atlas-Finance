@@ -120,7 +120,7 @@ class TaxationService {
         type_declaration: 'TVA Mensuelle',
         date_echeance: '2024-12-15',
         jours_restants: 5,
-        responsable: 'Jean Dupont',
+        responsable: '',
       },
     ];
   }

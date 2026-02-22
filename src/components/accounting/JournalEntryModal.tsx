@@ -34,6 +34,7 @@ import { TVAValidator, LigneEcriture as TVALigneEcriture, TVAValidationResult } 
 import { isEntryEditable, isEntryReversible } from '../../utils/reversalService';
 import { validateJournalEntry, getNextPieceNumber } from '../../validators/journalEntryValidator';
 
+import { useData } from '../../contexts/DataContext';
 import { safeAddEntry } from '../../services/entryGuard';
 import { validerEcriture, comptabiliserEcriture, retourBrouillon, allowedTransitions, transitionLabel } from '../../services/entryWorkflow';
 import type { EntryStatus } from '../../services/entryWorkflow';
@@ -73,6 +74,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const [showReversalDialog, setShowReversalDialog] = useState(false);
   const [reversalReason, setReversalReason] = useState('');
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
+  const { adapter } = useData();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('details');
   const [transactionType, setTransactionType] = useState<TransactionType>('purchase');
@@ -103,9 +105,9 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const planComptable = [
     { code: '101000', libelle: 'Capital social' },
     { code: '401000', libelle: 'Fournisseurs' },
-    { code: '401001', libelle: 'Fournisseur ACME' },
+    { code: '401001', libelle: 'Fournisseur auxiliaire' },
     { code: '411000', libelle: 'Clients' },
-    { code: '411001', libelle: 'Client A' },
+    { code: '411001', libelle: 'Client auxiliaire' },
     { code: '445200', libelle: 'TVA déductible' },
     { code: '445710', libelle: 'TVA collectée' },
     { code: '512100', libelle: 'BNP Paribas' },
@@ -185,7 +187,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const [lignesEcriture, setLignesEcriture] = useState<LigneEcriture[]>([
     { compte: '607000', libelle: 'Achats marchand', debit: 100000, credit: 0, codeAnalytique: 'CC001 - Commercial' },
     { compte: '445200', libelle: 'TVA déductible', debit: 19250, credit: 0, codeAnalytique: '' },
-    { compte: '401001', libelle: 'Fournisseur ACME', debit: 0, credit: 119250, codeAnalytique: '' }
+    { compte: '401001', libelle: 'Fournisseur auxiliaire', debit: 0, credit: 119250, codeAnalytique: '' }
   ]);
 
   // État pour les factures (ventilation)
@@ -559,7 +561,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
         analyticalCode: l.codeAnalytique || undefined,
       }));
 
-      const result = await validateJournalEntry({
+      const result = await validateJournalEntry(adapter, {
         date: details.dateEcriture,
         lines,
         journal: journalCode,
@@ -575,7 +577,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       // Générer le numéro de pièce séquentiel
       const entryNumber = await getNextPieceNumber(journalCode);
 
-      await safeAddEntry({
+      await safeAddEntry(adapter, {
         id: crypto.randomUUID(),
         entryNumber,
         journal: journalCode,
@@ -1124,8 +1126,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                         <label className="block text-sm font-medium text-gray-700 mb-1">Fournisseur *</label>
                         <SearchableDropdown
                           options={[
-                            { value: 'acme', label: 'ACME SARL' },
-                            { value: 'tech', label: 'Tech Solutions' }
+                            { value: 'fournisseur1', label: 'Fournisseur 1' },
+                            { value: 'fournisseur2', label: 'Fournisseur 2' }
                           ]}
                           value={factureInfo.fournisseur}
                           onChange={(value) => setFactureInfo({...factureInfo, fournisseur: value})}
@@ -1168,8 +1170,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                         <label className="block text-sm font-medium text-gray-700 mb-1">Client *</label>
                         <SearchableDropdown
                           options={[
-                            { value: 'client1', label: 'Société ABC' },
-                            { value: 'client2', label: 'Entreprise XYZ' }
+                            { value: 'client1', label: 'Client 1' },
+                            { value: 'client2', label: 'Client 2' }
                           ]}
                           value={venteInfo.client}
                           onChange={(value) => setVenteInfo({...venteInfo, client: value})}
@@ -1315,8 +1317,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                 { value: 'client1', label: 'Client A' },
                                 { value: 'client2', label: 'Client B' }
                               ] : [
-                                { value: 'fournisseur1', label: 'Fournisseur ACME' },
-                                { value: 'fournisseur2', label: 'Fournisseur XYZ' }
+                                { value: 'fournisseur1', label: 'Fournisseur 1' },
+                                { value: 'fournisseur2', label: 'Fournisseur 2' }
                               ]
                             }
                             value={reglementInfo.tiers}

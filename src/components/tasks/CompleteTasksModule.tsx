@@ -191,7 +191,7 @@ const CompleteTasksModule: React.FC = () => {
       description: 'Analyser et valider le budget prévisionnel du deuxième trimestre',
       status: 'in-progress',
       priority: 'high',
-      assignee: 'Jean Dupont',
+      assignee: '',
       assigneeTeam: 'Finance',
       dueDate: new Date('2024-03-15'),
       startDate: new Date('2024-03-01'),
@@ -215,12 +215,12 @@ const CompleteTasksModule: React.FC = () => {
         { id: 'c2', text: 'Calculer les marges', completed: true },
         { id: 'c3', text: 'Valider avec direction', completed: false }
       ],
-      watchers: ['Marie Martin', 'Pierre Durand'],
+      watchers: ['', ''],
       comments: [
         {
           id: 'com1',
           text: 'Les prévisions semblent optimistes, à revoir',
-          author: 'Marie Martin',
+          author: '',
           createdAt: new Date('2024-03-05')
         }
       ]
@@ -231,7 +231,7 @@ const CompleteTasksModule: React.FC = () => {
       description: 'Finaliser les écritures et préparer les états financiers',
       status: 'todo',
       priority: 'urgent',
-      assignee: 'Marie Martin',
+      assignee: '',
       assigneeTeam: 'Comptabilité',
       dueDate: new Date('2024-03-10'),
       tags: ['Comptabilité', 'Mensuel', 'Récurrent'],
@@ -258,7 +258,7 @@ const CompleteTasksModule: React.FC = () => {
       description: 'Vérifier les contrats et conditions avec les principaux fournisseurs',
       status: 'review',
       priority: 'medium',
-      assignee: 'Pierre Durand',
+      assignee: '',
       assigneeTeam: 'Achats',
       dueDate: new Date('2024-03-20'),
       tags: ['Audit', 'Fournisseurs', 'Contrats'],
@@ -271,7 +271,7 @@ const CompleteTasksModule: React.FC = () => {
           url: '/files/contrats.pdf',
           size: 2456789,
           uploadedAt: new Date(),
-          uploadedBy: 'Pierre Durand',
+          uploadedBy: '',
           type: 'application/pdf'
         }
       ]

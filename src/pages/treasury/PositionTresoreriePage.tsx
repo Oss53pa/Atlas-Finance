@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
@@ -136,7 +137,7 @@ const PositionTresoreriePage: React.FC = () => {
             <div>
               <h3 className="text-lg font-medium opacity-90 mb-2">Position Totale</h3>
               <p className="text-lg font-bold">
-                {position.totalCash.toLocaleString()} XOF
+                {formatCurrency(position.totalCash)} XOF
               </p>
             </div>
             <div>
@@ -148,7 +149,7 @@ const PositionTresoreriePage: React.FC = () => {
                   <ArrowDownRight className="h-6 w-6 text-red-300 mr-2" />
                 )}
                 <p className="text-lg font-bold">
-                  {Math.abs(position.dailyVariation).toLocaleString()} XOF
+                  {formatCurrency(Math.abs(position.dailyVariation))} XOF
                 </p>
               </div>
             </div>
@@ -161,7 +162,7 @@ const PositionTresoreriePage: React.FC = () => {
                   <ArrowDownRight className="h-6 w-6 text-red-300 mr-2" />
                 )}
                 <p className="text-lg font-bold">
-                  {Math.abs(position.weeklyForecast).toLocaleString()} XOF
+                  {formatCurrency(Math.abs(position.weeklyForecast))} XOF
                 </p>
               </div>
             </div>
@@ -174,7 +175,7 @@ const PositionTresoreriePage: React.FC = () => {
                   <ArrowDownRight className="h-6 w-6 text-red-300 mr-2" />
                 )}
                 <p className="text-lg font-bold">
-                  {Math.abs(position.monthlyForecast).toLocaleString()} XOF
+                  {formatCurrency(Math.abs(position.monthlyForecast))} XOF
                 </p>
               </div>
             </div>
@@ -209,7 +210,7 @@ const PositionTresoreriePage: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-gray-900">
-                        {account.balance.toLocaleString()} {account.currency}
+                        {formatCurrency(account.balance)}
                       </p>
                       <p className="text-xs text-gray-700">
                         MAJ: {account.lastUpdate.toLocaleTimeString()}
@@ -255,7 +256,7 @@ const PositionTresoreriePage: React.FC = () => {
                     <p className={`font-bold ${
                       movement.type === 'inflow' ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {movement.type === 'inflow' ? '+' : '-'}{movement.amount.toLocaleString()} XOF
+                      {movement.type === 'inflow' ? '+' : '-'}{formatCurrency(movement.amount)} XOF
                     </p>
                     <p className="text-xs text-gray-700">
                       {movement.date.toLocaleTimeString()}

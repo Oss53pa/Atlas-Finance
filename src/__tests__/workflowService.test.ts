@@ -19,6 +19,9 @@ import {
   canRejectEntry,
   type WorkflowStatus,
 } from '../services/workflow/workflowService';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 // ============================================================================
 // TEST SETUP
@@ -158,7 +161,7 @@ describe('validateEntry', () => {
     const entry = createValidEntry('entry-001', 'draft');
     await db.journalEntries.add(entry);
 
-    const result = await validateEntry('entry-001', 'user-comptable');
+    const result = await validateEntry(adapter, 'entry-001', 'user-comptable');
 
     expect(result.success).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -171,7 +174,7 @@ describe('validateEntry', () => {
     const entry = createUnbalancedEntry('entry-002');
     await db.journalEntries.add(entry);
 
-    const result = await validateEntry('entry-002', 'user-comptable');
+    const result = await validateEntry(adapter, 'entry-002', 'user-comptable');
 
     expect(result.success).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
@@ -186,7 +189,7 @@ describe('validateEntry', () => {
     entry.lines = [entry.lines[0]]; // Une seule ligne
     await db.journalEntries.add(entry);
 
-    const result = await validateEntry('entry-003', 'user-comptable');
+    const result = await validateEntry(adapter, 'entry-003', 'user-comptable');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('minimum 2 lignes'))).toBe(true);
@@ -196,7 +199,7 @@ describe('validateEntry', () => {
     const entry = createValidEntry('entry-004', 'validated');
     await db.journalEntries.add(entry);
 
-    const result = await validateEntry('entry-004', 'user-comptable');
+    const result = await validateEntry(adapter, 'entry-004', 'user-comptable');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('Transition invalide'))).toBe(true);
@@ -206,14 +209,14 @@ describe('validateEntry', () => {
     const entry = createValidEntry('entry-005', 'posted');
     await db.journalEntries.add(entry);
 
-    const result = await validateEntry('entry-005', 'user-comptable');
+    const result = await validateEntry(adapter, 'entry-005', 'user-comptable');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('Transition invalide'))).toBe(true);
   });
 
   it('devrait retourner une erreur pour une écriture inexistante', async () => {
-    const result = await validateEntry('entry-999', 'user-comptable');
+    const result = await validateEntry(adapter, 'entry-999', 'user-comptable');
 
     expect(result.success).toBe(false);
     expect(result.errors).toContain('Écriture introuvable');
@@ -223,7 +226,7 @@ describe('validateEntry', () => {
     const entry = createValidEntry('entry-006', 'draft');
     await db.journalEntries.add(entry);
 
-    await validateEntry('entry-006', 'user-comptable');
+    await validateEntry(adapter, 'entry-006', 'user-comptable');
 
     const logs = await db.auditLogs
       .where('entityId')
@@ -250,7 +253,7 @@ describe('postEntry', () => {
     const entry = createValidEntry('entry-101', 'validated', 'user-creator');
     await db.journalEntries.add(entry);
 
-    const result = await postEntry('entry-101', 'user-approver');
+    const result = await postEntry(adapter, 'entry-101', 'user-approver');
 
     expect(result.success).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -265,7 +268,7 @@ describe('postEntry', () => {
     const entry = createValidEntry('entry-102', 'validated', 'user-same');
     await db.journalEntries.add(entry);
 
-    const result = await postEntry('entry-102', 'user-same');
+    const result = await postEntry(adapter, 'entry-102', 'user-same');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('Séparation des tâches'))).toBe(true);
@@ -278,7 +281,7 @@ describe('postEntry', () => {
     const entry = createValidEntry('entry-103', 'draft');
     await db.journalEntries.add(entry);
 
-    const result = await postEntry('entry-103', 'user-approver');
+    const result = await postEntry(adapter, 'entry-103', 'user-approver');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('Transition invalide'))).toBe(true);
@@ -288,7 +291,7 @@ describe('postEntry', () => {
     const entry = createValidEntry('entry-104', 'posted');
     await db.journalEntries.add(entry);
 
-    const result = await postEntry('entry-104', 'user-approver');
+    const result = await postEntry(adapter, 'entry-104', 'user-approver');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('Transition invalide'))).toBe(true);
@@ -298,7 +301,7 @@ describe('postEntry', () => {
     const entry = createValidEntry('entry-105', 'validated', 'user-creator');
     await db.journalEntries.add(entry);
 
-    await postEntry('entry-105', 'user-approver');
+    await postEntry(adapter, 'entry-105', 'user-approver');
 
     const logs = await db.auditLogs
       .where('entityId')
@@ -319,7 +322,7 @@ describe('postEntry', () => {
     delete entry.hash;
     await db.journalEntries.add(entry);
 
-    const result = await postEntry('entry-106', 'user-approver');
+    const result = await postEntry(adapter, 'entry-106', 'user-approver');
 
     expect(result.success).toBe(true);
 
@@ -338,7 +341,7 @@ describe('rejectEntry', () => {
     const entry = createValidEntry('entry-201', 'validated');
     await db.journalEntries.add(entry);
 
-    const result = await rejectEntry('entry-201', 'user-reviewer', 'Montant incorrect');
+    const result = await rejectEntry(adapter, 'entry-201', 'user-reviewer', 'Montant incorrect');
 
     expect(result.success).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -351,7 +354,7 @@ describe('rejectEntry', () => {
     const entry = createValidEntry('entry-202', 'validated');
     await db.journalEntries.add(entry);
 
-    const result = await rejectEntry('entry-202', 'user-reviewer', '');
+    const result = await rejectEntry(adapter, 'entry-202', 'user-reviewer', '');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('raison de rejet'))).toBe(true);
@@ -364,7 +367,7 @@ describe('rejectEntry', () => {
     const entry = createValidEntry('entry-203', 'draft');
     await db.journalEntries.add(entry);
 
-    const result = await rejectEntry('entry-203', 'user-reviewer', 'Test');
+    const result = await rejectEntry(adapter, 'entry-203', 'user-reviewer', 'Test');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('Transition invalide'))).toBe(true);
@@ -374,7 +377,7 @@ describe('rejectEntry', () => {
     const entry = createValidEntry('entry-204', 'posted');
     await db.journalEntries.add(entry);
 
-    const result = await rejectEntry('entry-204', 'user-reviewer', 'Test');
+    const result = await rejectEntry(adapter, 'entry-204', 'user-reviewer', 'Test');
 
     expect(result.success).toBe(false);
     expect(result.errors.some(e => e.includes('Transition invalide'))).toBe(true);
@@ -384,7 +387,7 @@ describe('rejectEntry', () => {
     const entry = createValidEntry('entry-205', 'validated');
     await db.journalEntries.add(entry);
 
-    await rejectEntry('entry-205', 'user-reviewer', 'Compte incorrect');
+    await rejectEntry(adapter, 'entry-205', 'user-reviewer', 'Compte incorrect');
 
     const logs = await db.auditLogs
       .where('entityId')
@@ -413,7 +416,7 @@ describe('bulkValidate', () => {
       createValidEntry('entry-303', 'draft'),
     ]);
 
-    const result = await bulkValidate(
+    const result = await bulkValidate(adapter,
       ['entry-301', 'entry-302', 'entry-303'],
       'user-comptable'
     );
@@ -437,7 +440,7 @@ describe('bulkValidate', () => {
       createValidEntry('entry-403', 'draft'),
     ]);
 
-    const result = await bulkValidate(
+    const result = await bulkValidate(adapter,
       ['entry-401', 'entry-402', 'entry-403'],
       'user-comptable'
     );
@@ -452,7 +455,7 @@ describe('bulkValidate', () => {
   });
 
   it('devrait gérer les écritures inexistantes', async () => {
-    const result = await bulkValidate(['entry-999'], 'user-comptable');
+    const result = await bulkValidate(adapter, ['entry-999'], 'user-comptable');
 
     expect(result.succeeded).toHaveLength(0);
     expect(result.failed).toHaveLength(1);
@@ -470,15 +473,15 @@ describe('getWorkflowHistory', () => {
     await db.journalEntries.add(entry);
 
     // draft → validated
-    await validateEntry('entry-501', 'user-comptable');
+    await validateEntry(adapter, 'entry-501', 'user-comptable');
 
     // validated → draft (rejet)
-    await rejectEntry('entry-501', 'user-reviewer', 'Erreur détectée');
+    await rejectEntry(adapter, 'entry-501', 'user-reviewer', 'Erreur détectée');
 
     // draft → validated (re-validation)
-    await validateEntry('entry-501', 'user-comptable');
+    await validateEntry(adapter, 'entry-501', 'user-comptable');
 
-    const history = await getWorkflowHistory('entry-501');
+    const history = await getWorkflowHistory(adapter, 'entry-501');
 
     expect(history).toHaveLength(3);
     expect(history[0].fromStatus).toBe('draft');
@@ -491,7 +494,7 @@ describe('getWorkflowHistory', () => {
   });
 
   it('devrait retourner un tableau vide pour une écriture sans historique', async () => {
-    const history = await getWorkflowHistory('entry-999');
+    const history = await getWorkflowHistory(adapter, 'entry-999');
 
     expect(history).toHaveLength(0);
   });
@@ -500,11 +503,11 @@ describe('getWorkflowHistory', () => {
     const entry = createValidEntry('entry-502', 'draft', 'user-creator');
     await db.journalEntries.add(entry);
 
-    await validateEntry('entry-502', 'user-comptable');
-    await rejectEntry('entry-502', 'user-reviewer', 'Test');
-    await validateEntry('entry-502', 'user-comptable');
+    await validateEntry(adapter, 'entry-502', 'user-comptable');
+    await rejectEntry(adapter, 'entry-502', 'user-reviewer', 'Test');
+    await validateEntry(adapter, 'entry-502', 'user-comptable');
 
-    const history = await getWorkflowHistory('entry-502');
+    const history = await getWorkflowHistory(adapter, 'entry-502');
 
     // Vérifier l'ordre chronologique
     for (let i = 1; i < history.length; i++) {

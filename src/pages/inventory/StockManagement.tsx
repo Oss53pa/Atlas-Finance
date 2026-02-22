@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import {
   Package,
@@ -159,7 +160,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                     On Hand
                   </label>
                   <p className="text-sm font-semibold text-gray-900">
-                    {stockLevel.quantityOnHand.toLocaleString()}
+                    {formatCurrency(stockLevel.quantityOnHand)}
                   </p>
                 </div>
                 <div>
@@ -167,7 +168,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                     Available
                   </label>
                   <p className="text-sm font-semibold text-green-600">
-                    {stockLevel.quantityAvailable.toLocaleString()}
+                    {formatCurrency(stockLevel.quantityAvailable)}
                   </p>
                 </div>
               </div>
@@ -178,7 +179,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                     Allocated
                   </label>
                   <p className="text-sm text-yellow-600">
-                    {stockLevel.quantityAllocated.toLocaleString()}
+                    {formatCurrency(stockLevel.quantityAllocated)}
                   </p>
                 </div>
                 <div>
@@ -186,7 +187,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                     On Order
                   </label>
                   <p className="text-sm text-[#171717]">
-                    {stockLevel.quantityOnOrder.toLocaleString()}
+                    {formatCurrency(stockLevel.quantityOnOrder)}
                   </p>
                 </div>
               </div>
@@ -623,16 +624,16 @@ const StockManagement: React.FC = () => {
                     </div>
                   </td>
                   <td className="py-4 px-4 text-right font-mono">
-                    {stock.quantityOnHand.toLocaleString()}
+                    {formatCurrency(stock.quantityOnHand)}
                   </td>
                   <td className="py-4 px-4 text-right font-mono text-green-600">
-                    {stock.quantityAvailable.toLocaleString()}
+                    {formatCurrency(stock.quantityAvailable)}
                   </td>
                   <td className="py-4 px-4 text-right font-mono text-yellow-600">
-                    {stock.quantityAllocated.toLocaleString()}
+                    {formatCurrency(stock.quantityAllocated)}
                   </td>
                   <td className="py-4 px-4 text-right font-mono text-[#171717]">
-                    {stock.quantityOnOrder.toLocaleString()}
+                    {formatCurrency(stock.quantityOnOrder)}
                   </td>
                   <td className="py-4 px-4 text-right">
                     <CurrencyDisplay amount={stock.totalValue} currency="USD" size="sm" />

@@ -273,7 +273,7 @@ export async function genererEcrituresAffectation(adapter: DataAdapter, config: 
   // Build entry
   const entryNumber = `AFF-${dateAffectation.replace(/-/g, '')}`;
   const entryId = crypto.randomUUID();
-  await safeAddEntry({
+  await safeAddEntry(adapter, {
     id: entryId,
     entryNumber,
     journal: 'OD',

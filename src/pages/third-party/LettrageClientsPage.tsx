@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -219,7 +220,7 @@ const LettrageClientsPage: React.FC = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-gray-900">
-                {stats.unmatchedAmount.toLocaleString()} XOF
+                {formatCurrency(stats.unmatchedAmount)} XOF
               </p>
               <p className="text-gray-600 text-sm">Montant non lettré</p>
             </div>
@@ -329,7 +330,7 @@ const LettrageClientsPage: React.FC = () => {
                           <span>{transaction.customerName}</span>
                           <span className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1" />
-                            {transaction.amount.toLocaleString()} XOF
+                            {formatCurrency(transaction.amount)} XOF
                           </span>
                           <span className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />

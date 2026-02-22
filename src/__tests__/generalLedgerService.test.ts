@@ -5,6 +5,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { generalLedgerService } from '../features/accounting/services/generalLedgerService';
 import { db } from '../lib/db';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 describe('GeneralLedgerService (Dexie)', () => {
   beforeEach(async () => {
@@ -52,7 +55,7 @@ describe('GeneralLedgerService (Dexie)', () => {
 
   describe('getLedgerAccounts', () => {
     it('should return accounts from real entries', async () => {
-      const accounts = await generalLedgerService.getLedgerAccounts({
+      const accounts = await generalLedgerService.getLedgerAccounts(adapter, {
         dateDebut: '2025-01-01',
         dateFin: '2025-12-31',
       });
@@ -64,7 +67,7 @@ describe('GeneralLedgerService (Dexie)', () => {
     });
 
     it('should filter by date range', async () => {
-      const accounts = await generalLedgerService.getLedgerAccounts({
+      const accounts = await generalLedgerService.getLedgerAccounts(adapter, {
         dateDebut: '2025-03-01',
         dateFin: '2025-03-31',
       });
@@ -74,7 +77,7 @@ describe('GeneralLedgerService (Dexie)', () => {
     });
 
     it('should filter by journal', async () => {
-      const accounts = await generalLedgerService.getLedgerAccounts({
+      const accounts = await generalLedgerService.getLedgerAccounts(adapter, {
         dateDebut: '2025-01-01',
         dateFin: '2025-12-31',
         journal: 'VT',
@@ -85,7 +88,7 @@ describe('GeneralLedgerService (Dexie)', () => {
     });
 
     it('should compute running balance in entries', async () => {
-      const accounts = await generalLedgerService.getLedgerAccounts({
+      const accounts = await generalLedgerService.getLedgerAccounts(adapter, {
         dateDebut: '2025-01-01',
         dateFin: '2025-12-31',
       });
@@ -99,7 +102,7 @@ describe('GeneralLedgerService (Dexie)', () => {
 
   describe('getAccountLedger', () => {
     it('should return single account data', async () => {
-      const account = await generalLedgerService.getAccountLedger('411000', {
+      const account = await generalLedgerService.getAccountLedger(adapter, '411000', {
         dateDebut: '2025-01-01',
         dateFin: '2025-12-31',
       });
@@ -111,7 +114,7 @@ describe('GeneralLedgerService (Dexie)', () => {
 
   describe('getStats', () => {
     it('should aggregate statistics', async () => {
-      const stats = await generalLedgerService.getStats({
+      const stats = await generalLedgerService.getStats(adapter, {
         dateDebut: '2025-01-01',
         dateFin: '2025-12-31',
       });
@@ -124,27 +127,27 @@ describe('GeneralLedgerService (Dexie)', () => {
 
   describe('search', () => {
     it('should find entries by account code', async () => {
-      const result = await generalLedgerService.search('411');
+      const result = await generalLedgerService.search(adapter, '411');
       expect(result.totalResults).toBeGreaterThan(0);
     });
 
     it('should find entries by label', async () => {
-      const result = await generalLedgerService.search('fournitures');
+      const result = await generalLedgerService.search(adapter, 'fournitures');
       expect(result.totalResults).toBeGreaterThan(0);
     });
 
     it('should return zero for unknown query', async () => {
-      const result = await generalLedgerService.search('xyznotfound');
+      const result = await generalLedgerService.search(adapter, 'xyznotfound');
       expect(result.totalResults).toBe(0);
     });
   });
 
   describe('annotations', () => {
     it('should add and retrieve annotations', async () => {
-      const annotation = await generalLedgerService.addAnnotation('E1', 'Test note');
+      const annotation = await generalLedgerService.addAnnotation(adapter, 'E1', 'Test note');
       expect(annotation.content).toBe('Test note');
 
-      const annotations = await generalLedgerService.getAnnotations('E1');
+      const annotations = await generalLedgerService.getAnnotations(adapter, 'E1');
       expect(annotations.length).toBe(1);
       expect(annotations[0].content).toBe('Test note');
     });
@@ -152,7 +155,7 @@ describe('GeneralLedgerService (Dexie)', () => {
 
   describe('exportLedger', () => {
     it('should export CSV blob with content', async () => {
-      const blob = await generalLedgerService.exportLedger({
+      const blob = await generalLedgerService.exportLedger(adapter, {
         format: 'csv',
         filters: { dateDebut: '2025-01-01', dateFin: '2025-12-31' },
       });

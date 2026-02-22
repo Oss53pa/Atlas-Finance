@@ -174,7 +174,7 @@ export async function posterAmortissements(
       credit: l.credit,
     }));
 
-    await safeAddEntry({
+    await safeAddEntry(adapter, {
       id: entryId,
       entryNumber: generateEntryNumber('AMORT', ecriture.date, entryIndex++),
       journal: 'OD',

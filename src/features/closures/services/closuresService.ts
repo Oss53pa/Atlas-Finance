@@ -331,7 +331,7 @@ class ClosuresService {
   async createEcriture(adapter: DataAdapter, ecriture: Omit<EcritureCloture, 'id'>): Promise<EcritureCloture> {
     const id = crypto.randomUUID();
 
-    await safeAddEntry({
+    await safeAddEntry(adapter, {
       id,
       entryNumber: ecriture.numero,
       journal: 'OD',

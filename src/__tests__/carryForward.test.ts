@@ -12,6 +12,9 @@ import {
   type CarryForwardConfig,
 } from '../services/cloture/carryForwardService';
 import { db } from '../lib/db';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 describe('CarryForward (Report A-Nouveau)', () => {
   beforeEach(async () => {
@@ -66,7 +69,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
 
   describe('calculerSoldesCloture', () => {
     it('should compute closing balances for bilan accounts', async () => {
-      const soldes = await calculerSoldesCloture('FY2024');
+      const soldes = await calculerSoldesCloture(adapter, 'FY2024');
       // 521000: D:150000 → solde D:150000
       // 101000: C:100000 → solde C:100000
       // 162000: C:50000 → solde C:50000
@@ -78,7 +81,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
     });
 
     it('should correctly compute debit/credit soldes', async () => {
-      const soldes = await calculerSoldesCloture('FY2024');
+      const soldes = await calculerSoldesCloture(adapter, 'FY2024');
       const banque = soldes.find(s => s.accountCode === '521000');
       expect(banque!.soldeDebiteur).toBe(150000);
       expect(banque!.soldeCrediteur).toBe(0);
@@ -89,7 +92,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
     });
 
     it('should throw for unknown exercice', async () => {
-      await expect(calculerSoldesCloture('UNKNOWN')).rejects.toThrow('introuvable');
+      await expect(calculerSoldesCloture(adapter, 'UNKNOWN')).rejects.toThrow('introuvable');
     });
   });
 
@@ -100,7 +103,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
         openingExerciceId: 'FY2025',
         openingDate: '2025-01-01',
       };
-      const preview = await previewCarryForward(config);
+      const preview = await previewCarryForward(adapter, config);
       expect(preview.lignes.length).toBe(3);
       expect(preview.accountCount).toBe(3);
     });
@@ -111,7 +114,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
         openingExerciceId: 'FY2025',
         openingDate: '2025-01-01',
       };
-      const preview = await previewCarryForward(config);
+      const preview = await previewCarryForward(adapter, config);
       // D:150000 = C:100000 + C:50000
       expect(preview.totalDebit).toBe(150000);
       expect(preview.totalCredit).toBe(150000);
@@ -127,14 +130,14 @@ describe('CarryForward (Report A-Nouveau)', () => {
     };
 
     it('should create AN journal entry', async () => {
-      const result = await executerCarryForward(config);
+      const result = await executerCarryForward(adapter, config);
       expect(result.success).toBe(true);
       expect(result.entryId).toBeDefined();
       expect(result.lineCount).toBe(3);
     });
 
     it('should store entry with journal AN', async () => {
-      const result = await executerCarryForward(config);
+      const result = await executerCarryForward(adapter, config);
       expect(result.success).toBe(true);
       const entry = await db.journalEntries.get(result.entryId!);
       expect(entry).toBeDefined();
@@ -144,14 +147,14 @@ describe('CarryForward (Report A-Nouveau)', () => {
     });
 
     it('should produce a balanced entry', async () => {
-      const result = await executerCarryForward(config);
+      const result = await executerCarryForward(adapter, config);
       expect(result.success).toBe(true);
       expect(result.totalDebit).toBe(result.totalCredit);
       expect(result.totalDebit).toBe(150000);
     });
 
     it('should have a hash', async () => {
-      const result = await executerCarryForward(config);
+      const result = await executerCarryForward(adapter, config);
       expect(result.success).toBe(true);
       const entry = await db.journalEntries.get(result.entryId!);
       expect(entry!.hash).toBeTruthy();
@@ -159,7 +162,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
     });
 
     it('should log audit', async () => {
-      const result = await executerCarryForward(config);
+      const result = await executerCarryForward(adapter, config);
       expect(result.success).toBe(true);
       const logs = await db.auditLogs.toArray();
       expect(logs.some(l => l.action === 'CARRY_FORWARD')).toBe(true);
@@ -167,7 +170,7 @@ describe('CarryForward (Report A-Nouveau)', () => {
 
     it('should fail for unknown fiscal year', async () => {
       const bad: CarryForwardConfig = { ...config, closingExerciceId: 'NOPE' };
-      const result = await executerCarryForward(bad);
+      const result = await executerCarryForward(adapter, bad);
       expect(result.success).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
@@ -175,32 +178,32 @@ describe('CarryForward (Report A-Nouveau)', () => {
 
   describe('hasCarryForward', () => {
     it('should return false when no AN entry exists', async () => {
-      expect(await hasCarryForward('FY2025')).toBe(false);
+      expect(await hasCarryForward(adapter, 'FY2025')).toBe(false);
     });
 
     it('should return true after carry-forward execution', async () => {
-      const result = await executerCarryForward({
+      const result = await executerCarryForward(adapter, {
         closingExerciceId: 'FY2024',
         openingExerciceId: 'FY2025',
         openingDate: '2025-01-01',
       });
       expect(result.success).toBe(true);
-      expect(await hasCarryForward('FY2025')).toBe(true);
+      expect(await hasCarryForward(adapter, 'FY2025')).toBe(true);
     });
   });
 
   describe('supprimerCarryForward', () => {
     it('should delete AN entries', async () => {
-      const result = await executerCarryForward({
+      const result = await executerCarryForward(adapter, {
         closingExerciceId: 'FY2024',
         openingExerciceId: 'FY2025',
         openingDate: '2025-01-01',
       });
       expect(result.success).toBe(true);
-      expect(await hasCarryForward('FY2025')).toBe(true);
+      expect(await hasCarryForward(adapter, 'FY2025')).toBe(true);
 
-      await supprimerCarryForward('FY2025');
-      expect(await hasCarryForward('FY2025')).toBe(false);
+      await supprimerCarryForward(adapter, 'FY2025');
+      expect(await hasCarryForward(adapter, 'FY2025')).toBe(false);
     });
   });
 });

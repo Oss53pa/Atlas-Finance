@@ -145,15 +145,15 @@ export const closureOrchestrator = {
   /**
    * Preview the closure without modifying anything.
    */
-  async preview(exerciceId: string): Promise<ClosurePreview> {
-    return previewClosure(exerciceId);
+  async preview(adapter: DataAdapter, exerciceId: string): Promise<ClosurePreview> {
+    return previewClosure(adapter, exerciceId);
   },
 
   /**
    * Check if the closure can proceed.
    */
-  async canProceed(exerciceId: string): Promise<{ ok: boolean; reasons: string[] }> {
-    const { canClose: ok, reasons } = await canClose(exerciceId);
+  async canProceed(adapter: DataAdapter, exerciceId: string): Promise<{ ok: boolean; reasons: string[] }> {
+    const { canClose: ok, reasons } = await canClose(adapter, exerciceId);
     return { ok, reasons };
   },
 
@@ -171,11 +171,11 @@ export const closureOrchestrator = {
 
     switch (stepId) {
       case 'CONTROLES': {
-        const check = await canClose(ctx.exerciceId);
+        const check = await canClose(ctx.adapter, ctx.exerciceId);
         if (!check.canClose) {
           throw new Error(`Pré-requis non satisfaits : ${check.reasons.join(', ')}`);
         }
-        const preview = await previewClosure(ctx.exerciceId);
+        const preview = await previewClosure(ctx.adapter, ctx.exerciceId);
         const msgs = [
           `${preview.totalEntries} écritures`,
           `${preview.entriesToLock} à verrouiller`,
@@ -227,7 +227,7 @@ export const closureOrchestrator = {
       }
 
       case 'CALCUL_RESULTAT': {
-        const preview = await previewClosure(ctx.exerciceId);
+        const preview = await previewClosure(ctx.adapter, ctx.exerciceId);
         const { resultatNet, isBenefice, totalProduits, totalCharges } = preview;
         return `${isBenefice ? 'Bénéfice' : 'Perte'} : ${formatCurrency(resultatNet)} (Produits: ${formatCurrency(totalProduits)}, Charges: ${formatCurrency(totalCharges)})`;
       }

@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -83,10 +84,10 @@ const ElectronicSignature: React.FC = () => {
       signatories: [
         {
           id: 's1',
-          name: 'Marie Dupont',
+          name: '',
           email: 'marie.dupont@company.com',
           role: 'Directeur Général',
-          company: 'Tech Solutions',
+          company: '',
           status: 'signed',
           signedAt: new Date(Date.now() - 3600000),
           ipAddress: '192.168.1.1',
@@ -94,10 +95,10 @@ const ElectronicSignature: React.FC = () => {
         },
         {
           id: 's2',
-          name: 'Jean Martin',
+          name: '',
           email: 'jean.martin@client.com',
           role: 'Responsable Achats',
-          company: 'Client Corp',
+          company: '',
           status: 'signed',
           signedAt: new Date(Date.now() - 1800000),
           ipAddress: '192.168.1.2',
@@ -121,14 +122,14 @@ const ElectronicSignature: React.FC = () => {
         {
           id: 'a2',
           action: 'Document signé',
-          user: 'Marie Dupont',
+          user: '',
           timestamp: new Date(Date.now() - 3600000),
           ipAddress: '192.168.1.1'
         },
         {
           id: 'a3',
           action: 'Document signé',
-          user: 'Jean Martin',
+          user: '',
           timestamp: new Date(Date.now() - 1800000),
           ipAddress: '192.168.1.2'
         }
@@ -140,11 +141,11 @@ const ElectronicSignature: React.FC = () => {
       type: 'invoice',
       uploadDate: new Date(Date.now() - 172800000),
       status: 'sent',
-      currentSigner: 'Pierre Durand',
+      currentSigner: '',
       signatories: [
         {
           id: 's3',
-          name: 'Pierre Durand',
+          name: '',
           email: 'pierre.durand@finance.com',
           role: 'Directeur Financier',
           status: 'pending',
@@ -167,7 +168,7 @@ const ElectronicSignature: React.FC = () => {
         {
           id: 'a5',
           action: 'Document consulté',
-          user: 'Pierre Durand',
+          user: '',
           timestamp: new Date(Date.now() - 86400000),
           ipAddress: '192.168.1.3',
           details: 'Ouvert depuis email'
@@ -180,11 +181,11 @@ const ElectronicSignature: React.FC = () => {
       type: 'purchase_order',
       uploadDate: new Date(Date.now() - 259200000),
       status: 'viewed',
-      currentSigner: 'Sophie Lambert',
+      currentSigner: '',
       signatories: [
         {
           id: 's4',
-          name: 'Sophie Lambert',
+          name: '',
           email: 'sophie.lambert@procurement.com',
           role: 'Responsable Achats',
           status: 'pending',
@@ -192,7 +193,7 @@ const ElectronicSignature: React.FC = () => {
         },
         {
           id: 's5',
-          name: 'Marc Dubois',
+          name: '',
           email: 'marc.dubois@direction.com',
           role: 'Directeur Opérations',
           status: 'pending',
@@ -601,7 +602,7 @@ const ElectronicSignature: React.FC = () => {
                             <span className="text-gray-700">par {entry.user}</span>
                           </div>
                           <div className="text-xs text-gray-700">
-                            {new Date(entry.timestamp).toLocaleString()} - IP: {entry.ipAddress}
+                            {formatCurrency(new Date(entry.timestamp))} - IP: {entry.ipAddress}
                             {entry.details && ` - ${entry.details}`}
                           </div>
                         </div>

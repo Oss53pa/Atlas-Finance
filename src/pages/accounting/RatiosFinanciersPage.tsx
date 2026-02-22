@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
@@ -360,7 +361,7 @@ const RatiosFinanciersPage: React.FC = () => {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-lg font-bold text-gray-900">
-                        {typeof ratio.value === 'number' ? ratio.value.toLocaleString() : ratio.value}
+                        {typeof ratio.value === 'number' ? formatCurrency(ratio.value) : ratio.value}
                         {ratio.category === 'rentabilite' || ratio.formula.includes('%') ? '%' : ''}
                       </span>
                       <div className="text-right">
@@ -428,7 +429,7 @@ const RatiosFinanciersPage: React.FC = () => {
                             <div key={data.period} className="text-center">
                               <div className="text-xs text-blue-600">{data.period}</div>
                               <div className="text-sm font-medium text-blue-700">
-                                {data.value.toLocaleString()}{ratio.formula.includes('%') ? '%' : ''}
+                                {formatCurrency(data.value)}{ratio.formula.includes('%') ? '%' : ''}
                               </div>
                             </div>
                           ))}

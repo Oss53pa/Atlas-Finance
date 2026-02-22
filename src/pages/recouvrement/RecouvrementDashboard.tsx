@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -81,140 +82,11 @@ interface RadiationCreance {
 const RecouvrementDashboard: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('creances');
-  const [creances, setCreances] = useState<CreanceClient[]>([
-    {
-      id: '1',
-      clientName: 'Entreprise ABC',
-      clientCode: 'CLI001',
-      montantTotal: 25000,
-      montantPaye: 10000,
-      montantRestant: 15000,
-      dateEcheance: '2024-01-15',
-      jourRetard: 5,
-      statut: 'en_retard',
-      dernierContact: '2024-01-10',
-      prochainContact: '2024-01-20'
-    },
-    {
-      id: '2',
-      clientName: 'Société XYZ',
-      clientCode: 'CLI002',
-      montantTotal: 50000,
-      montantPaye: 0,
-      montantRestant: 50000,
-      dateEcheance: '2024-01-05',
-      jourRetard: 15,
-      statut: 'critique',
-      dernierContact: '2024-01-02',
-      prochainContact: '2024-01-21'
-    },
-    {
-      id: '3',
-      clientName: 'Tech Solutions',
-      clientCode: 'CLI003',
-      montantTotal: 35000,
-      montantPaye: 35000,
-      montantRestant: 0,
-      dateEcheance: '2024-01-10',
-      jourRetard: 0,
-      statut: 'recouvre',
-      dernierContact: '2024-01-08',
-      prochainContact: '-'
-    }
-  ]);
+  const [creances, setCreances] = useState<CreanceClient[]>([]);
 
-  const [dossiersRecouvrement, setDossiersRecouvrement] = useState<DossierRecouvrement[]>([
-    {
-      id: '1',
-      numeroRef: 'REC-2024-001',
-      client: 'Entreprise ABC',
-      montantPrincipal: 15000,
-      interets: 750,
-      frais: 250,
-      montantTotal: 16000,
-      dateOuverture: '2024-01-15',
-      statut: 'actif',
-      typeRecouvrement: 'amiable',
-      responsable: 'Marie Dupont',
-      derniereAction: 'Appel téléphonique - 15/01/2024',
-      prochainEtape: 'Mise en demeure - 20/01/2024'
-    },
-    {
-      id: '2',
-      numeroRef: 'REC-2024-002',
-      client: 'Société XYZ',
-      montantPrincipal: 50000,
-      interets: 3500,
-      frais: 1500,
-      montantTotal: 55000,
-      dateOuverture: '2024-01-05',
-      statut: 'juridique',
-      typeRecouvrement: 'judiciaire',
-      responsable: 'Jean Martin',
-      derniereAction: 'Saisie avocat - 10/01/2024',
-      prochainEtape: 'Audience tribunal - 25/01/2024'
-    },
-    {
-      id: '3',
-      numeroRef: 'REC-2023-156',
-      client: 'Commerce Local',
-      montantPrincipal: 8000,
-      interets: 400,
-      frais: 100,
-      montantTotal: 8500,
-      dateOuverture: '2023-11-10',
-      statut: 'suspendu',
-      typeRecouvrement: 'amiable',
-      responsable: 'Sophie Bernard',
-      derniereAction: 'Plan de paiement proposé - 05/01/2024',
-      prochainEtape: 'En attente réponse client'
-    }
-  ]);
+  const [dossiersRecouvrement, setDossiersRecouvrement] = useState<DossierRecouvrement[]>([]);
 
-  const [radiations, setRadiations] = useState<RadiationCreance[]>([
-    {
-      id: '1',
-      numeroCreance: 'CRE-2023-045',
-      client: 'Ancienne Société SARL',
-      montantOriginal: 125000,
-      montantRadie: 125000,
-      dateCreance: '2023-03-15',
-      dateRadiation: '2024-01-10',
-      motifRadiation: 'faillite',
-      justificatifs: ['Jugement tribunal de commerce', 'PV liquidation'],
-      approbateur: 'Direction Générale',
-      statut: 'approuvee',
-      commentaires: 'Société en liquidation judiciaire, créance irrécupérable'
-    },
-    {
-      id: '2',
-      numeroCreance: 'CRE-2021-789',
-      client: 'Entreprise Défaillante',
-      montantOriginal: 45000,
-      montantRadie: 45000,
-      dateCreance: '2021-09-20',
-      dateRadiation: '2024-01-15',
-      motifRadiation: 'prescription',
-      justificatifs: ['Constat huissier', 'Rapport juridique'],
-      approbateur: 'Directeur Financier',
-      statut: 'en_attente',
-      commentaires: 'Délai de prescription atteint, aucune action possible'
-    },
-    {
-      id: '3',
-      numeroCreance: 'CRE-2023-234',
-      client: 'PME Services',
-      montantOriginal: 30000,
-      montantRadie: 18000,
-      dateCreance: '2023-06-10',
-      dateRadiation: '2024-01-12',
-      motifRadiation: 'accord',
-      justificatifs: ['Protocole accord', 'Quittance partielle'],
-      approbateur: 'Direction Commerciale',
-      statut: 'approuvee',
-      commentaires: 'Accord transactionnel à 40% du montant dû'
-    }
-  ]);
+  const [radiations, setRadiations] = useState<RadiationCreance[]>([]);
 
   const [selectedStatut, setSelectedStatut] = useState<string>('tous');
   const [searchTerm, setSearchTerm] = useState('');
@@ -333,7 +205,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <span className="text-sm font-medium text-[var(--color-primary)]">Total</span>
               </div>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">
-                {stats.totalCreances.toLocaleString()} DH
+                {formatCurrency(stats.totalCreances)} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Créances totales</p>
             </div>
@@ -346,7 +218,7 @@ const RecouvrementDashboard: React.FC = () => {
                 </span>
               </div>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">
-                {stats.totalRecouvre.toLocaleString()} DH
+                {formatCurrency(stats.totalRecouvre)} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant recouvré</p>
             </div>
@@ -359,7 +231,7 @@ const RecouvrementDashboard: React.FC = () => {
                 </span>
               </div>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">
-                {stats.totalRestant.toLocaleString()} DH
+                {formatCurrency(stats.totalRestant)} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant restant</p>
             </div>
@@ -456,10 +328,10 @@ const RecouvrementDashboard: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-[var(--color-text-primary)]">
-                            {creance.montantRestant.toLocaleString()} DH
+                            {formatCurrency(creance.montantRestant)} DH
                           </div>
                           <div className="text-sm text-[var(--color-text-secondary)]">
-                            sur {creance.montantTotal.toLocaleString()} DH
+                            sur {formatCurrency(creance.montantTotal)} DH
                           </div>
                           <div className="w-full bg-[var(--color-border)] rounded-full h-1.5 mt-1">
                             <div
@@ -591,7 +463,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <span className="text-sm font-medium text-[var(--color-success)]">Montant</span>
               </div>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">
-                {dossiersRecouvrement.reduce((sum, d) => sum + d.montantTotal, 0).toLocaleString()} DH
+                {formatCurrency(dossiersRecouvrement.reduce((sum, d) => sum + d.montantTotal, 0))} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Total en recouvrement</p>
             </div>
@@ -702,13 +574,13 @@ const RecouvrementDashboard: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-[var(--color-text-primary)]">
-                            {dossier.montantTotal.toLocaleString()} DH
+                            {formatCurrency(dossier.montantTotal)} DH
                           </div>
                           <div className="text-xs text-[var(--color-text-secondary)]">
-                            Principal: {dossier.montantPrincipal.toLocaleString()} DH
+                            Principal: {formatCurrency(dossier.montantPrincipal)} DH
                           </div>
                           <div className="text-xs text-[var(--color-text-secondary)]">
-                            Intérêts + Frais: {(dossier.interets + dossier.frais).toLocaleString()} DH
+                            Intérêts + Frais: {formatCurrency((dossier.interets + dossier.frais))} DH
                           </div>
                         </div>
                       </td>
@@ -860,7 +732,7 @@ const RecouvrementDashboard: React.FC = () => {
                 <span className="text-sm font-medium text-[var(--color-error)]">Radié</span>
               </div>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">
-                {radiations.reduce((sum, r) => sum + r.montantRadie, 0).toLocaleString()} DH
+                {formatCurrency(radiations.reduce((sum, r) => sum + r.montantRadie, 0))} DH
               </p>
               <p className="text-sm text-[var(--color-text-primary)] mt-1">Montant total radié</p>
             </div>
@@ -972,10 +844,10 @@ const RecouvrementDashboard: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-[var(--color-error)]">
-                            -{radiation.montantRadie.toLocaleString()} DH
+                            -{formatCurrency(radiation.montantRadie)} DH
                           </div>
                           <div className="text-xs text-[var(--color-text-secondary)]">
-                            Original: {radiation.montantOriginal.toLocaleString()} DH
+                            Original: {formatCurrency(radiation.montantOriginal)} DH
                           </div>
                         </div>
                       </td>

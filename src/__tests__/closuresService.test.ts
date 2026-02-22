@@ -5,6 +5,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { closuresService } from '../features/closures/services/closuresService';
 import { db } from '../lib/db';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 describe('ClosuresService (Dexie)', () => {
   let sessionId: string;
@@ -17,7 +20,7 @@ describe('ClosuresService (Dexie)', () => {
     await db.auditLogs.clear();
 
     // Seed a closure session
-    const session = await closuresService.createSession({
+    const session = await closuresService.createSession(adapter, {
       type: 'MENSUELLE',
       periode: 'Juin 2025',
       exercice: '2025',
@@ -87,7 +90,7 @@ describe('ClosuresService (Dexie)', () => {
 
   describe('getSessions', () => {
     it('should return created session', async () => {
-      const sessions = await closuresService.getSessions();
+      const sessions = await closuresService.getSessions(adapter);
       expect(sessions.length).toBe(1);
       expect(sessions[0].type).toBe('MENSUELLE');
       expect(sessions[0].periode).toBe('Juin 2025');
@@ -103,7 +106,7 @@ describe('ClosuresService (Dexie)', () => {
 
   describe('getBalance', () => {
     it('should compute balance from real entries', async () => {
-      const balance = await closuresService.getBalance(sessionId);
+      const balance = await closuresService.getBalance(adapter, sessionId);
       expect(balance.length).toBe(4); // 411001, 701000, 601000, 401000
 
       const clients = balance.find(b => b.compte === '411001');
@@ -113,12 +116,12 @@ describe('ClosuresService (Dexie)', () => {
     });
 
     it('should return empty for unknown session', async () => {
-      const balance = await closuresService.getBalance('unknown');
+      const balance = await closuresService.getBalance(adapter, 'unknown');
       expect(balance).toEqual([]);
     });
 
     it('should sort accounts by code', async () => {
-      const balance = await closuresService.getBalance(sessionId);
+      const balance = await closuresService.getBalance(adapter, sessionId);
       const codes = balance.map(b => b.compte);
       expect(codes).toEqual([...codes].sort());
     });
@@ -148,7 +151,7 @@ describe('ClosuresService (Dexie)', () => {
       // This client account 411001 has a debit balance (500000) from June 10
       // Age: June 10 to June 30 = 20 days → rate 0% (< 90 days)
       // Client 411099 has 300000 from June 1 → ~29 days → rate 0%
-      const provisions = await closuresService.getProvisions(sessionId);
+      const provisions = await closuresService.getProvisions(adapter, sessionId);
       // Both are less than 90 days so no provisions
       expect(provisions.length).toBe(0);
     });
@@ -156,7 +159,7 @@ describe('ClosuresService (Dexie)', () => {
 
   describe('getAmortissements', () => {
     it('should compute depreciation for active assets', async () => {
-      const amortissements = await closuresService.getAmortissements(sessionId);
+      const amortissements = await closuresService.getAmortissements(adapter, sessionId);
       expect(amortissements.length).toBe(1);
 
       const mat = amortissements[0];
@@ -171,7 +174,7 @@ describe('ClosuresService (Dexie)', () => {
 
   describe('createEcriture + getEcritures', () => {
     it('should create and retrieve a closure entry', async () => {
-      await closuresService.createEcriture({
+      await closuresService.createEcriture(adapter, {
         numero: 'CL-000001',
         date: '2025-06-30',
         libelle: 'Dotation amortissement matériel',
@@ -182,7 +185,7 @@ describe('ClosuresService (Dexie)', () => {
         typeOperation: 'AMORTISSEMENT',
       });
 
-      const ecritures = await closuresService.getEcritures(sessionId);
+      const ecritures = await closuresService.getEcritures(adapter, sessionId);
       expect(ecritures.length).toBe(1);
       expect(ecritures[0].libelle).toBe('Dotation amortissement matériel');
       expect(ecritures[0].montant).toBe(270000);
@@ -192,7 +195,7 @@ describe('ClosuresService (Dexie)', () => {
 
   describe('validerEcriture', () => {
     it('should validate a closure entry', async () => {
-      const created = await closuresService.createEcriture({
+      const created = await closuresService.createEcriture(adapter, {
         numero: 'CL-000002',
         date: '2025-06-30',
         libelle: 'Provision créances douteuses',
@@ -203,14 +206,14 @@ describe('ClosuresService (Dexie)', () => {
         typeOperation: 'PROVISION',
       });
 
-      const validated = await closuresService.validerEcriture(created.id);
+      const validated = await closuresService.validerEcriture(adapter, created.id);
       expect(validated.statut).toBe('VALIDEE');
     });
   });
 
   describe('getStats', () => {
     it('should return session statistics', async () => {
-      const stats = await closuresService.getStats(sessionId);
+      const stats = await closuresService.getStats(adapter, sessionId);
       expect(stats.totalAmortissements).toBe(1);
       expect(stats.totalProvisions).toBe(0);
     });
@@ -218,12 +221,12 @@ describe('ClosuresService (Dexie)', () => {
 
   describe('cloturerSession', () => {
     it('should close the session', async () => {
-      const closed = await closuresService.cloturerSession(sessionId);
+      const closed = await closuresService.cloturerSession(adapter, sessionId);
       expect(closed.statut).toBe('CLOTUREE');
       expect(closed.progression).toBe(100);
 
       // Verify persisted
-      const sessions = await closuresService.getSessions();
+      const sessions = await closuresService.getSessions(adapter);
       expect(sessions[0].statut).toBe('CLOTUREE');
     });
   });

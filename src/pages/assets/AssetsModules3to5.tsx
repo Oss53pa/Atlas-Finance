@@ -1042,10 +1042,10 @@ export const renderInventaireAuto = () => {
                       </h5>
                       <div className="space-y-2">
                         {[
-                          { name: 'Marie Dubois', zone: 'Atelier', status: 'scanning', lastScan: '2 min' },
-                          { name: 'Jean Martin', zone: 'Parking', status: 'verifying', lastScan: '5 min' },
-                          { name: 'Paul Durand', zone: 'Étage 3', status: 'break', lastScan: '25 min' },
-                          { name: 'Sophie Leclerc', zone: 'Extérieur', status: 'scanning', lastScan: '1 min' }
+                          { name: '—', zone: 'Atelier', status: 'scanning', lastScan: '2 min' },
+                          { name: '—', zone: 'Parking', status: 'verifying', lastScan: '5 min' },
+                          { name: '—', zone: 'Étage 3', status: 'break', lastScan: '25 min' },
+                          { name: '—', zone: 'Extérieur', status: 'scanning', lastScan: '1 min' }
                         ].map((member, index) => (
                           <div key={index} className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
@@ -1147,7 +1147,7 @@ export const renderInventaireAuto = () => {
                     expected: 'Étage 2 - Salle reprographie',
                     found: 'Étage 1 - Accueil',
                     severity: 'medium',
-                    assignee: 'Jean Martin',
+                    assignee: '',
                     notes: 'Déplacée sans notification officielle'
                   },
                   {
@@ -1158,7 +1158,7 @@ export const renderInventaireAuto = () => {
                     expected: 'État fonctionnel',
                     found: 'QR Code endommagé',
                     severity: 'low',
-                    assignee: 'Paul Durand',
+                    assignee: '',
                     notes: 'QR Code illisible, nécessite remplacement'
                   },
                   {

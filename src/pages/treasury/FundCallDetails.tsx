@@ -1453,8 +1453,8 @@ const FundCallDetails: React.FC = () => {
                         <td className="px-4 py-3">
                           <select className="text-sm border border-[#e5e5e5] rounded px-2 py-1 w-full">
                             <option>Sélectionner</option>
-                            <option>Jean Dupont</option>
-                            <option>Marie Martin</option>
+                            <option>—</option>
+                            <option>—</option>
                             <option>Paul Durand</option>
                           </select>
                         </td>
