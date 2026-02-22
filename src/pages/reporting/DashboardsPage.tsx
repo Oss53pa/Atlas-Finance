@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
@@ -68,173 +69,164 @@ const DashboardsPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: dashboards = [], isLoading } = useQuery({
-    queryKey: ['dashboards', searchTerm, selectedCategory, selectedType, selectedStatus],
-    queryFn: async () => {
-      const mockDashboards: Dashboard[] = [
-        {
-          id: '1',
-          name: 'Vue d\'ensemble Financière',
-          description: 'Indicateurs financiers clés avec tendances et alertes de performance',
-          category: 'Finance',
-          type: 'shared',
-          status: 'active',
-          widgets: [
-            { id: '1', type: 'metric', title: 'Chiffre d\'affaires', size: 'small' },
-            { id: '2', type: 'chart', title: 'Évolution mensuelle', size: 'large' },
-            { id: '3', type: 'gauge', title: 'Marge brute', size: 'medium' }
-          ],
-          widgetCount: 12,
-          owner: 'Marie Dubois',
-          sharedWith: ['Paul Martin', 'Sophie Koné', 'Jean Kouassi'],
-          views: 456,
-          lastViewed: '2024-08-25T09:15:00Z',
-          lastUpdated: '2024-08-24T16:30:00Z',
-          createdAt: '2024-01-15T00:00:00Z',
-          isStarred: true,
-          isPublic: false,
-          refreshRate: 15,
-          layout: 'grid',
-          backgroundColor: "var(--color-background-primary)",
-          tags: ['finance', 'kpi', 'management']
-        },
-        {
-          id: '2',
-          name: 'Performance Commerciale',
-          description: 'Métriques de ventes, objectifs et analyse des performances par équipe',
-          category: 'Commercial',
-          type: 'public',
-          status: 'active',
-          widgets: [
-            { id: '4', type: 'chart', title: 'Ventes par mois', size: 'large' },
-            { id: '5', type: 'metric', title: 'Objectifs atteints', size: 'small' }
-          ],
-          widgetCount: 8,
-          owner: 'Jean Kouassi',
-          sharedWith: [],
-          views: 234,
-          lastViewed: '2024-08-25T08:45:00Z',
-          lastUpdated: '2024-08-23T14:20:00Z',
-          createdAt: '2024-02-01T00:00:00Z',
-          isStarred: false,
-          isPublic: true,
-          refreshRate: 30,
-          layout: 'grid',
-          backgroundColor: '#f8fafc',
-          tags: ['commercial', 'ventes', 'objectifs']
-        },
-        {
-          id: '3',
-          name: 'Contrôle de Gestion',
-          description: 'Analyse des coûts, rentabilité par projet et centres de coûts',
-          category: 'Gestion',
-          type: 'personal',
-          status: 'active',
-          widgets: [
-            { id: '6', type: 'table', title: 'Centres de coûts', size: 'large' },
-            { id: '7', type: 'chart', title: 'Répartition des charges', size: 'medium' }
-          ],
-          widgetCount: 15,
-          owner: 'Paul Martin',
-          sharedWith: [],
-          views: 178,
-          lastViewed: '2024-08-24T15:45:00Z',
-          lastUpdated: '2024-08-22T11:10:00Z',
-          createdAt: '2024-01-20T00:00:00Z',
-          isStarred: true,
-          isPublic: false,
-          refreshRate: 60,
-          layout: 'flow',
-          backgroundColor: "var(--color-background-primary)",
-          tags: ['gestion', 'coûts', 'analytique']
-        },
-        {
-          id: '4',
-          name: 'Tableau de Bord RH',
-          description: 'Indicateurs ressources humaines, effectifs et performances',
-          category: 'RH',
-          type: 'shared',
-          status: 'active',
-          widgets: [
-            { id: '8', type: 'metric', title: 'Effectif total', size: 'small' },
-            { id: '9', type: 'gauge', title: 'Taux de satisfaction', size: 'medium' }
-          ],
-          widgetCount: 10,
-          owner: 'Sophie Koné',
-          sharedWith: ['Marie Dubois'],
-          views: 89,
-          lastViewed: '2024-08-23T12:20:00Z',
-          lastUpdated: '2024-08-20T09:30:00Z',
-          createdAt: '2024-03-01T00:00:00Z',
-          isStarred: false,
-          isPublic: false,
-          refreshRate: 120,
-          layout: 'grid',
-          backgroundColor: '#fef3f2',
-          tags: ['rh', 'effectifs', 'performance']
-        },
-        {
-          id: '5',
-          name: 'Analyse Budgétaire',
-          description: 'Suivi des budgets, écarts et prévisions par département',
-          category: 'Budget',
-          type: 'draft',
-          status: 'draft',
-          widgets: [
-            { id: '10', type: 'chart', title: 'Budget vs Réalisé', size: 'large' }
-          ],
-          widgetCount: 6,
-          owner: 'Marie Dubois',
-          sharedWith: [],
-          views: 23,
-          lastViewed: '2024-08-22T16:00:00Z',
-          lastUpdated: '2024-08-22T16:00:00Z',
-          createdAt: '2024-08-15T00:00:00Z',
-          isStarred: false,
-          isPublic: false,
-          refreshRate: 60,
-          layout: 'grid',
-          backgroundColor: "var(--color-background-primary)",
-          tags: ['budget', 'écarts', 'prévisions']
-        },
-        {
-          id: '6',
-          name: 'Modèle Tableau de Bord Financier',
-          description: 'Modèle standard pour les tableaux de bord financiers',
-          category: 'Templates',
-          type: 'template',
-          status: 'active',
-          widgets: [
-            { id: '11', type: 'metric', title: 'CA du mois', size: 'small' },
-            { id: '12', type: 'chart', title: 'Tendance trimestrielle', size: 'large' }
-          ],
-          widgetCount: 8,
-          owner: 'Système',
-          sharedWith: [],
-          views: 145,
-          lastViewed: '2024-08-20T10:00:00Z',
-          lastUpdated: '2024-07-15T00:00:00Z',
-          createdAt: '2024-01-01T00:00:00Z',
-          isStarred: false,
-          isPublic: true,
-          refreshRate: 15,
-          layout: 'grid',
-          backgroundColor: "var(--color-background-primary)",
-          tags: ['template', 'finance', 'standard']
-        }
-      ];
-      
-      return mockDashboards.filter(dashboard =>
-        (searchTerm === '' || 
-         dashboard.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         dashboard.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         dashboard.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-        (selectedCategory === 'all' || dashboard.category === selectedCategory) &&
-        (selectedType === 'all' || dashboard.type === selectedType) &&
-        (selectedStatus === 'all' || dashboard.status === selectedStatus)
-      );
-    }
+  // Load fiscal years and journal entries from Dexie
+  const { data: fiscalYears = [] } = useQuery({
+    queryKey: ['dashboards-fiscal-years'],
+    queryFn: () => db.fiscalYears.toArray(),
   });
+
+  const { data: journalEntries = [] } = useQuery({
+    queryKey: ['dashboards-journal-entries'],
+    queryFn: () => db.journalEntries.toArray(),
+  });
+
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['dashboards-accounts'],
+    queryFn: () => db.accounts.toArray(),
+  });
+
+  const isLoading = fiscalYears === undefined;
+
+  // Build dashboards from real DB data
+  const allDashboards: Dashboard[] = useMemo(() => {
+    const result: Dashboard[] = [];
+    const now = new Date().toISOString();
+
+    // 1. Financial overview dashboard — always present
+    const entryCount = journalEntries.length;
+    const validatedCount = journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').length;
+    result.push({
+      id: 'fin-overview',
+      name: 'Vue d\'ensemble Financière',
+      description: `Indicateurs financiers clés — ${entryCount} écritures, ${validatedCount} validées`,
+      category: 'Finance',
+      type: 'shared',
+      status: 'active',
+      widgets: [
+        { id: 'w1', type: 'metric', title: 'Chiffre d\'affaires', size: 'small' },
+        { id: 'w2', type: 'chart', title: 'Évolution mensuelle', size: 'large' },
+        { id: 'w3', type: 'gauge', title: 'Marge brute', size: 'medium' }
+      ],
+      widgetCount: 3,
+      owner: 'Système',
+      sharedWith: [],
+      views: 0,
+      lastViewed: now,
+      lastUpdated: now,
+      createdAt: now,
+      isStarred: true,
+      isPublic: true,
+      refreshRate: 15,
+      layout: 'grid',
+      backgroundColor: 'var(--color-background-primary)',
+      tags: ['finance', 'kpi', 'management']
+    });
+
+    // 2. One dashboard per fiscal year
+    for (const fy of fiscalYears) {
+      const fyEntries = journalEntries.filter(e => {
+        if (!fy.startDate || !fy.endDate) return false;
+        return e.date >= fy.startDate && e.date <= fy.endDate;
+      });
+      result.push({
+        id: `fy-${fy.id}`,
+        name: `Exercice ${fy.name || fy.code}`,
+        description: `${fyEntries.length} écritures du ${fy.startDate || ''} au ${fy.endDate || ''}`,
+        category: 'Finance',
+        type: 'public',
+        status: fy.isClosed ? 'archived' : 'active',
+        widgets: [
+          { id: `fy-${fy.id}-w1`, type: 'metric', title: 'Écritures', size: 'small' },
+          { id: `fy-${fy.id}-w2`, type: 'chart', title: 'Flux mensuels', size: 'large' }
+        ],
+        widgetCount: 2,
+        owner: 'Système',
+        sharedWith: [],
+        views: 0,
+        lastViewed: now,
+        lastUpdated: fy.endDate || now,
+        createdAt: fy.startDate || now,
+        isStarred: false,
+        isPublic: true,
+        refreshRate: 60,
+        layout: 'grid',
+        backgroundColor: 'var(--color-background-primary)',
+        tags: ['exercice', 'comptabilité']
+      });
+    }
+
+    // 3. Plan comptable dashboard if accounts exist
+    if (accounts.length > 0) {
+      const activeAccounts = accounts.filter(a => a.isActive).length;
+      result.push({
+        id: 'plan-comptable',
+        name: 'Plan Comptable',
+        description: `${activeAccounts} comptes actifs sur ${accounts.length} au total`,
+        category: 'Gestion',
+        type: 'personal',
+        status: 'active',
+        widgets: [
+          { id: 'pc-w1', type: 'table', title: 'Comptes par classe', size: 'large' },
+          { id: 'pc-w2', type: 'chart', title: 'Répartition des classes', size: 'medium' }
+        ],
+        widgetCount: 2,
+        owner: 'Système',
+        sharedWith: [],
+        views: 0,
+        lastViewed: now,
+        lastUpdated: now,
+        createdAt: now,
+        isStarred: false,
+        isPublic: false,
+        refreshRate: 120,
+        layout: 'grid',
+        backgroundColor: 'var(--color-background-primary)',
+        tags: ['gestion', 'comptes', 'analytique']
+      });
+    }
+
+    // 4. Template dashboard — always present
+    result.push({
+      id: 'template-standard',
+      name: 'Modèle Tableau de Bord Financier',
+      description: 'Modèle standard pour les tableaux de bord financiers',
+      category: 'Templates',
+      type: 'template',
+      status: 'active',
+      widgets: [
+        { id: 'tpl-w1', type: 'metric', title: 'CA du mois', size: 'small' },
+        { id: 'tpl-w2', type: 'chart', title: 'Tendance trimestrielle', size: 'large' }
+      ],
+      widgetCount: 2,
+      owner: 'Système',
+      sharedWith: [],
+      views: 0,
+      lastViewed: now,
+      lastUpdated: now,
+      createdAt: now,
+      isStarred: false,
+      isPublic: true,
+      refreshRate: 15,
+      layout: 'grid',
+      backgroundColor: 'var(--color-background-primary)',
+      tags: ['template', 'finance', 'standard']
+    });
+
+    return result;
+  }, [fiscalYears, journalEntries, accounts]);
+
+  // Apply filters
+  const dashboards = useMemo(() => {
+    return allDashboards.filter(dashboard =>
+      (searchTerm === '' ||
+       dashboard.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       dashboard.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       dashboard.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) &&
+      (selectedCategory === 'all' || dashboard.category === selectedCategory) &&
+      (selectedType === 'all' || dashboard.type === selectedType) &&
+      (selectedStatus === 'all' || dashboard.status === selectedStatus)
+    );
+  }, [allDashboards, searchTerm, selectedCategory, selectedType, selectedStatus]);
 
   const toggleStarMutation = useMutation({
     mutationFn: async ({ dashboardId, isStarred }: { dashboardId: string; isStarred: boolean }) => {

@@ -210,7 +210,7 @@ const EtatsSYSCOHADA: React.FC = () => {
 
   const p = (val: number) => ({ exerciceActuel: val, exercicePrecedent: 0, variation: val, variationPourcentage: val !== 0 ? 100 : 0 });
 
-  const mockEtatsFinanciers: EtatFinancier[] = [
+  const etatsFinanciers: EtatFinancier[] = [
     {
       id: '1', nom: 'Bilan SYSCOHADA', codeSYSCOHADA: 'BILAN-SYS',
       description: 'État de situation financière conforme au référentiel SYSCOHADA',
@@ -256,7 +256,7 @@ const EtatsSYSCOHADA: React.FC = () => {
   const totalCirculant = stocks + creances + tresoActif;
   const totalGenActif = totalImmo + totalCirculant;
 
-  const mockPostesActif: PosteBilan[] = [
+  const postesActif: PosteBilan[] = [
     { code: 'AD', libelle: 'CHARGES IMMOBILISEES', noteBilan: '3', ...p(0), niveau: 1 },
     { code: 'AE', libelle: 'IMMOBILISATIONS INCORPORELLES', noteBilan: '4', ...p(immoIncorp), niveau: 1 },
     { code: 'AF', libelle: 'IMMOBILISATIONS CORPORELLES', noteBilan: '5', ...p(immoCorp - amortImmo), niveau: 1 },
@@ -283,7 +283,7 @@ const EtatsSYSCOHADA: React.FC = () => {
   const totalDettes = provisions + dettesFinancieres + dettesCirculantes + tresoPassif;
   const totalGenPassif = capitauxPropres + subventions + totalDettes;
 
-  const mockPostesPassif: PosteBilan[] = [
+  const postesPassif: PosteBilan[] = [
     { code: 'CA', libelle: 'CAPITAL', noteBilan: '12', ...p(capital), niveau: 1 },
     { code: 'CB', libelle: 'PRIMES ET RESERVES', noteBilan: '13', ...p(reserves), niveau: 1 },
     { code: 'CD', libelle: 'RESULTAT NET', noteBilan: '14', ...p(realResultat), niveau: 1 },
@@ -325,7 +325,7 @@ const EtatsSYSCOHADA: React.FC = () => {
 
   const CA = venteMarchandises + productionVendue;
 
-  const mockPostesResultat: PosteCompteResultat[] = [
+  const postesResultat: PosteCompteResultat[] = [
     { code: 'TA', libelle: 'VENTES DE MARCHANDISES', noteCompte: '23', ...p(venteMarchandises), niveau: 1 },
     { code: 'TB', libelle: 'ACHATS DE MARCHANDISES', noteCompte: '24', ...p(-achatsMarchandises), niveau: 1 },
     { code: 'TD', libelle: 'MARGE COMMERCIALE', ...p(margeCommerciale), niveau: 0, sousTotal: true },
@@ -351,7 +351,7 @@ const EtatsSYSCOHADA: React.FC = () => {
   ];
 
   // Ratios financiers — computed from real data
-  const mockRatios: RatioFinancier[] = useMemo(() => {
+  const ratios: RatioFinancier[] = useMemo(() => {
     const totalDettesVal = totalDettes || 1;
     const capitauxPropresVal = capitauxPropres || 1;
     const totalActifVal = totalGenActif || 1;
@@ -368,26 +368,26 @@ const EtatsSYSCOHADA: React.FC = () => {
   }, [etatsData.balances]);
 
   // Indicateurs sectoriels — static reference data (no real data to compare)
-  const mockIndicateursSectoriels: IndicateurSectoriel[] = [
+  const indicateursSectoriels: IndicateurSectoriel[] = [
     { nom: 'Marge commerciale', valeurEntreprise: CA > 0 ? Math.round((margeCommerciale / CA) * 1000) / 10 : 0, moyenneSectorielle: 35.8, quartileSup: 42.1, quartileInf: 28.5, position: 'bon', secteurReference: 'Commerce' },
   ];
 
   // Documents réglementaires — static
-  const mockDocumentsReglementaires: DocumentReglementaire[] = [
+  const documentsReglementaires: DocumentReglementaire[] = [
     { nom: 'Déclaration statistique et fiscale (DSF)', description: 'Déclaration annuelle obligatoire', obligatoire: true, frequence: 'Annuelle', dateLimite: `${new Date().getFullYear() + 1}-04-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: 'Direction Générale des Impôts', sanctions: 'Amende de 50 000 à 500 000 FCFA' },
     { nom: 'États financiers OHADA', description: 'Transmission des états financiers certifiés', obligatoire: true, frequence: 'Annuelle', dateLimite: `${new Date().getFullYear() + 1}-06-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: 'Greffe du Tribunal de Commerce' },
   ];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const totalActif = mockPostesActif.find(p => p.code === 'AR')?.exerciceActuel || 0;
-    const capitauxPropres = mockPostesPassif.find(p => p.code === 'CF')?.exerciceActuel || 0;
-    const chiffreAffaires = mockPostesResultat.find(p => p.code === 'TI')?.exerciceActuel || 0;
-    const resultatNet = mockPostesResultat.find(p => p.code === 'UD')?.exerciceActuel || 0;
+    const totalActif = postesActif.find(p => p.code === 'AR')?.exerciceActuel || 0;
+    const capitauxPropres = postesPassif.find(p => p.code === 'CF')?.exerciceActuel || 0;
+    const chiffreAffaires = postesResultat.find(p => p.code === 'TI')?.exerciceActuel || 0;
+    const resultatNet = postesResultat.find(p => p.code === 'UD')?.exerciceActuel || 0;
 
-    const etatsGeneres = mockEtatsFinanciers.length;
-    const etatsConformes = mockEtatsFinanciers.filter(e => e.conformiteSYSCOHADA).length;
-    const documentsCompletes = mockDocumentsReglementaires.filter(d => d.statut === 'complete').length;
+    const etatsGeneres = etatsFinanciers.length;
+    const etatsConformes = etatsFinanciers.filter(e => e.conformiteSYSCOHADA).length;
+    const documentsCompletes = documentsReglementaires.filter(d => d.statut === 'complete').length;
 
     return {
       totalActif,
@@ -397,8 +397,8 @@ const EtatsSYSCOHADA: React.FC = () => {
       etatsGeneres,
       etatsConformes,
       documentsCompletes,
-      tauxConformite: (etatsConformes / mockEtatsFinanciers.length) * 100,
-      tauxCompletude: (documentsCompletes / mockDocumentsReglementaires.length) * 100
+      tauxConformite: (etatsConformes / etatsFinanciers.length) * 100,
+      tauxCompletude: (documentsCompletes / documentsReglementaires.length) * 100
     };
   }, [totalGenActif, capitauxPropres, CA, realResultat, totalEntries, isBalanced]);
 
@@ -546,7 +546,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockEtatsFinanciers.map(etat => (
+                  {etatsFinanciers.map(etat => (
                     <div key={etat.id} className="flex items-center justify-between p-3 border rounded">
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-[var(--color-primary)]" />
@@ -589,11 +589,11 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-purple-50 rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">ROE</p>
-                      <p className="text-lg font-bold text-purple-600">{mockRatios.find(r => r.nom.includes('ROE'))?.valeur.toFixed(1) || '0'}%</p>
+                      <p className="text-lg font-bold text-purple-600">{ratios.find(r => r.nom.includes('ROE'))?.valeur.toFixed(1) || '0'}%</p>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded">
                       <p className="text-sm text-[var(--color-text-primary)]">Endettement</p>
-                      <p className="text-lg font-bold text-[var(--color-warning)]">{mockRatios.find(r => r.nom.includes('endettement'))?.valeur.toFixed(0) || '0'}%</p>
+                      <p className="text-lg font-bold text-[var(--color-warning)]">{ratios.find(r => r.nom.includes('endettement'))?.valeur.toFixed(0) || '0'}%</p>
                     </div>
                   </div>
                 </div>
@@ -691,7 +691,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockPostesActif.map(poste => (
+                    {postesActif.map(poste => (
                       <tr
                         key={poste.code}
                         className={`border-t ${
@@ -745,7 +745,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockPostesPassif.map(poste => (
+                    {postesPassif.map(poste => (
                       <tr
                         key={poste.code}
                         className={`border-t ${
@@ -823,7 +823,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockPostesResultat.map(poste => (
+                  {postesResultat.map(poste => (
                     <tr
                       key={poste.code}
                       className={`border-t ${
@@ -978,7 +978,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockRatios.map((ratio, index) => (
+                  {ratios.map((ratio, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -1029,7 +1029,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockIndicateursSectoriels.map((indicateur, index) => (
+                  {indicateursSectoriels.map((indicateur, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex justify-between items-start mb-3">
                         <div>
@@ -1284,7 +1284,7 @@ const EtatsSYSCOHADA: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockDocumentsReglementaires.map((doc, index) => (
+                {documentsReglementaires.map((doc, index) => (
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-3">
                       <div>

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../../../../lib/db';
 import { formatDate } from '../../../../../utils/formatters';
 import { Link } from 'react-router-dom';
 import Modal from '../../../../../components/common/BootstrapModal';
@@ -10,6 +12,18 @@ import { BsThreeDotsVertical, IoCloseCircleSharp } from '../../../../../componen
 interface CreatePlanTresorerieForms {
     show: boolean;
     hide: () => void;
+}
+
+interface TreasuryPlan {
+    id: number;
+    planNumber: string;
+    creationDate: string;
+    period: string;
+    totalInflows: number;
+    totalOutflows: number;
+    initialBalance: number;
+    finalBalance: number;
+    author: string;
 }
 
 export const PrevisionTresorerie: React.FC = () => {
@@ -33,31 +47,18 @@ export const PrevisionTresorerie: React.FC = () => {
     const [drawer, setDrawer] = useState<boolean>(false);
     const [showModal, setShowModal] = useState<boolean>(false);
 
-    // Données de démonstration pour les plans de trésorerie
-    const mockPlans = [
-        {
-            id: 1,
-            planNumber: 'PL-2025-001',
-            creationDate: '2025-01-15',
-            period: 'Jan-Déc 2025',
-            totalInflows: 15750000,
-            totalOutflows: 12340000,
-            initialBalance: 2500000,
-            finalBalance: 5910000,
-            author: 'Jean Dupont'
-        },
-        {
-            id: 2,
-            planNumber: 'PL-2025-002',
-            creationDate: '2025-02-01',
-            period: 'Fév-Jun 2025',
-            totalInflows: 8250000,
-            totalOutflows: 7100000,
-            initialBalance: 1800000,
-            finalBalance: 2950000,
-            author: 'Marie Martin'
+    const plansFromDb = useLiveQuery(async () => {
+        const setting = await db.settings.get('treasury_plans');
+        if (!setting) return [];
+        try {
+            const parsed: TreasuryPlan[] = JSON.parse(setting.value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
         }
-    ];
+    }, []);
+
+    const mockPlans: TreasuryPlan[] = plansFromDb ?? [];
 
     const formatAmount = (amount: number): string => {
         return new Intl.NumberFormat('fr-FR', {

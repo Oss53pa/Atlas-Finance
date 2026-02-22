@@ -208,7 +208,7 @@ const EntriesPage: React.FC = () => {
       align: 'right',
       render: (item) => (
         <span className="text-sm font-mono text-[var(--color-error)]">
-          {item.debit.toLocaleString()}
+          {formatCurrency(item.debit)}
         </span>
       )
     },
@@ -222,7 +222,7 @@ const EntriesPage: React.FC = () => {
       align: 'right',
       render: (item) => (
         <span className="text-sm font-mono text-[var(--color-success)]">
-          {item.credit.toLocaleString()}
+          {formatCurrency(item.credit)}
         </span>
       )
     },
@@ -576,13 +576,13 @@ const EntriesPage: React.FC = () => {
                         <div className="flex justify-between">
                           <span className="text-sm text-[#444444]">Débit:</span>
                           <span className="text-sm font-medium text-[var(--color-error)]">
-                            {selectedEntry.debit?.toLocaleString()} FCFA
+                            {formatCurrency(selectedEntry.debit ?? 0)}
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-[#444444]">Crédit:</span>
                           <span className="text-sm font-medium text-[var(--color-success)]">
-                            {selectedEntry.credit?.toLocaleString()} FCFA
+                            {formatCurrency(selectedEntry.credit ?? 0)}
                           </span>
                         </div>
                         <div className="pt-2 border-t">

@@ -105,7 +105,7 @@ const ReportingSyscohada: React.FC = () => {
     queryFn: () => db.fiscalYears.toArray(),
   });
 
-  const mockReports: SyscohadaReport[] = useMemo(() => {
+  const syscohadaReports: SyscohadaReport[] = useMemo(() => {
     const types: Array<{ type: SyscohadaReport['reportType']; label: string }> = [
       { type: 'bilan_syscohada', label: 'Bilan SYSCOHADA' },
       { type: 'compte_resultat_syscohada', label: 'Compte de Résultat SYSCOHADA' },
@@ -138,7 +138,7 @@ const ReportingSyscohada: React.FC = () => {
   }, [fiscalYears]);
 
   // Static SYSCOHADA standards (reference data)
-  const mockStandards: SyscohadaStandard[] = [
+  const SYSCOHADA_STANDARDS: SyscohadaStandard[] = [
     { code: 'SYSCOHADA-ART-8', title: 'Principes comptables fondamentaux', category: 'measurement', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Prudence, continuité, coût historique, permanence des méthodes' },
     { code: 'SYSCOHADA-ART-11', title: 'Présentation du Bilan', category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Structure Actif immobilisé / Circulant / Trésorerie' },
     { code: 'SYSCOHADA-ART-25', title: 'Compte de Résultat par Nature', category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Classification charges (6) et produits (7) par nature' },
@@ -147,7 +147,7 @@ const ReportingSyscohada: React.FC = () => {
   ];
 
   // Static OHADA zone countries
-  const mockCountries: OHADACountry[] = [
+  const MEMBER_COUNTRIES: OHADACountry[] = [
     { code: 'CI', name: "Côte d'Ivoire", currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'CNPS', 'Chambre de Commerce'], status: 'active', revenue: 0, entities: 1 },
     { code: 'SN', name: 'Sénégal', currency: 'XOF', filingDeadline: '30 avril', localRequirements: ['DGI', 'IPRES', 'CSS'], status: 'active', revenue: 0, entities: 0 },
     { code: 'CM', name: 'Cameroun', currency: 'XAF', filingDeadline: '15 mars', localRequirements: ['DGI', 'CNPS'], status: 'active', revenue: 0, entities: 0 },
@@ -169,7 +169,7 @@ const ReportingSyscohada: React.FC = () => {
 
   // Filter reports based on search and filters
   const filteredReports = useMemo(() => {
-    return mockReports.filter(report => {
+    return syscohadaReports.filter(report => {
       const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           report.country.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -179,7 +179,7 @@ const ReportingSyscohada: React.FC = () => {
 
       return matchesSearch && matchesStatus && matchesType && matchesCountry;
     });
-  }, [searchTerm, filterStatus, filterType, filterCountry, mockReports]);
+  }, [searchTerm, filterStatus, filterType, filterCountry, syscohadaReports]);
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
@@ -188,12 +188,12 @@ const ReportingSyscohada: React.FC = () => {
     const draftReports = filteredReports.filter(r => r.status === 'draft').length;
     const reviewReports = filteredReports.filter(r => r.status === 'review').length;
 
-    const compliantStandards = mockStandards.filter(s => s.compliance === 'compliant').length;
-    const totalStandards = mockStandards.length;
+    const compliantStandards = SYSCOHADA_STANDARDS.filter(s => s.compliance === 'compliant').length;
+    const totalStandards = SYSCOHADA_STANDARDS.length;
     const complianceRate = compliantStandards / totalStandards;
 
-    const activeCountries = mockCountries.filter(c => c.status === 'active').length;
-    const totalRevenue = mockCountries.reduce((sum, c) => sum + c.revenue, 0);
+    const activeCountries = MEMBER_COUNTRIES.filter(c => c.status === 'active').length;
+    const totalRevenue = MEMBER_COUNTRIES.reduce((sum, c) => sum + c.revenue, 0);
 
     return {
       totalReports,
@@ -204,7 +204,7 @@ const ReportingSyscohada: React.FC = () => {
       activeCountries,
       totalRevenue
     };
-  }, [filteredReports, mockStandards, mockCountries]);
+  }, [filteredReports, SYSCOHADA_STANDARDS, MEMBER_COUNTRIES]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -258,7 +258,7 @@ const ReportingSyscohada: React.FC = () => {
     { label: 'Brouillons', value: aggregatedData.draftReports, color: 'bg-[#6A8A82]' }
   ];
 
-  const countryChartData = mockCountries.map(country => ({
+  const countryChartData = MEMBER_COUNTRIES.map(country => ({
     label: country.code,
     value: country.revenue / 1000000,
     color: country.status === 'active' ? 'bg-green-500' :
@@ -307,7 +307,7 @@ const ReportingSyscohada: React.FC = () => {
           <KPICard
             title="Conformité OHADA"
             value={formatPercentage(aggregatedData.complianceRate)}
-            subtitle={`${mockStandards.filter(s => s.compliance === 'compliant').length}/${mockStandards.length} articles`}
+            subtitle={`${SYSCOHADA_STANDARDS.filter(s => s.compliance === 'compliant').length}/${SYSCOHADA_STANDARDS.length} articles`}
             icon={Shield}
             color="success"
             delay={0.2}
@@ -564,7 +564,7 @@ const ReportingSyscohada: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockStandards.map((standard, index) => (
+                    {SYSCOHADA_STANDARDS.map((standard, index) => (
                       <motion.tr
                         key={standard.code}
                         initial={{ opacity: 0, y: 20 }}
@@ -659,7 +659,7 @@ const ReportingSyscohada: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {mockCountries.map((country, index) => (
+                  {MEMBER_COUNTRIES.map((country, index) => (
                     <motion.div
                       key={country.code}
                       initial={{ opacity: 0, scale: 0.9 }}

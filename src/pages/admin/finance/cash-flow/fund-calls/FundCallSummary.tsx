@@ -1,4 +1,6 @@
 import React from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../../../../lib/db';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 
 interface FundCallGraphProps {
@@ -52,29 +54,45 @@ export const FundCallSummary: React.FC = () => {
     return `${day}/${month}/${year}`;
   };
 
-  // Données depuis le context finance (plus de mock)
+  const defaultAging = {
+    between_0_30_days: { count: 0, amount: 0, percentage: 0 },
+    between_31_60_days: { count: 0, amount: 0, percentage: 0 },
+    between_61_90_days: { count: 0, amount: 0, percentage: 0 },
+    between_91_120_days: { count: 0, amount: 0, percentage: 0 },
+    more_120_days: { count: 0, amount: 0, percentage: 0 }
+  };
+
+  const summaryFromDb = useLiveQuery(async () => {
+    if (!fundCallG.id) return null;
+    const setting = await db.settings.get('fund_call_summaries');
+    if (!setting) return null;
+    try {
+      const parsed = JSON.parse(setting.value);
+      const summaries = Array.isArray(parsed) ? parsed : [];
+      return summaries.find(
+        (s: Record<string, unknown>) => String(s.id) === String(fundCallG.id)
+      ) ?? null;
+    } catch {
+      return null;
+    }
+  }, [fundCallG.id]);
+
   const mockFundCall = {
     reference: fundCallG.reference || '',
     request_date: fundCallG.request_date || new Date().toISOString().split('T')[0],
     amount_requested: fundCallG.amount_requested || 0,
-    previous_arrears: 0,
-    critical_expense: 0,
-    current_arrears: 0,
-    previous_arrears_requested: 0,
-    previous_arrears_approved: 0,
-    critical_expenses_requested: 0,
-    critical_expenses_approved: 0,
-    current_expenses_requested: 0,
-    current_expenses_approved: 0,
+    previous_arrears: summaryFromDb?.previous_arrears ?? 0,
+    critical_expense: summaryFromDb?.critical_expense ?? 0,
+    current_arrears: summaryFromDb?.current_arrears ?? 0,
+    previous_arrears_requested: summaryFromDb?.previous_arrears_requested ?? 0,
+    previous_arrears_approved: summaryFromDb?.previous_arrears_approved ?? 0,
+    critical_expenses_requested: summaryFromDb?.critical_expenses_requested ?? 0,
+    critical_expenses_approved: summaryFromDb?.critical_expenses_approved ?? 0,
+    current_expenses_requested: summaryFromDb?.current_expenses_requested ?? 0,
+    current_expenses_approved: summaryFromDb?.current_expenses_approved ?? 0,
     total_requested: fundCallG.amount_requested || 0,
-    total_approved: 0,
-    aging_invoices: {
-      between_0_30_days: { count: 0, amount: 0, percentage: 0 },
-      between_31_60_days: { count: 0, amount: 0, percentage: 0 },
-      between_61_90_days: { count: 0, amount: 0, percentage: 0 },
-      between_91_120_days: { count: 0, amount: 0, percentage: 0 },
-      more_120_days: { count: 0, amount: 0, percentage: 0 }
-    }
+    total_approved: summaryFromDb?.total_approved ?? 0,
+    aging_invoices: summaryFromDb?.aging_invoices ?? defaultAging
   };
 
   return (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../../../../../lib/db';
 import { formatDate } from '../../../../../utils/formatters';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useParams, Link } from 'react-router-dom';
@@ -22,29 +23,29 @@ export const SimpleFundCallDetails: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Mock data basée sur l'ID
-    const mockData: FundCallDetails = {
-      id: parseInt(id || '1'),
-      request_date: "2025-01-15",
-      reference: `AF-2025-${id?.padStart(4, '0')}`,
-      is_mark_as_pre_approved: parseInt(id || '1') % 2 === 1,
-      amount_requested: 2500000,
-      create_by_user: { fullname: "Jean Dupont" },
-      comment: `Appel de fonds détaillé pour le projet ${id}`,
-      leveling_account_from_info: {
-        french_description: "Banque BCA",
-        account_number: "5211"
-      },
-      leveling_account_to_info: {
-        french_description: "Banque UBA",
-        account_number: "5212"
+    const fetchDetails = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
       }
-    };
-
-    setTimeout(() => {
-      setFundCall(mockData);
+      try {
+        const setting = await db.settings.get('fund_calls');
+        if (setting) {
+          const parsed = JSON.parse(setting.value);
+          const allCalls: FundCallDetails[] = Array.isArray(parsed) ? parsed : [];
+          const found = allCalls.find(
+            (fc) => String(fc.id) === String(id)
+          );
+          if (found) {
+            setFundCall(found);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching fund call details:", error);
+      }
       setLoading(false);
-    }, 300);
+    };
+    fetchDetails();
   }, [id]);
 
   const formatAmount = (amount: number): string => {

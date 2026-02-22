@@ -1884,7 +1884,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                         {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
                                       </td>
                                       <td className="px-3 py-3 text-right font-bold text-green-600 text-xs">
-                                        {compte.mouvements.reduce((sum, m) => sum + m.credit, 0).toLocaleString('fr-FR')}
+                                        {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
                                       </td>
                                       <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
                                         {formatCurrency(compte.solde.debit - compte.solde.credit)}
@@ -2104,7 +2104,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
                               </td>
                               <td className="px-3 py-3 text-right font-bold text-green-600 text-xs">
-                                {compte.mouvements.reduce((sum, m) => sum + m.credit, 0).toLocaleString('fr-FR')}
+                                {formatCurrency(compte.mouvements.reduce((sum, m) => sum + m.credit, 0))}
                               </td>
                               <td className="px-3 py-3 text-right font-bold text-gray-900 text-xs">
                                 {formatCurrency(compte.solde.debit - compte.solde.credit)}
@@ -3008,7 +3008,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                             Account {account.compte} - {account.libelle}
                           </h2>
                           <div className="text-sm text-gray-600 mt-1">
-                            Opening Balance: <span className="font-semibold">{account.soldeOuverture.toLocaleString('en-US')} USD</span>
+                            Opening Balance: <span className="font-semibold">{formatCurrency(account.soldeOuverture)}</span>
                           </div>
                         </div>
 
@@ -3034,13 +3034,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 </td>
                                 <td className="border border-gray-300 px-3 py-2">{entry.libelle}</td>
                                 <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                                  {entry.debit > 0 ? entry.debit.toLocaleString('en-US', { minimumFractionDigits: 2 }) : ''}
+                                  {entry.debit > 0 ? formatCurrency(entry.debit) : ''}
                                 </td>
                                 <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                                  {entry.credit > 0 ? entry.credit.toLocaleString('en-US', { minimumFractionDigits: 2 }) : ''}
+                                  {entry.credit > 0 ? formatCurrency(entry.credit) : ''}
                                 </td>
                                 <td className="border border-gray-300 px-3 py-2 text-right font-mono font-bold">
-                                  {entry.solde.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                  {formatCurrency(entry.solde)}
                                 </td>
                               </tr>
                             ))}
@@ -3051,13 +3051,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 TOTALS
                               </td>
                               <td className="border border-gray-600 px-3 py-2 text-right font-mono">
-                                {account.totalDebit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                {formatCurrency(account.totalDebit)}
                               </td>
                               <td className="border border-gray-600 px-3 py-2 text-right font-mono">
-                                {account.totalCredit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                {formatCurrency(account.totalCredit)}
                               </td>
                               <td className="border border-gray-600 px-3 py-2 text-right font-mono">
-                                {account.soldeFermeture.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                {formatCurrency(account.soldeFermeture)}
                               </td>
                             </tr>
                           </tbody>
@@ -3074,13 +3074,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                               <span className="text-gray-600">Net Movement:</span>
                               <span className={`ml-2 font-semibold ${(account.soldeFermeture - account.soldeOuverture) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {(account.soldeFermeture - account.soldeOuverture) >= 0 ? '+' : ''}
-                                {(account.soldeFermeture - account.soldeOuverture).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                {formatCurrency(account.soldeFermeture - account.soldeOuverture)}
                               </span>
                             </div>
                             <div>
                               <span className="text-gray-600">Closing Balance:</span>
                               <span className="ml-2 font-bold text-lg">
-                                {account.soldeFermeture.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+                                {formatCurrency(account.soldeFermeture)} USD
                               </span>
                             </div>
                           </div>
@@ -3112,13 +3112,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <td className="border border-gray-300 px-3 py-2">{account.libelle}</td>
                           <td className="border border-gray-300 px-3 py-2 text-center">{account.nombreEcritures}</td>
                           <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                            {account.totalDebit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            {formatCurrency(account.totalDebit)}
                           </td>
                           <td className="border border-gray-300 px-3 py-2 text-right font-mono">
-                            {account.totalCredit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            {formatCurrency(account.totalCredit)}
                           </td>
                           <td className="border border-gray-300 px-3 py-2 text-right font-mono font-bold">
-                            {account.soldeFermeture.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            {formatCurrency(account.soldeFermeture)}
                           </td>
                         </tr>
                       ))}
@@ -3132,13 +3132,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                           {accountsData.reduce((sum, acc) => sum + acc.nombreEcritures, 0)}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {accountsData.reduce((sum, acc) => sum + acc.totalDebit, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {formatCurrency(accountsData.reduce((sum, acc) => sum + acc.totalDebit, 0))}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {accountsData.reduce((sum, acc) => sum + acc.totalCredit, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {formatCurrency(accountsData.reduce((sum, acc) => sum + acc.totalCredit, 0))}
                         </td>
                         <td className="border border-gray-600 px-3 py-3 text-right font-mono">
-                          {accountsData.reduce((sum, acc) => sum + acc.soldeFermeture, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {formatCurrency(accountsData.reduce((sum, acc) => sum + acc.soldeFermeture, 0))}
                         </td>
                       </tr>
                     </tbody>
@@ -3451,13 +3451,13 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('accounting.debit')}</label>
                 <p className="text-green-600 font-semibold">
-                  {selectedEntry.debit.toLocaleString()}
+                  {formatCurrency(selectedEntry.debit)}
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('accounting.credit')}</label>
                 <p className="text-red-600 font-semibold">
-                  {selectedEntry.credit.toLocaleString()}
+                  {formatCurrency(selectedEntry.credit)}
                 </p>
               </div>
               <div>
@@ -3473,7 +3473,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="border-t pt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">Solde après écriture</label>
               <p className="text-lg font-bold text-gray-900">
-                {selectedEntry.solde.toLocaleString()}
+                {formatCurrency(selectedEntry.solde)}
               </p>
             </div>
 

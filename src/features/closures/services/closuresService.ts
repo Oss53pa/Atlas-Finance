@@ -362,6 +362,7 @@ class ClosuresService {
           credit: ecriture.montant,
         },
       ],
+      createdAt: new Date().toISOString(),
       createdBy: 'system',
     }, { skipSyncValidation: true });
 

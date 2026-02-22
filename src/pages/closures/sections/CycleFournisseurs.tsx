@@ -149,7 +149,7 @@ const CycleFournisseurs: React.FC = () => {
   useEffect(() => { loadSupplierData(); }, [loadSupplierData]);
 
   // Map real 401 accounts to Fournisseur interface
-  const mockFournisseurs: Fournisseur[] = useMemo(() => {
+  const fournisseurs: Fournisseur[] = useMemo(() => {
     let idx = 0;
     return Array.from(supplierBalances.entries()).map(([code, bal]) => {
       idx++;
@@ -178,17 +178,17 @@ const CycleFournisseurs: React.FC = () => {
   }, [supplierBalances]);
 
   // No invoice-level or PO data available
-  const mockFactures: FactureFournisseur[] = [];
-  const mockBonsCommande: BonCommande[] = [];
+  const factures: FactureFournisseur[] = [];
+  const bonsCommande: BonCommande[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const totalDettes = mockFactures.reduce((sum, f) => sum + f.montantTTC, 0);
-    const totalPaye = mockFactures.reduce((sum, f) => sum + f.montantPaye, 0);
-    const totalEchu = mockFactures
+    const totalDettes = factures.reduce((sum, f) => sum + f.montantTTC, 0);
+    const totalPaye = factures.reduce((sum, f) => sum + f.montantPaye, 0);
+    const totalEchu = factures
       .filter(f => new Date(f.dateEcheance) < new Date())
       .reduce((sum, f) => sum + f.solde, 0);
-    const commandesEnCours = mockBonsCommande.filter(bc => bc.statut !== 'livre' && bc.statut !== 'annule').length;
+    const commandesEnCours = bonsCommande.filter(bc => bc.statut !== 'livre' && bc.statut !== 'annule').length;
 
     return {
       totalDettes,
@@ -197,20 +197,20 @@ const CycleFournisseurs: React.FC = () => {
       commandesEnCours,
       tauxPaiement: totalDettes > 0 ? (totalPaye / totalDettes * 100) : 0,
       delaiMoyenPaiement: 35,
-      nombreFournisseursActifs: mockFournisseurs.filter(f => f.statutContrat === 'actif').length
+      nombreFournisseursActifs: fournisseurs.filter(f => f.statutContrat === 'actif').length
     };
-  }, []);
+  }, [fournisseurs, factures, bonsCommande]);
 
   // Filtrage des factures
   const facturesFiltrees = useMemo(() => {
-    return mockFactures.filter(facture => {
+    return factures.filter(facture => {
       const matchStatut = filterStatut === 'tous' || facture.statut === filterStatut;
       const matchSearch = searchTerm === '' ||
         facture.fournisseurNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
         facture.numeroFacture.toLowerCase().includes(searchTerm.toLowerCase());
       return matchStatut && matchSearch;
     });
-  }, [filterStatut, searchTerm]);
+  }, [factures, filterStatut, searchTerm]);
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
@@ -381,7 +381,7 @@ const CycleFournisseurs: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockFournisseurs.map(fournisseur => (
+                {fournisseurs.map(fournisseur => (
                   <div key={fournisseur.id} className="flex items-center justify-between p-3 border rounded hover:bg-[var(--color-background-secondary)]">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -564,7 +564,7 @@ const CycleFournisseurs: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockBonsCommande.map(commande => (
+                {bonsCommande.map(commande => (
                   <div key={commande.id} className="p-4 border rounded-lg hover:bg-[var(--color-background-secondary)]">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -629,7 +629,7 @@ const CycleFournisseurs: React.FC = () => {
                   <div>
                     <h4 className="font-medium mb-3">Paiements à venir</h4>
                     <div className="space-y-2">
-                      {mockFactures
+                      {factures
                         .filter(f => f.solde > 0)
                         .map(facture => (
                           <div key={facture.id} className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded">
@@ -770,7 +770,7 @@ const CycleFournisseurs: React.FC = () => {
                 <div>
                   <h4 className="font-medium mb-3">Performance Fournisseurs</h4>
                   <div className="space-y-3">
-                    {mockFournisseurs.map(fournisseur => (
+                    {fournisseurs.map(fournisseur => (
                       <div key={fournisseur.id} className="p-3 border rounded">
                         <div className="flex justify-between items-center mb-2">
                           <p className="font-medium">{fournisseur.nom}</p>

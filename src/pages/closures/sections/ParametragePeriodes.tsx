@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { db } from '../../../lib/db';
+import type { DBClosureSession, DBFiscalYear } from '../../../lib/db';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
@@ -264,179 +266,136 @@ const ParametragePeriodes: React.FC = () => {
     }
   };
 
-  // Données simulées
-  const mockPeriodes: PeriodeComptable[] = [
-    {
-      id: '1',
-      code: 'M202412',
-      nom: 'Décembre 2024',
-      type: 'mensuelle',
-      dateDebut: '2024-12-01',
-      dateFin: '2024-12-31',
-      exercice: '2024',
-      statut: 'en_cours',
-      delaisCloture: {
-        dateEcheanceCloture: '2025-01-10',
-        delaiTresorerie: 3,
-        delaiCycles: 5,
-        delaiControles: 7,
-        delaiValidation: 10,
-        alerteJ1: true,
-        alerteJ3: true,
-        alerteJ7: true,
-        escaladeN1: 2,
-        escaladeN2: 5
-      },
-      responsabilites: [
-        {
-          id: '1',
-          etape: 'Trésorerie',
-          utilisateur: 'Jean OULAI',
-          role: 'Comptable',
-          delaiExecution: 3,
-          obligatoire: true,
-          remplacant: 'Marie DIALLO',
-          notifications: [
-            {
-              id: '1',
-              type: 'email',
-              destinataire: 'jean.oulai@entreprise.ci',
-              declencheur: 'debut_periode',
-              template: 'notif_debut_tresorerie',
-              actif: true
-            }
-          ]
-        }
-      ],
-      parametresSpecifiques: {
-        id: '1',
-        deviseDefaut: 'FCFA',
-        tauxChangeFixe: { 'EUR': 655.957, 'USD': 590.123 },
-        comptesSpeciaux: ['512001', '512002', '531001'],
-        reglesProvisions: [
-          {
-            id: '1',
-            type: 'creances_douteuses',
-            conditions: 'anciennete > 90 jours',
-            tauxProvision: 50,
-            compteComptable: '491100',
-            automatique: true
-          }
-        ],
-        controlesSupplement: [],
-        documentsObligatoires: ['Relevés bancaires', 'Balance générale'],
-        seuilsMaterialite: { 'bilan': 50000, 'resultat': 25000 }
-      },
-      calendrierEtapes: [
-        {
-          id: '1',
-          nom: 'Clôture Trésorerie',
-          ordre: 1,
-          dateDebut: '2025-01-02',
-          dateFin: '2025-01-05',
-          dependances: [],
-          responsable: 'Jean OULAI',
-          statut: 'en_cours',
-          dureeEstimee: 8,
-          dureeReelle: 6
-        },
-        {
-          id: '2',
-          nom: 'Validation Cycles',
-          ordre: 2,
-          dateDebut: '2025-01-06',
-          dateFin: '2025-01-08',
-          dependances: ['1'],
-          responsable: 'Fatou DIALLO',
-          statut: 'non_commencee',
-          dureeEstimee: 12
-        }
-      ]
-    },
-    {
-      id: '2',
-      code: 'Q202404',
-      nom: 'Q4 2024',
-      type: 'trimestrielle',
-      dateDebut: '2024-10-01',
-      dateFin: '2024-12-31',
-      exercice: '2024',
-      statut: 'planifiee',
-      delaisCloture: {
-        dateEcheanceCloture: '2025-01-31',
-        delaiTresorerie: 5,
-        delaiCycles: 10,
-        delaiControles: 15,
-        delaiValidation: 21,
-        alerteJ1: true,
-        alerteJ3: true,
-        alerteJ7: true,
-        escaladeN1: 3,
-        escaladeN2: 7
-      },
-      responsabilites: [],
-      parametresSpecifiques: {
-        id: '2',
-        deviseDefaut: 'FCFA',
-        tauxChangeFixe: {},
-        comptesSpeciaux: [],
-        reglesProvisions: [],
-        controlesSupplement: [],
-        documentsObligatoires: [],
-        seuilsMaterialite: {}
-      },
-      calendrierEtapes: []
-    }
-  ];
+  // Real data from Dexie
+  const [dbSessions, setDbSessions] = useState<DBClosureSession[]>([]);
+  const [dbFiscalYears, setDbFiscalYears] = useState<DBFiscalYear[]>([]);
 
-  const mockCalendriersPays: CalendrierPays[] = [
+  const loadPeriodData = useCallback(async () => {
+    try {
+      const [sessions, fys] = await Promise.all([
+        db.closureSessions.toArray(),
+        db.fiscalYears.toArray(),
+      ]);
+      setDbSessions(sessions);
+      setDbFiscalYears(fys);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadPeriodData(); }, [loadPeriodData]);
+
+  // Map closure sessions + fiscal years -> PeriodeComptable
+  const periodes: PeriodeComptable[] = useMemo(() => {
+    const defaultDelais: DelaisCloture = {
+      dateEcheanceCloture: '',
+      delaiTresorerie: 3,
+      delaiCycles: 5,
+      delaiControles: 7,
+      delaiValidation: 10,
+      alerteJ1: true,
+      alerteJ3: true,
+      alerteJ7: true,
+      escaladeN1: 2,
+      escaladeN2: 5,
+    };
+    const defaultParams: ParametresSpecifiques = {
+      id: '',
+      deviseDefaut: 'FCFA',
+      tauxChangeFixe: {},
+      comptesSpeciaux: [],
+      reglesProvisions: [],
+      controlesSupplement: [],
+      documentsObligatoires: [],
+      seuilsMaterialite: {},
+    };
+
+    // Closure sessions mapped
+    const fromSessions: PeriodeComptable[] = dbSessions.map(s => {
+      const typeMap: Record<string, PeriodeComptable['type']> = {
+        'MENSUELLE': 'mensuelle',
+        'TRIMESTRIELLE': 'trimestrielle',
+        'ANNUELLE': 'annuelle',
+        'SEMESTRIELLE': 'annuelle',
+        'SPECIALE': 'exceptionnelle',
+      };
+      const statutMap: Record<string, PeriodeComptable['statut']> = {
+        'EN_COURS': 'en_cours',
+        'VALIDEE': 'ouverte',
+        'CLOTUREE': 'cloturee',
+        'ANNULEE': 'verrouillee',
+      };
+      const endDate = new Date(s.dateFin);
+      const echeance = new Date(endDate.getTime() + 10 * 86400000); // +10 days
+
+      return {
+        id: s.id,
+        code: `${s.type.substring(0, 1)}${s.exercice}`,
+        nom: s.periode,
+        type: typeMap[s.type] || 'mensuelle',
+        dateDebut: s.dateDebut,
+        dateFin: s.dateFin,
+        exercice: s.exercice,
+        statut: statutMap[s.statut] || 'planifiee',
+        delaisCloture: { ...defaultDelais, dateEcheanceCloture: echeance.toISOString().split('T')[0] },
+        responsabilites: [],
+        parametresSpecifiques: { ...defaultParams, id: s.id },
+        calendrierEtapes: [],
+      };
+    });
+
+    // Fiscal years without sessions mapped as annual periods
+    const sessionExercices = new Set(dbSessions.map(s => s.exercice));
+    const fromFY: PeriodeComptable[] = dbFiscalYears
+      .filter(fy => !sessionExercices.has(fy.name) && !sessionExercices.has(fy.code))
+      .map(fy => {
+        const endDate = new Date(fy.endDate);
+        const echeance = new Date(endDate.getTime() + 30 * 86400000);
+        return {
+          id: fy.id,
+          code: fy.code,
+          nom: fy.name,
+          type: 'annuelle' as const,
+          dateDebut: fy.startDate,
+          dateFin: fy.endDate,
+          exercice: fy.name,
+          statut: fy.isClosed ? 'cloturee' as const : 'planifiee' as const,
+          delaisCloture: { ...defaultDelais, dateEcheanceCloture: echeance.toISOString().split('T')[0] },
+          responsabilites: [],
+          parametresSpecifiques: { ...defaultParams, id: fy.id },
+          calendrierEtapes: [],
+        };
+      });
+
+    return [...fromSessions, ...fromFY];
+  }, [dbSessions, dbFiscalYears]);
+
+  // Static calendar data (reference, not mock)
+  const calendriersPays: CalendrierPays[] = [
     {
       id: '1',
       pays: 'Côte d\'Ivoire',
       codeISO: 'CI',
       joursFeries: [
-        {
-          id: '1',
-          nom: 'Nouvel An',
-          date: '2025-01-01',
-          pays: 'CI',
-          type: 'fixe',
-          recurent: true
-        },
-        {
-          id: '2',
-          nom: 'Fête du Travail',
-          date: '2025-05-01',
-          pays: 'CI',
-          type: 'fixe',
-          recurent: true
-        },
-        {
-          id: '3',
-          nom: 'Indépendance',
-          date: '2025-08-07',
-          pays: 'CI',
-          type: 'fixe',
-          recurent: true
-        }
+        { id: '1', nom: 'Nouvel An', date: '2025-01-01', pays: 'CI', type: 'fixe', recurent: true },
+        { id: '2', nom: 'Fête du Travail', date: '2025-05-01', pays: 'CI', type: 'fixe', recurent: true },
+        { id: '3', nom: 'Indépendance', date: '2025-08-07', pays: 'CI', type: 'fixe', recurent: true },
       ],
-      joursTravail: [1, 2, 3, 4, 5], // Lundi à Vendredi
-      heuresTravailJour: 8
-    }
+      joursTravail: [1, 2, 3, 4, 5],
+      heuresTravailJour: 8,
+    },
   ];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const totalPeriodes = mockPeriodes.length;
-    const periodesActives = mockPeriodes.filter(p => p.statut === 'en_cours' || p.statut === 'ouverte').length;
-    const periodesEnRetard = mockPeriodes.filter(p => {
+    const totalPeriodes = periodes.length;
+    const periodesActives = periodes.filter(p => p.statut === 'en_cours' || p.statut === 'ouverte').length;
+    const periodesEnRetard = periodes.filter(p => {
       if (p.statut === 'en_cours') {
         const echeance = new Date(p.delaisCloture.dateEcheanceCloture);
         return echeance < new Date();
       }
       return false;
     }).length;
-    const prochainEcheance = mockPeriodes
+    const prochainEcheance = periodes
       .filter(p => p.statut === 'en_cours')
       .map(p => new Date(p.delaisCloture.dateEcheanceCloture))
       .reduce((min, date) => date < min ? date : min, new Date('2030-01-01'));
@@ -449,7 +408,7 @@ const ParametragePeriodes: React.FC = () => {
       joursRestants: Math.ceil((prochainEcheance.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)),
       automatisationTaux: 78
     };
-  }, []);
+  }, [periodes]);
 
   const getStatutBadge = (statut: string) => {
     const variants: Record<string, string> = {
@@ -598,7 +557,7 @@ const ParametragePeriodes: React.FC = () => {
 
                 {/* Liste des périodes */}
                 <div className="space-y-3">
-                  {mockPeriodes.map(periode => (
+                  {periodes.map(periode => (
                     <div key={periode.id} className="border rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-4">
@@ -932,7 +891,7 @@ const ParametragePeriodes: React.FC = () => {
                   <div>
                     <h4 className="font-medium mb-4">Jours Fériés 2025</h4>
                     <div className="space-y-2">
-                      {mockCalendriersPays[0].joursFeries.map(ferie => (
+                      {calendriersPays[0].joursFeries.map(ferie => (
                         <div key={ferie.id} className="flex justify-between items-center p-3 border rounded">
                           <div className="flex items-center gap-3">
                             <Flag className="w-4 h-4 text-[var(--color-primary)]" />
@@ -977,7 +936,7 @@ const ParametragePeriodes: React.FC = () => {
                           </div>
                           <div className="flex justify-between">
                             <span>Jours fériés:</span>
-                            <span>{mockCalendriersPays[0].joursFeries.length}</span>
+                            <span>{calendriersPays[0].joursFeries.length}</span>
                           </div>
                         </div>
                       </div>

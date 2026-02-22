@@ -234,234 +234,126 @@ const IAAssistant: React.FC = () => {
     }
   }, [fiscalYears]);
 
-  // Données simulées
-  const mockMessages: Message[] = [
-    {
-      id: '1',
-      type: 'assistant',
-      content: 'Bonjour ! Je suis votre assistant IA pour la clôture comptable. Comment puis-je vous aider aujourd\'hui ?',
-      timestamp: '2024-12-20T08:00:00',
-      suggestions: [
-        'Analyser les créances douteuses',
-        'Vérifier la conformité SYSCOHADA',
-        'Calculer les provisions nécessaires',
-        'Générer un rapport de clôture'
-      ]
-    },
-    {
-      id: '2',
-      type: 'user',
-      content: 'Peux-tu analyser l\'état de nos stocks et identifier les risques potentiels ?',
-      timestamp: '2024-12-20T08:05:00'
-    },
-    {
-      id: '3',
-      type: 'assistant',
-      content: 'J\'ai analysé vos stocks et détecté plusieurs points d\'attention :\n\n**Stocks critiques :**\n- 3 articles sous le minimum (ordinateurs portables, imprimantes laser)\n- Écart de valorisation de 50K FCFA entre stock physique et comptable\n\n**Recommandations :**\n1. Réapprovisionner urgently les articles critiques\n2. Vérifier les derniers mouvements pour expliquer l\'écart\n3. Réviser les méthodes de valorisation FIFO/CMUP\n\n**Provisions suggérées :**\n- Obsolescence : 540K FCFA sur articles informatiques anciens\n- Dépréciation : 275K FCFA sur stocks à rotation lente',
-      timestamp: '2024-12-20T08:06:00',
-      confidence: 92,
-      sources: ['Module Gestion Stocks', 'Inventaire physique', 'Valorisation comptable'],
-      attachments: [
-        {
-          type: 'chart',
-          title: 'Évolution des stocks par catégorie',
-          data: {}
-        }
-      ],
-      actions: [
-        {
-          label: 'Générer rapport détaillé',
-          action: 'generate_stock_report',
-          type: 'primary',
-          icon: <FileText className="w-4 h-4" />
-        },
-        {
-          label: 'Créer provisions automatiquement',
-          action: 'create_provisions',
-          type: 'secondary',
-          icon: <Zap className="w-4 h-4" />
-        }
-      ]
-    }
-  ];
+  // --- Real metrics computed from Dexie data ---
+  const [entryCount, setEntryCount] = useState(0);
+  const [sessionCount, setSessionCount] = useState(0);
+  const [provisionCount, setProvisionCount] = useState(0);
+  const [assetCount, setAssetCount] = useState(0);
 
-  const mockAnalysesAutomatiques: AnalyseAutomatique[] = [
-    {
-      id: '1',
-      nom: 'Écart valorisation stocks',
-      description: 'Écart détecté entre valorisation physique et comptable des stocks',
-      domaine: 'stocks',
-      severite: 'attention',
-      dateDetection: '2024-12-20T11:15:00',
-      impact: 'modere',
-      recommandations: [
-        'Vérifier les derniers mouvements de stock du jour',
-        'Contrôler les méthodes de valorisation FIFO/CMUP',
-        'Ajuster les écritures si nécessaire'
-      ],
-      actionsAutomatisees: [
-        'Génération rapport d\'écart détaillé',
-        'Identification des articles concernés',
-        'Proposition d\'écriture d\'ajustement'
-      ],
-      donnees: {
-        valeurDetectee: 25450000,
-        valeurAttendue: 25500000,
-        seuil: 100000,
-        ecart: -50000
+  useEffect(() => {
+    Promise.all([
+      db.journalEntries.count(),
+      db.closureSessions.count(),
+      db.provisions.count(),
+      db.assets.count(),
+    ]).then(([entries, sessions, provisions, assets]) => {
+      setEntryCount(entries);
+      setSessionCount(sessions);
+      setProvisionCount(provisions);
+      setAssetCount(assets);
+    }).catch(() => {});
+  }, []);
+
+  // Analyses derived from real data counts
+  const analysesAutomatiques: AnalyseAutomatique[] = useMemo(() => {
+    const now = new Date().toISOString();
+    const analyses: AnalyseAutomatique[] = [];
+
+    if (provisionCount > 0) {
+      analyses.push({
+        id: 'prov-check',
+        nom: 'Provisions créances douteuses',
+        description: `${provisionCount} provision(s) enregistrée(s) dans la base`,
+        domaine: 'provisions',
+        severite: 'info',
+        dateDetection: now,
+        impact: 'modere',
+        recommandations: ['Vérifier le statut de chaque provision', 'Valider les taux appliqués'],
+        actionsAutomatisees: ['Calcul automatique via ancienneté créances'],
+        donnees: { valeurDetectee: provisionCount },
+        statut: 'traite',
+      });
+    }
+
+    if (assetCount > 0) {
+      analyses.push({
+        id: 'asset-check',
+        nom: 'Contrôle amortissements',
+        description: `${assetCount} immobilisation(s) active(s) dans la base`,
+        domaine: 'immobilisations',
+        severite: 'info',
+        dateDetection: now,
+        impact: 'faible',
+        recommandations: ['Vérifier les calculs d\'amortissement SYSCOHADA'],
+        actionsAutomatisees: ['Validation automatique des taux'],
+        donnees: { valeurDetectee: assetCount },
+        statut: 'traite',
+      });
+    }
+
+    if (entryCount > 0) {
+      analyses.push({
+        id: 'entry-check',
+        nom: 'Volume d\'écritures',
+        description: `${entryCount} écriture(s) comptable(s) enregistrée(s)`,
+        domaine: 'global',
+        severite: 'info',
+        dateDetection: now,
+        impact: 'faible',
+        recommandations: ['Vérifier l\'équilibre débit/crédit global'],
+        actionsAutomatisees: ['Contrôle automatique d\'équilibre'],
+        donnees: { valeurDetectee: entryCount },
+        statut: 'traite',
+      });
+    }
+
+    return analyses;
+  }, [entryCount, provisionCount, assetCount]);
+
+  // Recommendations: empty initial state (user-generated via AI interaction)
+  const recommandations: RecommandationIA[] = [];
+
+  // Metrics computed from real data
+  const metriques: MetriquePerformance[] = useMemo(() => {
+    const now = new Date().toISOString();
+    return [
+      {
+        nom: 'Écritures comptables',
+        valeur: entryCount,
+        unite: 'écritures',
+        tendance: 'stable' as const,
+        description: 'Nombre total d\'écritures dans la base',
+        derniereMiseAJour: now,
       },
-      statut: 'nouveau'
-    },
-    {
-      id: '2',
-      nom: 'Créances clients à risque',
-      description: 'Identification de créances présentant un risque d\'impayé élevé',
-      domaine: 'clients',
-      severite: 'alerte',
-      dateDetection: '2024-12-20T10:30:00',
-      impact: 'eleve',
-      recommandations: [
-        'Renforcer le suivi des créances de plus de 60 jours',
-        'Revoir les conditions de crédit accordées',
-        'Considérer une assurance crédit pour les gros montants'
-      ],
-      actionsAutomatisees: [
-        'Calcul automatique des provisions nécessaires',
-        'Génération des lettres de relance',
-        'Mise à jour du scoring client'
-      ],
-      donnees: {
-        valeurDetectee: 6000000,
-        seuil: 5000000,
-        ecart: 1000000
+      {
+        nom: 'Sessions de clôture',
+        valeur: sessionCount,
+        unite: 'sessions',
+        tendance: 'stable' as const,
+        description: 'Nombre de sessions de clôture créées',
+        derniereMiseAJour: now,
       },
-      statut: 'en_cours'
-    },
-    {
-      id: '3',
-      nom: 'Contrôle amortissements SYSCOHADA',
-      description: 'Vérification automatique de la conformité des calculs d\'amortissement',
-      domaine: 'immobilisations',
-      severite: 'info',
-      dateDetection: '2024-12-20T14:20:00',
-      impact: 'faible',
-      recommandations: [
-        'Tous les calculs sont conformes aux règles SYSCOHADA',
-        'Maintenir la documentation à jour',
-        'Planifier les tests de dépréciation annuels'
-      ],
-      actionsAutomatisees: [
-        'Validation automatique des taux d\'amortissement',
-        'Contrôle des durées par rapport aux minima/maxima',
-        'Génération du rapport de conformité'
-      ],
-      donnees: {
-        valeurDetectee: 60500000,
-        valeurAttendue: 60500000,
-        ecart: 0
+      {
+        nom: 'Provisions actives',
+        valeur: provisionCount,
+        unite: 'provisions',
+        tendance: 'stable' as const,
+        description: 'Nombre de provisions enregistrées',
+        derniereMiseAJour: now,
       },
-      statut: 'traite'
-    }
-  ];
+      {
+        nom: 'Immobilisations',
+        valeur: assetCount,
+        unite: 'actifs',
+        tendance: 'stable' as const,
+        description: 'Nombre d\'immobilisations dans le registre',
+        derniereMiseAJour: now,
+      },
+    ];
+  }, [entryCount, sessionCount, provisionCount, assetCount]);
 
-  const mockRecommandations: RecommandationIA[] = [
-    {
-      id: '1',
-      titre: 'Automatiser le calcul des provisions créances douteuses',
-      description: 'Mise en place d\'un calcul automatique des provisions basé sur l\'ancienneté et le scoring client',
-      categorie: 'automatisation',
-      priorite: 'haute',
-      impact: 'temps',
-      impactChiffre: 15,
-      difficulte: 'moyen',
-      etapes: [
-        'Configurer les règles de provisionnement par tranche d\'ancienneté',
-        'Intégrer le scoring client dans le calcul',
-        'Paramétrer les seuils d\'alerte automatiques',
-        'Tester et valider les calculs'
-      ],
-      ressourcesNecessaires: ['Paramétrage système', 'Formation utilisateurs', 'Tests'],
-      dateCreation: '2024-12-20',
-      statut: 'nouvelle'
-    },
-    {
-      id: '2',
-      titre: 'Optimiser la gestion du besoin en fonds de roulement',
-      description: 'Améliorer les délais de paiement clients et négocier avec les fournisseurs',
-      categorie: 'optimisation',
-      priorite: 'haute',
-      impact: 'cout',
-      impactChiffre: 2500000,
-      difficulte: 'difficile',
-      etapes: [
-        'Analyser les délais de paiement actuels',
-        'Négocier des délais plus courts avec les clients importants',
-        'Renégocier les délais fournisseurs',
-        'Mettre en place un suivi quotidien du BFR'
-      ],
-      ressourcesNecessaires: ['Équipe commerciale', 'Service achats', 'Outils de reporting'],
-      dateCreation: '2024-12-19',
-      statut: 'acceptee'
-    },
-    {
-      id: '3',
-      titre: 'Implémenter des contrôles de cohérence avancés',
-      description: 'Développer des contrôles automatiques cross-modules pour détecter les incohérences',
-      categorie: 'qualite',
-      priorite: 'moyenne',
-      impact: 'qualite',
-      difficulte: 'expert',
-      etapes: [
-        'Identifier tous les points de contrôle nécessaires',
-        'Développer les algorithmes de détection',
-        'Intégrer dans les processus de clôture',
-        'Former les équipes aux nouveaux contrôles'
-      ],
-      ressourcesNecessaires: ['Développement', 'Tests', 'Formation'],
-      dateCreation: '2024-12-18',
-      statut: 'en_cours'
-    }
-  ];
-
-  const mockMetriques: MetriquePerformance[] = [
-    {
-      nom: 'Temps de traitement des requêtes',
-      valeur: 1.2,
-      unite: 'secondes',
-      tendance: 'baisse',
-      objectif: 1.0,
-      description: 'Temps moyen de réponse de l\'IA aux questions',
-      derniereMiseAJour: '2024-12-20T15:30:00'
-    },
-    {
-      nom: 'Précision des recommandations',
-      valeur: 94.5,
-      unite: '%',
-      tendance: 'hausse',
-      objectif: 95.0,
-      description: 'Pourcentage de recommandations jugées pertinentes',
-      derniereMiseAJour: '2024-12-20T15:30:00'
-    },
-    {
-      nom: 'Anomalies détectées automatiquement',
-      valeur: 127,
-      unite: 'détections',
-      tendance: 'hausse',
-      description: 'Nombre d\'anomalies détectées proactivement ce mois',
-      derniereMiseAJour: '2024-12-20T15:30:00'
-    },
-    {
-      nom: 'Temps économisé',
-      valeur: 24.5,
-      unite: 'heures',
-      tendance: 'hausse',
-      objectif: 30.0,
-      description: 'Temps économisé grâce à l\'automatisation ce mois',
-      derniereMiseAJour: '2024-12-20T15:30:00'
-    }
-  ];
-
-  const mockTemplates: ConversationTemplate[] = [
+  // Static conversation templates (reference data, not mock)
+  const templates: ConversationTemplate[] = [
     {
       id: 'analyse_stocks',
       nom: 'Analyse des stocks',
@@ -470,9 +362,9 @@ const IAAssistant: React.FC = () => {
         'Quels sont les articles en rupture ou sous le minimum ?',
         'Y a-t-il des écarts entre stock physique et comptable ?',
         'Quelles provisions pour obsolescence faut-il constituer ?',
-        'Comment optimiser la rotation des stocks ?'
+        'Comment optimiser la rotation des stocks ?',
       ],
-      contexte: 'gestion_stocks'
+      contexte: 'gestion_stocks',
     },
     {
       id: 'conformite_syscohada',
@@ -482,9 +374,9 @@ const IAAssistant: React.FC = () => {
         'Les amortissements sont-ils conformes aux règles SYSCOHADA ?',
         'Les provisions respectent-elles les exigences réglementaires ?',
         'Y a-t-il des erreurs de présentation dans les états financiers ?',
-        'Quels sont les points de non-conformité à corriger ?'
+        'Quels sont les points de non-conformité à corriger ?',
       ],
-      contexte: 'conformite'
+      contexte: 'conformite',
     },
     {
       id: 'cloture_rapide',
@@ -494,15 +386,28 @@ const IAAssistant: React.FC = () => {
         'Quelles sont les tâches critiques restantes ?',
         'Comment accélérer les contrôles de cohérence ?',
         'Quels processus peuvent être automatisés ?',
-        'Quel est le planning optimal pour la clôture ?'
+        'Quel est le planning optimal pour la clôture ?',
       ],
-      contexte: 'cloture_processus'
-    }
+      contexte: 'cloture_processus',
+    },
   ];
 
+  // Initialize with welcome message (no mock conversation history)
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages(mockMessages);
+      const welcomeMessage: Message = {
+        id: '1',
+        type: 'assistant',
+        content: 'Bonjour ! Je suis votre assistant IA pour la clôture comptable. Comment puis-je vous aider aujourd\'hui ?',
+        timestamp: new Date().toISOString(),
+        suggestions: [
+          'Analyser les créances douteuses',
+          'Vérifier la conformité SYSCOHADA',
+          'Calculer les provisions nécessaires',
+          'Générer un rapport de clôture',
+        ],
+      };
+      setMessages([welcomeMessage]);
     }
   }, []);
 
@@ -571,7 +476,7 @@ const IAAssistant: React.FC = () => {
   };
 
   const handleTemplateSelect = (templateId: string) => {
-    const template = mockTemplates.find(t => t.id === templateId);
+    const template = templates.find(t => t.id === templateId);
     if (template) {
       setInputMessage(template.questions[0]);
     }
@@ -608,9 +513,9 @@ const IAAssistant: React.FC = () => {
   };
 
   const kpis = useMemo(() => {
-    const analysesNonTraitees = mockAnalysesAutomatiques.filter(a => a.statut !== 'traite').length;
-    const recommandationsActives = mockRecommandations.filter(r => r.statut === 'acceptee' || r.statut === 'en_cours').length;
-    const impactEconomies = mockRecommandations
+    const analysesNonTraitees = analysesAutomatiques.filter(a => a.statut !== 'traite').length;
+    const recommandationsActives = recommandations.filter(r => r.statut === 'acceptee' || r.statut === 'en_cours').length;
+    const impactEconomies = recommandations
       .filter(r => r.statut === 'implementee' && r.impactChiffre)
       .reduce((sum, r) => sum + (r.impactChiffre || 0), 0);
 
@@ -621,7 +526,7 @@ const IAAssistant: React.FC = () => {
       precisionsIA: 94.5,
       tempsReponse: 1.2
     };
-  }, []);
+  }, [analysesAutomatiques, recommandations]);
 
   return (
     <div className="space-y-6">
@@ -924,7 +829,7 @@ const IAAssistant: React.FC = () => {
                   <CardTitle className="text-sm">Conversations Types</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {mockTemplates.map(template => (
+                  {templates.map(template => (
                     <button
                       key={template.id}
                       onClick={() => handleTemplateSelect(template.id)}
@@ -978,7 +883,7 @@ const IAAssistant: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {mockAnalysesAutomatiques.map(analyse => (
+            {analysesAutomatiques.map(analyse => (
               <Card key={analyse.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -1084,7 +989,7 @@ const IAAssistant: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {mockRecommandations.map(recommandation => (
+            {recommandations.map(recommandation => (
               <Card key={recommandation.id}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
@@ -1192,7 +1097,7 @@ const IAAssistant: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {mockMetriques.map((metrique, index) => (
+                  {metriques.map((metrique, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex justify-between items-start mb-3">
                         <div>

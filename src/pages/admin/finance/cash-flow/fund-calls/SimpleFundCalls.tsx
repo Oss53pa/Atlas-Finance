@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../../../../lib/db';
 import { formatDate } from '../../../../../utils/formatters';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
@@ -17,42 +19,21 @@ interface FundCall {
 
 export const SimpleFundCalls: React.FC = () => {
   const { t } = useLanguage();
-  const [fundsCall, setFundsCall] = useState<FundCall[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
 
-  // Mock data immédiatement visible
-  useEffect(() => {
-    const mockData: FundCall[] = [
-      {
-        id: 1,
-        request_date: "2025-01-15",
-        reference: "AF-2025-0001",
-        is_mark_as_pre_approved: true,
-        amount_requested: 2500000,
-        create_by_user: { fullname: "Jean Dupont" },
-        comment: "Appel de fonds pour projet Alpha",
-        leveling_account_from_info: { french_description: "Banque BCA" },
-        leveling_account_to_info: { french_description: "Banque UBA" }
-      },
-      {
-        id: 2,
-        request_date: "2025-02-01",
-        reference: "AF-2025-0002",
-        is_mark_as_pre_approved: false,
-        amount_requested: 1800000,
-        create_by_user: { fullname: "Marie Martin" },
-        comment: "Financement équipements Beta",
-        leveling_account_from_info: { french_description: "Caisse Centrale" },
-        leveling_account_to_info: { french_description: "Banque Atlantique" }
-      }
-    ];
-
-    setTimeout(() => {
-      setFundsCall(mockData);
-      setLoading(false);
-    }, 500);
+  const fundCallsData = useLiveQuery(async () => {
+    const setting = await db.settings.get('fund_calls');
+    if (!setting) return [];
+    try {
+      const parsed: FundCall[] = JSON.parse(setting.value);
+      return parsed;
+    } catch {
+      return [];
+    }
   }, []);
+
+  const loading = fundCallsData === undefined;
+  const fundsCall: FundCall[] = fundCallsData ?? [];
 
 
   const formatAmount = (amount: number): string => {

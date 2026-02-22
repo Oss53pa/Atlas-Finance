@@ -696,7 +696,7 @@ const JournalsPage: React.FC = () => {
                           </div>
                           <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
                             <p className="text-sm font-bold text-[var(--color-text-primary)]">
-                              {journal.totalCredit.toLocaleString()}€
+                              {formatCurrency(journal.totalCredit)}
                             </p>
                             <p className="text-xs text-[var(--color-text-tertiary)]">{t('accounting.credit')}</p>
                           </div>
@@ -786,14 +786,14 @@ const JournalsPage: React.FC = () => {
                               <td className="px-4 py-4 text-right">
                                 {journal.totalDebit > 0 && (
                                   <span className="text-sm font-mono text-[var(--color-error)]">
-                                    {journal.totalDebit.toLocaleString()}€
+                                    {formatCurrency(journal.totalDebit)}
                                   </span>
                                 )}
                               </td>
                               <td className="px-4 py-4 text-right">
                                 {journal.totalCredit > 0 && (
                                   <span className="text-sm font-mono text-[var(--color-success)]">
-                                    {journal.totalCredit.toLocaleString()}€
+                                    {formatCurrency(journal.totalCredit)}
                                   </span>
                                 )}
                               </td>
@@ -1388,16 +1388,16 @@ const JournalsPage: React.FC = () => {
                     <tr>
                       <td colSpan={4} className="px-2 py-2 text-right font-medium text-sm">Totaux :</td>
                       <td className="px-2 py-2 text-right font-mono font-bold text-sm text-[var(--color-error)]">
-                        {selectedEntryLines.reduce((sum, line) => {
+                        {formatCurrency(selectedEntryLines.reduce((sum, line) => {
                           const debit = parseFloat(line.debit?.replace(/\s/g, '').replace('-', '') || '0');
                           return sum + debit;
-                        }, 0).toLocaleString('fr-FR')}
+                        }, 0))}
                       </td>
                       <td className="px-2 py-2 text-right font-mono font-bold text-sm text-[var(--color-success)]">
-                        {selectedEntryLines.reduce((sum, line) => {
+                        {formatCurrency(selectedEntryLines.reduce((sum, line) => {
                           const credit = parseFloat(line.credit?.replace(/\s/g, '').replace('-', '') || '0');
                           return sum + credit;
-                        }, 0).toLocaleString('fr-FR')}
+                        }, 0))}
                       </td>
                       <td colSpan={2}></td>
                     </tr>
@@ -1420,7 +1420,7 @@ const JournalsPage: React.FC = () => {
                           ) : (
                             <span className="text-[var(--color-error)] font-medium flex items-center justify-center">
                               <AlertTriangle className="w-4 h-4 mr-1" />
-                              Écriture déséquilibrée (Débit: {totalDebit.toLocaleString('fr-FR')} - Crédit: {totalCredit.toLocaleString('fr-FR')})
+                              Écriture déséquilibrée (Débit: {formatCurrency(totalDebit)} - Crédit: {formatCurrency(totalCredit)})
                             </span>
                           );
                         })()}
@@ -1556,7 +1556,7 @@ const JournalsPage: React.FC = () => {
                   <CheckCircle className="w-5 h-5 mr-2" />
                   <span className="font-semibold">Écriture équilibrée</span>
                   <span className="ml-2 text-sm">
-                    (Débit = Crédit = {savedEntry.totalDebit?.toLocaleString('fr-FR')})
+                    (Débit = Crédit = {formatCurrency(savedEntry.totalDebit ?? 0)})
                   </span>
                 </div>
               </div>

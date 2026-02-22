@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { addressIpApi, authenticated_header } from '../../../../../globals/api';
-import axios, { AxiosError } from 'axios';
+import { db } from '../../../../../lib/db';
 import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
 import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
@@ -67,51 +66,22 @@ export const FundCallPlan: React.FC = () => {
 
   const getFundCall = async (): Promise<void> => {
     try {
-      // Mock fund call data
-      const mockFundCall = {
-        id: parseInt(id_fund_call || '1'),
-        reference: `AF-2025-${id_fund_call?.padStart(4, '0')}`,
-        approval_status: 1,
-        amount_requested: 3000000,
-        mandatory_amount: 5000000,
-        details: [
-          {
-            id: 1,
-            vendor: 'Fournisseur Alpha',
-            invoice_date: '2025-01-10',
-            entry_code: 'INV001',
-            reference: 'FA-001-2025',
-            description: 'Fournitures de bureau',
-            credit: 750000,
-            outstanding: 750000,
-            type_entry: 'Purchase',
-            age: 15,
-            invoice_status: 'CE',
-            cm_recommendation: 'TBP'
-          },
-          {
-            id: 2,
-            vendor: 'Fournisseur Beta',
-            invoice_date: '2025-01-08',
-            entry_code: 'INV002',
-            reference: 'FB-002-2025',
-            description: 'Services de maintenance',
-            credit: 1200000,
-            outstanding: 1200000,
-            type_entry: 'Service',
-            age: 18,
-            invoice_status: 'PA',
-            cm_recommendation: 'CFB'
-          }
-        ]
-      };
-
-      handleChangeFundCall(mockFundCall);
-      setSelectedInvoices(mockFundCall.details);
+      const setting = await db.settings.get('fund_calls');
+      if (setting) {
+        const parsed = JSON.parse(setting.value);
+        const allCalls = Array.isArray(parsed) ? parsed : [];
+        const found = allCalls.find(
+          (fc: Record<string, unknown>) => String(fc.id) === String(id_fund_call)
+        );
+        if (found) {
+          handleChangeFundCall(found);
+          setSelectedInvoices(found.details ?? []);
+        }
+      }
       setIsLoadingCancelable(false);
     } catch (error) {
       sweetAlertRef.current?.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-      console.error("Error fetching data:", (error as AxiosError).message);
+      console.error("Error fetching fund call data:", error);
     }
   };
 
@@ -175,53 +145,17 @@ export const FundCallPlan: React.FC = () => {
   const getEntries = async (): Promise<void> => {
     try {
       setIsLoadingCancelable(true);
-      // Mock entries data
-      const mockEntries: VendorGroup[] = [
-        {
-          vendor: 'Fournisseur Alpha',
-          entries: [
-            {
-              id: 1,
-              vendor: 'Fournisseur Alpha',
-              invoice_date: '2025-01-10',
-              entry_code: 'INV001',
-              reference: 'FA-001-2025',
-              description: 'Fournitures de bureau',
-              credit: 750000,
-              outstanding: 750000,
-              type_entry: 'Purchase',
-              age: 15,
-              invoice_status: 'CE',
-              cm_recommendation: 'TBP'
-            }
-          ]
-        },
-        {
-          vendor: 'Fournisseur Beta',
-          entries: [
-            {
-              id: 2,
-              vendor: 'Fournisseur Beta',
-              invoice_date: '2025-01-08',
-              entry_code: 'INV002',
-              reference: 'FB-002-2025',
-              description: 'Services de maintenance',
-              credit: 1200000,
-              outstanding: 1200000,
-              type_entry: 'Service',
-              age: 18,
-              invoice_status: 'PA',
-              cm_recommendation: 'CFB'
-            }
-          ]
-        }
-      ];
-
-      setOptionsInitiales(mockEntries);
-      setOptions(mockEntries);
+      const setting = await db.settings.get('fund_call_entries');
+      if (setting) {
+        const parsed: VendorGroup[] = JSON.parse(setting.value);
+        const entries = Array.isArray(parsed) ? parsed : [];
+        setOptionsInitiales(entries);
+        setOptions(entries);
+      }
       setIsLoadingCancelable(false);
     } catch (error) {
-      console.error("Error fetching data:", (error as AxiosError).message);
+      console.error("Error fetching entries data:", error);
+      setIsLoadingCancelable(false);
     }
   };
 
