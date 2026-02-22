@@ -67,7 +67,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     },
     {
       id: '2',
-      title: 'Clôture mensuelle',
+      title: 'Clôture périodique',
       message: 'La clôture de janvier est prête',
       type: 'success',
       timestamp: new Date(),
@@ -224,10 +224,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     ],
     closures: [
       { id: 'periodic', label: 'Clôture Périodique', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
-      { id: 'periodiques', label: 'Clôture Avancée', path: '/closures/periodiques', icon: <Zap className="w-4 h-4" /> },
       { id: 'revisions', label: 'Révisions', path: '/closures/revisions', icon: <CheckCircle className="w-4 h-4" /> },
       { id: 'carry-forward', label: 'Reports à Nouveau', path: '/closures/carry-forward', icon: <RefreshCw className="w-4 h-4" /> },
-      { id: 'annual', label: 'Clôture Annuelle', path: '/closures/annual', icon: <Lock className="w-4 h-4" /> },
       { id: 'audit-trail', label: 'Piste d\'Audit', path: '/closures/audit-trail', icon: <Shield className="w-4 h-4" /> }
     ],
     reporting: [

@@ -68,7 +68,7 @@ export async function validerEcriture(adapter: DataAdapter, entryId: string): Pr
   }
 
   // Full validation before accepting
-  const result = await validateJournalEntry({
+  const result = await validateJournalEntry(adapter, {
     date: entry.date,
     lines: entry.lines,
     journal: entry.journal,

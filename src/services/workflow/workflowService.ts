@@ -53,7 +53,7 @@ export interface BulkWorkflowResult {
  * Vérifie que l'écriture respecte les règles comptables de base.
  * Utilisé pour la transition draft → validated.
  */
-async function validateEntryForValidation(entry: DBJournalEntry): Promise<string[]> {
+async function validateEntryForValidation(adapter: DataAdapter, entry: DBJournalEntry): Promise<string[]> {
   const errors: string[] = [];
 
   // Vérification 1 : Équilibre D=C avec Money class
@@ -68,7 +68,7 @@ async function validateEntryForValidation(entry: DBJournalEntry): Promise<string
   }
 
   // Vérification 2 : Validation complète via le validateur
-  const validationResult = await validateJournalEntry({
+  const validationResult = await validateJournalEntry(adapter, {
     date: entry.date,
     lines: entry.lines,
     journal: entry.journal,
@@ -138,7 +138,7 @@ export async function validateEntry(
   }
 
   // 3. Valider les règles comptables
-  const validationErrors = await validateEntryForValidation(entry);
+  const validationErrors = await validateEntryForValidation(adapter, entry);
   if (validationErrors.length > 0) {
     return { success: false, errors: validationErrors };
   }
