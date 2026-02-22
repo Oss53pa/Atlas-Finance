@@ -31,6 +31,7 @@ const TABLE_MAP: Record<TableName, string> = {
   inventoryItems: 'inventory_items',
   aliasTiers: 'alias_tiers',
   aliasPrefixConfig: 'alias_prefix_config',
+  fiscalPeriods: 'fiscal_periods',
 }
 
 export class SupabaseAdapter implements DataAdapter {

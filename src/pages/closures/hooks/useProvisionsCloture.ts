@@ -24,9 +24,10 @@ export function useProvisionsCloture(sessionId?: string) {
     setError(null);
     try {
       // Calculate provisions from aging analysis
-      const result = await calculerProvisions(adapter, sessionId);
-      setProvisionsCalculees(result.provisions);
-      setTotalCalcule(result.totalProvision);
+      const provisions = await calculerProvisions(adapter, sessionId);
+      setProvisionsCalculees(provisions);
+      const totalCalc = provisions.reduce((sum, p) => money(sum).add(money(p.montantProvision)).toNumber(), 0);
+      setTotalCalcule(totalCalc);
 
       // Load recorded provisions from DB
       const allProvisions = await adapter.getAll<DBProvision>('provisions');
@@ -38,7 +39,7 @@ export function useProvisionsCloture(sessionId?: string) {
       const totalEnr = filtered.reduce((sum, p) => money(sum).add(money(p.montantProvision)).toNumber(), 0);
       setTotalEnregistre(totalEnr);
 
-      setEcart(money(result.totalProvision).subtract(money(totalEnr)).toNumber());
+      setEcart(money(totalCalc).subtract(money(totalEnr)).toNumber());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur chargement provisions');
     } finally {

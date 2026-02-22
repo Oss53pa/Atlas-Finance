@@ -6,7 +6,7 @@ import {
   StopCircle, PauseCircle, RefreshCw, ArrowRight,
   CalendarX, CalendarCheck, History, Timer, Ban,
   CheckSquare, Square, Activity, TrendingUp, Eye,
-  FileWarning, UserCheck, Key, Settings
+  FileWarning, UserCheck, Key, Settings, Archive
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
@@ -661,7 +661,7 @@ const ControlePeriodes: React.FC = () => {
                       <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                       <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation comptable</span>
                     </div>
-                    <Badge variant="success">{t('accounting.validated')}</Badge>
+                    <Badge variant="default" className="bg-green-100 text-green-800">{t('accounting.validated')}</Badge>
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
@@ -669,7 +669,7 @@ const ControlePeriodes: React.FC = () => {
                       <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                       <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation fiscale</span>
                     </div>
-                    <Badge variant="success">{t('accounting.validated')}</Badge>
+                    <Badge variant="default" className="bg-green-100 text-green-800">{t('accounting.validated')}</Badge>
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-[var(--color-warning-lightest)] rounded-lg">
@@ -677,7 +677,7 @@ const ControlePeriodes: React.FC = () => {
                       <Clock className="w-5 h-5 text-[var(--color-warning)]" />
                       <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation audit</span>
                     </div>
-                    <Badge variant="warning">{t('status.pending')}</Badge>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{t('status.pending')}</Badge>
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-[var(--color-success-lightest)] rounded-lg">
@@ -685,7 +685,7 @@ const ControlePeriodes: React.FC = () => {
                       <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                       <span className="text-sm font-medium text-[var(--color-text-primary)]">Validation direction</span>
                     </div>
-                    <Badge variant="success">{t('accounting.validated')}</Badge>
+                    <Badge variant="default" className="bg-green-100 text-green-800">{t('accounting.validated')}</Badge>
                   </div>
                 </div>
 

@@ -195,7 +195,7 @@ export function useControlesCoherence(controlIds?: string[]) {
             recommandations: unbalanced.length > 0
               ? ['Corriger les écritures déséquilibrées avant clôture']
               : [],
-            comptesConcernes: unbalanced.flatMap(e => e.lines.map(l => l.accountCode)).filter((v, i, a) => a.indexOf(v) === i),
+            comptesConcernes: unbalanced.flatMap(e => e.lines.map((l: any) => l.accountCode)).filter((v: string, i: number, a: string[]) => a.indexOf(v) === i),
           };
         },
         ['Débit = Crédit pour chaque écriture'],
