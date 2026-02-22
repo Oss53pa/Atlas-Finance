@@ -108,8 +108,6 @@ const PeriodicClosuresModule = React.lazy(() => import('./pages/closures/Periodi
 const RevisionsModule = React.lazy(() => import('./pages/closures/RevisionsModule'));
 const ReportsANouveauModule = React.lazy(() => import('./pages/closures/ReportsANouveauModule'));
 const PisteAuditModule = React.lazy(() => import('./pages/closures/PisteAuditModule'));
-const CloturesPeriodiquesPage = React.lazy(() => import('./pages/closures/CloturesPeriodiquesPage'));
-const ClotureAnnuelle = React.lazy(() => import('./pages/closures/ClotureAnnuelle'));
 
 // Reporting
 const ReportingDashboard = React.lazy(() => import('./pages/reporting/ReportingDashboard'));
@@ -296,11 +294,9 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Clôtures" /></RBACGuard>}>
                           <Route path="/closures" element={<ClosureModulesIndex />} />
                           <Route path="/closures/periodic" element={<PeriodicClosuresModule />} />
-                          <Route path="/closures/periodiques" element={<CloturesPeriodiquesPage />} />
                           <Route path="/closures/revisions" element={<RevisionsModule />} />
                           <Route path="/closures/carry-forward" element={<ReportsANouveauModule />} />
                           <Route path="/closures/audit-trail" element={<PisteAuditModule />} />
-                          <Route path="/closures/annual" element={<ClotureAnnuelle />} />
                         </Route>
 
                         {/* Etats financiers */}
