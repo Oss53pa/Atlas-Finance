@@ -9,10 +9,13 @@ import {
   Landmark, Building2, Package, Users, Wallet,
   TrendingDown, TrendingUp, FileStack, BarChart3,
   Check, ChevronRight, Pencil, X, Lightbulb, Save, RotateCcw,
-  Loader2,
+  Loader2, Tag, Link2,
 } from 'lucide-react';
 import { db } from '../../lib/db';
+import type { DBAliasTiers } from '../../lib/db';
 import { planComptableService } from '../../services/accounting/planComptableService';
+import { aliasTiersService } from '../../services/accounting/aliasTiersService';
+import { isAliasEligible, getPrefixForSousCompte, getAliasTypeLabel } from '../../data/alias-tiers-config';
 import {
   CLASSES_SYSCOHADA,
   getCategoriesByClasse,
@@ -62,6 +65,7 @@ interface Props {
 }
 
 type StepStatus = 'active' | 'completed' | 'inactive';
+type AliasMode = 'auto' | 'custom' | 'attach';
 
 // ============================================================================
 // NEXT CODE ALGORITHM
@@ -201,6 +205,13 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [libelleError, setLibelleError] = useState('');
 
+  // Alias tiers state
+  const [aliasMode, setAliasMode] = useState<AliasMode>('auto');
+  const [autoAlias, setAutoAlias] = useState('');
+  const [customAlias, setCustomAlias] = useState('');
+  const [existingAliases, setExistingAliases] = useState<DBAliasTiers[]>([]);
+  const [selectedAliasId, setSelectedAliasId] = useState('');
+
   // Compte counts for display
   const [categorieCounts, setCategorieCounts] = useState<Record<string, number>>({});
   const [sousCompteCounts, setSousCompteCounts] = useState<Record<string, number>>({});
@@ -248,6 +259,27 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
     setSensNormal(ns.sensNormal);
     setIsNatureSensVariable(ns.isVariable);
   }, [selectedSousCompte, selectedClasse, selectedCategorie]);
+
+  // Load alias data when sous-compte changes
+  useEffect(() => {
+    if (!selectedSousCompte) return;
+    const prefix = getPrefixForSousCompte(selectedSousCompte.code);
+    if (!prefix) return;
+
+    setAliasMode('auto');
+    setCustomAlias('');
+    setSelectedAliasId('');
+
+    const loadAliasData = async () => {
+      const [nextAlias, aliases] = await Promise.all([
+        aliasTiersService.getNextAlias(prefix),
+        aliasTiersService.getAliasesByPrefix(prefix),
+      ]);
+      setAutoAlias(nextAlias);
+      setExistingAliases(aliases);
+    };
+    loadAliasData();
+  }, [selectedSousCompte]);
 
   // Step statuses
   const getStepStatus = useCallback((step: number): StepStatus => {
@@ -299,6 +331,11 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
     setLibelle('');
     setLibelleError('');
     setIsNatureSensVariable(false);
+    setAliasMode('auto');
+    setAutoAlias('');
+    setCustomAlias('');
+    setExistingAliases([]);
+    setSelectedAliasId('');
   };
 
   const handleSave = async () => {
@@ -333,10 +370,40 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
         isActive: true,
       });
 
+      // Handle alias creation/attachment
+      const prefix = getPrefixForSousCompte(selectedSousCompte.code);
+      let aliasLabel = '';
+      if (prefix && isAliasEligible(selectedSousCompte.code)) {
+        if (aliasMode === 'auto') {
+          await aliasTiersService.createAlias({
+            alias: autoAlias,
+            prefix,
+            label: libelle.trim(),
+            comptesComptables: [suggestedCode],
+          });
+          aliasLabel = autoAlias;
+        } else if (aliasMode === 'custom' && customAlias.trim()) {
+          await aliasTiersService.createAlias({
+            alias: customAlias.trim(),
+            prefix,
+            label: libelle.trim(),
+            comptesComptables: [suggestedCode],
+          });
+          aliasLabel = customAlias.trim();
+        } else if (aliasMode === 'attach' && selectedAliasId) {
+          await aliasTiersService.attachAccountToAlias(selectedAliasId, suggestedCode);
+          const attached = existingAliases.find(a => a.id === selectedAliasId);
+          aliasLabel = attached?.alias || '';
+        }
+      }
+
       toast.success(
         <div>
           <p className="font-semibold">Compte cree avec succes !</p>
-          <p className="text-sm text-neutral-600">{suggestedCode} — {libelle.trim()}</p>
+          <p className="text-sm text-neutral-600">
+            {suggestedCode} — {libelle.trim()}
+            {aliasLabel && <span className="ml-1 text-purple-600">[{aliasLabel}]</span>}
+          </p>
         </div>
       );
 
@@ -479,6 +546,7 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
                       {sousComptes.map(sc => {
                         const count = sousCompteCounts[sc.code] ?? 0;
                         const colors = CLASS_COLORS[selectedClasse!.code];
+                        const aliasPrefix = getPrefixForSousCompte(sc.code);
                         return (
                           <button
                             key={sc.code}
@@ -488,7 +556,14 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
                           >
                             <span className={`text-sm font-bold font-mono ${colors.text} shrink-0`}>{sc.code}</span>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-neutral-800 truncate">{sc.libelle}</p>
+                              <div className="flex items-center gap-1">
+                                <p className="text-xs font-medium text-neutral-800 truncate">{sc.libelle}</p>
+                                {aliasPrefix && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-700 shrink-0">
+                                    {aliasPrefix}
+                                  </span>
+                                )}
+                              </div>
                               {count > 0 && <p className="text-[10px] text-neutral-400">{count}</p>}
                             </div>
                           </button>
@@ -548,6 +623,101 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
                           </span>
                         </div>
                       </div>
+
+                      {/* Alias Tiers Section — only for eligible sous-comptes */}
+                      {selectedSousCompte && isAliasEligible(selectedSousCompte.code) && (() => {
+                        const prefix = getPrefixForSousCompte(selectedSousCompte.code)!;
+                        const typeLabel = getAliasTypeLabel(selectedSousCompte.code);
+                        return (
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 py-2.5 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Tag className="w-3.5 h-3.5 text-purple-600" />
+                              <span className="text-xs font-semibold text-purple-800">
+                                Alias Tiers — {typeLabel}
+                              </span>
+                              <span className="text-[10px] text-purple-500 font-mono">({prefix})</span>
+                            </div>
+
+                            {/* Radio modes */}
+                            <div className="flex gap-3">
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="aliasMode"
+                                  checked={aliasMode === 'auto'}
+                                  onChange={() => setAliasMode('auto')}
+                                  className="w-3 h-3 text-purple-600"
+                                />
+                                <span className="text-xs text-purple-700 font-medium">Auto</span>
+                              </label>
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="aliasMode"
+                                  checked={aliasMode === 'custom'}
+                                  onChange={() => setAliasMode('custom')}
+                                  className="w-3 h-3 text-purple-600"
+                                />
+                                <span className="text-xs text-purple-700 font-medium">Personnalise</span>
+                              </label>
+                              {existingAliases.length > 0 && (
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name="aliasMode"
+                                    checked={aliasMode === 'attach'}
+                                    onChange={() => setAliasMode('attach')}
+                                    className="w-3 h-3 text-purple-600"
+                                  />
+                                  <Link2 className="w-3 h-3 text-purple-600" />
+                                  <span className="text-xs text-purple-700 font-medium">Rattacher</span>
+                                </label>
+                              )}
+                            </div>
+
+                            {/* Mode content */}
+                            {aliasMode === 'auto' && (
+                              <div className="flex items-center gap-2 bg-white/60 rounded px-2 py-1.5">
+                                <span className="text-xs text-purple-600">Prochain alias :</span>
+                                <span className="text-sm font-bold font-mono text-purple-800">{autoAlias}</span>
+                              </div>
+                            )}
+                            {aliasMode === 'custom' && (
+                              <input
+                                type="text"
+                                placeholder={`Ex: ${prefix}-COSMOS`}
+                                value={customAlias}
+                                onChange={(e) => setCustomAlias(e.target.value)}
+                                className="w-full px-2 py-1.5 border border-purple-300 rounded bg-white/60 focus:ring-2 focus:ring-purple-400 text-xs font-mono"
+                              />
+                            )}
+                            {aliasMode === 'attach' && (
+                              <select
+                                value={selectedAliasId}
+                                onChange={(e) => setSelectedAliasId(e.target.value)}
+                                className="w-full px-2 py-1.5 border border-purple-300 rounded bg-white/60 focus:ring-2 focus:ring-purple-400 text-xs"
+                              >
+                                <option value="">-- Choisir un alias existant --</option>
+                                {existingAliases.map(a => (
+                                  <option key={a.id} value={a.id}>
+                                    {a.alias} — {a.label}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+
+                            {/* Preview */}
+                            <div className="text-[11px] text-purple-500 flex items-center gap-1.5 pt-0.5">
+                              <span className="font-mono">{suggestedCode}</span>
+                              <span>&rarr;</span>
+                              <span className="font-bold font-mono">
+                                {aliasMode === 'auto' ? autoAlias : aliasMode === 'custom' ? (customAlias || '...') : (existingAliases.find(a => a.id === selectedAliasId)?.alias || '...')}
+                              </span>
+                              {libelle && <span className="truncate">— {libelle}</span>}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Nature/Sens selectors when variable */}
                       {isNatureSensVariable && (

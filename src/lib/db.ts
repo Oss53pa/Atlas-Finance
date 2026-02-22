@@ -202,6 +202,22 @@ export interface DBInventoryItem {
   updatedAt: string;
 }
 
+export interface DBAliasTiers {
+  id: string;
+  alias: string;
+  prefix: string;
+  label: string;
+  comptesComptables: string[];
+  createdAt: string;
+}
+
+export interface DBAliasPrefixConfig {
+  id: string;
+  sousCompteCode: string;
+  prefix: string;
+  typeLabel: string;
+}
+
 // ============================================================================
 // DATABASE
 // ============================================================================
@@ -221,6 +237,8 @@ class AtlasFinanceDB extends Dexie {
   hedgingPositions!: Table<DBHedgingPosition, string>;
   revisionItems!: Table<DBRevisionItem, string>;
   inventoryItems!: Table<DBInventoryItem, string>;
+  aliasTiers!: Table<DBAliasTiers, string>;
+  aliasPrefixConfig!: Table<DBAliasPrefixConfig, string>;
 
   constructor() {
     super('AtlasFinanceDB');
@@ -264,6 +282,24 @@ class AtlasFinanceDB extends Dexie {
       hedgingPositions: 'id, currency, type, status, maturityDate',
       revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
       inventoryItems: 'id, code, name, category, location, status',
+    });
+    this.version(4).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
     });
   }
 }
