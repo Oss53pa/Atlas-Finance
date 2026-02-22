@@ -1123,7 +1123,7 @@ const AdvancedBalance: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p>Page 1 sur 1</p>
-                  <p>Généré par: Jean Dupont</p>
+                  <p>Généré par: —</p>
                 </div>
               </div>
             </div>

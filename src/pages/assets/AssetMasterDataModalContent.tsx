@@ -1709,7 +1709,7 @@
                                       newLifespan: '10 ans',
                                       oldResidual: '500 000',
                                       newResidual: '450 000',
-                                      responsible: 'Marie Kouam',
+                                      responsible: '',
                                       hasComment: false
                                     }
                                   ].map((item, index) => (
@@ -2738,7 +2738,7 @@
                                   category: 'Photo',
                                   date: '10/02/2024',
                                   size: '3.8 MB',
-                                  addedBy: 'Paul Dubois',
+                                  addedBy: '',
                                   color: 'green'
                                 },
                                 {

@@ -80,7 +80,7 @@ const TasksModule: React.FC = () => {
       description: 'Organiser la session de formation sur les nouvelles normes',
       status: 'done',
       priority: 'low',
-      assignee: 'Sophie Leblanc',
+      assignee: '',
       completedAt: new Date('2024-03-01'),
       tags: ['Formation'],
       createdAt: new Date()

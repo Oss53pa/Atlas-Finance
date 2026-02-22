@@ -218,6 +218,22 @@ export interface DBAliasPrefixConfig {
   typeLabel: string;
 }
 
+export interface DBFiscalPeriod {
+  id: string;
+  fiscalYearId: string;
+  code: string;
+  label: string;
+  type: 'mensuelle' | 'trimestrielle';
+  startDate: string;
+  endDate: string;
+  status: 'ouverte' | 'en_cloture' | 'cloturee' | 'rouverte';
+  closedAt?: string;
+  closedBy?: string;
+  reopenedAt?: string;
+  reopenedBy?: string;
+  progression: number;
+}
+
 // ============================================================================
 // DATABASE
 // ============================================================================
@@ -239,6 +255,7 @@ class AtlasFinanceDB extends Dexie {
   inventoryItems!: Table<DBInventoryItem, string>;
   aliasTiers!: Table<DBAliasTiers, string>;
   aliasPrefixConfig!: Table<DBAliasPrefixConfig, string>;
+  fiscalPeriods!: Table<DBFiscalPeriod, string>;
 
   constructor() {
     super('AtlasFinanceDB');
@@ -300,6 +317,25 @@ class AtlasFinanceDB extends Dexie {
       inventoryItems: 'id, code, name, category, location, status',
       aliasTiers: 'id, alias, prefix',
       aliasPrefixConfig: 'id, sousCompteCode, prefix',
+    });
+    this.version(5).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
     });
   }
 }

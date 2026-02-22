@@ -877,10 +877,10 @@ const AnalyticalAxesPage: React.FC = () => {
                       defaultValue={selectedAxe?.responsable}
                     >
                       <option value="">Sélectionner un responsable</option>
-                      <option value="user1">Jean Dupont - Directeur Financier</option>
-                      <option value="user2">Marie Martin - Contrôleur de Gestion</option>
-                      <option value="user3">Pierre Durand - Chef Comptable</option>
-                      <option value="user4">Sophie Bernard - Analyste Financier</option>
+                      <option value="user1">Directeur Financier</option>
+                      <option value="user2">Contrôleur de Gestion</option>
+                      <option value="user3">Chef Comptable</option>
+                      <option value="user4">Analyste Financier</option>
                     </select>
                   </div>
                 </div>

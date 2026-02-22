@@ -1136,7 +1136,7 @@ export const renderInventaireAuto = () => {
                     expected: 'Bureau 205 - Étage 2',
                     found: 'Introuvable',
                     severity: 'high',
-                    assignee: 'Marie Dubois',
+                    assignee: '',
                     notes: 'Dernière localisation confirmée il y a 3 mois'
                   },
                   {
@@ -1169,7 +1169,7 @@ export const renderInventaireAuto = () => {
                     expected: 'Plaque: AB-123-CD',
                     found: 'Plaque: AB-124-CD',
                     severity: 'medium',
-                    assignee: 'Sophie Leclerc',
+                    assignee: '',
                     notes: 'Discordance numéro plaque dans base de données'
                   },
                   {
@@ -1180,7 +1180,7 @@ export const renderInventaireAuto = () => {
                     expected: 'Bureau direction',
                     found: 'Zone accès restreint',
                     severity: 'low',
-                    assignee: 'Marie Dubois',
+                    assignee: '',
                     notes: 'Nécessite autorisation spéciale pour vérification'
                   }
                 ].map((anomaly) => (

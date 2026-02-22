@@ -16,7 +16,7 @@ import type {
 import type { DataAdapter, DataMode, TableName, QueryFilters } from '../DataAdapter'
 
 // ============================================================================
-// DATABASE SCHEMA (mirrors src/lib/db.ts version 4)
+// DATABASE SCHEMA (mirrors src/lib/db.ts version 5)
 // ============================================================================
 
 class AtlasFinanceDexie extends Dexie {
@@ -36,6 +36,7 @@ class AtlasFinanceDexie extends Dexie {
   inventoryItems!: Table<any, string>
   aliasTiers!: Table<any, string>
   aliasPrefixConfig!: Table<any, string>
+  fiscalPeriods!: Table<any, string>
 
   constructor(dbName: string = 'AtlasFinanceDB') {
     super(dbName)
@@ -99,6 +100,25 @@ class AtlasFinanceDexie extends Dexie {
       inventoryItems: 'id, code, name, category, location, status',
       aliasTiers: 'id, alias, prefix',
       aliasPrefixConfig: 'id, sousCompteCode, prefix',
+    })
+    this.version(5).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
     })
   }
 }

@@ -282,7 +282,7 @@ const CompleteTasksModule: React.FC = () => {
       description: 'Organiser la session de formation sur les nouvelles normes comptables',
       status: 'done',
       priority: 'low',
-      assignee: 'Sophie Leblanc',
+      assignee: '',
       assigneeTeam: 'Formation',
       completedAt: new Date('2024-03-01'),
       tags: ['Formation', 'SYSCOHADA', 'Compliance'],
@@ -294,7 +294,7 @@ const CompleteTasksModule: React.FC = () => {
           date: new Date('2024-02-28'),
           hours: 8,
           description: 'Préparation supports',
-          user: 'Sophie Leblanc',
+          user: '',
           billable: false
         },
         {
@@ -302,7 +302,7 @@ const CompleteTasksModule: React.FC = () => {
           date: new Date('2024-03-01'),
           hours: 4,
           description: 'Animation session',
-          user: 'Sophie Leblanc',
+          user: '',
           billable: true
         }
       ]
@@ -313,7 +313,7 @@ const CompleteTasksModule: React.FC = () => {
       description: 'Déployer et configurer le nouveau module CRM dans l\'ERP',
       status: 'blocked',
       priority: 'high',
-      assignee: 'Alex Chen',
+      assignee: '',
       assigneeTeam: 'IT',
       dueDate: new Date('2024-03-25'),
       tags: ['IT', 'CRM', 'Intégration'],

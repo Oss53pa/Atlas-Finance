@@ -605,11 +605,11 @@ const UsersPage: React.FC = () => {
               <div className="space-y-4">
                 {[
                   { user: '', action: 'Connexion réussie', time: 'Il y a 2 heures', type: 'success' },
-                  { user: 'Jean Martin', action: 'Modification utilisateur Sophie Bernard', time: 'Il y a 3 heures', type: 'info' },
-                  { user: 'Sophie Bernard', action: 'Export rapport utilisateurs', time: 'Il y a 5 heures', type: 'info' },
-                  { user: 'Pierre Leroy', action: 'Tentative connexion échouée', time: 'Il y a 6 heures', type: 'error' },
+                  { user: '', action: 'Modification utilisateur', time: 'Il y a 3 heures', type: 'info' },
+                  { user: '', action: 'Export rapport utilisateurs', time: 'Il y a 5 heures', type: 'info' },
+                  { user: '', action: 'Tentative connexion échouée', time: 'Il y a 6 heures', type: 'error' },
                   { user: '', action: 'Création rôle Assistant RH', time: 'Hier à 16:30', type: 'success' },
-                  { user: 'Jean Martin', action: 'Suspension compte Pierre Leroy', time: 'Hier à 14:20', type: 'warning' }
+                  { user: '', action: 'Suspension compte utilisateur', time: 'Hier à 14:20', type: 'warning' }
                 ].map((log, index) => (
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-[var(--color-surface-hover)]">
                     <div className="flex items-center space-x-4">
@@ -670,7 +670,7 @@ const UsersPage: React.FC = () => {
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Dupont"
+                    placeholder="Nom"
                   />
                 </div>
               </div>

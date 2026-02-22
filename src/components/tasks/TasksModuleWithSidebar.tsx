@@ -99,7 +99,7 @@ const TasksModuleWithSidebar: React.FC = () => {
       title: 'Rapprochement bancaire automatique',
       status: 'review',
       priority: 'high',
-      assignee: 'Sophie Leblanc',
+      assignee: '',
       createdAt: new Date(),
       attachments: 12,
       comments: 0
@@ -110,7 +110,7 @@ const TasksModuleWithSidebar: React.FC = () => {
       status: 'review',
       priority: 'medium',
       dueDate: new Date('2024-03-25'),
-      assignee: 'Thomas Martin',
+      assignee: '',
       createdAt: new Date(),
       attachments: 12,
       comments: 0
@@ -120,7 +120,7 @@ const TasksModuleWithSidebar: React.FC = () => {
       title: 'Audit fournisseurs terminé',
       status: 'done',
       priority: 'low',
-      assignee: 'Emma Wilson',
+      assignee: '',
       completedAt: new Date('2024-03-01'),
       createdAt: new Date(),
       attachments: 12,

@@ -24,6 +24,7 @@ export interface ControleResult {
   categorie: ControleCategorie;
   priorite: ControlePriorite;
   statut: ControleStatut;
+  blocking: boolean;
   valeurAttendue?: number;
   valeurReelle?: number;
   ecart?: number;
@@ -39,6 +40,12 @@ export interface ControleResult {
   automatique: boolean;
   utilisateurExecution: string;
 }
+
+/** Monthly control IDs (9/17) */
+export const MONTHLY_CONTROL_IDS = ['C1', 'C2', 'C3', 'C5', 'C6', 'C8', 'C10', 'C11', 'C13'];
+
+/** Annual blocking control IDs (7/17) */
+export const ANNUAL_BLOCKING_IDS = ['C1', 'C2', 'C3', 'C4', 'C14', 'C15', 'C16'];
 
 // ============================================================================
 // CONTROL RUNNERS
@@ -71,6 +78,7 @@ function runControl(
     categorie,
     priorite,
     statut: result.statut,
+    blocking: ANNUAL_BLOCKING_IDS.includes(id),
     valeurAttendue: result.valeurAttendue,
     valeurReelle: result.valeurReelle,
     ecart,
@@ -92,7 +100,7 @@ function runControl(
 // HOOK
 // ============================================================================
 
-export function useControlesCoherence() {
+export function useControlesCoherence(controlIds?: string[]) {
   const { adapter } = useData();
   const [controles, setControles] = useState<ControleResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -614,14 +622,15 @@ export function useControlesCoherence() {
         ['Comptabilité Générale'],
       ));
 
-      setControles(results);
+      const filtered = controlIds ? results.filter(r => controlIds.includes(r.id)) : results;
+      setControles(filtered);
       setLastRun(new Date().toISOString());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'exécution des contrôles');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [controlIds]);
 
   useEffect(() => {
     executeControles();

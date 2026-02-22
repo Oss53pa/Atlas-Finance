@@ -813,9 +813,9 @@ const ProspectsModule: React.FC = () => {
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
                       <option value="">Sélectionner</option>
-                      <option value="Marie Kouam">Marie Kouam</option>
                       <option value="">—</option>
-                      <option value="Sophie Martin">Sophie Martin</option>
+                      <option value="">—</option>
+                      <option value="">—</option>
                     </select>
                   </div>
                 </div>
@@ -979,9 +979,9 @@ const ProspectsModule: React.FC = () => {
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="">Sélectionner</option>
-                      <option value="Marie Kouam">Marie Kouam</option>
                       <option value="">—</option>
-                      <option value="Sophie Martin">Sophie Martin</option>
+                      <option value="">—</option>
+                      <option value="">—</option>
                     </select>
                   </div>
                 </div>
