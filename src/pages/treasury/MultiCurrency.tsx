@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type DBExchangeRate, type DBHedgingPosition } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Globe,
@@ -38,7 +39,6 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { treasuryService } from '../../services/treasury.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 
 interface CurrencyPosition {
@@ -91,152 +91,83 @@ const MultiCurrency: React.FC = () => {
   const [currencyModal, setCurrencyModal] = useState<CurrencyModal>({ isOpen: false, mode: 'view' });
   const [selectedBaseCurrency, setSelectedBaseCurrency] = useState('EUR');
 
-  // Mock data for demonstration
-  const mockCurrencyPositions: CurrencyPosition[] = [
-    {
-      currency: 'EUR',
-      balance: 4325000,
-      equivalentEUR: 4325000,
-      accounts: 4,
-      averageRate: 1.0,
-      rateChange24h: 0,
-      lastUpdate: '2024-09-19T10:30:00Z',
-      exposure: 'low',
-      hedged: false,
-      hedgeRatio: 0
-    },
-    {
-      currency: 'USD',
-      balance: 3200000,
-      equivalentEUR: 2944000,
-      accounts: 2,
-      averageRate: 1.087,
-      rateChange24h: 0.0023,
-      lastUpdate: '2024-09-19T10:25:00Z',
-      exposure: 'high',
-      hedged: true,
-      hedgeRatio: 0.75
-    },
-    {
-      currency: 'GBP',
-      balance: 950000,
-      equivalentEUR: 1092500,
-      accounts: 1,
-      averageRate: 0.8695,
-      rateChange24h: -0.0045,
-      lastUpdate: '2024-09-19T10:20:00Z',
-      exposure: 'medium',
-      hedged: true,
-      hedgeRatio: 0.60
-    },
-    {
-      currency: 'CHF',
-      balance: 1200000,
-      equivalentEUR: 1296000,
-      accounts: 1,
-      averageRate: 0.9259,
-      rateChange24h: 0.0012,
-      lastUpdate: '2024-09-19T10:15:00Z',
-      exposure: 'medium',
-      hedged: false,
-      hedgeRatio: 0
-    },
-    {
-      currency: 'JPY',
-      balance: 45000000,
-      equivalentEUR: 283500,
-      accounts: 1,
-      averageRate: 158.73,
-      rateChange24h: -0.85,
-      lastUpdate: '2024-09-19T10:10:00Z',
-      exposure: 'low',
-      hedged: true,
-      hedgeRatio: 1.0
-    }
-  ];
+  // Live Dexie queries
+  const dbExchangeRates = useLiveQuery(() => db.exchangeRates.toArray()) || [];
+  const dbHedgingPositions = useLiveQuery(() => db.hedgingPositions.toArray()) || [];
 
-  const mockExchangeRates: ExchangeRate[] = [
-    {
-      from: 'USD',
-      to: 'EUR',
-      rate: 0.9200,
-      change24h: 0.0023,
-      change7d: -0.0156,
-      change30d: 0.0287,
-      lastUpdate: '2024-09-19T10:30:00Z',
-      provider: 'Reuters'
-    },
-    {
-      from: 'GBP',
-      to: 'EUR',
-      rate: 1.1500,
-      change24h: -0.0045,
-      change7d: 0.0098,
-      change30d: -0.0234,
-      lastUpdate: '2024-09-19T10:30:00Z',
-      provider: 'Bloomberg'
-    },
-    {
-      from: 'CHF',
-      to: 'EUR',
-      rate: 1.0800,
-      change24h: 0.0012,
-      change7d: 0.0034,
-      change30d: 0.0145,
-      lastUpdate: '2024-09-19T10:30:00Z',
-      provider: 'Reuters'
-    },
-    {
-      from: 'JPY',
-      to: 'EUR',
-      rate: 0.0063,
-      change24h: -0.000054,
-      change7d: 0.000123,
-      change30d: -0.000298,
-      lastUpdate: '2024-09-19T10:30:00Z',
-      provider: 'ECB'
-    }
-  ];
+  // Map Dexie exchange rates to the component's ExchangeRate shape
+  const exchangeRates: ExchangeRate[] = useMemo(() => {
+    return dbExchangeRates.map((er: DBExchangeRate) => ({
+      from: er.fromCurrency,
+      to: er.toCurrency,
+      rate: er.rate,
+      change24h: 0,
+      change7d: 0,
+      change30d: 0,
+      lastUpdate: er.date,
+      provider: er.provider
+    }));
+  }, [dbExchangeRates]);
 
-  const mockHedgingPositions: HedgingPosition[] = [
-    {
-      id: '1',
-      currency: 'USD',
-      type: 'forward',
-      amount: 2400000,
-      strikeRate: 1.0850,
-      currentRate: 1.0870,
-      maturityDate: '2024-12-15',
-      unrealizedPnL: -4800,
-      status: 'active'
-    },
-    {
-      id: '2',
-      currency: 'GBP',
-      type: 'option',
-      amount: 570000,
-      strikeRate: 0.8700,
-      currentRate: 0.8695,
-      maturityDate: '2024-11-30',
-      unrealizedPnL: 285,
-      status: 'active'
-    },
-    {
-      id: '3',
-      currency: 'JPY',
-      type: 'swap',
-      amount: 45000000,
-      strikeRate: 160.00,
-      currentRate: 158.73,
-      maturityDate: '2025-03-20',
-      unrealizedPnL: 3560,
-      status: 'active'
+  // Map Dexie hedging positions to the component's HedgingPosition shape
+  const hedgingPositions: HedgingPosition[] = useMemo(() => {
+    return dbHedgingPositions.map((hp: DBHedgingPosition) => ({
+      id: hp.id,
+      currency: hp.currency,
+      type: hp.type,
+      amount: hp.amount,
+      strikeRate: hp.strikeRate,
+      currentRate: hp.currentRate,
+      maturityDate: hp.maturityDate,
+      unrealizedPnL: hp.unrealizedPnL,
+      status: hp.status
+    }));
+  }, [dbHedgingPositions]);
+
+  // Build exchange rate lookup (fromCurrency -> rate to EUR)
+  const rateLookup = useMemo(() => {
+    const lookup: Record<string, number> = {};
+    for (const er of exchangeRates) {
+      if (er.to === 'EUR') {
+        lookup[er.from] = er.rate;
+      }
     }
-  ];
+    return lookup;
+  }, [exchangeRates]);
+
+  // Build currency positions from hedging positions grouped by currency
+  const currencyPositions: CurrencyPosition[] = useMemo(() => {
+    const grouped: Record<string, DBHedgingPosition[]> = {};
+    for (const hp of dbHedgingPositions) {
+      if (!grouped[hp.currency]) grouped[hp.currency] = [];
+      grouped[hp.currency].push(hp);
+    }
+
+    return Object.entries(grouped).map(([currency, hps]) => {
+      const totalBalance = hps.reduce((sum, hp) => sum + hp.amount, 0);
+      const rate = rateLookup[currency] || 1;
+      const equivalentEUR = totalBalance * rate;
+      const hedgedHps = hps.filter(hp => hp.status === 'active');
+      const hedgeRatio = hedgedHps.length > 0 ? hedgedHps.reduce((sum, hp) => sum + hp.amount, 0) / totalBalance : 0;
+
+      return {
+        currency,
+        balance: totalBalance,
+        equivalentEUR,
+        accounts: hps.length,
+        averageRate: rate,
+        rateChange24h: 0,
+        lastUpdate: hps[0]?.createdAt || '',
+        exposure: equivalentEUR > 2000000 ? 'high' as const : equivalentEUR > 500000 ? 'medium' as const : 'low' as const,
+        hedged: hedgeRatio > 0,
+        hedgeRatio
+      };
+    });
+  }, [dbHedgingPositions, rateLookup]);
 
   // Filter currencies based on search and filters
   const filteredCurrencies = useMemo(() => {
-    return mockCurrencyPositions.filter(currency => {
+    return currencyPositions.filter(currency => {
       const matchesSearch = currency.currency.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesExposure = filterExposure === 'all' || currency.exposure === filterExposure;
       const matchesHedged = filterHedged === 'all' ||
@@ -245,7 +176,7 @@ const MultiCurrency: React.FC = () => {
 
       return matchesSearch && matchesExposure && matchesHedged;
     });
-  }, [searchTerm, filterExposure, filterHedged, mockCurrencyPositions]);
+  }, [searchTerm, filterExposure, filterHedged, currencyPositions]);
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
@@ -253,7 +184,7 @@ const MultiCurrency: React.FC = () => {
     const totalAccounts = filteredCurrencies.reduce((sum, curr) => sum + curr.accounts, 0);
     const hedgedPositions = filteredCurrencies.filter(curr => curr.hedged).length;
     const highExposurePositions = filteredCurrencies.filter(curr => curr.exposure === 'high').length;
-    const totalHedgingPnL = mockHedgingPositions.reduce((sum, pos) => sum + pos.unrealizedPnL, 0);
+    const totalHedgingPnL = hedgingPositions.reduce((sum, pos) => sum + pos.unrealizedPnL, 0);
 
     return {
       totalEquivalentEUR,
@@ -263,7 +194,7 @@ const MultiCurrency: React.FC = () => {
       totalHedgingPnL,
       hedgingEffectiveness: hedgedPositions / filteredCurrencies.length
     };
-  }, [filteredCurrencies, mockHedgingPositions]);
+  }, [filteredCurrencies, hedgingPositions]);
 
   const getCurrencyIcon = (currency: string) => {
     switch (currency) {
@@ -597,7 +528,7 @@ const MultiCurrency: React.FC = () => {
               <h3 className="text-lg font-semibold text-neutral-800">Taux de Change en Temps Réel</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockExchangeRates.map((rate, index) => (
+                {exchangeRates.map((rate, index) => (
                   <motion.div
                     key={`${rate.from}-${rate.to}`}
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -674,7 +605,7 @@ const MultiCurrency: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockHedgingPositions.map((position, index) => (
+                    {hedgingPositions.map((position, index) => (
                       <motion.tr
                         key={position.id}
                         initial={{ opacity: 0, y: 20 }}

@@ -10,6 +10,7 @@ import {
 import SearchableDropdown from '../ui/SearchableDropdown';
 import { TVAValidator, TVAValidationResult } from '../../utils/tvaValidation';
 import { validateJournalEntrySync } from '../../validators/journalEntryValidator';
+import { Money } from '@/utils/money';
 
 // Types
 interface JournalType {
@@ -162,14 +163,14 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
 
   // Calculs automatiques
   const calculerTVA = useCallback((montantHT: number, taux: number) => {
-    const montantTVA = montantHT * (taux / 100);
-    const montantTTC = montantHT + montantTVA;
+    const montantTVA = new Money(montantHT).multiply(taux).divide(100).round().toNumber();
+    const montantTTC = new Money(montantHT).add(montantTVA).round().toNumber();
     return { montantTVA, montantTTC };
   }, []);
 
   const calculerHT = useCallback((montantTTC: number, taux: number) => {
-    const montantHT = montantTTC / (1 + taux / 100);
-    const montantTVA = montantTTC - montantHT;
+    const montantHT = new Money(montantTTC).divide(1 + taux / 100).round().toNumber();
+    const montantTVA = new Money(montantTTC).subtract(montantHT).round().toNumber();
     return { montantHT, montantTVA };
   }, []);
 
@@ -178,8 +179,8 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
     if (modeSaisie === 'rapide' && saisieRapide.montantHT > 0) {
       const { montantTVA, montantTTC } = calculerTVA(saisieRapide.montantHT, saisieRapide.tauxTVA);
       return {
-        montantTVA: Math.round(montantTVA * 100) / 100,
-        montantTTC: Math.round(montantTTC * 100) / 100
+        montantTVA: new Money(montantTVA).round().toNumber(),
+        montantTTC: new Money(montantTTC).round().toNumber()
       };
     }
     return { montantTVA: 0, montantTTC: 0 };
@@ -571,8 +572,8 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
                     setSaisieRapide(prev => ({
                       ...prev,
                       montantTTC: ttc,
-                      montantHT: Math.round(montantHT * 100) / 100,
-                      montantTVA: Math.round(montantTVA * 100) / 100
+                      montantHT: new Money(montantHT).round().toNumber(),
+                      montantTVA: new Money(montantTVA).round().toNumber()
                     }));
                   }}
                   className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-bold"

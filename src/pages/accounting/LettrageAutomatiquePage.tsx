@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   Link,
@@ -27,9 +29,9 @@ interface LettrageMatch {
   client_supplier?: string;
   invoice_id?: string;
   payment_id?: string;
-  ml_factors: MLFactor[];
-  validation_status: 'pending' | 'approved' | 'rejected';
-  auto_validated: boolean;
+  ml_factors?: MLFactor[];
+  validation_status?: 'pending' | 'approved' | 'rejected';
+  auto_validated?: boolean;
   similarity_score?: number;
   pattern_type?: string;
   learning_feedback?: 'positive' | 'negative';
@@ -60,73 +62,120 @@ interface LettrageStats {
   autoMatched: number;
   pendingReview: number;
   matchRate: number;
-  mlMatches: number;
-  accuracyRate: number;
-  processingTime: number;
-  learningIterations: number;
-  false_positives: number;
-  false_negatives: number;
+  mlMatches?: number;
+  accuracyRate?: number;
+  processingTime?: number;
+  learningIterations?: number;
+  false_positives?: number;
+  false_negatives?: number;
 }
 
 const LettrageAutomatiquePage: React.FC = () => {
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
-  const [stats, setStats] = useState<LettrageStats>({
-    totalUnmatched: 0,
-    autoMatched: 0,
-    pendingReview: 0,
-    matchRate: 0
-  });
-  const [matches, setMatches] = useState<LettrageMatch[]>([]);
   const [isRunning, setIsRunning] = useState(false);
 
-  useEffect(() => {
-    loadStats();
-    loadMatches();
-  }, []);
+  // Load reconcilable journal lines (accounts 40x, 41x) from Dexie
+  const allEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
 
-  const loadStats = async () => {
-    // Simulation de données
-    setStats({
-      totalUnmatched: 156,
-      autoMatched: 89,
-      pendingReview: 23,
-      matchRate: 85.2
-    });
-  };
+  // Derive lettrage lines from journal entries within the date range
+  const reconcilableLines = useMemo(() => {
+    const lines: Array<{
+      id: string;
+      accountCode: string;
+      label: string;
+      date: string;
+      reference: string;
+      debit: number;
+      credit: number;
+      lettrageCode?: string;
+      thirdPartyName?: string;
+    }> = [];
 
-  const loadMatches = async () => {
-    // Simulation de données
-    const mockMatches: LettrageMatch[] = [
-      {
-        id: '1',
-        type: 'exact',
-        confidence: 100,
-        amount: 250000,
-        reference: 'FAC-2024-001',
-        date: new Date('2024-01-15'),
-        description: 'Facture client ABC Corp'
-      },
-      {
-        id: '2',
-        type: 'ml_suggestion',
-        confidence: 87,
-        amount: 150000,
-        reference: 'REG-2024-045',
-        date: new Date('2024-01-18'),
-        description: 'Règlement XYZ Ltd'
+    for (const entry of allEntries) {
+      if (entry.date < dateRange.start || entry.date > dateRange.end) continue;
+      for (const line of entry.lines) {
+        if (!line.accountCode.startsWith('41') && !line.accountCode.startsWith('40')) continue;
+        lines.push({
+          id: `${entry.id}-${line.id}`,
+          accountCode: line.accountCode,
+          label: line.label || entry.label,
+          date: entry.date,
+          reference: entry.reference || entry.entryNumber,
+          debit: line.debit,
+          credit: line.credit,
+          lettrageCode: line.lettrageCode,
+          thirdPartyName: line.thirdPartyName,
+        });
       }
-    ];
-    setMatches(mockMatches);
-  };
+    }
+    return lines;
+  }, [allEntries, dateRange]);
+
+  // Compute stats from real data
+  const stats = useMemo<LettrageStats>(() => {
+    const total = reconcilableLines.length;
+    const matched = reconcilableLines.filter(l => l.lettrageCode).length;
+    const unmatched = total - matched;
+    const matchRate = total > 0 ? Math.round((matched / total) * 1000) / 10 : 0;
+    return {
+      totalUnmatched: unmatched,
+      autoMatched: matched,
+      pendingReview: 0,
+      matchRate,
+    };
+  }, [reconcilableLines]);
+
+  // Build match suggestions: find unmatched debit/credit pairs on the same account with same amount
+  const matches = useMemo<LettrageMatch[]>(() => {
+    const unmatched = reconcilableLines.filter(l => !l.lettrageCode);
+    const debits = unmatched.filter(l => l.debit > 0);
+    const credits = unmatched.filter(l => l.credit > 0);
+    const suggestions: LettrageMatch[] = [];
+    const usedCredits = new Set<string>();
+
+    for (const d of debits) {
+      for (const c of credits) {
+        if (usedCredits.has(c.id)) continue;
+        if (d.accountCode !== c.accountCode) continue;
+        const diff = Math.abs(d.debit - c.credit);
+        if (diff < 0.01) {
+          // Exact match
+          suggestions.push({
+            id: `match-${d.id}-${c.id}`,
+            type: 'exact',
+            confidence: 100,
+            amount: d.debit,
+            reference: d.reference,
+            date: new Date(d.date),
+            description: `${d.label} / ${c.label}`,
+          });
+          usedCredits.add(c.id);
+          break;
+        } else if (diff / Math.max(d.debit, c.credit) < 0.05) {
+          // Partial match within 5%
+          suggestions.push({
+            id: `match-${d.id}-${c.id}`,
+            type: 'partial',
+            confidence: Math.round((1 - diff / Math.max(d.debit, c.credit)) * 100),
+            amount: d.debit,
+            reference: d.reference,
+            date: new Date(d.date),
+            description: `${d.label} / ${c.label}`,
+          });
+          usedCredits.add(c.id);
+          break;
+        }
+      }
+    }
+    return suggestions;
+  }, [reconcilableLines]);
 
   const runAutoLettrage = async () => {
     setIsRunning(true);
-    // Simulation du processus
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Allow UI to update
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsRunning(false);
-    loadStats();
-    loadMatches();
   };
 
   const getMatchTypeLabel = (type: string) => {

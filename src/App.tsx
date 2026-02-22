@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
@@ -12,6 +12,7 @@ import { ToastProvider } from './hooks/useToast';
 import { ChatbotProvider } from './components/layout/ChatbotProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FeatureErrorBoundary from './components/FeatureErrorBoundary';
+import RBACGuard from './components/auth/RBACGuard';
 import './styles/globals.css';
 
 // Pages publiques
@@ -201,19 +202,21 @@ function App() {
 
                       {/* Application principale avec layout */}
                       <Route element={<ModernDoubleSidebarLayout />}>
-                        {/* Dashboards */}
-                        <Route path="/dashboard" element={<AccountingDashboard />} />
-                        <Route path="/executive" element={<ExecutiveDashboard />} />
-                        <Route path="/dashboard/admin" element={<AdminDashboard />} />
-                        <Route path="/dashboard/comptable" element={<ComptableDashboard />} />
-                        <Route path="/dashboard/manager" element={<ManagerDashboard />} />
-                        <Route path="/dashboard/kpis" element={<KPIsRealTime />} />
-                        <Route path="/dashboard/alerts" element={<AlertsSystem />} />
-                        <Route path="/dashboard/ai-insights" element={<AIInsights />} />
-                        <Route path="/dashboard/workflows" element={<WorkflowsManager />} />
+                        {/* Dashboards — all authenticated users */}
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                          <Route path="/dashboard" element={<AccountingDashboard />} />
+                          <Route path="/executive" element={<ExecutiveDashboard />} />
+                          <Route path="/dashboard/admin" element={<AdminDashboard />} />
+                          <Route path="/dashboard/comptable" element={<ComptableDashboard />} />
+                          <Route path="/dashboard/manager" element={<ManagerDashboard />} />
+                          <Route path="/dashboard/kpis" element={<KPIsRealTime />} />
+                          <Route path="/dashboard/alerts" element={<AlertsSystem />} />
+                          <Route path="/dashboard/ai-insights" element={<AIInsights />} />
+                          <Route path="/dashboard/workflows" element={<WorkflowsManager />} />
+                        </Route>
 
                         {/* Comptabilite */}
-                        <Route element={<FeatureErrorBoundary feature="Comptabilité" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Comptabilité" /></RBACGuard>}>
                           <Route path="/accounting" element={<AccountingDashboard />} />
                           <Route path="/accounting/journals" element={<JournalsPage />} />
                           <Route path="/accounting/entries" element={<EntriesPage />} />
@@ -233,7 +236,7 @@ function App() {
                         </Route>
 
                         {/* Tiers */}
-                        <Route element={<FeatureErrorBoundary feature="Tiers" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Tiers" /></RBACGuard>}>
                           <Route path="/tiers" element={<TiersDashboard />} />
                           <Route path="/tiers/clients" element={<ClientsModule />} />
                           <Route path="/tiers/fournisseurs" element={<FournisseursModule />} />
@@ -246,7 +249,7 @@ function App() {
                         </Route>
 
                         {/* Tresorerie */}
-                        <Route element={<FeatureErrorBoundary feature="Trésorerie" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Trésorerie" /></RBACGuard>}>
                           <Route path="/treasury" element={<TreasuryDashboard />} />
                           <Route path="/treasury/accounts" element={<BankAccountsPage />} />
                           <Route path="/treasury/fund-calls" element={<FundCallsPage />} />
@@ -263,7 +266,7 @@ function App() {
                         </Route>
 
                         {/* Immobilisations */}
-                        <Route element={<FeatureErrorBoundary feature="Immobilisations" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Immobilisations" /></RBACGuard>}>
                           <Route path="/assets" element={<AssetsDashboard />} />
                           <Route path="/assets/fixed" element={<FixedAssetsPage />} />
                           <Route path="/assets/depreciation" element={<DepreciationPage />} />
@@ -280,7 +283,7 @@ function App() {
                         </Route>
 
                         {/* Budget */}
-                        <Route element={<FeatureErrorBoundary feature="Budget" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Budget" /></RBACGuard>}>
                           <Route path="/budgeting" element={<BudgetingDashboard />} />
                           <Route path="/budgeting/list" element={<BudgetsPage />} />
                           <Route path="/budgeting/control" element={<BudgetControlPage />} />
@@ -288,7 +291,7 @@ function App() {
                         </Route>
 
                         {/* Clotures */}
-                        <Route element={<FeatureErrorBoundary feature="Clôtures" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Clôtures" /></RBACGuard>}>
                           <Route path="/closures" element={<ClosureModulesIndex />} />
                           <Route path="/closures/periodic" element={<PeriodicClosuresModule />} />
                           <Route path="/closures/periodiques" element={<CloturesPeriodiquesPage />} />
@@ -299,7 +302,7 @@ function App() {
                         </Route>
 
                         {/* Etats financiers */}
-                        <Route element={<FeatureErrorBoundary feature="États financiers" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="États financiers" /></RBACGuard>}>
                           <Route path="/financial-statements" element={<FinancialStatementsIndexPage />} />
                           <Route path="/financial-statements/balance" element={<BilanSYSCOHADAPage />} />
                           <Route path="/financial-statements/income" element={<CompteResultatPage />} />
@@ -307,7 +310,7 @@ function App() {
                         </Route>
 
                         {/* Reporting */}
-                        <Route element={<FeatureErrorBoundary feature="Reporting" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Reporting" /></RBACGuard>}>
                           <Route path="/reporting" element={<ReportingDashboard />} />
                           <Route path="/reporting/dashboards" element={<DashboardsPage />} />
                           <Route path="/reporting/tax" element={<TaxReportingPage />} />
@@ -318,59 +321,69 @@ function App() {
                         </Route>
 
                         {/* Analytics */}
-                        <Route path="/analytics" element={<AnalyticsDashboard />} />
-                        <Route path="/analytics/axes" element={<AnalyticalAxesPage />} />
-                        <Route path="/analytics/cost-centers" element={<CostCentersPage />} />
-                        <Route path="/financial-analysis-advanced" element={<FinancialAnalysisDashboard />} />
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                          <Route path="/analytics" element={<AnalyticsDashboard />} />
+                          <Route path="/analytics/axes" element={<AnalyticalAxesPage />} />
+                          <Route path="/analytics/cost-centers" element={<CostCentersPage />} />
+                          <Route path="/financial-analysis-advanced" element={<FinancialAnalysisDashboard />} />
+                        </Route>
 
                         {/* Inventory */}
-                        <Route path="/inventory" element={<InventoryDashboard />} />
-                        <Route path="/inventory/stock" element={<StockManagement />} />
-                        <Route path="/inventory/movements" element={<InventoryMovements />} />
-                        <Route path="/inventory/physical" element={<PhysicalInventory />} />
-                        <Route path="/inventory/valuation" element={<InventoryValuation />} />
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                          <Route path="/inventory" element={<InventoryDashboard />} />
+                          <Route path="/inventory/stock" element={<StockManagement />} />
+                          <Route path="/inventory/movements" element={<InventoryMovements />} />
+                          <Route path="/inventory/physical" element={<PhysicalInventory />} />
+                          <Route path="/inventory/valuation" element={<InventoryValuation />} />
+                        </Route>
 
                         {/* Fiscalite */}
-                        <Route element={<FeatureErrorBoundary feature="Fiscalité" />}>
+                        <Route element={<RBACGuard allowedRoles={['admin', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Fiscalité" /></RBACGuard>}>
                           <Route path="/taxation" element={<TaxationDashboard />} />
                           <Route path="/taxation/declarations" element={<TaxDeclarationsPage />} />
                           <Route path="/taxation/liasse" element={<LiasseFiscalePage />} />
                           <Route path="/taxation/echeances" element={<EcheancesFiscalesPage />} />
                         </Route>
 
-                        {/* Securite */}
-                        <Route element={<FeatureErrorBoundary feature="Sécurité" />}>
+                        {/* Securite — admin only */}
+                        <Route element={<RBACGuard allowedRoles={['admin']}><FeatureErrorBoundary feature="Sécurité" /></RBACGuard>}>
                           <Route path="/security" element={<SecurityDashboard />} />
                           <Route path="/security/users" element={<UsersPage />} />
                           <Route path="/security/roles" element={<RolesPage />} />
                           <Route path="/security/permissions" element={<PermissionsPage />} />
                         </Route>
 
-                        {/* Settings */}
-                        <Route path="/settings" element={<AccountingSettingsPage />} />
-                        <Route path="/settings/accounting" element={<AccountingSettingsPage />} />
-                        <Route path="/settings/users" element={<UsersPage />} />
-                        <Route path="/settings/company" element={<CompanyPage />} />
-                        <Route path="/settings/import-export" element={<ImportExportPage />} />
-                        <Route path="/settings/backup" element={<BackupPage />} />
-                        <Route path="/settings/api" element={<APIIntegrationsPage />} />
-                        <Route path="/settings/mobile" element={<MobileAppPage />} />
-                        <Route path="/settings/offline" element={<OfflineModePage />} />
-                        <Route path="/settings/ia" element={<IAConfigPage />} />
-                        <Route path="/settings/track-change" element={<TrackChangePage />} />
-                        <Route path="/settings/typography" element={<TypographyGuide />} />
-                        <Route path="/parameters" element={<AccountingSettingsPage />} />
+                        {/* Settings — admin only */}
+                        <Route element={<RBACGuard allowedRoles={['admin']}><Outlet /></RBACGuard>}>
+                          <Route path="/settings" element={<AccountingSettingsPage />} />
+                          <Route path="/settings/accounting" element={<AccountingSettingsPage />} />
+                          <Route path="/settings/users" element={<UsersPage />} />
+                          <Route path="/settings/company" element={<CompanyPage />} />
+                          <Route path="/settings/import-export" element={<ImportExportPage />} />
+                          <Route path="/settings/backup" element={<BackupPage />} />
+                          <Route path="/settings/api" element={<APIIntegrationsPage />} />
+                          <Route path="/settings/mobile" element={<MobileAppPage />} />
+                          <Route path="/settings/offline" element={<OfflineModePage />} />
+                          <Route path="/settings/ia" element={<IAConfigPage />} />
+                          <Route path="/settings/track-change" element={<TrackChangePage />} />
+                          <Route path="/settings/typography" element={<TypographyGuide />} />
+                          <Route path="/parameters" element={<AccountingSettingsPage />} />
+                        </Route>
 
                         {/* Config */}
-                        <Route path="/config/plan-syscohada" element={<PlanSYSCOHADAPage />} />
-                        <Route path="/config/tva" element={<TVATaxesPage />} />
-                        <Route path="/config/multi-societes" element={<MultiSocietesPage />} />
-                        <Route path="/config/wizard" element={<AssistantDemarragePage />} />
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                          <Route path="/config/plan-syscohada" element={<PlanSYSCOHADAPage />} />
+                          <Route path="/config/tva" element={<TVATaxesPage />} />
+                          <Route path="/config/multi-societes" element={<MultiSocietesPage />} />
+                          <Route path="/config/wizard" element={<AssistantDemarragePage />} />
+                        </Route>
 
-                        {/* Core */}
-                        <Route path="/core/company" element={<CompanyPage />} />
-                        <Route path="/core/exercice" element={<ExercicePage />} />
-                        <Route path="/setup" element={<SetupWizardPage />} />
+                        {/* Core — admin only */}
+                        <Route element={<RBACGuard allowedRoles={['admin']}><Outlet /></RBACGuard>}>
+                          <Route path="/core/company" element={<CompanyPage />} />
+                          <Route path="/core/exercice" element={<ExercicePage />} />
+                          <Route path="/setup" element={<SetupWizardPage />} />
+                        </Route>
                       </Route>
 
                       {/* Erreurs */}

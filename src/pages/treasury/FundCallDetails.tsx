@@ -1,11 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import {
   ArrowLeft, Calendar, DollarSign, Users, CheckCircle, BarChart3,
   Plus, Eye, Edit, Target
 } from 'lucide-react';
+
+interface FundCallRecord {
+  id: string;
+  reference: string;
+  date: string;
+  status: string;
+  banqueDepart: string;
+  banqueArrivee: string;
+  montant: number;
+  initiePar: string;
+  commentaires: string;
+}
+
+interface WorkflowStep {
+  id: number;
+  etape: string;
+  validateur: string;
+  type: string;
+  statut: string;
+  date: string | null;
+  commentaire: string | null;
+  montant: number | null;
+}
+
+interface AggregateCategory {
+  id: string;
+  label: string;
+  requested: number;
+  approved: number;
+  details: Array<{ vendor: string; amount: number; description: string }>;
+}
+
+interface AttachedFile {
+  name: string;
+  size: string;
+  type: string;
+  date: string;
+}
 
 const FundCallDetails: React.FC = () => {
   const { t } = useLanguage();
@@ -15,8 +54,6 @@ const FundCallDetails: React.FC = () => {
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   const [expandedProposalVendors, setExpandedProposalVendors] = useState<Set<string>>(new Set());
   const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
-  const [accountPayableData, setAccountPayableData] = useState<{ vendors: Record<string, { invoices: Array<{ id: string; date_piece: string; numero_piece: string; reference: string; libelle: string; montant_du: number; montant_impaye: number; age_jours: number }> }> } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [expandedAggregateRows, setExpandedAggregateRows] = useState<Set<string>>(new Set());
   const [expandedPaymentDetails, setExpandedPaymentDetails] = useState<Set<string>>(new Set());
   const [showValidatorConfig, setShowValidatorConfig] = useState(false);
@@ -24,22 +61,70 @@ const FundCallDetails: React.FC = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [workflowComment, setWorkflowComment] = useState('');
   const [showNoteModal, setShowNoteModal] = useState(false);
-  const [selectedInvoiceForNote, setSelectedInvoiceForNote] = useState<string | null>(null);
+  const [selectedInvoiceForNote, setSelectedInvoiceForNote] = useState<{ id: string; vendor: string; reference: string; outstanding: number } | null>(null);
   const [invoiceNotes, setInvoiceNotes] = useState<Record<string, string>>({});
-  const [newExpenses, setNewExpenses] = useState<Array<{ id: string; description: string; amount: number }>>([]);
+  const [newExpenses, setNewExpenses] = useState<Array<{ id: string; vendor: string; docDate: string; docNumber: string; reference: string; description: string; dueAmount: number; outstanding: number; type: string; days: number }>>([]);
 
-  // Données de l'appel de fonds
-  const fundCallData = {
-    id: id,
-    reference: `FC000${id}`,
-    date: '17/05/2025',
-    status: 'En Cours',
-    banqueDepart: 'B1 nsia domiciliation',
-    banqueArrivee: 'B2 nsia charges d\'exploitations',
-    montant: 0,
-    initiePar: 'Atokouna Pamela',
-    commentaires: 'Transfert pour charges opérationnelles'
-  };
+  // Load fund call data from Dexie
+  const fundCallsSetting = useLiveQuery(() => db.settings.get('fund_calls'));
+  const fundCallData: FundCallRecord = useMemo(() => {
+    if (fundCallsSetting) {
+      const allCalls: FundCallRecord[] = JSON.parse(fundCallsSetting.value);
+      const found = allCalls.find(fc => fc.id === id || fc.reference === `FC000${id}`);
+      if (found) return found;
+    }
+    // Fallback: empty shell with the current id
+    return {
+      id: id || '',
+      reference: `FC000${id}`,
+      date: '',
+      status: 'En Cours',
+      banqueDepart: '',
+      banqueArrivee: '',
+      montant: 0,
+      initiePar: '',
+      commentaires: ''
+    };
+  }, [fundCallsSetting, id]);
+
+  // Load account payable data from Dexie (replaces axios API call)
+  const payableSetting = useLiveQuery(() => db.settings.get('fund_call_payables'));
+  const journalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+
+  // Load workflow steps from Dexie
+  const workflowSetting = useLiveQuery(() => db.settings.get('fund_call_workflow'));
+  const workflowSteps: WorkflowStep[] = useMemo(() => {
+    if (workflowSetting) {
+      const allWorkflows = JSON.parse(workflowSetting.value);
+      // Filter by current fund call id if stored per-call, or return all
+      if (Array.isArray(allWorkflows) && allWorkflows.length > 0) {
+        if ('fundCallId' in allWorkflows[0]) {
+          return allWorkflows.filter((w: Record<string, unknown>) => w.fundCallId === id);
+        }
+        return allWorkflows;
+      }
+    }
+    return [];
+  }, [workflowSetting, id]);
+
+  // Load aggregate categories from Dexie
+  const aggregateSetting = useLiveQuery(() => db.settings.get('fund_call_aggregates'));
+  const aggregateCategories: AggregateCategory[] = aggregateSetting ? JSON.parse(aggregateSetting.value) : [];
+
+  // Load attachments from Dexie
+  const attachmentsSetting = useLiveQuery(() => db.settings.get('fund_call_attachments'));
+  const attachedFiles: AttachedFile[] = useMemo(() => {
+    if (attachmentsSetting) {
+      const allAttachments = JSON.parse(attachmentsSetting.value);
+      if (Array.isArray(allAttachments) && allAttachments.length > 0) {
+        if ('fundCallId' in allAttachments[0]) {
+          return allAttachments.filter((a: Record<string, unknown>) => a.fundCallId === id);
+        }
+        return allAttachments;
+      }
+    }
+    return [];
+  }, [attachmentsSetting, id]);
 
   // Onglets de détails d'appel
   const detailTabs = [
@@ -102,22 +187,44 @@ const FundCallDetails: React.FC = () => {
     setExpandedPaymentDetails(newExpanded);
   };
 
-  // Charger les données du Grand Livre
-  useEffect(() => {
-    const fetchAccountPayableData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('http://127.0.0.1:8888/accounting/account-payable/grand-livre/');
-        setAccountPayableData(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Erreur lors du chargement du Grand Livre:', error);
-        setLoading(false);
-      }
-    };
+  // Build accountPayableData from Dexie (replaces axios API call)
+  const accountPayableDataDerived = useMemo(() => {
+    if (payableSetting) {
+      return JSON.parse(payableSetting.value) as { vendors: Record<string, { invoices: Array<{ id: string; date_piece: string; numero_piece: string; reference: string; libelle: string; montant_du: number; montant_impaye: number; age_jours: number }> }>; total_outstanding?: number; date_extraction?: string };
+    }
+    // Fallback: derive from journal entries (supplier accounts 401/404)
+    const supplierEntries = journalEntries
+      .filter(e => (e.status === 'validated' || e.status === 'posted'))
+      .flatMap(e => e.lines
+        .filter(l => l.accountCode.startsWith('401') || l.accountCode.startsWith('404'))
+        .map(l => ({ ...l, entryId: e.id, date: e.date, entryRef: e.reference }))
+      );
+    if (supplierEntries.length === 0) return null;
+    const vendors: Record<string, { invoices: Array<{ id: string; date_piece: string; numero_piece: string; reference: string; libelle: string; montant_du: number; montant_impaye: number; age_jours: number }> }> = {};
+    supplierEntries.forEach(se => {
+      const vendorName = se.thirdPartyName || se.accountCode;
+      if (!vendors[vendorName]) vendors[vendorName] = { invoices: [] };
+      const amount = (se.credit || 0) - (se.debit || 0);
+      const daysDiff = Math.ceil(Math.abs(new Date().getTime() - new Date(se.date).getTime()) / (1000 * 60 * 60 * 24));
+      vendors[vendorName].invoices.push({
+        id: se.entryId + '-' + se.accountCode,
+        date_piece: se.date,
+        numero_piece: se.entryRef || '',
+        reference: se.accountCode,
+        libelle: se.label || '',
+        montant_du: Math.abs(amount),
+        montant_impaye: Math.abs(amount),
+        age_jours: daysDiff
+      });
+    });
+    const totalOutstanding = Object.values(vendors).reduce((sum, v) => sum + v.invoices.reduce((s, inv) => s + inv.montant_impaye, 0), 0);
+    return { vendors, total_outstanding: totalOutstanding, date_extraction: new Date().toISOString() };
+  }, [payableSetting, journalEntries]);
 
-    fetchAccountPayableData();
-  }, []);
+  // Use derived data instead of state
+  const accountPayableData = accountPayableDataDerived;
+  // Loading = payable setting hasn't resolved yet and no journal entries fallback
+  const loading = payableSetting === undefined && journalEntries.length === 0;
 
   // Transformer les données du Grand Livre pour l'affichage
   const vendorInvoices = accountPayableData ?
@@ -178,7 +285,7 @@ const FundCallDetails: React.FC = () => {
     }
   };
 
-  const openNoteModal = (invoice: string) => {
+  const openNoteModal = (invoice: { id: string; vendor: string; reference: string; outstanding: number }) => {
     setSelectedInvoiceForNote(invoice);
     setShowNoteModal(true);
   };
@@ -199,7 +306,7 @@ const FundCallDetails: React.FC = () => {
     if (!docDate) return 0;
     const today = new Date();
     const documentDate = new Date(docDate);
-    const diffTime = Math.abs(today - documentDate);
+    const diffTime = Math.abs(today.getTime() - documentDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
@@ -815,36 +922,7 @@ const FundCallDetails: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E8E8E8]">
-                        {[
-                          {
-                            id: 'previous_arrears',
-                            label: 'Previous arrears (Aging +)',
-                            requested: 0,
-                            approved: 0,
-                            details: [
-                              { vendor: 'Label', amount: 247800, description: 'Assistance technique janvier 2024' },
-                              { vendor: 'CIE', amount: 95975192, description: 'Électricité janvier 2025' }
-                            ]
-                          },
-                          {
-                            id: 'critical_expenses',
-                            label: 'Critical expenses',
-                            requested: 0,
-                            approved: 0,
-                            details: [
-                              { vendor: 'Flash vehicles', amount: 5941105, description: 'Location véhicules urgent' }
-                            ]
-                          },
-                          {
-                            id: 'current_arrears',
-                            label: 'Current arrears (Aging -)',
-                            requested: 0,
-                            approved: 0,
-                            details: [
-                              { vendor: 'Asepro', amount: 40092200, description: 'Matériel bureautique' }
-                            ]
-                          }
-                        ].map((category) => {
+                        {aggregateCategories.map((category) => {
                           const isExpanded = expandedAggregateRows.has(category.id);
                           return (
                             <React.Fragment key={category.id}>
@@ -927,58 +1005,7 @@ const FundCallDetails: React.FC = () => {
                   <h4 className="font-medium text-[#444444] mb-4">🔄 Étapes de Validation</h4>
 
                   <div className="space-y-4" style={{maxHeight: '400px', overflowY: 'auto'}}>
-                    {[
-                      {
-                        id: 1,
-                        etape: 'Demandeur',
-                        validateur: 'Atokouna Pamela',
-                        type: 'interne',
-                        statut: 'completed',
-                        date: '17/05/2025 10:30',
-                        commentaire: 'Demande initiale soumise',
-                        montant: 0
-                      },
-                      {
-                        id: 2,
-                        etape: 'Chef Comptable',
-                        validateur: 'Jean Dupont',
-                        type: 'interne',
-                        statut: 'pending',
-                        date: null,
-                        commentaire: null,
-                        montant: null
-                      },
-                      {
-                        id: 3,
-                        etape: 'Directeur Financier',
-                        validateur: 'Marie Martin',
-                        type: 'interne',
-                        statut: 'waiting',
-                        date: null,
-                        commentaire: null,
-                        montant: null
-                      },
-                      {
-                        id: 4,
-                        etape: 'Conseil Administration',
-                        validateur: 'conseil.admin@company.com',
-                        type: 'externe',
-                        statut: 'waiting',
-                        date: null,
-                        commentaire: null,
-                        montant: null
-                      },
-                      {
-                        id: 5,
-                        etape: 'Validation Finale',
-                        validateur: 'Direction Générale',
-                        type: 'interne',
-                        statut: 'waiting',
-                        date: null,
-                        commentaire: null,
-                        montant: null
-                      }
-                    ].map((etape) => (
+                    {workflowSteps.map((etape) => (
                       <div key={etape.id} className={`flex items-start space-x-4 p-4 rounded-lg border ${
                         etape.statut === 'completed' ? 'bg-[#6A8A82]/10 border-[#6A8A82]' :
                         etape.statut === 'pending' ? 'bg-[#B87333]/10 border-[#B87333]' :
@@ -1239,11 +1266,7 @@ const FundCallDetails: React.FC = () => {
                   <h4 className="font-medium text-[#444444] mb-4">📋 Fichiers Attachés</h4>
 
                   <div className="space-y-3">
-                    {[
-                      { name: 'Justificatif_FC0006.pdf', size: '2.3 MB', type: 'PDF', date: '17/05/2025' },
-                      { name: 'Budget_previsionnel.xlsx', size: '1.8 MB', type: 'Excel', date: '17/05/2025' },
-                      { name: 'Factures_fournisseurs.zip', size: '5.2 MB', type: 'Archive', date: '18/05/2025' }
-                    ].map((file, index) => (
+                    {attachedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-[#6A8A82]/5 rounded-lg border border-[#E8E8E8]">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-[#6A8A82] rounded flex items-center justify-center text-white text-xs font-bold">
@@ -1512,16 +1535,16 @@ const FundCallDetails: React.FC = () => {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              const formData = new FormData(e.target);
+              const formData = new FormData(e.currentTarget);
               addNewExpense({
-                vendor: formData.get('vendor'),
-                docDate: formData.get('docDate'),
-                docNumber: formData.get('docNumber'),
-                reference: formData.get('reference'),
-                description: formData.get('description'),
-                dueAmount: formData.get('dueAmount'),
-                outstanding: formData.get('outstanding'),
-                type: formData.get('type')
+                vendor: (formData.get('vendor') as string) || '',
+                docDate: (formData.get('docDate') as string) || '',
+                docNumber: (formData.get('docNumber') as string) || '',
+                reference: (formData.get('reference') as string) || '',
+                description: (formData.get('description') as string) || '',
+                dueAmount: (formData.get('dueAmount') as string) || '0',
+                outstanding: (formData.get('outstanding') as string) || '0',
+                type: (formData.get('type') as string) || 'Invoice'
               });
             }}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1655,8 +1678,8 @@ const FundCallDetails: React.FC = () => {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              const formData = new FormData(e.target);
-              saveInvoiceNote(formData.get('note') as string);
+              const formData = new FormData(e.currentTarget);
+              saveInvoiceNote((formData.get('note') as string) || '');
             }}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-[#444444] mb-2">Commentaire:</label>

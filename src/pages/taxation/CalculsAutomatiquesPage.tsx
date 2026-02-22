@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Calculator,
@@ -80,110 +81,84 @@ const CalculsAutomatiquesPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('tous');
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // Mock data for tax calculations
-  const mockCalculations: TaxCalculation[] = [
-    {
-      id: '1',
-      type: 'TVA',
-      libelle: 'TVA Collectée sur Ventes',
-      base_calcul: 125000000,
-      taux: 0.18,
-      montant_calcule: 22500000,
-      statut: 'calculé',
-      date_calcul: '2024-01-31',
-      periode: '2024-01',
-      compte_associe: '4434'
-    },
-    {
-      id: '2',
-      type: 'TVA',
-      libelle: 'TVA Déductible sur Achats',
-      base_calcul: 85000000,
-      taux: 0.18,
-      montant_calcule: 15300000,
-      statut: 'calculé',
-      date_calcul: '2024-01-31',
-      periode: '2024-01',
-      compte_associe: '4455'
-    },
-    {
-      id: '3',
-      type: 'IS',
-      libelle: 'Impôt sur les Sociétés',
-      base_calcul: 45000000,
-      taux: 0.30,
-      montant_calcule: 13500000,
-      statut: 'calculé',
-      date_calcul: '2024-01-31',
-      periode: '2024-01',
-      compte_associe: '441'
-    },
-    {
-      id: '4',
-      type: 'IRPP',
-      libelle: 'Retenue IRPP Salaires',
-      base_calcul: 28000000,
-      taux: 0.15,
-      montant_calcule: 4200000,
-      statut: 'en_cours',
-      date_calcul: '2024-01-31',
-      periode: '2024-01',
-      compte_associe: '442'
-    },
-    {
-      id: '5',
-      type: 'TCA',
-      libelle: 'Taxe sur Chiffre d\'Affaires',
-      base_calcul: 125000000,
-      taux: 0.02,
-      montant_calcule: 2500000,
-      statut: 'calculé',
-      date_calcul: '2024-01-31',
-      periode: '2024-01',
-      compte_associe: '443'
+  // Real data from Dexie
+  const taxCalcsSetting = useLiveQuery(() => db.settings.get('tax_calculations'));
+  const taxRulesSetting = useLiveQuery(() => db.settings.get('calculation_rules'));
+  const dbJournalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+
+  // Parse calculations from settings, computing from journal entries if available
+  const calculations: TaxCalculation[] = useMemo(() => {
+    // Try stored calculations first
+    try {
+      if (taxCalcsSetting?.value) {
+        const parsed = JSON.parse(taxCalcsSetting.value);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { /* ignore */ }
+
+    // Derive basic tax calculations from journal entries for the selected period
+    if (dbJournalEntries.length === 0) return [];
+
+    const periodEntries = dbJournalEntries.filter(e => e.date.startsWith(selectedPeriod));
+    if (periodEntries.length === 0) return [];
+
+    // Compute TVA collected (4434x accounts) and deductible (4455x accounts)
+    let tvaCollected = 0;
+    let tvaDeductible = 0;
+    for (const entry of periodEntries) {
+      for (const line of entry.lines) {
+        if (line.accountCode.startsWith('4434')) {
+          tvaCollected += line.credit - line.debit;
+        } else if (line.accountCode.startsWith('4455')) {
+          tvaDeductible += line.debit - line.credit;
+        }
+      }
     }
-  ];
 
-  // Mock data for calculation rules
-  const mockRules: CalculationRule[] = [
-    {
-      id: '1',
-      nom: 'TVA Standard 18%',
-      type_taxe: 'TVA',
-      formule: 'BASE_HT * 0.18',
-      conditions: ['Régime Normal', 'Activité Commerciale'],
-      actif: true,
-      derniere_maj: '2024-01-15'
-    },
-    {
-      id: '2',
-      nom: 'IS Taux Normal 30%',
-      type_taxe: 'IS',
-      formule: 'BENEFICE_IMPOSABLE * 0.30',
-      conditions: ['CA > 1 Milliard'],
-      actif: true,
-      derniere_maj: '2024-01-10'
-    },
-    {
-      id: '3',
-      nom: 'IRPP Progressif',
-      type_taxe: 'IRPP',
-      formule: 'BAREME_PROGRESSIF(SALAIRE_BRUT)',
-      conditions: ['Employé Résident'],
-      actif: true,
-      derniere_maj: '2024-01-08'
+    const result: TaxCalculation[] = [];
+    if (tvaCollected > 0) {
+      result.push({
+        id: 'tva-coll',
+        type: 'TVA',
+        libelle: 'TVA Collectée sur Ventes',
+        base_calcul: Math.round(tvaCollected / 0.18),
+        taux: 0.18,
+        montant_calcule: tvaCollected,
+        statut: 'calculé',
+        date_calcul: new Date().toISOString().split('T')[0],
+        periode: selectedPeriod,
+        compte_associe: '4434',
+      });
     }
-  ];
+    if (tvaDeductible > 0) {
+      result.push({
+        id: 'tva-ded',
+        type: 'TVA',
+        libelle: 'TVA Déductible sur Achats',
+        base_calcul: Math.round(tvaDeductible / 0.18),
+        taux: 0.18,
+        montant_calcule: tvaDeductible,
+        statut: 'calculé',
+        date_calcul: new Date().toISOString().split('T')[0],
+        periode: selectedPeriod,
+        compte_associe: '4455',
+      });
+    }
+    return result;
+  }, [taxCalcsSetting, dbJournalEntries, selectedPeriod]);
 
-  const { data: calculations = mockCalculations, isLoading } = useQuery({
-    queryKey: ['tax-calculations', selectedPeriod, selectedType],
-    queryFn: () => Promise.resolve(mockCalculations),
-  });
+  // Parse rules from settings
+  const rules: CalculationRule[] = useMemo(() => {
+    try {
+      if (taxRulesSetting?.value) {
+        const parsed = JSON.parse(taxRulesSetting.value);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { /* ignore */ }
+    return [];
+  }, [taxRulesSetting]);
 
-  const { data: rules = mockRules } = useQuery({
-    queryKey: ['calculation-rules'],
-    queryFn: () => Promise.resolve(mockRules),
-  });
+  const isLoading = taxCalcsSetting === undefined;
 
   const handleRunCalculations = async () => {
     setIsCalculating(true);

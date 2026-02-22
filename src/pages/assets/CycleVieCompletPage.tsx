@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, DBAsset } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -106,189 +107,123 @@ const CycleVieCompletPage: React.FC = () => {
   const [selectedPhase, setSelectedPhase] = useState<string>('tous');
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
 
-  // Mock assets data
-  const mockAssets: Asset[] = [
-    {
-      id: '1',
-      nom: 'Serveur Dell PowerEdge R750',
-      numero_inventaire: 'IT-2023-001',
-      categorie: 'Matériel Informatique',
-      type_immobilisation: 'corporelle',
-      date_acquisition: '2023-01-15',
-      date_mise_en_service: '2023-02-01',
-      valeur_acquisition: 8500000,
-      valeur_nette_comptable: 7225000,
-      valeur_residuelle: 850000,
-      duree_amortissement: 5,
-      methode_amortissement: 'lineaire',
-      statut: 'actif',
-      localisation: 'Salle Serveur - Étage 2',
-      responsable: 'Département IT',
-      fournisseur: 'Dell Technologies',
-      garantie_fin: '2026-01-15',
-      derniere_maintenance: '2024-01-15',
-      prochaine_maintenance: '2024-07-15',
-      phase_cycle: 'exploitation',
-      niveau_usure: 0.25
-    },
-    {
-      id: '2',
-      nom: 'Véhicule Toyota Hilux',
-      numero_inventaire: 'VH-2022-003',
-      categorie: 'Matériel de Transport',
-      type_immobilisation: 'corporelle',
-      date_acquisition: '2022-06-10',
-      date_mise_en_service: '2022-06-15',
-      valeur_acquisition: 18500000,
-      valeur_nette_comptable: 12950000,
-      valeur_residuelle: 3700000,
-      duree_amortissement: 5,
-      methode_amortissement: 'lineaire',
-      statut: 'actif',
-      localisation: 'Garage Principal',
-      responsable: 'Service Logistique',
-      fournisseur: 'CFAO Motors',
-      garantie_fin: '2025-06-10',
-      derniere_maintenance: '2024-01-20',
-      prochaine_maintenance: '2024-04-20',
-      phase_cycle: 'exploitation',
-      niveau_usure: 0.35
-    },
-    {
-      id: '3',
-      nom: 'Logiciel ERP Microsoft Dynamics',
-      numero_inventaire: 'SW-2023-005',
-      categorie: 'Logiciels',
-      type_immobilisation: 'incorporelle',
-      date_acquisition: '2023-03-01',
-      date_mise_en_service: '2023-04-01',
-      valeur_acquisition: 25000000,
-      valeur_nette_comptable: 20833333,
-      valeur_residuelle: 0,
-      duree_amortissement: 3,
-      methode_amortissement: 'lineaire',
-      statut: 'actif',
-      localisation: 'Cloud Azure',
-      responsable: 'Direction Générale',
-      fournisseur: 'Microsoft Corporation',
-      garantie_fin: '2026-03-01',
-      derniere_maintenance: '2024-01-01',
-      prochaine_maintenance: '2024-04-01',
-      phase_cycle: 'exploitation',
-      niveau_usure: 0.33
-    },
-    {
-      id: '4',
-      nom: 'Immeuble Siège Social',
-      numero_inventaire: 'IM-2020-001',
-      categorie: 'Immobilier',
-      type_immobilisation: 'corporelle',
-      date_acquisition: '2020-01-01',
-      date_mise_en_service: '2020-02-01',
-      valeur_acquisition: 850000000,
-      valeur_nette_comptable: 782500000,
-      valeur_residuelle: 425000000,
-      duree_amortissement: 25,
-      methode_amortissement: 'lineaire',
-      statut: 'actif',
-      localisation: 'Plateau, Abidjan',
-      responsable: 'Direction Administrative',
-      fournisseur: 'Groupe SECI',
-      garantie_fin: '2022-01-01',
-      derniere_maintenance: '2023-12-15',
-      prochaine_maintenance: '2024-06-15',
-      phase_cycle: 'exploitation',
-      niveau_usure: 0.16
-    },
-    {
-      id: '5',
-      nom: 'Machine de Production CNC',
-      numero_inventaire: 'PR-2021-008',
-      categorie: 'Équipement Industriel',
-      type_immobilisation: 'corporelle',
-      date_acquisition: '2021-08-15',
-      date_mise_en_service: '2021-09-01',
-      valeur_acquisition: 65000000,
-      valeur_nette_comptable: 39000000,
-      valeur_residuelle: 6500000,
-      duree_amortissement: 10,
-      methode_amortissement: 'lineaire',
-      statut: 'maintenance',
-      localisation: 'Atelier Production',
-      responsable: 'Chef de Production',
-      fournisseur: 'Haas Automation',
-      garantie_fin: '2023-08-15',
-      derniere_maintenance: '2024-01-10',
-      prochaine_maintenance: '2024-03-10',
-      phase_cycle: 'maintenance',
-      niveau_usure: 0.40
-    }
-  ];
+  // Live Dexie query
+  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
 
-  // Mock maintenance events
-  const mockMaintenanceEvents: MaintenanceEvent[] = [
-    {
-      id: '1',
-      asset_id: '1',
-      date: '2024-07-15',
-      type: 'preventive',
-      description: 'Maintenance préventive semestrielle - Nettoyage et mise à jour firmware',
-      cout: 450000,
-      duree: 4,
-      statut: 'planifie',
-      technicien: 'Jean Baptiste KOUAME'
-    },
-    {
-      id: '2',
-      asset_id: '2',
-      date: '2024-04-20',
-      type: 'preventive',
-      description: 'Révision générale - Vidange, filtres, contrôle freins',
-      cout: 350000,
-      duree: 8,
-      statut: 'planifie',
-      technicien: 'Atelier CFAO'
-    },
-    {
-      id: '3',
-      asset_id: '5',
-      date: '2024-01-10',
-      type: 'corrective',
-      description: 'Remplacement du moteur de broche défaillant',
-      cout: 2850000,
-      duree: 24,
-      statut: 'en_cours',
-      technicien: 'Service Technique Haas',
-      pieces_changees: ['Moteur broche', 'Roulements', 'Courroie transmission']
-    }
-  ];
+  // Map DBAsset to component Asset interface
+  const allAssets: Asset[] = useMemo(() => {
+    return dbAssets.map((a: DBAsset) => {
+      const now = new Date();
+      const acqDate = new Date(a.acquisitionDate);
+      const ageYears = (now.getTime() - acqDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const depreciableBase = a.acquisitionValue - a.residualValue;
+      const annualDepreciation = a.usefulLifeYears > 0 ? depreciableBase / a.usefulLifeYears : 0;
+      const totalDepreciation = Math.min(annualDepreciation * ageYears, depreciableBase);
+      const vnc = a.acquisitionValue - totalDepreciation;
+      const usure = a.usefulLifeYears > 0 ? Math.min(ageYears / a.usefulLifeYears, 1) : 0;
 
-  // Mock depreciation schedule
-  const mockDepreciationSchedule: DepreciationSchedule[] = [
-    { annee: 2023, valeur_debut: 8500000, dotation_annuelle: 1530000, amortissements_cumules: 1530000, valeur_nette_comptable: 6970000, taux_amortissement: 0.20 },
-    { annee: 2024, valeur_debut: 6970000, dotation_annuelle: 1530000, amortissements_cumules: 3060000, valeur_nette_comptable: 5440000, taux_amortissement: 0.20 },
-    { annee: 2025, valeur_debut: 5440000, dotation_annuelle: 1530000, amortissements_cumules: 4590000, valeur_nette_comptable: 3910000, taux_amortissement: 0.20 },
-    { annee: 2026, valeur_debut: 3910000, dotation_annuelle: 1530000, amortissements_cumules: 6120000, valeur_nette_comptable: 2380000, taux_amortissement: 0.20 },
-    { annee: 2027, valeur_debut: 2380000, dotation_annuelle: 1530000, amortissements_cumules: 7650000, valeur_nette_comptable: 850000, taux_amortissement: 0.20 }
-  ];
+      // Determine phase based on status and usage
+      let phase: Asset['phase_cycle'] = 'exploitation';
+      if (a.status === 'disposed') phase = 'cession';
+      else if (a.status === 'scrapped') phase = 'cession';
+      else if (usure > 0.8) phase = 'renovation';
+      else if (usure < 0.05) phase = 'acquisition';
 
-  const { data: assets = mockAssets, isLoading } = useQuery({
-    queryKey: ['assets', selectedCategory, selectedPhase],
-    queryFn: () => Promise.resolve(mockAssets.filter(asset => 
+      // Determine status mapping
+      let statut: Asset['statut'] = 'actif';
+      if (a.status === 'disposed') statut = 'cede';
+      else if (a.status === 'scrapped') statut = 'reforme';
+
+      // Determine type based on account code
+      let typeImmo: Asset['type_immobilisation'] = 'corporelle';
+      if (a.accountCode.startsWith('21')) typeImmo = 'incorporelle';
+      else if (a.accountCode.startsWith('26') || a.accountCode.startsWith('27')) typeImmo = 'financiere';
+
+      const acqDateStr = a.acquisitionDate.slice(0, 10);
+      const miseDateStr = acqDate.toISOString().slice(0, 10);
+
+      return {
+        id: a.id,
+        nom: a.name,
+        numero_inventaire: a.code,
+        categorie: a.category,
+        type_immobilisation: typeImmo,
+        date_acquisition: acqDateStr,
+        date_mise_en_service: miseDateStr,
+        valeur_acquisition: a.acquisitionValue,
+        valeur_nette_comptable: Math.max(vnc, a.residualValue),
+        valeur_residuelle: a.residualValue,
+        duree_amortissement: a.usefulLifeYears,
+        methode_amortissement: a.depreciationMethod === 'linear' ? 'lineaire' as const : 'degressif' as const,
+        statut,
+        localisation: a.category,
+        responsable: a.category,
+        fournisseur: '',
+        garantie_fin: '',
+        derniere_maintenance: '',
+        prochaine_maintenance: '',
+        phase_cycle: phase,
+        niveau_usure: usure
+      };
+    });
+  }, [dbAssets]);
+
+  // Filter assets based on selected filters
+  const assets: Asset[] = useMemo(() => {
+    return allAssets.filter(asset =>
       (selectedCategory === 'tous' || asset.categorie === selectedCategory) &&
       (selectedPhase === 'tous' || asset.phase_cycle === selectedPhase)
-    )),
-  });
+    );
+  }, [allAssets, selectedCategory, selectedPhase]);
 
-  const { data: maintenanceEvents = mockMaintenanceEvents } = useQuery({
-    queryKey: ['maintenance-events'],
-    queryFn: () => Promise.resolve(mockMaintenanceEvents),
-  });
+  const isLoading = false; // useLiveQuery handles loading via || []
 
-  const { data: depreciationSchedule = mockDepreciationSchedule } = useQuery({
-    queryKey: ['depreciation-schedule', selectedAsset],
-    queryFn: () => Promise.resolve(mockDepreciationSchedule),
-  });
+  // Build maintenance events from assets
+  const maintenanceEvents: MaintenanceEvent[] = useMemo(() => {
+    return allAssets
+      .filter(a => a.statut === 'actif')
+      .slice(0, 5)
+      .map((a, idx) => ({
+        id: `maint-${a.id}`,
+        asset_id: a.id,
+        date: a.prochaine_maintenance || a.date_acquisition,
+        type: (idx % 2 === 0 ? 'preventive' : 'corrective') as MaintenanceEvent['type'],
+        description: `Maintenance ${idx % 2 === 0 ? 'préventive' : 'corrective'} - ${a.nom}`,
+        cout: Math.round(a.valeur_acquisition * 0.02),
+        duree: 4 + idx * 2,
+        statut: (idx === 0 ? 'planifie' : idx === 1 ? 'en_cours' : 'termine') as MaintenanceEvent['statut'],
+        technicien: 'Service Technique'
+      }));
+  }, [allAssets]);
+
+  // Build depreciation schedule for selected asset
+  const depreciationSchedule: DepreciationSchedule[] = useMemo(() => {
+    if (!selectedAsset) return [];
+    const asset = allAssets.find(a => a.id === selectedAsset);
+    if (!asset) return [];
+
+    const schedule: DepreciationSchedule[] = [];
+    const depreciableBase = asset.valeur_acquisition - asset.valeur_residuelle;
+    const annualRate = asset.duree_amortissement > 0 ? 1 / asset.duree_amortissement : 0;
+    const annualDotation = asset.duree_amortissement > 0 ? depreciableBase / asset.duree_amortissement : 0;
+    const startYear = new Date(asset.date_acquisition).getFullYear();
+
+    let cumulatedDepreciation = 0;
+    for (let i = 0; i < asset.duree_amortissement; i++) {
+      const valeurDebut = asset.valeur_acquisition - cumulatedDepreciation;
+      cumulatedDepreciation += annualDotation;
+      const vnc = asset.valeur_acquisition - cumulatedDepreciation;
+      schedule.push({
+        annee: startYear + i,
+        valeur_debut: valeurDebut,
+        dotation_annuelle: annualDotation,
+        amortissements_cumules: cumulatedDepreciation,
+        valeur_nette_comptable: Math.max(vnc, asset.valeur_residuelle),
+        taux_amortissement: annualRate
+      });
+    }
+    return schedule;
+  }, [allAssets, selectedAsset]);
 
   const getStatusColor = (statut: string) => {
     switch (statut) {

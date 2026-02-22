@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { formatDate } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import {
   UserCheck, Plus, Search, Filter, Download, Eye, Edit, Trash2,
   ArrowLeft, Phone, Mail, MapPin, Calendar, User, Building,
@@ -34,142 +36,29 @@ const ContactsModule: React.FC = () => {
   const [selectedInteraction, setSelectedInteraction] = useState<any>(null);
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set(['SARL CONGO BUSINESS', 'STE AFRICAINE TECH']));
 
-  // Mock Contacts Data
-  const mockContacts: (Contact & { tiers: string })[] = [
-    {
-      id: '1',
-      tiersId: '1',
-      tiers: 'SARL CONGO BUSINESS',
-      civilite: 'M',
-      prenom: 'Jean',
-      nom: 'MAMBOU',
-      fonction: 'Directeur Commercial',
-      departement: 'Commercial',
-      telephone: '+242 06 123 45 67',
-      mobile: '+242 06 987 65 43',
-      email: 'j.mambou@congobusiness.cg',
-      linkedin: 'jean-mambou-123456',
-      isPrincipal: true,
-      isActif: true,
-      languePrefere: 'Français',
-      dateNaissance: '1975-05-15',
-      notes: 'Contact clé pour les négociations commerciales',
-      interactions: [
-        {
-          id: 'int1',
-          type: 'APPEL',
-          date: '2024-09-18',
-          sujet: 'Suivi commande Q3',
-          description: 'Discussion sur le planning de livraison Q3',
-          statut: 'TERMINE',
-          responsable: 'Marie Kouam',
-          resultats: 'Accord sur les délais',
-          fichesJoints: [],
-          createdAt: '2024-09-18T10:30:00Z'
-        },
-        {
-          id: 'int2',
-          type: 'EMAIL',
-          date: '2024-09-15',
-          sujet: 'Proposition commerciale',
-          description: 'Envoi de la nouvelle proposition tarifaire',
-          statut: 'TERMINE',
-          responsable: 'Marie Kouam',
-          prochaineSuivi: '2024-09-25',
-          fichesJoints: [],
-          createdAt: '2024-09-15T14:20:00Z'
-        }
-      ],
-      createdAt: '2024-01-15',
-      updatedAt: '2024-09-19'
-    },
-    {
-      id: '2',
-      tiersId: '2',
-      tiers: 'STE AFRICAINE TECH',
-      civilite: 'MME',
-      prenom: 'Sophie',
-      nom: 'NDONG',
-      fonction: 'CEO',
-      departement: 'Direction',
-      telephone: '+237 6 98 76 54 32',
-      mobile: '+237 6 11 22 33 44',
-      email: 's.ndong@africantech.cm',
-      linkedin: 'sophie-ndong-ceo',
-      isPrincipal: true,
-      isActif: true,
-      languePrefere: 'Français',
-      dateNaissance: '1982-11-08',
-      notes: 'Décisionnaire principal, très réactive',
-      interactions: [
-        {
-          id: 'int3',
-          type: 'RENCONTRE',
-          date: '2024-09-17',
-          sujet: 'Présentation nouveaux services',
-          description: 'Rendez-vous au siège pour présenter nos nouveaux services',
-          statut: 'TERMINE',
-          responsable: 'Paul Mbeki',
-          resultats: 'Intérêt confirmé pour les services cloud',
-          prochaineSuivi: '2024-09-30',
-          fichesJoints: [],
-          createdAt: '2024-09-17T09:00:00Z'
-        }
-      ],
-      createdAt: '2024-02-01',
-      updatedAt: '2024-09-19'
-    },
-    {
-      id: '3',
-      tiersId: '1',
-      tiers: 'SARL CONGO BUSINESS',
-      civilite: 'M',
-      prenom: 'Paul',
-      nom: 'OKEMBA',
-      fonction: 'Responsable Achats',
-      departement: 'Achats',
-      telephone: '+242 06 555 44 33',
-      email: 'p.okemba@congobusiness.cg',
-      isPrincipal: false,
-      isActif: true,
-      languePrefere: 'Français',
-      notes: 'Contact pour les aspects techniques',
-      interactions: [],
-      createdAt: '2024-03-10',
-      updatedAt: '2024-09-19'
-    },
-    {
-      id: '4',
-      tiersId: '3',
-      tiers: 'CEMAC SUPPLIES',
-      civilite: 'MME',
-      prenom: 'Marie',
-      nom: 'ESSONO',
-      fonction: 'Responsable Qualité',
-      departement: 'Qualité',
-      telephone: '+237 6 44 33 22 11',
-      email: 'm.essono@cemacsupplies.cm',
-      isPrincipal: false,
-      isActif: true,
-      languePrefere: 'Français',
-      notes: 'Contact pour les audits qualité',
-      interactions: [
-        {
-          id: 'int4',
-          type: 'EMAIL',
-          date: '2024-09-16',
-          sujet: 'Certification ISO',
-          description: 'Échange sur le processus de certification ISO',
-          statut: 'TERMINE',
-          responsable: 'Jean Akono',
-          fichesJoints: [],
-          createdAt: '2024-09-16T11:15:00Z'
-        }
-      ],
-      createdAt: '2024-04-05',
-      updatedAt: '2024-09-19'
-    }
-  ];
+  // Live data from Dexie
+  const thirdParties = useLiveQuery(() => db.thirdParties.toArray()) || [];
+
+  // Map third parties to contact format
+  const mockContacts: (Contact & { tiers: string })[] = thirdParties.map((tp) => ({
+    id: tp.id,
+    tiersId: tp.id,
+    tiers: tp.name,
+    civilite: 'M',
+    prenom: tp.name.split(' ')[0] || '',
+    nom: tp.name.split(' ').slice(1).join(' ') || tp.name,
+    fonction: tp.type === 'customer' ? 'Client' : tp.type === 'supplier' ? 'Fournisseur' : 'Client/Fournisseur',
+    departement: tp.type === 'customer' ? 'Commercial' : tp.type === 'supplier' ? 'Achats' : 'Direction',
+    telephone: tp.phone || '',
+    email: tp.email || '',
+    isPrincipal: true,
+    isActif: tp.isActive,
+    languePrefere: 'Français',
+    notes: tp.address || '',
+    interactions: [],
+    createdAt: new Date().toISOString().split('T')[0],
+    updatedAt: new Date().toISOString().split('T')[0],
+  }));
 
   const tabs = [
     { id: 'liste', label: 'Liste Contacts', icon: UserCheck },

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
@@ -57,135 +58,49 @@ const TaxDeclarationsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const queryClient = useQueryClient();
+  // Load tax declarations from Dexie settings
+  const declarationsSetting = useLiveQuery(() => db.settings.get('tax_declarations'));
 
-  const { data: declarations = [], isLoading } = useQuery({
-    queryKey: ['tax-declarations', searchTerm, selectedType, selectedStatus, dateRange],
-    queryFn: async () => {
-      const mockDeclarations: TaxDeclaration[] = [
-        {
-          id: '1',
-          type: 'tva',
-          reference: 'TVA-2024-08',
-          period: 'Août 2024',
-          status: 'overdue',
-          dueDate: '2024-09-15',
-          amount: 920000,
-          paidAmount: 0,
-          penalty: 46000,
-          submittedDate: '2024-09-10',
-          createdBy: 'Marie Dubois',
-          createdAt: '2024-09-01T00:00:00Z',
-          lastModified: '2024-09-10T14:30:00Z',
-          attachments: ['tva_aout_2024.pdf', 'annexe_tva.xlsx']
-        },
-        {
-          id: '2',
-          type: 'tva',
-          reference: 'TVA-2024-07',
-          period: 'Juillet 2024',
-          status: 'paid',
-          dueDate: '2024-08-15',
-          amount: 850000,
-          paidAmount: 850000,
-          penalty: 0,
-          submittedDate: '2024-08-10',
-          validatedDate: '2024-08-12',
-          paidDate: '2024-08-14',
-          createdBy: 'Marie Dubois',
-          createdAt: '2024-08-01T00:00:00Z',
-          lastModified: '2024-08-14T16:45:00Z',
-          attachments: ['tva_juillet_2024.pdf']
-        },
-        {
-          id: '3',
-          type: 'impot_societes',
-          reference: 'IS-2023',
-          period: '2023',
-          status: 'validated',
-          dueDate: '2024-04-30',
-          amount: 2500000,
-          paidAmount: 1250000,
-          penalty: 0,
-          submittedDate: '2024-04-15',
-          validatedDate: '2024-04-25',
-          createdBy: 'Paul Martin',
-          createdAt: '2024-03-15T00:00:00Z',
-          lastModified: '2024-04-25T11:20:00Z',
-          attachments: ['is_2023.pdf', 'bilan_2023.pdf', 'compte_resultat_2023.pdf']
-        },
-        {
-          id: '4',
-          type: 'bic',
-          reference: 'BIC-2023',
-          period: '2023',
-          status: 'draft',
-          dueDate: '2024-12-31',
-          amount: 450000,
-          paidAmount: 0,
-          penalty: 0,
-          createdBy: 'Sophie Koné',
-          createdAt: '2024-09-01T00:00:00Z',
-          lastModified: '2024-09-15T09:15:00Z',
-          attachments: []
-        },
-        {
-          id: '5',
-          type: 'patente',
-          reference: 'PAT-2024',
-          period: '2024',
-          status: 'submitted',
-          dueDate: '2024-03-31',
-          amount: 150000,
-          paidAmount: 0,
-          penalty: 0,
-          submittedDate: '2024-03-25',
-          createdBy: 'Jean Kouassi',
-          createdAt: '2024-02-15T00:00:00Z',
-          lastModified: '2024-03-25T13:10:00Z',
-          attachments: ['patente_2024.pdf']
-        },
-        {
-          id: '6',
-          type: 'taux_apprentissage',
-          reference: 'TA-2024',
-          period: '2024',
-          status: 'rejected',
-          dueDate: '2024-06-30',
-          amount: 85000,
-          paidAmount: 0,
-          penalty: 0,
-          submittedDate: '2024-06-20',
-          rejectedDate: '2024-07-05',
-          rejectionReason: 'Documents manquants - Masse salariale non justifiée',
-          createdBy: 'Marie Dubois',
-          createdAt: '2024-05-15T00:00:00Z',
-          lastModified: '2024-07-05T10:00:00Z',
-          attachments: ['ta_2024_v1.pdf']
-        }
-      ];
-      
-      return mockDeclarations.filter(decl =>
-        (searchTerm === '' || 
-         decl.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         decl.period.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         decl.createdBy.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (selectedType === 'all' || decl.type === selectedType) &&
-        (selectedStatus === 'all' || decl.status === selectedStatus) &&
-        decl.period.includes(dateRange.startDate || '2024')
-      );
-    }
-  });
+  const allDeclarations: TaxDeclaration[] = useMemo(() => {
+    try {
+      if (declarationsSetting?.value) {
+        const parsed = JSON.parse(declarationsSetting.value);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { /* ignore parse errors */ }
+    return [];
+  }, [declarationsSetting]);
 
-  const deleteDeclarationMutation = useMutation({
-    mutationFn: async (declarationId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return declarationId;
+  // Apply client-side filtering
+  const declarations: TaxDeclaration[] = useMemo(() => {
+    return allDeclarations.filter(decl =>
+      (searchTerm === '' ||
+        decl.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        decl.period.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        decl.createdBy.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (selectedType === 'all' || decl.type === selectedType) &&
+      (selectedStatus === 'all' || decl.status === selectedStatus)
+    );
+  }, [allDeclarations, searchTerm, selectedType, selectedStatus]);
+
+  const isLoading = declarationsSetting === undefined;
+
+  const deleteDeclarationMutation = {
+    mutate: async (declarationId: string) => {
+      try {
+        const updated = allDeclarations.filter(d => d.id !== declarationId);
+        await db.settings.put({
+          key: 'tax_declarations',
+          value: JSON.stringify(updated),
+          updatedAt: new Date().toISOString(),
+        });
+        toast.success('Déclaration supprimée');
+      } catch {
+        toast.error('Erreur lors de la suppression');
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tax-declarations'] });
-    }
-  });
+    isPending: false,
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {

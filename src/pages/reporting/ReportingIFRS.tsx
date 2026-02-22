@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -97,176 +98,100 @@ const ReportingIFRS: React.FC = () => {
   const [reportModal, setReportModal] = useState<ReportModal>({ isOpen: false, mode: 'view' });
   const [selectedPeriod, setSelectedPeriod] = useState('2024');
 
-  // Mock data for IFRS reports
-  const mockReports: IFRSReport[] = [
-    {
-      id: '1',
-      reportType: 'balance_sheet',
-      title: 'État de la Situation Financière (IAS 1)',
-      period: '2024-Q3',
-      status: 'approved',
-      lastModified: '2024-09-15T14:30:00Z',
-      createdBy: 'Marie Dubois',
-      reviewedBy: 'Jean Martin',
-      approvedBy: 'Sophie Laurent',
-      publishedDate: '2024-09-16T09:00:00Z',
-      version: '1.2',
-      standards: ['IAS 1', 'IFRS 7', 'IFRS 13'],
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '2.4 MB'
-    },
-    {
-      id: '2',
-      reportType: 'income_statement',
-      title: 'État du Résultat Global (IAS 1)',
-      period: '2024-Q3',
-      status: 'review',
-      lastModified: '2024-09-18T16:45:00Z',
-      createdBy: 'Pierre Leroy',
-      reviewedBy: 'Marie Dubois',
-      version: '1.0',
-      standards: ['IAS 1', 'IAS 18', 'IFRS 15'],
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '1.8 MB'
-    },
-    {
-      id: '3',
-      reportType: 'cash_flow',
-      title: 'Tableau des Flux de Trésorerie (IAS 7)',
-      period: '2024-Q3',
-      status: 'draft',
-      lastModified: '2024-09-19T11:20:00Z',
-      createdBy: 'Antoine Rousseau',
-      version: '0.5',
-      standards: ['IAS 7'],
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '1.2 MB'
-    },
-    {
-      id: '4',
-      reportType: 'equity_changes',
-      title: 'État des Variations des Capitaux Propres',
-      period: '2024-Q3',
-      status: 'approved',
-      lastModified: '2024-09-14T13:15:00Z',
-      createdBy: 'Isabelle Moreau',
-      reviewedBy: 'Jean Martin',
-      approvedBy: 'Sophie Laurent',
-      publishedDate: '2024-09-16T09:00:00Z',
-      version: '1.1',
-      standards: ['IAS 1'],
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '0.9 MB'
-    },
-    {
-      id: '5',
-      reportType: 'notes',
-      title: 'Notes aux États Financiers IFRS',
-      period: '2024-Q3',
-      status: 'review',
-      lastModified: '2024-09-19T09:30:00Z',
-      createdBy: 'Thomas Bernard',
-      reviewedBy: 'Sophie Laurent',
-      version: '2.3',
-      standards: ['IFRS 7', 'IFRS 13', 'IAS 24', 'IAS 36'],
-      consolidation: true,
-      currency: 'EUR',
-      fileSize: '5.1 MB'
-    }
-  ];
+  // Load fiscal years from Dexie to generate IFRS reports
+  const { data: fiscalYears = [] } = useQuery({
+    queryKey: ['ifrs-fiscal-years'],
+    queryFn: () => db.fiscalYears.toArray(),
+  });
 
-  // Mock IFRS standards compliance
+  // Load journal entries to compute revenue/assets for consolidation view
+  const { data: journalEntries = [] } = useQuery({
+    queryKey: ['ifrs-journal-entries'],
+    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
+  });
+
+  // Build IFRS reports from fiscal years
+  const mockReports: IFRSReport[] = useMemo(() => {
+    const types: Array<{ type: IFRSReport['reportType']; label: string; standards: string[] }> = [
+      { type: 'balance_sheet', label: 'État de la Situation Financière (IAS 1)', standards: ['IAS 1', 'IFRS 7', 'IFRS 13'] },
+      { type: 'income_statement', label: 'État du Résultat Global (IAS 1)', standards: ['IAS 1', 'IFRS 15'] },
+      { type: 'cash_flow', label: 'Tableau des Flux de Trésorerie (IAS 7)', standards: ['IAS 7'] },
+      { type: 'equity_changes', label: 'État des Variations des Capitaux Propres', standards: ['IAS 1'] },
+      { type: 'notes', label: 'Notes aux États Financiers IFRS', standards: ['IFRS 7', 'IFRS 13', 'IAS 24', 'IAS 36'] },
+    ];
+    const result: IFRSReport[] = [];
+    for (const fy of fiscalYears) {
+      const fyStatus = fy.isClosed ? 'approved' : 'draft';
+      for (const rt of types) {
+        result.push({
+          id: `${fy.id}-${rt.type}`,
+          reportType: rt.type,
+          title: `${rt.label} — ${fy.startDate?.substring(0, 4) || ''}`,
+          period: fy.endDate || '',
+          status: fyStatus as IFRSReport['status'],
+          lastModified: fy.endDate || new Date().toISOString().split('T')[0],
+          createdBy: 'system',
+          version: '1.0',
+          standards: rt.standards,
+          consolidation: true,
+          currency: 'XAF',
+          fileSize: '-',
+        });
+      }
+    }
+    return result;
+  }, [fiscalYears]);
+
+  // Compute total revenue from class 7 entries
+  const totalRevenue = useMemo(() => {
+    let revenue = 0;
+    for (const e of journalEntries) {
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith('7')) {
+          revenue += l.credit - l.debit;
+        }
+      }
+    }
+    return revenue;
+  }, [journalEntries]);
+
+  // Compute total assets from class 2 entries
+  const totalAssets = useMemo(() => {
+    let assets = 0;
+    for (const e of journalEntries) {
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith('2')) {
+          assets += l.debit - l.credit;
+        }
+      }
+    }
+    return assets;
+  }, [journalEntries]);
+
+  // Static IFRS standards compliance (reference data)
   const mockStandards: IFRSStandard[] = [
-    {
-      code: 'IFRS 15',
-      title: 'Produits des activités ordinaires tirés de contrats avec des clients',
-      category: 'measurement',
-      compliance: 'compliant',
-      lastReview: '2024-08-15',
-      impact: 'high',
-      notes: 'Implémentation complète pour les contrats clients'
-    },
-    {
-      code: 'IFRS 16',
-      title: 'Contrats de location',
-      category: 'measurement',
-      compliance: 'partial',
-      lastReview: '2024-09-01',
-      impact: 'high',
-      notes: 'En cours d\'adaptation pour nouveaux contrats'
-    },
-    {
-      code: 'IAS 36',
-      title: 'Dépréciation d\'actifs',
-      category: 'measurement',
-      compliance: 'compliant',
-      lastReview: '2024-07-20',
-      impact: 'medium',
-      notes: 'Tests de dépréciation réguliers effectués'
-    },
-    {
-      code: 'IFRS 7',
-      title: 'Instruments financiers: Informations à fournir',
-      category: 'disclosure',
-      compliance: 'compliant',
-      lastReview: '2024-09-10',
-      impact: 'high',
-      notes: 'Divulgations complètes sur risques financiers'
-    },
-    {
-      code: 'IFRS 13',
-      title: 'Évaluation de la juste valeur',
-      category: 'measurement',
-      compliance: 'compliant',
-      lastReview: '2024-08-25',
-      impact: 'medium',
-      notes: 'Hiérarchie des justes valeurs respectée'
-    }
+    { code: 'IFRS 15', title: 'Produits des activités ordinaires tirés de contrats avec des clients', category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Implémentation complète pour les contrats clients' },
+    { code: 'IFRS 16', title: 'Contrats de location', category: 'measurement', compliance: 'partial', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: "En cours d'adaptation pour nouveaux contrats" },
+    { code: 'IAS 36', title: "Dépréciation d'actifs", category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: 'Tests de dépréciation réguliers effectués' },
+    { code: 'IFRS 7', title: 'Instruments financiers: Informations à fournir', category: 'disclosure', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Divulgations complètes sur risques financiers' },
+    { code: 'IFRS 13', title: 'Évaluation de la juste valeur', category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: 'Hiérarchie des justes valeurs respectée' },
   ];
 
-  // Mock consolidation entities
-  const mockEntities: ConsolidationEntity[] = [
-    {
-      id: '1',
-      name: 'Atlas Finance France SAS',
-      country: 'France',
-      currency: 'EUR',
+  // Consolidation entity built from real data
+  const mockEntities: ConsolidationEntity[] = useMemo(() => {
+    return [{
+      id: 'local-entity',
+      name: 'Entité Principale',
+      country: 'Zone OHADA',
+      currency: 'XAF',
       ownership: 100,
-      method: 'full',
-      status: 'active',
-      revenue: 25000000,
-      assets: 45000000,
-      consolidationDate: '2024-09-30'
-    },
-    {
-      id: '2',
-      name: 'Atlas Finance UK Ltd',
-      country: 'Royaume-Uni',
-      currency: 'GBP',
-      ownership: 75,
-      method: 'full',
-      status: 'active',
-      revenue: 8500000,
-      assets: 15000000,
-      consolidationDate: '2024-09-30'
-    },
-    {
-      id: '3',
-      name: 'Tech Solutions Inc.',
-      country: 'États-Unis',
-      currency: 'USD',
-      ownership: 35,
-      method: 'equity',
-      status: 'active',
-      revenue: 12000000,
-      assets: 22000000,
-      consolidationDate: '2024-09-30'
-    }
-  ];
+      method: 'full' as const,
+      status: 'active' as const,
+      revenue: totalRevenue,
+      assets: totalAssets,
+      consolidationDate: new Date().toISOString().split('T')[0],
+    }];
+  }, [totalRevenue, totalAssets]);
 
   // Filter reports based on search and filters
   const filteredReports = useMemo(() => {

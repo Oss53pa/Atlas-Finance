@@ -184,6 +184,24 @@ export interface DBRevisionItem {
   updatedAt: string;
 }
 
+export interface DBInventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  location: string;
+  quantity: number;
+  unitCost: number;
+  totalValue: number;
+  minStock: number;
+  maxStock: number;
+  unit: string;
+  lastMovementDate: string;
+  status: 'active' | 'inactive' | 'discontinued';
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ============================================================================
 // DATABASE
 // ============================================================================
@@ -202,6 +220,7 @@ class AtlasFinanceDB extends Dexie {
   exchangeRates!: Table<DBExchangeRate, string>;
   hedgingPositions!: Table<DBHedgingPosition, string>;
   revisionItems!: Table<DBRevisionItem, string>;
+  inventoryItems!: Table<DBInventoryItem, string>;
 
   constructor() {
     super('AtlasFinanceDB');
@@ -229,6 +248,22 @@ class AtlasFinanceDB extends Dexie {
       exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
       hedgingPositions: 'id, currency, type, status, maturityDate',
       revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+    });
+    this.version(3).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
     });
   }
 }

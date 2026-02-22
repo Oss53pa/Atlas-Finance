@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type DBAsset } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Building2,
@@ -107,218 +109,7 @@ interface DepreciationData {
   disposal: number;
 }
 
-// Données mockées
-const mockKPIs: AssetKPI[] = [
-  {
-    id: 'total_value',
-    title: 'Valeur Totale des Actifs',
-    value: '12,450,000 €',
-    change: 8.5,
-    changeLabel: 'vs année précédente',
-    icon: <DollarSign className="w-6 h-6" />,
-    color: '[#6A8A82]',
-    trend: 'up',
-    description: 'Valeur brute de tous les actifs immobilisés'
-  },
-  {
-    id: 'net_book_value',
-    title: 'Valeur Nette Comptable',
-    value: '8,890,000 €',
-    change: 3.2,
-    changeLabel: 'vs année précédente',
-    icon: <Building2 className="w-6 h-6" />,
-    color: 'green',
-    trend: 'up',
-    description: 'Valeur après amortissements'
-  },
-  {
-    id: 'depreciation_rate',
-    title: 'Taux d\'Amortissement',
-    value: '28.6%',
-    change: -2.1,
-    changeLabel: 'vs année précédente',
-    icon: <TrendingDown className="w-6 h-6" />,
-    color: 'orange',
-    trend: 'down',
-    description: 'Pourcentage d\'amortissement cumulé'
-  },
-  {
-    id: 'maintenance_cost',
-    title: 'Coûts de Maintenance',
-    value: '234,500 €',
-    change: -5.8,
-    changeLabel: 'vs année précédente',
-    icon: <Wrench className="w-6 h-6" />,
-    color: '[#B87333]',
-    trend: 'down',
-    description: 'Dépenses totales de maintenance'
-  },
-  {
-    id: 'asset_count',
-    title: 'Nombre d\'Actifs',
-    value: '1,247',
-    change: 12.3,
-    changeLabel: 'vs année précédente',
-    icon: <Package className="w-6 h-6" />,
-    color: '[#6A8A82]',
-    trend: 'up',
-    description: 'Total des actifs enregistrés'
-  },
-  {
-    id: 'utilization_rate',
-    title: 'Taux d\'Utilisation',
-    value: '87.4%',
-    change: 4.1,
-    changeLabel: 'vs trimestre précédent',
-    icon: <Activity className="w-6 h-6" />,
-    color: '[#6A8A82]',
-    trend: 'up',
-    description: 'Pourcentage d\'actifs en utilisation'
-  }
-];
-
-const mockCategories: AssetCategory[] = [
-  {
-    id: 'it',
-    name: 'Matériel Informatique',
-    icon: <Monitor className="w-6 h-6" />,
-    count: 456,
-    value: 2850000,
-    percentage: 22.9,
-    color: '#6A8A82',
-    subCategories: [
-      { name: 'Ordinateurs', count: 245, value: 1200000 },
-      { name: 'Serveurs', count: 45, value: 890000 },
-      { name: 'Périphériques', count: 166, value: 760000 }
-    ]
-  },
-  {
-    id: 'vehicles',
-    name: 'Véhicules',
-    icon: <Truck className="w-6 h-6" />,
-    count: 123,
-    value: 3240000,
-    percentage: 26.0,
-    color: '#10B981',
-    subCategories: [
-      { name: 'Véhicules légers', count: 78, value: 1560000 },
-      { name: 'Utilitaires', count: 32, value: 1280000 },
-      { name: 'Poids lourds', count: 13, value: 400000 }
-    ]
-  },
-  {
-    id: 'furniture',
-    name: 'Mobilier & Aménagement',
-    icon: <Sofa className="w-6 h-6" />,
-    count: 234,
-    value: 890000,
-    percentage: 7.1,
-    color: '#F59E0B',
-    subCategories: [
-      { name: 'Mobilier bureau', count: 156, value: 520000 },
-      { name: 'Aménagements', count: 45, value: 250000 },
-      { name: 'Équipements', count: 33, value: 120000 }
-    ]
-  },
-  {
-    id: 'equipment',
-    name: 'Équipements & Machines',
-    icon: <Package className="w-6 h-6" />,
-    count: 189,
-    value: 4200000,
-    percentage: 33.7,
-    color: '#B87333',
-    subCategories: [
-      { name: 'Machines industrielles', count: 67, value: 2800000 },
-      { name: 'Équipements bureau', count: 89, value: 980000 },
-      { name: 'Outillage', count: 33, value: 420000 }
-    ]
-  },
-  {
-    id: 'real_estate',
-    name: 'Immobilier',
-    icon: <Home className="w-6 h-6" />,
-    count: 12,
-    value: 1270000,
-    percentage: 10.2,
-    color: '#EF4444',
-    subCategories: [
-      { name: 'Bureaux', count: 8, value: 890000 },
-      { name: 'Entrepôts', count: 3, value: 280000 },
-      { name: 'Terrains', count: 1, value: 100000 }
-    ]
-  }
-];
-
-const mockGeographicData: GeographicData[] = [
-  { location: 'Paris - Siège', count: 445, value: 4200000, percentage: 33.7, riskLevel: 'low' },
-  { location: 'Lyon - Succursale', count: 234, value: 2800000, percentage: 22.5, riskLevel: 'medium' },
-  { location: 'Marseille - Bureau', count: 189, value: 1890000, percentage: 15.2, riskLevel: 'low' },
-  { location: 'Toulouse - Antenne', count: 156, value: 1560000, percentage: 12.5, riskLevel: 'medium' },
-  { location: 'Lille - Dépôt', count: 123, value: 1240000, percentage: 10.0, riskLevel: 'high' },
-  { location: 'Bordeaux - Agence', count: 100, value: 760000, percentage: 6.1, riskLevel: 'low' }
-];
-
-const mockMaintenanceData: MaintenanceItem[] = [
-  {
-    id: '1',
-    assetName: 'Serveur Principal - Paris',
-    type: 'preventive',
-    status: 'upcoming',
-    dueDate: '2024-10-15',
-    cost: 2500,
-    priority: 'high'
-  },
-  {
-    id: '2',
-    assetName: 'Véhicule Commercial VP-001',
-    type: 'corrective',
-    status: 'overdue',
-    dueDate: '2024-09-28',
-    cost: 1800,
-    priority: 'critical'
-  },
-  {
-    id: '3',
-    assetName: 'Machine Production M-15',
-    type: 'urgent',
-    status: 'overdue',
-    dueDate: '2024-10-02',
-    cost: 5600,
-    priority: 'critical'
-  },
-  {
-    id: '4',
-    assetName: 'Climatisation Bureau Lyon',
-    type: 'preventive',
-    status: 'upcoming',
-    dueDate: '2024-10-20',
-    cost: 450,
-    priority: 'medium'
-  },
-  {
-    id: '5',
-    assetName: 'Imprimante Réseau - Marseille',
-    type: 'corrective',
-    status: 'upcoming',
-    dueDate: '2024-10-18',
-    cost: 320,
-    priority: 'low'
-  }
-];
-
-const mockDepreciationData: DepreciationData[] = [
-  { month: 'Jan', acquisition: 1200000, depreciation: 850000, netValue: 8950000, disposal: 50000 },
-  { month: 'Fév', acquisition: 800000, depreciation: 920000, netValue: 8830000, disposal: 0 },
-  { month: 'Mar', acquisition: 1500000, depreciation: 980000, netValue: 9350000, disposal: 120000 },
-  { month: 'Avr', acquisition: 600000, depreciation: 1050000, netValue: 8900000, disposal: 80000 },
-  { month: 'Mai', acquisition: 2200000, depreciation: 1120000, netValue: 9980000, disposal: 0 },
-  { month: 'Jun', acquisition: 400000, depreciation: 1180000, netValue: 9200000, disposal: 200000 },
-  { month: 'Jul', acquisition: 1800000, depreciation: 1250000, netValue: 9750000, disposal: 150000 },
-  { month: 'Aoû', acquisition: 900000, depreciation: 1320000, netValue: 9330000, disposal: 90000 },
-  { month: 'Sep', acquisition: 1100000, depreciation: 1380000, netValue: 9050000, disposal: 110000 },
-  { month: 'Oct', acquisition: 1600000, depreciation: 1450000, netValue: 9200000, disposal: 70000 }
-];
+// (mock data replaced by Dexie queries inside component)
 
 const COLORS = ['#6A8A82', '#10B981', '#F59E0B', '#B87333', '#EF4444', '#7A99AC', '#F97316', '#84CC16'];
 
@@ -337,6 +128,150 @@ const AssetsSummary: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+
+  // Live Dexie query
+  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
+
+  // Compute KPIs from Dexie data
+  const totalAcquisitionValue = useMemo(() => dbAssets.reduce((sum, a) => sum + a.acquisitionValue, 0), [dbAssets]);
+  const totalResidualValue = useMemo(() => dbAssets.reduce((sum, a) => sum + a.residualValue, 0), [dbAssets]);
+  const activeAssets = useMemo(() => dbAssets.filter(a => a.status === 'active'), [dbAssets]);
+  const depreciationRate = totalAcquisitionValue > 0 ? ((totalAcquisitionValue - totalResidualValue) / totalAcquisitionValue) * 100 : 0;
+  const utilizationRate = dbAssets.length > 0 ? (activeAssets.length / dbAssets.length) * 100 : 0;
+
+  const mockKPIs: AssetKPI[] = useMemo(() => [
+    {
+      id: 'total_value',
+      title: 'Valeur Totale des Actifs',
+      value: `${totalAcquisitionValue.toLocaleString()} \u20AC`,
+      change: 0,
+      changeLabel: 'depuis Dexie',
+      icon: <DollarSign className="w-6 h-6" />,
+      color: '[#6A8A82]',
+      trend: 'up' as const,
+      description: 'Valeur brute de tous les actifs immobilisés'
+    },
+    {
+      id: 'net_book_value',
+      title: 'Valeur Nette Comptable',
+      value: `${totalResidualValue.toLocaleString()} \u20AC`,
+      change: 0,
+      changeLabel: 'depuis Dexie',
+      icon: <Building2 className="w-6 h-6" />,
+      color: 'green',
+      trend: 'up' as const,
+      description: 'Valeur résiduelle de tous les actifs'
+    },
+    {
+      id: 'depreciation_rate',
+      title: 'Taux d\'Amortissement',
+      value: `${depreciationRate.toFixed(1)}%`,
+      change: 0,
+      changeLabel: 'calculé',
+      icon: <TrendingDown className="w-6 h-6" />,
+      color: 'orange',
+      trend: 'down' as const,
+      description: 'Pourcentage d\'amortissement cumulé'
+    },
+    {
+      id: 'maintenance_cost',
+      title: 'Coûts de Maintenance',
+      value: `${(totalAcquisitionValue * 0.02).toLocaleString()} \u20AC`,
+      change: 0,
+      changeLabel: 'estimation',
+      icon: <Wrench className="w-6 h-6" />,
+      color: '[#B87333]',
+      trend: 'down' as const,
+      description: 'Estimation basée sur 2% de la valeur brute'
+    },
+    {
+      id: 'asset_count',
+      title: 'Nombre d\'Actifs',
+      value: dbAssets.length.toLocaleString(),
+      change: 0,
+      changeLabel: 'depuis Dexie',
+      icon: <Package className="w-6 h-6" />,
+      color: '[#6A8A82]',
+      trend: 'up' as const,
+      description: 'Total des actifs enregistrés'
+    },
+    {
+      id: 'utilization_rate',
+      title: 'Taux d\'Utilisation',
+      value: `${utilizationRate.toFixed(1)}%`,
+      change: 0,
+      changeLabel: 'actifs actifs / total',
+      icon: <Activity className="w-6 h-6" />,
+      color: '[#6A8A82]',
+      trend: 'up' as const,
+      description: 'Pourcentage d\'actifs en utilisation'
+    }
+  ], [dbAssets, totalAcquisitionValue, totalResidualValue, depreciationRate, utilizationRate]);
+
+  // Compute categories from Dexie data
+  const mockCategories: AssetCategory[] = useMemo(() => {
+    const catMap: Record<string, { count: number; value: number }> = {};
+    for (const asset of dbAssets) {
+      if (!catMap[asset.category]) catMap[asset.category] = { count: 0, value: 0 };
+      catMap[asset.category].count++;
+      catMap[asset.category].value += asset.acquisitionValue;
+    }
+    const totalVal = dbAssets.reduce((s, a) => s + a.acquisitionValue, 0) || 1;
+    const icons: Record<string, React.ReactNode> = {};
+    const colors = ['#6A8A82', '#10B981', '#F59E0B', '#B87333', '#EF4444'];
+    return Object.entries(catMap).map(([name, data], index) => ({
+      id: name,
+      name,
+      icon: <Package className="w-6 h-6" />,
+      count: data.count,
+      value: data.value,
+      percentage: Math.round((data.value / totalVal) * 1000) / 10,
+      color: colors[index % colors.length]
+    }));
+  }, [dbAssets]);
+
+  // Geographic data - group by category as proxy (no location field in DBAsset)
+  const mockGeographicData: GeographicData[] = useMemo(() => {
+    if (dbAssets.length === 0) return [];
+    const totalVal = dbAssets.reduce((s, a) => s + a.acquisitionValue, 0) || 1;
+    return mockCategories.map((cat) => ({
+      location: cat.name,
+      count: cat.count,
+      value: cat.value,
+      percentage: cat.percentage,
+      riskLevel: 'low' as const
+    }));
+  }, [dbAssets, mockCategories]);
+
+  // Maintenance data from active assets
+  const mockMaintenanceData: MaintenanceItem[] = useMemo(() => {
+    return activeAssets.slice(0, 5).map((asset, index) => ({
+      id: asset.id,
+      assetName: asset.name,
+      type: 'preventive' as const,
+      status: 'upcoming' as const,
+      dueDate: asset.acquisitionDate,
+      cost: Math.round(asset.acquisitionValue * 0.02),
+      priority: 'medium' as const
+    }));
+  }, [activeAssets]);
+
+  // Depreciation data computed per month (simplified)
+  const mockDepreciationData: DepreciationData[] = useMemo(() => {
+    const months = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct'];
+    const monthlyDep = totalAcquisitionValue > 0 ? (totalAcquisitionValue - totalResidualValue) / 12 : 0;
+    let netValue = totalAcquisitionValue;
+    return months.map((month) => {
+      netValue = netValue - monthlyDep;
+      return {
+        month,
+        acquisition: 0,
+        depreciation: Math.round(monthlyDep),
+        netValue: Math.round(Math.max(netValue, 0)),
+        disposal: 0
+      };
+    });
+  }, [totalAcquisitionValue, totalResidualValue]);
 
   // Tab configuration
   const tabs: Tab[] = [

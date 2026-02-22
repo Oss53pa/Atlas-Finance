@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Wallet,
@@ -46,88 +48,41 @@ interface TreasuryPosition {
 }
 
 const PositionTresoreriePage: React.FC = () => {
-  const [position, setPosition] = useState<TreasuryPosition | null>(null);
-  const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  useEffect(() => {
-    loadTreasuryPosition();
-    
-    if (autoRefresh) {
-      const interval = setInterval(loadTreasuryPosition, 30000); // Refresh every 30s
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh]);
+  // Live Dexie queries
+  const exchangeRatesData = useLiveQuery(() => db.exchangeRates.toArray()) || [];
+  const hedgingPositionsData = useLiveQuery(() => db.hedgingPositions.toArray()) || [];
 
-  const loadTreasuryPosition = async () => {
-    // Simulation de données temps réel
-    const mockPosition: TreasuryPosition = {
-      totalCash: 15600000,
-      dailyVariation: 450000,
-      weeklyForecast: -1200000,
-      monthlyForecast: 2800000,
-      accounts: [
-        {
-          id: '1',
-          bankName: 'Banque Atlantique',
-          accountNumber: '****-1234',
-          balance: 8500000,
-          currency: 'XOF',
-          lastUpdate: new Date(),
-          status: 'active'
-        },
-        {
-          id: '2',
-          bankName: 'UBA',
-          accountNumber: '****-5678',
-          balance: 4200000,
-          currency: 'XOF',
-          lastUpdate: new Date(),
-          status: 'active'
-        },
-        {
-          id: '3',
-          bankName: 'BOA',
-          accountNumber: '****-9012',
-          balance: 2900000,
-          currency: 'XOF',
-          lastUpdate: new Date(),
-          status: 'active'
-        }
-      ],
-      todayMovements: [
-        {
-          id: '1',
-          type: 'inflow',
-          description: 'Règlement client ABC Corp',
-          amount: 850000,
-          date: new Date(),
-          category: 'Encaissement',
-          status: 'confirmed'
-        },
-        {
-          id: '2',
-          type: 'outflow',
-          description: 'Paiement fournisseur XYZ',
-          amount: 400000,
-          date: new Date(),
-          category: 'Décaissement',
-          status: 'confirmed'
-        }
-      ]
+  // Build the treasury position from Dexie data
+  const position: TreasuryPosition = useMemo(() => {
+    // Build bank accounts from hedging positions (using them as position proxies)
+    const accounts: BankAccount[] = hedgingPositionsData.map((hp, index) => ({
+      id: hp.id,
+      bankName: hp.type.charAt(0).toUpperCase() + hp.type.slice(1) + ' - ' + hp.currency,
+      accountNumber: '****-' + hp.id.slice(-4),
+      balance: hp.amount,
+      currency: hp.currency,
+      lastUpdate: new Date(hp.createdAt),
+      status: hp.status === 'active' ? 'active' as const : 'inactive' as const
+    }));
+
+    const totalCash = accounts.reduce((sum, a) => sum + a.balance, 0);
+
+    return {
+      totalCash,
+      dailyVariation: hedgingPositionsData.reduce((sum, hp) => sum + hp.unrealizedPnL, 0),
+      weeklyForecast: 0,
+      monthlyForecast: 0,
+      accounts,
+      todayMovements: []
     };
+  }, [hedgingPositionsData]);
 
-    setPosition(mockPosition);
-    setLoading(false);
+  // Dummy refresh function for the button
+  const loadTreasuryPosition = () => {
+    // Data is live via useLiveQuery; no manual fetch needed
   };
-
-  if (loading || !position) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A8A82]"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50">

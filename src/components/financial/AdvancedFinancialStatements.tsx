@@ -16,6 +16,7 @@ import {
 import PrintableArea from '../ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
+import { formatCurrency } from '@/utils/formatters';
 
 interface BilanData {
   actifImmobilise: {

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import {
   Calculator,
   Database,
@@ -51,11 +53,19 @@ const RealClosurePage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<string>('');
   const [showBalance, setShowBalance] = useState(false);
 
-  // Simulation des exercices disponibles
-  const fiscalYears = [
-    { id: '2024', name: 'Exercice 2024', start_date: '2024-01-01', end_date: '2024-12-31', is_closed: false },
-    { id: '2023', name: 'Exercice 2023', start_date: '2023-01-01', end_date: '2023-12-31', is_closed: true },
-  ];
+  // Real fiscal years from Dexie
+  const dbFiscalYears = useLiveQuery(() => db.fiscalYears.toArray()) || [];
+  const fiscalYears = dbFiscalYears.map(fy => ({
+    id: fy.id,
+    name: fy.name,
+    start_date: fy.startDate,
+    end_date: fy.endDate,
+    is_closed: fy.isClosed,
+  }));
+
+  // Accounts and journal entries for trial balance generation
+  const dbAccounts = useLiveQuery(() => db.accounts.toArray()) || [];
+  const dbJournalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
 
   const startRealClosure = async () => {
     if (!selectedFiscalYear) {
@@ -166,75 +176,48 @@ const RealClosurePage: React.FC = () => {
   const generateTrialBalance = async () => {
     setCurrentStep('Génération balance générale...');
 
-    // Simulation de balance réelle
-    const mockBalance: TrialBalance[] = [
-      {
-        account_number: '101000',
-        account_name: 'Capital social',
-        total_debit: '0',
-        total_credit: '10000000',
-        debit_balance: '0',
-        credit_balance: '10000000'
-      },
-      {
-        account_number: '411001',
-        account_name: 'Clients - Société A',
-        total_debit: '1500000',
-        total_credit: '1200000',
-        debit_balance: '300000',
-        credit_balance: '0'
-      },
-      {
-        account_number: '491100',
-        account_name: 'Provisions pour créances douteuses',
-        total_debit: '0',
-        total_credit: '125000',
-        debit_balance: '0',
-        credit_balance: '125000'
-      },
-      {
-        account_number: '512100',
-        account_name: 'Banque BCEAO',
-        total_debit: '5200000',
-        total_credit: '4800000',
-        debit_balance: '400000',
-        credit_balance: '0'
-      },
-      {
-        account_number: '607000',
-        account_name: 'Achats de marchandises',
-        total_debit: '8500000',
-        total_credit: '0',
-        debit_balance: '8500000',
-        credit_balance: '0'
-      },
-      {
-        account_number: '701000',
-        account_name: 'Ventes de marchandises',
-        total_debit: '0',
-        total_credit: '12000000',
-        debit_balance: '0',
-        credit_balance: '12000000'
-      },
-      {
-        account_number: '681200',
-        account_name: 'Dotations aux amortissements',
-        total_debit: '275000',
-        total_credit: '0',
-        debit_balance: '275000',
-        credit_balance: '0'
-      },
-      {
-        account_number: '681500',
-        account_name: 'Dotations aux provisions créances',
-        total_debit: '125000',
-        total_credit: '0',
-        debit_balance: '125000',
-        credit_balance: '0'
-      }
-    ];
+    // Build trial balance from real journal entries & accounts
+    const selectedFY = dbFiscalYears.find(fy => fy.id === selectedFiscalYear);
+    const relevantEntries = selectedFY
+      ? dbJournalEntries.filter(e => e.date >= selectedFY.startDate && e.date <= selectedFY.endDate)
+      : dbJournalEntries;
 
-    setTrialBalance(mockBalance);
+    const accountMap = new Map<string, { name: string; debit: number; credit: number }>();
+
+    // Initialize from accounts table
+    for (const acc of dbAccounts) {
+      accountMap.set(acc.code, { name: acc.name, debit: 0, credit: 0 });
+    }
+
+    // Aggregate journal entry lines
+    for (const entry of relevantEntries) {
+      for (const line of entry.lines) {
+        const existing = accountMap.get(line.accountCode) || { name: line.accountName, debit: 0, credit: 0 };
+        existing.debit += line.debit;
+        existing.credit += line.credit;
+        if (!existing.name) existing.name = line.accountName;
+        accountMap.set(line.accountCode, existing);
+      }
+    }
+
+    // Convert to TrialBalance array
+    const realBalance: TrialBalance[] = Array.from(accountMap.entries())
+      .filter(([_, bal]) => bal.debit > 0 || bal.credit > 0)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([code, bal]) => {
+        const netDebit = Math.max(0, bal.debit - bal.credit);
+        const netCredit = Math.max(0, bal.credit - bal.debit);
+        return {
+          account_number: code,
+          account_name: bal.name,
+          total_debit: String(bal.debit),
+          total_credit: String(bal.credit),
+          debit_balance: String(netDebit),
+          credit_balance: String(netCredit),
+        };
+      });
+
+    setTrialBalance(realBalance);
     setShowBalance(true);
     setCurrentStep('');
   };

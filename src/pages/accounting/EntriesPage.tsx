@@ -8,6 +8,7 @@ import {
 import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import SearchableDropdown from '../../components/ui/SearchableDropdown';
+import { formatCurrency } from '@/utils/formatters';
 
 interface EcritureBrouillard {
   id: string;

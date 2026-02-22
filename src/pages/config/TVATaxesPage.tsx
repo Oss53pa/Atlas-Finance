@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   CreditCard,
@@ -110,198 +111,18 @@ const TVATaxesPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('active');
   const [showArchivedTaxes, setShowArchivedTaxes] = useState(false);
 
-  // Mock data for tax rates
-  const mockTaxRates: TaxRate[] = [
-    {
-      id: '1',
-      code: 'TVA18',
-      libelle: 'TVA Standard 18%',
-      type: 'TVA',
-      taux: 0.18,
-      country: 'CI',
-      applicable_depuis: '2024-01-01',
-      applicable_jusqu: '2024-12-31',
-      status: 'active',
-      is_default: true,
-      compte_collecte: '4434',
-      compte_deductible: '4455',
-      conditions_application: ['Régime Normal', 'Activité Commerciale'],
-      exclusions: ['Exportations', 'Opérations Exonérées'],
-      created_date: '2024-01-01',
-      usage_count: 1250
-    },
-    {
-      id: '2',
-      code: 'TVA09',
-      libelle: 'TVA Réduite 9%',
-      type: 'TVA',
-      taux: 0.09,
-      country: 'CI',
-      applicable_depuis: '2024-01-01',
-      applicable_jusqu: '2024-12-31',
-      status: 'active',
-      is_default: false,
-      compte_collecte: '4434',
-      compte_deductible: '4455',
-      conditions_application: ['Produits de Première Nécessité'],
-      exclusions: [],
-      created_date: '2024-01-01',
-      usage_count: 340
-    },
-    {
-      id: '3',
-      code: 'TCA02',
-      libelle: 'Taxe sur Chiffre d\'Affaires 2%',
-      type: 'TCA',
-      taux: 0.02,
-      country: 'CI',
-      applicable_depuis: '2024-01-01',
-      applicable_jusqu: '2024-12-31',
-      status: 'active',
-      is_default: false,
-      compte_collecte: '443',
-      conditions_application: ['Toutes Activités'],
-      exclusions: ['CA < 50 millions'],
-      created_date: '2024-01-01',
-      usage_count: 890
-    },
-    {
-      id: '4',
-      code: 'TAF15',
-      libelle: 'Taxe d\'Apprentissage 1.5%',
-      type: 'TAF',
-      taux: 0.015,
-      country: 'CI',
-      applicable_depuis: '2024-01-01',
-      applicable_jusqu: '2024-12-31',
-      status: 'active',
-      is_default: false,
-      compte_collecte: '444',
-      conditions_application: ['Entreprises > 5 Employés'],
-      exclusions: ['Secteur Primaire'],
-      created_date: '2024-01-01',
-      usage_count: 156
-    },
-    {
-      id: '5',
-      code: 'IS30',
-      libelle: 'Impôt sur Sociétés 30%',
-      type: 'IS',
-      taux: 0.30,
-      country: 'CI',
-      applicable_depuis: '2024-01-01',
-      applicable_jusqu: '2024-12-31',
-      status: 'active',
-      is_default: true,
-      compte_collecte: '441',
-      conditions_application: ['CA > 1 Milliard'],
-      exclusions: [],
-      created_date: '2024-01-01',
-      usage_count: 45
-    },
-    {
-      id: '6',
-      code: 'IS25',
-      libelle: 'Impôt sur Sociétés PME 25%',
-      type: 'IS',
-      taux: 0.25,
-      country: 'CI',
-      applicable_depuis: '2024-01-01',
-      applicable_jusqu: '2024-12-31',
-      status: 'active',
-      is_default: false,
-      compte_collecte: '441',
-      conditions_application: ['CA ≤ 1 Milliard'],
-      exclusions: [],
-      created_date: '2024-01-01',
-      usage_count: 78
-    },
-    {
-      id: '7',
-      code: 'TVA00',
-      libelle: 'TVA 0% (Exportation)',
-      type: 'TVA',
-      taux: 0.00,
-      country: 'CI',
-      applicable_depuis: '2024-01-01',
-      applicable_jusqu: '2024-12-31',
-      status: 'active',
-      is_default: false,
-      compte_collecte: '4434',
-      compte_deductible: '4455',
-      conditions_application: ['Exportations'],
-      exclusions: [],
-      created_date: '2024-01-01',
-      usage_count: 234
-    }
-  ];
+  // Load tax rates from Dexie settings
+  const taxRatesSetting = useLiveQuery(() => db.settings.get('tva_rates'));
+  const taxRates: TaxRate[] = taxRatesSetting ? JSON.parse(taxRatesSetting.value) : [];
+  const isLoading = taxRatesSetting === undefined;
 
-  // Mock data for tax rules
-  const mockTaxRules: TaxRule[] = [
-    {
-      id: '1',
-      name: 'Règle TVA Standard',
-      description: 'Application automatique de la TVA 18% selon le secteur',
-      tax_type: 'TVA',
-      conditions: ['Régime Normal', 'Secteur Commercial'],
-      formula: 'BASE_HT * 0.18',
-      auto_apply: true,
-      priority: 1,
-      status: 'active',
-      created_date: '2024-01-01'
-    },
-    {
-      id: '2',
-      name: 'Règle IS Progressive',
-      description: 'Application de l\'IS selon le chiffre d\'affaires',
-      tax_type: 'IS',
-      conditions: ['Société Commerciale'],
-      formula: 'IF(CA > 1000000000, 0.30, 0.25)',
-      auto_apply: true,
-      priority: 2,
-      status: 'active',
-      created_date: '2024-01-01'
-    }
-  ];
+  // Load tax rules from Dexie settings
+  const taxRulesSetting = useLiveQuery(() => db.settings.get('tax_rules'));
+  const taxRules: TaxRule[] = taxRulesSetting ? JSON.parse(taxRulesSetting.value) : [];
 
-  // Mock data for tax exemptions
-  const mockExemptions: TaxExemption[] = [
-    {
-      id: '1',
-      code: 'EXO001',
-      libelle: 'Exonération Produits Pharmaceutiques',
-      type_exemption: 'totale',
-      conditions: ['Médicaments Essentiels', 'Importation'],
-      date_debut: '2024-01-01',
-      status: 'active'
-    },
-    {
-      id: '2',
-      code: 'RED001',
-      libelle: 'Réduction PME Nouvelles',
-      type_exemption: 'partielle',
-      taux_reduction: 0.50,
-      conditions: ['Création < 2 ans', 'Effectif < 20'],
-      date_debut: '2024-01-01',
-      date_fin: '2024-12-31',
-      status: 'active'
-    }
-  ];
-
-  const { data: taxRates = mockTaxRates, isLoading } = useQuery({
-    queryKey: ['tax-rates', searchTerm, selectedType, selectedCountry, selectedStatus],
-    queryFn: () => Promise.resolve(mockTaxRates),
-  });
-
-  const { data: taxRules = mockTaxRules } = useQuery({
-    queryKey: ['tax-rules'],
-    queryFn: () => Promise.resolve(mockTaxRules),
-  });
-
-  const { data: exemptions = mockExemptions } = useQuery({
-    queryKey: ['tax-exemptions'],
-    queryFn: () => Promise.resolve(mockExemptions),
-  });
+  // Load tax exemptions from Dexie settings
+  const exemptionsSetting = useLiveQuery(() => db.settings.get('tax_exemptions'));
+  const exemptions: TaxExemption[] = exemptionsSetting ? JSON.parse(exemptionsSetting.value) : [];
 
   // Filter tax rates
   const filteredTaxRates = taxRates.filter(rate => {

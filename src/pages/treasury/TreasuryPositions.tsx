@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   Banknote,
@@ -36,7 +37,6 @@ import {
   ModernChartCard,
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
-import { treasuryService } from '../../services/treasury.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 
 interface BankPosition {
@@ -71,93 +71,44 @@ const TreasuryPositions: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [positionModal, setPositionModal] = useState<PositionModal>({ isOpen: false, mode: 'view' });
 
-  // Mock data for demonstration
-  const mockPositions: BankPosition[] = [
-    {
-      id: '1',
-      bankName: 'BNP Paribas',
-      accountNumber: 'FR7630004000031234567890143',
-      accountType: 'current',
-      currency: 'EUR',
-      balance: 2450000,
-      availableBalance: 2430000,
-      lastUpdate: '2024-09-19T10:30:00Z',
-      status: 'active',
-      iban: 'FR7630004000031234567890143',
-      bic: 'BNPAFRPP',
-      branch: 'Paris Opéra',
-      country: 'France',
-      riskLevel: 'low'
-    },
-    {
-      id: '2',
-      bankName: 'Société Générale',
-      accountNumber: 'FR7630003000001234567890140',
-      accountType: 'current',
-      currency: 'EUR',
-      balance: 1875000,
-      availableBalance: 1850000,
-      lastUpdate: '2024-09-19T09:45:00Z',
-      status: 'active',
-      iban: 'FR7630003000001234567890140',
-      bic: 'SOGEFRPP',
-      branch: 'La Défense',
-      country: 'France',
-      riskLevel: 'low'
-    },
-    {
-      id: '3',
-      bankName: 'JPMorgan Chase',
-      accountNumber: 'US1234567890123456789',
-      accountType: 'deposit',
-      currency: 'USD',
-      balance: 3200000,
-      availableBalance: 3200000,
-      lastUpdate: '2024-09-19T08:20:00Z',
-      status: 'active',
-      iban: 'US1234567890123456789',
-      bic: 'CHASUS33',
-      branch: 'New York',
-      country: 'USA',
-      riskLevel: 'medium'
-    },
-    {
-      id: '4',
-      bankName: 'HSBC UK',
-      accountNumber: 'GB29NWBK60161331926819',
-      accountType: 'current',
-      currency: 'GBP',
-      balance: 950000,
-      availableBalance: 920000,
-      lastUpdate: '2024-09-19T11:15:00Z',
-      status: 'active',
-      iban: 'GB29NWBK60161331926819',
-      bic: 'HBUKGB4B',
-      branch: 'London City',
-      country: 'UK',
-      riskLevel: 'low'
-    },
-    {
-      id: '5',
-      bankName: 'Credit Suisse',
-      accountNumber: 'CH9300762011623852957',
-      accountType: 'savings',
-      currency: 'CHF',
-      balance: 1200000,
-      availableBalance: 1200000,
-      lastUpdate: '2024-09-19T07:30:00Z',
-      status: 'active',
-      iban: 'CH9300762011623852957',
-      bic: 'CRESCHZZ80A',
-      branch: 'Zurich',
-      country: 'Switzerland',
-      riskLevel: 'low'
+  // Live Dexie queries
+  const exchangeRatesData = useLiveQuery(() => db.exchangeRates.toArray()) || [];
+  const hedgingPositionsData = useLiveQuery(() => db.hedgingPositions.toArray()) || [];
+
+  // Build exchange rate lookup from Dexie data (currency -> EUR rate)
+  const exchangeRateLookup = useMemo(() => {
+    const lookup: Record<string, number> = {};
+    for (const er of exchangeRatesData) {
+      if (er.toCurrency === 'EUR') {
+        lookup[er.fromCurrency] = er.rate;
+      }
     }
-  ];
+    return lookup;
+  }, [exchangeRatesData]);
+
+  // Build bank positions from hedging positions data
+  const positions: BankPosition[] = useMemo(() => {
+    return hedgingPositionsData.map((hp) => ({
+      id: hp.id,
+      bankName: hp.type.charAt(0).toUpperCase() + hp.type.slice(1) + ' - ' + hp.currency,
+      accountNumber: hp.id,
+      accountType: 'current' as const,
+      currency: hp.currency,
+      balance: hp.amount,
+      availableBalance: hp.amount,
+      lastUpdate: hp.createdAt,
+      status: hp.status === 'active' ? 'active' as const : 'inactive' as const,
+      iban: hp.id,
+      bic: '',
+      branch: hp.type,
+      country: '',
+      riskLevel: hp.unrealizedPnL < 0 ? 'high' as const : 'low' as const
+    }));
+  }, [hedgingPositionsData]);
 
   // Filter positions based on search and filters
   const filteredPositions = useMemo(() => {
-    return mockPositions.filter(position => {
+    return positions.filter(position => {
       const matchesSearch = position.bankName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           position.accountNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           position.branch.toLowerCase().includes(searchTerm.toLowerCase());
@@ -168,7 +119,7 @@ const TreasuryPositions: React.FC = () => {
 
       return matchesSearch && matchesCurrency && matchesStatus && matchesBank;
     });
-  }, [searchTerm, filterCurrency, filterStatus, filterBank, mockPositions]);
+  }, [searchTerm, filterCurrency, filterStatus, filterBank, positions]);
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
@@ -188,13 +139,10 @@ const TreasuryPositions: React.FC = () => {
       .filter(p => p.currency === 'CHF')
       .reduce((sum, p) => sum + p.balance, 0);
 
-    // Mock exchange rates
-    const exchangeRates = { USD: 0.92, GBP: 1.15, CHF: 1.08 };
-
     const totalEquivalentEUR = totalEUR +
-      (totalUSD * exchangeRates.USD) +
-      (totalGBP * exchangeRates.GBP) +
-      (totalCHF * exchangeRates.CHF);
+      (totalUSD * (exchangeRateLookup['USD'] || 0.92)) +
+      (totalGBP * (exchangeRateLookup['GBP'] || 1.15)) +
+      (totalCHF * (exchangeRateLookup['CHF'] || 1.08));
 
     return {
       totalPositions: filteredPositions.length,
@@ -236,14 +184,14 @@ const TreasuryPositions: React.FC = () => {
     }
   };
 
-  const uniqueCurrencies = [...new Set(mockPositions.map(p => p.currency))];
-  const uniqueBanks = [...new Set(mockPositions.map(p => p.bankName))];
+  const uniqueCurrencies = [...new Set(positions.map(p => p.currency))];
+  const uniqueBanks = [...new Set(positions.map(p => p.bankName))];
 
   const chartData = [
     { label: 'EUR', value: aggregatedData.totalEUR / 1000000, color: 'bg-[#6A8A82]' },
-    { label: 'USD', value: (aggregatedData.totalUSD * 0.92) / 1000000, color: 'bg-green-500' },
-    { label: 'GBP', value: (aggregatedData.totalGBP * 1.15) / 1000000, color: 'bg-[#B87333]' },
-    { label: 'CHF', value: (aggregatedData.totalCHF * 1.08) / 1000000, color: 'bg-orange-500' }
+    { label: 'USD', value: (aggregatedData.totalUSD * (exchangeRateLookup['USD'] || 0.92)) / 1000000, color: 'bg-green-500' },
+    { label: 'GBP', value: (aggregatedData.totalGBP * (exchangeRateLookup['GBP'] || 1.15)) / 1000000, color: 'bg-[#B87333]' },
+    { label: 'CHF', value: (aggregatedData.totalCHF * (exchangeRateLookup['CHF'] || 1.08)) / 1000000, color: 'bg-orange-500' }
   ];
 
   return (

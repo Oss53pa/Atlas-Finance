@@ -14,6 +14,7 @@ import { useReverseEntry } from '../../hooks/useAccounting';
 import { useLanguage } from '../../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { validerEcriture } from '../../services/entryWorkflow';
+import { formatCurrency } from '@/utils/formatters';
 
 interface Journal {
   id: string;

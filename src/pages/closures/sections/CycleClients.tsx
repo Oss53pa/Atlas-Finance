@@ -152,11 +152,22 @@ const CycleClients: React.FC = () => {
     toast.error('Service de provision non encore connecté');
   };
 
-  // Real data from Dexie — 411 (client) account balances
+  // Real data from Dexie — thirdParties, provisions, and 411 (client) account balances
   const [clientBalances, setClientBalances] = useState<Map<string, { name: string; debit: number; credit: number }>>(new Map());
+
+  const [thirdParties, setThirdParties] = useState<Awaited<ReturnType<typeof db.thirdParties.toArray>>>([]);
+  const [provisions, setProvisions] = useState<Awaited<ReturnType<typeof db.provisions.toArray>>>([]);
 
   const loadClientData = useCallback(async () => {
     try {
+      // Load third parties and provisions
+      const [tp, prov] = await Promise.all([
+        db.thirdParties.toArray(),
+        db.provisions.toArray(),
+      ]);
+      setThirdParties(tp);
+      setProvisions(prov);
+
       const fys = await db.fiscalYears.toArray();
       const activeFY = fys.find(fy => fy.isActive) || fys[0];
       if (!activeFY) return;
@@ -183,8 +194,49 @@ const CycleClients: React.FC = () => {
 
   useEffect(() => { loadClientData(); }, [loadClientData]);
 
-  // Map real 411 accounts to Client interface
+  // Build client list from thirdParties first, fallback to journal entry account balances
   const mockClients: Client[] = useMemo(() => {
+    // If we have third parties of type customer, use them as primary source
+    const customerParties = thirdParties.filter(tp => tp.type === 'customer' || tp.type === 'both');
+
+    if (customerParties.length > 0) {
+      return customerParties.map((tp, idx) => {
+        // Enrich with balance data if available
+        const balEntry = Array.from(clientBalances.entries()).find(([code]) =>
+          code.includes(tp.code) || tp.code.includes(code)
+        );
+        const bal = balEntry ? balEntry[1] : null;
+        const encours = bal ? money(bal.debit).subtract(money(bal.credit)).toNumber() : Math.max(0, tp.balance);
+
+        // Find related provisions
+        const clientProvisions = provisions.filter(p =>
+          p.compteClient === tp.code || p.client === tp.name
+        );
+        const totalProvision = clientProvisions.reduce((sum, p) => sum + p.montantProvision, 0);
+
+        return {
+          id: tp.id,
+          code: tp.code,
+          nom: tp.name,
+          type: 'entreprise' as const,
+          secteur: '',
+          email: tp.email || '',
+          telephone: tp.phone || '',
+          adresse: tp.address || '',
+          limiteCredit: 0,
+          delaiPaiement: 30,
+          statutRisque: totalProvision > 0 ? 'eleve' as const
+            : encours > 0 ? 'modere' as const
+            : 'faible' as const,
+          chiffreAffaires: bal ? bal.credit : 0,
+          encours: Math.max(0, encours),
+          dernierPaiement: '',
+          dateCreation: '',
+        };
+      });
+    }
+
+    // Fallback: derive from 411 account balances
     let idx = 0;
     return Array.from(clientBalances.entries()).map(([code, bal]) => {
       idx++;
@@ -207,7 +259,7 @@ const CycleClients: React.FC = () => {
         dateCreation: '',
       };
     });
-  }, [clientBalances]);
+  }, [clientBalances, thirdParties, provisions]);
 
   // No invoice-level data available — empty
   const mockCreances: Creance[] = [];
