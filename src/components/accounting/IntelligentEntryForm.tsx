@@ -158,6 +158,26 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
       comptesDefaut: {},
       champsSaisieRapide: [],
       validations: ['periode_ouverture', 'comptes_bilan']
+    },
+    'TR': {
+      label: 'Trésorerie',
+      comptesDefaut: {
+        banqueSource: '512000',
+        banqueDestination: '512100',
+        caisse: '531000'
+      },
+      champsSaisieRapide: ['compte_source', 'compte_destination', 'montant', 'reference'],
+      validations: ['equilibre_ecriture', 'comptes_tresorerie']
+    },
+    'NV': {
+      label: 'Notes de frais',
+      comptesDefaut: {
+        personnel: '421000',
+        charge: '625',
+        tva: '445660'
+      },
+      champsSaisieRapide: ['salarie', 'montantHT', 'tauxTVA', 'compte_charge'],
+      validations: ['piece_obligatoire', 'tva_coherente', 'plafond_note_frais']
     }
   };
 

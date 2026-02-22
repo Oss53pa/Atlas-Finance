@@ -3,8 +3,7 @@ import Modal from '../../../../../components/common/BootstrapModal';
 import { ModalGlobalTemplateBtn } from '../../../../../components/common/ModalGlobalTemplate';
 import { Link } from 'react-router-dom';
 import Spinner from '../../../../../components/common/Spinner';
-import { addressIpApi, authenticated_header } from '../../../../../globals/api';
-import axios, { AxiosError } from 'axios';
+
 import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
 import { CustomCardDrawer, CustomSideBarDrawer } from '../../../../../components/ui/CustomDrawer';
@@ -139,16 +138,11 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
     const getFundCall = async (): Promise<void> => {
         setLoading(true);
         try {
-            const response = await axios.get<FundCall[]>(
-                `${addressIpApi}/accounting/fund-call/all_data/?start_date=${startDate}&end_date=${endDate}&center_id=${center?.id ?? null}`,
-                {
-                    headers: authenticated_header()
-                }
-            );
-            setFundsCall(response.data);
+            // API backend supprimée — données locales vides
+            setFundsCall([]);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching data:", (error as AxiosError).message);
+            console.error("Error fetching data:", (error as Error).message);
         }
     };
 
@@ -167,14 +161,12 @@ export const FinanceCashFlowFundCalls: React.FC = () => {
 
         if (answer) {
             try {
-                await axios.delete(`${addressIpApi}/accounting/fund-call/${idItem}/`, {
-                    headers: authenticated_header()
-                });
-                getFundCall();
+                // API backend supprimée
+                setFundsCall(prev => prev.filter(f => f.id !== idItem));
                 sweetAlertRef.current.afficherAlerte('success', DICTIONNARY.SuppressionEffectueAvecSucces[language]);
             } catch (error) {
                 sweetAlertRef.current.afficherAlerte('error', DICTIONNARY.AnErrorOccurredDuringRegistration[language]);
-                console.error("Error fetching data:", (error as AxiosError).message);
+                console.error("Error:", (error as Error).message);
             }
         }
     };
@@ -372,16 +364,11 @@ const FundCallForm: React.FC<FundCallFormProps> = (props) => {
     const getAccounts = async (): Promise<void> => {
         try {
             setLoading(true);
-            const response = await axios.get<Account[]>(
-                `${addressIpApi}/accounting/account/start_account/?start_by=52&center_id=${center?.id ?? null}`,
-                {
-                    headers: authenticated_header()
-                }
-            );
-            setAccounts(response.data);
+            // API backend supprimée — données locales vides
+            setAccounts([]);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching data:", (error as AxiosError).message);
+            console.error("Error fetching data:", (error as Error).message);
         }
     };
 
@@ -421,10 +408,7 @@ const FundCallForm: React.FC<FundCallFormProps> = (props) => {
 
         if (answer) {
             try {
-                await axios.post(`${addressIpApi}/accounting/fund-call/`, formData, {
-                    headers: authenticated_header()
-                });
-
+                // API backend supprimée
                 sweetAlertRef.current.afficherAlerte('success', DICTIONNARY.EnregistrementEffectueAvecSucces[language]);
                 resetFormData();
             } catch (error) {

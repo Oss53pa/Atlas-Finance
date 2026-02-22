@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'; // Palette Atlas Finance appliquée
+import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { db } from '../../lib/db';
@@ -492,7 +493,7 @@ const AssetsRegistry: React.FC = () => {
 
   const handleQrCode = (asset: Asset) => {
     // Générer ou afficher le QR Code
-    alert(`QR Code pour l'actif: ${asset.asset_number}`);
+    toast(`QR Code pour l'actif: ${asset.asset_number}`);
     // TODO: Implémenter la génération de QR Code
   };
 
@@ -505,13 +506,13 @@ const AssetsRegistry: React.FC = () => {
   const handleDelete = (asset: Asset) => {
     if (confirm(`Êtes-vous sûr de vouloir supprimer l'actif ${asset.asset_number}?`)) {
       // TODO: Implémenter la suppression
-      alert(`Actif ${asset.asset_number} supprimé`);
+      toast.success(`Actif ${asset.asset_number} supprimé`);
     }
   };
 
   const handleExport = (asset: Asset) => {
     // Exporter les données de l'actif
-    alert(`Export des données de l'actif ${asset.asset_number}`);
+    toast.success(`Export des données de l'actif ${asset.asset_number}`);
     // TODO: Implémenter l'export
   };
 
@@ -1184,7 +1185,7 @@ const AssetsRegistry: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    alert(`Archiver l'actif: ${asset.asset_number}`);
+                                    toast.success(`Archiver l'actif: ${asset.asset_number}`);
                                     setActiveDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -1194,7 +1195,7 @@ const AssetsRegistry: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    alert(`Imprimer l'étiquette: ${asset.asset_number}`);
+                                    toast(`Imprimer l'étiquette: ${asset.asset_number}`);
                                     setActiveDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -1204,7 +1205,7 @@ const AssetsRegistry: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    alert(`Historique de l'actif: ${asset.asset_number}`);
+                                    toast(`Historique de l'actif: ${asset.asset_number}`);
                                     setActiveDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
@@ -1216,7 +1217,7 @@ const AssetsRegistry: React.FC = () => {
                                 <button
                                   onClick={() => {
                                     if (confirm(`Voulez-vous vraiment supprimer l'actif ${asset.asset_number} ?`)) {
-                                      alert(`Supprimer l'actif: ${asset.asset_number}`);
+                                      toast.success(`Supprimer l'actif: ${asset.asset_number}`);
                                     }
                                     setActiveDropdown(null);
                                   }}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Users, UserPlus, Shield, Lock, Key, Settings, Mail, Phone, Calendar,
@@ -247,7 +248,7 @@ const UsersPage: React.FC = () => {
 
   const handleToggleStatus = (user: User) => {
     const newStatus = user.statut === 'actif' ? 'suspendu' : 'actif';
-    alert(`Utilisateur ${user.prenom} ${user.nom} ${newStatus === 'actif' ? 'activé' : 'suspendu'} avec succès`);
+    toast.success(`Utilisateur ${user.prenom} ${user.nom} ${newStatus === 'actif' ? 'activé' : 'suspendu'} avec succès`);
   };
 
   const handleViewPermissions = (user: User) => {
@@ -1154,7 +1155,7 @@ const UsersPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  alert('Utilisateur modifié avec succès');
+                  toast.success('Utilisateur modifié avec succès');
                   setShowEditUserModal(false);
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -1198,7 +1199,7 @@ const UsersPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    alert(`Utilisateur ${selectedUser.prenom} ${selectedUser.nom} supprimé avec succès`);
+                    toast.success(`Utilisateur ${selectedUser.prenom} ${selectedUser.nom} supprimé avec succès`);
                     setShowDeleteConfirmModal(false);
                   }}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"

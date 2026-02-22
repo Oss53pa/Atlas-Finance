@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -225,7 +226,7 @@ const CompanySetupWizard: React.FC = () => {
 
   const onSubmit = (data: CompanySetupData) => {
     // TODO: Save company configuration
-    alert('Configuration terminée avec succès !');
+    toast.success('Configuration terminée avec succès !');
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,11 +234,11 @@ const CompanySetupWizard: React.FC = () => {
     if (file) {
       // Validation du fichier
       if (file.size > 2 * 1024 * 1024) { // 2MB max
-        alert('Le fichier logo doit faire moins de 2MB');
+        toast('Le fichier logo doit faire moins de 2MB');
         return;
       }
       if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-        alert('Format autorisé: JPG, PNG, GIF');
+        toast('Format autorisé: JPG, PNG, GIF');
         return;
       }
       // TODO: Upload et preview

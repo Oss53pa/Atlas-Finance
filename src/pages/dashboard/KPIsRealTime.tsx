@@ -77,45 +77,11 @@ const KPIsRealTime: React.FC = () => {
     }
   ]);
 
-  // Simulation de données temps réel
+  // TODO: wire to Dexie query for real KPI data
   useEffect(() => {
     if (!autoRefresh) return;
-
-    const interval = setInterval(() => {
-      // Mise à jour des KPIs
-      setKpis(prevKpis => prevKpis.map(kpi => {
-        const variation = (Math.random() - 0.5) * 10;
-        const newValue = kpi.value + (kpi.value * variation / 100);
-        const newHistory = [
-          ...kpi.history.slice(-19),
-          { time: new Date().toLocaleTimeString(), value: newValue }
-        ];
-
-        return {
-          ...kpi,
-          value: parseFloat(newValue.toFixed(2)),
-          trend: variation,
-          lastUpdate: new Date(),
-          history: newHistory,
-          status: newValue >= kpi.target * 0.95 ? 'success' :
-                  newValue >= kpi.target * 0.8 ? 'warning' : 'danger'
-        };
-      }));
-
-      // Mise à jour des données temps réel
-      setRealTimeData(prev => {
-        const newData = {
-          timestamp: new Date(),
-          sales: Math.random() * 10000 + 90000,
-          orders: Math.floor(Math.random() * 50) + 150,
-          visitors: Math.floor(Math.random() * 500) + 1000,
-          conversion: Math.random() * 2 + 2
-        };
-        return [...prev.slice(-29), newData];
-      });
-    }, refreshInterval);
-
-    return () => clearInterval(interval);
+    // KPI data should come from Dexie queries, not random generation
+    return () => {};
   }, [autoRefresh, refreshInterval]);
 
   // Données pour le graphique radar

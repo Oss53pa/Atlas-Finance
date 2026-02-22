@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
@@ -383,25 +384,25 @@ const Balance: React.FC = () => {
     link.click();
     document.body.removeChild(link);
 
-    alert('Export Excel généré avec succès !');
+    toast.success('Export Excel généré avec succès !');
   };
 
   const handleGeneratePDF = () => {
     // Simuler la génération d'un rapport PDF
-    alert('Génération du rapport PDF en cours...\n\nLe rapport sera disponible dans quelques instants.');
+    toast('Génération du rapport PDF en cours...\n\nLe rapport sera disponible dans quelques instants.');
   };
 
   const handleSendEmail = () => {
     // Simuler l'envoi par email
     const email = prompt('Entrez l\'adresse email de destination:');
     if (email) {
-      alert(`Balance de clôture envoyée avec succès à: ${email}\n\nObjet: Balance de Clôture - Exercice 2024\nContenu: Rapport de balance avec synthèse et actions de clôture.`);
+      toast.success(`Balance de clôture envoyée avec succès à: ${email}\n\nObjet: Balance de Clôture - Exercice 2024\nContenu: Rapport de balance avec synthèse et actions de clôture.`);
     }
   };
 
   // Fonctions pour les actions des lignes de tableau
   const handleViewAccount = (account: BalanceAccount) => {
-    alert(`Consultation du compte:\n\nCode: ${account.code}\nLibellé: ${account.libelle}\nSolde Débiteur: ${formatAmount(account.soldeDebiteur)}\nSolde Créditeur: ${formatAmount(account.soldeCrediteur)}`);
+    toast(`Consultation du compte:\n\nCode: ${account.code}\nLibellé: ${account.libelle}\nSolde Débiteur: ${formatAmount(account.soldeDebiteur)}\nSolde Créditeur: ${formatAmount(account.soldeCrediteur)}`);
   };
 
   const handleEditAccount = (account: BalanceAccount) => {
@@ -414,7 +415,7 @@ const Balance: React.FC = () => {
           : acc
       );
       setAccounts(updatedAccounts);
-      alert(`Compte ${account.code} modifié avec succès !`);
+      toast.success(`Compte ${account.code} modifié avec succès !`);
     }
   };
 
@@ -423,12 +424,12 @@ const Balance: React.FC = () => {
       // Supprimer le compte
       const updatedAccounts = accounts.filter(acc => acc.code !== account.code);
       setAccounts(updatedAccounts);
-      alert(`Compte ${account.code} supprimé avec succès !`);
+      toast.success(`Compte ${account.code} supprimé avec succès !`);
     }
   };
 
   const handlePrintAccount = (account: BalanceAccount) => {
-    alert(`Impression du détail du compte ${account.code} - ${account.libelle}\n\nLe document sera envoyé vers votre imprimante.`);
+    toast.success(`Impression du détail du compte ${account.code} - ${account.libelle}\n\nLe document sera envoyé vers votre imprimante.`);
   };
 
   const handleExportAccountExcel = (account: BalanceAccount) => {
@@ -450,7 +451,7 @@ const Balance: React.FC = () => {
     link.click();
     document.body.removeChild(link);
 
-    alert(`Export Excel du compte ${account.code} généré avec succès !`);
+    toast.success(`Export Excel du compte ${account.code} généré avec succès !`);
   };
 
   const getNiveauStyle = (niveau: number) => {
@@ -889,17 +890,16 @@ const Balance: React.FC = () => {
                           onClick={() => handleExportAccountExcel(account)}
                         >
                           <ExportMenu
-                            data={[account]}
+                            data={[account] as Record<string, unknown>[]}
                             filename={`compte-${account.code}`}
-                            columns={[
-                              { key: 'code', label: 'Code' },
-                              { key: 'libelle', label: 'Libellé' },
-                              { key: 'soldeDebiteur', label: 'Solde Débiteur' },
-                              { key: 'soldeCrediteur', label: 'Solde Créditeur' }
-                            ]}
+                            columns={{
+                              code: 'Code',
+                              libelle: 'Libellé',
+                              soldeDebiteur: 'Solde Débiteur',
+                              soldeCrediteur: 'Solde Créditeur'
+                            }}
                             buttonText=""
-                            iconOnly={true}
-                            buttonVariant="icon"
+                            buttonVariant="ghost"
                           />
                         </button>
                         <button
@@ -1113,21 +1113,21 @@ const Balance: React.FC = () => {
                   <td className="px-4 py-2 text-center">
                     <button
                       className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => alert('Consultation des détails du compte')}
+                      onClick={() => toast('Consultation des détails du compte')}
                       title="Voir détails"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
                       className="text-green-600 hover:text-green-800 mr-2"
-                      onClick={() => alert('Export Excel généré avec succès!')}
+                      onClick={() => toast.success('Export Excel généré avec succès!')}
                       title="Exporter Excel"
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
                       className="text-orange-600 hover:text-orange-800"
-                      onClick={() => alert('Impression en cours...')}
+                      onClick={() => toast('Impression en cours...')}
                       title={t('common.print')}
                     >
                       <Printer className="w-4 h-4" />
@@ -1147,21 +1147,21 @@ const Balance: React.FC = () => {
                   <td className="px-4 py-2 text-center">
                     <button
                       className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => alert('Consultation des détails du compte')}
+                      onClick={() => toast('Consultation des détails du compte')}
                       title="Voir détails"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
                       className="text-green-600 hover:text-green-800 mr-2"
-                      onClick={() => alert('Export Excel généré avec succès!')}
+                      onClick={() => toast.success('Export Excel généré avec succès!')}
                       title="Exporter Excel"
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
                       className="text-orange-600 hover:text-orange-800"
-                      onClick={() => alert('Impression en cours...')}
+                      onClick={() => toast('Impression en cours...')}
                       title={t('common.print')}
                     >
                       <Printer className="w-4 h-4" />
@@ -1363,14 +1363,14 @@ const Balance: React.FC = () => {
                   <td className="px-4 py-2 text-center">
                     <button
                       className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => alert('Consultation des créances client')}
+                      onClick={() => toast('Consultation des créances client')}
                       title="Voir détails"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
                       className="text-orange-600 hover:text-orange-800"
-                      onClick={() => alert('Relance envoyée par email')}
+                      onClick={() => toast.success('Relance envoyée par email')}
                       title="Envoyer relance"
                     >
                       <Mail className="w-4 h-4" />
@@ -1394,14 +1394,14 @@ const Balance: React.FC = () => {
                   <td className="px-4 py-2 text-center">
                     <button
                       className="text-blue-600 hover:text-blue-900 mr-2"
-                      onClick={() => alert('Consultation des créances client')}
+                      onClick={() => toast('Consultation des créances client')}
                       title="Voir détails"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
                       className="text-orange-600 hover:text-orange-800"
-                      onClick={() => alert('Relance envoyée par email')}
+                      onClick={() => toast.success('Relance envoyée par email')}
                       title="Envoyer relance"
                     >
                       <Mail className="w-4 h-4" />
@@ -1932,18 +1932,18 @@ const Balance: React.FC = () => {
                   Imprimer
                 </button>
                 <ExportMenu
-                  data={accounts}
+                  data={accounts as Record<string, unknown>[]}
                   filename="balance-comptable"
-                  columns={[
-                    { key: 'code', label: 'Code' },
-                    { key: 'libelle', label: 'Libellé' },
-                    { key: 'soldeDebiteurAN', label: 'Solde Débiteur AN' },
-                    { key: 'soldeCrediteurAN', label: 'Solde Créditeur AN' },
-                    { key: 'mouvementsDebit', label: 'Mouvements Débit' },
-                    { key: 'mouvementsCredit', label: 'Mouvements Crédit' },
-                    { key: 'soldeDebiteur', label: 'Solde Débiteur' },
-                    { key: 'soldeCrediteur', label: 'Solde Créditeur' }
-                  ]}
+                  columns={{
+                    code: 'Code',
+                    libelle: 'Libellé',
+                    soldeDebiteurAN: 'Solde Débiteur AN',
+                    soldeCrediteurAN: 'Solde Créditeur AN',
+                    mouvementsDebit: 'Mouvements Débit',
+                    mouvementsCredit: 'Mouvements Crédit',
+                    soldeDebiteur: 'Solde Débiteur',
+                    soldeCrediteur: 'Solde Créditeur'
+                  }}
                   buttonText="Exporter Excel"
                   buttonVariant="outline"
                 />

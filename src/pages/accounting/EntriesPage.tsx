@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -295,7 +296,7 @@ const EntriesPage: React.FC = () => {
 
   // Fonction pour valider une écriture
   const handleValidateEntry = (entryId: string) => {
-    alert(`Écriture ${entryId} validée avec succès`);
+    toast.success(`Écriture ${entryId} validée avec succès`);
     // Ici on ajouterait l'appel API pour valider
   };
 
@@ -320,7 +321,7 @@ const EntriesPage: React.FC = () => {
   // Fonction pour valider la sélection
   const handleValidateSelection = () => {
     if (selectedEntries.length > 0) {
-      alert(`${selectedEntries.length} écriture(s) validée(s) avec succès`);
+      toast.success(`${selectedEntries.length} écriture(s) validée(s) avec succès`);
       setSelectedEntries([]);
     }
   };

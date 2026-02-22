@@ -171,37 +171,8 @@ const AlertsSystem: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showCreateRule, setShowCreateRule] = useState(false);
 
-  // Simulation de nouvelles alertes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const random = Math.random();
-      if (random > 0.7) {
-        const newAlert: Alert = {
-          id: `new-${Date.now()}`,
-          type: random > 0.9 ? 'critical' : random > 0.8 ? 'warning' : 'info',
-          category: ['finance', 'operations', 'clients', 'stock', 'performance'][Math.floor(Math.random() * 5)] as Alert['category'],
-          title: 'Nouvelle alerte détectée',
-          message: 'Une anomalie a été détectée dans le système',
-          timestamp: new Date(),
-          priority: random > 0.8 ? 'high' : 'medium',
-          status: 'new',
-          source: 'Monitoring automatique',
-          impact: 'À évaluer',
-          value: Math.floor(Math.random() * 100000),
-          trend: ['up', 'down', 'stable'][Math.floor(Math.random() * 3)] as Alert['trend']
-        };
-
-        setAlerts(prev => [newAlert, ...prev]);
-
-        // Jouer un son si activé
-        if (soundEnabled && newAlert.type === 'critical') {
-          // Simuler un son d'alerte
-        }
-      }
-    }, 30000); // Toutes les 30 secondes
-
-    return () => clearInterval(interval);
-  }, [soundEnabled]);
+  // TODO: wire to real alert system via Dexie/Supabase
+  // No random alert generation in production
 
   const getAlertIcon = (type: string) => {
     switch (type) {

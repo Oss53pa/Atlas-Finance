@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
@@ -451,7 +452,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              alert('Plan de trésorerie créé avec succès !');
+              toast.success('Plan de trésorerie créé avec succès !');
               setShowCreatePlanModal(false);
             }}>
               <div className="space-y-4">

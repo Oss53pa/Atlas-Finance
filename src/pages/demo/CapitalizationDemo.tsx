@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import CapitalizationModal from '../../components/accounting/CapitalizationModal';
@@ -59,7 +60,7 @@ const CapitalizationDemo: React.FC = () => {
 
   const handleSubmitCapitalization = (data: Record<string, unknown>) => {
     // Ici on enverrait les données au backend
-    alert('Demande de capitalisation soumise avec succès !');
+    toast.success('Demande de capitalisation soumise avec succès !');
   };
 
   return (

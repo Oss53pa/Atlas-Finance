@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../../../lib/db';
 import { formatDate } from '../../../../../utils/formatters';
@@ -253,7 +254,7 @@ export const SimplePrevisionTresorerie: React.FC = () => {
                   type="button"
                   className="btn btn-primary"
                   onClick={() => {
-                    alert('Plan de trésorerie créé avec succès !');
+                    toast.success('Plan de trésorerie créé avec succès !');
                     setShowModal(false);
                   }}
                 >

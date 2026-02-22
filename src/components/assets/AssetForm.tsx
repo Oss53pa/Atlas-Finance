@@ -423,9 +423,9 @@ const AssetForm: React.FC<AssetFormProps> = ({
   const handleSubmit = () => {
     onSubmit({
       ...formData,
-      total_acquisition_cost: totalAcquisitionCost,
-      net_book_value: computedVNC,
-      tableau_amortissement: tableauAmortissement,
+      total_acquisition_cost: String(totalAcquisitionCost),
+      net_book_value: String(computedVNC),
+      tableau_amortissement: JSON.stringify(tableauAmortissement),
     });
   };
 

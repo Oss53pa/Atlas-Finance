@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   X,
@@ -188,15 +189,15 @@ const AdvancedTaskForm: React.FC<AdvancedTaskFormProps> = ({
   // Validation du formulaire
   const validateForm = () => {
     if (!formData.title.trim()) {
-      alert('Le titre est obligatoire');
+      toast('Le titre est obligatoire');
       return false;
     }
     if (!formData.assignedTo && formData.contributors.length === 0) {
-      alert('Veuillez assigner la tâche à au moins une personne');
+      toast('Veuillez assigner la tâche à au moins une personne');
       return false;
     }
     if (formData.dueDate && formData.startDate && new Date(formData.dueDate) < new Date(formData.startDate)) {
-      alert('La date d\'échéance doit être après la date de début');
+      toast('La date d\'échéance doit être après la date de début');
       return false;
     }
     return true;

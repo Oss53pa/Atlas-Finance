@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
   MagnifyingGlassIcon,
   MicrophoneIcon,
@@ -103,7 +104,7 @@ const IntelligentSearchBar: React.FC<IntelligentSearchBarProps> = ({
 
   const handleVoiceSearch = async () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Recherche vocale non supportée par ce navigateur');
+      toast('Recherche vocale non supportée par ce navigateur');
       return;
     }
 

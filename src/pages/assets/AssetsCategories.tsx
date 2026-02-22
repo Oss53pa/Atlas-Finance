@@ -1,4 +1,5 @@
 import React, { useState } from 'react'; // Palette Atlas Finance appliquée
+import { toast } from 'sonner';
 import {
   Tag, Search, Filter, Plus, Edit2, Trash2, ChevronRight,
   Building, Computer, Car, Package, FileText, Settings,
@@ -132,7 +133,7 @@ const AssetsCategories: React.FC = () => {
           <ModernButton
             variant="outline"
             size="sm"
-            onClick={() => alert('Ouvrir les paramètres des catégories')}
+            onClick={() => toast('Ouvrir les paramètres des catégories')}
           >
             <Settings className="w-4 h-4 mr-1" />
             Paramètres
@@ -140,7 +141,7 @@ const AssetsCategories: React.FC = () => {
           <ModernButton
             variant="primary"
             size="sm"
-            onClick={() => alert('Créer une nouvelle catégorie')}
+            onClick={() => toast.success('Créer une nouvelle catégorie')}
           >
             <Plus className="w-4 h-4 mr-1" />
             Nouvelle catégorie
@@ -253,7 +254,7 @@ const AssetsCategories: React.FC = () => {
                         />
                       </button>
                       <button
-                        onClick={() => alert(`Modifier catégorie: ${category.name}`)}
+                        onClick={() => toast.success(`Modifier catégorie: ${category.name}`)}
                         className="p-1 hover:bg-[var(--color-background-subtle)] rounded transition-colors"
                         title="Modifier la catégorie"
                       >
@@ -286,7 +287,7 @@ const AssetsCategories: React.FC = () => {
                       {category.children.map((child) => (
                         <div
                           key={child.id}
-                          onClick={() => alert(`Voir détails: ${child.name}`)}
+                          onClick={() => toast(`Voir détails: ${child.name}`)}
                           className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--color-background-subtle)] transition-colors cursor-pointer"
                           title="Cliquer pour voir les détails"
                         >

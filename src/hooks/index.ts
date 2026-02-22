@@ -26,9 +26,6 @@ export * from './useThirdParty';
 // Budget & Contrôle de gestion
 export * from './useBudgeting';
 
-// Workspaces
-export * from './useWorkspace';
-
 // Dashboard & Reporting
 export * from './useDashboard';
 export * from './useReports';

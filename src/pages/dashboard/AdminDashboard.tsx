@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import {
   Settings,
   Users,
@@ -103,10 +104,10 @@ const AdminDashboard: React.FC = () => {
 
   const handleCreateUser = () => {
     if (!newUser.name || !newUser.email || !newUser.password) {
-      alert('Veuillez remplir tous les champs obligatoires');
+      toast('Veuillez remplir tous les champs obligatoires');
       return;
     }
-    alert(`Utilisateur ${newUser.name} créé avec succès !`);
+    toast.success(`Utilisateur ${newUser.name} créé avec succès !`);
     setShowNewUserModal(false);
     setNewUser({ name: '', email: '', role: 'Comptable', password: '' });
   };
@@ -127,7 +128,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const confirmDeleteUser = () => {
-    alert(`Utilisateur ${selectedUser?.name} supprimé avec succès !`);
+    toast.success(`Utilisateur ${selectedUser?.name} supprimé avec succès !`);
     setShowDeleteUserModal(false);
     setSelectedUser(null);
   };
@@ -680,7 +681,7 @@ const AdminDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  alert(`Utilisateur ${selectedUser.name} modifié avec succès !`);
+                  toast.success(`Utilisateur ${selectedUser.name} modifié avec succès !`);
                   setShowEditUserModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-darker)]"

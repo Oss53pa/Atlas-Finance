@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -6,7 +7,6 @@ import {
   FileText, Download, Eye, ChevronRight, X, Save, Send,
   AlertCircle, Check, RefreshCw, Lock, Unlock
 } from 'lucide-react';
-import axios from 'axios';
 
 interface EtapeCloture {
   id: string;
@@ -143,10 +143,10 @@ const ClotureMensuelle: React.FC = () => {
       // await axios.post('/api/closures/mensuelles/valider', { mois: selectedMonth, annee: selectedYear });
       setClotureStatus('validee');
       setShowValidationModal(false);
-      alert('Clôture mensuelle validée avec succès !');
+      toast.success('Clôture mensuelle validée avec succès !');
     } catch (error) {
       console.error('Erreur lors de la validation:', error);
-      alert('Erreur lors de la validation de la clôture');
+      toast.error('Erreur lors de la validation de la clôture');
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Calculator, 
@@ -410,7 +411,7 @@ const ComptableDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  alert('Écriture créée avec succès !');
+                  toast.success('Écriture créée avec succès !');
                   setShowNewEntryModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
@@ -500,7 +501,7 @@ const ComptableDashboard: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    alert('Filtres appliqués !');
+                    toast.success('Filtres appliqués !');
                     setShowFilterModal(false);
                   }}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
@@ -69,7 +70,7 @@ const RealClosurePage: React.FC = () => {
 
   const startRealClosure = async () => {
     if (!selectedFiscalYear) {
-      alert('Veuillez sélectionner un exercice fiscal');
+      toast('Veuillez sélectionner un exercice fiscal');
       return;
     }
 

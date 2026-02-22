@@ -3,6 +3,7 @@
  * Paramétrage complet selon EXP-PAR-001 à EXP-PAR-010
  */
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
@@ -199,7 +200,7 @@ const SetupWizardPage: React.FC = () => {
       });
     },
     onSuccess: () => {
-      alert('Configuration terminée avec succès !');
+      toast.success('Configuration terminée avec succès !');
       window.location.href = '/dashboard';
     }
   });

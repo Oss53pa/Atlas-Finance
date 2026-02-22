@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { db } from '../../../lib/db';
 import type { DBAsset } from '../../../lib/db';
@@ -1345,7 +1346,7 @@ const Immobilisations: React.FC = () => {
               <button
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
                 onClick={() => {
-                  alert('Modifications sauvegardées (simulation)');
+                  toast.success('Modifications sauvegardées (simulation)');
                   setShowEditModal(false);
                 }}
               >

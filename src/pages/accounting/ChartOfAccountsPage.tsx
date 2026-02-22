@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { 
@@ -35,6 +36,7 @@ import {
 } from '../../components/ui/DesignSystem';
 // import { useChartOfAccounts } from '../../hooks'; // Désactivé - données locales
 import { formatCurrency } from '../../lib/utils';
+import { NouveauCompteWizard } from '../../components/plan-comptable/NouveauCompteWizard';
 
 // Types SYSCOHADA pour le plan comptable
 interface SyscohadaAccount {
@@ -70,18 +72,6 @@ const ChartOfAccountsPage: React.FC = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showAdvancedFiltersModal, setShowAdvancedFiltersModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<SyscohadaAccount | null>(null);
-
-  // État pour le formulaire de nouveau compte
-  const [newAccount, setNewAccount] = useState({
-    code: '',
-    libelle: '',
-    classe: 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
-    nature: 'ACTIF' as 'ACTIF' | 'PASSIF' | 'CHARGE' | 'PRODUIT' | 'SPECIAL' | 'MIXTE',
-    sens_normal: 'DEBITEUR' as 'DEBITEUR' | 'CREDITEUR',
-    niveau: 1 as 1 | 2 | 3 | 4,
-    is_collectif: false,
-    description: ''
-  });
 
   // Fetch chart of accounts avec le nouveau hook
   // API désactivé - utilisation des données SYSCOHADA locales
@@ -616,165 +606,14 @@ const ChartOfAccountsPage: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Modal Nouveau Compte */}
+      {/* Modal Nouveau Compte — Wizard 4 etapes */}
       {showNewAccountModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
-          >
-            <div className="p-6 border-b border-neutral-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-neutral-800">Nouveau Compte SYSCOHADA</h2>
-                <button
-                  onClick={() => setShowNewAccountModal(false)}
-                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                >
-                  <AlertCircle className="w-5 h-5 text-neutral-500" />
-                </button>
-              </div>
-            </div>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              alert('Compte créé avec succès !');
-              setShowNewAccountModal(false);
-            }}>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Code Compte (9 positions) *</label>
-                    <input
-                      type="text"
-                      maxLength={9}
-                      pattern="\d{9}"
-                      placeholder="Ex: 101000000"
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
-                      required
-                      value={newAccount.code}
-                      onChange={(e) => setNewAccount({...newAccount, code: e.target.value.replace(/\D/g, '').slice(0, 9)})}
-                    />
-                    <p className="text-xs text-neutral-500 mt-1">Format SYSCOHADA: 9 chiffres obligatoires</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Classe *</label>
-                    <select
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                      value={newAccount.classe}
-                      onChange={(e) => setNewAccount({...newAccount, classe: parseInt(e.target.value) as SyscohadaAccount['classe']})}
-                    >
-                      <option value={1}>Classe 1 - Ressources Durables</option>
-                      <option value={2}>Classe 2 - Actif Immobilisé</option>
-                      <option value={3}>Classe 3 - Stocks</option>
-                      <option value={4}>Classe 4 - Tiers</option>
-                      <option value={5}>Classe 5 - Trésorerie</option>
-                      <option value={6}>Classe 6 - Charges</option>
-                      <option value={7}>Classe 7 - Produits</option>
-                      <option value={8}>Classe 8 - Résultats</option>
-                      <option value={9}>Classe 9 - Analytique</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">Libellé du Compte *</label>
-                  <input
-                    type="text"
-                    placeholder="Ex: Capital social"
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    required
-                    value={newAccount.libelle}
-                    onChange={(e) => setNewAccount({...newAccount, libelle: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Nature *</label>
-                    <select
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                      value={newAccount.nature}
-                      onChange={(e) => setNewAccount({...newAccount, nature: e.target.value as SyscohadaAccount['nature']})}
-                    >
-                      <option value="ACTIF">ACTIF</option>
-                      <option value="PASSIF">PASSIF</option>
-                      <option value="CHARGE">CHARGE</option>
-                      <option value="PRODUIT">PRODUIT</option>
-                      <option value="SPECIAL">SPECIAL</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Sens Normal *</label>
-                    <select
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                      value={newAccount.sens_normal}
-                      onChange={(e) => setNewAccount({...newAccount, sens_normal: e.target.value as SyscohadaAccount['sens_normal']})}
-                    >
-                      <option value="DEBITEUR">DEBITEUR</option>
-                      <option value="CREDITEUR">CREDITEUR</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Niveau Hiérarchique</label>
-                    <select
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      value={newAccount.niveau}
-                      onChange={(e) => setNewAccount({...newAccount, niveau: parseInt(e.target.value) as SyscohadaAccount['niveau']})}
-                    >
-                      <option value={1}>Niveau 1 - Principal</option>
-                      <option value={2}>Niveau 2 - Sous-compte</option>
-                      <option value={3}>Niveau 3 - Détail</option>
-                      <option value={4}>Niveau 4 - Analytique</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center">
-                    <label className="flex items-center space-x-2 mt-6">
-                      <input
-                        type="checkbox"
-                        className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
-                        checked={newAccount.is_collectif}
-                        onChange={(e) => setNewAccount({...newAccount, is_collectif: e.target.checked})}
-                      />
-                      <span className="text-sm text-neutral-700">Compte collectif (regroupement)</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">Description</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Description optionnelle du compte..."
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    value={newAccount.description}
-                    onChange={(e) => setNewAccount({...newAccount, description: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="p-6 border-t border-neutral-200 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowNewAccountModal(false)}
-                  className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Créer le Compte
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
+        <NouveauCompteWizard
+          onClose={() => setShowNewAccountModal(false)}
+          onSuccess={() => {
+            // Refresh pourrait etre ajouté ici si la page utilise Dexie live queries
+          }}
+        />
       )}
 
       {/* Modal Vue Détail Compte */}
@@ -888,7 +727,7 @@ const ChartOfAccountsPage: React.FC = () => {
             </div>
             <form onSubmit={(e) => {
               e.preventDefault();
-              alert('Compte modifié avec succès !');
+              toast.success('Compte modifié avec succès !');
               setShowEditAccountModal(false);
             }}>
               <div className="p-6 space-y-4">
@@ -1024,7 +863,7 @@ const ChartOfAccountsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  alert(`Compte ${selectedAccount.code} supprimé !`);
+                  toast.success(`Compte ${selectedAccount.code} supprimé !`);
                   setShowDeleteConfirmModal(false);
                   setSelectedAccount(null);
                 }}
@@ -1068,7 +907,7 @@ const ChartOfAccountsPage: React.FC = () => {
                   id="file-import"
                   onChange={(e) => {
                     if (e.target.files?.[0]) {
-                      alert(`Fichier sélectionné: ${e.target.files[0].name}`);
+                      toast(`Fichier sélectionné: ${e.target.files[0].name}`);
                     }
                   }}
                 />
@@ -1097,7 +936,7 @@ const ChartOfAccountsPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  alert('Import lancé !');
+                  toast('Import lancé !');
                   setShowImportModal(false);
                 }}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

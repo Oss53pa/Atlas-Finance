@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Button, Card, CardContent } from '../ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
@@ -52,7 +53,7 @@ export const DiagnosticPanel: React.FC = () => {
     setTimeout(() => {
       const modalInDOM = document.querySelector('[role="dialog"]');
       if (!modalInDOM) {
-        alert('❌ Le modal ne s\'affiche pas dans le DOM!\nVérifiez la console pour plus de détails.');
+        toast('❌ Le modal ne s\'affiche pas dans le DOM!\nVérifiez la console pour plus de détails.');
       }
     }, 100);
   };
@@ -69,7 +70,7 @@ export const DiagnosticPanel: React.FC = () => {
       .slice(0, 10);
 
     console.table(allElements);
-    alert('Top 10 z-indexes affichés dans la console');
+    toast('Top 10 z-indexes affichés dans la console');
   };
 
   return (

@@ -1,1 +1,0 @@
-export { CreateSupplierModal, EditSupplierModal, SupplierDetailModal } from './SupplierModals';

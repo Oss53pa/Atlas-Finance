@@ -1,34 +1,55 @@
 import React from 'react';
 import CapitalizationModal from './CapitalizationModal';
 
-interface CapitalizationData {
-  description: string;
+interface InvoiceData {
+  id: string;
   amount: number;
+  supplier: string;
+  description: string;
+  account: string;
   date: string;
-  [key: string]: unknown;
 }
 
-interface CapitalizationSuggestion {
-  description?: string;
-  amount?: number;
-  date?: string;
-  [key: string]: unknown;
+interface CapitalizationRequest {
+  referenceNumber: string;
+  requestDate: string;
+  department: string;
+  requesterName: string;
+  assetNature: string;
+  assetDescription: string;
+  physicalLocation: string;
+  estimatedUsefulLife: number;
+  assetCategory: string;
+  acquisitionDate: string;
+  serviceDate: string;
+  acquisitionCost: number;
+  installationCosts: number;
+  otherCapitalizableCosts: number;
+  totalCapitalizableCost: number;
+  depreciationMethod: string;
+  depreciationRate: number;
+  justification: string;
+  criteriaRespected: string[];
+  financialImpact: string;
+  approvals: {
+    departmentHead: boolean;
+    financialController: boolean;
+    management: boolean;
+  };
 }
 
 interface CapitalizationModalWrapperProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CapitalizationData) => void;
-  initialData?: CapitalizationData;
-  suggestion?: CapitalizationSuggestion;
+  onSubmit: (data: CapitalizationRequest) => void;
+  initialData?: InvoiceData;
 }
 
 const CapitalizationModalWrapper: React.FC<CapitalizationModalWrapperProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  initialData,
-  suggestion
+  initialData
 }) => {
   // Ne pas rendre le modal si il n'est pas ouvert
   if (!isOpen) {
@@ -36,9 +57,12 @@ const CapitalizationModalWrapper: React.FC<CapitalizationModalWrapperProps> = ({
   }
 
   // Créer des données par défaut si initialData est undefined
-  const safeInitialData = initialData || {
-    description: '',
+  const safeInvoiceData: InvoiceData = initialData || {
+    id: '',
     amount: 0,
+    supplier: '',
+    description: '',
+    account: '',
     date: new Date().toISOString().split('T')[0]
   };
 
@@ -47,8 +71,7 @@ const CapitalizationModalWrapper: React.FC<CapitalizationModalWrapperProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={onSubmit}
-      initialData={safeInitialData}
-      suggestion={suggestion}
+      invoiceData={safeInvoiceData}
     />
   );
 };

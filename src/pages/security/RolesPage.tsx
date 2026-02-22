@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
@@ -144,12 +145,12 @@ const RolesPage: React.FC = () => {
 
   const handleDeleteClick = (role: Role) => {
     if (role.isSystemRole) {
-      alert('Les rôles système ne peuvent pas être supprimés.');
+      toast.success('Les rôles système ne peuvent pas être supprimés.');
       return;
     }
 
     if (role.usersCount > 0) {
-      alert(`Ce rôle ne peut pas être supprimé car il est assigné à ${role.usersCount} utilisateur(s).`);
+      toast.success(`Ce rôle ne peut pas être supprimé car il est assigné à ${role.usersCount} utilisateur(s).`);
       return;
     }
 

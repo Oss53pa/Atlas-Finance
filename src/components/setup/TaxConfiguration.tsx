@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -163,7 +164,7 @@ const TaxConfiguration: React.FC = () => {
   };
 
   const onSubmit = (data: TaxFormData) => {
-    alert('Configuration enregistrée avec succès !');
+    toast.success('Configuration enregistrée avec succès !');
   };
 
   return (

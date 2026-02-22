@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../../../../lib/db';
 import { formatDate } from '../../../../../utils/formatters';
@@ -234,7 +235,7 @@ export const SimpleFundCalls: React.FC = () => {
                   type="button"
                   className="btn btn-primary"
                   onClick={() => {
-                    alert('Appel de fonds créé avec succès !');
+                    toast.success('Appel de fonds créé avec succès !');
                     setShowModal(false);
                   }}
                 >

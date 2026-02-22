@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { db } from '../../lib/db';
 import type { DBAuditLog } from '../../lib/db';
@@ -157,21 +158,21 @@ const PisteAuditModule: React.FC = () => {
   };
 
   const exporterAudit = () => {
-    alert('Export de la piste d\'audit en cours...');
+    toast.success('Export de la piste d\'audit en cours...');
     // Logique d'export
   };
 
   const handleCancelConfig = () => {
-    alert('Modifications annulées');
+    toast.success('Modifications annulées');
   };
 
   const handleSaveConfig = () => {
-    alert('Configuration de la piste d\'audit enregistrée avec succès');
+    toast.success('Configuration de la piste d\'audit enregistrée avec succès');
   };
 
   const handleExportEntry = () => {
     if (selectedEntry) {
-      alert(`Export de l'entrée ${selectedEntry.id} en cours...`);
+      toast.success(`Export de l'entrée ${selectedEntry.id} en cours...`);
     }
   };
 

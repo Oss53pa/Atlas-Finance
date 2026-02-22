@@ -1145,7 +1145,7 @@ const JournalsPage: React.FC = () => {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              alert('Sous-journal créé avec succès !');
+              toast.success('Sous-journal créé avec succès !');
               setShowCreateModal(false);
             }}>
               <div className="space-y-4">

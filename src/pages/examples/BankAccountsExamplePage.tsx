@@ -204,7 +204,7 @@ const BankAccountsExamplePage: React.FC = () => {
           <div className="flex space-x-3">
             <Button
               variant="outline"
-              onClick={() => alert('Fonction export à implémenter')}
+              onClick={() => toast.success('Fonction export à implémenter')}
             >
               <Download className="mr-2 h-4 w-4" />
               Exporter

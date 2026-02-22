@@ -27,10 +27,20 @@ import {
   ScheduleSettingsModal
 } from '../../components/reporting/ReportModals';
 import { Button, Input } from '../../components/ui';
-import { reportingService, createPlanificationSchema } from '../../services/modules/reporting.service';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
+
+// Local stubs (backend supprimé)
+const reportingService = {
+  createPlanification: async (data: Record<string, unknown>) => data,
+};
+const createPlanificationSchema = z.object({
+  nom: z.string().min(1),
+  type: z.string().min(1),
+  frequence: z.string().optional(),
+  date_debut: z.string().optional(),
+});
 
 interface Rapport {
   id: string;

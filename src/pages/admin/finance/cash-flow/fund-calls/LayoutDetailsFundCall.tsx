@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, Outlet, useParams } from 'react-router-dom';
-import { addressIpApi, authenticated_header } from '../../../../../globals/api';
-import axios, { AxiosError } from 'axios';
+
 import { useCenter } from '../../../../../components/common/Footer';
 import { IoCloseCircleSharp } from '../../../../../components/ui/Icons';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
@@ -66,7 +65,7 @@ export const LayoutDetailsFundCall: React.FC = () => {
       handleChangeFundCall(mockFundCall);
       setIsLoadingCancelable(false);
     } catch (error) {
-      console.error("Error fetching data:", (error as AxiosError).message);
+      console.error("Error fetching data:", (error as Error).message);
     }
   };
 
@@ -76,7 +75,7 @@ export const LayoutDetailsFundCall: React.FC = () => {
       const mockEnabledUsers = [1, 2, 3]; // IDs des utilisateurs autorisés
       handleChangeFundCallEnabledUser(mockEnabledUsers);
     } catch (error) {
-      console.error("Error fetching data:", (error as AxiosError).message);
+      console.error("Error fetching data:", (error as Error).message);
     }
   };
 

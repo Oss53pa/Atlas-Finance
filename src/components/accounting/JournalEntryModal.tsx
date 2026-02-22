@@ -63,9 +63,9 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   mode = 'create'
 }) => {
   // Lock guard: validated/posted entries are read-only (SYSCOHADA intangibility)
-  const entryStatus = initialData?.status || 'draft';
+  const entryStatus = String(initialData?.status || 'draft');
   const isLocked = !isEntryEditable(entryStatus);
-  const canReverse = isEntryReversible({ status: entryStatus, reversed: initialData?.reversed });
+  const canReverse = isEntryReversible({ status: entryStatus, reversed: initialData?.reversed === true });
 
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -791,7 +791,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
           </div>
 
           {/* Status Banner + Workflow Buttons */}
-          {mode === 'edit' && initialData?.id && (
+          {mode === 'edit' && !!initialData?.id && (
             <div className={`border-b px-6 py-3 flex items-center justify-between ${
               entryStatus === 'posted' ? 'bg-green-50 border-green-200'
                 : entryStatus === 'validated' ? 'bg-amber-50 border-amber-200'
@@ -806,7 +806,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 <span className="font-medium text-sm">
                   {entryStatus === 'posted'
                     ? initialData?.reversed
-                      ? `Contrepassée le ${initialData.reversedAt?.split('T')[0] || ''}`
+                      ? `Contrepassée le ${String(initialData.reversedAt ?? '').split('T')[0] || ''}`
                       : 'Comptabilisée — Immutable (SYSCOHADA Art. 19)'
                     : entryStatus === 'validated'
                     ? 'Validée — En attente de comptabilisation'
@@ -821,7 +821,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       const fn = target === 'validated' ? validerEcriture
                         : target === 'posted' ? comptabiliserEcriture
                         : retourBrouillon;
-                      const res = await fn(initialData.id);
+                      const res = await fn(String(initialData.id));
                       if (res.success) {
                         onClose();
                       } else {
@@ -1674,7 +1674,6 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                 }}
                                 placeholder="Type de fichier"
                                 showSearch={false}
-                                size="sm"
                               />
                             </td>
                             <td className="px-3 py-2 text-sm">{fichier.taille}</td>
@@ -1704,7 +1703,6 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                 placeholder="-- Ligne --"
                                 searchPlaceholder="Rechercher une ligne..."
                                 clearable
-                                size="sm"
                               />
                             </td>
                             <td className="px-3 py-2">
