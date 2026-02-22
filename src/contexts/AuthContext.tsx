@@ -79,7 +79,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initialize auth state
   useEffect(() => {
     if (!isSupabaseConfigured) {
-      console.warn('[AuthContext] Supabase not configured — authentication disabled');
+      console.warn('[AuthContext] Supabase not configured — dev mode, auto-login as admin');
+      setUser({
+        id: 'dev-user',
+        name: 'Dev Admin',
+        email: 'dev@atlas.local',
+        role: 'admin',
+        permissions: ['read:all', 'write:all', 'delete:all', 'admin:all'],
+      });
       setLoading(false);
       return;
     }

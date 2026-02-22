@@ -69,10 +69,10 @@ const LandingPage: React.FC = () => {
 
   const navItems = [
     { label: 'Tableau de bord', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Nouvelle écriture', icon: FilePlus, path: '/ecritures' },
-    { label: 'Journaux', icon: BookOpen, path: '/journaux' },
-    { label: 'Tiers', icon: Users, path: '/clients' },
-    { label: 'Paramètres', icon: Settings, path: '/parametres' },
+    { label: 'Nouvelle écriture', icon: FilePlus, path: '/accounting/entries' },
+    { label: 'Journaux', icon: BookOpen, path: '/accounting/journals' },
+    { label: 'Tiers', icon: Users, path: '/tiers/clients' },
+    { label: 'Paramètres', icon: Settings, path: '/settings' },
   ];
 
   return (
@@ -122,7 +122,7 @@ const LandingPage: React.FC = () => {
         <div className="flex flex-wrap justify-center gap-4 max-w-2xl">
           {alerts.brouillons > 0 && (
             <button
-              onClick={() => navigate('/ecritures')}
+              onClick={() => navigate('/accounting/entries')}
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-amber-50 text-amber-700 text-sm border border-amber-200 hover:bg-amber-100 transition-colors"
             >
               <AlertCircle className="w-4 h-4" />
