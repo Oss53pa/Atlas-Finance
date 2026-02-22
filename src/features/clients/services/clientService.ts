@@ -2,7 +2,7 @@
  * Client Service — Connected to Dexie IndexedDB.
  * Queries real third-party and journal entry data for client management.
  */
-import { db } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import type { DBThirdParty, DBJournalEntry } from '../../../lib/db';
 import { ClientDetail, Facture, Paiement } from '../types/client.types';
 import { Money } from '@/utils/money';
@@ -11,29 +11,30 @@ class ClientService {
   /**
    * Get client detail from thirdParties table + computed financial data.
    */
-  async getClient(id: string): Promise<ClientDetail> {
-    const tp = await db.thirdParties.get(id);
+  async getClient(adapter: DataAdapter, id: string): Promise<ClientDetail> {
+    const tp = await adapter.getById<DBThirdParty>('thirdParties', id);
 
     if (!tp) {
       // Fallback: search by code
-      const byCode = await db.thirdParties.where('code').equals(id).first();
-      if (byCode) return this.buildClientDetail(byCode);
+      const byCodeResults = await adapter.getAll<DBThirdParty>('thirdParties', { where: { code: id } });
+      const byCode = byCodeResults[0];
+      if (byCode) return this.buildClientDetail(adapter, byCode);
 
       // Return minimal placeholder if no data
       return this.buildEmptyClient(id);
     }
 
-    return this.buildClientDetail(tp);
+    return this.buildClientDetail(adapter, tp);
   }
 
   /**
    * Get invoices for a client by scanning journal entries with account 411xxx.
    */
-  async getFactures(clientId: string): Promise<Facture[]> {
-    const entries = await db.journalEntries.toArray();
+  async getFactures(adapter: DataAdapter, clientId: string): Promise<Facture[]> {
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
     const factures: Facture[] = [];
 
-    const tp = await db.thirdParties.get(clientId);
+    const tp = await adapter.getById<DBThirdParty>('thirdParties', clientId);
     const clientCode = tp?.code || clientId;
 
     for (const entry of entries) {
@@ -67,11 +68,11 @@ class ClientService {
   /**
    * Get payments for a client by scanning treasury entries.
    */
-  async getPaiements(clientId: string): Promise<Paiement[]> {
-    const entries = await db.journalEntries.toArray();
+  async getPaiements(adapter: DataAdapter, clientId: string): Promise<Paiement[]> {
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
     const paiements: Paiement[] = [];
 
-    const tp = await db.thirdParties.get(clientId);
+    const tp = await adapter.getById<DBThirdParty>('thirdParties', clientId);
     const clientCode = tp?.code || clientId;
 
     for (const entry of entries) {
@@ -98,19 +99,19 @@ class ClientService {
     return paiements.sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  async updateClient(id: string, data: Partial<ClientDetail>): Promise<ClientDetail> {
-    const tp = await db.thirdParties.get(id);
+  async updateClient(adapter: DataAdapter, id: string, data: Partial<ClientDetail>): Promise<ClientDetail> {
+    const tp = await adapter.getById<DBThirdParty>('thirdParties', id);
     if (tp && data.nom) {
-      await db.thirdParties.update(id, { name: data.nom });
+      await adapter.update('thirdParties', id, { name: data.nom });
     }
-    return this.getClient(id);
+    return this.getClient(adapter, id);
   }
 
   // ---- Private helpers ----
 
-  private async buildClientDetail(tp: DBThirdParty): Promise<ClientDetail> {
+  private async buildClientDetail(adapter: DataAdapter, tp: DBThirdParty): Promise<ClientDetail> {
     // Compute financial data from entries
-    const entries = await db.journalEntries.toArray();
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
     let totalDebit = 0;
     let totalCredit = 0;
     let invoiceCount = 0;

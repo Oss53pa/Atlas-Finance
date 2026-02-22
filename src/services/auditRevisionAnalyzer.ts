@@ -2,6 +2,7 @@
 // Moteur d'Audit IA Rule-Based — ISA / SYSCOHADA
 // Service pur TypeScript, synchrone, sans dépendance React/Dexie
 // ============================================================================
+import { formatCurrency } from '../utils/formatters';
 
 // ======================== TYPES D'ENTRÉE ========================
 
@@ -290,7 +291,7 @@ export function analyzeRevisionItems(revisions: RevisionItem[]): CategoryAnalysi
         category: 'revision',
         severity: rev.montant > 20_000_000 ? 'error' : 'warning',
         title: `Montant significatif avec risque faible — ${rev.id}`,
-        detail: `Le point ${rev.id} a un montant de ${rev.montant.toLocaleString('fr-FR')} FCFA mais un niveau de risque "${rev.niveauRisque}". Un montant significatif devrait normalement justifier un niveau de risque plus élevé.`,
+        detail: `Le point ${rev.id} a un montant de ${formatCurrency(rev.montant)} mais un niveau de risque "${rev.niveauRisque}". Un montant significatif devrait normalement justifier un niveau de risque plus élevé.`,
         affectedItemId: rev.id, affectedLabel: rev.libelleCompte,
         suggestion: `Réévaluer le niveau de risque compte tenu du montant en jeu.`,
         normeReference: 'ISA 315 §12',
@@ -360,7 +361,7 @@ export function analyzeRevisionItems(revisions: RevisionItem[]): CategoryAnalysi
           id: nextId(), ruleId: 'REV-ECRITURE-EQUILIBRE',
           category: 'revision', severity: 'critical',
           title: `Écriture déséquilibrée — ${rev.id}`,
-          detail: `L'écriture ${rev.ecritureProposee.id} est déséquilibrée : débit=${totalDebit.toLocaleString('fr-FR')} ≠ crédit=${totalCredit.toLocaleString('fr-FR')} (écart: ${Math.abs(totalDebit - totalCredit).toLocaleString('fr-FR')} FCFA).`,
+          detail: `L'écriture ${rev.ecritureProposee.id} est déséquilibrée : débit=${formatCurrency(totalDebit)} ≠ crédit=${formatCurrency(totalCredit)} (écart: ${formatCurrency(Math.abs(totalDebit - totalCredit))}).`,
           affectedItemId: rev.id, affectedLabel: rev.ecritureProposee.id,
           suggestion: `Corriger l'écriture pour que le total des débits égale le total des crédits.`,
           normeReference: 'SYSCOHADA Art. 35',
@@ -454,7 +455,7 @@ export function analyzeLeadSchedules(leadSchedules: LeadSchedule[]): CategoryAna
         id: nextId(), ruleId: 'LS-VARIATION-CALC',
         category: 'lead_schedule', severity: 'error',
         title: `Erreur calcul variation — ${ls.cycle}`,
-        detail: `Variation affichée : ${ls.variation.toLocaleString('fr-FR')} FCFA, variation calculée : ${expectedVariation.toLocaleString('fr-FR')} FCFA.`,
+        detail: `Variation affichée : ${formatCurrency(ls.variation)}, variation calculée : ${formatCurrency(expectedVariation)}.`,
         affectedItemId: ls.id, affectedLabel: ls.cycle,
         suggestion: `Corriger le calcul de la variation.`,
         normeReference: 'ISA 520',
@@ -484,7 +485,7 @@ export function analyzeLeadSchedules(leadSchedules: LeadSchedule[]): CategoryAna
         id: nextId(), ruleId: 'LS-VARIATION-SEUIL',
         category: 'lead_schedule', severity: 'warning',
         title: `Variation significative non revue — ${ls.cycle}`,
-        detail: `La variation de ${ls.variation.toLocaleString('fr-FR')} FCFA (${ls.variationPourcent}%) dépasse le seuil de significativité de ${ls.seuilSignificativite.toLocaleString('fr-FR')} FCFA, mais la revue n'est pas terminée (statut: ${ls.statutRevue}).`,
+        detail: `La variation de ${formatCurrency(ls.variation)} (${ls.variationPourcent}%) dépasse le seuil de significativité de ${formatCurrency(ls.seuilSignificativite)}, mais la revue n'est pas terminée (statut: ${ls.statutRevue}).`,
         affectedItemId: ls.id, affectedLabel: ls.cycle,
         suggestion: `Prioriser la revue de ce cycle compte tenu de la variation significative.`,
         normeReference: 'ISA 520 §5',
@@ -703,7 +704,7 @@ export function analyzeAdjustments(revisions: RevisionItem[]): CategoryAnalysisR
         id: nextId(), ruleId: 'ADJ-EQUILIBRE',
         category: 'adjustment', severity: 'critical',
         title: `PAJE/AAJE déséquilibrée — ${aje.id}`,
-        detail: `L'écriture ${aje.id} est déséquilibrée : débit=${totalDebit.toLocaleString('fr-FR')}, crédit=${totalCredit.toLocaleString('fr-FR')} (écart: ${Math.abs(totalDebit - totalCredit).toLocaleString('fr-FR')} FCFA).`,
+        detail: `L'écriture ${aje.id} est déséquilibrée : débit=${formatCurrency(totalDebit)}, crédit=${formatCurrency(totalCredit)} (écart: ${formatCurrency(Math.abs(totalDebit - totalCredit))}).`,
         affectedItemId: rev.id, affectedLabel: aje.id,
         suggestion: `Corriger l'écriture pour rétablir l'équilibre.`,
         normeReference: 'SYSCOHADA Art. 35',
@@ -780,7 +781,7 @@ export function analyzeAdjustments(revisions: RevisionItem[]): CategoryAnalysisR
       id: nextId(), ruleId: 'ADJ-CUMUL-ISA450',
       category: 'adjustment', severity: 'error',
       title: `Cumul des anomalies non corrigées dépasse 5%`,
-      detail: `Le cumul des ajustements non corrigés (${uncorrectedTotal.toLocaleString('fr-FR')} FCFA) représente ${((uncorrectedTotal / totalMontant) * 100).toFixed(1)}% du montant total des points de révision (${totalMontant.toLocaleString('fr-FR')} FCFA).`,
+      detail: `Le cumul des ajustements non corrigés (${formatCurrency(uncorrectedTotal)}) représente ${((uncorrectedTotal / totalMontant) * 100).toFixed(1)}% du montant total des points de révision (${formatCurrency(totalMontant)}).`,
       suggestion: `Évaluer l'impact cumulé sur l'opinion d'audit. Envisager une réserve si le seuil n'est pas réduit.`,
       normeReference: 'ISA 450 §11',
     });
@@ -802,7 +803,7 @@ export function analyzeAdjustments(revisions: RevisionItem[]): CategoryAnalysisR
             id: nextId(), ruleId: 'ADJ-DOUBLON',
             category: 'adjustment', severity: 'warning',
             title: `Doublon potentiel d'ajustement — ${a.id} / ${b.id}`,
-            detail: `Les écritures ${a.id} et ${b.id} utilisent les mêmes comptes (${aComptes}) avec des montants proches (${a.montantTotal.toLocaleString('fr-FR')} vs ${b.montantTotal.toLocaleString('fr-FR')} FCFA).`,
+            detail: `Les écritures ${a.id} et ${b.id} utilisent les mêmes comptes (${aComptes}) avec des montants proches (${formatCurrency(a.montantTotal)} vs ${formatCurrency(b.montantTotal)}).`,
             affectedItemId: revisionsWithAdjustments[i].id,
             affectedLabel: `${a.id} / ${b.id}`,
             suggestion: `Vérifier qu'il ne s'agit pas d'un double enregistrement.`,

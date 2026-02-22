@@ -2,8 +2,9 @@
  * Affectation du resultat de l'exercice.
  * Conforme SYSCOHADA revise — repartition du benefice ou traitement de la perte.
  */
+import type { DataAdapter } from '@atlas/data';
 import { Money, money, percentage } from '../../utils/money';
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBJournalLine } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 
@@ -179,7 +180,7 @@ export function validerVentilation(resultatNet: number, ventilation: Affectation
 /**
  * Generate the journal entries for the allocation.
  */
-export async function genererEcrituresAffectation(config: AffectationConfig): Promise<AffectationResult> {
+export async function genererEcrituresAffectation(adapter: DataAdapter, config: AffectationConfig): Promise<AffectationResult> {
   const { resultatNet, ventilation, exerciceId } = config;
 
   // Validate

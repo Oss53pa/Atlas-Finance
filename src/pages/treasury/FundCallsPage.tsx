@@ -2,11 +2,10 @@
  * Module Appels de Fonds Atlas Finance
  * Interface complète avec workflow de validation selon cahier des charges
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   CreditCard,
   Plus,
@@ -111,17 +110,34 @@ interface FundCall {
 
 const FundCallsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [viewMode, setViewMode] = useState<'payables' | 'fund-calls' | 'workflow'>('payables');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [proposedPayments, setProposedPayments] = useState<PayableItem[]>([]);
   const [groupBy, setGroupBy] = useState<'vendor' | 'type' | 'priority' | 'none'>('vendor');
   const [showFutureTransactions, setShowFutureTransactions] = useState(false);
 
-  // Load payables from Dexie settings, derive from journal entries for supplier accounts (401/404)
-  const journalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
-  const fundCallsSetting = useLiveQuery(() => db.settings.get('fund_calls'));
-  const payablesSetting = useLiveQuery(() => db.settings.get('fund_call_payables'));
-  const isLoading = payablesSetting === undefined;
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [fundCallsSetting, setFundCallsSetting] = useState<any>(undefined);
+  const [payablesSetting, setPayablesSetting] = useState<any>(undefined);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const [entries, fcSetting, pSetting] = await Promise.all([
+        adapter.getAll('journalEntries'),
+        adapter.getById('settings', 'fund_calls'),
+        adapter.getById('settings', 'fund_call_payables'),
+      ]);
+      setJournalEntries(entries as any[]);
+      setFundCallsSetting(fcSetting);
+      setPayablesSetting(pSetting);
+      setDataLoaded(true);
+    };
+    load();
+  }, [adapter]);
+
+  const isLoading = !dataLoaded;
 
   // Build payables from settings or derive from journal entries
   const payables: PayableItem[] = useMemo(() => {

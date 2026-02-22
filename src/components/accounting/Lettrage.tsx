@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { autoLettrage, applyLettrage, applyManualLettrage, delettrage } from '../../services/lettrageService';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '@/utils/formatters';
@@ -58,6 +58,7 @@ interface LettrageHistory {
 
 const Lettrage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const queryClient = useQueryClient();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
@@ -92,7 +93,7 @@ const Lettrage: React.FC = () => {
   const { data: lettrageEntries = [], refetch: refetchEntries } = useQuery({
     queryKey: ['lettrage-entries', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await db.journalEntries.toArray();
+      const entries = await adapter.getAll('journalEntries');
       const result: LettrageEntry[] = [];
       const soldesByCompte: Record<string, number> = {};
 
@@ -181,7 +182,7 @@ const Lettrage: React.FC = () => {
     if (selectedData.length < 2) return;
 
     // Find original entry/line IDs from db
-    const allEntries = await db.journalEntries.toArray();
+    const allEntries = await adapter.getAll('journalEntries');
     const selections: Array<{ entryId: string; lineId: string }> = [];
 
     for (const sel of selectedData) {

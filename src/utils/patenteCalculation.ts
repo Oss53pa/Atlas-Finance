@@ -5,6 +5,7 @@
  *   - Centimes additionnels communaux
  */
 import { Money, money } from './money';
+import { formatCurrency } from './formatters';
 
 /** Barème patente Cameroun (simplifié) */
 const PATENTE_BAREME_CM: Array<{ min: number; max: number; droit: number }> = [
@@ -59,7 +60,7 @@ export function calculatePatente(input: PatenteInput): PatenteResult {
       b => input.chiffreAffaires >= b.min && input.chiffreAffaires <= b.max
     );
     droitTableau = money(tranche?.droit || 50_000);
-    bareme = `Cameroun — Tranche ${tranche?.min?.toLocaleString('fr-FR') || 0} - ${tranche?.max === Infinity ? '∞' : tranche?.max?.toLocaleString('fr-FR')}`;
+    bareme = `Cameroun — Tranche ${formatCurrency(tranche?.min || 0)} - ${tranche?.max === Infinity ? '∞' : formatCurrency(tranche?.max || 0)}`;
   } else if (input.countryCode === 'CI') {
     const tranche = PATENTE_BAREME_CI.find(
       b => input.chiffreAffaires >= b.min && input.chiffreAffaires <= b.max

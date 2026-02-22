@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
@@ -51,6 +51,7 @@ interface Report {
 
 const ReportsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -70,9 +71,11 @@ const ReportsPage: React.FC = () => {
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['reports', searchTerm, selectedType, selectedCategory, selectedStatus, selectedFormat],
     queryFn: async () => {
-      const latestEntry = await db.journalEntries.orderBy('date').reverse().first();
+      const allEntries = await adapter.getAll<{ date: string }>('journalEntries');
+      const sorted = allEntries.sort((a, b) => b.date.localeCompare(a.date));
+      const latestEntry = sorted[0] || null;
       const now = latestEntry?.date ? latestEntry.date + 'T00:00:00Z' : new Date().toISOString();
-      const entryCount = await db.journalEntries.count();
+      const entryCount = allEntries.length;
 
       const catalog: Report[] = [
         { id: 'bilan', name: 'Bilan SYSCOHADA', code: 'BIL-001', type: 'financial', category: 'Comptabilité', description: 'Bilan comptable conforme SYSCOHADA — Actif/Passif', template: 'bilan_syscohada', status: 'active', frequency: 'annual', format: 'pdf', lastGenerated: now, generatedBy: 'system', owner: 'system', isPublic: true, isScheduled: false, views: entryCount, downloads: 0, parameters: ['periode', 'devise'], filters: ['compte'], tags: ['bilan', 'syscohada'], createdAt: now, lastModified: now, estimatedDuration: 5 },

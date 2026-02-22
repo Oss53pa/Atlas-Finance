@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   Link,
@@ -74,9 +73,16 @@ const LettrageAutomatiquePage: React.FC = () => {
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [isRunning, setIsRunning] = useState(false);
+  const { adapter } = useData();
+  const [allEntries, setAllEntries] = useState<any[]>([]);
 
-  // Load reconcilable journal lines (accounts 40x, 41x) from Dexie
-  const allEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+  useEffect(() => {
+    const load = async () => {
+      const e = await adapter.getAll('journalEntries');
+      setAllEntries(e as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Derive lettrage lines from journal entries within the date range
   const reconcilableLines = useMemo(() => {

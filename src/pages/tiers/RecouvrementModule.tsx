@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -406,11 +405,23 @@ Service Contentieux
     return () => document.removeEventListener('click', handleClickOutside);
   }, [openDropdownId]);
 
-  // --- Dexie live queries for customer third parties and journal entries ---
-  const customerThirdParties = useLiveQuery(
-    () => db.thirdParties.where('type').anyOf('customer', 'both').toArray()
-  ) || [];
-  const allJournalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
+  // --- Data from DataContext for customer third parties and journal entries ---
+  const { adapter } = useData();
+  const [customerThirdParties, setCustomerThirdParties] = useState<any[]>([]);
+  const [allJournalEntries, setAllJournalEntries] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [tps, entries] = await Promise.all([
+        adapter.getAll('thirdParties'),
+        adapter.getAll('journalEntries'),
+      ]);
+      const allTps = tps as any[];
+      setCustomerThirdParties(allTps.filter(tp => tp.type === 'customer' || tp.type === 'both'));
+      setAllJournalEntries(entries as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Build receivables per customer from 411xxx journal lines
   const mockCreances = useMemo(() => {

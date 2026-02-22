@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { db } from '../../../../../lib/db';
+import { useData } from '../../../../../contexts/DataContext';
 import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
 import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
@@ -51,6 +51,7 @@ export const FundCallPlan: React.FC = () => {
   const { id_fund_call } = useParams<RouteParams>();
   const { loggedUser } = useSession();
   const { fundCallG, handleChangeFundCall, handleChangeFundCallEnabledUser, enabledId } = useFinanceContext();
+  const { adapter } = useData();
 
   const sweetAlertRef = useRef<any>();
   const [showContent, setShowContent] = useState<ShowContentState>({});
@@ -66,7 +67,7 @@ export const FundCallPlan: React.FC = () => {
 
   const getFundCall = async (): Promise<void> => {
     try {
-      const setting = await db.settings.get('fund_calls');
+      const setting = await adapter.getById<{ value: string }>('settings', 'fund_calls');
       if (setting) {
         const parsed = JSON.parse(setting.value);
         const allCalls = Array.isArray(parsed) ? parsed : [];
@@ -145,7 +146,7 @@ export const FundCallPlan: React.FC = () => {
   const getEntries = async (): Promise<void> => {
     try {
       setIsLoadingCancelable(true);
-      const setting = await db.settings.get('fund_call_entries');
+      const setting = await adapter.getById<{ value: string }>('settings', 'fund_call_entries');
       if (setting) {
         const parsed: VendorGroup[] = JSON.parse(setting.value);
         const entries = Array.isArray(parsed) ? parsed : [];

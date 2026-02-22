@@ -11,8 +11,9 @@ import {
   Check, ChevronRight, Pencil, X, Lightbulb, Save, RotateCcw,
   Loader2, Tag, Link2,
 } from 'lucide-react';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import type { DBAliasTiers } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import { planComptableService } from '../../services/accounting/planComptableService';
 import { aliasTiersService } from '../../services/accounting/aliasTiersService';
 import { isAliasEligible, getPrefixForSousCompte, getAliasTypeLabel } from '../../data/alias-tiers-config';
@@ -71,8 +72,8 @@ type AliasMode = 'auto' | 'custom' | 'attach';
 // NEXT CODE ALGORITHM
 // ============================================================================
 
-async function getNextCode(prefix3: string): Promise<string> {
-  const allAccounts = await db.accounts.toArray();
+async function getNextCode(prefix3: string, adapter: DataAdapter): Promise<string> {
+  const allAccounts = await adapter.getAll<{ code: string }>('accounts');
   const matching = allAccounts
     .filter(a => a.code.startsWith(prefix3))
     .map(a => a.code)
@@ -123,8 +124,8 @@ async function getNextCode(prefix3: string): Promise<string> {
   return candidate;
 }
 
-async function countAccountsByPrefix(prefix: string): Promise<number> {
-  const all = await db.accounts.toArray();
+async function countAccountsByPrefix(prefix: string, adapter: DataAdapter): Promise<number> {
+  const all = await adapter.getAll<{ code: string }>('accounts');
   return all.filter(a => a.code.startsWith(prefix)).length;
 }
 
@@ -190,6 +191,7 @@ function StepHeader({
 // ============================================================================
 
 export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
+  const { adapter } = useData();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedClasse, setSelectedClasse] = useState<ClasseSYSCOHADA | null>(null);
   const [selectedCategorie, setSelectedCategorie] = useState<CategorieSYSCOHADA | null>(null);
@@ -223,12 +225,12 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
     const loadCounts = async () => {
       const counts: Record<string, number> = {};
       for (const cat of cats) {
-        counts[cat.code] = await countAccountsByPrefix(cat.code);
+        counts[cat.code] = await countAccountsByPrefix(cat.code, adapter);
       }
       setCategorieCounts(counts);
     };
     loadCounts();
-  }, [selectedClasse]);
+  }, [selectedClasse, adapter]);
 
   // Load sous-compte counts when category is selected
   useEffect(() => {
@@ -237,18 +239,18 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
     const loadCounts = async () => {
       const counts: Record<string, number> = {};
       for (const sc of scs) {
-        counts[sc.code] = await countAccountsByPrefix(sc.code);
+        counts[sc.code] = await countAccountsByPrefix(sc.code, adapter);
       }
       setSousCompteCounts(counts);
     };
     loadCounts();
-  }, [selectedCategorie]);
+  }, [selectedCategorie, adapter]);
 
   // Compute suggested code when sous-compte is selected
   useEffect(() => {
     if (!selectedSousCompte || !selectedClasse) return;
     setIsLoadingCode(true);
-    getNextCode(selectedSousCompte.code).then(code => {
+    getNextCode(selectedSousCompte.code, adapter).then(code => {
       setSuggestedCode(code);
       setIsLoadingCode(false);
     });
@@ -258,7 +260,7 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
     setNature(ns.nature);
     setSensNormal(ns.sensNormal);
     setIsNatureSensVariable(ns.isVariable);
-  }, [selectedSousCompte, selectedClasse, selectedCategorie]);
+  }, [selectedSousCompte, selectedClasse, selectedCategorie, adapter]);
 
   // Load alias data when sous-compte changes
   useEffect(() => {
@@ -350,10 +352,11 @@ export function NouveauCompteWizard({ onClose, onSuccess }: Props) {
 
     try {
       // Check for duplicate
-      const existing = await db.accounts.where('code').equals(suggestedCode).first();
+      const existingAccounts = await adapter.getAll<{ code: string }>('accounts', { where: { code: suggestedCode } });
+      const existing = existingAccounts[0] ?? null;
       if (existing) {
         toast.error(`Le code ${suggestedCode} existe deja. Recalcul en cours...`);
-        const newCode = await getNextCode(selectedSousCompte.code);
+        const newCode = await getNextCode(selectedSousCompte.code, adapter);
         setSuggestedCode(newCode);
         setIsSaving(false);
         return;

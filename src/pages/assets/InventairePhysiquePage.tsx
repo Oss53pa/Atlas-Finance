@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, DBAsset } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
+import { DBAsset } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -127,6 +127,7 @@ interface TeamMember {
 
 const InventairePhysiquePage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedSession, setSelectedSession] = useState<string>('current');
   const [selectedZone, setSelectedZone] = useState<string>('toutes');
   const [selectedStatus, setSelectedStatus] = useState<string>('tous');
@@ -141,8 +142,16 @@ const InventairePhysiquePage: React.FC = () => {
   const [showQrCodeModal, setShowQrCodeModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
-  // Live Dexie query for assets
-  const dbAssets = useLiveQuery(() => db.assets.toArray()) || [];
+  // Load assets via DataContext adapter
+  const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const assets = await adapter.getAll('assets');
+      setDbAssets(assets as DBAsset[]);
+    };
+    load();
+  }, [adapter]);
 
   // Map DBAsset to InventoryItem interface
   const allInventoryItems: InventoryItem[] = useMemo(() => {
@@ -222,7 +231,7 @@ const InventairePhysiquePage: React.FC = () => {
     });
   }, [allInventoryItems, selectedStatus, selectedZone, searchTerm]);
 
-  const itemsLoading = false; // useLiveQuery handles loading via || []
+  const itemsLoading = false; // data loaded via useEffect
 
   // Build discrepancies from items with ecart status
   const discrepancies: InventoryDiscrepancy[] = useMemo(() => {

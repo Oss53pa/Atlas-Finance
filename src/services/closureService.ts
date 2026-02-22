@@ -9,8 +9,9 @@
  * 4. Génération des à-nouveaux (comptes bilan classes 1-5)
  * 5. Enregistrement dans closureSessions
  */
+import type { DataAdapter } from '@atlas/data';
 import { money } from '../utils/money';
-import { db, logAudit } from '../lib/db';
+import { logAudit } from '../lib/db';
 import type { DBJournalEntry, DBClosureSession } from '../lib/db';
 import { executerCarryForward, previewCarryForward } from './cloture/carryForwardService';
 import type { CarryForwardPreview } from './cloture/carryForwardService';
@@ -69,14 +70,12 @@ export interface ClosureProgress {
 /**
  * Preview the closure: analyse what would happen without modifying anything.
  */
-export async function previewClosure(exerciceId: string): Promise<ClosurePreview> {
-  const fiscalYear = await db.fiscalYears.get(exerciceId);
+export async function previewClosure(adapter: DataAdapter, exerciceId: string): Promise<ClosurePreview> {
+  const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
   if (!fiscalYear) throw new Error(`Exercice ${exerciceId} introuvable`);
 
-  const entries = await db.journalEntries
-    .where('date')
-    .between(fiscalYear.startDate, fiscalYear.endDate, true, true)
-    .toArray();
+  const allEntries = await adapter.getAll('journalEntries');
+  const entries = allEntries.filter(e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate);
 
   const warnings: string[] = [];
 
@@ -110,7 +109,7 @@ export async function previewClosure(exerciceId: string): Promise<ClosurePreview
   const missingDepreciation: string[] = [];
   const start = new Date(fiscalYear.startDate);
   const end = new Date(fiscalYear.endDate);
-  const assets = await db.assets.where('status').equals('active').toArray();
+  const assets = await adapter.getAll('assets', { where: { status: 'active' } });
 
   if (assets.length > 0) {
     const current = new Date(start);
@@ -165,6 +164,7 @@ export async function previewClosure(exerciceId: string): Promise<ClosurePreview
  * @param onProgress Optional progress callback
  */
 export async function executerCloture(
+  adapter: DataAdapter,
   config: ClosureConfig,
   onProgress?: (progress: ClosureProgress) => void
 ): Promise<ClosureResult> {
@@ -174,11 +174,11 @@ export async function executerCloture(
   };
 
   // 0. Load fiscal year
-  const fiscalYear = await db.fiscalYears.get(config.exerciceId);
+  const fiscalYear = await adapter.getById('fiscalYears', config.exerciceId);
   if (!fiscalYear) return { success: false, lockedEntries: 0, resultatNet: 0, errors: [`Exercice ${config.exerciceId} introuvable`] };
   if (fiscalYear.isClosed) return { success: false, lockedEntries: 0, resultatNet: 0, errors: ['Exercice déjà clôturé'] };
 
-  const openingFY = await db.fiscalYears.get(config.openingExerciceId);
+  const openingFY = await adapter.getById('fiscalYears', config.openingExerciceId);
   if (!openingFY) return { success: false, lockedEntries: 0, resultatNet: 0, errors: [`Exercice d'ouverture ${config.openingExerciceId} introuvable`] };
 
   // Create closure session
@@ -195,56 +195,52 @@ export async function executerCloture(
     creePar: config.initiateur,
     progression: 0,
   };
-  await db.closureSessions.add(session);
+  await adapter.create('closureSessions', session);
 
   try {
     // 1. VERIFICATION
     report('VERIFICATION', 10, 'Vérification des pré-requis...');
-    const entries = await db.journalEntries
-      .where('date')
-      .between(fiscalYear.startDate, fiscalYear.endDate, true, true)
-      .toArray();
+    const allEntries = await adapter.getAll('journalEntries');
+    const entries = allEntries.filter(e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate);
 
     const unbalanced = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1);
     if (unbalanced.length > 0) {
       errors.push(`${unbalanced.length} écriture(s) déséquilibrée(s) — correction requise avant clôture`);
-      await updateSessionStatus(sessionId, 'ANNULEE', 10);
+      await updateSessionStatus(adapter, sessionId, 'ANNULEE', 10);
       return { success: false, sessionId, lockedEntries: 0, resultatNet: 0, errors };
     }
 
     // 2. AMORTISSEMENTS — Post missing depreciation
     report('AMORTISSEMENTS', 20, 'Comptabilisation des amortissements manquants...');
-    const assets = await db.assets.where('status').equals('active').toArray();
+    const assets = await adapter.getAll('assets', { where: { status: 'active' } });
     if (assets.length > 0) {
       const start = new Date(fiscalYear.startDate);
       const end = new Date(fiscalYear.endDate);
       const current = new Date(start);
       while (current <= end) {
         const periode = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-        await posterAmortissements(periode);
+        await posterAmortissements(adapter, periode);
         current.setMonth(current.getMonth() + 1);
       }
     }
-    await updateSessionStatus(sessionId, 'EN_COURS', 30);
+    await updateSessionStatus(adapter, sessionId, 'EN_COURS', 30);
 
     // 3. VERROUILLAGE — Lock all entries for the fiscal year
     report('VERROUILLAGE', 40, 'Verrouillage des écritures...');
-    const refreshedEntries = await db.journalEntries
-      .where('date')
-      .between(fiscalYear.startDate, fiscalYear.endDate, true, true)
-      .toArray();
+    const allRefreshed = await adapter.getAll('journalEntries');
+    const refreshedEntries = allRefreshed.filter(e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate);
 
     let lockedCount = 0;
     for (const entry of refreshedEntries) {
       if (entry.status !== 'validated') {
-        await db.journalEntries.update(entry.id, {
+        await adapter.update('journalEntries', entry.id, {
           status: 'validated',
           updatedAt: new Date().toISOString(),
         });
         lockedCount++;
       }
     }
-    await updateSessionStatus(sessionId, 'EN_COURS', 50);
+    await updateSessionStatus(adapter, sessionId, 'EN_COURS', 50);
 
     // 4. CALCUL DU RESULTAT
     report('CALCUL_RESULTAT', 60, 'Calcul du résultat de l\'exercice...');
@@ -263,7 +259,7 @@ export async function executerCloture(
     }
 
     const resultatNet = money(totalProduits).subtract(money(totalCharges)).toNumber();
-    await updateSessionStatus(sessionId, 'EN_COURS', 70);
+    await updateSessionStatus(adapter, sessionId, 'EN_COURS', 70);
 
     // 5. REPORTS A NOUVEAU
     report('REPORTS_A_NOUVEAU', 80, 'Génération des à-nouveaux...');
@@ -282,9 +278,9 @@ export async function executerCloture(
     report('FINALISATION', 90, 'Finalisation de la clôture...');
 
     // Mark fiscal year as closed
-    await db.fiscalYears.update(config.exerciceId, { isClosed: true });
+    await adapter.update('fiscalYears', config.exerciceId, { isClosed: true });
 
-    await updateSessionStatus(sessionId, 'CLOTUREE', 100);
+    await updateSessionStatus(adapter, sessionId, 'CLOTUREE', 100);
 
     await logAudit(
       'CLOSURE_COMPLETE',
@@ -306,7 +302,7 @@ export async function executerCloture(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     errors.push(msg);
-    await updateSessionStatus(sessionId, 'ANNULEE', 0);
+    await updateSessionStatus(adapter, sessionId, 'ANNULEE', 0);
     return { success: false, sessionId, lockedEntries: 0, resultatNet: 0, errors };
   }
 }
@@ -316,11 +312,12 @@ export async function executerCloture(
 // ============================================================================
 
 async function updateSessionStatus(
+  adapter: DataAdapter,
   sessionId: string,
   statut: DBClosureSession['statut'],
   progression: number
 ): Promise<void> {
-  await db.closureSessions.update(sessionId, {
+  await adapter.update('closureSessions', sessionId, {
     statut,
     progression,
     dateFin: statut === 'CLOTUREE' || statut === 'ANNULEE' ? new Date().toISOString() : '',
@@ -330,16 +327,16 @@ async function updateSessionStatus(
 /**
  * List all closure sessions.
  */
-export async function getClosureSessions(): Promise<DBClosureSession[]> {
-  return db.closureSessions.toArray();
+export async function getClosureSessions(adapter: DataAdapter): Promise<DBClosureSession[]> {
+  return adapter.getAll('closureSessions');
 }
 
 /**
  * Check if an exercice can be closed.
  */
-export async function canClose(exerciceId: string): Promise<{ canClose: boolean; reasons: string[] }> {
+export async function canClose(adapter: DataAdapter, exerciceId: string): Promise<{ canClose: boolean; reasons: string[] }> {
   const reasons: string[] = [];
-  const fiscalYear = await db.fiscalYears.get(exerciceId);
+  const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
 
   if (!fiscalYear) {
     reasons.push('Exercice introuvable');
@@ -350,10 +347,8 @@ export async function canClose(exerciceId: string): Promise<{ canClose: boolean;
     return { canClose: false, reasons };
   }
 
-  const entries = await db.journalEntries
-    .where('date')
-    .between(fiscalYear.startDate, fiscalYear.endDate, true, true)
-    .toArray();
+  const allCanCloseEntries = await adapter.getAll('journalEntries');
+  const entries = allCanCloseEntries.filter(e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate);
 
   if (entries.length === 0) {
     reasons.push('Aucune écriture dans l\'exercice');

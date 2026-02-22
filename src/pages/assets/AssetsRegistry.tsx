@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'; // Palette Atlas Finance appli
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import AssetForm from '../../components/assets/AssetForm';
 import {
   Package,
@@ -143,6 +143,7 @@ interface AssetModal {
 
 const AssetsRegistry: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [activeMainTab, setActiveMainTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -347,7 +348,7 @@ const AssetsRegistry: React.FC = () => {
   const { data: mockAssets = [] } = useQuery<Asset[]>({
     queryKey: ['assets-registry'],
     queryFn: async () => {
-      const dbAssets = await db.assets.toArray();
+      const dbAssets = await adapter.getAll('assets');
       return dbAssets.map((a): Asset => ({
         id: a.id,
         asset_number: a.code,

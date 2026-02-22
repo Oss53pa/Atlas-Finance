@@ -13,7 +13,8 @@
  * Conforme SYSCOHADA — état de rapprochement bancaire.
  */
 
-import { db, logAudit } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../lib/db';
 import type { DBJournalEntry } from '../lib/db';
 import { money, Money } from '../utils/money';
 
@@ -290,11 +291,12 @@ function matchSumN(
  * Execute le rapprochement bancaire automatique.
  */
 export async function rapprochementAutomatique(
+  adapter: DataAdapter,
   bankTransactions: BankTransaction[],
   config: Partial<RapprochementConfig> = {},
 ): Promise<RapprochementResult> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
-  const entries = await db.journalEntries.toArray();
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const comptaLines = getComptaLines(entries, cfg.comptesBancaires);
 
   // Reset matched flags
@@ -399,6 +401,7 @@ export async function genererEtatRapprochement(
  * Applique le rapprochement : marque les lignes comme rapprochées dans Dexie.
  */
 export async function appliquerRapprochement(
+  adapter: DataAdapter,
   matches: RapprochementMatch[],
 ): Promise<number> {
   let applied = 0;
@@ -409,7 +412,7 @@ export async function appliquerRapprochement(
     const entryIdSet = new Set(match.entryIds);
 
     for (const entryId of entryIdSet) {
-      const entry = await db.journalEntries.get(entryId);
+      const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
       if (!entry) continue;
 
       let modified = false;
@@ -421,7 +424,7 @@ export async function appliquerRapprochement(
       }
 
       if (modified) {
-        await db.journalEntries.update(entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
+        await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
         applied++;
       }
     }

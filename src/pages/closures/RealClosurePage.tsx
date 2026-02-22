@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   Calculator,
   Database,
@@ -47,6 +46,7 @@ interface TrialBalance {
 
 const RealClosurePage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>('');
   const [closureResult, setClosureResult] = useState<ClosureResult | null>(null);
   const [trialBalance, setTrialBalance] = useState<TrialBalance[]>([]);
@@ -54,8 +54,25 @@ const RealClosurePage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<string>('');
   const [showBalance, setShowBalance] = useState(false);
 
-  // Real fiscal years from Dexie
-  const dbFiscalYears = useLiveQuery(() => db.fiscalYears.toArray()) || [];
+  // Real fiscal years, accounts, and journal entries
+  const [dbFiscalYears, setDbFiscalYears] = useState<any[]>([]);
+  const [dbAccounts, setDbAccounts] = useState<any[]>([]);
+  const [dbJournalEntries, setDbJournalEntries] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [fy, acc, je] = await Promise.all([
+        adapter.getAll('fiscalYears'),
+        adapter.getAll('accounts'),
+        adapter.getAll('journalEntries'),
+      ]);
+      setDbFiscalYears(fy as any[]);
+      setDbAccounts(acc as any[]);
+      setDbJournalEntries(je as any[]);
+    };
+    load();
+  }, [adapter]);
+
   const fiscalYears = dbFiscalYears.map(fy => ({
     id: fy.id,
     name: fy.name,
@@ -63,10 +80,6 @@ const RealClosurePage: React.FC = () => {
     end_date: fy.endDate,
     is_closed: fy.isClosed,
   }));
-
-  // Accounts and journal entries for trial balance generation
-  const dbAccounts = useLiveQuery(() => db.accounts.toArray()) || [];
-  const dbJournalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
 
   const startRealClosure = async () => {
     if (!selectedFiscalYear) {

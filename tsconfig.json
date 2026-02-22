@@ -29,7 +29,13 @@
       "@/services/*": ["./src/services/*"],
       "@/store/*": ["./src/store/*"],
       "@/types/*": ["./src/types/*"],
-      "@/utils/*": ["./src/utils/*"]
+      "@/utils/*": ["./src/utils/*"],
+      "@atlas/shared": ["./packages/shared/src"],
+      "@atlas/shared/*": ["./packages/shared/src/*"],
+      "@atlas/core": ["./packages/core/src"],
+      "@atlas/core/*": ["./packages/core/src/*"],
+      "@atlas/data": ["./packages/data/src"],
+      "@atlas/data/*": ["./packages/data/src/*"]
     }
   },
   "include": ["src"],

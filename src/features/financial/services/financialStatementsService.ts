@@ -5,7 +5,7 @@
  *
  * Conforme SYSCOHADA révisé — Plan comptable OHADA.
  */
-import { db } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import type { DBJournalEntry } from '../../../lib/db';
 import { money } from '../../../utils/money';
 import {
@@ -73,28 +73,27 @@ function creditByPrefix(entries: DBJournalEntry[], ...prefixes: string[]): numbe
 /**
  * Load entries for a fiscal year (by exercice ID or date range).
  */
-async function loadEntriesForExercice(exercice: string): Promise<DBJournalEntry[]> {
+async function loadEntriesForExercice(adapter: DataAdapter, exercice: string): Promise<DBJournalEntry[]> {
   // Try to find fiscal year by ID or code
-  const fy = await db.fiscalYears.get(exercice)
-    || await db.fiscalYears.where('code').equals(exercice).first();
+  let fy = await adapter.getById('fiscalYears', exercice);
+  if (!fy) {
+    const allFY = await adapter.getAll('fiscalYears', { where: { code: exercice } });
+    fy = allFY[0] || undefined;
+  }
 
   if (fy) {
-    return db.journalEntries
-      .where('date')
-      .between(fy.startDate, fy.endDate, true, true)
-      .toArray();
+    const allEntries = await adapter.getAll('journalEntries');
+    return allEntries.filter((e: DBJournalEntry) => e.date >= fy.startDate && e.date <= fy.endDate);
   }
 
   // Fallback: treat as year string (e.g. "2025") → Jan 1 to Dec 31
   if (/^\d{4}$/.test(exercice)) {
-    return db.journalEntries
-      .where('date')
-      .between(`${exercice}-01-01`, `${exercice}-12-31`, true, true)
-      .toArray();
+    const allEntries = await adapter.getAll('journalEntries');
+    return allEntries.filter((e: DBJournalEntry) => e.date >= `${exercice}-01-01` && e.date <= `${exercice}-12-31`);
   }
 
   // Last resort: all entries
-  return db.journalEntries.toArray();
+  return adapter.getAll('journalEntries');
 }
 
 /** Safe division (avoid NaN/Infinity) */
@@ -378,8 +377,8 @@ function computeBilanFonctionnel(bilan: Bilan): BilanFonctionnel {
 // ============================================================================
 
 class FinancialStatementsService {
-  async getFinancialStatements(exercice: string): Promise<FinancialStatementsData> {
-    const entries = await loadEntriesForExercice(exercice);
+  async getFinancialStatements(adapter: DataAdapter, exercice: string): Promise<FinancialStatementsData> {
+    const entries = await loadEntriesForExercice(adapter, exercice);
     const bilan = computeBilan(entries, exercice);
     const compteResultat = computeCompteResultat(entries, exercice);
     const sig = computeSIG(compteResultat, entries);
@@ -389,30 +388,30 @@ class FinancialStatementsService {
     return { bilan, compteResultat, sig, ratios, bilanFonctionnel };
   }
 
-  async getBilan(exercice: string): Promise<Bilan> {
-    const entries = await loadEntriesForExercice(exercice);
+  async getBilan(adapter: DataAdapter, exercice: string): Promise<Bilan> {
+    const entries = await loadEntriesForExercice(adapter, exercice);
     return computeBilan(entries, exercice);
   }
 
-  async getCompteResultat(exercice: string): Promise<CompteResultat> {
-    const entries = await loadEntriesForExercice(exercice);
+  async getCompteResultat(adapter: DataAdapter, exercice: string): Promise<CompteResultat> {
+    const entries = await loadEntriesForExercice(adapter, exercice);
     return computeCompteResultat(entries, exercice);
   }
 
-  async getSIG(exercice: string): Promise<SIG> {
-    const data = await this.getFinancialStatements(exercice);
+  async getSIG(adapter: DataAdapter, exercice: string): Promise<SIG> {
+    const data = await this.getFinancialStatements(adapter, exercice);
     return data.sig;
   }
 
-  async getRatios(exercice: string): Promise<RatiosFinanciers> {
-    const data = await this.getFinancialStatements(exercice);
+  async getRatios(adapter: DataAdapter, exercice: string): Promise<RatiosFinanciers> {
+    const data = await this.getFinancialStatements(adapter, exercice);
     return data.ratios;
   }
 
-  async compareExercices(current: string, previous: string): Promise<FinancialComparison> {
+  async compareExercices(adapter: DataAdapter, current: string, previous: string): Promise<FinancialComparison> {
     const [currentData, previousData] = await Promise.all([
-      this.getFinancialStatements(current),
-      this.getFinancialStatements(previous),
+      this.getFinancialStatements(adapter, current),
+      this.getFinancialStatements(adapter, previous),
     ]);
 
     const variations: Record<string, number> = {};
@@ -437,10 +436,11 @@ class FinancialStatementsService {
   }
 
   async exportStatements(
+    adapter: DataAdapter,
     format: 'excel' | 'pdf',
     exercice: string
   ): Promise<Blob> {
-    const data = await this.getFinancialStatements(exercice);
+    const data = await this.getFinancialStatements(adapter, exercice);
     const json = JSON.stringify(data, null, 2);
     return new Blob([json], { type: 'application/json' });
   }

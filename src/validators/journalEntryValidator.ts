@@ -6,7 +6,8 @@
  */
 
 import { money, Money } from '../utils/money';
-import { db, type DBJournalLine, type DBJournalEntry } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import type { DBJournalLine, DBJournalEntry } from '../lib/db';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -27,6 +28,7 @@ export interface ValidationResult {
  * 7. COMPTE EXISTANT : chaque accountCode existe dans db.accounts
  */
 export async function validateJournalEntry(
+  adapter: DataAdapter,
   entry: Pick<DBJournalEntry, 'date' | 'lines' | 'journal' | 'label'>
 ): Promise<ValidationResult> {
   const errors: string[] = [];
@@ -90,7 +92,7 @@ export async function validateJournalEntry(
 
   // --- Règle 6 : Période ouverte ---
   if (date) {
-    const fiscalYears = await db.fiscalYears.toArray();
+    const fiscalYears = await adapter.getAll('fiscalYears');
     const matchingYear = fiscalYears.find(
       fy => date >= fy.startDate && date <= fy.endDate
     );
@@ -108,11 +110,8 @@ export async function validateJournalEntry(
 
   // --- Règle 7 : Comptes existants ---
   const accountCodes = [...new Set(lines.map(l => l.accountCode))];
-  const existingAccounts = await db.accounts
-    .where('code')
-    .anyOf(accountCodes)
-    .toArray();
-  const existingCodes = new Set(existingAccounts.map(a => a.code));
+  const existingAccounts = await adapter.getAll('accounts', { whereIn: { field: 'code', values: accountCodes } });
+  const existingCodes = new Set((existingAccounts as any[]).map(a => a.code));
 
   for (const code of accountCodes) {
     if (!existingCodes.has(code)) {
@@ -188,11 +187,8 @@ export function validateJournalEntrySync(
 /**
  * Génère le prochain numéro de pièce séquentiel pour un journal donné.
  */
-export async function getNextPieceNumber(journalCode: string): Promise<string> {
-  const entries = await db.journalEntries
-    .where('journal')
-    .equals(journalCode)
-    .toArray();
+export async function getNextPieceNumber(adapter: DataAdapter, journalCode: string): Promise<string> {
+  const entries = await adapter.getAll('journalEntries', { where: { journal: journalCode } });
 
   let maxNum = 0;
   for (const entry of entries) {

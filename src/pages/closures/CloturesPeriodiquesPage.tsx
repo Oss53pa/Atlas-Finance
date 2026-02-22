@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { previewClosure, executerCloture, getClosureSessions } from '../../services/closureService';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import toast from 'react-hot-toast';
 import {
   Lock,
@@ -101,6 +101,7 @@ interface ClosurePeriod {
 
 const CloturesPeriodiquesPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [periods, setPeriods] = useState<ClosurePeriod[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,7 +122,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
   const loadClosurePeriods = async () => {
     // Load real closure sessions from Dexie
     const sessions = await getClosureSessions();
-    const fiscalYears = await db.fiscalYears.toArray();
+    const fiscalYears = await adapter.getAll<{ id: string; name: string; code: string; startDate: string; endDate: string; isClosed: boolean; isActive: boolean }>('fiscalYears');
 
     if (sessions.length > 0) {
       const realPeriods: ClosurePeriod[] = sessions.map((s, idx) => ({

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   ChartBarIcon,
   ExclamationTriangleIcon,
@@ -59,6 +59,7 @@ interface RatiosSummary {
 }
 
 const RatiosDashboard: React.FC = () => {
+  const { adapter } = useData();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showAlertsOnly, setShowAlertsOnly] = useState(false);
   const [selectedView, setSelectedView] = useState<'grid' | 'radar' | 'evolution' | 'benchmark'>('grid');
@@ -66,7 +67,7 @@ const RatiosDashboard: React.FC = () => {
   const { data: ratiosData, isLoading } = useQuery({
     queryKey: ['financial-ratios', selectedCategory],
     queryFn: async (): Promise<RatioData[]> => {
-      const entries = await db.journalEntries.toArray();
+      const entries = await adapter.getAll('journalEntries');
       const net = (...pfx: string[]) => {
         let t = 0;
         for (const e of entries) for (const l of e.lines)

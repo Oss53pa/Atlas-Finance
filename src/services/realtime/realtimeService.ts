@@ -11,7 +11,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
-import { db } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 // ============================================================================
@@ -94,6 +94,7 @@ function mapFiscalYear(row: Record<string, unknown>): Record<string, unknown> {
 // ============================================================================
 
 async function handleChange(
+  adapter: DataAdapter,
   table: string,
   payload: RealtimePostgresChangesPayload<Record<string, unknown>>,
 ) {
@@ -115,28 +116,28 @@ async function handleChange(
     switch (table) {
       case 'journal_entries': {
         if (event === 'DELETE') {
-          await db.journalEntries.delete(String(oldRecord.id));
+          await adapter.delete('journalEntries', String(oldRecord.id));
         } else {
           const mapped = mapJournalEntry(record);
-          await db.journalEntries.put(mapped as never);
+          await adapter.create('journalEntries', mapped);
         }
         break;
       }
       case 'chart_of_accounts': {
         if (event === 'DELETE') {
-          await db.accounts.delete(String(oldRecord.id));
+          await adapter.delete('accounts', String(oldRecord.id));
         } else {
           const mapped = mapAccount(record);
-          await db.accounts.put(mapped as never);
+          await adapter.create('accounts', mapped);
         }
         break;
       }
       case 'fiscal_years': {
         if (event === 'DELETE') {
-          await db.fiscalYears.delete(String(oldRecord.id));
+          await adapter.delete('fiscalYears', String(oldRecord.id));
         } else {
           const mapped = mapFiscalYear(record);
-          await db.fiscalYears.put(mapped as never);
+          await adapter.create('fiscalYears', mapped);
         }
         break;
       }
@@ -153,7 +154,7 @@ async function handleChange(
 /**
  * Subscribe to realtime changes on a Supabase table.
  */
-export function subscribe(table: string): RealtimeSubscription | null {
+export function subscribe(adapter: DataAdapter, table: string): RealtimeSubscription | null {
   if (!isSupabaseConfigured) return null;
   if (subscriptions.has(table)) return subscriptions.get(table)!;
 
@@ -162,7 +163,7 @@ export function subscribe(table: string): RealtimeSubscription | null {
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table },
-      (payload) => handleChange(table, payload),
+      (payload) => handleChange(adapter, table, payload),
     )
     .subscribe();
 
@@ -185,12 +186,12 @@ export async function unsubscribe(table: string): Promise<void> {
 /**
  * Subscribe to all critical tables.
  */
-export function subscribeAll(): void {
+export function subscribeAll(adapter: DataAdapter): void {
   if (!isSupabaseConfigured) return;
 
-  subscribe('journal_entries');
-  subscribe('chart_of_accounts');
-  subscribe('fiscal_years');
+  subscribe(adapter, 'journal_entries');
+  subscribe(adapter, 'chart_of_accounts');
+  subscribe(adapter, 'fiscal_years');
 }
 
 /**

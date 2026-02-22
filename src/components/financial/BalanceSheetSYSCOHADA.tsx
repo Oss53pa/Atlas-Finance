@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   DocumentTextIcon,
   CheckCircleIcon,
@@ -104,6 +104,7 @@ interface BalanceSheetData {
 
 const BalanceSheetSYSCOHADA: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const [showPreviousYear, setShowPreviousYear] = useState(true);
   const [viewMode, setViewMode] = useState<'detailed' | 'summary'>('detailed');
@@ -111,8 +112,8 @@ const BalanceSheetSYSCOHADA: React.FC = () => {
   const { data: balanceData, isLoading } = useQuery({
     queryKey: ['balance-sheet-syscohada', selectedPeriod],
     queryFn: async (): Promise<BalanceSheetData> => {
-      const entries = await db.journalEntries.toArray();
-      const settings = await db.settings.get('company_name');
+      const entries = await adapter.getAll('journalEntries');
+      const settings = await adapter.getById('settings', 'company_name');
 
       // Helper: net balance (debit - credit)
       const net = (...pfx: string[]) => {

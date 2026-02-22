@@ -7,8 +7,9 @@
  *
  * Conforme SYSCOHADA révisé.
  */
+import type { DataAdapter } from '@atlas/data';
 import { money } from '../utils/money';
-import { db, logAudit } from '../lib/db';
+import { logAudit } from '../lib/db';
 import type { DBJournalLine, DBThirdParty, DBProvision } from '../lib/db';
 import { safeAddEntry } from './entryGuard';
 
@@ -100,9 +101,9 @@ const TAUX_PROVISION_PAR_ANCIENNETE: Record<number, number> = {
 /**
  * Calculate real-time balance for all third parties from journal entries.
  */
-export async function getThirdPartyBalances(): Promise<ThirdPartyBalance[]> {
-  const thirdParties = await db.thirdParties.toArray();
-  const entries = await db.journalEntries.toArray();
+export async function getThirdPartyBalances(adapter: DataAdapter): Promise<ThirdPartyBalance[]> {
+  const thirdParties = await adapter.getAll('thirdParties');
+  const entries = await adapter.getAll('journalEntries');
 
   const balances: ThirdPartyBalance[] = [];
 
@@ -139,11 +140,12 @@ export async function getThirdPartyBalances(): Promise<ThirdPartyBalance[]> {
 /**
  * Get balance for a single third party.
  */
-export async function getThirdPartyBalance(thirdPartyCode: string): Promise<ThirdPartyBalance | null> {
-  const tp = await db.thirdParties.where('code').equals(thirdPartyCode).first();
+export async function getThirdPartyBalance(adapter: DataAdapter, thirdPartyCode: string): Promise<ThirdPartyBalance | null> {
+  const allTp = await adapter.getAll('thirdParties', { where: { code: thirdPartyCode } });
+  const tp = allTp[0];
   if (!tp) return null;
 
-  const entries = await db.journalEntries.toArray();
+  const entries = await adapter.getAll('journalEntries');
   let totalDebit = 0;
   let totalCredit = 0;
 
@@ -178,16 +180,16 @@ export async function getThirdPartyBalance(thirdPartyCode: string): Promise<Thir
  * Compute aging analysis for customer receivables.
  */
 export async function getAgingAnalysis(
+  adapter: DataAdapter,
   type: 'customer' | 'supplier' = 'customer',
   asOfDate?: string
 ): Promise<AgingAnalysis[]> {
   const refDate = asOfDate ? new Date(asOfDate) : new Date();
-  const thirdParties = await db.thirdParties
-    .where('type')
-    .anyOf(type === 'customer' ? ['customer', 'both'] : ['supplier', 'both'])
-    .toArray();
+  const allThirdParties = await adapter.getAll('thirdParties');
+  const validTypes = type === 'customer' ? ['customer', 'both'] : ['supplier', 'both'];
+  const thirdParties = allThirdParties.filter(tp => validTypes.includes(tp.type));
 
-  const entries = await db.journalEntries.toArray();
+  const entries = await adapter.getAll('journalEntries');
   const analyses: AgingAnalysis[] = [];
 
   for (const tp of thirdParties) {
@@ -257,14 +259,15 @@ export async function getAgingAnalysis(
  * Calculate provisions for doubtful receivables based on aging.
  */
 export async function calculerProvisions(
+  adapter: DataAdapter,
   sessionId?: string,
   asOfDate?: string
 ): Promise<ProvisionCreanceDouteuse[]> {
-  const agingData = await getAgingAnalysis('customer', asOfDate);
+  const agingData = await getAgingAnalysis(adapter, 'customer', asOfDate);
   const provisions: ProvisionCreanceDouteuse[] = [];
 
   for (const analysis of agingData) {
-    const tp = await db.thirdParties.get(analysis.thirdPartyId);
+    const tp = await adapter.getById('thirdParties', analysis.thirdPartyId);
     if (!tp) continue;
 
     // Determine aging in days from oldest entry
@@ -312,7 +315,7 @@ export async function calculerProvisions(
         statut: 'PROPOSEE',
         dateProposition: new Date().toISOString(),
       };
-      await db.provisions.add(dbProvision);
+      await adapter.create('provisions', dbProvision);
     }
   }
 
@@ -324,6 +327,7 @@ export async function calculerProvisions(
  * Debit: 6594 (Dotation provisions) / Credit: 491 (Provision créances)
  */
 export async function posterProvisions(
+  adapter: DataAdapter,
   provisions: ProvisionCreanceDouteuse[]
 ): Promise<ProvisionResult> {
   if (provisions.length === 0) {
@@ -388,12 +392,12 @@ export async function posterProvisions(
  * Sync third-party balances in the thirdParties table from journal entries.
  * Updates the `balance` field for each third party.
  */
-export async function syncThirdPartyBalances(): Promise<number> {
-  const balances = await getThirdPartyBalances();
+export async function syncThirdPartyBalances(adapter: DataAdapter): Promise<number> {
+  const balances = await getThirdPartyBalances(adapter);
   let updated = 0;
 
   for (const b of balances) {
-    await db.thirdParties.update(b.thirdPartyId, { balance: b.solde });
+    await adapter.update('thirdParties', b.thirdPartyId, { balance: b.solde });
     updated++;
   }
 

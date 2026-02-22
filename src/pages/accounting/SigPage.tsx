@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import type { DBJournalEntry } from '../../lib/db';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { 
@@ -62,6 +62,7 @@ interface Ratio {
 
 const SigPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [selectedPeriod, setSelectedPeriod] = useState('2024');
@@ -70,12 +71,18 @@ const SigPage: React.FC = () => {
   // Load journal entries from Dexie
   const { data: entriesN = [] } = useQuery({
     queryKey: ['sig-entries-n', selectedPeriod],
-    queryFn: () => db.journalEntries.filter(e => e.date.startsWith(selectedPeriod)).toArray(),
+    queryFn: async () => {
+      const all = await adapter.getAll('journalEntries') as DBJournalEntry[];
+      return all.filter(e => e.date.startsWith(selectedPeriod));
+    },
   });
   const prevYear = String(parseInt(selectedPeriod) - 1);
   const { data: entriesN1 = [] } = useQuery({
     queryKey: ['sig-entries-n1', prevYear],
-    queryFn: () => db.journalEntries.filter(e => e.date.startsWith(prevYear)).toArray(),
+    queryFn: async () => {
+      const all = await adapter.getAll('journalEntries') as DBJournalEntry[];
+      return all.filter(e => e.date.startsWith(prevYear));
+    },
   });
 
   // Helpers

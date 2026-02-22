@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -91,6 +91,7 @@ interface ReportModal {
 
 const ReportingSyscohada: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -102,7 +103,7 @@ const ReportingSyscohada: React.FC = () => {
   // Load fiscal years from Dexie to generate SYSCOHADA reports
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['syscohada-fiscal-years'],
-    queryFn: () => db.fiscalYears.toArray(),
+    queryFn: () => adapter.getAll('fiscalYears'),
   });
 
   const syscohadaReports: SyscohadaReport[] = useMemo(() => {

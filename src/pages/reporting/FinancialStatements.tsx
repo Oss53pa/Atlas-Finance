@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -97,6 +97,7 @@ interface StatementModal {
 
 const FinancialStatements: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -109,7 +110,7 @@ const FinancialStatements: React.FC = () => {
   // Load fiscal years from Dexie to build statement list
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['financial-statements-fiscal-years'],
-    queryFn: () => db.fiscalYears.toArray(),
+    queryFn: () => adapter.getAll('fiscalYears'),
   });
 
   const mockStatements: FinancialStatement[] = useMemo(() => {
@@ -151,7 +152,10 @@ const FinancialStatements: React.FC = () => {
   // Compute real financial metrics from journal entries
   const { data: allEntries = [] } = useQuery({
     queryKey: ['financial-statements-entries-metrics'],
-    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
+    queryFn: async () => {
+      const all = await adapter.getAll<any>('journalEntries');
+      return all.filter(e => e.status === 'validated' || e.status === 'posted');
+    },
   });
 
   const mockMetrics: FinancialMetric[] = useMemo(() => {

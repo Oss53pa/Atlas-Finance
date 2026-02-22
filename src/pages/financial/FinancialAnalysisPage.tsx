@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   ChartBarIcon,
   DocumentTextIcon,
@@ -121,13 +121,17 @@ interface Scenario {
 }
 
 const FinancialAnalysisPage: React.FC = () => {
+  const { adapter } = useData();
   const [selectedView, setSelectedView] = useState<'overview' | 'tafire' | 'sig' | 'functional' | 'ratios' | 'forecast'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
   // Load journal entries from Dexie
   const { data: entries = [], isLoading: entriesLoading } = useQuery({
     queryKey: ['financial-analysis-entries', selectedPeriod],
-    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
+    queryFn: async () => {
+      const all = await adapter.getAll<any>('journalEntries');
+      return all.filter(e => e.status === 'validated' || e.status === 'posted');
+    },
   });
 
   const isLoading = entriesLoading;

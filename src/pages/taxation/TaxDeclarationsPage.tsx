@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
@@ -57,9 +56,16 @@ const TaxDeclarationsPage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { adapter } = useData();
+  const [declarationsSetting, setDeclarationsSetting] = useState<any>(undefined);
 
-  // Load tax declarations from Dexie settings
-  const declarationsSetting = useLiveQuery(() => db.settings.get('tax_declarations'));
+  useEffect(() => {
+    const load = async () => {
+      const s = await adapter.getById('settings', 'tax_declarations');
+      setDeclarationsSetting(s);
+    };
+    load();
+  }, [adapter]);
 
   const allDeclarations: TaxDeclaration[] = useMemo(() => {
     try {
@@ -89,11 +95,12 @@ const TaxDeclarationsPage: React.FC = () => {
     mutate: async (declarationId: string) => {
       try {
         const updated = allDeclarations.filter(d => d.id !== declarationId);
-        await db.settings.put({
+        await adapter.update('settings', 'tax_declarations', {
           key: 'tax_declarations',
           value: JSON.stringify(updated),
           updatedAt: new Date().toISOString(),
         });
+        setDeclarationsSetting({ key: 'tax_declarations', value: JSON.stringify(updated), updatedAt: new Date().toISOString() });
         toast.success('Déclaration supprimée');
       } catch {
         toast.error('Erreur lors de la suppression');

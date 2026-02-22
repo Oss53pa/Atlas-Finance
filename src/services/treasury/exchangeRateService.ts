@@ -3,8 +3,9 @@
  * Manages exchange rates, currency positions, and hedging.
  * Uses journal entries to compute real currency exposures.
  */
+import type { DataAdapter } from '@atlas/data';
 import { money } from '../../utils/money';
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBExchangeRate, DBHedgingPosition } from '../../lib/db';
 
 // ============================================================================
@@ -61,6 +62,12 @@ const BASE_CURRENCY = 'XAF';
 // ============================================================================
 
 class ExchangeRateService {
+  private adapter: DataAdapter;
+
+  constructor(adapter: DataAdapter) {
+    this.adapter = adapter;
+  }
+
   /**
    * Get all exchange rates, optionally filtered by date or currency pair.
    */
@@ -70,7 +77,7 @@ class ExchangeRateService {
     dateFrom?: string;
     dateTo?: string;
   }): Promise<ExchangeRateEntry[]> {
-    let rates = await db.exchangeRates.toArray();
+    let rates = await this.adapter.getAll<ExchangeRateEntry>('exchangeRates');
 
     if (filters?.fromCurrency) {
       rates = rates.filter(r => r.fromCurrency === filters.fromCurrency);
@@ -92,13 +99,8 @@ class ExchangeRateService {
    * Get the latest rate for a currency pair.
    */
   async getLatestRate(fromCurrency: string, toCurrency: string): Promise<ExchangeRateEntry | null> {
-    const rates = await db.exchangeRates
-      .where('[fromCurrency+toCurrency+date]')
-      .between(
-        [fromCurrency, toCurrency, Dexie.minKey],
-        [fromCurrency, toCurrency, Dexie.maxKey]
-      )
-      .toArray();
+    const allRates = await this.adapter.getAll<ExchangeRateEntry>('exchangeRates');
+    const rates = allRates.filter(r => r.fromCurrency === fromCurrency && r.toCurrency === toCurrency);
 
     if (rates.length === 0) return null;
     return rates.sort((a, b) => b.date.localeCompare(a.date))[0];
@@ -119,7 +121,7 @@ class ExchangeRateService {
       createdAt: new Date().toISOString(),
     };
 
-    await db.exchangeRates.add(record);
+    await this.adapter.create('exchangeRates', record);
 
     await logAudit(
       'EXCHANGE_RATE_SET',
@@ -145,7 +147,7 @@ class ExchangeRateService {
       createdAt: new Date().toISOString(),
     }));
 
-    await db.exchangeRates.bulkAdd(records);
+    for (const record of records) { await this.adapter.create('exchangeRates', record); }
     return records.length;
   }
 
@@ -197,10 +199,8 @@ class ExchangeRateService {
    * Looks at 5xx bank accounts that have a currency suffix (e.g. 521USD, 521EUR).
    */
   async getCurrencyPositions(): Promise<CurrencyPosition[]> {
-    const entries = await db.journalEntries
-      .where('status')
-      .anyOf('validated', 'posted')
-      .toArray();
+    const allEntries = await this.adapter.getAll<any>('journalEntries');
+    const entries = allEntries.filter((e: any) => e.status === 'validated' || e.status === 'posted');
 
     // Group by currency from account codes or analytical codes
     const positions = new Map<string, { balance: number; accounts: Set<string> }>();
@@ -244,11 +244,8 @@ class ExchangeRateService {
       else if (absBalance > 1000000) exposure = 'medium';
 
       // Check hedging
-      const hedges = await db.hedgingPositions
-        .where('currency')
-        .equals(currency)
-        .filter(h => h.status === 'active')
-        .toArray();
+      const allHedges = await this.adapter.getAll<DBHedgingPosition>('hedgingPositions', { where: { currency } });
+      const hedges = allHedges.filter(h => h.status === 'active');
       const hedgedAmount = hedges.reduce((sum, h) => sum + h.amount, 0);
 
       result.push({
@@ -271,7 +268,7 @@ class ExchangeRateService {
    * Get hedging positions.
    */
   async getHedgingPositions(filters?: { currency?: string; status?: string }): Promise<HedgingPosition[]> {
-    let positions = await db.hedgingPositions.toArray();
+    let positions = await this.adapter.getAll<HedgingPosition>('hedgingPositions');
 
     if (filters?.currency) {
       positions = positions.filter(p => p.currency === filters.currency);
@@ -301,7 +298,7 @@ class ExchangeRateService {
       createdAt: new Date().toISOString(),
     };
 
-    await db.hedgingPositions.add(record);
+    await this.adapter.create('hedgingPositions', record);
 
     await logAudit(
       'HEDGING_CREATE',
@@ -317,14 +314,14 @@ class ExchangeRateService {
    * Delete an exchange rate.
    */
   async deleteRate(id: string): Promise<void> {
-    await db.exchangeRates.delete(id);
+    await this.adapter.delete('exchangeRates', id);
   }
 
   /**
    * Export exchange rates as CSV.
    */
   async exportRates(format: 'csv'): Promise<Blob> {
-    const rates = await db.exchangeRates.toArray();
+    const rates = await this.adapter.getAll<ExchangeRateEntry>('exchangeRates');
     const header = 'Date;De;Vers;Taux;Source';
     const rows = rates
       .sort((a, b) => b.date.localeCompare(a.date))
@@ -335,7 +332,6 @@ class ExchangeRateService {
   }
 }
 
-// Need Dexie import for minKey/maxKey
-import Dexie from 'dexie';
-
-export const exchangeRateService = new ExchangeRateService();
+export function createExchangeRateService(adapter: DataAdapter): ExchangeRateService {
+  return new ExchangeRateService(adapter);
+}

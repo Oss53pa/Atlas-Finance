@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -85,15 +84,32 @@ const LiasseFiscalePage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>('2024');
   const [selectedRegime, setSelectedRegime] = useState<string>('normal');
   const [isGenerating, setIsGenerating] = useState(false);
+  const { adapter } = useData();
+  const [dbFiscalYears, setDbFiscalYears] = useState<any[]>([]);
+  const [dbJournalEntries, setDbJournalEntries] = useState<any[]>([]);
+  const [companyInfoSetting, setCompanyInfoSetting] = useState<any>(undefined);
+  const [fiscalDocsSetting, setFiscalDocsSetting] = useState<any>(undefined);
+  const [fiscalRatiosSetting, setFiscalRatiosSetting] = useState<any>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Real data from Dexie
-  const dbFiscalYears = useLiveQuery(() => db.fiscalYears.toArray()) || [];
-  const dbJournalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
-  const companyInfoSetting = useLiveQuery(() => db.settings.get('company_info'));
-  const fiscalDocsSetting = useLiveQuery(() => db.settings.get('fiscal_documents'));
-  const fiscalRatiosSetting = useLiveQuery(() => db.settings.get('fiscal_ratios'));
-
-  const isLoading = dbFiscalYears === undefined;
+  useEffect(() => {
+    const load = async () => {
+      const [fy, je, ci, fd, fr] = await Promise.all([
+        adapter.getAll('fiscalYears'),
+        adapter.getAll('journalEntries'),
+        adapter.getById('settings', 'company_info'),
+        adapter.getById('settings', 'fiscal_documents'),
+        adapter.getById('settings', 'fiscal_ratios'),
+      ]);
+      setDbFiscalYears(fy as any[]);
+      setDbJournalEntries(je as any[]);
+      setCompanyInfoSetting(ci);
+      setFiscalDocsSetting(fd);
+      setFiscalRatiosSetting(fr);
+      setIsLoading(false);
+    };
+    load();
+  }, [adapter]);
 
   // Build company info from settings or fiscal year data
   const mockCompanyInfo: CompanyInfo = useMemo(() => {

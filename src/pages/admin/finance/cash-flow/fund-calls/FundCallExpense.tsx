@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { db } from '../../../../../lib/db';
+import { useData } from '../../../../../contexts/DataContext';
 import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
 import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
@@ -56,6 +56,7 @@ export const FundCallExpense: React.FC = () => {
   const { id_fund_call } = useParams<RouteParams>();
   const { setIsLoadingCancelable } = useLoading();
   const { fundCallG, handleChangeFundCall, enabledId } = useFinanceContext();
+  const { adapter } = useData();
 
   const SELF_DICTIONNARY: SelfDictionary = {
     ApprovalMsgError: {
@@ -74,7 +75,7 @@ export const FundCallExpense: React.FC = () => {
 
   const getFundCallApprovalInfo = async (): Promise<void> => {
     try {
-      const setting = await db.settings.get('fund_call_approval_users');
+      const setting = await adapter.getById<{ value: string }>('settings', 'fund_call_approval_users');
       if (setting) {
         const parsed = JSON.parse(setting.value);
         const enabledUsers: number[] = Array.isArray(parsed) ? parsed : [];
@@ -136,7 +137,7 @@ export const FundCallExpense: React.FC = () => {
   const getFundCall = async (): Promise<void> => {
     try {
       setIsLoadingCancelable(true);
-      const setting = await db.settings.get('fund_calls');
+      const setting = await adapter.getById<{ value: string }>('settings', 'fund_calls');
       if (setting) {
         const parsed = JSON.parse(setting.value);
         const allCalls = Array.isArray(parsed) ? parsed : [];

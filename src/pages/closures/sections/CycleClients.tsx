@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import { money } from '../../../utils/money';
 import { motion } from 'framer-motion';
 import {
@@ -97,6 +97,7 @@ interface AnalyseRisque {
 
 const CycleClients: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [filterStatut, setFilterStatut] = useState<string>('tous');
@@ -155,27 +156,25 @@ const CycleClients: React.FC = () => {
   // Real data from Dexie — thirdParties, provisions, and 411 (client) account balances
   const [clientBalances, setClientBalances] = useState<Map<string, { name: string; debit: number; credit: number }>>(new Map());
 
-  const [thirdParties, setThirdParties] = useState<Awaited<ReturnType<typeof db.thirdParties.toArray>>>([]);
-  const [provisions, setProvisions] = useState<Awaited<ReturnType<typeof db.provisions.toArray>>>([]);
+  const [thirdParties, setThirdParties] = useState<Array<{ id: string; code: string; name: string; type: string; email?: string; phone?: string; address?: string; balance: number }>>([]);
+  const [provisions, setProvisions] = useState<Array<{ id: string; compteClient: string; client: string; montantProvision: number; tauxProvision: number; solde: number; anciennete: number; dateProposition: string; dateValidation?: string; statut: string }>>([]);
 
   const loadClientData = useCallback(async () => {
     try {
       // Load third parties and provisions
       const [tp, prov] = await Promise.all([
-        db.thirdParties.toArray(),
-        db.provisions.toArray(),
+        adapter.getAll<{ id: string; code: string; name: string; type: string; email?: string; phone?: string; address?: string; balance: number }>('thirdParties'),
+        adapter.getAll<{ id: string; compteClient: string; client: string; montantProvision: number; tauxProvision: number; solde: number; anciennete: number; dateProposition: string; dateValidation?: string; statut: string }>('provisions'),
       ]);
       setThirdParties(tp);
       setProvisions(prov);
 
-      const fys = await db.fiscalYears.toArray();
+      const fys = await adapter.getAll<{ id: string; isActive: boolean; startDate: string; endDate: string }>('fiscalYears');
       const activeFY = fys.find(fy => fy.isActive) || fys[0];
       if (!activeFY) return;
 
-      const entries = await db.journalEntries
-        .where('date')
-        .between(activeFY.startDate, activeFY.endDate, true, true)
-        .toArray();
+      const allEntries = await adapter.getAll<{ date: string; lines: { accountCode: string; accountName: string; debit: number; credit: number }[] }>('journalEntries');
+      const entries = allEntries.filter(e => e.date >= activeFY.startDate && e.date <= activeFY.endDate);
 
       const balMap = new Map<string, { name: string; debit: number; credit: number }>();
       for (const entry of entries) {
@@ -190,7 +189,7 @@ const CycleClients: React.FC = () => {
       }
       setClientBalances(balMap);
     } catch { /* silent */ }
-  }, []);
+  }, [adapter]);
 
   useEffect(() => { loadClientData(); }, [loadClientData]);
 

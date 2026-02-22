@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -55,18 +55,19 @@ interface Report {
 }
 
 const ReportingDashboard: React.FC = () => {
+  const { adapter } = useData();
   const [selectedView, setSelectedView] = useState<'overview' | 'reports' | 'dashboards'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
 
   // Load fiscal years and journal entries from Dexie
   const { data: fiscalYears = [], isLoading: fyLoading } = useQuery({
     queryKey: ['dashboard-fiscal-years'],
-    queryFn: () => db.fiscalYears.toArray(),
+    queryFn: () => adapter.getAll('fiscalYears'),
   });
 
   const { data: journalEntries = [], isLoading: jeLoading } = useQuery({
     queryKey: ['dashboard-journal-entries'],
-    queryFn: () => db.journalEntries.toArray(),
+    queryFn: () => adapter.getAll('journalEntries'),
   });
 
   // Build report list from real data

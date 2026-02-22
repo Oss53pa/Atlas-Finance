@@ -2,8 +2,9 @@
  * Plan Comptable (Chart of Accounts) Service — Connected to Dexie IndexedDB.
  * Manages SYSCOHADA chart of accounts with CRUD, validation, and hierarchy.
  */
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBAccount } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 
 // ============================================================================
 // TYPES
@@ -67,7 +68,7 @@ class PlanComptableService {
   /**
    * Get all accounts, optionally filtered.
    */
-  async getAccounts(filters?: {
+  async getAccounts(adapter: DataAdapter, filters?: {
     accountClass?: string;
     isActive?: boolean;
     search?: string;
@@ -75,12 +76,9 @@ class PlanComptableService {
     let accounts: DBAccount[];
 
     if (filters?.accountClass) {
-      accounts = await db.accounts
-        .where('accountClass')
-        .equals(filters.accountClass)
-        .toArray();
+      accounts = await adapter.getAll('accounts', { where: { accountClass: filters.accountClass } });
     } else {
-      accounts = await db.accounts.toArray();
+      accounts = await adapter.getAll('accounts');
     }
 
     if (filters?.isActive !== undefined) {
@@ -101,21 +99,21 @@ class PlanComptableService {
   /**
    * Get a single account by code.
    */
-  async getAccountByCode(code: string): Promise<AccountEntry | null> {
-    const account = await db.accounts.where('code').equals(code).first();
-    return account || null;
+  async getAccountByCode(adapter: DataAdapter, code: string): Promise<AccountEntry | null> {
+    const accounts = await adapter.getAll('accounts', { where: { code } });
+    return accounts[0] || null;
   }
 
   /**
    * Create a new account with SYSCOHADA validation.
    */
-  async createAccount(account: Omit<AccountEntry, 'id'>): Promise<AccountEntry> {
+  async createAccount(adapter: DataAdapter, account: Omit<AccountEntry, 'id'>): Promise<AccountEntry> {
     // Validate code format
     this.validateAccountCode(account.code);
 
     // Check for duplicate
-    const existing = await db.accounts.where('code').equals(account.code).first();
-    if (existing) throw new Error(`Le compte ${account.code} existe déjà`);
+    const existing = await adapter.getAll('accounts', { where: { code: account.code } });
+    if (existing[0]) throw new Error(`Le compte ${account.code} existe déjà`);
 
     const classCode = account.code.charAt(0);
     const classDef = SYSCOHADA_CLASSES[classCode];
@@ -135,7 +133,7 @@ class PlanComptableService {
       isActive: account.isActive ?? true,
     };
 
-    await db.accounts.add(record);
+    await adapter.create('accounts', record);
 
     await logAudit(
       'ACCOUNT_CREATE',
@@ -150,11 +148,11 @@ class PlanComptableService {
   /**
    * Update an existing account.
    */
-  async updateAccount(id: string, updates: Partial<Pick<AccountEntry, 'name' | 'isActive' | 'isReconcilable' | 'accountType'>>): Promise<AccountEntry> {
-    const account = await db.accounts.get(id);
+  async updateAccount(adapter: DataAdapter, id: string, updates: Partial<Pick<AccountEntry, 'name' | 'isActive' | 'isReconcilable' | 'accountType'>>): Promise<AccountEntry> {
+    const account = await adapter.getById('accounts', id);
     if (!account) throw new Error(`Compte ${id} introuvable`);
 
-    await db.accounts.update(id, updates);
+    await adapter.update('accounts', id, updates);
 
     await logAudit(
       'ACCOUNT_UPDATE',
@@ -169,18 +167,18 @@ class PlanComptableService {
   /**
    * Deactivate an account (soft delete). Checks for existing entries first.
    */
-  async deactivateAccount(id: string): Promise<void> {
-    const account = await db.accounts.get(id);
+  async deactivateAccount(adapter: DataAdapter, id: string): Promise<void> {
+    const account = await adapter.getById('accounts', id);
     if (!account) throw new Error(`Compte ${id} introuvable`);
 
     // Check if account has journal entries
-    const entries = await db.journalEntries.toArray();
+    const entries = await adapter.getAll('journalEntries');
     const hasEntries = entries.some(e => e.lines.some(l => l.accountCode === account.code));
     if (hasEntries) {
       throw new Error(`Le compte ${account.code} a des écritures. Désactivation uniquement (pas de suppression).`);
     }
 
-    await db.accounts.update(id, { isActive: false });
+    await adapter.update('accounts', id, { isActive: false });
 
     await logAudit(
       'ACCOUNT_DEACTIVATE',
@@ -193,8 +191,8 @@ class PlanComptableService {
   /**
    * Get hierarchical view of accounts grouped by SYSCOHADA class.
    */
-  async getHierarchy(): Promise<AccountHierarchy[]> {
-    const accounts = await db.accounts.toArray();
+  async getHierarchy(adapter: DataAdapter): Promise<AccountHierarchy[]> {
+    const accounts = await adapter.getAll('accounts');
     const hierarchy: AccountHierarchy[] = [];
 
     for (const [classCode, classDef] of Object.entries(SYSCOHADA_CLASSES)) {
@@ -253,8 +251,8 @@ class PlanComptableService {
   /**
    * Get plan comptable statistics.
    */
-  async getStats(): Promise<PlanComptableStats> {
-    const accounts = await db.accounts.toArray();
+  async getStats(adapter: DataAdapter): Promise<PlanComptableStats> {
+    const accounts = await adapter.getAll('accounts');
     const active = accounts.filter(a => a.isActive);
     const reconcilable = accounts.filter(a => a.isReconcilable);
 
@@ -277,8 +275,8 @@ class PlanComptableService {
   /**
    * Seed the default SYSCOHADA plan comptable (common accounts).
    */
-  async seedDefaultPlan(): Promise<number> {
-    const existing = await db.accounts.count();
+  async seedDefaultPlan(adapter: DataAdapter): Promise<number> {
+    const existing = await adapter.count('accounts');
     if (existing > 0) return 0; // Already seeded
 
     const defaults: Omit<AccountEntry, 'id'>[] = [
@@ -335,7 +333,7 @@ class PlanComptableService {
 
     let count = 0;
     for (const acct of defaults) {
-      await this.createAccount(acct);
+      await this.createAccount(adapter, acct);
       count++;
     }
 
@@ -374,8 +372,8 @@ class PlanComptableService {
   /**
    * Export plan comptable as CSV.
    */
-  async exportPlanComptable(): Promise<Blob> {
-    const accounts = await db.accounts.toArray();
+  async exportPlanComptable(adapter: DataAdapter): Promise<Blob> {
+    const accounts = await adapter.getAll('accounts');
     const header = 'Code;Libellé;Classe;Type;Solde normal;Lettrable;Actif';
     const rows = accounts
       .sort((a, b) => a.code.localeCompare(b.code))

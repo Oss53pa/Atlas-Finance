@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { verifyTrialBalance } from '../../services/trialBalanceService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
@@ -45,6 +45,7 @@ interface ChartData {
 
 const AdvancedBalance: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'generale' | 'analytique'>('dashboard');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -96,8 +97,8 @@ const AdvancedBalance: React.FC = () => {
   const { data: balanceData = [] } = useQuery<BalanceData[]>({
     queryKey: ['advanced-balance', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await db.journalEntries.toArray();
-      const accounts = await db.accounts.toArray();
+      const entries = await adapter.getAll('journalEntries');
+      const accounts = await adapter.getAll('accounts');
       const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
       const movements = new Map<string, { debit: number; credit: number; name: string; centreCout?: string }>();

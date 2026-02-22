@@ -2,7 +2,7 @@
  * Reporting Service — backed by Dexie IndexedDB.
  * Returns available report catalog and stats derived from real data.
  */
-import { db } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import {
   Report,
   ReportStats,
@@ -177,11 +177,11 @@ const TEMPLATES: ReportTemplate[] = [
 ];
 
 class ReportingService {
-  async getReports(filters?: ReportFilters): Promise<Report[]> {
+  async getReports(adapter: DataAdapter, filters?: ReportFilters): Promise<Report[]> {
     // Get the latest entry date to determine lastGenerated
-    const entries = await db.journalEntries.orderBy('date').reverse().limit(1).toArray();
-    const lastDate = entries[0]?.date || new Date().toISOString().split('T')[0];
-    const entryCount = await db.journalEntries.count();
+    const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'date', direction: 'desc' } });
+    const lastDate = allEntries[0]?.date || new Date().toISOString().split('T')[0];
+    const entryCount = allEntries.length;
 
     let reports: Report[] = REPORT_CATALOG.map(r => ({
       ...r,
@@ -207,14 +207,14 @@ class ReportingService {
     return reports;
   }
 
-  async getReport(id: string): Promise<Report | null> {
-    const reports = await this.getReports();
+  async getReport(adapter: DataAdapter, id: string): Promise<Report | null> {
+    const reports = await this.getReports(adapter);
     return reports.find(r => r.id === id) || null;
   }
 
-  async getReportStats(): Promise<ReportStats> {
-    const reports = await this.getReports();
-    const entryCount = await db.journalEntries.count();
+  async getReportStats(adapter: DataAdapter): Promise<ReportStats> {
+    const reports = await this.getReports(adapter);
+    const entryCount = (await adapter.getAll('journalEntries')).length;
 
     return {
       activeReports: reports.filter(r => r.status === 'active').length,

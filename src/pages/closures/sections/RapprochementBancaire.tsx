@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import {
   Landmark, Upload, Download, CheckCircle, AlertCircle,
@@ -53,6 +53,7 @@ interface MoyenPaiement {
 
 const RapprochementBancaire: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedBank, setSelectedBank] = useState('001');
   const [selectedPeriod, setSelectedPeriod] = useState('2025-01');
   const [filterStatus, setFilterStatus] = useState('tous');
@@ -79,18 +80,18 @@ const RapprochementBancaire: React.FC = () => {
   const [bankEntries, setBankEntries] = useState<RapprochementItem[]>([]);
 
   useEffect(() => {
-    db.fiscalYears.toArray().then(fys => setFiscalYears(fys));
-  }, []);
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => setFiscalYears(fys));
+  }, [adapter]);
 
   useEffect(() => {
     const loadBankEntries = async () => {
       const fy = fiscalYears.find(f => f.isActive) || fiscalYears[0];
       if (!fy) return;
 
-      const entries = await db.journalEntries
-        .where('date')
-        .between(fy.startDate, fy.endDate, true, true)
-        .toArray();
+      const allEntries = await adapter.getAll<any>('journalEntries');
+      const entries = allEntries.filter(
+        (e: any) => e.date >= fy.startDate && e.date <= fy.endDate
+      );
 
       const items: RapprochementItem[] = [];
       for (const entry of entries) {

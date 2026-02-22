@@ -2,7 +2,7 @@
  * General Ledger Service — Connected to Dexie IndexedDB.
  * Queries real journal entries from the local database.
  */
-import { db } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import type { DBJournalEntry } from '../../../lib/db';
 import {
   AccountLedger,
@@ -16,8 +16,8 @@ class GeneralLedgerService {
   /**
    * Build ledger accounts from real journal entries in IndexedDB.
    */
-  async getLedgerAccounts(filters: GeneralLedgerFilters): Promise<AccountLedger[]> {
-    const entries = await this.queryEntries(filters);
+  async getLedgerAccounts(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<AccountLedger[]> {
+    const entries = await this.queryEntries(adapter, filters);
 
     // Group lines by account code
     const accountMap = new Map<string, { libelle: string; debit: number; credit: number; entries: Array<{ id: string; date: string; piece: string; libelle: string; debit: number; credit: number; solde: number; journal: string; tiers: string }> }>();
@@ -76,10 +76,11 @@ class GeneralLedgerService {
   }
 
   async getAccountLedger(
+    adapter: DataAdapter,
     accountNumber: string,
     filters: Partial<GeneralLedgerFilters>
   ): Promise<AccountLedger> {
-    const allEntries = await db.journalEntries.toArray();
+    const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
 
     const lines: Array<{ id: string; date: string; piece: string; libelle: string; debit: number; credit: number; solde: number; journal: string; tiers: string }> = [];
     let totalDebit = 0;
@@ -130,8 +131,8 @@ class GeneralLedgerService {
     };
   }
 
-  async getStats(filters: Partial<GeneralLedgerFilters>): Promise<LedgerStats> {
-    const entries = await db.journalEntries.toArray();
+  async getStats(adapter: DataAdapter, filters: Partial<GeneralLedgerFilters>): Promise<LedgerStats> {
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
     const accountCodes = new Set<string>();
     let totalDebit = 0;
     let totalCredit = 0;
@@ -159,10 +160,10 @@ class GeneralLedgerService {
     };
   }
 
-  async search(query: string, filters?: Partial<GeneralLedgerFilters>): Promise<LedgerSearchResult> {
+  async search(adapter: DataAdapter, query: string, filters?: Partial<GeneralLedgerFilters>): Promise<LedgerSearchResult> {
     const startTime = Date.now();
     const q = query.toLowerCase();
-    const entries = await db.journalEntries.toArray();
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
 
     const matchingAccounts = new Map<string, AccountLedger>();
     const matchingEntries: Array<{ id: string; date: string; piece: string; libelle: string; debit: number; credit: number; solde: number; journal: string }> = [];
@@ -215,9 +216,9 @@ class GeneralLedgerService {
     };
   }
 
-  async getAnnotations(_entryId: string | number): Promise<LedgerAnnotation[]> {
+  async getAnnotations(adapter: DataAdapter, _entryId: string | number): Promise<LedgerAnnotation[]> {
     // Annotations stored in settings as JSON
-    const setting = await db.settings.get(`annotation_${_entryId}`);
+    const setting = await adapter.getById<{ key: string; value: string }>('settings', `annotation_${_entryId}`);
     if (!setting) return [];
     try {
       return JSON.parse(setting.value);
@@ -227,6 +228,7 @@ class GeneralLedgerService {
   }
 
   async addAnnotation(
+    adapter: DataAdapter,
     entryId: string | number,
     content: string
   ): Promise<LedgerAnnotation> {
@@ -239,9 +241,9 @@ class GeneralLedgerService {
       content,
     };
 
-    const existing = await this.getAnnotations(entryId);
+    const existing = await this.getAnnotations(adapter, entryId);
     existing.push(annotation);
-    await db.settings.put({
+    await adapter.create('settings', {
       key: `annotation_${entryId}`,
       value: JSON.stringify(existing),
       updatedAt: new Date().toISOString(),
@@ -250,11 +252,11 @@ class GeneralLedgerService {
     return annotation;
   }
 
-  async exportLedger(options: {
+  async exportLedger(adapter: DataAdapter, options: {
     format: 'excel' | 'pdf' | 'csv';
     filters: GeneralLedgerFilters;
   }): Promise<Blob> {
-    const accounts = await this.getLedgerAccounts(options.filters);
+    const accounts = await this.getLedgerAccounts(adapter, options.filters);
 
     if (options.format === 'csv') {
       const rows = ['Compte;Libelle;Date;Piece;Description;Debit;Credit;Solde'];
@@ -279,14 +281,14 @@ class GeneralLedgerService {
     return new Blob(['Export data'], { type: 'application/octet-stream' });
   }
 
-  async printLedger(filters: GeneralLedgerFilters): Promise<string> {
+  async printLedger(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<string> {
     return 'print-preview-url';
   }
 
   // ---- Private helpers ----
 
-  private async queryEntries(filters: GeneralLedgerFilters): Promise<DBJournalEntry[]> {
-    let entries = await db.journalEntries.toArray();
+  private async queryEntries(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<DBJournalEntry[]> {
+    let entries = await adapter.getAll<DBJournalEntry>('journalEntries');
 
     if (filters.dateDebut) {
       entries = entries.filter(e => e.date >= filters.dateDebut);

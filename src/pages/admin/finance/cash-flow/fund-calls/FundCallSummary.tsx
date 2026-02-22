@@ -1,6 +1,5 @@
-import React from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../../../../lib/db';
+import React, { useState, useEffect } from 'react';
+import { useData } from '../../../../../contexts/DataContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 
 interface FundCallGraphProps {
@@ -45,6 +44,7 @@ const SimpleBarChart: React.FC<{
 
 export const FundCallSummary: React.FC = () => {
   const { fundCallG, enabledId } = useFinanceContext();
+  const { adapter } = useData();
 
   const formattedDate = (date: string): string => {
     const newDate = new Date(date);
@@ -62,20 +62,25 @@ export const FundCallSummary: React.FC = () => {
     more_120_days: { count: 0, amount: 0, percentage: 0 }
   };
 
-  const summaryFromDb = useLiveQuery(async () => {
-    if (!fundCallG.id) return null;
-    const setting = await db.settings.get('fund_call_summaries');
-    if (!setting) return null;
-    try {
-      const parsed = JSON.parse(setting.value);
-      const summaries = Array.isArray(parsed) ? parsed : [];
-      return summaries.find(
-        (s: Record<string, unknown>) => String(s.id) === String(fundCallG.id)
-      ) ?? null;
-    } catch {
-      return null;
-    }
-  }, [fundCallG.id]);
+  const [summaryFromDb, setSummaryFromDb] = useState<any>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!fundCallG.id) { setSummaryFromDb(null); return; }
+      const setting = await adapter.getById('settings', 'fund_call_summaries') as any;
+      if (!setting) { setSummaryFromDb(null); return; }
+      try {
+        const parsed = JSON.parse(setting.value);
+        const summaries = Array.isArray(parsed) ? parsed : [];
+        setSummaryFromDb(summaries.find(
+          (s: Record<string, unknown>) => String(s.id) === String(fundCallG.id)
+        ) ?? null);
+      } catch {
+        setSummaryFromDb(null);
+      }
+    };
+    load();
+  }, [adapter, fundCallG.id]);
 
   const mockFundCall = {
     reference: fundCallG.reference || '',

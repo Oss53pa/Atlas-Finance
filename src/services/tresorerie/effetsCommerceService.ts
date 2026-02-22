@@ -2,8 +2,9 @@
  * Effets de commerce — lettres de change, billets a ordre.
  * Cycle de vie complet conforme OHADA avec ecritures automatiques.
  */
+import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBJournalLine } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 
@@ -236,6 +237,7 @@ function buildTransitionLines(
  * Execute a status transition with journal entry generation.
  */
 export async function transitionEffet(
+  adapter: DataAdapter,
   effet: EffetCommerce,
   newStatut: StatutEffet,
   date: string,

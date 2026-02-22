@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
@@ -64,6 +63,7 @@ interface PositionModal {
 
 const TreasuryPositions: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCurrency, setFilterCurrency] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -71,9 +71,20 @@ const TreasuryPositions: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [positionModal, setPositionModal] = useState<PositionModal>({ isOpen: false, mode: 'view' });
 
-  // Live Dexie queries
-  const exchangeRatesData = useLiveQuery(() => db.exchangeRates.toArray()) || [];
-  const hedgingPositionsData = useLiveQuery(() => db.hedgingPositions.toArray()) || [];
+  const [exchangeRatesData, setExchangeRatesData] = useState<any[]>([]);
+  const [hedgingPositionsData, setHedgingPositionsData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [er, hp] = await Promise.all([
+        adapter.getAll('exchangeRates'),
+        adapter.getAll('hedgingPositions'),
+      ]);
+      setExchangeRatesData(er as any[]);
+      setHedgingPositionsData(hp as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Build exchange rate lookup from Dexie data (currency -> EUR rate)
   const exchangeRateLookup = useMemo(() => {

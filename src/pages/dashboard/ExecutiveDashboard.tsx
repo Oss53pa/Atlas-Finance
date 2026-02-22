@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, Award,
@@ -44,28 +43,34 @@ const ExecutiveDashboard: React.FC = () => {
   const { t } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const { adapter } = useData();
 
-  // Live executive metrics from Dexie
-  const liveExec = useLiveQuery(async () => {
-    const entries = await db.journalEntries.toArray();
-    let revenue = 0, expenses = 0, treasury = 0;
-    const monthlyRevenue = new Array(12).fill(0);
-    for (const e of entries) {
-      const month = new Date(e.date).getMonth();
-      for (const l of e.lines) {
-        if (l.accountCode.startsWith('7')) {
-          const val = l.credit - l.debit;
-          revenue += val;
-          if (month >= 0 && month < 12) monthlyRevenue[month] += val;
+  // Executive metrics from DataContext
+  const [liveExec, setLiveExec] = useState<{ revenue: number; expenses: number; treasury: number; grossMargin: number; netMargin: number; monthlyRevenue: number[] }>({ revenue: 0, expenses: 0, treasury: 0, grossMargin: 0, netMargin: 0, monthlyRevenue: new Array(12).fill(0) });
+
+  useEffect(() => {
+    const load = async () => {
+      const entries = await adapter.getAll('journalEntries') as any[];
+      let revenue = 0, expenses = 0, treasury = 0;
+      const monthlyRevenue = new Array(12).fill(0);
+      for (const e of entries) {
+        const month = new Date(e.date).getMonth();
+        for (const l of e.lines) {
+          if (l.accountCode.startsWith('7')) {
+            const val = l.credit - l.debit;
+            revenue += val;
+            if (month >= 0 && month < 12) monthlyRevenue[month] += val;
+          }
+          if (l.accountCode.startsWith('6')) expenses += l.debit - l.credit;
+          if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
         }
-        if (l.accountCode.startsWith('6')) expenses += l.debit - l.credit;
-        if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
       }
-    }
-    const grossMargin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
-    const netMargin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
-    return { revenue, expenses, treasury, grossMargin, netMargin, monthlyRevenue };
-  }, []) || { revenue: 0, expenses: 0, treasury: 0, grossMargin: 0, netMargin: 0, monthlyRevenue: new Array(12).fill(0) };
+      const grossMargin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
+      const netMargin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
+      setLiveExec({ revenue, expenses, treasury, grossMargin, netMargin, monthlyRevenue });
+    };
+    load();
+  }, [adapter]);
 
   const executiveMetrics = {
     revenue: {

@@ -3,7 +3,7 @@
  * Conforme a l'article A.47 A-1 du Livre des Procedures Fiscales.
  * 18 colonnes obligatoires, format tabulation ou point-virgule.
  */
-import { db } from '../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
 
 // ============================================================================
@@ -129,27 +129,27 @@ function escapeField(value: string, separator: string): string {
 /**
  * Generate FEC export from journal entries for a given fiscal period.
  */
-export async function generateFEC(options: FECExportOptions): Promise<FECExportResult> {
+export async function generateFEC(adapter: DataAdapter, options: FECExportOptions): Promise<FECExportResult> {
   const { startDate, endDate, siren, separator, devise } = options;
 
   // Fetch validated/posted entries for the period
-  const entries = await db.journalEntries
-    .where('date')
-    .between(startDate, endDate, true, true)
-    .filter(e => e.status === 'validated' || e.status === 'posted')
-    .sortBy('date');
+  const allEntries = await adapter.getAll('journalEntries');
+  const entries = allEntries
+    .filter((e: any) => e.date >= startDate && e.date <= endDate &&
+      (e.status === 'validated' || e.status === 'posted'))
+    .sort((a: any, b: any) => a.date.localeCompare(b.date));
 
   if (entries.length === 0) {
     return { success: false, error: 'Aucune ecriture validee trouvee pour cette periode.' };
   }
 
   // Fetch accounts for labels
-  const accounts = await db.accounts.toArray();
-  const accountMap = new Map(accounts.map(a => [a.code, a.name]));
+  const accounts = await adapter.getAll('accounts');
+  const accountMap = new Map(accounts.map((a: any) => [a.code, a.name]));
 
   // Fetch third parties for auxiliary accounts
-  const thirdParties = await db.thirdParties.toArray();
-  const tpMap = new Map(thirdParties.map(tp => [tp.code, tp.name]));
+  const thirdParties = await adapter.getAll('thirdParties');
+  const tpMap = new Map(thirdParties.map((tp: any) => [tp.code, tp.name]));
 
   let totalDebit = 0;
   let totalCredit = 0;
@@ -208,25 +208,22 @@ export async function generateFEC(options: FECExportOptions): Promise<FECExportR
 /**
  * Validate a FEC export before downloading.
  */
-export async function validateFEC(options: FECExportOptions): Promise<FECValidationResult> {
+export async function validateFEC(adapter: DataAdapter, options: FECExportOptions): Promise<FECValidationResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  const entries = await db.journalEntries
-    .where('date')
-    .between(options.startDate, options.endDate, true, true)
-    .filter(e => e.status === 'validated' || e.status === 'posted')
-    .sortBy('date');
+  const allEntriesInPeriod = await adapter.getAll('journalEntries');
+  const allEntries = allEntriesInPeriod.filter(
+    (e: any) => e.date >= options.startDate && e.date <= options.endDate
+  );
+
+  const entries = allEntries
+    .filter((e: any) => e.status === 'validated' || e.status === 'posted')
+    .sort((a: any, b: any) => a.date.localeCompare(b.date));
 
   let totalDebit = 0;
   let totalCredit = 0;
   let lineCount = 0;
-
-  // Check all entries in the period are validated
-  const allEntries = await db.journalEntries
-    .where('date')
-    .between(options.startDate, options.endDate, true, true)
-    .toArray();
 
   const draftCount = allEntries.filter(e => e.status === 'draft').length;
   if (draftCount > 0) {

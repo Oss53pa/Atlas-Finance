@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import {
   FileText, Upload, Download, FolderOpen, Archive,
@@ -57,6 +57,7 @@ interface DossierCloture {
 
 const DocumentsArchives: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedDossier, setSelectedDossier] = useState<string>('2025-01');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [filterCategorie, setFilterCategorie] = useState('tous');
@@ -79,13 +80,13 @@ const DocumentsArchives: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; entityType: string; entityId: string; details: string; timestamp: string }>>([]);
 
   useEffect(() => {
-    db.fiscalYears.toArray().then(fys => {
+    adapter.getAll<DBFiscalYear>('fiscalYears').then(fys => {
       setFiscalYears(fys.sort((a, b) => b.startDate.localeCompare(a.startDate)));
     });
-    db.auditLogs.toArray().then(logs => {
+    adapter.getAll<{ id: string; action: string; entityType: string; entityId: string; details: string; timestamp: string }>('auditLogs').then(logs => {
       setAuditLogs(logs.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')));
     });
-  }, []);
+  }, [adapter]);
 
   // Build dossiers from real fiscal years
   const dossiersCloture: DossierCloture[] = fiscalYears.map(fy => ({

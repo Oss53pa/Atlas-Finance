@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 
 const PrevisionsTresoreriePage: React.FC = () => {
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('account_management');
   const [selectedBank, setSelectedBank] = useState('all');
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
@@ -16,12 +16,30 @@ const PrevisionsTresoreriePage: React.FC = () => {
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
-  // Load treasury accounts from Dexie: accounts starting with 52 (bank) or 57 (cash)
-  const dbAccounts = useLiveQuery(() => db.accounts.toArray()) || [];
-  const journalEntries = useLiveQuery(() => db.journalEntries.toArray()) || [];
-  const treasurySettingRaw = useLiveQuery(() => db.settings.get('treasury_accounts'));
-  const forecastSettingRaw = useLiveQuery(() => db.settings.get('treasury_forecasts'));
-  const treasuryPlansSetting = useLiveQuery(() => db.settings.get('treasury_plans'));
+  const [dbAccounts, setDbAccounts] = useState<any[]>([]);
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [treasurySettingRaw, setTreasurySettingRaw] = useState<any>(undefined);
+  const [forecastSettingRaw, setForecastSettingRaw] = useState<any>(undefined);
+  const [treasuryPlansSetting, setTreasuryPlansSetting] = useState<any>(undefined);
+
+  useEffect(() => {
+    const load = async () => {
+      const [accts, entries, tSetting, fSetting, pSetting] = await Promise.all([
+        adapter.getAll('accounts'),
+        adapter.getAll('journalEntries'),
+        adapter.getById('settings', 'treasury_accounts'),
+        adapter.getById('settings', 'treasury_forecasts'),
+        adapter.getById('settings', 'treasury_plans'),
+      ]);
+      setDbAccounts(accts as any[]);
+      setJournalEntries(entries as any[]);
+      setTreasurySettingRaw(tSetting);
+      setForecastSettingRaw(fSetting);
+      setTreasuryPlansSetting(pSetting);
+    };
+    load();
+  }, [adapter]);
+
   const treasuryPlans = treasuryPlansSetting ? JSON.parse(treasuryPlansSetting.value) : [];
 
   // Build treasury accounts: prefer settings, fallback to accounts table with computed balances

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import { 
   ChartBarIcon,
@@ -64,6 +64,7 @@ interface MonthlyData {
 
 const BudgetControlPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedPeriod, setSelectedPeriod] = useState('2024');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -78,8 +79,8 @@ const BudgetControlPage: React.FC = () => {
   const { data: budgetControls = [], isLoading } = useQuery({
     queryKey: ['budget-controls', selectedPeriod, selectedDepartment, selectedStatus, searchTerm],
     queryFn: async () => {
-      const budgetLines = await db.budgetLines.toArray();
-      const entries = await db.journalEntries.toArray();
+      const budgetLines = await adapter.getAll('budgetLines');
+      const entries = await adapter.getAll('journalEntries');
 
       // Group budget lines by fiscal year
       const budgetByAccount: Record<string, { budgeted: number; accountCode: string; fiscalYear: string }> = {};
@@ -145,8 +146,8 @@ const BudgetControlPage: React.FC = () => {
   const { data: monthlyData = [] } = useQuery({
     queryKey: ['monthly-budget-data', selectedPeriod],
     queryFn: async () => {
-      const budgetLines = await db.budgetLines.toArray();
-      const entries = await db.journalEntries.toArray();
+      const budgetLines = await adapter.getAll('budgetLines');
+      const entries = await adapter.getAll('journalEntries');
       const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
       const result: MonthlyData[] = months.map((month, idx) => {

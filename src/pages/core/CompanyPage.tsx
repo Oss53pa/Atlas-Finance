@@ -25,6 +25,7 @@ import {
 } from '../../components/ui';
 import { companyService } from '../../services/company.service';
 import { formatDate } from '../../lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 import { toast } from 'react-hot-toast';
 
 const CompanyPage: React.FC = () => {
@@ -309,8 +310,8 @@ const CompanyPage: React.FC = () => {
                   Capital social
                 </label>
                 <p className="text-gray-900 font-semibold">
-                  {company?.capital_social ? 
-                    `${company.capital_social.toLocaleString()} ${company.devise}` : 
+                  {company?.capital_social ?
+                    formatCurrency(company.capital_social) :
                     'Non renseigné'
                   }
                 </p>

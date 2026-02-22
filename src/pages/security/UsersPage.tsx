@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
@@ -63,11 +62,27 @@ const UsersPage: React.FC = () => {
   const itemsPerPage = 15;
 
   const queryClient = useQueryClient();
+  const { adapter } = useData();
 
-  // Load users from Dexie settings
-  const usersSetting = useLiveQuery(() => db.settings.get('users_list'));
+  // Load users from settings
+  const [usersSetting, setUsersSetting] = useState<any>(undefined);
+  const [rolesSetting, setRolesSetting] = useState<any>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [us, rs] = await Promise.all([
+        adapter.getById('settings', 'users_list'),
+        adapter.getById('settings', 'roles_config'),
+      ]);
+      setUsersSetting(us);
+      setRolesSetting(rs);
+      setIsLoading(false);
+    };
+    load();
+  }, [adapter]);
+
   const allUsers: User[] = usersSetting ? JSON.parse(usersSetting.value) : [];
-  const isLoading = usersSetting === undefined;
 
   // Filter users based on search/filter criteria
   const users = useMemo(() => {
@@ -83,8 +98,7 @@ const UsersPage: React.FC = () => {
     );
   }, [allUsers, searchTerm, selectedDepartment, selectedRole, selectedStatus]);
 
-  // Load roles from Dexie settings
-  const rolesSetting = useLiveQuery(() => db.settings.get('roles_config'));
+  // Load roles from settings
   const roles: Role[] = rolesSetting ? JSON.parse(rolesSetting.value) : [];
 
   const toggleUserStatusMutation = useMutation({

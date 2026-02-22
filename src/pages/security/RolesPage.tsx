@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
@@ -59,11 +58,27 @@ const RolesPage: React.FC = () => {
   const itemsPerPage = 12;
 
   const queryClient = useQueryClient();
+  const { adapter } = useData();
 
-  // Load roles from Dexie settings
-  const rolesSetting = useLiveQuery(() => db.settings.get('roles_config'));
+  // Load roles from settings
+  const [rolesSetting, setRolesSetting] = useState<any>(undefined);
+  const [permissionsSetting, setPermissionsSetting] = useState<any>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [rs, ps] = await Promise.all([
+        adapter.getById('settings', 'roles_config'),
+        adapter.getById('settings', 'permissions_config'),
+      ]);
+      setRolesSetting(rs);
+      setPermissionsSetting(ps);
+      setIsLoading(false);
+    };
+    load();
+  }, [adapter]);
+
   const allRoles: Role[] = rolesSetting ? JSON.parse(rolesSetting.value) : [];
-  const isLoading = rolesSetting === undefined;
 
   // Filter roles based on search/filter criteria
   const roles = useMemo(() => {
@@ -76,8 +91,7 @@ const RolesPage: React.FC = () => {
     );
   }, [allRoles, searchTerm, selectedCategory]);
 
-  // Load permissions from Dexie settings
-  const permissionsSetting = useLiveQuery(() => db.settings.get('permissions_config'));
+  // Load permissions from settings
   const permissions: Permission[] = permissionsSetting ? JSON.parse(permissionsSetting.value) : [];
 
   const duplicateRoleMutation = useMutation({

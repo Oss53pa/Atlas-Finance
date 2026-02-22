@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   Building2,
@@ -104,14 +103,24 @@ const MultiSocietesPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
   const [showInactive, setShowInactive] = useState(false);
+  const { adapter } = useData();
+  const [companiesSetting, setCompaniesSetting] = useState<any>(undefined);
+  const [consolidationGroupsSetting, setConsolidationGroupsSetting] = useState<any>(undefined);
 
-  // Load companies from Dexie settings
-  const companiesSetting = useLiveQuery(() => db.settings.get('companies_list'));
+  useEffect(() => {
+    const load = async () => {
+      const [cs, cgs] = await Promise.all([
+        adapter.getById('settings', 'companies_list'),
+        adapter.getById('settings', 'consolidation_groups'),
+      ]);
+      setCompaniesSetting(cs);
+      setConsolidationGroupsSetting(cgs);
+    };
+    load();
+  }, [adapter]);
+
   const companies: Company[] = companiesSetting ? JSON.parse(companiesSetting.value) : [];
   const isLoading = companiesSetting === undefined;
-
-  // Load consolidation groups from Dexie settings
-  const consolidationGroupsSetting = useLiveQuery(() => db.settings.get('consolidation_groups'));
   const consolidationGroups: ConsolidationGroup[] = consolidationGroupsSetting ? JSON.parse(consolidationGroupsSetting.value) : [];
 
   // Filter companies

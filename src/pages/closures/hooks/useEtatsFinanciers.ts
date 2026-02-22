@@ -4,7 +4,7 @@
  * Provides account balances for bilan actif, bilan passif, and compte de résultat.
  */
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import { money } from '../../../utils/money';
 
@@ -46,6 +46,7 @@ export interface EtatsFinanciersData {
 // ============================================================================
 
 export function useEtatsFinanciers(): EtatsFinanciersData {
+  const { adapter } = useData();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fiscalYear, setFiscalYear] = useState<DBFiscalYear | null>(null);
@@ -58,8 +59,8 @@ export function useEtatsFinanciers(): EtatsFinanciersData {
 
     try {
       // Get active fiscal year
-      const fys = await db.fiscalYears.toArray();
-      const activeFY = fys.find(fy => fy.isActive) || fys[0];
+      const fys = await adapter.getAll<any>('fiscalYears');
+      const activeFY = fys.find((fy: any) => fy.isActive) || fys[0];
       if (!activeFY) {
         setError('Aucun exercice fiscal trouvé');
         setLoading(false);
@@ -67,11 +68,11 @@ export function useEtatsFinanciers(): EtatsFinanciersData {
       }
       setFiscalYear(activeFY);
 
-      // Load entries
-      const entries = await db.journalEntries
-        .where('date')
-        .between(activeFY.startDate, activeFY.endDate, true, true)
-        .toArray();
+      // Load entries for FY period
+      const allEntries = await adapter.getAll<any>('journalEntries');
+      const entries = allEntries.filter((e: any) =>
+        e.date >= activeFY.startDate && e.date <= activeFY.endDate
+      );
 
       setTotalEntries(entries.length);
 

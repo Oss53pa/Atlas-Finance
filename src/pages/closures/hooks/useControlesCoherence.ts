@@ -4,7 +4,7 @@
  * Controls for missing tables (stocks, paie, rapprochement) → non_applicable.
  */
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../../../lib/db';
+import { useData } from '../../../contexts/DataContext';
 import type { DBJournalEntry, DBJournalLine, DBAsset, DBFiscalYear } from '../../../lib/db';
 import { money } from '../../../utils/money';
 import { formatCurrency } from '../../../utils/formatters';
@@ -93,6 +93,7 @@ function runControl(
 // ============================================================================
 
 export function useControlesCoherence() {
+  const { adapter } = useData();
   const [controles, setControles] = useState<ControleResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,8 +105,8 @@ export function useControlesCoherence() {
 
     try {
       // 1. Get active fiscal year
-      const fiscalYears = await db.fiscalYears.toArray();
-      const activeFY = fiscalYears.find(fy => fy.isActive) || fiscalYears[0];
+      const fiscalYears = await adapter.getAll<any>('fiscalYears');
+      const activeFY = fiscalYears.find((fy: any) => fy.isActive) || fiscalYears[0];
       if (!activeFY) {
         setError('Aucun exercice fiscal trouvé');
         setLoading(false);
@@ -113,10 +114,10 @@ export function useControlesCoherence() {
       }
 
       // 2. Load all entries for this FY
-      const entries = await db.journalEntries
-        .where('date')
-        .between(activeFY.startDate, activeFY.endDate, true, true)
-        .toArray();
+      const allEntries = await adapter.getAll<any>('journalEntries');
+      const entries = allEntries.filter((e: any) =>
+        e.date >= activeFY.startDate && e.date <= activeFY.endDate
+      );
 
       // 3. Flatten all lines
       const allLines: (DBJournalLine & { entryDate: string; entryId: string; entryStatus: string })[] = [];
@@ -127,11 +128,11 @@ export function useControlesCoherence() {
       }
 
       // 4. Load assets
-      const assets = await db.assets.toArray();
-      const activeAssets = assets.filter(a => a.status === 'active');
+      const assets = await adapter.getAll<any>('assets');
+      const activeAssets = assets.filter((a: any) => a.status === 'active');
 
       // 5. Load accounts
-      const accounts = await db.accounts.toArray();
+      const accounts = await adapter.getAll<any>('accounts');
 
       // 6. Run all 17 controls
       const results: ControleResult[] = [];

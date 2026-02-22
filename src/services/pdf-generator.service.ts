@@ -6,7 +6,7 @@
  */
 
 import jsPDF from 'jspdf';
-import { db } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
 
 export interface CompanyInfo {
   name: string;
@@ -51,17 +51,17 @@ class PDFGeneratorService {
   /**
    * Load company info from Dexie settings (lazy, cached).
    */
-  private async getCompanyInfo(): Promise<CompanyInfo> {
+  private async getCompanyInfo(adapter: DataAdapter): Promise<CompanyInfo> {
     try {
       const [name, address, city, postalCode, country, phone, email, taxId] = await Promise.all([
-        db.settings.get('company_name'),
-        db.settings.get('company_address'),
-        db.settings.get('company_city'),
-        db.settings.get('company_postal_code'),
-        db.settings.get('company_country'),
-        db.settings.get('company_phone'),
-        db.settings.get('company_email'),
-        db.settings.get('company_tax_id'),
+        adapter.getById('settings', 'company_name'),
+        adapter.getById('settings', 'company_address'),
+        adapter.getById('settings', 'company_city'),
+        adapter.getById('settings', 'company_postal_code'),
+        adapter.getById('settings', 'company_country'),
+        adapter.getById('settings', 'company_phone'),
+        adapter.getById('settings', 'company_email'),
+        adapter.getById('settings', 'company_tax_id'),
       ]);
       return {
         name: name?.value || this.defaultCompany.name,
@@ -82,10 +82,11 @@ class PDFGeneratorService {
    * Génère un PDF avec en-tête d'entreprise
    */
   async generateNotificationPDF(
+    adapter: DataAdapter,
     content: NotificationContent,
     companyInfo?: CompanyInfo
   ): Promise<Blob> {
-    const company = companyInfo || await this.getCompanyInfo();
+    const company = companyInfo || await this.getCompanyInfo(adapter);
     const doc = new jsPDF();
 
     // Configuration des couleurs du thème
@@ -361,6 +362,7 @@ class PDFGeneratorService {
    * Génère un PDF pour un template d'email
    */
   async generateEmailAttachmentPDF(
+    adapter: DataAdapter,
     templateHtml: string,
     variables: Record<string, string>,
     companyInfo?: CompanyInfo
@@ -393,7 +395,7 @@ class PDFGeneratorService {
     };
 
     // Générer le PDF
-    const blob = await this.generateNotificationPDF(content, companyInfo);
+    const blob = await this.generateNotificationPDF(adapter, content, companyInfo);
 
     // Nom du fichier
     const filename = `notification_${content.reference}_${Date.now()}.pdf`;

@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import {
   TrendingUp,
@@ -24,25 +23,31 @@ const ManagerDashboard: React.FC = () => {
   const { t } = useLanguage();
   const [timeRange, setTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('financial');
+  const { adapter } = useData();
 
-  // Live KPIs from Dexie
-  const liveKpiData = useLiveQuery(async () => {
-    const entries = await db.journalEntries.toArray();
-    // Revenue: credit on class 7
-    let revenue = 0;
-    let expenses = 0;
-    let treasury = 0;
-    for (const e of entries) {
-      for (const l of e.lines) {
-        if (l.accountCode.startsWith('7')) revenue += l.credit - l.debit;
-        if (l.accountCode.startsWith('6')) expenses += l.debit - l.credit;
-        if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
+  // KPIs from DataContext
+  const [liveKpiData, setLiveKpiData] = useState<{ revenue: number; expenses: number; treasury: number; margin: number; pendingCount: number }>({ revenue: 0, expenses: 0, treasury: 0, margin: 0, pendingCount: 0 });
+
+  useEffect(() => {
+    const load = async () => {
+      const entries = await adapter.getAll('journalEntries') as any[];
+      // Revenue: credit on class 7
+      let revenue = 0;
+      let expenses = 0;
+      let treasury = 0;
+      for (const e of entries) {
+        for (const l of e.lines) {
+          if (l.accountCode.startsWith('7')) revenue += l.credit - l.debit;
+          if (l.accountCode.startsWith('6')) expenses += l.debit - l.credit;
+          if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
+        }
       }
-    }
-    const margin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
-    const pendingEntries = entries.filter(e => e.status === 'draft' || e.status === 'pending');
-    return { revenue, expenses, treasury, margin, pendingCount: pendingEntries.length };
-  }, []) || { revenue: 0, expenses: 0, treasury: 0, margin: 0, pendingCount: 0 };
+      const margin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
+      const pendingEntries = entries.filter((e: any) => e.status === 'draft' || e.status === 'pending');
+      setLiveKpiData({ revenue, expenses, treasury, margin, pendingCount: pendingEntries.length });
+    };
+    load();
+  }, [adapter]);
 
   const kpis = [
     {

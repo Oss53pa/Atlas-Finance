@@ -3,7 +3,7 @@
  * Fournit les données d'exercices comptables localement
  */
 
-import { db } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
 
 interface FrontendExercice {
   id: string;
@@ -44,9 +44,9 @@ const calculateRemainingDays = (endDate: string): number => {
 };
 
 export const exerciceService = {
-  getExercices: async (): Promise<FrontendExercice[]> => {
+  getExercices: async (adapter: DataAdapter): Promise<FrontendExercice[]> => {
     try {
-      const fiscalYears = await db.fiscalYears.toArray();
+      const fiscalYears = await adapter.getAll('fiscalYears');
       return fiscalYears.map(fy => ({
         id: fy.id,
         name: fy.name,
@@ -70,9 +70,9 @@ export const exerciceService = {
     }
   },
 
-  getCurrentExercice: async (): Promise<FrontendExercice | null> => {
+  getCurrentExercice: async (adapter: DataAdapter): Promise<FrontendExercice | null> => {
     try {
-      const fiscalYears = await db.fiscalYears.toArray();
+      const fiscalYears = await adapter.getAll('fiscalYears');
       const current = fiscalYears.find(fy => !fy.isClosed);
       if (!current) return null;
       return {
@@ -98,7 +98,7 @@ export const exerciceService = {
     }
   },
 
-  createExercice: async (data: {
+  createExercice: async (adapter: DataAdapter, data: {
     libelle: string;
     date_debut: string;
     date_fin: string;
@@ -107,7 +107,7 @@ export const exerciceService = {
     devise?: string;
   }) => {
     const id = crypto.randomUUID();
-    await db.fiscalYears.add({
+    await adapter.create('fiscalYears', {
       id,
       code: `EX${new Date(data.date_debut).getFullYear()}`,
       name: data.libelle,
@@ -119,18 +119,18 @@ export const exerciceService = {
     return { success: true, data: { id, libelle: data.libelle } };
   },
 
-  closeExercice: async (id: string) => {
-    await db.fiscalYears.update(id, { isClosed: true });
+  closeExercice: async (adapter: DataAdapter, id: string) => {
+    await adapter.update('fiscalYears', id, { isClosed: true });
     return { success: true };
   },
 
-  reopenExercice: async (id: string) => {
-    await db.fiscalYears.update(id, { isClosed: false });
+  reopenExercice: async (adapter: DataAdapter, id: string) => {
+    await adapter.update('fiscalYears', id, { isClosed: false });
     return { success: true };
   },
 
-  deleteExercice: async (id: string) => {
-    await db.fiscalYears.delete(id);
+  deleteExercice: async (adapter: DataAdapter, id: string) => {
+    await adapter.delete('fiscalYears', id);
     return { success: true };
   },
 };

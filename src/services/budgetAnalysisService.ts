@@ -5,8 +5,8 @@
  *
  * Conforme SYSCOHADA — classes 6 (charges) et 7 (produits).
  */
+import type { DataAdapter } from '@atlas/data';
 import { money } from '../utils/money';
-import { db } from '../lib/db';
 import type { DBBudgetLine, DBJournalEntry } from '../lib/db';
 
 // ============================================================================
@@ -73,6 +73,7 @@ const SEUILS = {
  * Get actual amounts from journal entries for a given account prefix and period.
  */
 async function getActualForPeriod(
+  adapter: DataAdapter,
   accountCode: string,
   fiscalYear: string,
   period: string
@@ -82,10 +83,8 @@ async function getActualForPeriod(
   const lastDay = new Date(year, month, 0).getDate();
   const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
-  const entries = await db.journalEntries
-    .where('date')
-    .between(startDate, endDate, true, true)
-    .toArray();
+  const allEntries = await adapter.getAll('journalEntries');
+  const entries = allEntries.filter(e => e.date >= startDate && e.date <= endDate);
 
   let total = 0;
   const cls = accountCode.charAt(0);
@@ -145,11 +144,8 @@ function determineStatus(
 /**
  * Get budget vs actual analysis for a fiscal year.
  */
-export async function getBudgetAnalysis(fiscalYear: string): Promise<BudgetSummary> {
-  const budgetLines = await db.budgetLines
-    .where('fiscalYear')
-    .equals(fiscalYear)
-    .toArray();
+export async function getBudgetAnalysis(adapter: DataAdapter, fiscalYear: string): Promise<BudgetSummary> {
+  const budgetLines = await adapter.getAll('budgetLines', { where: { fiscalYear } });
 
   if (budgetLines.length === 0) {
     return {
@@ -167,11 +163,11 @@ export async function getBudgetAnalysis(fiscalYear: string): Promise<BudgetSumma
   const periodMap = new Map<string, { budgeted: number; actual: number }>();
 
   // Get account names
-  const accounts = await db.accounts.toArray();
+  const accounts = await adapter.getAll('accounts');
   const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
   for (const bl of budgetLines) {
-    const actual = await getActualForPeriod(bl.accountCode, fiscalYear, bl.period);
+    const actual = await getActualForPeriod(adapter, bl.accountCode, fiscalYear, bl.period);
     const ecart = money(actual).subtract(money(bl.budgeted)).toNumber();
     const ecartPercent = bl.budgeted !== 0
       ? money(ecart).divide(bl.budgeted).multiply(100).toNumber()
@@ -199,7 +195,7 @@ export async function getBudgetAnalysis(fiscalYear: string): Promise<BudgetSumma
 
     // Update the actual field in the budget line for real-time tracking
     if (bl.actual !== actual) {
-      await db.budgetLines.update(bl.id, { actual });
+      await adapter.update('budgetLines', bl.id, { actual });
     }
   }
 
@@ -245,8 +241,8 @@ export async function getBudgetAnalysis(fiscalYear: string): Promise<BudgetSumma
 /**
  * Generate budget alerts based on thresholds.
  */
-export async function getBudgetAlerts(fiscalYear: string): Promise<BudgetAlert[]> {
-  const analysis = await getBudgetAnalysis(fiscalYear);
+export async function getBudgetAlerts(adapter: DataAdapter, fiscalYear: string): Promise<BudgetAlert[]> {
+  const analysis = await getBudgetAnalysis(adapter, fiscalYear);
   const alerts: BudgetAlert[] = [];
 
   for (const item of analysis.byAccount) {
@@ -298,8 +294,8 @@ export async function getBudgetAlerts(fiscalYear: string): Promise<BudgetAlert[]
 /**
  * Get budget execution rate for a fiscal year.
  */
-export async function getTauxExecution(fiscalYear: string): Promise<number> {
-  const analysis = await getBudgetAnalysis(fiscalYear);
+export async function getTauxExecution(adapter: DataAdapter, fiscalYear: string): Promise<number> {
+  const analysis = await getBudgetAnalysis(adapter, fiscalYear);
   if (analysis.totalBudgeted === 0) return 0;
   return money(analysis.totalActual).divide(analysis.totalBudgeted).multiply(100).toNumber();
 }

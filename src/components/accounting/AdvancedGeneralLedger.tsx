@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
@@ -47,6 +47,7 @@ interface AccountData {
 
 const AdvancedGeneralLedger: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger' | 'movements'>('intelligent');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
@@ -115,8 +116,8 @@ const AdvancedGeneralLedger: React.FC = () => {
   const { data: accountsData = [] } = useQuery<AccountData[]>({
     queryKey: ['advanced-general-ledger', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await db.journalEntries.toArray();
-      const accounts = await db.accounts.toArray();
+      const entries = await adapter.getAll('journalEntries');
+      const accounts = await adapter.getAll('accounts');
       const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
       const accountMap = new Map<string, AccountData>();

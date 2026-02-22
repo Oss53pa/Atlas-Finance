@@ -2,8 +2,8 @@
  * Notes Annexes SYSCOHADA revise — 35 notes.
  * Alimentation automatique depuis les donnees comptables.
  */
+import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
-import { db } from '../../lib/db';
 import type { DBJournalEntry, DBAccount, DBAsset } from '../../lib/db';
 
 // ============================================================================
@@ -87,12 +87,12 @@ const NOTES_DEFINITIONS: Array<{ numero: number; titre: string; auto: boolean }>
 // HELPERS
 // ============================================================================
 
-async function getEntriesForPeriod(start: string, end: string): Promise<DBJournalEntry[]> {
-  return db.journalEntries
-    .where('date')
-    .between(start, end, true, true)
-    .filter(e => e.status === 'validated' || e.status === 'posted')
-    .toArray();
+async function getEntriesForPeriod(adapter: DataAdapter, start: string, end: string): Promise<DBJournalEntry[]> {
+  const allEntries = await adapter.getAll('journalEntries');
+  return allEntries.filter(
+    (e: any) => e.date >= start && e.date <= end &&
+      (e.status === 'validated' || e.status === 'posted')
+  );
 }
 
 function sumByAccountPrefix(entries: DBJournalEntry[], prefix: string, side: 'debit' | 'credit'): number {
@@ -276,9 +276,9 @@ async function generateNote17(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
 /**
  * Generate all 35 notes annexes for a fiscal year.
  */
-export async function genererNotesAnnexes(config: NotesAnnexesConfig): Promise<NotesAnnexesResult> {
-  const entries = await getEntriesForPeriod(config.startDate, config.endDate);
-  const assets = await db.assets.toArray();
+export async function genererNotesAnnexes(adapter: DataAdapter, config: NotesAnnexesConfig): Promise<NotesAnnexesResult> {
+  const entries = await getEntriesForPeriod(adapter, config.startDate, config.endDate);
+  const assets = await adapter.getAll('assets');
 
   const notes: NoteAnnexe[] = [];
 
@@ -363,10 +363,11 @@ export async function genererNotesAnnexes(config: NotesAnnexesConfig): Promise<N
  * Get a single note by number.
  */
 export async function getNoteAnnexe(
+  adapter: DataAdapter,
   numero: number,
   config: NotesAnnexesConfig
 ): Promise<NoteAnnexe | null> {
-  const result = await genererNotesAnnexes(config);
+  const result = await genererNotesAnnexes(adapter, config);
   if (!result.success || !result.notes) return null;
   return result.notes.find(n => n.numero === numero) || null;
 }

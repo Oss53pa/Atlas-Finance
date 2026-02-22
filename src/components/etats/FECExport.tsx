@@ -4,10 +4,12 @@
  */
 import React, { useState, useCallback } from 'react';
 import { FileText, Download, CheckCircle, AlertTriangle, Loader2, Eye, Settings } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 import { generateFEC, validateFEC, downloadFEC, type FECExportOptions, type FECValidationResult } from '../../services/export/fecExportService';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 
 const FECExport: React.FC = () => {
+  const { adapter } = useData();
   const [exerciceId, setExerciceId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -26,7 +28,7 @@ const FECExport: React.FC = () => {
   // Load fiscal years on mount
   React.useEffect(() => {
     let mounted = true;
-    db.fiscalYears.toArray().then(years => {
+    adapter.getAll('fiscalYears').then(years => {
       if (!mounted) return;
       setFiscalYears(years.map(y => ({ id: y.id, name: y.name, startDate: y.startDate, endDate: y.endDate })));
       if (years.length > 0) {
@@ -174,7 +176,7 @@ const FECExport: React.FC = () => {
             </span>
           </div>
           <div className="text-sm space-y-1">
-            <p className="text-gray-700">{validation.lineCount} lignes | Debit: {validation.totalDebit.toLocaleString('fr-FR')} | Credit: {validation.totalCredit.toLocaleString('fr-FR')}</p>
+            <p className="text-gray-700">{validation.lineCount} lignes | Debit: {formatCurrency(validation.totalDebit)} | Credit: {formatCurrency(validation.totalCredit)}</p>
             {validation.errors.map((e, i) => (
               <p key={i} className="text-red-700">- {e}</p>
             ))}

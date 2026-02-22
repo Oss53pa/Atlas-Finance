@@ -2,7 +2,7 @@
  * Balance Service — Connected to Dexie IndexedDB.
  * Computes trial balance from real journal entries and chart of accounts.
  */
-import { db } from '../../../lib/db';
+import type { DataAdapter } from '@atlas/data';
 import { BalanceAccount, BalanceFilters, BalanceTotals } from '../types/balance.types';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -20,9 +20,9 @@ const SYSCOHADA_CLASSES: Record<string, string> = {
 };
 
 class BalanceService {
-  async getBalance(filters: BalanceFilters): Promise<BalanceAccount[]> {
-    const entries = await db.journalEntries.toArray();
-    const accounts = await db.accounts.toArray();
+  async getBalance(adapter: DataAdapter, filters: BalanceFilters): Promise<BalanceAccount[]> {
+    const entries = await adapter.getAll<any>('journalEntries');
+    const accounts = await adapter.getAll<any>('accounts');
 
     // Build account metadata map from chart of accounts
     const accountMeta = new Map<string, { name: string; level: number; parentCode?: string }>();
@@ -99,8 +99,8 @@ class BalanceService {
     return totals;
   }
 
-  async exportBalance(format: 'xlsx' | 'pdf', filters: BalanceFilters): Promise<Blob> {
-    const accounts = await this.getBalance(filters);
+  async exportBalance(adapter: DataAdapter, format: 'xlsx' | 'pdf', filters: BalanceFilters): Promise<Blob> {
+    const accounts = await this.getBalance(adapter, filters);
 
     if (format === 'xlsx') {
       // CSV export as fallback
@@ -128,14 +128,14 @@ class BalanceService {
    * Total Débits DOIT = Total Crédits (obligation SYSCOHADA).
    * Utilise Money class pour éviter les erreurs d'arrondi JS.
    */
-  async verifyEquilibrium(filters: BalanceFilters): Promise<{
+  async verifyEquilibrium(adapter: DataAdapter, filters: BalanceFilters): Promise<{
     isBalanced: boolean;
     totalDebit: number;
     totalCredit: number;
     ecart: number;
     details: string;
   }> {
-    const accounts = await this.getBalance(filters);
+    const accounts = await this.getBalance(adapter, filters);
     const totals = this.calculateTotals(accounts);
 
     // Use Money class for precise comparison

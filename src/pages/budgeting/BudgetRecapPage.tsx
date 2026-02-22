@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { formatCurrency } from '@/utils/formatters';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Download, Filter, Calendar, ChevronLeft, ChevronRight, Eye, X } from 'lucide-react';
 
@@ -168,7 +169,7 @@ const BudgetRecapPage: React.FC = () => {
   const data = type === 'revenue' ? revenueData : expenseData;
 
   const formatAmount = (amount: number) => {
-    return amount.toLocaleString('fr-FR');
+    return formatCurrency(amount);
   };
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

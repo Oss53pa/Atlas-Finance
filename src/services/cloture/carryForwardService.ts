@@ -3,8 +3,9 @@
  * Generates opening entries for a new fiscal year from closing balances.
  * Conforme SYSCOHADA revise — comptes de bilan (classes 1-5) reportes.
  */
+import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
-import { db, logAudit } from '../../lib/db';
+import { logAudit } from '../../lib/db';
 import type { DBJournalLine } from '../../lib/db';
 import { safeAddEntry } from '../entryGuard';
 
@@ -60,16 +61,17 @@ const BILAN_CLASSES = ['1', '2', '3', '4', '5'];
  * Compute closing balances for all balance sheet accounts.
  */
 export async function calculerSoldesCloture(
+  adapter: DataAdapter,
   exerciceId: string,
   accountClasses: string[] = BILAN_CLASSES
 ): Promise<CarryForwardLine[]> {
-  const fiscalYear = await db.fiscalYears.get(exerciceId);
+  const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
   if (!fiscalYear) throw new Error(`Exercice ${exerciceId} introuvable`);
 
-  const entries = await db.journalEntries
-    .where('date')
-    .between(fiscalYear.startDate, fiscalYear.endDate, true, true)
-    .toArray();
+  const allEntries = await adapter.getAll('journalEntries');
+  const entries = allEntries.filter(
+    (e: any) => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
+  );
 
   // Accumulate balances per account
   const balances = new Map<string, { name: string; debit: number; credit: number }>();
@@ -112,10 +114,10 @@ export async function calculerSoldesCloture(
 /**
  * Preview carry-forward without saving.
  */
-export async function previewCarryForward(config: CarryForwardConfig): Promise<CarryForwardPreview> {
+export async function previewCarryForward(adapter: DataAdapter, config: CarryForwardConfig): Promise<CarryForwardPreview> {
   const classes = config.accountClasses || BILAN_CLASSES;
   const classesWithResult = config.includeResultat ? [...classes, '12'] : classes;
-  const lignes = await calculerSoldesCloture(config.closingExerciceId, classesWithResult);
+  const lignes = await calculerSoldesCloture(adapter, config.closingExerciceId, classesWithResult);
 
   let totalDebit = 0;
   let totalCredit = 0;
@@ -136,19 +138,19 @@ export async function previewCarryForward(config: CarryForwardConfig): Promise<C
 /**
  * Execute carry-forward: create A-Nouveau journal entry in the new fiscal year.
  */
-export async function executerCarryForward(config: CarryForwardConfig): Promise<CarryForwardResult> {
+export async function executerCarryForward(adapter: DataAdapter, config: CarryForwardConfig): Promise<CarryForwardResult> {
   const errors: string[] = [];
 
   // Validate fiscal years exist
-  const closingFY = await db.fiscalYears.get(config.closingExerciceId);
-  const openingFY = await db.fiscalYears.get(config.openingExerciceId);
+  const closingFY = await adapter.getById('fiscalYears', config.closingExerciceId);
+  const openingFY = await adapter.getById('fiscalYears', config.openingExerciceId);
 
   if (!closingFY) errors.push(`Exercice de cloture ${config.closingExerciceId} introuvable`);
   if (!openingFY) errors.push(`Exercice d'ouverture ${config.openingExerciceId} introuvable`);
   if (errors.length > 0) return { success: false, lineCount: 0, totalDebit: 0, totalCredit: 0, errors };
 
   // Compute balances
-  const preview = await previewCarryForward(config);
+  const preview = await previewCarryForward(adapter, config);
 
   if (preview.lignes.length === 0) {
     return { success: false, lineCount: 0, totalDebit: 0, totalCredit: 0, errors: ['Aucun solde a reporter'] };
@@ -203,15 +205,14 @@ export async function executerCarryForward(config: CarryForwardConfig): Promise<
 /**
  * Check if carry-forward already exists for a fiscal year.
  */
-export async function hasCarryForward(openingExerciceId: string): Promise<boolean> {
-  const fy = await db.fiscalYears.get(openingExerciceId);
+export async function hasCarryForward(adapter: DataAdapter, openingExerciceId: string): Promise<boolean> {
+  const fy = await adapter.getById('fiscalYears', openingExerciceId);
   if (!fy) return false;
 
-  const existing = await db.journalEntries
-    .where('journal')
-    .equals('AN')
-    .filter(e => e.date >= fy.startDate && e.date <= fy.endDate)
-    .first();
+  const allAN = await adapter.getAll('journalEntries', { where: { journal: 'AN' } });
+  const existing = allAN.find(
+    (e: any) => e.date >= fy.startDate && e.date <= fy.endDate
+  );
 
   return !!existing;
 }
@@ -219,18 +220,17 @@ export async function hasCarryForward(openingExerciceId: string): Promise<boolea
 /**
  * Delete existing carry-forward for regeneration.
  */
-export async function supprimerCarryForward(openingExerciceId: string): Promise<void> {
-  const fy = await db.fiscalYears.get(openingExerciceId);
+export async function supprimerCarryForward(adapter: DataAdapter, openingExerciceId: string): Promise<void> {
+  const fy = await adapter.getById('fiscalYears', openingExerciceId);
   if (!fy) return;
 
-  const existing = await db.journalEntries
-    .where('journal')
-    .equals('AN')
-    .filter(e => e.date >= fy.startDate && e.date <= fy.endDate)
-    .toArray();
+  const allAN = await adapter.getAll('journalEntries', { where: { journal: 'AN' } });
+  const existing = allAN.filter(
+    (e: any) => e.date >= fy.startDate && e.date <= fy.endDate
+  );
 
   for (const entry of existing) {
-    await db.journalEntries.delete(entry.id);
+    await adapter.delete('journalEntries', entry.id);
   }
 
   if (existing.length > 0) {

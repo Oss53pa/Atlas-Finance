@@ -33,7 +33,7 @@ import SearchableDropdown from '../ui/SearchableDropdown';
 import { TVAValidator, LigneEcriture as TVALigneEcriture, TVAValidationResult } from '../../utils/tvaValidation';
 import { isEntryEditable, isEntryReversible } from '../../utils/reversalService';
 import { validateJournalEntry, getNextPieceNumber } from '../../validators/journalEntryValidator';
-import { db } from '../../lib/db';
+
 import { safeAddEntry } from '../../services/entryGuard';
 import { validerEcriture, comptabiliserEcriture, retourBrouillon, allowedTransitions, transitionLabel } from '../../services/entryWorkflow';
 import type { EntryStatus } from '../../services/entryWorkflow';

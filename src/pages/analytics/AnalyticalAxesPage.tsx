@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useData } from '../../contexts/DataContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Layers,
@@ -92,11 +91,22 @@ const AnalyticalAxesPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const queryClient = useQueryClient();
+  const { adapter } = useData();
 
-  // Load analytical axes from Dexie settings
-  const axesSetting = useLiveQuery(() => db.settings.get('analytical_axes'));
+  // Load analytical axes from settings
+  const [axesSetting, setAxesSetting] = useState<any>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const setting = await adapter.getById('settings', 'analytical_axes');
+      setAxesSetting(setting);
+      setIsLoading(false);
+    };
+    load();
+  }, [adapter]);
+
   const allAxes: AxeData[] = axesSetting ? JSON.parse(axesSetting.value) : [];
-  const isLoading = axesSetting === undefined;
 
   // Compute filtered & paginated axesData from Dexie
   const axesData = useMemo(() => {
@@ -141,36 +151,42 @@ const AnalyticalAxesPage: React.FC = () => {
     };
   }, [allAxes, filters, page]);
 
-  // Create axe mutation - saves to Dexie settings
+  // Create axe mutation - saves to settings
   const createMutation = useMutation({
     mutationFn: async (data: AxeData) => {
-      const current = await db.settings.get('analytical_axes');
+      const current = await adapter.getById('settings', 'analytical_axes') as any;
       const axes = current ? JSON.parse(current.value) : [];
       const newAxe = { ...data, id: crypto.randomUUID(), statut: 'actif', niveau: 1, nb_centres: 0, nb_ventilations: 0, montant_total: 0 };
       axes.push(newAxe);
-      await db.settings.put({ key: 'analytical_axes', value: JSON.stringify(axes), updatedAt: new Date().toISOString() });
+      await adapter.create('settings', { key: 'analytical_axes', value: JSON.stringify(axes), updatedAt: new Date().toISOString() });
       return newAxe;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Axe analytique cree avec succes');
       setShowCreateModal(false);
       resetForm();
+      // Reload settings
+      const setting = await adapter.getById('settings', 'analytical_axes');
+      setAxesSetting(setting);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la creation');
     },
   });
 
-  // Delete axe mutation - removes from Dexie settings
+  // Delete axe mutation - removes from settings
   const deleteAxeMutation = useMutation({
     mutationFn: async (axeId: string) => {
-      const current = await db.settings.get('analytical_axes');
+      const current = await adapter.getById('settings', 'analytical_axes') as any;
       const axes = current ? JSON.parse(current.value) : [];
       const updated = axes.filter((a: AxeData) => a.id !== axeId);
-      await db.settings.put({ key: 'analytical_axes', value: JSON.stringify(updated), updatedAt: new Date().toISOString() });
+      await adapter.create('settings', { key: 'analytical_axes', value: JSON.stringify(updated), updatedAt: new Date().toISOString() });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Axe supprime avec succes');
+      // Reload settings
+      const setting = await adapter.getById('settings', 'analytical_axes');
+      setAxesSetting(setting);
     },
     onError: () => {
       toast.error('Erreur lors de la suppression');

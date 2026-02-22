@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   CreditCard,
@@ -110,18 +109,28 @@ const TVATaxesPage: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('active');
   const [showArchivedTaxes, setShowArchivedTaxes] = useState(false);
+  const { adapter } = useData();
+  const [taxRatesSetting, setTaxRatesSetting] = useState<any>(undefined);
+  const [taxRulesSetting, setTaxRulesSetting] = useState<any>(undefined);
+  const [exemptionsSetting, setExemptionsSetting] = useState<any>(undefined);
 
-  // Load tax rates from Dexie settings
-  const taxRatesSetting = useLiveQuery(() => db.settings.get('tva_rates'));
+  useEffect(() => {
+    const load = async () => {
+      const [tr, trl, ex] = await Promise.all([
+        adapter.getById('settings', 'tva_rates'),
+        adapter.getById('settings', 'tax_rules'),
+        adapter.getById('settings', 'tax_exemptions'),
+      ]);
+      setTaxRatesSetting(tr);
+      setTaxRulesSetting(trl);
+      setExemptionsSetting(ex);
+    };
+    load();
+  }, [adapter]);
+
   const taxRates: TaxRate[] = taxRatesSetting ? JSON.parse(taxRatesSetting.value) : [];
   const isLoading = taxRatesSetting === undefined;
-
-  // Load tax rules from Dexie settings
-  const taxRulesSetting = useLiveQuery(() => db.settings.get('tax_rules'));
   const taxRules: TaxRule[] = taxRulesSetting ? JSON.parse(taxRulesSetting.value) : [];
-
-  // Load tax exemptions from Dexie settings
-  const exemptionsSetting = useLiveQuery(() => db.settings.get('tax_exemptions'));
   const exemptions: TaxExemption[] = exemptionsSetting ? JSON.parse(exemptionsSetting.value) : [];
 
   // Filter tax rates

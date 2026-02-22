@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useData } from '../../contexts/DataContext';
 import { History, Filter, Search, Eye, User, Calendar, FileText, X } from 'lucide-react';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
@@ -21,6 +20,7 @@ interface ChangeLog {
 
 const TrackChangePage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterModule, setFilterModule] = useState('all');
   const [filterAction, setFilterAction] = useState('all');
@@ -30,6 +30,36 @@ const TrackChangePage: React.FC = () => {
   const [filterDateTo, setFilterDateTo] = useState('');
   const [selectedLog, setSelectedLog] = useState<ChangeLog | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [changeLogs, setChangeLogs] = useState<ChangeLog[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const logs = await adapter.getAll('auditLogs') as any[];
+        const sorted = logs
+          .sort((a: any, b: any) => (b.timestamp || '').localeCompare(a.timestamp || ''))
+          .slice(0, 50);
+        const mapped = sorted.map((log: any) => {
+          const ts = new Date(log.timestamp);
+          return {
+            id: log.id,
+            date: ts.toLocaleDateString('fr-FR'),
+            time: ts.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            user: log.userId || 'Système',
+            module: log.entityType || '-',
+            action: log.action || '-',
+            description: log.details || '-',
+            details: `${log.entityType} #${log.entityId}`,
+            status: 'success' as const,
+          };
+        });
+        setChangeLogs(mapped);
+      } catch {
+        setChangeLogs([]);
+      }
+    };
+    load();
+  }, [adapter]);
 
   const handleViewDetails = (log: ChangeLog) => {
     setSelectedLog(log);
@@ -40,28 +70,6 @@ const TrackChangePage: React.FC = () => {
     setIsModalOpen(false);
     setSelectedLog(null);
   };
-
-  const changeLogs: ChangeLog[] = useLiveQuery(async () => {
-    try {
-      const logs = await db.auditLogs.orderBy('timestamp').reverse().limit(50).toArray();
-      return logs.map(log => {
-        const ts = new Date(log.timestamp);
-        return {
-          id: log.id,
-          date: ts.toLocaleDateString('fr-FR'),
-          time: ts.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-          user: log.userId || 'Système',
-          module: log.entityType || '-',
-          action: log.action || '-',
-          description: log.details || '-',
-          details: `${log.entityType} #${log.entityId}`,
-          status: 'success' as const,
-        };
-      });
-    } catch {
-      return [];
-    }
-  }, []) || [];
 
   const filteredLogs = changeLogs.filter(log => {
     const matchesSearch =

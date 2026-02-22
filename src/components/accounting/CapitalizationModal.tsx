@@ -3,6 +3,7 @@ import {
   X, Building2, MapPin, Calendar, Euro, FileText, User, Clock,
   CheckCircle, AlertCircle, Calculator, Tag, Briefcase, Hash
 } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 import { ModernCard, CardHeader, CardBody } from '../ui/ModernCard';
 import ModernButton from '../ui/ModernButton';
 import SearchableDropdown from '../ui/SearchableDropdown';
@@ -183,7 +184,7 @@ const CapitalizationModal: React.FC<CapitalizationModalProps> = ({
               Demande de Capitalisation
             </h2>
             <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-              Facture: {invoiceData.supplier} - €{invoiceData.amount.toLocaleString()}
+              Facture: {invoiceData.supplier} - {formatCurrency(invoiceData.amount)}
             </p>
           </div>
           <button

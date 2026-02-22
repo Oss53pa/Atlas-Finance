@@ -4,6 +4,7 @@
  * Utilise Money class pour la précision financière.
  */
 import { Money, money } from './money';
+import { formatCurrency } from './formatters';
 
 // ---------------------------------------------------------------------------
 // Barèmes par pays
@@ -135,7 +136,7 @@ export function calculateIRPP(input: IRPPInput): IRPPResult {
     const impotTranche = money(baseImposable).multiply(tranche.taux).divide(100).round(0).toNumber();
     impotParPartNum += impotTranche;
     detailTranches.push({
-      tranche: `${tranche.min.toLocaleString()} - ${tranche.max === Infinity ? '∞' : tranche.max.toLocaleString()}`,
+      tranche: `${formatCurrency(tranche.min)} - ${tranche.max === Infinity ? '∞' : formatCurrency(tranche.max)}`,
       base: baseImposable,
       taux: tranche.taux,
       impot: impotTranche,

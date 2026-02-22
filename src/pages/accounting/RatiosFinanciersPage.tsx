@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   PieChart,
@@ -51,6 +51,7 @@ interface RatioCategory {
 }
 
 const RatiosFinanciersPage: React.FC = () => {
+  const { adapter } = useData();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
   const [categories, setCategories] = useState<RatioCategory[]>([]);
@@ -63,7 +64,7 @@ const RatiosFinanciersPage: React.FC = () => {
 
   const loadRatios = async () => {
     try {
-      const entries = await db.journalEntries.toArray();
+      const entries = await adapter.getAll('journalEntries');
       const filtered = entries.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
 
       // Calculate account balances from entries

@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   Shield, Users, Key, Lock, ArrowLeft, Home, Plus, Edit, Eye,
   CheckCircle, X, Settings, UserCheck, Clock, AlertTriangle
@@ -24,14 +23,27 @@ interface RoleCard {
 
 const PermissionsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('matrix');
+  const [matrixSetting, setMatrixSetting] = useState<any>(undefined);
+  const [rolesSetting, setRolesSetting] = useState<any>(undefined);
 
-  // Load permission matrix from Dexie
-  const matrixSetting = useLiveQuery(() => db.settings.get('permission_matrix'));
+  useEffect(() => {
+    const load = async () => {
+      const [ms, rs] = await Promise.all([
+        adapter.getById('settings', 'permission_matrix'),
+        adapter.getById('settings', 'roles_config'),
+      ]);
+      setMatrixSetting(ms);
+      setRolesSetting(rs);
+    };
+    load();
+  }, [adapter]);
+
+  // Load permission matrix
   const permissionMatrix: PermissionMatrixRow[] = matrixSetting ? JSON.parse(matrixSetting.value) : [];
 
-  // Load roles cards from Dexie
-  const rolesSetting = useLiveQuery(() => db.settings.get('roles_config'));
+  // Load roles cards
   const rolesCards: RoleCard[] = useMemo(() => {
     if (!rolesSetting) return [];
     const parsed = JSON.parse(rolesSetting.value);

@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import React, { useState, useEffect } from 'react';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
   Calendar,
@@ -75,9 +74,17 @@ const EcheancesFiscalesPage: React.FC = () => {
   );
   const [selectedType, setSelectedType] = useState<string>('tous');
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const { adapter } = useData();
+  const [deadlinesSetting, setDeadlinesSetting] = useState<any>(undefined);
 
-  // Load fiscal deadlines from Dexie settings
-  const deadlinesSetting = useLiveQuery(() => db.settings.get('fiscal_deadlines'));
+  useEffect(() => {
+    const load = async () => {
+      const s = await adapter.getById('settings', 'fiscal_deadlines');
+      setDeadlinesSetting(s);
+    };
+    load();
+  }, [adapter]);
+
   const deadlines: TaxDeadline[] = (() => {
     try {
       if (deadlinesSetting?.value) {

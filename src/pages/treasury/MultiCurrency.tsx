@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type DBExchangeRate, type DBHedgingPosition } from '../../lib/db';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useData } from '../../contexts/DataContext';
+import type { DBExchangeRate, DBHedgingPosition } from '../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Globe,
@@ -84,6 +84,7 @@ interface CurrencyModal {
 }
 
 const MultiCurrency: React.FC = () => {
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterExposure, setFilterExposure] = useState('all');
   const [filterHedged, setFilterHedged] = useState('all');
@@ -91,9 +92,20 @@ const MultiCurrency: React.FC = () => {
   const [currencyModal, setCurrencyModal] = useState<CurrencyModal>({ isOpen: false, mode: 'view' });
   const [selectedBaseCurrency, setSelectedBaseCurrency] = useState('EUR');
 
-  // Live Dexie queries
-  const dbExchangeRates = useLiveQuery(() => db.exchangeRates.toArray()) || [];
-  const dbHedgingPositions = useLiveQuery(() => db.hedgingPositions.toArray()) || [];
+  const [dbExchangeRates, setDbExchangeRates] = useState<any[]>([]);
+  const [dbHedgingPositions, setDbHedgingPositions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [er, hp] = await Promise.all([
+        adapter.getAll('exchangeRates'),
+        adapter.getAll('hedgingPositions'),
+      ]);
+      setDbExchangeRates(er as any[]);
+      setDbHedgingPositions(hp as any[]);
+    };
+    load();
+  }, [adapter]);
 
   // Map Dexie exchange rates to the component's ExchangeRate shape
   const exchangeRates: ExchangeRate[] = useMemo(() => {

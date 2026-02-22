@@ -10,7 +10,8 @@
  * Each transition is logged in the audit trail.
  */
 
-import { db, logAudit } from '../lib/db';
+import type { DataAdapter } from '@atlas/data';
+import { logAudit } from '../lib/db';
 import type { DBJournalEntry } from '../lib/db';
 import { validateJournalEntry } from '../validators/journalEntryValidator';
 
@@ -58,8 +59,8 @@ export function transitionLabel(to: EntryStatus): string {
  * Validate an entry (draft → validated).
  * Runs full async validation (D=C, accounts, fiscal year).
  */
-export async function validerEcriture(entryId: string): Promise<TransitionResult> {
-  const entry = await db.journalEntries.get(entryId);
+export async function validerEcriture(adapter: DataAdapter, entryId: string): Promise<TransitionResult> {
+  const entry = await adapter.getById('journalEntries', entryId);
   if (!entry) return { success: false, error: 'Écriture introuvable.' };
 
   if (!canTransition(entry.status as EntryStatus, 'validated')) {
@@ -79,7 +80,7 @@ export async function validerEcriture(entryId: string): Promise<TransitionResult
   }
 
   const now = new Date().toISOString();
-  await db.journalEntries.update(entryId, {
+  await adapter.update('journalEntries', entryId, {
     status: 'validated',
     updatedAt: now,
   });
@@ -98,8 +99,8 @@ export async function validerEcriture(entryId: string): Promise<TransitionResult
  * Post an entry (validated → posted).
  * Makes entry definitive (SYSCOHADA immutability begins).
  */
-export async function comptabiliserEcriture(entryId: string): Promise<TransitionResult> {
-  const entry = await db.journalEntries.get(entryId);
+export async function comptabiliserEcriture(adapter: DataAdapter, entryId: string): Promise<TransitionResult> {
+  const entry = await adapter.getById('journalEntries', entryId);
   if (!entry) return { success: false, error: 'Écriture introuvable.' };
 
   if (!canTransition(entry.status as EntryStatus, 'posted')) {
@@ -107,7 +108,7 @@ export async function comptabiliserEcriture(entryId: string): Promise<Transition
   }
 
   const now = new Date().toISOString();
-  await db.journalEntries.update(entryId, {
+  await adapter.update('journalEntries', entryId, {
     status: 'posted',
     updatedAt: now,
   });
@@ -126,8 +127,8 @@ export async function comptabiliserEcriture(entryId: string): Promise<Transition
  * Return entry to draft (validated → draft).
  * Only possible before comptabilisation.
  */
-export async function retourBrouillon(entryId: string): Promise<TransitionResult> {
-  const entry = await db.journalEntries.get(entryId);
+export async function retourBrouillon(adapter: DataAdapter, entryId: string): Promise<TransitionResult> {
+  const entry = await adapter.getById('journalEntries', entryId);
   if (!entry) return { success: false, error: 'Écriture introuvable.' };
 
   if (!canTransition(entry.status as EntryStatus, 'draft')) {
@@ -135,7 +136,7 @@ export async function retourBrouillon(entryId: string): Promise<TransitionResult
   }
 
   const now = new Date().toISOString();
-  await db.journalEntries.update(entryId, {
+  await adapter.update('journalEntries', entryId, {
     status: 'draft',
     updatedAt: now,
   });
@@ -154,7 +155,7 @@ export async function retourBrouillon(entryId: string): Promise<TransitionResult
  * Batch validate multiple entries.
  * Returns count of successes and list of failures.
  */
-export async function validerLot(entryIds: string[]): Promise<{
+export async function validerLot(adapter: DataAdapter, entryIds: string[]): Promise<{
   validated: number;
   failures: Array<{ id: string; error: string }>;
 }> {
@@ -162,7 +163,7 @@ export async function validerLot(entryIds: string[]): Promise<{
   const failures: Array<{ id: string; error: string }> = [];
 
   for (const id of entryIds) {
-    const result = await validerEcriture(id);
+    const result = await validerEcriture(adapter, id);
     if (result.success) {
       validated++;
     } else {
@@ -176,7 +177,7 @@ export async function validerLot(entryIds: string[]): Promise<{
 /**
  * Batch post multiple entries.
  */
-export async function comptabiliserLot(entryIds: string[]): Promise<{
+export async function comptabiliserLot(adapter: DataAdapter, entryIds: string[]): Promise<{
   posted: number;
   failures: Array<{ id: string; error: string }>;
 }> {
@@ -184,7 +185,7 @@ export async function comptabiliserLot(entryIds: string[]): Promise<{
   const failures: Array<{ id: string; error: string }> = [];
 
   for (const id of entryIds) {
-    const result = await comptabiliserEcriture(id);
+    const result = await comptabiliserEcriture(adapter, id);
     if (result.success) {
       posted++;
     } else {

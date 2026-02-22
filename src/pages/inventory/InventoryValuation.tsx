@@ -14,8 +14,7 @@ import {
   XCircle,
   Info
 } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   BarChart,
@@ -147,7 +146,17 @@ interface LCMTestingProps {
 }
 
 const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
-  const inventoryItems = useLiveQuery(() => db.inventoryItems.toArray()) || [];
+  const { adapter } = useData();
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const items = await adapter.getAll('inventoryItems');
+      setInventoryItems(items as any[]);
+    };
+    load();
+  }, [adapter]);
+
   const [testResults, setTestResults] = useState<LCMTestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [complianceStandard, setComplianceStandard] = useState<'IFRS_IAS2' | 'US_GAAP_ASC330'>('IFRS_IAS2');
@@ -344,7 +353,16 @@ const LCMTesting: React.FC<LCMTestingProps> = ({ onTestComplete }) => {
 };
 
 const InventoryValuation: React.FC = () => {
-  const inventoryItems = useLiveQuery(() => db.inventoryItems.toArray()) || [];
+  const { adapter } = useData();
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const items = await adapter.getAll('inventoryItems');
+      setInventoryItems(items as any[]);
+    };
+    load();
+  }, [adapter]);
 
   const [selectedMethod, setSelectedMethod] = useState<ValuationMethod>('FIFO');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -396,8 +414,9 @@ const InventoryValuation: React.FC = () => {
 
   const runValuation = async () => {
     setIsLoading(true);
-    // Data is live from Dexie; brief delay for UX feedback
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Re-read data via adapter
+    const items = await adapter.getAll('inventoryItems');
+    setInventoryItems(items as any[]);
     setIsLoading(false);
   };
 

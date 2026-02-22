@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { db } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import {
   PlusIcon,
@@ -53,6 +53,7 @@ interface Dashboard {
 
 const DashboardsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -72,17 +73,17 @@ const DashboardsPage: React.FC = () => {
   // Load fiscal years and journal entries from Dexie
   const { data: fiscalYears = [] } = useQuery({
     queryKey: ['dashboards-fiscal-years'],
-    queryFn: () => db.fiscalYears.toArray(),
+    queryFn: () => adapter.getAll('fiscalYears'),
   });
 
   const { data: journalEntries = [] } = useQuery({
     queryKey: ['dashboards-journal-entries'],
-    queryFn: () => db.journalEntries.toArray(),
+    queryFn: () => adapter.getAll('journalEntries'),
   });
 
   const { data: accounts = [] } = useQuery({
     queryKey: ['dashboards-accounts'],
-    queryFn: () => db.accounts.toArray(),
+    queryFn: () => adapter.getAll('accounts'),
   });
 
   const isLoading = fiscalYears === undefined;

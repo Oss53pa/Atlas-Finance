@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '../../lib/db';
-import type { DBJournalEntry } from '../../lib/db';
+import { useData } from '../../contexts/DataContext';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area
@@ -108,6 +107,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
   defaultView = 'dashboard'
 }) => {
   const { t } = useLanguage();
+  const { adapter } = useData();
 
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'bilan' | 'resultat' | 'flux' | 'ratios'>(defaultView);
@@ -136,7 +136,10 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
   // Load journal entries from Dexie
   const { data: entries = [] } = useQuery({
     queryKey: ['financial-statements-entries'],
-    queryFn: () => db.journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').toArray(),
+    queryFn: async () => {
+      const all = await adapter.getAll('journalEntries');
+      return all.filter((e: any) => e.status === 'validated' || e.status === 'posted');
+    },
   });
 
   // Compute bilan & compte de résultat from real entries

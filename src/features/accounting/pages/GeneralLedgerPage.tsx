@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { formatCurrency } from '@/utils/formatters';
 import { Download, Printer, Search, Eye, Filter as FilterIcon } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Input, Select } from '@/shared/components/ui/Form';
@@ -215,7 +216,7 @@ const GeneralLedgerPage: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#737373]">Solde Ouverture</p>
                   <p className="text-lg font-semibold text-[#171717]">
-                    {selectedAccount.soldeOuverture.toLocaleString()} FCFA
+                    {formatCurrency(selectedAccount.soldeOuverture)}
                   </p>
                 </div>
                 <div>
@@ -227,7 +228,7 @@ const GeneralLedgerPage: React.FC = () => {
                 <div>
                   <p className="text-sm text-[#737373]">Solde Clôture</p>
                   <p className="text-lg font-semibold text-[#171717]">
-                    {selectedAccount.soldeFermeture.toLocaleString()} FCFA
+                    {formatCurrency(selectedAccount.soldeFermeture)}
                   </p>
                 </div>
               </div>
