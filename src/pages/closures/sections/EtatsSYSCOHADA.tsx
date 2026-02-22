@@ -3,6 +3,7 @@ import { useLanguage } from '../../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
 import { useEtatsFinanciers } from '../hooks/useEtatsFinanciers';
 import { formatCurrency } from '../../../utils/formatters';
+import { Money } from '@/utils/money';
 import { motion } from 'framer-motion';
 import {
   FileText,
@@ -360,16 +361,16 @@ const EtatsSYSCOHADA: React.FC = () => {
     const roa = (realResultat / totalActifVal) * 100;
     const roe = (realResultat / capitauxPropresVal) * 100;
     return [
-      { nom: 'Ratio de liquidité générale', valeur: Math.round(liquidite * 100) / 100, valeurPrecedente: 0, unite: '', interpretation: 'Capacité à honorer les dettes à court terme', seuil: 1.5, statut: liquidite >= 1.5 ? 'bon' as const : liquidite >= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Actif Circulant / Dettes CT' },
-      { nom: 'Ratio d\'endettement', valeur: Math.round(endettement * 100) / 100, valeurPrecedente: 0, unite: '', interpretation: 'Endettement / Capitaux propres', seuil: 0.7, statut: endettement <= 0.7 ? 'bon' as const : endettement <= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Dettes / Capitaux Propres' },
-      { nom: 'Rentabilité économique (ROA)', valeur: Math.round(roa * 10) / 10, valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des actifs', seuil: 5.0, statut: roa >= 5 ? 'bon' as const : roa >= 2 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / Total Actif) × 100' },
-      { nom: 'Rentabilité financière (ROE)', valeur: Math.round(roe * 10) / 10, valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des capitaux propres', seuil: 10.0, statut: roe >= 10 ? 'bon' as const : roe >= 5 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / CP) × 100' },
+      { nom: 'Ratio de liquidité générale', valeur: new Money(liquidite).round().toNumber(), valeurPrecedente: 0, unite: '', interpretation: 'Capacité à honorer les dettes à court terme', seuil: 1.5, statut: liquidite >= 1.5 ? 'bon' as const : liquidite >= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Actif Circulant / Dettes CT' },
+      { nom: 'Ratio d\'endettement', valeur: new Money(endettement).round().toNumber(), valeurPrecedente: 0, unite: '', interpretation: 'Endettement / Capitaux propres', seuil: 0.7, statut: endettement <= 0.7 ? 'bon' as const : endettement <= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Dettes / Capitaux Propres' },
+      { nom: 'Rentabilité économique (ROA)', valeur: new Money(roa).round(1).toNumber(), valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des actifs', seuil: 5.0, statut: roa >= 5 ? 'bon' as const : roa >= 2 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / Total Actif) × 100' },
+      { nom: 'Rentabilité financière (ROE)', valeur: new Money(roe).round(1).toNumber(), valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des capitaux propres', seuil: 10.0, statut: roe >= 10 ? 'bon' as const : roe >= 5 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / CP) × 100' },
     ];
   }, [etatsData.balances]);
 
   // Indicateurs sectoriels — static reference data (no real data to compare)
   const indicateursSectoriels: IndicateurSectoriel[] = [
-    { nom: 'Marge commerciale', valeurEntreprise: CA > 0 ? Math.round((margeCommerciale / CA) * 1000) / 10 : 0, moyenneSectorielle: 35.8, quartileSup: 42.1, quartileInf: 28.5, position: 'bon', secteurReference: 'Commerce' },
+    { nom: 'Marge commerciale', valeurEntreprise: CA > 0 ? new Money(margeCommerciale).divide(CA).multiply(100).round(1).toNumber() : 0, moyenneSectorielle: 35.8, quartileSup: 42.1, quartileInf: 28.5, position: 'bon', secteurReference: 'Commerce' },
   ];
 
   // Documents réglementaires — static
@@ -612,7 +613,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-[var(--color-primary-light)] border-t-blue-600 border-r-blue-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenActif > 0 ? Math.round((totalImmo / totalGenActif) * 100) : 0}%</span>
+                      <span className="text-sm font-bold">{totalGenActif > 0 ? new Money(totalImmo).divide(totalGenActif).multiply(100).round(0).toNumber() : 0}%</span>
                     </div>
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalImmo)} FCFA</p>
@@ -622,7 +623,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-[var(--color-success-light)] border-t-green-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenActif > 0 ? Math.round((totalCirculant / totalGenActif) * 100) : 0}%</span>
+                      <span className="text-sm font-bold">{totalGenActif > 0 ? new Money(totalCirculant).divide(totalGenActif).multiply(100).round(0).toNumber() : 0}%</span>
                     </div>
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalCirculant)} FCFA</p>
@@ -632,7 +633,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-purple-200 border-t-purple-600 border-r-purple-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenPassif > 0 ? Math.round((capitauxPropres / totalGenPassif) * 100) : 0}%</span>
+                      <span className="text-sm font-bold">{totalGenPassif > 0 ? new Money(capitauxPropres).divide(totalGenPassif).multiply(100).round(0).toNumber() : 0}%</span>
                     </div>
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(capitauxPropres)} FCFA</p>
@@ -642,7 +643,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="relative w-24 h-24 mx-auto">
                     <div className="w-24 h-24 rounded-full border-8 border-[var(--color-error-light)] border-t-red-600 border-r-red-600 border-b-red-600"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-sm font-bold">{totalGenPassif > 0 ? Math.round((totalDettes / totalGenPassif) * 100) : 0}%</span>
+                      <span className="text-sm font-bold">{totalGenPassif > 0 ? new Money(totalDettes).divide(totalGenPassif).multiply(100).round(0).toNumber() : 0}%</span>
                     </div>
                   </div>
                   <p className="text-sm text-[var(--color-text-primary)] mt-2">{formatNumber(totalDettes)} FCFA</p>

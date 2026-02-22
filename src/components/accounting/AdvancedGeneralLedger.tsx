@@ -175,7 +175,7 @@ const AdvancedGeneralLedger: React.FC = () => {
     return { totalComptes, comptesActifs, totalEcritures, moyenneEcritures, comptesPlusActifs };
   }, [accountsData]);
 
-  const COLORS = ['#6A8A82', '#B87333', '#E8B4B8', '#A8C8EC', '#D4B5D4', '#FFD93D'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
     <PrintableArea
@@ -183,15 +183,15 @@ const AdvancedGeneralLedger: React.FC = () => {
       orientation="landscape"
       showPrintButton={false}
     >
-      <div className="min-h-screen bg-[#F0F3F2] print-area w-full">
+      <div className="min-h-screen bg-[#f5f5f5] print-area w-full">
       {/* En-tête principal */}
-      <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-4 py-3">
+      <div className="bg-[#f5f5f5] border-b border-[#e5e5e5] px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <BookOpen className="w-8 h-8 text-[#6A8A82]" />
+            <BookOpen className="w-8 h-8 text-[#171717]" />
             <div>
-              <h1 className="text-lg font-bold text-[#191919]">Grand Livre Avancé</h1>
-              <p className="text-sm text-[#191919]/70">Consultation détaillée - Conforme SYSCOHADA</p>
+              <h1 className="text-lg font-bold text-[#171717]">Grand Livre Avancé</h1>
+              <p className="text-sm text-[#171717]/70">Consultation détaillée - Conforme SYSCOHADA</p>
             </div>
           </div>
           
@@ -199,9 +199,9 @@ const AdvancedGeneralLedger: React.FC = () => {
             {/* Bouton de sélection de période */}
             <button
               onClick={() => setShowPeriodModal(true)}
-              className="px-3 py-2 border border-[#ECECEC] rounded-lg focus:ring-2 focus:ring-[#6A8A82] text-left flex items-center space-x-2 hover:bg-gray-50"
+              className="px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] text-left flex items-center space-x-2 hover:bg-gray-50"
             >
-              <Calendar className="w-4 h-4 text-[#6A8A82]" />
+              <Calendar className="w-4 h-4 text-[#171717]" />
               <span className="text-sm">
                 {dateRange.start && dateRange.end
                   ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
@@ -212,7 +212,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#6A8A82] text-[#F0F3F2] border-[#6A8A82]' : 'bg-[#F0F3F2] text-[#191919]/70 border-[#ECECEC] hover:bg-[#ECECEC]'}`}
+              className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[#171717] text-[#f5f5f5] border-[#171717]' : 'bg-[#f5f5f5] text-[#171717]/70 border-[#e5e5e5] hover:bg-[#e5e5e5]'}`}
             >
               <Filter className="w-4 h-4 mr-2 inline" />
               Filtres
@@ -220,14 +220,14 @@ const AdvancedGeneralLedger: React.FC = () => {
             
             <button 
               onClick={() => setShowPrintPreview(true)}
-              className="px-4 py-2 bg-[#F0F3F2] text-[#191919]/70 border border-[#ECECEC] rounded-lg hover:bg-[#ECECEC] transition-colors"
+              className="px-4 py-2 bg-[#f5f5f5] text-[#171717]/70 border border-[#e5e5e5] rounded-lg hover:bg-[#e5e5e5] transition-colors"
             >
               <Printer className="w-4 h-4 mr-2 inline" />
               Aperçu
             </button>
             
             <ExportMenu
-              data={accountsData as Record<string, unknown>[]}
+              data={accountsData as unknown as Record<string, unknown>[]}
               filename="grand-livre-general"
               columns={{
                 compte: 'Compte',
@@ -247,7 +247,7 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="flex space-x-1 mt-4 pt-3 overflow-x-auto overflow-y-visible">
           {[
             { id: 'intelligent', label: 'Recherche Intelligente', icon: Sparkles, badge: 'Nouveau', color: 'bg-purple-600' },
-            { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3, color: 'bg-[#6A8A82]' },
+            { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3, color: 'bg-[#171717]' },
             { id: 'accounts', label: 'Comptes Détaillés', icon: Hash, color: 'bg-blue-600' },
             { id: 'general-ledger', label: t('accounting.generalLedger'), icon: BookOpen, color: 'bg-green-600' },
             { id: 'analysis', label: 'Analyse IA', icon: Brain, badge: 'IA', color: 'bg-indigo-600' },
@@ -278,32 +278,32 @@ const AdvancedGeneralLedger: React.FC = () => {
 
       {/* Filtres avancés */}
       {showFilters && (
-        <div className="bg-[#F0F3F2] border-b border-[#ECECEC] px-4 py-3">
+        <div className="bg-[#f5f5f5] border-b border-[#e5e5e5] px-4 py-3">
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#191919] mb-1">Date début</label>
+              <label className="block text-sm font-medium text-[#171717] mb-1">Date début</label>
               <input 
                 type="date" 
                 value={filters.dateDebut}
                 onChange={(e) => setFilters({...filters, dateDebut: e.target.value})}
-                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#e5e5e5] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#191919] mb-1">Date fin</label>
+              <label className="block text-sm font-medium text-[#171717] mb-1">Date fin</label>
               <input 
                 type="date" 
                 value={filters.dateFin}
                 onChange={(e) => setFilters({...filters, dateFin: e.target.value})}
-                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#e5e5e5] rounded-md text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#191919] mb-1">{t('accounting.account')}</label>
+              <label className="block text-sm font-medium text-[#171717] mb-1">{t('accounting.account')}</label>
               <select 
                 value={selectedAccount}
                 onChange={(e) => setSelectedAccount(e.target.value)}
-                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#e5e5e5] rounded-md text-sm"
               >
                 <option value="">Tous les comptes</option>
                 {accountsData.map((acc) => (
@@ -330,11 +330,11 @@ const AdvancedGeneralLedger: React.FC = () => {
                 placeholder="Client, Fournisseur..."
                 value={filters.tiers}
                 onChange={(e) => setFilters({...filters, tiers: e.target.value})}
-                className="w-full px-3 py-2 border border-[#ECECEC] rounded-md text-sm"
+                className="w-full px-3 py-2 border border-[#e5e5e5] rounded-md text-sm"
               />
             </div>
             <div className="flex items-end">
-              <button className="w-full px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] transition-colors">
+              <button className="w-full px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] transition-colors">
                 <Search className="w-4 h-4 mr-2 inline" />
                 Rechercher
               </button>
@@ -518,7 +518,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     title="Exporter les résultats"
                   >
                     <ExportMenu
-                      data={accountsData as Record<string, unknown>[]}
+                      data={accountsData as unknown as Record<string, unknown>[]}
                       filename="compte-detail"
                       columns={{
                         compte: 'Compte',
@@ -1139,11 +1139,11 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Comptes</p>
-                  <p className="text-lg font-bold text-[#6A8A82]">{indicators.totalComptes}</p>
+                  <p className="text-lg font-bold text-[#171717]">{indicators.totalComptes}</p>
                   <p className="text-xs text-gray-700">{t('accounting.chartOfAccounts')}</p>
                 </div>
-                <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
-                  <Hash className="w-6 h-6 text-[#6A8A82]" />
+                <div className="w-12 h-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
+                  <Hash className="w-6 h-6 text-[#171717]" />
                 </div>
               </div>
             </div>
@@ -1213,8 +1213,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
                   <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
                   <Legend />
-                  <Area type="monotone" dataKey="actif" stackId="1" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.6} name="Actif" />
-                  <Area type="monotone" dataKey="passif" stackId="2" stroke="#B87333" fill="#B87333" fillOpacity={0.6} name="Passif" />
+                  <Area type="monotone" dataKey="actif" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Actif" />
+                  <Area type="monotone" dataKey="passif" stackId="2" stroke="#525252" fill="#525252" fillOpacity={0.6} name="Passif" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -1371,7 +1371,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <p className="text-gray-600">{account.libelle}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-[#6A8A82]">
+                          <div className="text-lg font-bold text-[#171717]">
                             {(account.soldeFermeture / 1000000).toFixed(1)}M XAF
                           </div>
                           <div className="text-sm text-gray-700">Solde actuel</div>
@@ -1473,7 +1473,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <select
                     value={ledgerType}
                     onChange={(e) => setLedgerType(e.target.value as typeof ledgerType)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                   >
                     <option value="general">Général - Tous comptes/écritures</option>
                     <option value="account">Par compte - Compte spécifique</option>
@@ -1488,7 +1488,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       onClick={() => setLedgerViewMode('detailed')}
                       className={`px-3 py-1.5 text-sm rounded-md transition-all ${
                         ledgerViewMode === 'detailed'
-                          ? 'bg-white text-[#6A8A82] shadow-sm font-medium'
+                          ? 'bg-white text-[#171717] shadow-sm font-medium'
                           : 'text-gray-600 hover:bg-white/50'
                       }`}
                       title="Vue détaillée"
@@ -1500,7 +1500,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       onClick={() => setLedgerViewMode('tree')}
                       className={`px-3 py-1.5 text-sm rounded-md transition-all ${
                         ledgerViewMode === 'tree'
-                          ? 'bg-white text-[#6A8A82] shadow-sm font-medium'
+                          ? 'bg-white text-[#171717] shadow-sm font-medium'
                           : 'text-gray-600 hover:bg-white/50'
                       }`}
                       title="Vue arborescence"
@@ -1512,7 +1512,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       onClick={() => setLedgerViewMode('list')}
                       className={`px-3 py-1.5 text-sm rounded-md transition-all ${
                         ledgerViewMode === 'list'
-                          ? 'bg-white text-[#6A8A82] shadow-sm font-medium'
+                          ? 'bg-white text-[#171717] shadow-sm font-medium'
                           : 'text-gray-600 hover:bg-white/50'
                       }`}
                       title="Vue liste"
@@ -1750,7 +1750,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                             <tbody>
                               {currentData.map((compte, index) => (
                                 <tr key={index} className="hover:bg-gray-50 border-b">
-                                  <td className="px-4 py-3 font-mono text-[#6A8A82] font-bold">{compte.code}</td>
+                                  <td className="px-4 py-3 font-mono text-[#171717] font-bold">{compte.code}</td>
                                   <td className="px-4 py-3 text-gray-900">{compte.libelle}</td>
                                   <td className="px-4 py-3 text-gray-600 text-sm">{compte.classe}</td>
                                   <td className="px-4 py-3 text-right text-red-600 font-medium">
@@ -1785,7 +1785,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           return (
                           <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
                             {/* En-tête du compte */}
-                            <div className="bg-gradient-to-r from-[#6A8A82] to-[#7A99AC] text-white p-4">
+                            <div className="bg-gradient-to-r from-[#171717] to-[#737373] text-white p-4">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-4">
                                   <button
@@ -2025,7 +2025,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   ].map((compte, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
                       {/* En-tête du compte */}
-                      <div className="bg-gradient-to-r from-[#6A8A82] to-[#7A99AC] text-white p-4">
+                      <div className="bg-gradient-to-r from-[#171717] to-[#737373] text-white p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <div className="text-lg font-mono font-bold">{compte.code}</div>
@@ -2302,7 +2302,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     </thead>
                     <tbody>
                       <tr className="hover:bg-gray-50 border-b">
-                        <td className="px-3 py-2 font-mono text-[#6A8A82] font-bold text-xs">411001</td>
+                        <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">411001</td>
                         <td className="px-4 py-2 text-gray-900 text-xs">Client A SARL</td>
                         <td className="px-3 py-2 text-gray-600 text-xs">Classe 4 - Tiers</td>
                         <td className="px-2 py-2 text-center text-xs">
@@ -2330,7 +2330,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </tr>
 
                       <tr className="hover:bg-gray-50 border-b">
-                        <td className="px-3 py-2 font-mono text-[#6A8A82] font-bold text-xs">512001</td>
+                        <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">512001</td>
                         <td className="px-4 py-2 text-gray-900 text-xs">Banque SGBCI - Compte Courant</td>
                         <td className="px-3 py-2 text-gray-600 text-xs">Classe 5 - Trésorerie</td>
                         <td className="px-2 py-2 text-center text-xs">
@@ -2358,7 +2358,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </tr>
 
                       <tr className="hover:bg-gray-50 border-b">
-                        <td className="px-3 py-2 font-mono text-[#6A8A82] font-bold text-xs">601001</td>
+                        <td className="px-3 py-2 font-mono text-[#171717] font-bold text-xs">601001</td>
                         <td className="px-4 py-2 text-gray-900 text-xs">Achats de marchandises</td>
                         <td className="px-3 py-2 text-gray-600 text-xs">Classe 6 - Charges</td>
                         <td className="px-2 py-2 text-center text-xs">
@@ -2406,28 +2406,28 @@ const AdvancedGeneralLedger: React.FC = () => {
           </div>
 
           {/* Contrôle d'équilibre */}
-          <div className="bg-white rounded-lg p-4 border-2 border-[#6A8A82] mt-6">
-            <h3 className="text-lg font-semibold text-[#191919] mb-3 flex items-center">
-              <Calculator className="w-5 h-5 mr-2 text-[#6A8A82]" />
+          <div className="bg-white rounded-lg p-4 border-2 border-[#171717] mt-6">
+            <h3 className="text-lg font-semibold text-[#171717] mb-3 flex items-center">
+              <Calculator className="w-5 h-5 mr-2 text-[#171717]" />
               Contrôle d'équilibre
             </h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-[#767676]">Balance A Nouveau</p>
+                <p className="text-sm text-[#737373]">Balance A Nouveau</p>
                 <div className="mt-2">
                   <p className="text-sm">Débit: <span className="font-bold">445 000,00</span></p>
                   <p className="text-sm">Crédit: <span className="font-bold">510 000,00</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <p className="text-sm text-[#767676]">Mouvements Période</p>
+                <p className="text-sm text-[#737373]">Mouvements Période</p>
                 <div className="mt-2">
                   <p className="text-sm">Débit: <span className="font-bold text-red-600">397 583,00</span></p>
                   <p className="text-sm">Crédit: <span className="font-bold text-green-600">281 000,00</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-[#767676]">Soldes Fin Période</p>
+                <p className="text-sm text-[#737373]">Soldes Fin Période</p>
                 <div className="mt-2">
                   <p className="text-sm">Débiteur: <span className="font-bold text-red-600">544 583,00</span></p>
                   <p className="text-sm">Créditeur: <span className="font-bold text-green-600">678 000,00</span></p>
@@ -2650,9 +2650,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
                     <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
                     <Legend />
-                    <Line type="monotone" dataKey="actif" stroke="#6A8A82" strokeWidth={3} name="Actif (Réel)" />
-                    <Line type="monotone" dataKey="passif" stroke="#B87333" strokeWidth={3} name="Passif (Réel)" />
-                    <Line type="monotone" dataKey="actif" stroke="#6A8A82" strokeWidth={1} strokeDasharray="5 5" name="Prédiction IA" />
+                    <Line type="monotone" dataKey="actif" stroke="#171717" strokeWidth={3} name="Actif (Réel)" />
+                    <Line type="monotone" dataKey="passif" stroke="#525252" strokeWidth={3} name="Passif (Réel)" />
+                    <Line type="monotone" dataKey="actif" stroke="#171717" strokeWidth={1} strokeDasharray="5 5" name="Prédiction IA" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -2837,10 +2837,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
                 <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
                 <Legend />
-                <Line type="monotone" dataKey="produits" stroke="#27ae60" strokeWidth={3} name="Produits" />
-                <Line type="monotone" dataKey="charges" stroke="#e74c3c" strokeWidth={3} name="Charges" />
-                <Line type="monotone" dataKey="actif" stroke="#6A8A82" strokeWidth={2} name="Actif" />
-                <Line type="monotone" dataKey="passif" stroke="#B87333" strokeWidth={2} name="Passif" />
+                <Line type="monotone" dataKey="produits" stroke="#22c55e" strokeWidth={3} name="Produits" />
+                <Line type="monotone" dataKey="charges" stroke="#ef4444" strokeWidth={3} name="Charges" />
+                <Line type="monotone" dataKey="actif" stroke="#171717" strokeWidth={2} name="Actif" />
+                <Line type="monotone" dataKey="passif" stroke="#525252" strokeWidth={2} name="Passif" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -2858,7 +2858,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   .map((account, index) => (
                     <div key={account.compte} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-6 h-6 bg-[#6A8A82] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        <div className="w-6 h-6 bg-[#171717] text-white rounded-full flex items-center justify-center text-xs font-bold">
                           {index + 1}
                         </div>
                         <div>
@@ -2885,7 +2885,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   .map((account, index) => (
                     <div key={account.compte} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-6 h-6 bg-[#B87333] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        <div className="w-6 h-6 bg-[#525252] text-white rounded-full flex items-center justify-center text-xs font-bold">
                           {index + 1}
                         </div>
                         <div>
@@ -2959,7 +2959,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4">
                   {/* Logo et informations entreprise */}
                   <div className="flex items-start gap-4">
-                    <div className="w-20 h-20 bg-gradient-to-br from-[#6A8A82] to-[#B87333] rounded-lg flex items-center justify-center shadow-lg">
+                    <div className="w-20 h-20 bg-gradient-to-br from-[#171717] to-[#525252] rounded-lg flex items-center justify-center shadow-lg">
                       <BookOpen className="w-10 h-10 text-white" />
                     </div>
                     <div>
@@ -3240,7 +3240,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       document.body.classList.remove('printing', 'print-landscape');
                     }, 1000);
                   }}
-                  className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
+                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
                   Imprimer
@@ -3325,7 +3325,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 Annuler
               </button>
               <ExportMenu
-                data={accountsData as Record<string, unknown>[]}
+                data={accountsData as unknown as Record<string, unknown>[]}
                 filename="grand-livre-export"
                 columns={{
                   compte: 'Compte',
@@ -3492,7 +3492,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     document.body.classList.remove('printing', 'print-landscape');
                   }, 1000);
                 }}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
               >
                 <Printer className="w-4 h-4 mr-2 inline" />
                 Imprimer
@@ -3582,7 +3582,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     navigator.clipboard.writeText(shareLink);
                     toast.success('Lien copié!');
                   }}
-                  className="px-4 py-2 bg-[#6A8A82] text-white rounded-r-md hover:bg-[#5A7A72]"
+                  className="px-4 py-2 bg-[#171717] text-white rounded-r-md hover:bg-[#262626]"
                 >
                   Copier
                 </button>

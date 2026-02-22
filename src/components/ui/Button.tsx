@@ -6,12 +6,12 @@ type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
 const buttonVariants = {
   variant: {
-    default: "bg-[#6A8A82] text-white hover:bg-[#5A7A72] focus:ring-[#6A8A82]",
+    default: "bg-[#171717] text-white hover:bg-[#262626] focus:ring-[#171717]",
     destructive: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-    outline: "border border-[#D5D0CD] bg-white text-[#353A3B] hover:bg-[#F5F3F1] focus:ring-[#6A8A82]",
-    secondary: "bg-[#B87333] text-white hover:bg-[#A56329] focus:ring-[#B87333]",
-    ghost: "text-[#353A3B] hover:bg-[#D5D0CD] hover:bg-opacity-30 focus:ring-[#6A8A82]",
-    link: "text-[#6A8A82] underline-offset-4 hover:underline focus:ring-[#6A8A82]",
+    outline: "border border-[#e5e5e5] bg-white text-[#404040] hover:bg-[#f5f5f5] focus:ring-[#171717]",
+    secondary: "bg-[#525252] text-white hover:bg-[#404040] focus:ring-[#525252]",
+    ghost: "text-[#404040] hover:bg-[#e5e5e5] hover:bg-opacity-30 focus:ring-[#171717]",
+    link: "text-[#171717] underline-offset-4 hover:underline focus:ring-[#171717]",
   },
   size: {
     default: "h-10 px-4 py-2",

@@ -42,73 +42,8 @@ const UsersPage: React.FC = () => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const [users] = useState<User[]>([
-    {
-      id: '1',
-      nom: 'Dupont',
-      prenom: 'Marie',
-      email: 'marie.dupont@entreprise.com',
-      telephone: '0612345678',
-      role: 'Administrateur',
-      departement: 'Direction',
-      statut: 'actif',
-      dateCreation: '2023-01-15',
-      derniereConnexion: '2024-01-20 14:30',
-      permissions: ['all']
-    },
-    {
-      id: '2',
-      nom: 'Martin',
-      prenom: 'Jean',
-      email: 'jean.martin@entreprise.com',
-      telephone: '0623456789',
-      role: 'Comptable Senior',
-      departement: 'Comptabilité',
-      statut: 'actif',
-      dateCreation: '2023-03-20',
-      derniereConnexion: '2024-01-20 16:45',
-      permissions: ['comptabilite.full', 'rapports.lecture', 'clients.lecture']
-    },
-    {
-      id: '3',
-      nom: 'Bernard',
-      prenom: 'Sophie',
-      email: 'sophie.bernard@entreprise.com',
-      telephone: '0634567890',
-      role: 'Assistant Comptable',
-      departement: 'Comptabilité',
-      statut: 'actif',
-      dateCreation: '2023-06-10',
-      derniereConnexion: '2024-01-19 17:20',
-      permissions: ['comptabilite.saisie', 'rapports.lecture']
-    },
-    {
-      id: '4',
-      nom: 'Leroy',
-      prenom: 'Pierre',
-      email: 'pierre.leroy@entreprise.com',
-      telephone: '0645678901',
-      role: 'Contrôleur de Gestion',
-      departement: 'Finance',
-      statut: 'suspendu',
-      dateCreation: '2023-02-28',
-      derniereConnexion: '2024-01-10 09:15',
-      permissions: ['budgets.full', 'rapports.full', 'tableaux_bord.full']
-    },
-    {
-      id: '5',
-      nom: 'Moreau',
-      prenom: 'Claire',
-      email: 'claire.moreau@entreprise.com',
-      telephone: '0656789012',
-      role: 'Auditeur',
-      departement: 'Audit',
-      statut: 'inactif',
-      dateCreation: '2023-04-15',
-      derniereConnexion: '2023-12-20 11:30',
-      permissions: ['audit.full', 'rapports.lecture', 'documents.lecture']
-    }
-  ]);
+  // TODO: wire to user management backend/Dexie table
+  const [users] = useState<User[]>([]);
 
   const [roles] = useState<Role[]>([
     {
@@ -117,7 +52,7 @@ const UsersPage: React.FC = () => {
       description: 'Accès complet au système',
       permissions: ['all'],
       utilisateurs: 2,
-      couleur: '#B85450'
+      couleur: '#ef4444'
     },
     {
       id: '2',
@@ -125,7 +60,7 @@ const UsersPage: React.FC = () => {
       description: 'Gestion complète de la comptabilité',
       permissions: ['comptabilite.full', 'clients.full', 'fournisseurs.full', 'rapports.full'],
       utilisateurs: 3,
-      couleur: '#7A99AC'
+      couleur: '#737373'
     },
     {
       id: '3',
@@ -133,7 +68,7 @@ const UsersPage: React.FC = () => {
       description: 'Saisie et consultation comptable',
       permissions: ['comptabilite.saisie', 'comptabilite.lecture', 'rapports.lecture'],
       utilisateurs: 5,
-      couleur: '#6A8A82'
+      couleur: '#171717'
     },
     {
       id: '4',
@@ -141,7 +76,7 @@ const UsersPage: React.FC = () => {
       description: 'Analyse et contrôle budgétaire',
       permissions: ['budgets.full', 'tableaux_bord.full', 'rapports.full'],
       utilisateurs: 2,
-      couleur: '#7A99AC'
+      couleur: '#737373'
     },
     {
       id: '5',
@@ -149,7 +84,7 @@ const UsersPage: React.FC = () => {
       description: 'Audit et vérification',
       permissions: ['audit.full', 'documents.lecture', 'rapports.lecture'],
       utilisateurs: 1,
-      couleur: '#B87333'
+      couleur: '#525252'
     },
     {
       id: '6',
@@ -157,7 +92,7 @@ const UsersPage: React.FC = () => {
       description: 'Accès en lecture seule',
       permissions: ['*.lecture'],
       utilisateurs: 4,
-      couleur: '#6b7280'
+      couleur: '#737373'
     }
   ]);
 

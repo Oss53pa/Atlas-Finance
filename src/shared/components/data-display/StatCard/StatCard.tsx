@@ -65,11 +65,11 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   if (loading) {
     return (
-      <div className={`bg-white rounded-lg border border-[#D9D9D9] p-4 ${className}`}>
+      <div className={`bg-white rounded-lg border border-[#d4d4d4] p-4 ${className}`}>
         <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-[#ECECEC] rounded w-1/2" />
-          <div className="h-8 bg-[#ECECEC] rounded w-3/4" />
-          <div className="h-3 bg-[#ECECEC] rounded w-1/3" />
+          <div className="h-4 bg-[#e5e5e5] rounded w-1/2" />
+          <div className="h-8 bg-[#e5e5e5] rounded w-3/4" />
+          <div className="h-3 bg-[#e5e5e5] rounded w-1/3" />
         </div>
       </div>
     );
@@ -78,7 +78,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       className={`
-        bg-white rounded-lg border border-[#D9D9D9] p-4
+        bg-white rounded-lg border border-[#d4d4d4] p-4
         hover:shadow-md transition-all duration-200
         ${onClick ? 'cursor-pointer' : ''}
         ${className}
@@ -87,10 +87,10 @@ export const StatCard: React.FC<StatCardProps> = ({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <p className="text-xs font-medium text-[#767676] uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-[#737373] uppercase tracking-wider mb-2">
             {title}
           </p>
-          <p className="text-lg font-bold text-[#191919]">
+          <p className="text-lg font-bold text-[#171717]">
             {value}
           </p>
         </div>
@@ -103,7 +103,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
       <div className="flex items-center justify-between">
         {subtitle && (
-          <p className="text-sm text-[#767676]">{subtitle}</p>
+          <p className="text-sm text-[#737373]">{subtitle}</p>
         )}
         {trend && (
           <div
@@ -118,7 +118,7 @@ export const StatCard: React.FC<StatCardProps> = ({
               <TrendingDown className="h-3 w-3" />
             )}
             <span>{trend.value}</span>
-            {trend.label && <span className="text-[#767676]">· {trend.label}</span>}
+            {trend.label && <span className="text-[#737373]">· {trend.label}</span>}
           </div>
         )}
       </div>

@@ -277,7 +277,7 @@ const InventoryDashboard: React.FC = () => {
     ];
   }, [inventoryItems]);
 
-  const COLORS = ['#6A8A82', '#10B981', '#F59E0B', '#EF4444', '#B87333'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   const handleRefresh = async () => {
     setIsLoading(true);
@@ -323,7 +323,7 @@ const InventoryDashboard: React.FC = () => {
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="border border-[var(--color-border-dark)] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="border border-[var(--color-border-dark)] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#171717] focus:border-transparent"
             >
               <option value="all">All Locations</option>
               {uniqueLocations.map((location) => (
@@ -337,7 +337,7 @@ const InventoryDashboard: React.FC = () => {
           {/* Period Filter */}
           <button
             onClick={() => setShowPeriodModal(true)}
-            className="flex items-center gap-2 px-3 py-2 border border-[var(--color-border-dark)] rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+            className="flex items-center gap-2 px-3 py-2 border border-[var(--color-border-dark)] rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
           >
             <Calendar className="w-4 h-4 text-[var(--color-text-secondary)]" />
             {dateRange.startDate && dateRange.endDate
@@ -352,7 +352,7 @@ const InventoryDashboard: React.FC = () => {
             <select
               value={selectedValuationMethod}
               onChange={(e) => setSelectedValuationMethod(e.target.value as ValuationMethod)}
-              className="border border-[var(--color-border-dark)] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="border border-[var(--color-border-dark)] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#171717] focus:border-transparent"
             >
               <option value="FIFO">FIFO</option>
               <option value="LIFO">LIFO</option>
@@ -365,7 +365,7 @@ const InventoryDashboard: React.FC = () => {
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -390,7 +390,7 @@ const InventoryDashboard: React.FC = () => {
           value={kpis.totalInventoryValue}
           change={getKPITrend(kpis.totalInventoryValue, previousKpis.totalInventoryValue).change}
           icon={Package}
-          color="bg-[#6A8A82]"
+          color="bg-[#171717]"
           trend={getKPITrend(kpis.totalInventoryValue, previousKpis.totalInventoryValue).trend}
           format="currency"
         />
@@ -415,7 +415,7 @@ const InventoryDashboard: React.FC = () => {
           value={kpis.accuracyRate}
           change={getKPITrend(kpis.accuracyRate, previousKpis.accuracyRate).change}
           icon={Activity}
-          color="bg-[#B87333]"
+          color="bg-[#525252]"
           trend={getKPITrend(kpis.accuracyRate, previousKpis.accuracyRate).trend}
           format="percentage"
         />
@@ -459,19 +459,19 @@ const InventoryDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#6A8A82]/10 border border-[#6A8A82]/20 rounded-lg p-6">
+        <div className="bg-[#171717]/10 border border-[#171717]/20 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-3">
-            <BarChart3 className="w-5 h-5 text-[#6A8A82]" />
-            <h3 className="font-semibold text-[#6A8A82]">Performance</h3>
+            <BarChart3 className="w-5 h-5 text-[#171717]" />
+            <h3 className="font-semibold text-[#171717]">Performance</h3>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm text-[#6A8A82]/80">Fill Rate</span>
-              <span className="text-sm font-medium text-[#6A8A82]">{kpis.fillRate}%</span>
+              <span className="text-sm text-[#171717]/80">Fill Rate</span>
+              <span className="text-sm font-medium text-[#171717]">{kpis.fillRate}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-[#6A8A82]/80">Shrinkage Rate</span>
-              <span className="text-sm font-medium text-[#6A8A82]">{kpis.shrinkageRate}%</span>
+              <span className="text-sm text-[#171717]/80">Shrinkage Rate</span>
+              <span className="text-sm font-medium text-[#171717]">{kpis.shrinkageRate}%</span>
             </div>
           </div>
         </div>
@@ -497,15 +497,15 @@ const InventoryDashboard: React.FC = () => {
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#6A8A82"
-                fill="#6A8A82"
+                stroke="#171717"
+                fill="#171717"
                 fillOpacity={0.1}
                 strokeWidth={2}
               />
               <Line
                 type="monotone"
                 dataKey="forecast"
-                stroke="#10B981"
+                stroke="#22c55e"
                 strokeDasharray="5 5"
                 strokeWidth={2}
               />
@@ -527,7 +527,7 @@ const InventoryDashboard: React.FC = () => {
                   name === 'turnover' ? 'Turnover Ratio' : 'Inventory Value'
                 ]}
               />
-              <Bar dataKey="turnover" fill="#6A8A82" />
+              <Bar dataKey="turnover" fill="#171717" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -583,7 +583,7 @@ const InventoryDashboard: React.FC = () => {
               <XAxis dataKey="method" />
               <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
               <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, 'Inventory Value']} />
-              <Bar dataKey="value" fill="#B87333" />
+              <Bar dataKey="value" fill="#525252" />
             </BarChart>
           </ResponsiveContainer>
 
@@ -615,12 +615,12 @@ const InventoryDashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-[var(--color-border)] p-6">
         <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6">ABC Analysis Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-6 bg-[#6A8A82]/10 rounded-lg">
-            <div className="text-lg font-bold text-[#6A8A82] mb-2">
+          <div className="text-center p-6 bg-[#171717]/10 rounded-lg">
+            <div className="text-lg font-bold text-[#171717] mb-2">
               {abcAnalysis.classA.items}
             </div>
-            <div className="text-sm text-[#6A8A82] font-medium mb-1">Class A Items</div>
-            <div className="text-xs text-[#6A8A82]/80">
+            <div className="text-sm text-[#171717] font-medium mb-1">Class A Items</div>
+            <div className="text-xs text-[#171717]/80">
               {abcAnalysis.classA.valuePercentage}% of total value
             </div>
           </div>

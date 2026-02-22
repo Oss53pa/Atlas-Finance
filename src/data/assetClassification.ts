@@ -1,3 +1,4 @@
+import { Money } from '@/utils/money';
 
 export interface AssetClassification {
   assetClass: string;
@@ -257,7 +258,7 @@ export class AssetClassificationService {
 
   static calculateDepreciationRate(usefulLife: number): number {
     if (usefulLife === 0) return 0;
-    return Math.round((100 / usefulLife) * 100) / 100;
+    return new Money(100).divide(usefulLife).round().toNumber();
   }
 
   static getAssetClasses(): string[] {

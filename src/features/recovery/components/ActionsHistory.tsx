@@ -23,14 +23,14 @@ const getActionIcon = (type: string) => {
 
 const getActionColor = (type: string) => {
   const colors: Record<string, string> = {
-    email: '#7A99AC',
-    sms: '#B87333',
-    appel: '#6A8A82',
-    courrier: '#767676',
-    visite: '#191919',
+    email: '#737373',
+    sms: '#525252',
+    appel: '#171717',
+    courrier: '#737373',
+    visite: '#171717',
   };
 
-  return colors[type] || '#767676';
+  return colors[type] || '#737373';
 };
 
 const getActionLabel = (type: string) => {
@@ -67,8 +67,8 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
   if (!actions || actions.length === 0) {
     return (
       <div className="text-center py-8">
-        <Clock className="w-12 h-12 text-[#D9D9D9] mx-auto mb-3" />
-        <p className="text-[#767676]">Aucune action enregistrée</p>
+        <Clock className="w-12 h-12 text-[#d4d4d4] mx-auto mb-3" />
+        <p className="text-[#737373]">Aucune action enregistrée</p>
       </div>
     );
   }
@@ -104,19 +104,19 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant="neutral">{getActionLabel(action.type)}</Badge>
-                    <span className="text-sm font-medium text-[#191919]">
+                    <span className="text-sm font-medium text-[#171717]">
                       {action.auteur}
                     </span>
                   </div>
-                  <p className="text-xs text-[#767676]">
+                  <p className="text-xs text-[#737373]">
                     {formatDate(action.date, 'long')}
                   </p>
                 </div>
               </div>
 
               {action.description && (
-                <div className="bg-[#F5F5F5] border border-[#D9D9D9] rounded-lg p-3 mt-2">
-                  <p className="text-sm text-[#191919] whitespace-pre-wrap">
+                <div className="bg-[#F5F5F5] border border-[#d4d4d4] rounded-lg p-3 mt-2">
+                  <p className="text-sm text-[#171717] whitespace-pre-wrap">
                     {action.description}
                   </p>
                 </div>
@@ -124,8 +124,8 @@ export const ActionsHistory: React.FC<ActionsHistoryProps> = ({ actions, loading
 
               {action.resultat && (
                 <div className="mt-2">
-                  <span className="text-xs font-medium text-[#767676]">Résultat: </span>
-                  <span className="text-xs text-[#191919]">{action.resultat}</span>
+                  <span className="text-xs font-medium text-[#737373]">Résultat: </span>
+                  <span className="text-xs text-[#171717]">{action.resultat}</span>
                 </div>
               )}
             </div>

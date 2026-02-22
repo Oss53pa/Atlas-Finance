@@ -355,7 +355,7 @@ const CompleteTasksModule: React.FC = () => {
   const getStatusColor = (status: string) => {
     const colors = {
       'todo': 'bg-gray-100 text-gray-700',
-      'in-progress': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'in-progress': 'bg-[#171717]/10 text-[#171717]',
       'review': 'bg-yellow-100 text-yellow-700',
       'done': 'bg-green-100 text-green-700',
       'cancelled': 'bg-red-100 text-red-700',
@@ -593,7 +593,7 @@ const CompleteTasksModule: React.FC = () => {
               <div className="flex items-center gap-2 mt-3">
                 <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#6A8A82] to-[#B87333] transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-[#171717] to-[#525252] transition-all duration-500"
                     style={{ width: `${task.progress}%` }}
                   />
                 </div>
@@ -707,7 +707,7 @@ const CompleteTasksModule: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-20 h-2 bg-gray-200 rounded-full">
                       <div
-                        className="h-full bg-[#6A8A82] rounded-full"
+                        className="h-full bg-[#171717] rounded-full"
                         style={{ width: `${task.progress}%` }}
                       />
                     </div>
@@ -756,7 +756,7 @@ const CompleteTasksModule: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowNewTask(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Nouvelle tâche
@@ -772,7 +772,7 @@ const CompleteTasksModule: React.FC = () => {
                 onClick={() => setActiveTab(tab as typeof activeTab)}
                 className={`pb-3 px-1 font-medium text-sm transition-colors border-b-2 ${
                   activeTab === tab
-                    ? 'text-[#B87333] border-[#B87333]'
+                    ? 'text-[#525252] border-[#525252]'
                     : 'text-gray-600 border-transparent hover:text-gray-900'
                 }`}
               >
@@ -797,7 +797,7 @@ const CompleteTasksModule: React.FC = () => {
                   placeholder="Rechercher..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50 w-64"
+                  className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50 w-64"
                 />
               </div>
 
@@ -809,7 +809,7 @@ const CompleteTasksModule: React.FC = () => {
                     onClick={() => setFilter(status)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       filter === status
-                        ? 'bg-[#B87333] text-white'
+                        ? 'bg-[#525252] text-white'
                         : 'bg-white text-gray-600 hover:bg-gray-100 border'
                     }`}
                   >
@@ -828,7 +828,7 @@ const CompleteTasksModule: React.FC = () => {
               <select
                 value={groupBy}
                 onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}
-                className="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                className="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
               >
                 <option value="status">Grouper par statut</option>
                 <option value="priority">Grouper par priorité</option>
@@ -840,7 +840,7 @@ const CompleteTasksModule: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                className="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
               >
                 <option value="dueDate">Trier par échéance</option>
                 <option value="priority">Trier par priorité</option>
@@ -852,25 +852,25 @@ const CompleteTasksModule: React.FC = () => {
               <div className="flex bg-white border rounded-lg">
                 <button
                   onClick={() => setViewMode('kanban')}
-                  className={`p-2 ${viewMode === 'kanban' ? 'bg-[#B87333] text-white' : 'text-gray-600'} rounded-l-lg transition-colors`}
+                  className={`p-2 ${viewMode === 'kanban' ? 'bg-[#525252] text-white' : 'text-gray-600'} rounded-l-lg transition-colors`}
                 >
                   <Kanban className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-[#B87333] text-white' : 'text-gray-600'} transition-colors`}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-[#525252] text-white' : 'text-gray-600'} transition-colors`}
                 >
                   <List className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('calendar')}
-                  className={`p-2 ${viewMode === 'calendar' ? 'bg-[#B87333] text-white' : 'text-gray-600'} transition-colors`}
+                  className={`p-2 ${viewMode === 'calendar' ? 'bg-[#525252] text-white' : 'text-gray-600'} transition-colors`}
                 >
                   <CalendarDays className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('timeline')}
-                  className={`p-2 ${viewMode === 'timeline' ? 'bg-[#B87333] text-white' : 'text-gray-600'} rounded-r-lg transition-colors`}
+                  className={`p-2 ${viewMode === 'timeline' ? 'bg-[#525252] text-white' : 'text-gray-600'} rounded-r-lg transition-colors`}
                 >
                   <GitBranch className="w-4 h-4" />
                 </button>
@@ -901,7 +901,7 @@ const CompleteTasksModule: React.FC = () => {
               <div className="text-xs text-gray-700">Terminées</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-[#6A8A82]">{statistics.inProgress}</div>
+              <div className="text-lg font-bold text-[#171717]">{statistics.inProgress}</div>
               <div className="text-xs text-gray-700">{t('status.inProgress')}</div>
             </div>
             <div className="text-center">
@@ -921,7 +921,7 @@ const CompleteTasksModule: React.FC = () => {
               <div className="text-xs text-gray-700">Heures</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-[#B87333]">{statistics.avgProgress}%</div>
+              <div className="text-lg font-bold text-[#525252]">{statistics.avgProgress}%</div>
               <div className="text-xs text-gray-700">Progrès moy.</div>
             </div>
           </div>
@@ -986,7 +986,7 @@ const CompleteTasksModule: React.FC = () => {
                   type="text"
                   value={newTask.title}
                   onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   placeholder="Entrez le titre de la tâche"
                 />
               </div>
@@ -998,7 +998,7 @@ const CompleteTasksModule: React.FC = () => {
                 <textarea
                   value={newTask.description}
                   onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   rows={3}
                   placeholder="Description détaillée de la tâche"
                 />
@@ -1012,7 +1012,7 @@ const CompleteTasksModule: React.FC = () => {
                   <select
                     value={newTask.priority}
                     onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as Task['priority'] }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   >
                     <option value="low">Faible</option>
                     <option value="medium">Moyenne</option>
@@ -1028,7 +1028,7 @@ const CompleteTasksModule: React.FC = () => {
                   <select
                     value={newTask.status}
                     onChange={(e) => setNewTask(prev => ({ ...prev, status: e.target.value as Task['status'] }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   >
                     <option value="todo">À faire</option>
                     <option value="in-progress">{t('status.inProgress')}</option>
@@ -1044,7 +1044,7 @@ const CompleteTasksModule: React.FC = () => {
                   <input
                     type="date"
                     onChange={(e) => setNewTask(prev => ({ ...prev, startDate: new Date(e.target.value) }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   />
                 </div>
 
@@ -1055,7 +1055,7 @@ const CompleteTasksModule: React.FC = () => {
                   <input
                     type="date"
                     onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: new Date(e.target.value) }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   />
                 </div>
               </div>
@@ -1070,7 +1070,7 @@ const CompleteTasksModule: React.FC = () => {
                     ...prev,
                     tags: e.target.value.split(',').map(t => t.trim()).filter(t => t)
                   }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   placeholder="Ex: Budget, Urgent, Q2"
                 />
               </div>
@@ -1083,7 +1083,7 @@ const CompleteTasksModule: React.FC = () => {
                   <input
                     type="number"
                     onChange={(e) => setNewTask(prev => ({ ...prev, estimatedHours: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                     placeholder="0"
                   />
                 </div>
@@ -1095,7 +1095,7 @@ const CompleteTasksModule: React.FC = () => {
                   <input
                     type="number"
                     onChange={(e) => setNewTask(prev => ({ ...prev, budget: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                     placeholder="0"
                   />
                 </div>
@@ -1122,7 +1122,7 @@ const CompleteTasksModule: React.FC = () => {
               </button>
               <button
                 onClick={addTask}
-                className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
               >
                 Créer la tâche
               </button>

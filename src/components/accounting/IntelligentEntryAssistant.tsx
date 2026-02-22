@@ -564,11 +564,11 @@ const IntelligentEntryAssistant: React.FC = () => {
                       key={entry.id}
                       entry={entry}
                       index={index}
-                      control={control as Control<FieldValues>}
+                      control={control as unknown as Control<FieldValues>}
                       contextAnalysis={contextAnalysis}
                       onRemove={() => removeEntry(index)}
                       assistantMode={assistantMode}
-                      setValue={setValue as UseFormSetValue<FieldValues>}
+                      setValue={setValue as unknown as UseFormSetValue<FieldValues>}
                     />
                   ))}
                 </div>

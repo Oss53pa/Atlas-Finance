@@ -79,7 +79,7 @@ export const LedgerEntriesTable: React.FC<LedgerEntriesTableProps> = ({
         return (
           <span
             className={`font-semibold ${
-              amount < 0 ? 'text-[#B85450]' : amount > 0 ? 'text-[#6A8A82]' : ''
+              amount < 0 ? 'text-[#ef4444]' : amount > 0 ? 'text-[#171717]' : ''
             }`}
           >
             {formatCurrency(Math.abs(amount))} {amount < 0 ? 'C' : amount > 0 ? 'D' : ''}

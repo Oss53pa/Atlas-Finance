@@ -1220,7 +1220,7 @@ const CompleteAuthModule: React.FC = () => {
                   Couleur
                 </label>
                 <div className="flex gap-2">
-                  {['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map(color => (
+                  {['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map(color => (
                     <button
                       key={color}
                       className="w-10 h-10 rounded-lg border-2 hover:scale-110 transition-transform"

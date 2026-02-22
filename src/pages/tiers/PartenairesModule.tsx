@@ -367,29 +367,29 @@ const PartenairesModule: React.FC = () => {
     return icons[type as keyof typeof icons] || Building;
   };
 
-  const COLORS = ['#6A8A82', '#B87333', '#5A6B65', '#9B6B2A', '#7A9B94', '#8B7D6B'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/tiers')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Retour</span>
+              <ArrowLeft className="w-4 h-4 text-[#404040]" />
+              <span className="text-sm font-semibold text-[#404040]">Retour</span>
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#6A8A82] to-[#B87333] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#525252] flex items-center justify-center">
                 <Handshake className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#191919]">Gestion des Partenaires</h1>
-                <p className="text-sm text-[#666666]">Écosystème et réseau de partenaires stratégiques</p>
+                <h1 className="text-lg font-bold text-[#171717]">Gestion des Partenaires</h1>
+                <p className="text-sm text-[#525252]">Écosystème et réseau de partenaires stratégiques</p>
               </div>
             </div>
           </div>
@@ -409,7 +409,7 @@ const PartenairesModule: React.FC = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
             >
               {types.map(type => (
                 <option key={type.value} value={type.value}>{type.label}</option>
@@ -419,14 +419,14 @@ const PartenairesModule: React.FC = () => {
             <select
               value={filterNiveau}
               onChange={(e) => setFilterNiveau(e.target.value)}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
             >
               {niveaux.map(niveau => (
                 <option key={niveau.value} value={niveau.value}>{niveau.label}</option>
               ))}
             </select>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -449,8 +449,8 @@ const PartenairesModule: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#6A8A82] shadow-sm'
-                  : 'text-[#666666] hover:text-[#444444]'
+                  ? 'bg-white text-[#171717] shadow-sm'
+                  : 'text-[#525252] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -462,24 +462,24 @@ const PartenairesModule: React.FC = () => {
 
       {/* KPIs Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">Partenaires Actifs</p>
-              <p className="text-lg font-bold text-[#191919]">{mockPartenaires.length}</p>
-              <p className="text-xs text-[#6A8A82]">Écosystème global</p>
+              <p className="text-sm text-[#525252]">Partenaires Actifs</p>
+              <p className="text-lg font-bold text-[#171717]">{mockPartenaires.length}</p>
+              <p className="text-xs text-[#171717]">Écosystème global</p>
             </div>
-            <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
-              <Handshake className="w-5 h-5 text-[#6A8A82]" />
+            <div className="w-10 h-10 bg-[#171717]/10 rounded-lg flex items-center justify-center">
+              <Handshake className="w-5 h-5 text-[#171717]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">Performance Globale</p>
-              <p className="text-lg font-bold text-[#191919]">{analytics.performanceGlobale}%</p>
+              <p className="text-sm text-[#525252]">Performance Globale</p>
+              <p className="text-lg font-bold text-[#171717]">{analytics.performanceGlobale}%</p>
               <p className="text-xs text-green-600">+5.2% vs trimestre</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -488,24 +488,24 @@ const PartenairesModule: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">CA Partenaires</p>
-              <p className="text-lg font-bold text-[#191919]">{formatCurrency(14700000)}</p>
-              <p className="text-xs text-[#B87333]">+{analytics.croissanceChiffre}% YoY</p>
+              <p className="text-sm text-[#525252]">CA Partenaires</p>
+              <p className="text-lg font-bold text-[#171717]">{formatCurrency(14700000)}</p>
+              <p className="text-xs text-[#525252]">+{analytics.croissanceChiffre}% YoY</p>
             </div>
-            <div className="w-10 h-10 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-[#B87333]" />
+            <div className="w-10 h-10 bg-[#525252]/10 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-[#525252]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">Satisfaction</p>
-              <p className="text-lg font-bold text-[#191919]">{analytics.satisfactionMoyenne}/5</p>
+              <p className="text-sm text-[#525252]">Satisfaction</p>
+              <p className="text-lg font-bold text-[#171717]">{analytics.satisfactionMoyenne}/5</p>
               <p className="text-xs text-orange-600">{analytics.tauxRenouvellement}% renouvellement</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -517,37 +517,37 @@ const PartenairesModule: React.FC = () => {
 
       {/* Réseau Partenaires Tab */}
       {activeTab === 'reseau' && (
-        <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-[#E8E8E8]">
+              <thead className="bg-gray-50 border-b border-[#e5e5e5]">
                 <tr>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">Partenaire</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">Type</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">Niveau</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">Zone</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">CA Annuel</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">Performance</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">Statut</th>
-                  <th className="text-left p-4 text-sm font-medium text-[#666666]">Actions</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Partenaire</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Type</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Niveau</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Zone</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">CA Annuel</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Performance</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Statut</th>
+                  <th className="text-left p-4 text-sm font-medium text-[#525252]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredPartenaires.map((partenaire) => {
                   const TypeIcon = getTypeIcon(partenaire.type);
                   return (
-                    <tr key={partenaire.id} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                    <tr key={partenaire.id} className="border-b border-[#e5e5e5] hover:bg-gray-50">
                       <td className="p-4">
                         <div>
-                          <p className="font-medium text-[#191919]">{partenaire.nom}</p>
-                          <p className="text-sm text-[#666666]">{partenaire.contact.prenom} {partenaire.contact.nom}</p>
-                          <p className="text-sm text-[#666666]">{partenaire.contact.email}</p>
+                          <p className="font-medium text-[#171717]">{partenaire.nom}</p>
+                          <p className="text-sm text-[#525252]">{partenaire.contact.prenom} {partenaire.contact.nom}</p>
+                          <p className="text-sm text-[#525252]">{partenaire.contact.email}</p>
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
-                          <TypeIcon className="w-4 h-4 text-[#6A8A82]" />
-                          <span className="text-sm text-[#666666]">{partenaire.type}</span>
+                          <TypeIcon className="w-4 h-4 text-[#171717]" />
+                          <span className="text-sm text-[#525252]">{partenaire.type}</span>
                         </div>
                       </td>
                       <td className="p-4">
@@ -556,21 +556,21 @@ const PartenairesModule: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-[#666666]">{partenaire.zoneCouverture.join(', ')}</p>
+                        <p className="text-sm text-[#525252]">{partenaire.zoneCouverture.join(', ')}</p>
                       </td>
                       <td className="p-4">
-                        <p className="font-medium text-[#191919]">{formatCurrency(partenaire.chiffreAffairesAnnuel)}</p>
-                        <p className="text-sm text-[#666666]">{partenaire.commissionRate}% commission</p>
+                        <p className="font-medium text-[#171717]">{formatCurrency(partenaire.chiffreAffairesAnnuel)}</p>
+                        <p className="text-sm text-[#525252]">{partenaire.commissionRate}% commission</p>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
                           <div className="w-16 bg-gray-200 rounded-full h-2">
                             <div
-                              className="bg-[#6A8A82] h-2 rounded-full"
+                              className="bg-[#171717] h-2 rounded-full"
                               style={{ width: `${partenaire.scorePerformance}%` }}
                             />
                           </div>
-                          <span className="text-sm text-[#666666]">{partenaire.scorePerformance}%</span>
+                          <span className="text-sm text-[#525252]">{partenaire.scorePerformance}%</span>
                         </div>
                       </td>
                       <td className="p-4">
@@ -586,10 +586,10 @@ const PartenairesModule: React.FC = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded">
+                          <button className="p-1 text-[#171717] hover:bg-[#171717]/10 rounded">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-[#B87333] hover:bg-[#B87333]/10 rounded">
+                          <button className="p-1 text-[#525252] hover:bg-[#525252]/10 rounded">
                             <MessageSquare className="w-4 h-4" />
                           </button>
                         </div>
@@ -607,8 +607,8 @@ const PartenairesModule: React.FC = () => {
       {activeTab === 'performance' && (
         <div className="space-y-6">
           {/* Top Performers */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#191919] mb-4">Top Performers</h3>
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+            <h3 className="text-lg font-semibold text-[#171717] mb-4">Top Performers</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {analytics.topPartenaires.map((partenaire, index) => (
                 <div key={partenaire.nom} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
@@ -620,16 +620,16 @@ const PartenairesModule: React.FC = () => {
                       {partenaire.niveau}
                     </span>
                   </div>
-                  <h4 className="font-medium text-[#191919] mb-1">{partenaire.nom}</h4>
-                  <p className="text-sm text-[#666666] mb-2">{formatCurrency(partenaire.ca)}</p>
+                  <h4 className="font-medium text-[#171717] mb-1">{partenaire.nom}</h4>
+                  <p className="text-sm text-[#525252] mb-2">{formatCurrency(partenaire.ca)}</p>
                   <div className="flex items-center space-x-2">
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-[#6A8A82] h-2 rounded-full"
+                        className="bg-[#171717] h-2 rounded-full"
                         style={{ width: `${partenaire.score}%` }}
                       />
                     </div>
-                    <span className="text-xs text-[#666666]">{partenaire.score}%</span>
+                    <span className="text-xs text-[#525252]">{partenaire.score}%</span>
                   </div>
                 </div>
               ))}
@@ -637,8 +637,8 @@ const PartenairesModule: React.FC = () => {
           </div>
 
           {/* Performance Evolution */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution Performance</h3>
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+            <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution Performance</h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={analytics.evolutionPerformance}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -647,8 +647,8 @@ const PartenairesModule: React.FC = () => {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Area yAxisId="left" type="monotone" dataKey="ventes" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.3} name="Ventes (FCFA)" />
-                <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#B87333" name="Satisfaction" />
+                <Area yAxisId="left" type="monotone" dataKey="ventes" stroke="#171717" fill="#171717" fillOpacity={0.3} name="Ventes (FCFA)" />
+                <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#525252" name="Satisfaction" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -659,8 +659,8 @@ const PartenairesModule: React.FC = () => {
       {activeTab === 'analytics' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Répartition par Type */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition par Type</h3>
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+            <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Type</h3>
             <ResponsiveContainer width="100%" height={300}>
               <RechartsPieChart>
                 <Pie
@@ -669,7 +669,7 @@ const PartenairesModule: React.FC = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
-                  fill="#8884d8"
+                  fill="#737373"
                   label={({ type, nombre }) => `${type}: ${nombre}`}
                 >
                   {analytics.repartitionParType.map((entry, index) => (
@@ -682,8 +682,8 @@ const PartenairesModule: React.FC = () => {
           </div>
 
           {/* Couverture Géographique */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#191919] mb-4">Couverture Géographique</h3>
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+            <h3 className="text-lg font-semibold text-[#171717] mb-4">Couverture Géographique</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.zonesCouverte}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -691,8 +691,8 @@ const PartenairesModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="partenaires" fill="#6A8A82" name="Nombre de partenaires" />
-                <Bar dataKey="ca" fill="#B87333" name="CA (en milliers)" />
+                <Bar dataKey="partenaires" fill="#171717" name="Nombre de partenaires" />
+                <Bar dataKey="ca" fill="#525252" name="CA (en milliers)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -701,12 +701,12 @@ const PartenairesModule: React.FC = () => {
 
       {/* Autres onglets */}
       {activeTab === 'collaboration' && (
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
           <div className="text-center py-12">
             <Share2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#191919] mb-2">Espace Collaboration</h3>
-            <p className="text-[#666666] mb-4">Projets communs, formations et événements partenaires</p>
-            <button className="px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
+            <h3 className="text-lg font-semibold text-[#171717] mb-2">Espace Collaboration</h3>
+            <p className="text-[#525252] mb-4">Projets communs, formations et événements partenaires</p>
+            <button className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
               Gérer la collaboration
             </button>
           </div>
@@ -714,12 +714,12 @@ const PartenairesModule: React.FC = () => {
       )}
 
       {activeTab === 'certification' && (
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
           <div className="text-center py-12">
             <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#191919] mb-2">Programme Certification</h3>
-            <p className="text-[#666666] mb-4">Certifications et formations pour les partenaires</p>
-            <button className="px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
+            <h3 className="text-lg font-semibold text-[#171717] mb-2">Programme Certification</h3>
+            <p className="text-[#525252] mb-4">Certifications et formations pour les partenaires</p>
+            <button className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
               Voir les certifications
             </button>
           </div>

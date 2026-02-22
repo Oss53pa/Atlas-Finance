@@ -97,8 +97,8 @@ const ClosuresPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#191919]">Clôtures Comptables</h1>
-          <p className="text-[#767676] mt-1">
+          <h1 className="text-lg font-bold text-[#171717]">Clôtures Comptables</h1>
+          <p className="text-[#737373] mt-1">
             Gestion des clôtures périodiques conformes SYSCOHADA
           </p>
         </div>
@@ -107,8 +107,8 @@ const ClosuresPage: React.FC = () => {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-        <h2 className="text-lg font-semibold text-[#191919] mb-4">Types de Clôture Supportés</h2>
+      <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+        <h2 className="text-lg font-semibold text-[#171717] mb-4">Types de Clôture Supportés</h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {clotureTypes.map((cloture) => (
             <div key={cloture.type} className={`border rounded-lg p-4 ${cloture.color}`}>
@@ -126,7 +126,7 @@ const ClosuresPage: React.FC = () => {
         <ClotureStats stats={stats} loading={dataLoading} />
       )}
 
-      <div className="flex gap-2 border-b border-[#D9D9D9]">
+      <div className="flex gap-2 border-b border-[#d4d4d4]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -135,8 +135,8 @@ const ClosuresPage: React.FC = () => {
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-[#6A8A82] text-[#6A8A82] font-semibold'
-                  : 'border-transparent text-[#767676] hover:text-[#191919]'
+                  ? 'border-[#171717] text-[#171717] font-semibold'
+                  : 'border-transparent text-[#737373] hover:text-[#171717]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -147,8 +147,8 @@ const ClosuresPage: React.FC = () => {
       </div>
 
       {activeTab === 'sessions' && (
-        <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-          <h2 className="text-lg font-semibold text-[#191919] mb-4">
+        <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+          <h2 className="text-lg font-semibold text-[#171717] mb-4">
             Sessions de Clôture
           </h2>
           <ClotureSessionsTable
@@ -176,8 +176,8 @@ const ClosuresPage: React.FC = () => {
             />
           </div>
 
-          <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-            <h2 className="text-lg font-semibold text-[#191919] mb-4">
+          <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+            <h2 className="text-lg font-semibold text-[#171717] mb-4">
               Provisions pour Créances Douteuses
             </h2>
             <ProvisionsTable
@@ -203,7 +203,7 @@ const ClosuresPage: React.FC = () => {
               options={clotureTypes.map((c) => ({ value: c.type, label: c.nom }))}
               fullWidth
             />
-            <p className="text-sm text-[#767676]">
+            <p className="text-sm text-[#737373]">
               Sélectionnez le type de clôture à effectuer. Les opérations nécessaires seront
               automatiquement proposées.
             </p>
@@ -232,19 +232,19 @@ const ClosuresPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[#767676]">Exercice</p>
+                  <p className="text-sm text-[#737373]">Exercice</p>
                   <p className="font-semibold">{selectedSession.exercice}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676]">Statut</p>
+                  <p className="text-sm text-[#737373]">Statut</p>
                   <p className="font-semibold">{selectedSession.statut}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676]">Créé par</p>
+                  <p className="text-sm text-[#737373]">Créé par</p>
                   <p className="font-semibold">{selectedSession.creePar}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676]">Progression</p>
+                  <p className="text-sm text-[#737373]">Progression</p>
                   <p className="font-semibold">{selectedSession.progression}%</p>
                 </div>
               </div>

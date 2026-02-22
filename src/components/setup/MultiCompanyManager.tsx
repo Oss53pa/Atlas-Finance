@@ -392,20 +392,20 @@ const MultiCompanyManager: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="bg-[#6A8A82] rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-[#171717] rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-lg font-bold text-white flex items-center">
               <BuildingOfficeIcon className="h-8 w-8 mr-3 text-white" />
               Gestion Multi-Sociétés
             </h1>
-            <p className="text-[#F0F3F2] mt-2">Configuration GROUPE → HOLDING → FILIALES → ÉTABLISSEMENTS</p>
+            <p className="text-[#f5f5f5] mt-2">Configuration GROUPE → HOLDING → FILIALES → ÉTABLISSEMENTS</p>
           </div>
           <div className="flex space-x-4">
             <select
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value as 'tree' | 'list' | 'consolidation')}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717]"
             >
               <option value="tree">Vue Arbre</option>
               <option value="list">Vue Liste</option>
@@ -413,7 +413,7 @@ const MultiCompanyManager: React.FC = () => {
             </select>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-[#B87333] hover:bg-[#6A8A82] text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              className="bg-[#525252] hover:bg-[#171717] text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
             >
               <PlusIcon className="h-5 w-5" />
               <span>Nouvelle Entité</span>
@@ -450,7 +450,7 @@ const MultiCompanyManager: React.FC = () => {
             color: 'orange'
           }
         ].map((stat, index) => (
-          <div key={index} className="bg-[#F0F3F2] p-6 rounded-lg shadow-sm border border-gray-200">
+          <div key={index} className="bg-[#f5f5f5] p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
@@ -469,8 +469,8 @@ const MultiCompanyManager: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Arbre des entités */}
           <div className="lg:col-span-2">
-            <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-[#191919] mb-4">Structure Organisationnelle</h2>
+            <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-bold text-[#171717] mb-4">Structure Organisationnelle</h2>
               <div className="space-y-2">
                 {companies.map(company => renderCompanyTree(company))}
               </div>
@@ -486,8 +486,8 @@ const MultiCompanyManager: React.FC = () => {
               return (
                 <>
                   {/* Informations générales */}
-                  <div className="bg-[#ECECEC] rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-[#191919] mb-4">Informations Générales</h3>
+                  <div className="bg-[#e5e5e5] rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-[#171717] mb-4">Informations Générales</h3>
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Code:</span>
@@ -519,8 +519,8 @@ const MultiCompanyManager: React.FC = () => {
                   </div>
 
                   {/* Configuration */}
-                  <div className="bg-[#ECECEC] rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-[#191919] mb-4">Configuration</h3>
+                  <div className="bg-[#e5e5e5] rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-[#171717] mb-4">Configuration</h3>
                     <div className="space-y-3">
                       {[
                         { key: 'planComptablePartage', label: 'Plan comptable partagé' },
@@ -550,8 +550,8 @@ const MultiCompanyManager: React.FC = () => {
                   </div>
 
                   {/* Droits inter-sociétés */}
-                  <div className="bg-[#ECECEC] rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-[#191919] mb-4 flex items-center">
+                  <div className="bg-[#e5e5e5] rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-[#171717] mb-4 flex items-center">
                       <ShieldCheckIcon className="h-5 w-5 mr-2 text-green-600" />
                       Droits Inter-Sociétés
                     </h3>
@@ -589,13 +589,13 @@ const MultiCompanyManager: React.FC = () => {
 
       {/* Vue Consolidation */}
       {viewMode === 'consolidation' && (
-        <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-[#191919] flex items-center">
+            <h2 className="text-lg font-bold text-[#171717] flex items-center">
               <ArrowPathIcon className="h-6 w-6 mr-2 text-blue-600" />
               Règles de Consolidation
             </h2>
-            <button className="bg-[#B87333] hover:bg-[#6A8A82] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <button className="bg-[#525252] hover:bg-[#171717] text-white px-4 py-2 rounded-lg flex items-center space-x-2">
               <PlusIcon className="h-5 w-5" />
               <span>Nouvelle Règle</span>
             </button>

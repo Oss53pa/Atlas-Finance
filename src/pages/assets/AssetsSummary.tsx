@@ -111,7 +111,7 @@ interface DepreciationData {
 
 // (mock data replaced by Dexie queries inside component)
 
-const COLORS = ['#6A8A82', '#10B981', '#F59E0B', '#B87333', '#EF4444', '#7A99AC', '#F97316', '#84CC16'];
+const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
 // Tab type definition
 type TabType = 'overview' | 'categories' | 'financial' | 'geographic' | 'maintenance';
@@ -147,7 +147,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'depuis Dexie',
       icon: <DollarSign className="w-6 h-6" />,
-      color: '[#6A8A82]',
+      color: '[#171717]',
       trend: 'up' as const,
       description: 'Valeur brute de tous les actifs immobilisés'
     },
@@ -180,7 +180,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'estimation',
       icon: <Wrench className="w-6 h-6" />,
-      color: '[#B87333]',
+      color: '[#525252]',
       trend: 'down' as const,
       description: 'Estimation basée sur 2% de la valeur brute'
     },
@@ -191,7 +191,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'depuis Dexie',
       icon: <Package className="w-6 h-6" />,
-      color: '[#6A8A82]',
+      color: '[#171717]',
       trend: 'up' as const,
       description: 'Total des actifs enregistrés'
     },
@@ -202,7 +202,7 @@ const AssetsSummary: React.FC = () => {
       change: 0,
       changeLabel: 'actifs actifs / total',
       icon: <Activity className="w-6 h-6" />,
-      color: '[#6A8A82]',
+      color: '[#171717]',
       trend: 'up' as const,
       description: 'Pourcentage d\'actifs en utilisation'
     }
@@ -218,7 +218,7 @@ const AssetsSummary: React.FC = () => {
     }
     const totalVal = dbAssets.reduce((s, a) => s + a.acquisitionValue, 0) || 1;
     const icons: Record<string, React.ReactNode> = {};
-    const colors = ['#6A8A82', '#10B981', '#F59E0B', '#B87333', '#EF4444'];
+    const colors = ['#171717', '#22c55e', '#F59E0B', '#525252', '#EF4444'];
     return Object.entries(catMap).map(([name, data], index) => ({
       id: name,
       name,
@@ -459,7 +459,7 @@ const AssetsSummary: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-xl shadow-lg p-6 text-white"
+        className="bg-gradient-to-r from-[#171717] to-[#262626] rounded-xl shadow-lg p-6 text-white"
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
@@ -471,7 +471,7 @@ const AssetsSummary: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#6A8A82] rounded-lg">
+              <div className="p-2 bg-[#171717] rounded-lg">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
@@ -481,7 +481,7 @@ const AssetsSummary: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#6A8A82] rounded-lg">
+              <div className="p-2 bg-[#171717] rounded-lg">
                 <Shield className="w-5 h-5" />
               </div>
               <div>
@@ -491,7 +491,7 @@ const AssetsSummary: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#6A8A82] rounded-lg">
+              <div className="p-2 bg-[#171717] rounded-lg">
                 <Target className="w-5 h-5" />
               </div>
               <div>
@@ -533,7 +533,7 @@ const AssetsSummary: React.FC = () => {
                   labelLine={false}
                   label={({ name, percentage }) => `${name} (${percentage}%)`}
                   outerRadius={80}
-                  fill="#8884d8"
+                  fill="#737373"
                   dataKey="value"
                 >
                   {mockCategories.map((entry, index) => (
@@ -695,7 +695,7 @@ const AssetsSummary: React.FC = () => {
               <Line
                 type="monotone"
                 dataKey="acquisition"
-                stroke="#6A8A82"
+                stroke="#171717"
                 strokeWidth={2}
                 name="Acquisitions"
               />
@@ -709,7 +709,7 @@ const AssetsSummary: React.FC = () => {
               <Line
                 type="monotone"
                 dataKey="netValue"
-                stroke="#10B981"
+                stroke="#22c55e"
                 strokeWidth={2}
                 name="Valeur nette"
               />
@@ -815,7 +815,7 @@ const AssetsSummary: React.FC = () => {
               <Tooltip
                 formatter={(value: number) => [`${value.toLocaleString()} €`, 'Valeur']}
               />
-              <Bar dataKey="value" fill="#6A8A82" />
+              <Bar dataKey="value" fill="#171717" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -849,11 +849,11 @@ const AssetsSummary: React.FC = () => {
             <div className="text-lg font-bold text-orange-600">{criticalMaintenanceCount}</div>
             <div className="text-sm text-orange-600">Critique</div>
           </div>
-          <div className="text-center p-4 rounded-lg bg-[#6A8A82]/10 border border-[#6A8A82]/20">
-            <div className="text-lg font-bold text-[#6A8A82]">
+          <div className="text-center p-4 rounded-lg bg-[#171717]/10 border border-[#171717]/20">
+            <div className="text-lg font-bold text-[#171717]">
               {totalMaintenanceCost.toLocaleString()} €
             </div>
-            <div className="text-sm text-[#6A8A82]">Coût total</div>
+            <div className="text-sm text-[#171717]">Coût total</div>
           </div>
         </div>
 
@@ -943,7 +943,7 @@ const AssetsSummary: React.FC = () => {
                   item.priority === 'critical' ? 'bg-red-100 text-red-800' :
                   item.priority === 'high' ? 'bg-orange-100 text-orange-800' :
                   item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-[#6A8A82]/10 text-[#6A8A82]'
+                  'bg-[#171717]/10 text-[#171717]'
                 }`}>
                   {item.priority}
                 </span>
@@ -959,7 +959,7 @@ const AssetsSummary: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-[#6A8A82]/10 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-[#171717]/10 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* En-tête */}
         <motion.div
@@ -982,7 +982,7 @@ const AssetsSummary: React.FC = () => {
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                   Actualiser
@@ -1008,7 +1008,7 @@ const AssetsSummary: React.FC = () => {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               >
                 <option value="month">Ce mois</option>
                 <option value="quarter">Ce trimestre</option>
@@ -1035,7 +1035,7 @@ const AssetsSummary: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-[#6A8A82] text-[#6A8A82]'
+                      ? 'border-[#171717] text-[#171717]'
                       : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                   }`}
                 >

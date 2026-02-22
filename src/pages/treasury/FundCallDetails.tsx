@@ -331,26 +331,26 @@ const FundCallDetails: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header de l'appel de fonds */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/treasury/fund-calls')}
-              className="flex items-center space-x-2 px-3 py-2 text-[#767676] hover:text-[#444444] transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 text-[#737373] hover:text-[#404040] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm">Retour</span>
             </button>
 
-            <div className="h-6 w-px bg-[#E8E8E8]"></div>
+            <div className="h-6 w-px bg-[#e5e5e5]"></div>
 
             <div>
-              <h1 className="text-lg font-bold text-[#191919]">
+              <h1 className="text-lg font-bold text-[#171717]">
                 📋 Appel de Fonds {fundCallData.reference}
               </h1>
-              <p className="text-sm text-[#767676]">
+              <p className="text-sm text-[#737373]">
                 Initié par {fundCallData.initiePar} le {fundCallData.date}
               </p>
             </div>
@@ -369,8 +369,8 @@ const FundCallDetails: React.FC = () => {
       </div>
 
       {/* Navigation par sous-onglets */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
-        <div className="border-b border-[#E8E8E8]">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+        <div className="border-b border-[#e5e5e5]">
           <nav className="flex space-x-8 px-6">
             {detailTabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -381,8 +381,8 @@ const FundCallDetails: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'border-[#B87333] text-[#B87333]'
-                      : 'border-transparent text-[#767676] hover:text-[#444444]'
+                      ? 'border-[#525252] text-[#525252]'
+                      : 'border-transparent text-[#737373] hover:text-[#404040]'
                     }
                   `}
                 >
@@ -398,18 +398,18 @@ const FundCallDetails: React.FC = () => {
         <div className="p-6">
           {activeTab === 'position_avant' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#E8E8E8] p-6">
-                <h3 className="font-semibold text-[#191919] mb-6">📊 Position des Comptes Avant l'Appel de Fonds</h3>
+              <div className="bg-white rounded-lg border border-[#e5e5e5] p-6">
+                <h3 className="font-semibold text-[#171717] mb-6">📊 Position des Comptes Avant l'Appel de Fonds</h3>
 
                 {/* Informations de l'appel */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-[#6A8A82]/10 p-4 rounded-lg">
-                    <h4 className="font-medium text-[#6A8A82] mb-2">📅 Issue Date</h4>
-                    <p className="text-lg font-bold text-[#191919]">{fundCallData.date}</p>
+                  <div className="bg-[#171717]/10 p-4 rounded-lg">
+                    <h4 className="font-medium text-[#171717] mb-2">📅 Issue Date</h4>
+                    <p className="text-lg font-bold text-[#171717]">{fundCallData.date}</p>
                   </div>
-                  <div className="bg-[#B87333]/10 p-4 rounded-lg">
-                    <h4 className="font-medium text-[#B87333] mb-2">⏰ Due Date</h4>
-                    <p className="text-lg font-bold text-[#191919]">23/05/2025</p>
+                  <div className="bg-[#525252]/10 p-4 rounded-lg">
+                    <h4 className="font-medium text-[#525252] mb-2">⏰ Due Date</h4>
+                    <p className="text-lg font-bold text-[#171717]">23/05/2025</p>
                   </div>
                 </div>
 
@@ -427,23 +427,23 @@ const FundCallDetails: React.FC = () => {
 
                         <div className="space-y-2">
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Current balance to date</span>
-                            <span className="font-medium text-[#B87333]">-64,051,588 FCFA</span>
+                            <span className="text-sm text-[#737373]">Current balance to date</span>
+                            <span className="font-medium text-[#525252]">-64,051,588 FCFA</span>
                           </div>
                           <div
                             className="flex justify-between py-2 cursor-pointer hover:bg-white/50 rounded"
                             onClick={() => togglePaymentDetailsExpansion('ongoing_payment_source')}
                           >
                             <div className="flex items-center space-x-2">
-                              <span className="text-lg font-bold text-[#6A8A82]">
+                              <span className="text-lg font-bold text-[#171717]">
                                 {expandedPaymentDetails.has('ongoing_payment_source') ? '−' : '+'}
                               </span>
-                              <span className="text-sm text-[#767676]">Ongoing payment (check)</span>
+                              <span className="text-sm text-[#737373]">Ongoing payment (check)</span>
                             </div>
-                            <span className="font-medium text-[#444444]">0 FCFA</span>
+                            <span className="font-medium text-[#404040]">0 FCFA</span>
                           </div>
                           {expandedPaymentDetails.has('ongoing_payment_source') && (
-                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#767676]">
+                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#737373]">
                               <p>• Aucun chèque en cours de traitement</p>
                               <p>• Aucun virement en attente</p>
                             </div>
@@ -453,23 +453,23 @@ const FundCallDetails: React.FC = () => {
                             onClick={() => togglePaymentDetailsExpansion('ongoing_expenses_source')}
                           >
                             <div className="flex items-center space-x-2">
-                              <span className="text-lg font-bold text-[#6A8A82]">
+                              <span className="text-lg font-bold text-[#171717]">
                                 {expandedPaymentDetails.has('ongoing_expenses_source') ? '−' : '+'}
                               </span>
-                              <span className="text-sm text-[#767676]">Ongoing expenses (outgoing cash)</span>
+                              <span className="text-sm text-[#737373]">Ongoing expenses (outgoing cash)</span>
                             </div>
-                            <span className="font-medium text-[#444444]">0 FCFA</span>
+                            <span className="font-medium text-[#404040]">0 FCFA</span>
                           </div>
                           {expandedPaymentDetails.has('ongoing_expenses_source') && (
-                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#767676]">
+                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#737373]">
                               <p>• Aucune dépense programmée</p>
                               <p>• Aucun engagement ferme</p>
                             </div>
                           )}
-                          <div className="border-t border-[#E8E8E8] pt-2">
+                          <div className="border-t border-[#e5e5e5] pt-2">
                             <div className="flex justify-between py-2">
-                              <span className="text-sm font-bold text-[#191919]">Theorical Balance to date</span>
-                              <span className="font-bold text-[#B87333]">-64,051,588 FCFA</span>
+                              <span className="text-sm font-bold text-[#171717]">Theorical Balance to date</span>
+                              <span className="font-bold text-[#525252]">-64,051,588 FCFA</span>
                             </div>
                           </div>
                         </div>
@@ -483,23 +483,23 @@ const FundCallDetails: React.FC = () => {
 
                         <div className="space-y-2">
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Current balance to date</span>
-                            <span className="font-medium text-[#6A8A82]">12,340,000 FCFA</span>
+                            <span className="text-sm text-[#737373]">Current balance to date</span>
+                            <span className="font-medium text-[#171717]">12,340,000 FCFA</span>
                           </div>
                           <div
                             className="flex justify-between py-2 cursor-pointer hover:bg-white/50 rounded"
                             onClick={() => togglePaymentDetailsExpansion('ongoing_payment_dest')}
                           >
                             <div className="flex items-center space-x-2">
-                              <span className="text-lg font-bold text-[#6A8A82]">
+                              <span className="text-lg font-bold text-[#171717]">
                                 {expandedPaymentDetails.has('ongoing_payment_dest') ? '−' : '+'}
                               </span>
-                              <span className="text-sm text-[#767676]">Ongoing payment (check)</span>
+                              <span className="text-sm text-[#737373]">Ongoing payment (check)</span>
                             </div>
-                            <span className="font-medium text-[#444444]">0 FCFA</span>
+                            <span className="font-medium text-[#404040]">0 FCFA</span>
                           </div>
                           {expandedPaymentDetails.has('ongoing_payment_dest') && (
-                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#767676]">
+                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#737373]">
                               <p>• Aucun chèque en attente d'encaissement</p>
                               <p>• Aucun virement attendu</p>
                             </div>
@@ -509,23 +509,23 @@ const FundCallDetails: React.FC = () => {
                             onClick={() => togglePaymentDetailsExpansion('ongoing_expenses_dest')}
                           >
                             <div className="flex items-center space-x-2">
-                              <span className="text-lg font-bold text-[#6A8A82]">
+                              <span className="text-lg font-bold text-[#171717]">
                                 {expandedPaymentDetails.has('ongoing_expenses_dest') ? '−' : '+'}
                               </span>
-                              <span className="text-sm text-[#767676]">Ongoing expenses (outgoing cash)</span>
+                              <span className="text-sm text-[#737373]">Ongoing expenses (outgoing cash)</span>
                             </div>
-                            <span className="font-medium text-[#B87333]">2,500,000 FCFA</span>
+                            <span className="font-medium text-[#525252]">2,500,000 FCFA</span>
                           </div>
                           {expandedPaymentDetails.has('ongoing_expenses_dest') && (
-                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#767676]">
+                            <div className="ml-6 bg-white/30 rounded p-2 text-xs text-[#737373]">
                               <p>• Charges sociales programmées: 1,500,000 FCFA</p>
                               <p>• Loyers trimestriels: 1,000,000 FCFA</p>
                             </div>
                           )}
-                          <div className="border-t border-[#E8E8E8] pt-2">
+                          <div className="border-t border-[#e5e5e5] pt-2">
                             <div className="flex justify-between py-2">
-                              <span className="text-sm font-bold text-[#191919]">Theorical Balance to date</span>
-                              <span className="font-bold text-[#6A8A82]">9,840,000 FCFA</span>
+                              <span className="text-sm font-bold text-[#171717]">Theorical Balance to date</span>
+                              <span className="font-bold text-[#171717]">9,840,000 FCFA</span>
                             </div>
                           </div>
                         </div>
@@ -535,22 +535,22 @@ const FundCallDetails: React.FC = () => {
 
                   {/* Analyse de faisabilité */}
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-[#B87333]/10 rounded-lg text-center">
-                      <h5 className="font-medium text-[#B87333] mb-1">⚠️ Découvert Source</h5>
-                      <p className="text-lg font-bold text-[#B87333]">-64,051,588 FCFA</p>
-                      <p className="text-xs text-[#767676]">Nécessite couverture</p>
+                    <div className="p-4 bg-[#525252]/10 rounded-lg text-center">
+                      <h5 className="font-medium text-[#525252] mb-1">⚠️ Découvert Source</h5>
+                      <p className="text-lg font-bold text-[#525252]">-64,051,588 FCFA</p>
+                      <p className="text-xs text-[#737373]">Nécessite couverture</p>
                     </div>
 
-                    <div className="p-4 bg-[#6A8A82]/10 rounded-lg text-center">
-                      <h5 className="font-medium text-[#6A8A82] mb-1">✅ Solde Destination</h5>
-                      <p className="text-lg font-bold text-[#6A8A82]">9,840,000 FCFA</p>
-                      <p className="text-xs text-[#767676]">Après dépenses prévues</p>
+                    <div className="p-4 bg-[#171717]/10 rounded-lg text-center">
+                      <h5 className="font-medium text-[#171717] mb-1">✅ Solde Destination</h5>
+                      <p className="text-lg font-bold text-[#171717]">9,840,000 FCFA</p>
+                      <p className="text-xs text-[#737373]">Après dépenses prévues</p>
                     </div>
 
-                    <div className="p-4 bg-[#7A99AC]/10 rounded-lg text-center">
-                      <h5 className="font-medium text-[#7A99AC] mb-1">📊 Délai Restant</h5>
-                      <p className="text-lg font-bold text-[#7A99AC]">6 jours</p>
-                      <p className="text-xs text-[#767676]">Jusqu'à l'échéance</p>
+                    <div className="p-4 bg-[#737373]/10 rounded-lg text-center">
+                      <h5 className="font-medium text-[#737373] mb-1">📊 Délai Restant</h5>
+                      <p className="text-lg font-bold text-[#737373]">6 jours</p>
+                      <p className="text-xs text-[#737373]">Jusqu'à l'échéance</p>
                     </div>
                   </div>
 
@@ -563,11 +563,11 @@ const FundCallDetails: React.FC = () => {
             <div className="space-y-6">
               {/* Ici on reprend le contenu des deux tables de planification */}
               {/* Table 1: Account Payable */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8]">
-                <div className="p-4 border-b border-[#E8E8E8] bg-[#B87333]/5">
+              <div className="bg-white rounded-lg border border-[#e5e5e5]">
+                <div className="p-4 border-b border-[#e5e5e5] bg-[#525252]/5">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="font-semibold text-[#191919]">📋 Account Payable</h3>
+                      <h3 className="font-semibold text-[#171717]">📋 Account Payable</h3>
                       <p className="text-xs text-gray-600">
                         Source: Grand Livre Comptable - Comptes Classe 4 (Fournisseurs)
                         {accountPayableData && (
@@ -575,7 +575,7 @@ const FundCallDetails: React.FC = () => {
                         )}
                       </p>
                     </div>
-                    <div className="bg-[#B87333] text-white px-3 py-1 rounded-lg text-sm font-medium">
+                    <div className="bg-[#525252] text-white px-3 py-1 rounded-lg text-sm font-medium">
                       Total Outstanding: {accountPayableData ?
                         new Intl.NumberFormat('fr-FR').format(accountPayableData.total_outstanding) :
                         '...'
@@ -605,7 +605,7 @@ const FundCallDetails: React.FC = () => {
                         <tr>
                           <td colSpan={10} className="px-4 py-8 text-center text-gray-700">
                             <div className="flex flex-col items-center space-y-2">
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B87333]"></div>
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#525252]"></div>
                               <p>Chargement des données du Grand Livre...</p>
                             </div>
                           </td>
@@ -618,18 +618,18 @@ const FundCallDetails: React.FC = () => {
                           <React.Fragment key={vendor}>
                             {/* Ligne agrégat du fournisseur */}
                             <tr
-                              className="bg-[#B87333]/5 hover:bg-[#B87333]/10 cursor-pointer border-l-4 border-[#B87333]"
+                              className="bg-[#525252]/5 hover:bg-[#525252]/10 cursor-pointer border-l-4 border-[#525252]"
                               onClick={() => toggleVendorExpansion(vendor)}
                             >
                               <td className="px-4 py-3">
                                 <div className="flex items-center space-x-2">
-                                  <span className="text-lg font-bold text-[#B87333]">{isExpanded ? '−' : '+'}</span>
-                                  <span className="bg-[#B87333] text-white px-2 py-1 rounded text-xs font-bold">
+                                  <span className="text-lg font-bold text-[#525252]">{isExpanded ? '−' : '+'}</span>
+                                  <span className="bg-[#525252] text-white px-2 py-1 rounded text-xs font-bold">
                                     {aggregate.count}
                                   </span>
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-sm font-bold text-[#B87333]">
+                              <td className="px-4 py-3 text-sm font-bold text-[#525252]">
                                 {vendor}
                                 <div className="text-xs text-gray-700">{aggregate.count} factures</div>
                               </td>
@@ -637,7 +637,7 @@ const FundCallDetails: React.FC = () => {
                               <td className="px-4 py-3 text-sm text-gray-700">Agrégat</td>
                               <td className="px-4 py-3 text-sm text-gray-700">-</td>
                               <td className="px-4 py-3 text-sm text-gray-700">
-                                <span className="bg-[#6A8A82]/10 text-[#6A8A82] px-2 py-1 rounded text-xs">
+                                <span className="bg-[#171717]/10 text-[#171717] px-2 py-1 rounded text-xs">
                                   Total fournisseur
                                 </span>
                               </td>
@@ -648,7 +648,7 @@ const FundCallDetails: React.FC = () => {
                                 {new Intl.NumberFormat('fr-FR').format(aggregate.totalOutstanding)}
                               </td>
                               <td className="px-4 py-3">
-                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
+                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-[#171717]/10 text-[#171717]">
                                   Agrégat
                                 </span>
                               </td>
@@ -669,7 +669,7 @@ const FundCallDetails: React.FC = () => {
                                 <td className="px-4 py-2 pl-8">
                                   <input
                                     type="checkbox"
-                                    className="w-4 h-4 text-[#B87333] border-gray-300 rounded focus:ring-[#B87333]"
+                                    className="w-4 h-4 text-[#525252] border-gray-300 rounded focus:ring-[#525252]"
                                     checked={selectedInvoices.has(invoice.id)}
                                     onChange={() => toggleInvoiceSelection(invoice.id)}
                                   />
@@ -715,14 +715,14 @@ const FundCallDetails: React.FC = () => {
               </div>
 
               {/* Table 2: Payment Proposal */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8]">
-                <div className="p-4 border-b border-[#E8E8E8] bg-green-50">
+              <div className="bg-white rounded-lg border border-[#e5e5e5]">
+                <div className="p-4 border-b border-[#e5e5e5] bg-green-50">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-3">
-                      <h3 className="font-semibold text-[#191919]">💳 Payment Proposal</h3>
+                      <h3 className="font-semibold text-[#171717]">💳 Payment Proposal</h3>
                       <button
                         onClick={() => setShowAddExpenseModal(true)}
-                        className="flex items-center space-x-1 bg-[#6A8A82] hover:bg-[#6A8A82]/80 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
+                        className="flex items-center space-x-1 bg-[#171717] hover:bg-[#171717]/80 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
                       >
                         <Plus className="w-4 h-4" />
                         <span>{t('common.add')}</span>
@@ -806,8 +806,8 @@ const FundCallDetails: React.FC = () => {
                                   onClick={() => openNoteModal(invoice)}
                                   className={`${
                                     invoiceNotes[invoice.id]
-                                      ? 'text-[#B87333] hover:text-[#A86323] hover:bg-[#B87333]/10'
-                                      : 'text-[#7A99AC] hover:text-[#6A89AC] hover:bg-[#7A99AC]/10'
+                                      ? 'text-[#525252] hover:text-[#404040] hover:bg-[#525252]/10'
+                                      : 'text-[#737373] hover:text-[#525252] hover:bg-[#737373]/10'
                                   } p-1 rounded transition-colors`}
                                   title={invoiceNotes[invoice.id] ? "Modifier le commentaire" : "Ajouter un commentaire"}
                                 >
@@ -841,36 +841,36 @@ const FundCallDetails: React.FC = () => {
 
           {activeTab === 'position_apres' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#E8E8E8] p-6">
-                <h3 className="font-semibold text-[#191919] mb-6">🎯 Position des Comptes Après l'Appel de Fonds</h3>
+              <div className="bg-white rounded-lg border border-[#e5e5e5] p-6">
+                <h3 className="font-semibold text-[#171717] mb-6">🎯 Position des Comptes Après l'Appel de Fonds</h3>
 
                 {/* Position des comptes après impact */}
                 <div className="space-y-4 mb-6">
-                  <div className="bg-[#ECECEC] rounded-lg p-6" style={{maxHeight: '400px', overflowY: 'auto'}}>
+                  <div className="bg-[#e5e5e5] rounded-lg p-6" style={{maxHeight: '400px', overflowY: 'auto'}}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Compte de départ après impact */}
                       <div className="space-y-3">
-                        <h5 className="font-medium text-[#191919] border-b border-[#E8E8E8] pb-2">
+                        <h5 className="font-medium text-[#171717] border-b border-[#e5e5e5] pb-2">
                           {fundCallData.banqueDepart}
                         </h5>
 
                         <div className="space-y-2">
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Current balance to date</span>
-                            <span className="font-medium text-[#B87333]">-64,051,588 FCFA</span>
+                            <span className="text-sm text-[#737373]">Current balance to date</span>
+                            <span className="font-medium text-[#525252]">-64,051,588 FCFA</span>
                           </div>
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Fund asked</span>
-                            <span className="font-medium text-[#7A99AC]">0 FCFA</span>
+                            <span className="text-sm text-[#737373]">Fund asked</span>
+                            <span className="font-medium text-[#737373]">0 FCFA</span>
                           </div>
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Fund approved</span>
-                            <span className="font-medium text-[#6A8A82]">0 FCFA</span>
+                            <span className="text-sm text-[#737373]">Fund approved</span>
+                            <span className="font-medium text-[#171717]">0 FCFA</span>
                           </div>
-                          <div className="border-t border-[#E8E8E8] pt-2">
+                          <div className="border-t border-[#e5e5e5] pt-2">
                             <div className="flex justify-between py-2">
-                              <span className="text-sm font-bold text-[#191919]">Theorical balance after approved funds transferred</span>
-                              <span className="font-bold text-[#B87333]">-64,051,588 FCFA</span>
+                              <span className="text-sm font-bold text-[#171717]">Theorical balance after approved funds transferred</span>
+                              <span className="font-bold text-[#525252]">-64,051,588 FCFA</span>
                             </div>
                           </div>
                         </div>
@@ -878,27 +878,27 @@ const FundCallDetails: React.FC = () => {
 
                       {/* Compte de destination après impact */}
                       <div className="space-y-3">
-                        <h5 className="font-medium text-[#191919] border-b border-[#E8E8E8] pb-2">
+                        <h5 className="font-medium text-[#171717] border-b border-[#e5e5e5] pb-2">
                           {fundCallData.banqueArrivee}
                         </h5>
 
                         <div className="space-y-2">
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Current balance to date</span>
-                            <span className="font-medium text-[#6A8A82]">9,840,000 FCFA</span>
+                            <span className="text-sm text-[#737373]">Current balance to date</span>
+                            <span className="font-medium text-[#171717]">9,840,000 FCFA</span>
                           </div>
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Expected inflow from fund call</span>
-                            <span className="font-medium text-[#6A8A82]">0 FCFA</span>
+                            <span className="text-sm text-[#737373]">Expected inflow from fund call</span>
+                            <span className="font-medium text-[#171717]">0 FCFA</span>
                           </div>
                           <div className="flex justify-between py-2">
-                            <span className="text-sm text-[#767676]">Planned outflows</span>
-                            <span className="font-medium text-[#B87333]">0 FCFA</span>
+                            <span className="text-sm text-[#737373]">Planned outflows</span>
+                            <span className="font-medium text-[#525252]">0 FCFA</span>
                           </div>
-                          <div className="border-t border-[#E8E8E8] pt-2">
+                          <div className="border-t border-[#e5e5e5] pt-2">
                             <div className="flex justify-between py-2">
-                              <span className="text-sm font-bold text-[#191919]">Theorical balance after transfers</span>
-                              <span className="font-bold text-[#6A8A82]">9,840,000 FCFA</span>
+                              <span className="text-sm font-bold text-[#171717]">Theorical balance after transfers</span>
+                              <span className="font-bold text-[#171717]">9,840,000 FCFA</span>
                             </div>
                           </div>
                         </div>
@@ -909,53 +909,53 @@ const FundCallDetails: React.FC = () => {
 
                 {/* Section Fund Call Aggregate / Distribution */}
                 <div>
-                  <h4 className="font-medium text-[#B87333] mb-4">📊 Fund Call Aggregate / Distribution</h4>
+                  <h4 className="font-medium text-[#525252] mb-4">📊 Fund Call Aggregate / Distribution</h4>
 
                   <div className="overflow-auto" style={{maxHeight: '400px'}}>
-                    <table className="w-full bg-white border border-[#E8E8E8] rounded-lg">
-                      <thead className="bg-[#6A8A82]/10">
+                    <table className="w-full bg-white border border-[#e5e5e5] rounded-lg">
+                      <thead className="bg-[#171717]/10">
                         <tr>
-                          <th className="px-4 py-3 text-left text-sm font-medium text-[#191919]">Expand</th>
-                          <th className="px-4 py-3 text-left text-sm font-medium text-[#191919]">Category</th>
-                          <th className="px-4 py-3 text-right text-sm font-medium text-[#191919]">Requested</th>
-                          <th className="px-4 py-3 text-right text-sm font-medium text-[#191919]">Approved</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-[#171717]">Expand</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-[#171717]">Category</th>
+                          <th className="px-4 py-3 text-right text-sm font-medium text-[#171717]">Requested</th>
+                          <th className="px-4 py-3 text-right text-sm font-medium text-[#171717]">Approved</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#E8E8E8]">
+                      <tbody className="divide-y divide-[#e5e5e5]">
                         {aggregateCategories.map((category) => {
                           const isExpanded = expandedAggregateRows.has(category.id);
                           return (
                             <React.Fragment key={category.id}>
                               <tr
-                                className="hover:bg-[#F8F9FA] cursor-pointer"
+                                className="hover:bg-[#fafafa] cursor-pointer"
                                 onClick={() => toggleAggregateRowExpansion(category.id)}
                               >
                                 <td className="px-4 py-3">
-                                  <span className="text-lg font-bold text-[#B87333]">
+                                  <span className="text-lg font-bold text-[#525252]">
                                     {isExpanded ? '−' : '+'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-[#444444]">{category.label}</td>
-                                <td className="px-4 py-3 text-sm text-right text-[#7A99AC]">{category.requested} FCFA</td>
-                                <td className="px-4 py-3 text-sm text-right text-[#6A8A82]">{category.approved} FCFA</td>
+                                <td className="px-4 py-3 text-sm text-[#404040]">{category.label}</td>
+                                <td className="px-4 py-3 text-sm text-right text-[#737373]">{category.requested} FCFA</td>
+                                <td className="px-4 py-3 text-sm text-right text-[#171717]">{category.approved} FCFA</td>
                               </tr>
 
                               {/* Détails des factures dans cette catégorie */}
                               {isExpanded && category.details.map((detail, index) => (
-                                <tr key={`${category.id}-${index}`} className="bg-[#F8F9FA]">
+                                <tr key={`${category.id}-${index}`} className="bg-[#fafafa]">
                                   <td className="px-4 py-2 pl-8">
-                                    <span className="text-[#767676]">└</span>
+                                    <span className="text-[#737373]">└</span>
                                   </td>
-                                  <td className="px-4 py-2 text-sm text-[#767676] pl-4">
+                                  <td className="px-4 py-2 text-sm text-[#737373] pl-4">
                                     <div>
                                       <span className="font-medium">{detail.vendor}</span>
-                                      <div className="text-xs text-[#767676]">{detail.description}</div>
+                                      <div className="text-xs text-[#737373]">{detail.description}</div>
                                     </div>
                                   </td>
-                                  <td className="px-4 py-2 text-sm text-right text-[#7A99AC]">
+                                  <td className="px-4 py-2 text-sm text-right text-[#737373]">
                                     {new Intl.NumberFormat('fr-FR').format(detail.amount)} FCFA
                                   </td>
-                                  <td className="px-4 py-2 text-sm text-right text-[#6A8A82]">
+                                  <td className="px-4 py-2 text-sm text-right text-[#171717]">
                                     0 FCFA
                                   </td>
                                 </tr>
@@ -964,11 +964,11 @@ const FundCallDetails: React.FC = () => {
                           );
                         })}
 
-                        <tr className="bg-[#B87333]/10 font-bold">
+                        <tr className="bg-[#525252]/10 font-bold">
                           <td className="px-4 py-3"></td>
-                          <td className="px-4 py-3 text-sm text-[#191919]">Total</td>
-                          <td className="px-4 py-3 text-sm text-right text-[#B87333]">0 FCFA</td>
-                          <td className="px-4 py-3 text-sm text-right text-[#B87333]">0 FCFA</td>
+                          <td className="px-4 py-3 text-sm text-[#171717]">Total</td>
+                          <td className="px-4 py-3 text-sm text-right text-[#525252]">0 FCFA</td>
+                          <td className="px-4 py-3 text-sm text-right text-[#525252]">0 FCFA</td>
                         </tr>
                       </tbody>
                     </table>
@@ -981,40 +981,40 @@ const FundCallDetails: React.FC = () => {
 
           {activeTab === 'workflow' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#E8E8E8] p-6">
-                <h3 className="font-semibold text-[#191919] mb-6">✅ Workflow d'Approbation Séquentiel</h3>
+              <div className="bg-white rounded-lg border border-[#e5e5e5] p-6">
+                <h3 className="font-semibold text-[#171717] mb-6">✅ Workflow d'Approbation Séquentiel</h3>
 
                 {/* Informations de l'appel */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-[#7A99AC]/10 p-4 rounded-lg">
-                    <h5 className="font-medium text-[#7A99AC] mb-1">📋 Référence</h5>
-                    <p className="font-bold text-[#191919]">{fundCallData.reference}</p>
+                  <div className="bg-[#737373]/10 p-4 rounded-lg">
+                    <h5 className="font-medium text-[#737373] mb-1">📋 Référence</h5>
+                    <p className="font-bold text-[#171717]">{fundCallData.reference}</p>
                   </div>
-                  <div className="bg-[#6A8A82]/10 p-4 rounded-lg">
-                    <h5 className="font-medium text-[#6A8A82] mb-1">💰 Montant Total</h5>
-                    <p className="font-bold text-[#191919]">0 FCFA</p>
+                  <div className="bg-[#171717]/10 p-4 rounded-lg">
+                    <h5 className="font-medium text-[#171717] mb-1">💰 Montant Total</h5>
+                    <p className="font-bold text-[#171717]">0 FCFA</p>
                   </div>
-                  <div className="bg-[#B87333]/10 p-4 rounded-lg">
-                    <h5 className="font-medium text-[#B87333] mb-1">⏰ Délai Restant</h5>
-                    <p className="font-bold text-[#191919]">6 jours</p>
+                  <div className="bg-[#525252]/10 p-4 rounded-lg">
+                    <h5 className="font-medium text-[#525252] mb-1">⏰ Délai Restant</h5>
+                    <p className="font-bold text-[#171717]">6 jours</p>
                   </div>
                 </div>
 
                 {/* Timeline du workflow */}
                 <div className="mb-6">
-                  <h4 className="font-medium text-[#444444] mb-4">🔄 Étapes de Validation</h4>
+                  <h4 className="font-medium text-[#404040] mb-4">🔄 Étapes de Validation</h4>
 
                   <div className="space-y-4" style={{maxHeight: '400px', overflowY: 'auto'}}>
                     {workflowSteps.map((etape) => (
                       <div key={etape.id} className={`flex items-start space-x-4 p-4 rounded-lg border ${
-                        etape.statut === 'completed' ? 'bg-[#6A8A82]/10 border-[#6A8A82]' :
-                        etape.statut === 'pending' ? 'bg-[#B87333]/10 border-[#B87333]' :
+                        etape.statut === 'completed' ? 'bg-[#171717]/10 border-[#171717]' :
+                        etape.statut === 'pending' ? 'bg-[#525252]/10 border-[#525252]' :
                         'bg-gray-50 border-gray-200'
                       }`}>
                         {/* Icône de statut */}
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                          etape.statut === 'completed' ? 'bg-[#6A8A82]' :
-                          etape.statut === 'pending' ? 'bg-[#B87333]' :
+                          etape.statut === 'completed' ? 'bg-[#171717]' :
+                          etape.statut === 'pending' ? 'bg-[#525252]' :
                           'bg-gray-400'
                         }`}>
                           {etape.statut === 'completed' ? '✓' :
@@ -1026,12 +1026,12 @@ const FundCallDetails: React.FC = () => {
                         <div className="flex-1">
                           <div className="flex justify-between items-start mb-2">
                             <div>
-                              <h5 className="font-medium text-[#191919]">{etape.etape}</h5>
-                              <p className="text-sm text-[#767676]">{etape.validateur}</p>
+                              <h5 className="font-medium text-[#171717]">{etape.etape}</h5>
+                              <p className="text-sm text-[#737373]">{etape.validateur}</p>
                             </div>
                             <div className="text-right">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                etape.type === 'interne' ? 'bg-[#6A8A82]/10 text-[#6A8A82]' : 'bg-[#B87333]/10 text-[#B87333]'
+                                etape.type === 'interne' ? 'bg-[#171717]/10 text-[#171717]' : 'bg-[#525252]/10 text-[#525252]'
                               }`}>
                                 {etape.type === 'interne' ? 'Interne' : 'Externe'}
                               </span>
@@ -1039,32 +1039,32 @@ const FundCallDetails: React.FC = () => {
                           </div>
 
                           {etape.date && (
-                            <p className="text-xs text-[#767676] mb-1">
+                            <p className="text-xs text-[#737373] mb-1">
                               <strong>Date:</strong> {etape.date}
                             </p>
                           )}
 
                           {etape.commentaire && (
-                            <p className="text-sm text-[#444444] bg-white/50 p-2 rounded">
+                            <p className="text-sm text-[#404040] bg-white/50 p-2 rounded">
                               <strong>Commentaire:</strong> {etape.commentaire}
                             </p>
                           )}
 
                           {etape.montant !== null && (
-                            <p className="text-sm text-[#6A8A82] font-medium">
+                            <p className="text-sm text-[#171717] font-medium">
                               <strong>Montant accordé:</strong> {etape.montant} FCFA
                             </p>
                           )}
 
                           {etape.statut === 'pending' && (
                             <div className="mt-3 flex space-x-2">
-                              <button className="px-3 py-1 bg-[#6A8A82] text-white rounded text-xs hover:bg-[#5A7A72] transition-colors">
+                              <button className="px-3 py-1 bg-[#171717] text-white rounded text-xs hover:bg-[#262626] transition-colors">
                                 ✓ Approuver
                               </button>
-                              <button className="px-3 py-1 bg-[#B87333] text-white rounded text-xs hover:bg-[#A86323] transition-colors">
+                              <button className="px-3 py-1 bg-[#525252] text-white rounded text-xs hover:bg-[#404040] transition-colors">
                                 ✗ Rejeter
                               </button>
-                              <button className="px-3 py-1 bg-[#7A99AC] text-white rounded text-xs hover:bg-[#6A89AC] transition-colors">
+                              <button className="px-3 py-1 bg-[#737373] text-white rounded text-xs hover:bg-[#525252] transition-colors">
                                 📧 Relancer
                               </button>
                             </div>
@@ -1078,16 +1078,16 @@ const FundCallDetails: React.FC = () => {
 
                 {/* Actions du workflow */}
                 <div className="flex justify-between items-center">
-                  <div className="text-sm text-[#767676]">
+                  <div className="text-sm text-[#737373]">
                     💡 <strong>Prochaine étape:</strong> En attente de validation du Chef Comptable
                   </div>
                   <div className="space-x-3">
-                    <button className="px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors">
+                    <button className="px-4 py-2 bg-[#737373] text-white rounded-lg hover:bg-[#525252] transition-colors">
                       📧 Envoyer Relance
                     </button>
                     <button
                       onClick={() => setShowValidatorConfig(true)}
-                      className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                      className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
                     >
                       ⚙️ Modifier Workflow
                     </button>
@@ -1095,13 +1095,13 @@ const FundCallDetails: React.FC = () => {
                 </div>
 
                 {/* Liens d'aperçu pour les validateurs */}
-                <div className="mt-6 bg-[#6A8A82]/5 border border-[#6A8A82] rounded-lg p-4">
-                  <h5 className="font-medium text-[#6A8A82] mb-3">👁️ Aperçus pour Validateurs</h5>
+                <div className="mt-6 bg-[#171717]/5 border border-[#171717] rounded-lg p-4">
+                  <h5 className="font-medium text-[#171717] mb-3">👁️ Aperçus pour Validateurs</h5>
                   <div className="flex flex-wrap gap-3">
                     <a
                       href={`/treasury/fund-calls/${id}/email-template`}
                       target="_blank"
-                      className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 bg-[#737373] text-white rounded-lg hover:bg-[#525252] transition-colors"
                     >
                       <span>📧</span>
                       <span>Modèle de Mail HTML</span>
@@ -1110,14 +1110,14 @@ const FundCallDetails: React.FC = () => {
                     <a
                       href={`/treasury/fund-calls/${id}/validator-preview`}
                       target="_blank"
-                      className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors"
+                      className="flex items-center space-x-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors"
                     >
                       <span>👁️</span>
                       <span>Aperçu Validateur</span>
                       <span className="text-xs opacity-75">↗</span>
                     </a>
                   </div>
-                  <p className="text-xs text-[#767676] mt-2">
+                  <p className="text-xs text-[#737373] mt-2">
                     💡 Ces liens s'ouvrent dans un nouvel onglet pour prévisualiser l'expérience des validateurs
                   </p>
                 </div>
@@ -1127,33 +1127,33 @@ const FundCallDetails: React.FC = () => {
 
           {activeTab === 'resume' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#E8E8E8] p-6">
-                <h3 className="font-semibold text-[#191919] mb-6">📋 Résumé des Paiements Approuvés</h3>
+              <div className="bg-white rounded-lg border border-[#e5e5e5] p-6">
+                <h3 className="font-semibold text-[#171717] mb-6">📋 Résumé des Paiements Approuvés</h3>
 
                 {/* Statut général de l'appel */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-[#B87333]/10 p-4 rounded-lg text-center">
-                    <h5 className="font-medium text-[#B87333] mb-1">💰 Total Demandé</h5>
-                    <p className="text-lg font-bold text-[#B87333]">0 FCFA</p>
+                  <div className="bg-[#525252]/10 p-4 rounded-lg text-center">
+                    <h5 className="font-medium text-[#525252] mb-1">💰 Total Demandé</h5>
+                    <p className="text-lg font-bold text-[#525252]">0 FCFA</p>
                   </div>
-                  <div className="bg-[#6A8A82]/10 p-4 rounded-lg text-center">
-                    <h5 className="font-medium text-[#6A8A82] mb-1">✅ Total Approuvé</h5>
-                    <p className="text-lg font-bold text-[#6A8A82]">0 FCFA</p>
+                  <div className="bg-[#171717]/10 p-4 rounded-lg text-center">
+                    <h5 className="font-medium text-[#171717] mb-1">✅ Total Approuvé</h5>
+                    <p className="text-lg font-bold text-[#171717]">0 FCFA</p>
                   </div>
-                  <div className="bg-[#7A99AC]/10 p-4 rounded-lg text-center">
-                    <h5 className="font-medium text-[#7A99AC] mb-1">📊 Taux d'Approbation</h5>
-                    <p className="text-lg font-bold text-[#7A99AC]">0%</p>
+                  <div className="bg-[#737373]/10 p-4 rounded-lg text-center">
+                    <h5 className="font-medium text-[#737373] mb-1">📊 Taux d'Approbation</h5>
+                    <p className="text-lg font-bold text-[#737373]">0%</p>
                   </div>
-                  <div className="bg-[#444444]/10 p-4 rounded-lg text-center">
-                    <h5 className="font-medium text-[#444444] mb-1">🏷️ Nombre de Factures</h5>
-                    <p className="text-lg font-bold text-[#444444]">0</p>
+                  <div className="bg-[#404040]/10 p-4 rounded-lg text-center">
+                    <h5 className="font-medium text-[#404040] mb-1">🏷️ Nombre de Factures</h5>
+                    <p className="text-lg font-bold text-[#404040]">0</p>
                   </div>
                 </div>
 
                 {/* Table des paiements approuvés */}
-                <div className="bg-white rounded-lg border border-[#E8E8E8]">
-                  <div className="p-4 border-b border-[#E8E8E8] bg-[#6A8A82]/5">
-                    <h4 className="font-semibold text-[#191919]">💳 État des Paiements Approuvés</h4>
+                <div className="bg-white rounded-lg border border-[#e5e5e5]">
+                  <div className="p-4 border-b border-[#e5e5e5] bg-[#171717]/5">
+                    <h4 className="font-semibold text-[#171717]">💳 État des Paiements Approuvés</h4>
                   </div>
 
                   <div className="overflow-auto" style={{maxHeight: '400px'}}>
@@ -1189,44 +1189,44 @@ const FundCallDetails: React.FC = () => {
 
                 {/* Synthèse par catégorie */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-[#B87333]/5 p-4 rounded-lg">
-                    <h5 className="font-medium text-[#B87333] mb-2">📅 Previous Arrears</h5>
+                  <div className="bg-[#525252]/5 p-4 rounded-lg">
+                    <h5 className="font-medium text-[#525252] mb-2">📅 Previous Arrears</h5>
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#767676]">Demandé:</span>
-                        <span className="text-[#7A99AC]">0 FCFA</span>
+                        <span className="text-[#737373]">Demandé:</span>
+                        <span className="text-[#737373]">0 FCFA</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#767676]">Approuvé:</span>
-                        <span className="text-[#6A8A82] font-medium">0 FCFA</span>
+                        <span className="text-[#737373]">Approuvé:</span>
+                        <span className="text-[#171717] font-medium">0 FCFA</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-[#6A8A82]/5 p-4 rounded-lg">
-                    <h5 className="font-medium text-[#6A8A82] mb-2">🚨 Critical Expenses</h5>
+                  <div className="bg-[#171717]/5 p-4 rounded-lg">
+                    <h5 className="font-medium text-[#171717] mb-2">🚨 Critical Expenses</h5>
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#767676]">Demandé:</span>
-                        <span className="text-[#7A99AC]">0 FCFA</span>
+                        <span className="text-[#737373]">Demandé:</span>
+                        <span className="text-[#737373]">0 FCFA</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#767676]">Approuvé:</span>
-                        <span className="text-[#6A8A82] font-medium">0 FCFA</span>
+                        <span className="text-[#737373]">Approuvé:</span>
+                        <span className="text-[#171717] font-medium">0 FCFA</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-[#7A99AC]/5 p-4 rounded-lg">
-                    <h5 className="font-medium text-[#7A99AC] mb-2">📊 Current Arrears</h5>
+                  <div className="bg-[#737373]/5 p-4 rounded-lg">
+                    <h5 className="font-medium text-[#737373] mb-2">📊 Current Arrears</h5>
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#767676]">Demandé:</span>
-                        <span className="text-[#7A99AC]">0 FCFA</span>
+                        <span className="text-[#737373]">Demandé:</span>
+                        <span className="text-[#737373]">0 FCFA</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#767676]">Approuvé:</span>
-                        <span className="text-[#6A8A82] font-medium">0 FCFA</span>
+                        <span className="text-[#737373]">Approuvé:</span>
+                        <span className="text-[#171717] font-medium">0 FCFA</span>
                       </div>
                     </div>
                   </div>
@@ -1238,24 +1238,24 @@ const FundCallDetails: React.FC = () => {
 
           {activeTab === 'attachements' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#E8E8E8] p-6">
-                <h3 className="font-semibold text-[#191919] mb-6">📎 Attachements de l'Appel de Fonds</h3>
+              <div className="bg-white rounded-lg border border-[#e5e5e5] p-6">
+                <h3 className="font-semibold text-[#171717] mb-6">📎 Attachements de l'Appel de Fonds</h3>
 
                 {/* Zone d'upload */}
                 <div className="mb-6">
-                  <div className="border-2 border-dashed border-[#B87333]/30 rounded-lg p-6 text-center hover:border-[#B87333]/50 transition-colors">
+                  <div className="border-2 border-dashed border-[#525252]/30 rounded-lg p-6 text-center hover:border-[#525252]/50 transition-colors">
                     <div className="flex flex-col items-center space-y-3">
-                      <div className="w-12 h-12 bg-[#B87333]/10 rounded-full flex items-center justify-center">
-                        <Plus className="w-6 h-6 text-[#B87333]" />
+                      <div className="w-12 h-12 bg-[#525252]/10 rounded-full flex items-center justify-center">
+                        <Plus className="w-6 h-6 text-[#525252]" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[#191919]">Ajouter des fichiers</p>
-                        <p className="text-xs text-[#767676]">Glissez-déposez ou cliquez pour sélectionner</p>
+                        <p className="text-sm font-medium text-[#171717]">Ajouter des fichiers</p>
+                        <p className="text-xs text-[#737373]">Glissez-déposez ou cliquez pour sélectionner</p>
                       </div>
                       <input
                         type="file"
                         multiple
-                        className="w-full max-w-xs text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[#B87333] file:text-white hover:file:bg-[#A86323]"
+                        className="w-full max-w-xs text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[#525252] file:text-white hover:file:bg-[#404040]"
                       />
                     </div>
                   </div>
@@ -1263,28 +1263,28 @@ const FundCallDetails: React.FC = () => {
 
                 {/* Liste des fichiers attachés */}
                 <div>
-                  <h4 className="font-medium text-[#444444] mb-4">📋 Fichiers Attachés</h4>
+                  <h4 className="font-medium text-[#404040] mb-4">📋 Fichiers Attachés</h4>
 
                   <div className="space-y-3">
                     {attachedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-[#6A8A82]/5 rounded-lg border border-[#E8E8E8]">
+                      <div key={index} className="flex items-center justify-between p-3 bg-[#171717]/5 rounded-lg border border-[#e5e5e5]">
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-[#6A8A82] rounded flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-8 h-8 bg-[#171717] rounded flex items-center justify-center text-white text-xs font-bold">
                             {file.type === 'PDF' ? '📄' : file.type === 'Excel' ? '📊' : '📦'}
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-[#191919]">{file.name}</p>
-                            <p className="text-xs text-[#767676]">{file.size} • Ajouté le {file.date}</p>
+                            <p className="text-sm font-medium text-[#171717]">{file.name}</p>
+                            <p className="text-xs text-[#737373]">{file.size} • Ajouté le {file.date}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <button className="p-1 text-[#6A8A82] hover:text-[#5A7A72] transition-colors" aria-label="Voir les détails">
+                          <button className="p-1 text-[#171717] hover:text-[#262626] transition-colors" aria-label="Voir les détails">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-[#7A99AC] hover:text-[#6A89AC] transition-colors">
+                          <button className="p-1 text-[#737373] hover:text-[#525252] transition-colors">
                             <Target className="w-4 h-4" />
                           </button>
-                          <button className="p-1 text-[#B87333] hover:text-[#A86323] transition-colors">
+                          <button className="p-1 text-[#525252] hover:text-[#404040] transition-colors">
                             🗑️
                           </button>
                         </div>
@@ -1293,9 +1293,9 @@ const FundCallDetails: React.FC = () => {
                   </div>
 
                   {/* Informations sur les attachements */}
-                  <div className="mt-6 p-4 bg-[#7A99AC]/10 border border-[#7A99AC] rounded-lg">
-                    <h5 className="font-medium text-[#7A99AC] mb-2">📋 Informations</h5>
-                    <div className="text-sm text-[#444444] space-y-1">
+                  <div className="mt-6 p-4 bg-[#737373]/10 border border-[#737373] rounded-lg">
+                    <h5 className="font-medium text-[#737373] mb-2">📋 Informations</h5>
+                    <div className="text-sm text-[#404040] space-y-1">
                       <p>• <strong>Types acceptés:</strong> PDF, Excel, Word, Images (JPG, PNG)</p>
                       <p>• <strong>Taille maximum:</strong> 10 MB par fichier</p>
                       <p>• <strong>Total autorisé:</strong> 50 MB par appel de fonds</p>
@@ -1314,7 +1314,7 @@ const FundCallDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-[#191919]">⚙️ Configuration du Workflow</h3>
+              <h3 className="text-lg font-semibold text-[#171717]">⚙️ Configuration du Workflow</h3>
               <button
                 onClick={() => setShowValidatorConfig(false)}
                 className="text-gray-700 hover:text-gray-600 text-xl"
@@ -1328,34 +1328,34 @@ const FundCallDetails: React.FC = () => {
               setShowValidatorConfig(false);
             }}>
               {/* Informations de la tâche */}
-              <div className="bg-[#6A8A82]/10 rounded-lg p-4 mb-6">
-                <h4 className="font-medium text-[#6A8A82] mb-3">📋 Validation Tâche</h4>
+              <div className="bg-[#171717]/10 rounded-lg p-4 mb-6">
+                <h4 className="font-medium text-[#171717] mb-3">📋 Validation Tâche</h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#444444] mb-1">Tâche:</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-1">Tâche:</label>
                     <input
                       type="text"
                       value="Appel de fond"
                       disabled
-                      className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg bg-gray-50 text-[#444444]"
+                      className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg bg-gray-50 text-[#404040]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#444444] mb-1">Date d'Émission:</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-1">Date d'Émission:</label>
                     <input
                       type="text"
                       value={fundCallData.date}
                       disabled
-                      className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg bg-gray-50 text-[#444444]"
+                      className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg bg-gray-50 text-[#404040]"
                     />
                   </div>
                 </div>
 
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-[#444444] mb-1">Statut:</label>
-                  <select className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]">
+                  <label className="block text-sm font-medium text-[#404040] mb-1">Statut:</label>
+                  <select className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]">
                     <option>En Cours</option>
                     <option>Approuvé</option>
                     <option>Rejeté</option>
@@ -1364,12 +1364,12 @@ const FundCallDetails: React.FC = () => {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-[#444444] mb-1">Commentaire:</label>
+                  <label className="block text-sm font-medium text-[#404040] mb-1">Commentaire:</label>
                   <textarea
                     value={workflowComment}
                     onChange={(e) => setWorkflowComment(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                     placeholder="Ajouter un commentaire..."
                   />
                 </div>
@@ -1377,28 +1377,28 @@ const FundCallDetails: React.FC = () => {
 
               {/* Section Transmission */}
               <div className="mb-6">
-                <h4 className="font-medium text-[#B87333] mb-3">📤 Transmission</h4>
-                <div className="bg-white border border-[#E8E8E8] rounded-lg overflow-hidden">
+                <h4 className="font-medium text-[#525252] mb-3">📤 Transmission</h4>
+                <div className="bg-white border border-[#e5e5e5] rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-[#B87333]/10">
+                    <thead className="bg-[#525252]/10">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Etape Circuit</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Type</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Nom et prénoms</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Email</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Role</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Etape Circuit</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Nom et prénoms</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Email</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Role</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t border-[#E8E8E8]">
-                        <td className="px-4 py-3 text-sm text-[#444444]">1</td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">Interne</td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">Atokouna Pamela</td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">patokouna@praedium-tech.com</td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">-</td>
+                      <tr className="border-t border-[#e5e5e5]">
+                        <td className="px-4 py-3 text-sm text-[#404040]">1</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">Interne</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">Atokouna Pamela</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">patokouna@praedium-tech.com</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">-</td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-[#6A8A82]/20 text-[#6A8A82]">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-[#171717]/20 text-[#171717]">
                             Transmis
                           </span>
                         </td>
@@ -1410,38 +1410,38 @@ const FundCallDetails: React.FC = () => {
 
               {/* Section Vérification */}
               <div className="mb-6">
-                <h4 className="font-medium text-[#7A99AC] mb-3">🔍 Vérification</h4>
-                <div className="bg-white border border-[#E8E8E8] rounded-lg overflow-hidden">
+                <h4 className="font-medium text-[#737373] mb-3">🔍 Vérification</h4>
+                <div className="bg-white border border-[#e5e5e5] rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-[#7A99AC]/10">
+                    <thead className="bg-[#737373]/10">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Etape Circuit</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Type</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Nom et prénoms</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Email</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Role</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Etape Circuit</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Nom et prénoms</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Email</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Role</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t border-[#E8E8E8]">
-                        <td className="px-4 py-3 text-sm text-[#444444]">2</td>
+                      <tr className="border-t border-[#e5e5e5]">
+                        <td className="px-4 py-3 text-sm text-[#404040]">2</td>
                         <td className="px-4 py-3">
-                          <select className="text-sm border border-[#E8E8E8] rounded px-2 py-1">
+                          <select className="text-sm border border-[#e5e5e5] rounded px-2 py-1">
                             <option>Interne</option>
                             <option>Externe</option>
                           </select>
                         </td>
                         <td className="px-4 py-3">
-                          <select className="text-sm border border-[#E8E8E8] rounded px-2 py-1 w-full">
+                          <select className="text-sm border border-[#e5e5e5] rounded px-2 py-1 w-full">
                             <option>Sélectionner</option>
                             <option>Jean Dupont</option>
                             <option>Marie Martin</option>
                             <option>Paul Durand</option>
                           </select>
                         </td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">-</td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">-</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">-</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">-</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
                             En attente config
@@ -1455,38 +1455,38 @@ const FundCallDetails: React.FC = () => {
 
               {/* Section Validation */}
               <div className="mb-6">
-                <h4 className="font-medium text-[#6A8A82] mb-3">✅ Validation</h4>
-                <div className="bg-white border border-[#E8E8E8] rounded-lg overflow-hidden">
+                <h4 className="font-medium text-[#171717] mb-3">✅ Validation</h4>
+                <div className="bg-white border border-[#e5e5e5] rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-[#6A8A82]/10">
+                    <thead className="bg-[#171717]/10">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Etape Circuit</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Type</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Nom et prénoms</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Email</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Role</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-[#191919] uppercase">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Etape Circuit</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Nom et prénoms</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Email</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Role</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#171717] uppercase">Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t border-[#E8E8E8]">
-                        <td className="px-4 py-3 text-sm text-[#444444]">3</td>
+                      <tr className="border-t border-[#e5e5e5]">
+                        <td className="px-4 py-3 text-sm text-[#404040]">3</td>
                         <td className="px-4 py-3">
-                          <select className="text-sm border border-[#E8E8E8] rounded px-2 py-1">
+                          <select className="text-sm border border-[#e5e5e5] rounded px-2 py-1">
                             <option>Interne</option>
                             <option>Externe</option>
                           </select>
                         </td>
                         <td className="px-4 py-3">
-                          <select className="text-sm border border-[#E8E8E8] rounded px-2 py-1 w-full">
+                          <select className="text-sm border border-[#e5e5e5] rounded px-2 py-1 w-full">
                             <option>Sélectionner</option>
                             <option>Direction Générale</option>
                             <option>Conseil Administration</option>
                             <option>Auditeur Externe</option>
                           </select>
                         </td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">-</td>
-                        <td className="px-4 py-3 text-sm text-[#444444]">-</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">-</td>
+                        <td className="px-4 py-3 text-sm text-[#404040]">-</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
                             En attente config
@@ -1503,13 +1503,13 @@ const FundCallDetails: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowValidatorConfig(false)}
-                  className="px-4 py-2 text-[#767676] border border-[#E8E8E8] rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-[#737373] border border-[#e5e5e5] rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                  className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
                 >
                   Sauvegarder Configuration
                 </button>
@@ -1524,7 +1524,7 @@ const FundCallDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-[#191919]">➕ Ajouter Nouvelle Dépense</h3>
+              <h3 className="text-lg font-semibold text-[#171717]">➕ Ajouter Nouvelle Dépense</h3>
               <button
                 onClick={() => setShowAddExpenseModal(false)}
                 className="text-gray-700 hover:text-gray-600"
@@ -1554,7 +1554,7 @@ const FundCallDetails: React.FC = () => {
                     name="vendor"
                     type="text"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                     placeholder="Nom du tiers (ex: Fournisseur ABC, Employé Jean, etc.)"
                   />
                 </div>
@@ -1564,7 +1564,7 @@ const FundCallDetails: React.FC = () => {
                     name="docDate"
                     type="date"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                   />
                 </div>
                 <div>
@@ -1573,7 +1573,7 @@ const FundCallDetails: React.FC = () => {
                     name="docNumber"
                     type="text"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                     placeholder="DOC-0001"
                   />
                 </div>
@@ -1583,7 +1583,7 @@ const FundCallDetails: React.FC = () => {
                     name="reference"
                     type="text"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                     placeholder="REF-001"
                   />
                 </div>
@@ -1593,7 +1593,7 @@ const FundCallDetails: React.FC = () => {
                     name="description"
                     type="text"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                     placeholder="Description de la dépense"
                   />
                 </div>
@@ -1605,7 +1605,7 @@ const FundCallDetails: React.FC = () => {
                     required
                     min="0"
                     step="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                     placeholder="0"
                   />
                 </div>
@@ -1617,7 +1617,7 @@ const FundCallDetails: React.FC = () => {
                     required
                     min="0"
                     step="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                     placeholder="0"
                   />
                 </div>
@@ -1626,7 +1626,7 @@ const FundCallDetails: React.FC = () => {
                   <select
                     name="type"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                   >
                     <option value="Invoice">Facture</option>
                     <option value="Credit Note">Note de Crédit</option>
@@ -1647,7 +1647,7 @@ const FundCallDetails: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                  className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
                 >
                   Ajouter Dépense
                 </button>
@@ -1662,7 +1662,7 @@ const FundCallDetails: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-[#191919]">📝 Note sur la Facture</h3>
+              <h3 className="text-lg font-semibold text-[#171717]">📝 Note sur la Facture</h3>
               <button
                 onClick={() => setShowNoteModal(false)}
                 className="text-gray-700 hover:text-gray-600"
@@ -1671,9 +1671,9 @@ const FundCallDetails: React.FC = () => {
               </button>
             </div>
 
-            <div className="mb-4 p-3 bg-[#6A8A82]/10 rounded-lg">
-              <p className="text-sm font-medium text-[#191919]">{selectedInvoiceForNote.vendor}</p>
-              <p className="text-xs text-[#767676]">{selectedInvoiceForNote.reference} - {new Intl.NumberFormat('fr-FR').format(selectedInvoiceForNote.outstanding)} FCFA</p>
+            <div className="mb-4 p-3 bg-[#171717]/10 rounded-lg">
+              <p className="text-sm font-medium text-[#171717]">{selectedInvoiceForNote.vendor}</p>
+              <p className="text-xs text-[#737373]">{selectedInvoiceForNote.reference} - {new Intl.NumberFormat('fr-FR').format(selectedInvoiceForNote.outstanding)} FCFA</p>
             </div>
 
             <form onSubmit={(e) => {
@@ -1682,12 +1682,12 @@ const FundCallDetails: React.FC = () => {
               saveInvoiceNote((formData.get('note') as string) || '');
             }}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-[#444444] mb-2">Commentaire:</label>
+                <label className="block text-sm font-medium text-[#404040] mb-2">Commentaire:</label>
                 <textarea
                   name="note"
                   rows={4}
                   defaultValue={invoiceNotes[selectedInvoiceForNote.id] || ''}
-                  className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-[#B87333]"
+                  className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#525252] focus:border-[#525252]"
                   placeholder="Ajoutez votre commentaire sur cette facture..."
                 />
               </div>
@@ -1696,13 +1696,13 @@ const FundCallDetails: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowNoteModal(false)}
-                  className="px-4 py-2 text-[#767676] border border-[#E8E8E8] rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-[#737373] border border-[#e5e5e5] rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                  className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
                 >
                   Sauvegarder Note
                 </button>

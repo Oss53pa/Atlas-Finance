@@ -261,7 +261,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
     };
   }, [bilanData, compteResultatData, sigData]);
 
-  const COLORS = ['#6A8A82', '#B87333', '#E8B4B8', '#A8C8EC', '#D4B5D4', '#FFD93D'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -293,7 +293,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <FileText className="w-8 h-8 text-[#6A8A82]" />
+            <FileText className="w-8 h-8 text-[#171717]" />
             <div>
               <h1 className="text-lg font-bold text-gray-900">États Financiers</h1>
               <p className="text-sm text-gray-600">Reporting financier complet - Conforme {config.norme}</p>
@@ -324,7 +324,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             
             <button 
               onClick={() => setShowComparative(!showComparative)}
-              className={`px-4 py-2 rounded-lg border transition-colors ${showComparative ? 'bg-[#6A8A82] text-white border-[#6A8A82]' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+              className={`px-4 py-2 rounded-lg border transition-colors ${showComparative ? 'bg-[#171717] text-white border-[#171717]' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
             >
               <BarChart3 className="w-4 h-4 mr-2 inline" />
               Comparatif
@@ -338,7 +338,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               Aperçu
             </button>
             
-            <button className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A66B2A] transition-colors">
+            <button className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors">
               <Download className="w-4 h-4 mr-2 inline" />
               Exporter
             </button>
@@ -359,7 +359,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               onClick={() => setActiveView(view.id as typeof activeView)}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeView === view.id 
-                  ? 'bg-[#6A8A82] text-white' 
+                  ? 'bg-[#171717] text-white' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -380,13 +380,13 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Chiffre d'Affaires</p>
-                  <p className="text-lg font-bold text-[#6A8A82]">
+                  <p className="text-lg font-bold text-[#171717]">
                     {(compteResultatData.produits.chiffreAffaires / 1000000).toFixed(1)}M
                   </p>
                   <p className="text-xs text-gray-700">XAF</p>
                 </div>
-                <div className="w-12 h-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-[#6A8A82]" />
+                <div className="w-12 h-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-[#171717]" />
                 </div>
               </div>
             </div>
@@ -483,7 +483,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={100}
-                    fill="#8884d8"
+                    fill="#737373"
                     dataKey="value"
                   >
                     {Array.from({length: 4}).map((_, index) => (
@@ -517,8 +517,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
                   <Tooltip formatter={(value) => [`${(value as number / 1000000).toFixed(1)}M XAF`, '']} />
                   <Legend />
-                  <Area type="monotone" dataKey="va" stackId="1" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.6} name="Valeur Ajoutée" />
-                  <Area type="monotone" dataKey="ebe" stackId="2" stroke="#B87333" fill="#B87333" fillOpacity={0.6} name="EBE" />
+                  <Area type="monotone" dataKey="va" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Valeur Ajoutée" />
+                  <Area type="monotone" dataKey="ebe" stackId="2" stroke="#525252" fill="#525252" fillOpacity={0.6} name="EBE" />
                   <Area type="monotone" dataKey="re" stackId="3" stroke="#E8B4B8" fill="#E8B4B8" fillOpacity={0.6} name="Rés. Exploitation" />
                   <Area type="monotone" dataKey="rn" stackId="4" stroke="#A8C8EC" fill="#A8C8EC" fillOpacity={0.6} name="Résultat Net" />
                 </AreaChart>
@@ -600,7 +600,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">{t('navigation.treasury')}</span>
-                  <span className="text-sm font-medium text-[#6A8A82]">
+                  <span className="text-sm font-medium text-[#171717]">
                     {(bilanData.actifCirculant.disponibilites / 1000000).toFixed(1)}M
                   </span>
                 </div>
@@ -613,7 +613,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Évolution de la Rentabilité</h3>
               <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 text-sm bg-[#6A8A82] text-white rounded">
+                <button className="px-3 py-1 text-sm bg-[#171717] text-white rounded">
                   Mensuel
                 </button>
                 <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
@@ -639,9 +639,9 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value.toFixed(1)}%`} />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="ca" fill="#6A8A82" name="Chiffre d'Affaires (M XAF)" />
-                <Bar yAxisId="left" dataKey="rn" fill="#B87333" name="Résultat Net (M XAF)" />
-                <Line yAxisId="right" type="monotone" dataKey="marge" stroke="#e74c3c" strokeWidth={3} name="Marge Nette (%)" />
+                <Bar yAxisId="left" dataKey="ca" fill="#171717" name="Chiffre d'Affaires (M XAF)" />
+                <Bar yAxisId="left" dataKey="rn" fill="#525252" name="Résultat Net (M XAF)" />
+                <Line yAxisId="right" type="monotone" dataKey="marge" stroke="#ef4444" strokeWidth={3} name="Marge Nette (%)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -657,7 +657,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             <div className="flex items-center space-x-4">
               <h3 className="text-lg font-semibold text-gray-900">Type de Bilan</h3>
               <div className="flex space-x-2">
-                <button className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg">
+                <button className="px-4 py-2 bg-[#171717] text-white rounded-lg">
                   Bilan Comptable
                 </button>
                 <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
@@ -1099,7 +1099,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="bg-gray-100 p-4 rounded-lg border-2 border-gray-300">
                 <div className="text-center">
                   <h4 className="font-bold text-gray-900 mb-2">VARIATION DE TRÉSORERIE</h4>
-                  <div className="text-lg font-bold text-[#6A8A82]">+2 400 000 XAF</div>
+                  <div className="text-lg font-bold text-[#171717]">+2 400 000 XAF</div>
                   <div className="text-sm text-gray-600 mt-1">
                     Trésorerie début: 4 400 000 XAF → Trésorerie fin: 6 800 000 XAF
                   </div>
@@ -1301,8 +1301,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="roa" stroke="#6A8A82" strokeWidth={2} name="ROA (%)" />
-                <Line type="monotone" dataKey="roe" stroke="#B87333" strokeWidth={2} name="ROE (%)" />
+                <Line type="monotone" dataKey="roa" stroke="#171717" strokeWidth={2} name="ROA (%)" />
+                <Line type="monotone" dataKey="roe" stroke="#525252" strokeWidth={2} name="ROE (%)" />
                 <Line type="monotone" dataKey="liquidite" stroke="#E8B4B8" strokeWidth={2} name="Liquidité Générale" />
                 <Line type="monotone" dataKey="autonomie" stroke="#A8C8EC" strokeWidth={2} name="Autonomie Financière (%)" />
               </LineChart>
@@ -1406,7 +1406,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
               <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded">
                 <div className="text-center">
                   <div className="text-xs text-gray-600">Chiffre d'Affaires</div>
-                  <div className="font-bold text-[#6A8A82]">{(compteResultatData.produits.chiffreAffaires / 1000000).toFixed(1)}M XAF</div>
+                  <div className="font-bold text-[#171717]">{(compteResultatData.produits.chiffreAffaires / 1000000).toFixed(1)}M XAF</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-600">Résultat Net</div>
@@ -1458,7 +1458,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     setShowPrintPreview(false);
                     handlePrint();
                   }}
-                  className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
+                  className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
                   Imprimer

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { db } from '../../../lib/db';
 import type { DBAsset } from '../../../lib/db';
+import { Money } from '@/utils/money';
 import { motion } from 'framer-motion';
 import {
   Building,
@@ -194,12 +195,12 @@ const Immobilisations: React.FC = () => {
         dateMiseEnService: asset.acquisitionDate,
         valeurAcquisition: asset.acquisitionValue,
         valeurBrute: asset.acquisitionValue,
-        amortissementsCumules: Math.round(cumules),
-        valeurNette: Math.round(asset.acquisitionValue - cumules),
+        amortissementsCumules: new Money(cumules).round(0).toNumber(),
+        valeurNette: new Money(asset.acquisitionValue).subtract(cumules).round(0).toNumber(),
         dureeAmortissement: asset.usefulLifeYears,
         methodeAmortissement: asset.depreciationMethod === 'linear' ? 'lineaire' as const : 'degressive' as const,
-        tauxAmortissement: Math.round(taux * 100) / 100,
-        amortissementAnnuel: Math.round(annuel),
+        tauxAmortissement: new Money(taux).round().toNumber(),
+        amortissementAnnuel: new Money(annuel).round(0).toNumber(),
         fournisseur: '',
         localisation: '',
         responsable: '',

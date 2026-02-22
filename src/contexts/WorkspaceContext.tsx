@@ -85,7 +85,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
     name: `Espace ${role}`,
     description: `Espace de travail pour ${role}`,
     icon: 'LayoutDashboard',
-    color: role === 'admin' ? '#DC2626' : role === 'manager' ? '#B87333' : '#6A8A82',
+    color: role === 'admin' ? '#ef4444' : role === 'manager' ? '#525252' : '#171717',
     is_active: true,
     order: 0,
     widget_count: 0,

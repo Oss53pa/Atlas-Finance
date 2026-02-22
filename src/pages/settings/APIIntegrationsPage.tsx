@@ -308,7 +308,7 @@ const APIIntegrationsPage: React.FC = () => {
 
     // Generate mock API key
     const prefix = newAPIForm.environment === 'Production' ? 'pk_live' : 'pk_test';
-    const randomKey = `${prefix}_${Math.random().toString(36).substring(2, 15)}`;
+    const randomKey = `${prefix}_${Date.now().toString(36)}`;
 
     toast.success(`Clé API "${newAPIForm.name}" créée avec succès !`);
     setShowNewAPIModal(false);
@@ -1120,7 +1120,7 @@ const APIIntegrationsPage: React.FC = () => {
               </button>
               <button
                 onClick={handleCreateAPI}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72]"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
               >
                 Créer la clé
               </button>
@@ -1186,7 +1186,7 @@ const APIIntegrationsPage: React.FC = () => {
               </button>
               <button
                 onClick={handleCreateWebhook}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72]"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
               >
                 Créer le webhook
               </button>
@@ -1211,14 +1211,14 @@ const APIIntegrationsPage: React.FC = () => {
                   <span className="text-sm">Synchronisation automatique</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6A8A82]"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Notifications en temps réel</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6A8A82]"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
                   </label>
                 </div>
                 <div>
@@ -1246,7 +1246,7 @@ const APIIntegrationsPage: React.FC = () => {
                   toast.success('Configuration sauvegardée !');
                   setShowConfigModal(null);
                 }}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72]"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
               >
                 Enregistrer
               </button>
@@ -1394,7 +1394,7 @@ end`}</code>
               </button>
               <button
                 onClick={() => setShowCodeExamples(null)}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72]"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
               >
                 Fermer
               </button>

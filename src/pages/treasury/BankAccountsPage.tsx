@@ -127,9 +127,9 @@ const BankAccountsPage: React.FC = () => {
 
   const getAccountTypeColor = (type: string) => {
     switch (type) {
-      case 'courant': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
+      case 'courant': return 'bg-[#171717]/10 text-[#171717]';
       case 'epargne': return 'bg-green-100 text-green-800';
-      case 'terme': return 'bg-[#B87333]/10 text-[#B87333]';
+      case 'terme': return 'bg-[#525252]/10 text-[#525252]';
       case 'credit': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -200,8 +200,8 @@ const BankAccountsPage: React.FC = () => {
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[#6A8A82]/10 rounded-full">
-                <CreditCard className="h-6 w-6 text-[#6A8A82]" />
+              <div className="p-2 bg-[#171717]/10 rounded-full">
+                <CreditCard className="h-6 w-6 text-[#171717]" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Comptes</p>
@@ -232,7 +232,7 @@ const BankAccountsPage: React.FC = () => {
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[#B87333]/10 rounded-full">
+              <div className="p-2 bg-[#525252]/10 rounded-full">
                 <Banknote className="h-6 w-6 text-purple-600" />
               </div>
               <div>
@@ -804,9 +804,9 @@ const BankAccountsPage: React.FC = () => {
       {showViewModal && selectedAccount && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[#6A8A82]/10 to-[#B87333]/10">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-[#6A8A82] rounded-lg flex items-center justify-center text-white">
+                <div className="w-12 h-12 bg-[#171717] rounded-lg flex items-center justify-center text-white">
                   <Building className="w-6 h-6" />
                 </div>
                 <div>
@@ -981,7 +981,7 @@ const BankAccountsPage: React.FC = () => {
                     // Exporter le RIB en PDF
                     toast.success('Export RIB en cours...');
                   }}
-                  className="px-4 py-2 border border-[#6A8A82] text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/10 transition-colors"
+                  className="px-4 py-2 border border-[#171717] text-[#171717] rounded-lg hover:bg-[#171717]/10 transition-colors"
                 >
                   <Download className="w-4 h-4 inline mr-2" />
                   Exporter RIB
@@ -991,7 +991,7 @@ const BankAccountsPage: React.FC = () => {
                     setShowViewModal(false);
                     setShowEditModal(true);
                   }}
-                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                  className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
                 >
                   Modifier
                 </button>
@@ -1094,7 +1094,7 @@ const BankAccountsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323]"
+                  className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040]"
                 >
                   Enregistrer
                 </button>
@@ -1121,7 +1121,7 @@ const BankAccountsPage: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#6A8A82] transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#171717] transition-colors">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-lg font-medium text-gray-700 mb-2">Glissez votre fichier ici</p>
                 <p className="text-sm text-gray-500 mb-4">ou cliquez pour sélectionner</p>
@@ -1138,7 +1138,7 @@ const BankAccountsPage: React.FC = () => {
                 />
                 <label
                   htmlFor="file-import-bank"
-                  className="inline-block px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] cursor-pointer"
+                  className="inline-block px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] cursor-pointer"
                 >
                   Sélectionner un fichier
                 </label>
@@ -1166,7 +1166,7 @@ const BankAccountsPage: React.FC = () => {
                   toast.success('Import lancé !');
                   setShowImportModal(false);
                 }}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72]"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
               >
                 Importer
               </button>

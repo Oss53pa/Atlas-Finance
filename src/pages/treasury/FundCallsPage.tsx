@@ -258,13 +258,13 @@ const FundCallsPage: React.FC = () => {
       case 'BROUILLON':
         return <Badge className="bg-gray-100 text-gray-800">{t('accounting.draft')}</Badge>;
       case 'SOUMIS':
-        return <Badge className="bg-[#6A8A82]/10 text-[#6A8A82]">Soumis</Badge>;
+        return <Badge className="bg-[#171717]/10 text-[#171717]">Soumis</Badge>;
       case 'APPROUVE':
         return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
       case 'REJETE':
         return <Badge className="bg-red-100 text-red-800">Rejeté</Badge>;
       case 'PAYE':
-        return <Badge className="bg-[#B87333]/10 text-[#B87333]">Payé</Badge>;
+        return <Badge className="bg-[#525252]/10 text-[#525252]">Payé</Badge>;
       default:
         return null;
     }
@@ -294,12 +294,12 @@ const FundCallsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Sélectionné</p>
-                <p className="text-lg font-bold text-[#6A8A82]">
+                <p className="text-lg font-bold text-[#171717]">
                   {formatCurrency(selectedAmount)}
                 </p>
                 <p className="text-sm text-gray-700">{proposedPayments.length} éléments</p>
               </div>
-              <ArrowDownToLine className="h-8 w-8 text-[#6A8A82]" />
+              <ArrowDownToLine className="h-8 w-8 text-[#171717]" />
             </div>
           </CardContent>
         </Card>
@@ -493,7 +493,7 @@ const FundCallsPage: React.FC = () => {
                 Paiements Proposés (Amount Required)
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-[#6A8A82]">
+                <span className="text-lg font-bold text-[#171717]">
                   {formatCurrency(selectedAmount)}
                 </span>
                 <Button onClick={() => setViewMode('workflow')}>
@@ -675,7 +675,7 @@ const FundCallsPage: React.FC = () => {
               </div>
               <div>
                 <Label className="text-sm text-gray-600">Montant total</Label>
-                <p className="font-mono font-bold text-[#6A8A82]">
+                <p className="font-mono font-bold text-[#171717]">
                   {formatCurrency(selectedAmount)}
                 </p>
               </div>
@@ -781,7 +781,7 @@ const FundCallsPage: React.FC = () => {
                         <CheckCircle className="h-5 w-5 text-green-600" />
                       )}
                       {stage.status === 'pending' && (
-                        <Clock className="h-5 w-5 text-[#6A8A82]" />
+                        <Clock className="h-5 w-5 text-[#171717]" />
                       )}
                       {stage.status === 'waiting' && (
                         <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />

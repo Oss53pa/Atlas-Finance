@@ -160,10 +160,10 @@ export class Proph3tMLManager {
       // Données simulées pour la démo
       const clientData = {
         client_id: params.client_id,
-        historique_paiements: Math.random() * 100,
-        montant_creances: Math.random() * 50000,
-        retards: Math.floor(Math.random() * 10),
-        anciennete: Math.floor(Math.random() * 5)
+        historique_paiements: 0,
+        montant_creances: 0,
+        retards: 0,
+        anciennete: 0
       };
 
       const riskScore = await mlService.analyzeClientRisk(clientData);
@@ -410,9 +410,9 @@ export class Proph3tMLManager {
 
       data.push({
         date: date.toISOString().split('T')[0],
-        solde: 50000 + Math.random() * 10000,
-        entrees: 20000 + Math.random() * 5000,
-        sorties: 15000 + Math.random() * 5000
+        solde: 0,
+        entrees: 0,
+        sorties: 0
       });
     }
 

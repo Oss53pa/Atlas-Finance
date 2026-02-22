@@ -456,7 +456,7 @@ class DashboardService {
   applyTheme(themeId: string): { success: boolean } {
     const themes: Record<string, Record<string, string>> = {
       'corporate-blue': {
-        primary: '#1E40AF',
+        primary: '#3b82f6',
         secondary: '#3B82F6',
         accent: '#60A5FA',
         background: '#F8FAFC',
@@ -464,8 +464,8 @@ class DashboardService {
         text: '#1E293B'
       },
       'forest-green': {
-        primary: '#2E7D32',
-        secondary: '#4CAF50',
+        primary: '#22c55e',
+        secondary: '#22c55e',
         accent: '#81C784',
         background: '#F1F8F4',
         surface: '#FFFFFF',
@@ -474,7 +474,7 @@ class DashboardService {
       'sunset-orange': {
         primary: '#E65100',
         secondary: '#FF6F00',
-        accent: '#FF9800',
+        accent: '#f59e0b',
         background: '#FFF3E0',
         surface: '#FFFFFF',
         text: '#BF360C'

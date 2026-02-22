@@ -169,7 +169,7 @@ const AuditResultPanel: React.FC<AuditResultPanelProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm overflow-hidden">
+    <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
@@ -183,10 +183,10 @@ const AuditResultPanel: React.FC<AuditResultPanelProps> = ({
             </span>
           </div>
           <div className="text-left">
-            <p className="text-sm font-bold text-[#191919]">
+            <p className="text-sm font-bold text-[#171717]">
               {filterCategory === 'all' ? 'Résultat Global de l\'Analyse' : `Analyse — ${categoryResult?.label || filterCategory}`}
             </p>
-            <p className="text-xs text-[#767676]">
+            <p className="text-xs text-[#737373]">
               Score: {displayScore}/100 {filterCategory === 'all' ? `• Note: ${displayGrade}` : ''} • {findings.length} constat(s)
             </p>
           </div>

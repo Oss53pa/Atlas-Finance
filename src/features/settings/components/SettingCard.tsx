@@ -84,19 +84,19 @@ export const SettingCard: React.FC<SettingCardProps> = ({
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg border border-[#D9D9D9]">
+    <div className="p-4 bg-white rounded-lg border border-[#d4d4d4]">
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <label className="font-medium text-[#191919]">
+            <label className="font-medium text-[#171717]">
               {setting.label}
               {setting.required && <span className="text-red-500 ml-1">*</span>}
             </label>
           </div>
           {setting.description && (
             <div className="flex items-start gap-1 mt-1">
-              <Info className="w-3 h-3 text-[#767676] mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-[#767676]">{setting.description}</p>
+              <Info className="w-3 h-3 text-[#737373] mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-[#737373]">{setting.description}</p>
             </div>
           )}
         </div>

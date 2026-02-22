@@ -4,6 +4,7 @@
  */
 import { db } from '../../../lib/db';
 import { BalanceAccount, BalanceFilters, BalanceTotals } from '../types/balance.types';
+import { formatCurrency } from '@/utils/formatters';
 
 // SYSCOHADA account class hierarchy
 const SYSCOHADA_CLASSES: Record<string, string> = {
@@ -150,8 +151,8 @@ class BalanceService {
       totalCredit: totals.mouvementsCredit,
       ecart: ecart.toNumber(),
       details: isBalanced
-        ? `Balance équilibrée : D = C = ${totalD.toNumber().toLocaleString('fr-FR')} FCFA`
-        : `ALERTE : Écart de ${ecart.toNumber().toLocaleString('fr-FR')} FCFA (D = ${totalD.toNumber().toLocaleString('fr-FR')}, C = ${totalC.toNumber().toLocaleString('fr-FR')})`,
+        ? `Balance équilibrée : D = C = ${formatCurrency(totalD.toNumber())}`
+        : `ALERTE : Écart de ${formatCurrency(ecart.toNumber())} (D = ${formatCurrency(totalD.toNumber())}, C = ${formatCurrency(totalC.toNumber())})`,
     };
   }
 

@@ -87,7 +87,7 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                 movement.status === 'posted' ? 'bg-green-100 text-green-800' :
-                movement.status === 'approved' ? 'bg-[#6A8A82]/10 text-[#6A8A82]' :
+                movement.status === 'approved' ? 'bg-[#171717]/10 text-[#171717]' :
                 movement.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
@@ -340,7 +340,7 @@ const InventoryMovements: React.FC = () => {
       case 'issue':
         return <ArrowUp className="w-4 h-4 text-red-600" />;
       case 'transfer':
-        return <ArrowRight className="w-4 h-4 text-[#6A8A82]" />;
+        return <ArrowRight className="w-4 h-4 text-[#171717]" />;
       case 'adjustment':
         return <ArrowUpDown className="w-4 h-4 text-yellow-600" />;
       case 'production':
@@ -354,7 +354,7 @@ const InventoryMovements: React.FC = () => {
     const statusConfig = {
       draft: { color: 'bg-gray-100 text-gray-800', icon: FileText },
       pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      approved: { color: 'bg-[#6A8A82]/10 text-[#6A8A82]', icon: CheckCircle },
+      approved: { color: 'bg-[#171717]/10 text-[#171717]', icon: CheckCircle },
       posted: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
       cancelled: { color: 'bg-red-100 text-red-800', icon: XCircle }
     };
@@ -390,7 +390,7 @@ const InventoryMovements: React.FC = () => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-7); // Last 7 days
 
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   if (isLoading) {
     return (
@@ -417,7 +417,7 @@ const InventoryMovements: React.FC = () => {
             filename="inventory_movements"
             title="Inventory Movements Report"
           />
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] transition-colors">
             <Plus className="w-4 h-4" />
             New Movement
           </button>
@@ -428,7 +428,7 @@ const InventoryMovements: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3">
-            <ArrowUpDown className="w-8 h-8 text-[#6A8A82]" />
+            <ArrowUpDown className="w-8 h-8 text-[#171717]" />
             <div>
               <p className="text-lg font-bold text-gray-900">{movements.length}</p>
               <p className="text-sm text-gray-600">Total Movements</p>
@@ -526,8 +526,8 @@ const InventoryMovements: React.FC = () => {
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#10B981"
-                fill="#10B981"
+                stroke="#22c55e"
+                fill="#22c55e"
                 fillOpacity={0.1}
                 yAxisId="value"
               />
@@ -548,7 +548,7 @@ const InventoryMovements: React.FC = () => {
                 placeholder="Search movements..."
                 value={filters.searchTerm}
                 onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               />
             </div>
           </div>
@@ -558,7 +558,7 @@ const InventoryMovements: React.FC = () => {
             <select
               value={filters.type}
               onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#171717] focus:border-transparent"
             >
               <option value="all">All Types</option>
               <option value="receipt">Receipt</option>
@@ -574,7 +574,7 @@ const InventoryMovements: React.FC = () => {
             <select
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#171717] focus:border-transparent"
             >
               <option value="all">All Statuses</option>
               <option value="draft">Draft</option>
@@ -591,7 +591,7 @@ const InventoryMovements: React.FC = () => {
               type="date"
               value={filters.dateFrom}
               onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#171717] focus:border-transparent"
             />
           </div>
 
@@ -601,7 +601,7 @@ const InventoryMovements: React.FC = () => {
               type="date"
               value={filters.dateTo}
               onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#171717] focus:border-transparent"
             />
           </div>
         </div>
@@ -616,7 +616,7 @@ const InventoryMovements: React.FC = () => {
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort('movementNumber')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Movement #
                     <ArrowUpDown className="w-4 h-4" />
@@ -625,7 +625,7 @@ const InventoryMovements: React.FC = () => {
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort('type')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Type
                     <ArrowUpDown className="w-4 h-4" />
@@ -634,7 +634,7 @@ const InventoryMovements: React.FC = () => {
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort('date')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Date
                     <ArrowUpDown className="w-4 h-4" />
@@ -645,7 +645,7 @@ const InventoryMovements: React.FC = () => {
                 <th className="text-right py-3 px-4">
                   <button
                     onClick={() => handleSort('totalValue')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Value
                     <ArrowUpDown className="w-4 h-4" />
@@ -654,7 +654,7 @@ const InventoryMovements: React.FC = () => {
                 <th className="text-center py-3 px-4">
                   <button
                     onClick={() => handleSort('status')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Status
                     <ArrowUpDown className="w-4 h-4" />
@@ -705,7 +705,7 @@ const InventoryMovements: React.FC = () => {
                           setSelectedMovement(movement);
                           setIsDetailsModalOpen(true);
                         }}
-                        className="p-1 text-gray-700 hover:text-[#6A8A82]"
+                        className="p-1 text-gray-700 hover:text-[#171717]"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />

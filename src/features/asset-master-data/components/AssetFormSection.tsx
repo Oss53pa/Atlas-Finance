@@ -16,7 +16,7 @@ export const AssetFormSection: React.FC<AssetFormSectionProps> = ({
   if (section === 'general') {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Information Générale</h3>
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Information Générale</h3>
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Classe d'actif"
@@ -63,7 +63,7 @@ export const AssetFormSection: React.FC<AssetFormSectionProps> = ({
   if (section === 'acquisition') {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Informations d'Acquisition</h3>
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Informations d'Acquisition</h3>
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Date d'acquisition"
@@ -101,7 +101,7 @@ export const AssetFormSection: React.FC<AssetFormSectionProps> = ({
   if (section === 'immobilisation') {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Immobilisation</h3>
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Immobilisation</h3>
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="N° de compte"
@@ -145,7 +145,7 @@ export const AssetFormSection: React.FC<AssetFormSectionProps> = ({
   if (section === 'maintenance') {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Données de Maintenance</h3>
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Données de Maintenance</h3>
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Dernière maintenance"

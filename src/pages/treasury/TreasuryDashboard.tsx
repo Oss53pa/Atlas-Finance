@@ -244,11 +244,11 @@ const TreasuryDashboard: React.FC = () => {
                 <Link to="/treasury/bank-connections" className="group">
                   <motion.div
                     whileHover={{ y: -2 }}
-                    className="p-4 border border-neutral-200 rounded-lg hover:border-[#6A8A82]/30 hover:shadow-sm transition-all duration-200"
+                    className="p-4 border border-neutral-200 rounded-lg hover:border-[#171717]/30 hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-[#6A8A82]/5 rounded-lg">
-                        <Shield className="h-5 w-5 text-[#6A8A82]" />
+                      <div className="p-2 bg-[#171717]/5 rounded-lg">
+                        <Shield className="h-5 w-5 text-[#171717]" />
                       </div>
                       <div>
                         <h3 className="font-medium text-neutral-800">Connexions EBICS</h3>

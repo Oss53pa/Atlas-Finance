@@ -12,11 +12,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantClasses = {
-  primary: 'bg-[#6A8A82] text-white hover:bg-[#5A7A72] focus:ring-[#6A8A82]',
-  secondary: 'bg-[#B87333] text-white hover:bg-[#A86323] focus:ring-[#B87333]',
-  outline: 'border-2 border-[#D9D9D9] text-[#444444] hover:border-[#6A8A82] hover:text-[#6A8A82] hover:bg-[#6A8A82]/5',
-  ghost: 'text-[#767676] hover:text-[#191919] hover:bg-[#ECECEC]',
-  danger: 'bg-[#B85450] text-white hover:bg-[#A64440] focus:ring-[#B85450]',
+  primary: 'bg-[#171717] text-white hover:bg-[#262626] focus:ring-[#171717]',
+  secondary: 'bg-[#525252] text-white hover:bg-[#404040] focus:ring-[#525252]',
+  outline: 'border-2 border-[#d4d4d4] text-[#404040] hover:border-[#171717] hover:text-[#171717] hover:bg-[#171717]/5',
+  ghost: 'text-[#737373] hover:text-[#171717] hover:bg-[#e5e5e5]',
+  danger: 'bg-[#ef4444] text-white hover:bg-[#A64440] focus:ring-[#ef4444]',
 };
 
 const sizeClasses = {

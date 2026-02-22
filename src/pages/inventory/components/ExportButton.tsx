@@ -29,7 +29,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       key: 'csv',
       label: 'CSV (.csv)',
       icon: FileText,
-      color: 'text-[#6A8A82]'
+      color: 'text-[#171717]'
     },
     {
       key: 'pdf',
@@ -41,7 +41,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       key: 'json',
       label: 'JSON (.json)',
       icon: FileText,
-      color: 'text-[#B87333]'
+      color: 'text-[#525252]'
     }
   ];
 
@@ -153,7 +153,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         disabled={isExporting || !data || data.length === 0}
-        className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
       >
         <Download className="w-4 h-4" />
         {isExporting ? 'Exporting...' : 'Export'}

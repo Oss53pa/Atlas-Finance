@@ -31,7 +31,7 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <div className={`${fullWidth ? 'w-full' : ''}`}>
       {label && (
-        <label htmlFor={selectId} className="block text-sm font-medium text-[#444444] mb-1">
+        <label htmlFor={selectId} className="block text-sm font-medium text-[#404040] mb-1">
           {label}
         </label>
       )}
@@ -40,12 +40,12 @@ export const Select: React.FC<SelectProps> = ({
         id={selectId}
         className={`
           w-full px-3 py-2 rounded-lg
-          bg-white border border-[#D9D9D9]
-          text-[#191919]
+          bg-white border border-[#d4d4d4]
+          text-[#171717]
           transition-all duration-200
-          focus:outline-none focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent
-          disabled:bg-[#ECECEC] disabled:cursor-not-allowed
-          ${error ? 'border-[#B85450] focus:ring-[#B85450]' : ''}
+          focus:outline-none focus:ring-2 focus:ring-[#171717] focus:border-transparent
+          disabled:bg-[#e5e5e5] disabled:cursor-not-allowed
+          ${error ? 'border-[#ef4444] focus:ring-[#ef4444]' : ''}
           ${className}
         `}
         {...props}
@@ -67,11 +67,11 @@ export const Select: React.FC<SelectProps> = ({
       </select>
 
       {error && (
-        <p className="mt-1 text-sm text-[#B85450]">{error}</p>
+        <p className="mt-1 text-sm text-[#ef4444]">{error}</p>
       )}
 
       {helperText && !error && (
-        <p className="mt-1 text-sm text-[#767676]">{helperText}</p>
+        <p className="mt-1 text-sm text-[#737373]">{helperText}</p>
       )}
     </div>
   );

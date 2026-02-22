@@ -168,7 +168,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
     switch (severity) {
       case 'CRITICAL': return 'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)] border-red-300';
       case 'WARNING': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)] border-orange-300';
-      case 'INFO': return 'bg-[#ECECEC] text-[#6A8A82] border-[#ECECEC]';
+      case 'INFO': return 'bg-[#e5e5e5] text-[#171717] border-[#e5e5e5]';
       default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)] border-[var(--color-border-dark)]';
     }
   };
@@ -183,22 +183,22 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div>
-            <h1 className="text-lg font-bold text-[#191919]">
+            <h1 className="text-lg font-bold text-[#171717]">
               Dashboard Trésorerie
             </h1>
             <div className="flex items-center space-x-2 mt-1">
               <div className="flex items-center space-x-1">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-[#191919]/70">Temps réel</span>
+                <span className="text-sm text-[#171717]/70">Temps réel</span>
               </div>
               <span className="text-[var(--color-text-secondary)]">•</span>
-              <span className="text-sm text-[#191919]/50">
+              <span className="text-sm text-[#171717]/50">
                 Dernière maj: {treasuryPosition?.last_update && formatDate(new Date(treasuryPosition.last_update))}
               </span>
               {treasuryPosition?.performance_ms && (
                 <>
                   <span className="text-[var(--color-text-secondary)]">•</span>
-                  <span className="text-sm text-[#191919]/50">
+                  <span className="text-sm text-[#171717]/50">
                     {treasuryPosition.performance_ms}ms
                   </span>
                 </>
@@ -212,7 +212,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={autoRefresh ? 'bg-[#F0F3F2] border-[#6A8A82]' : ''}
+            className={autoRefresh ? 'bg-[#f5f5f5] border-[#171717]' : ''}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
             {autoRefresh ? 'Live' : 'Manuel'}
@@ -298,13 +298,13 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-full bg-[#ECECEC]`}>
-                            <Icon className={`h-6 w-6 text-[#6A8A82]`} />
+                          <div className={`p-2 rounded-full bg-[#e5e5e5]`}>
+                            <Icon className={`h-6 w-6 text-[#171717]`} />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-[#191919]/70">{kpi.title}</p>
-                            <p className="text-lg font-bold text-[#191919]">{kpi.value}</p>
-                            <p className="text-xs text-[#191919]/50">{kpi.subValue}</p>
+                            <p className="text-sm font-medium text-[#171717]/70">{kpi.title}</p>
+                            <p className="text-lg font-bold text-[#171717]">{kpi.value}</p>
+                            <p className="text-xs text-[#171717]/50">{kpi.subValue}</p>
                           </div>
                         </div>
                         {kpi.trend !== 'neutral' && (
@@ -362,7 +362,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                         <TableCell>
                           <div>
                             <p className="font-medium">{account.label}</p>
-                            <p className="text-sm text-[#191919]/50 font-mono">{account.account_number}</p>
+                            <p className="text-sm text-[#171717]/50 font-mono">{account.account_number}</p>
                           </div>
                         </TableCell>
                         <TableCell>{account.bank_name}</TableCell>
@@ -376,7 +376,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                         }`}>
                           {formatCurrency(account.current_balance)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-[#6A8A82]">
+                        <TableCell className="text-right font-mono text-[#171717]">
                           {formatCurrency(account.available_balance)}
                         </TableCell>
                         <TableCell className="text-right font-mono text-[var(--color-success)]">
@@ -517,19 +517,19 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#171717]">
                   {fundCallsDashboard?.summary?.active_calls || 0}
                 </div>
-                <p className="text-sm text-[#191919]/70">Appels actifs</p>
+                <p className="text-sm text-[#171717]/70">Appels actifs</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#171717]">
                   {formatCurrency(fundCallsDashboard?.summary?.total_amount_called || 0)}
                 </div>
-                <p className="text-sm text-[#191919]/70">Montant total appelé</p>
+                <p className="text-sm text-[#171717]/70">Montant total appelé</p>
               </CardContent>
             </Card>
             
@@ -538,7 +538,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                 <div className="text-lg font-bold text-[var(--color-success)]">
                   {formatCurrency(fundCallsDashboard?.summary?.total_amount_received || 0)}
                 </div>
-                <p className="text-sm text-[#191919]/70">Montant reçu</p>
+                <p className="text-sm text-[#171717]/70">Montant reçu</p>
                 <Progress 
                   value={
                     fundCallsDashboard?.summary?.total_amount_called > 0 
@@ -556,7 +556,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Appels de Fonds en Cours</span>
-                <Button className="bg-[#B87333] hover:bg-[#A66B2A] text-white">
+                <Button className="bg-[#525252] hover:bg-[#404040] text-white">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Nouvel Appel
                 </Button>
@@ -580,14 +580,14 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                           </Badge>
                           <div>
                             <p className="font-bold text-lg">{call.title}</p>
-                            <p className="text-sm text-[#191919]/70">
+                            <p className="text-sm text-[#171717]/70">
                               Réf: {call.call_reference} •
                               Échéance: {call.days_until_deadline}j
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-[#6A8A82]">
+                          <p className="text-lg font-bold text-[#171717]">
                             {formatCurrency(call.amount_needed)}
                           </p>
                           <p className="text-sm text-[var(--color-success)]">
@@ -603,7 +603,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-medium text-sm">{contributor.name}</p>
-                                <p className="text-xs text-[#191919]/50">
+                                <p className="text-xs text-[#171717]/50">
                                   {contributor.percentage}% • {formatCurrency(contributor.allocated)}
                                 </p>
                               </div>
@@ -666,7 +666,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {performanceMetrics?.metrics_detail && Object.entries(performanceMetrics.metrics_detail).map(([key, metric]) => (
                   <div key={key} className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-[#191919] mb-2">
+                    <h4 className="font-medium text-[#171717] mb-2">
                       {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </h4>
                     <div className="space-y-2">
@@ -682,7 +682,7 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                       <div className="text-center">
                         <Badge className={`
                           ${metric.status === 'EXCELLENT' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                            metric.status === 'GOOD' ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                            metric.status === 'GOOD' ? 'bg-[#e5e5e5] text-[#171717]' :
                             'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]'}
                         `}>
                           {metric.status} ({metric.score.toFixed(0)}%)
@@ -693,21 +693,21 @@ const TreasuryDashboard: React.FC<TreasuryDashboardProps> = ({
                 ))}
               </div>
               
-              <div className="mt-6 p-4 bg-[#ECECEC] border border-[#ECECEC] rounded-lg">
+              <div className="mt-6 p-4 bg-[#e5e5e5] border border-[#e5e5e5] rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-[#6A8A82]">Score Global de Performance</h3>
-                    <p className="text-sm text-[#6A8A82]">
+                    <h3 className="font-bold text-[#171717]">Score Global de Performance</h3>
+                    <p className="text-sm text-[#171717]">
                       {performanceMetrics?.targets_met || 0} objectifs atteints sur {performanceMetrics?.total_metrics || 0}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-[#6A8A82]">
+                    <div className="text-lg font-bold text-[#171717]">
                       {(performanceMetrics?.overall_performance_score || 0).toFixed(1)}%
                     </div>
                     <Badge className={`
                       ${performanceMetrics?.overall_status === 'EXCELLENT' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                        performanceMetrics?.overall_status === 'GOOD' ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                        performanceMetrics?.overall_status === 'GOOD' ? 'bg-[#e5e5e5] text-[#171717]' :
                         'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]'}
                     `}>
                       {performanceMetrics?.overall_status}

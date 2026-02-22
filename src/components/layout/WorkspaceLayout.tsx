@@ -55,21 +55,21 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
   };
 
   const roleColors = {
-    comptable: '#6A8A82',
-    manager: '#B87333', 
-    admin: '#7A99AC'
+    comptable: '#171717',
+    manager: '#525252', 
+    admin: '#737373'
   };
 
   const roleGradients = {
-    comptable: 'linear-gradient(135deg, #6A8A82 0%, #5A7A72 100%)',
-    manager: 'linear-gradient(135deg, #B87333 0%, #A86323 100%)',
-    admin: 'linear-gradient(135deg, #7A99AC 0%, #6A89AC 100%)'
+    comptable: 'linear-gradient(135deg, #171717 0%, #262626 100%)',
+    manager: 'linear-gradient(135deg, #525252 0%, #404040 100%)',
+    admin: 'linear-gradient(135deg, #737373 0%, #525252 100%)'
   };
 
   return (
-    <div className="min-h-screen bg-[#ECECEC] ">
+    <div className="min-h-screen bg-[#e5e5e5] ">
       {/* Barre de navigation supérieure */}
-      <header className="bg-white border-b border-[#D9D9D9] sticky top-0 z-50">
+      <header className="bg-white border-b border-[#d4d4d4] sticky top-0 z-50">
         <div className="flex items-center justify-between px-6 py-3">
           {/* Navigation et logo */}
           <div className="flex items-center space-x-4">
@@ -78,8 +78,8 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
               onClick={() => navigate('/dashboard')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors group"
             >
-              <Home className="w-4 h-4 text-[#767676] group-hover:text-[#444444]" />
-              <span className="hidden sm:block text-sm text-[#767676] group-hover:text-[#444444]">Accueil</span>
+              <Home className="w-4 h-4 text-[#737373] group-hover:text-[#404040]" />
+              <span className="hidden sm:block text-sm text-[#737373] group-hover:text-[#404040]">Accueil</span>
             </button>
 
             <button 
@@ -97,27 +97,27 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-[#191919]">Atlas Finance</h1>
-                <p className="text-xs text-[#767676]">v3.0 Professional</p>
+                <h1 className="text-lg font-bold text-[#171717]">Atlas Finance</h1>
+                <p className="text-xs text-[#737373]">v3.0 Professional</p>
               </div>
             </div>
 
             <div className="hidden md:flex items-center space-x-2 px-3 py-1 rounded-lg bg-gray-50">
               <WorkspaceIcon className="w-4 h-4" style={{color: roleColors[userRole]}} />
-              <span className="text-sm font-medium text-[#444444]">{workspaceTitle}</span>
+              <span className="text-sm font-medium text-[#404040]">{workspaceTitle}</span>
             </div>
           </div>
 
           {/* Recherche globale */}
           <div className="flex-1 max-w-md mx-6 hidden md:block">
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#767676]" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#737373]" />
               <input
                 type="text"
                 placeholder="Recherche globale... (Ctrl+K)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-opacity-20 focus:border-transparent text-sm"
+                className="w-full pl-10 pr-4 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-opacity-20 focus:border-transparent text-sm"
                 style={{focusRingColor: roleColors[userRole]}}
               />
             </div>
@@ -138,7 +138,7 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
 
             {/* Notifications */}
             <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Bell className="w-5 h-5 text-[#767676]" />
+              <Bell className="w-5 h-5 text-[#737373]" />
               {notifications > 0 && (
                 <span 
                   className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white rounded-full flex items-center justify-center"
@@ -151,13 +151,13 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
 
             {/* Aide */}
             <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <HelpCircle className="w-5 h-5 text-[#767676]" />
+              <HelpCircle className="w-5 h-5 text-[#737373]" />
             </button>
 
             {/* Langue */}
             <button className="hidden sm:flex items-center space-x-1 px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Globe className="w-4 h-4 text-[#767676]" />
-              <span className="text-sm text-[#767676]">FR</span>
+              <Globe className="w-4 h-4 text-[#737373]" />
+              <span className="text-sm text-[#737373]">FR</span>
             </button>
 
             {/* Menu utilisateur */}
@@ -173,34 +173,34 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-[#191919]">{user?.name || 'Utilisateur'}</p>
-                  <p className="text-xs text-[#767676] capitalize">{userRole}</p>
+                  <p className="text-sm font-medium text-[#171717]">{user?.name || 'Utilisateur'}</p>
+                  <p className="text-xs text-[#737373] capitalize">{userRole}</p>
                 </div>
-                <ChevronDown className="w-4 h-4 text-[#767676]" />
+                <ChevronDown className="w-4 h-4 text-[#737373]" />
               </button>
 
               {/* Menu dropdown */}
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-[#E8E8E8] py-2 z-50">
-                  <div className="px-4 py-3 border-b border-[#E8E8E8]">
-                    <p className="text-sm font-medium text-[#191919]">{user?.name || 'Utilisateur'}</p>
-                    <p className="text-xs text-[#767676]">{user?.email || ''}</p>
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-[#e5e5e5] py-2 z-50">
+                  <div className="px-4 py-3 border-b border-[#e5e5e5]">
+                    <p className="text-sm font-medium text-[#171717]">{user?.name || 'Utilisateur'}</p>
+                    <p className="text-xs text-[#737373]">{user?.email || ''}</p>
                   </div>
                   <button
                     onClick={() => navigate('/profile')}
                     className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors"
                   >
-                    <User className="w-4 h-4 text-[#767676]" />
-                    <span className="text-sm text-[#444444]">Mon profil</span>
+                    <User className="w-4 h-4 text-[#737373]" />
+                    <span className="text-sm text-[#404040]">Mon profil</span>
                   </button>
                   <button
                     onClick={() => navigate('/settings')}
                     className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors"
                   >
-                    <Settings className="w-4 h-4 text-[#767676]" />
-                    <span className="text-sm text-[#444444]">Préférences</span>
+                    <Settings className="w-4 h-4 text-[#737373]" />
+                    <span className="text-sm text-[#404040]">Préférences</span>
                   </button>
-                  <div className="border-t border-[#E8E8E8] mt-2 pt-2">
+                  <div className="border-t border-[#e5e5e5] mt-2 pt-2">
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 transition-colors"
@@ -221,7 +221,7 @@ const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
         {/* Sidebar */}
         <aside className={`
           ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'} 
-          lg:w-64 bg-white border-r border-[#D9D9D9] min-h-[calc(100vh-73px)] transition-all duration-300
+          lg:w-64 bg-white border-r border-[#d4d4d4] min-h-[calc(100vh-73px)] transition-all duration-300
           ${sidebarOpen ? 'fixed lg:relative z-40' : ''}
         `}>
           {sidebar}

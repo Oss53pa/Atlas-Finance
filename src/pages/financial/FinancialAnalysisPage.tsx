@@ -461,7 +461,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="value" fill="#6A8A82" />
+                  <Bar dataKey="value" fill="#171717" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -471,9 +471,9 @@ const FinancialAnalysisPage: React.FC = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Équilibre Financier</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
-                  { name: 'FRNG', value: financialData?.functionalBalance.workingCapitalFund || 0, fill: '#6A8A82' },
-                  { name: 'BFR', value: financialData?.functionalBalance.totalWorkingCapitalNeed || 0, fill: '#B87333' },
-                  { name: 'Trésorerie', value: financialData?.functionalBalance.netTreasury || 0, fill: '#7A99AC' }
+                  { name: 'FRNG', value: financialData?.functionalBalance.workingCapitalFund || 0, fill: '#171717' },
+                  { name: 'BFR', value: financialData?.functionalBalance.totalWorkingCapitalNeed || 0, fill: '#525252' },
+                  { name: 'Trésorerie', value: financialData?.functionalBalance.netTreasury || 0, fill: '#737373' }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -498,7 +498,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <PolarGrid />
                   <PolarAngleAxis dataKey="category" />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  <Radar name="Performance" dataKey="value" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.6} />
+                  <Radar name="Performance" dataKey="value" stroke="#171717" fill="#171717" fillOpacity={0.6} />
                 </RadarChart>
               </ResponsiveContainer>
               
@@ -558,7 +558,7 @@ const FinancialAnalysisPage: React.FC = () => {
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="value" fill="#6A8A82" />
+                  <Bar dataKey="value" fill="#171717" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -632,9 +632,9 @@ const FinancialAnalysisPage: React.FC = () => {
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar dataKey="inflows" fill="#6A8A82" name="Encaissements" />
-                <Bar dataKey="outflows" fill="#B85450" name="Décaissements" />
-                <Line type="monotone" dataKey="cumulativeCash" stroke="#7A99AC" strokeWidth={3} name="Trésorerie cumulative" />
+                <Bar dataKey="inflows" fill="#171717" name="Encaissements" />
+                <Bar dataKey="outflows" fill="#ef4444" name="Décaissements" />
+                <Line type="monotone" dataKey="cumulativeCash" stroke="#737373" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>

@@ -32,6 +32,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import { Money } from '@/utils/money';
 
 interface BudgetControl {
   id: string;
@@ -119,14 +120,14 @@ const BudgetControlPage: React.FC = () => {
           budgetedAmount: budget.budgeted,
           actualAmount: actual,
           variance,
-          variancePercentage: Math.round(variancePercentage * 100) / 100,
+          variancePercentage: new Money(variancePercentage).round().toNumber(),
           status,
           category: 'Opérationnel',
           responsible: '',
           lastUpdate: new Date().toISOString(),
           alerts: Math.abs(variancePercentage) > 10 ? [{
             type: variancePercentage > 10 ? 'danger' as const : 'info' as const,
-            message: `Écart de ${Math.abs(Math.round(variancePercentage))}% sur le compte ${accountCode}`,
+            message: `Écart de ${Math.abs(new Money(variancePercentage).round(0).toNumber())}% sur le compte ${accountCode}`,
             date: new Date().toISOString()
           }] : []
         };
@@ -211,12 +212,12 @@ const BudgetControlPage: React.FC = () => {
           status === 'at_risk' ? 'À risque' :
           status === 'over_budget' ? 'Dépassé' : 'Sous-budget',
     value: count,
-    color: status === 'on_track' ? '#6A8A82' :
-           status === 'at_risk' ? '#B87333' :
-           status === 'over_budget' ? '#B85450' : '#7A99AC'
+    color: status === 'on_track' ? '#171717' :
+           status === 'at_risk' ? '#525252' :
+           status === 'over_budget' ? '#ef4444' : '#737373'
   }));
 
-  const COLORS = ['#6A8A82', '#B87333', '#B85450', '#7A99AC'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
     <div className="space-y-6">
@@ -390,8 +391,8 @@ const BudgetControlPage: React.FC = () => {
                   <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Legend />
-                  <Line type="monotone" dataKey="budgeted" stroke="#7A99AC" name="Budgété" />
-                  <Line type="monotone" dataKey="actual" stroke="#6A8A82" name="Réalisé" />
+                  <Line type="monotone" dataKey="budgeted" stroke="#737373" name="Budgété" />
+                  <Line type="monotone" dataKey="actual" stroke="#171717" name="Réalisé" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -408,7 +409,7 @@ const BudgetControlPage: React.FC = () => {
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#737373"
                     dataKey="value"
                   >
                     {pieData.map((entry, index) => (
@@ -438,8 +439,8 @@ const BudgetControlPage: React.FC = () => {
                 <YAxis tickFormatter={(value) => `${value / 1000000}M`} />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar dataKey="budgeted" fill="#7A99AC" name="Budgété" />
-                <Bar dataKey="actual" fill="#6A8A82" name="Réalisé" />
+                <Bar dataKey="budgeted" fill="#737373" name="Budgété" />
+                <Bar dataKey="actual" fill="#171717" name="Réalisé" />
               </BarChart>
             </ResponsiveContainer>
           </div>

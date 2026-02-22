@@ -110,8 +110,8 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex items-start gap-4">
-        <div className="p-3 bg-[#6A8A82]/10 rounded-lg">
-          <Icon className="w-6 h-6 text-[#6A8A82]" />
+        <div className="p-3 bg-[#171717]/10 rounded-lg">
+          <Icon className="w-6 h-6 text-[#171717]" />
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
@@ -128,7 +128,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] disabled:opacity-50 transition-colors text-sm" aria-label="Télécharger">
+              className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] disabled:opacity-50 transition-colors text-sm" aria-label="Télécharger">
               {isGenerating ? (
                 <LoadingSpinner size="sm" />
               ) : (
@@ -154,7 +154,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
                 </label>
                 <button
                   onClick={() => setShowPeriodModal(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                  className="w-full flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                 >
                   <Calendar className="w-4 h-4 text-gray-700" />
                   {dateRange.startDate && dateRange.endDate
@@ -187,7 +187,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
                             });
                           }
                         }}
-                        className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                        className="mr-2 text-[#171717] focus:ring-[#171717]"
                       />
                       {location.name}
                     </label>
@@ -234,7 +234,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
                       type="checkbox"
                       checked={params.includeZeroQty}
                       onChange={(e) => setParams({ ...params, includeZeroQty: e.target.checked })}
-                      className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                      className="mr-2 text-[#171717] focus:ring-[#171717]"
                     />
                     Include Zero Quantity Items
                   </label>
@@ -243,7 +243,7 @@ const ReportTemplate: React.FC<ReportTemplateProps> = ({
                       type="checkbox"
                       checked={params.includeInactive}
                       onChange={(e) => setParams({ ...params, includeInactive: e.target.checked })}
-                      className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                      className="mr-2 text-[#171717] focus:ring-[#171717]"
                     />
                     Include Inactive Items
                   </label>
@@ -511,13 +511,13 @@ const InventoryReports: React.FC = () => {
 
   const reportTypeDistribution = [
     { name: 'Valuation', value: 35, color: '#3B82F6' },
-    { name: 'ABC Analysis', value: 25, color: '#10B981' },
+    { name: 'ABC Analysis', value: 25, color: '#22c55e' },
     { name: 'Turnover', value: 20, color: '#F59E0B' },
     { name: 'Aging', value: 15, color: '#EF4444' },
     { name: 'Compliance', value: 5, color: '#8B5CF6' }
   ];
 
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -535,7 +535,7 @@ const InventoryReports: React.FC = () => {
             <Calendar className="w-4 h-4" />
             Schedule Reports
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-md hover:bg-[#5A7A72] transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-md hover:bg-[#262626] transition-colors">
             <Settings className="w-4 h-4" />
             Report Builder
           </button>
@@ -546,7 +546,7 @@ const InventoryReports: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-[#6A8A82]" />
+            <FileText className="w-8 h-8 text-[#171717]" />
             <div>
               <p className="text-lg font-bold text-gray-900">{reportMetrics.totalGenerated}</p>
               <p className="text-sm text-gray-600">Total Reports</p>
@@ -609,8 +609,8 @@ const InventoryReports: React.FC = () => {
                 type="monotone"
                 dataKey="automated"
                 stackId="1"
-                stroke="#10B981"
-                fill="#10B981"
+                stroke="#22c55e"
+                fill="#22c55e"
                 fillOpacity={0.6}
                 name="Automated Reports"
               />
@@ -716,7 +716,7 @@ const InventoryReports: React.FC = () => {
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#6A8A82]/10 text-[#6A8A82]">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#171717]/10 text-[#171717]">
                       {report.type.replace('_', ' ').toUpperCase()}
                     </span>
                   </td>
@@ -736,7 +736,7 @@ const InventoryReports: React.FC = () => {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => setSelectedReport(report)}
-                        className="p-1 text-gray-700 hover:text-[#6A8A82]"
+                        className="p-1 text-gray-700 hover:text-[#171717]"
                         title="View Report"
                       >
                         <Eye className="w-4 h-4" />

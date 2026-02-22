@@ -110,11 +110,11 @@ export const ClotureSessionsTable: React.FC<ClotureSessionsTableProps> = ({
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-[#F5F5F5] rounded-full h-2 min-w-[80px]">
               <div
-                className="bg-[#6A8A82] h-2 rounded-full transition-all"
+                className="bg-[#171717] h-2 rounded-full transition-all"
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
             </div>
-            <span className="text-sm font-medium text-[#191919] w-10 text-right">
+            <span className="text-sm font-medium text-[#171717] w-10 text-right">
               {progress}%
             </span>
           </div>

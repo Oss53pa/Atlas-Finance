@@ -797,16 +797,16 @@ const RevisionsModule: React.FC = () => {
   // ==================== RENDER ====================
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen">
       {/* Header Principal */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-lg font-bold text-[#191919] flex items-center gap-3">
-              <FileSearch className="w-7 h-7 text-[#6A8A82]" />
+            <h1 className="text-lg font-bold text-[#171717] flex items-center gap-3">
+              <FileSearch className="w-7 h-7 text-[#171717]" />
               Module de Révisions Comptables
             </h1>
-            <p className="text-[#767676] mt-1">
+            <p className="text-[#737373] mt-1">
               Conforme aux normes ISA (International Standards on Auditing) et SYSCOHADA révisé
             </p>
           </div>
@@ -821,14 +821,14 @@ const RevisionsModule: React.FC = () => {
             </button>
             <button
               onClick={handleExportRevisions}
-              className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] flex items-center space-x-2"
+              className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
               <span>Exporter</span>
             </button>
             <button
               onClick={handleCreateRevision}
-              className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] flex items-center space-x-2"
+              className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
               <span>Nouvelle révision</span>
@@ -837,7 +837,7 @@ const RevisionsModule: React.FC = () => {
         </div>
 
         {/* Onglets Principaux */}
-        <div className="flex items-center space-x-1 mb-6 border-b border-[#E8E8E8]">
+        <div className="flex items-center space-x-1 mb-6 border-b border-[#e5e5e5]">
           {[
             { id: 'revisions', label: 'Points de Révision', icon: FileSearch },
             { id: 'lead_schedule', label: 'Lead Schedules', icon: Layers },
@@ -850,8 +850,8 @@ const RevisionsModule: React.FC = () => {
               onClick={() => setActiveMainTab(tab.id as typeof activeMainTab)}
               className={`px-4 py-3 flex items-center space-x-2 font-medium border-b-2 transition-colors ${
                 activeMainTab === tab.id
-                  ? 'border-[#6A8A82] text-[#6A8A82]'
-                  : 'border-transparent text-[#767676] hover:text-[#191919]'
+                  ? 'border-[#171717] text-[#171717]'
+                  : 'border-transparent text-[#737373] hover:text-[#171717]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -932,7 +932,7 @@ const RevisionsModule: React.FC = () => {
       {activeMainTab === 'revisions' && (
         <>
           {/* Filtres et recherche */}
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
                 {/* Onglets de statut */}
@@ -949,7 +949,7 @@ const RevisionsModule: React.FC = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                         activeTab === tab.id
-                          ? 'bg-[#6A8A82] text-white'
+                          ? 'bg-[#171717] text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -1022,21 +1022,21 @@ const RevisionsModule: React.FC = () => {
           </div>
 
           {/* Liste des révisions */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left p-4 font-semibold text-[#191919]">Statut</th>
-                    <th className="text-left p-4 font-semibold text-[#191919]">Réf.</th>
-                    <th className="text-left p-4 font-semibold text-[#191919]">Compte</th>
-                    <th className="text-left p-4 font-semibold text-[#191919]">Type</th>
-                    <th className="text-left p-4 font-semibold text-[#191919]">Description</th>
-                    <th className="text-left p-4 font-semibold text-[#191919]">Assertions ISA</th>
-                    <th className="text-right p-4 font-semibold text-[#191919]">Montant</th>
-                    <th className="text-center p-4 font-semibold text-[#191919]">Risque</th>
-                    <th className="text-left p-4 font-semibold text-[#191919]">Responsable</th>
-                    <th className="text-center p-4 font-semibold text-[#191919]">Actions</th>
+                    <th className="text-left p-4 font-semibold text-[#171717]">Statut</th>
+                    <th className="text-left p-4 font-semibold text-[#171717]">Réf.</th>
+                    <th className="text-left p-4 font-semibold text-[#171717]">Compte</th>
+                    <th className="text-left p-4 font-semibold text-[#171717]">Type</th>
+                    <th className="text-left p-4 font-semibold text-[#171717]">Description</th>
+                    <th className="text-left p-4 font-semibold text-[#171717]">Assertions ISA</th>
+                    <th className="text-right p-4 font-semibold text-[#171717]">Montant</th>
+                    <th className="text-center p-4 font-semibold text-[#171717]">Risque</th>
+                    <th className="text-left p-4 font-semibold text-[#171717]">Responsable</th>
+                    <th className="text-center p-4 font-semibold text-[#171717]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1055,12 +1055,12 @@ const RevisionsModule: React.FC = () => {
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className="font-mono text-sm font-medium text-[#6A8A82]">{revision.id}</span>
+                        <span className="font-mono text-sm font-medium text-[#171717]">{revision.id}</span>
                       </td>
                       <td className="p-4">
                         <div>
-                          <p className="font-mono text-sm text-[#191919]">{revision.compte}</p>
-                          <p className="text-xs text-[#767676] max-w-[150px] truncate">{revision.libelleCompte}</p>
+                          <p className="font-mono text-sm text-[#171717]">{revision.compte}</p>
+                          <p className="text-xs text-[#737373] max-w-[150px] truncate">{revision.libelleCompte}</p>
                         </div>
                       </td>
                       <td className="p-4">
@@ -1069,7 +1069,7 @@ const RevisionsModule: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4 max-w-xs">
-                        <p className="text-sm text-[#191919] line-clamp-2">{revision.description}</p>
+                        <p className="text-sm text-[#171717] line-clamp-2">{revision.description}</p>
                       </td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
@@ -1090,7 +1090,7 @@ const RevisionsModule: React.FC = () => {
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        <span className="font-mono font-semibold text-[#191919]">
+                        <span className="font-mono font-semibold text-[#171717]">
                           {formatMontant(revision.montant)}
                         </span>
                       </td>
@@ -1100,9 +1100,9 @@ const RevisionsModule: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <p className="text-sm text-[#191919]">{revision.responsable || '-'}</p>
+                        <p className="text-sm text-[#171717]">{revision.responsable || '-'}</p>
                         {revision.dateEcheance && (
-                          <p className="text-xs text-[#767676]">
+                          <p className="text-xs text-[#737373]">
                             Éch: {new Date(revision.dateEcheance).toLocaleDateString('fr-FR')}
                           </p>
                         )}
@@ -1154,18 +1154,18 @@ const RevisionsModule: React.FC = () => {
       {/* ==================== TAB: LEAD SCHEDULES ==================== */}
       {activeMainTab === 'lead_schedule' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-bold text-[#191919] flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-[#6A8A82]" />
+                <h2 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-[#171717]" />
                   Lead Schedules par Cycle
                 </h2>
-                <p className="text-sm text-[#767676]">
+                <p className="text-sm text-[#737373]">
                   Feuilles de travail principales selon la méthodologie ISA
                 </p>
               </div>
-              <button className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] flex items-center space-x-2">
+              <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
                 <span>Nouveau cycle</span>
               </button>
@@ -1176,17 +1176,17 @@ const RevisionsModule: React.FC = () => {
             {leadSchedules.map((ls) => (
               <div
                 key={ls.id}
-                className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => openLeadScheduleDetail(ls)}
               >
                 <div className="p-4 border-b border-gray-100">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-[#191919]">{ls.cycle}</h3>
+                    <h3 className="font-bold text-[#171717]">{ls.cycle}</h3>
                     <span className={`px-2 py-1 rounded text-xs font-medium ${getStatutRevueColor(ls.statutRevue)}`}>
                       {ls.statutRevue.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-xs text-[#767676] font-mono">
+                  <p className="text-xs text-[#737373] font-mono">
                     Comptes: {ls.comptes.join(', ')}
                   </p>
                 </div>
@@ -1194,21 +1194,21 @@ const RevisionsModule: React.FC = () => {
                 <div className="p-4">
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-xs text-[#767676]">Solde N-1</p>
+                      <p className="text-xs text-[#737373]">Solde N-1</p>
                       <p className="font-mono font-semibold">{formatMontant(ls.soldePrecedent)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#767676]">Solde N</p>
+                      <p className="text-xs text-[#737373]">Solde N</p>
                       <p className="font-mono font-semibold">{formatMontant(ls.soldeActuel)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#767676]">Variation</p>
+                      <p className="text-xs text-[#737373]">Variation</p>
                       <p className={`font-mono font-semibold ${ls.variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {ls.variation >= 0 ? '+' : ''}{formatMontant(ls.variation)} ({ls.variationPourcent}%)
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#767676]">Seuil significativité</p>
+                      <p className="text-xs text-[#737373]">Seuil significativité</p>
                       <p className="font-mono text-sm">{formatMontant(ls.seuilSignificativite)}</p>
                     </div>
                   </div>
@@ -1216,19 +1216,19 @@ const RevisionsModule: React.FC = () => {
                   {/* Évaluation des risques */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[#767676]">RI:</span>
+                      <span className="text-xs text-[#737373]">RI:</span>
                       <span className={`px-1.5 py-0.5 rounded text-xs ${getRisqueColor(ls.risqueInherent)}`}>
                         {ls.risqueInherent}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[#767676]">RC:</span>
+                      <span className="text-xs text-[#737373]">RC:</span>
                       <span className={`px-1.5 py-0.5 rounded text-xs ${getRisqueColor(ls.risqueControle)}`}>
                         {ls.risqueControle}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[#767676]">RD:</span>
+                      <span className="text-xs text-[#737373]">RD:</span>
                       <span className={`px-1.5 py-0.5 rounded text-xs ${getRisqueColor(ls.risqueDetection)}`}>
                         {ls.risqueDetection}
                       </span>
@@ -1237,7 +1237,7 @@ const RevisionsModule: React.FC = () => {
 
                   {/* Assertions testées */}
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-[#767676]">Assertions testées:</p>
+                    <p className="text-xs font-medium text-[#737373]">Assertions testées:</p>
                     <div className="flex flex-wrap gap-2">
                       {ls.assertions.map((assertion) => (
                         <div
@@ -1260,7 +1260,7 @@ const RevisionsModule: React.FC = () => {
                   </div>
 
                   {/* Footer */}
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-[#767676]">
+                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-[#737373]">
                     <div className="flex items-center gap-1">
                       <User className="w-3 h-3" />
                       <span>{ls.preparePar || 'Non assigné'}</span>
@@ -1281,42 +1281,42 @@ const RevisionsModule: React.FC = () => {
       {/* ==================== TAB: MATRICE DES RISQUES ==================== */}
       {activeMainTab === 'risques' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-bold text-[#191919] flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-[#6A8A82]" />
+                <h2 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-[#171717]" />
                   Matrice des Risques et Contrôles
                 </h2>
-                <p className="text-sm text-[#767676]">
+                <p className="text-sm text-[#737373]">
                   Évaluation selon ISA 315 - Identification et évaluation des risques
                 </p>
               </div>
-              <button className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] flex items-center space-x-2">
+              <button className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
                 <span>Nouveau risque</span>
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left p-4 font-semibold text-[#191919]">Cycle</th>
-                  <th className="text-left p-4 font-semibold text-[#191919]">Risque Identifié</th>
-                  <th className="text-center p-4 font-semibold text-[#191919]">Assertion</th>
-                  <th className="text-center p-4 font-semibold text-[#191919]">Probabilité</th>
-                  <th className="text-center p-4 font-semibold text-[#191919]">Impact</th>
-                  <th className="text-left p-4 font-semibold text-[#191919]">Contrôle Existant</th>
-                  <th className="text-center p-4 font-semibold text-[#191919]">Efficacité</th>
-                  <th className="text-left p-4 font-semibold text-[#191919]">Recommandation</th>
+                  <th className="text-left p-4 font-semibold text-[#171717]">Cycle</th>
+                  <th className="text-left p-4 font-semibold text-[#171717]">Risque Identifié</th>
+                  <th className="text-center p-4 font-semibold text-[#171717]">Assertion</th>
+                  <th className="text-center p-4 font-semibold text-[#171717]">Probabilité</th>
+                  <th className="text-center p-4 font-semibold text-[#171717]">Impact</th>
+                  <th className="text-left p-4 font-semibold text-[#171717]">Contrôle Existant</th>
+                  <th className="text-center p-4 font-semibold text-[#171717]">Efficacité</th>
+                  <th className="text-left p-4 font-semibold text-[#171717]">Recommandation</th>
                 </tr>
               </thead>
               <tbody>
                 {risquesControles.map((rc) => (
                   <tr key={rc.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="p-4 font-medium text-[#191919]">{rc.cycle}</td>
+                    <td className="p-4 font-medium text-[#171717]">{rc.cycle}</td>
                     <td className="p-4 text-sm">{rc.risque}</td>
                     <td className="p-4 text-center">
                       <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs">
@@ -1345,7 +1345,7 @@ const RevisionsModule: React.FC = () => {
                         {rc.efficaciteControle.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="p-4 text-sm text-[#767676] max-w-xs">{rc.recommandation || '-'}</td>
+                    <td className="p-4 text-sm text-[#737373] max-w-xs">{rc.recommandation || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1358,14 +1358,14 @@ const RevisionsModule: React.FC = () => {
       {/* ==================== TAB: AJUSTEMENTS (PAJE/AAJE) ==================== */}
       {activeMainTab === 'ajustements' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-bold text-[#191919] flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-[#6A8A82]" />
+                <h2 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-[#171717]" />
                   Écritures d'Ajustement (PAJE / AAJE)
                 </h2>
-                <p className="text-sm text-[#767676]">
+                <p className="text-sm text-[#737373]">
                   Proposed Adjusting Journal Entries / Actual Adjusting Journal Entries
                 </p>
               </div>
@@ -1403,7 +1403,7 @@ const RevisionsModule: React.FC = () => {
           {/* Liste des PAJE */}
           <div className="space-y-4">
             {revisions.filter(r => r.ecritureProposee).map((revision) => (
-              <div key={revision.id} className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
+              <div key={revision.id} className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -1412,8 +1412,8 @@ const RevisionsModule: React.FC = () => {
                       {revision.ecritureProposee?.type}
                     </span>
                     <div>
-                      <p className="font-medium text-[#191919]">{revision.ecritureProposee?.id}</p>
-                      <p className="text-sm text-[#767676]">Révision: {revision.id}</p>
+                      <p className="font-medium text-[#171717]">{revision.ecritureProposee?.id}</p>
+                      <p className="text-sm text-[#737373]">Révision: {revision.id}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1425,17 +1425,17 @@ const RevisionsModule: React.FC = () => {
                     }`}>
                       {revision.ecritureProposee?.statut}
                     </span>
-                    <p className="font-mono font-bold text-[#191919]">
+                    <p className="font-mono font-bold text-[#171717]">
                       {formatMontant(revision.ecritureProposee?.montantTotal || 0)}
                     </p>
                   </div>
                 </div>
 
                 <div className="p-4">
-                  <p className="text-sm text-[#767676] mb-3">{revision.ecritureProposee?.justification}</p>
+                  <p className="text-sm text-[#737373] mb-3">{revision.ecritureProposee?.justification}</p>
                   <table className="w-full">
                     <thead>
-                      <tr className="text-xs text-[#767676] border-b border-gray-100">
+                      <tr className="text-xs text-[#737373] border-b border-gray-100">
                         <th className="text-left py-2">Compte</th>
                         <th className="text-left py-2">Libellé</th>
                         <th className="text-right py-2">Débit</th>
@@ -1479,14 +1479,14 @@ const RevisionsModule: React.FC = () => {
       {/* ==================== TAB: REVUE ANALYTIQUE ==================== */}
       {activeMainTab === 'analytique' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-bold text-[#191919] flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-[#6A8A82]" />
+                <h2 className="text-lg font-bold text-[#171717] flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-[#171717]" />
                   Procédures Analytiques (ISA 520)
                 </h2>
-                <p className="text-sm text-[#767676]">
+                <p className="text-sm text-[#737373]">
                   Analyse des variations significatives et des ratios clés
                 </p>
               </div>
@@ -1498,8 +1498,8 @@ const RevisionsModule: React.FC = () => {
           </div>
 
           {/* Variations significatives */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm p-6">
-            <h3 className="font-bold text-[#191919] mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm p-6">
+            <h3 className="font-bold text-[#171717] mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-orange-600" />
               Variations Significatives Détectées
             </h3>
@@ -1507,8 +1507,8 @@ const RevisionsModule: React.FC = () => {
               {leadSchedules.filter(ls => Math.abs(ls.variationPourcent) > 15).map((ls) => (
                 <div key={ls.id} className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
                   <div>
-                    <p className="font-medium text-[#191919]">{ls.cycle}</p>
-                    <p className="text-sm text-[#767676]">
+                    <p className="font-medium text-[#171717]">{ls.cycle}</p>
+                    <p className="text-sm text-[#737373]">
                       {formatMontant(ls.soldePrecedent)} → {formatMontant(ls.soldeActuel)}
                     </p>
                   </div>
@@ -1516,7 +1516,7 @@ const RevisionsModule: React.FC = () => {
                     <p className={`text-lg font-bold ${ls.variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {ls.variation >= 0 ? '+' : ''}{ls.variationPourcent}%
                     </p>
-                    <p className="text-sm text-[#767676]">
+                    <p className="text-sm text-[#737373]">
                       {ls.variation >= 0 ? '+' : ''}{formatMontant(ls.variation)}
                     </p>
                   </div>
@@ -1529,8 +1529,8 @@ const RevisionsModule: React.FC = () => {
           </div>
 
           {/* Ratios SYSCOHADA */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm p-6">
-            <h3 className="font-bold text-[#191919] mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm p-6">
+            <h3 className="font-bold text-[#171717] mb-4 flex items-center gap-2">
               <PieChart className="w-5 h-5 text-blue-600" />
               Ratios Clés SYSCOHADA
             </h3>
@@ -1553,9 +1553,9 @@ const RevisionsModule: React.FC = () => {
                     'bg-red-50 border-red-200'
                   }`}
                 >
-                  <p className="text-xs text-[#767676] mb-1">{ratio.nom}</p>
-                  <p className="text-lg font-bold text-[#191919]">{ratio.valeur}</p>
-                  <p className="text-xs text-[#767676]">Norme: {ratio.norme}</p>
+                  <p className="text-xs text-[#737373] mb-1">{ratio.nom}</p>
+                  <p className="text-lg font-bold text-[#171717]">{ratio.valeur}</p>
+                  <p className="text-xs text-[#737373]">Norme: {ratio.norme}</p>
                 </div>
               ))}
             </div>
@@ -1571,12 +1571,12 @@ const RevisionsModule: React.FC = () => {
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="bg-[#6A8A82]/10 text-[#6A8A82] p-2 rounded-lg">
+                <div className="bg-[#171717]/10 text-[#171717] p-2 rounded-lg">
                   <FileSearch className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#191919]">Détail de la Révision</h2>
-                  <p className="text-sm text-[#767676]">{selectedRevision.id} - {selectedRevision.referentiel}</p>
+                  <h2 className="text-lg font-bold text-[#171717]">Détail de la Révision</h2>
+                  <p className="text-sm text-[#737373]">{selectedRevision.id} - {selectedRevision.referentiel}</p>
                 </div>
               </div>
               <button
@@ -1596,8 +1596,8 @@ const RevisionsModule: React.FC = () => {
                     onClick={() => toggleSection('general')}
                     className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100"
                   >
-                    <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide flex items-center gap-2">
-                      <span className="w-1 h-4 bg-[#6A8A82] rounded"></span>
+                    <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide flex items-center gap-2">
+                      <span className="w-1 h-4 bg-[#171717] rounded"></span>
                       Informations Générales
                     </h3>
                     {expandedSections.includes('general') ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -1606,54 +1606,54 @@ const RevisionsModule: React.FC = () => {
                     <div className="p-4">
                       <div className="grid grid-cols-3 gap-4">
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Compte</p>
+                          <p className="text-xs text-[#737373] mb-1">Compte</p>
                           <p className="font-mono font-medium">{selectedRevision.compte}</p>
-                          <p className="text-sm text-[#767676]">{selectedRevision.libelleCompte}</p>
+                          <p className="text-sm text-[#737373]">{selectedRevision.libelleCompte}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Type</p>
+                          <p className="text-xs text-[#737373] mb-1">Type</p>
                           <span className={`inline-block px-3 py-1 rounded-lg text-sm font-medium border ${getTypeColor(selectedRevision.type)}`}>
                             {selectedRevision.type}
                           </span>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Statut</p>
+                          <p className="text-xs text-[#737373] mb-1">Statut</p>
                           <div className="flex items-center gap-2">
                             {getStatutIcon(selectedRevision.statut)}
                             <span className="text-sm">{selectedRevision.statut.replace('_', ' ')}</span>
                           </div>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Priorité</p>
+                          <p className="text-xs text-[#737373] mb-1">Priorité</p>
                           <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPrioriteColor(selectedRevision.priorite)}`}>
                             {selectedRevision.priorite}
                           </span>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Niveau de Risque</p>
+                          <p className="text-xs text-[#737373] mb-1">Niveau de Risque</p>
                           <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getRisqueColor(selectedRevision.niveauRisque)}`}>
                             {selectedRevision.niveauRisque.replace('_', ' ')}
                           </span>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Type de Test</p>
+                          <p className="text-xs text-[#737373] mb-1">Type de Test</p>
                           <p className="text-sm capitalize">{selectedRevision.typeTest || 'Non défini'}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Montant</p>
-                          <p className="text-lg font-bold text-[#191919]">{formatMontant(selectedRevision.montant)}</p>
+                          <p className="text-xs text-[#737373] mb-1">Montant</p>
+                          <p className="text-lg font-bold text-[#171717]">{formatMontant(selectedRevision.montant)}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Impact</p>
+                          <p className="text-xs text-[#737373] mb-1">Impact</p>
                           <p className="text-sm">{selectedRevision.impact}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#767676] mb-1">Responsable</p>
+                          <p className="text-xs text-[#737373] mb-1">Responsable</p>
                           <p className="text-sm">{selectedRevision.responsable || '-'}</p>
                         </div>
                       </div>
                       <div className="mt-4">
-                        <p className="text-xs text-[#767676] mb-1">Description</p>
+                        <p className="text-xs text-[#737373] mb-1">Description</p>
                         <p className="text-sm bg-gray-50 p-3 rounded-lg">{selectedRevision.description}</p>
                       </div>
                     </div>
@@ -1666,7 +1666,7 @@ const RevisionsModule: React.FC = () => {
                     onClick={() => toggleSection('assertions')}
                     className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100"
                   >
-                    <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide flex items-center gap-2">
                       <span className="w-1 h-4 bg-indigo-500 rounded"></span>
                       Assertions d'Audit (ISA)
                     </h3>
@@ -1696,7 +1696,7 @@ const RevisionsModule: React.FC = () => {
                       onClick={() => toggleSection('comptable')}
                       className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100"
                     >
-                      <h3 className="text-sm font-bold text-[#191919] uppercase tracking-wide flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-[#171717] uppercase tracking-wide flex items-center gap-2">
                         <span className="w-1 h-4 bg-purple-500 rounded"></span>
                         Écriture d'Ajustement ({selectedRevision.ecritureProposee.type})
                       </h3>
@@ -1709,7 +1709,7 @@ const RevisionsModule: React.FC = () => {
                         </div>
                         <table className="w-full">
                           <thead>
-                            <tr className="text-xs text-[#767676] border-b border-gray-200">
+                            <tr className="text-xs text-[#737373] border-b border-gray-200">
                               <th className="text-left py-2 px-3">Compte</th>
                               <th className="text-left py-2 px-3">Libellé</th>
                               <th className="text-right py-2 px-3">Débit</th>
@@ -1744,7 +1744,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Commentaires */}
                 {selectedRevision.commentaires && selectedRevision.commentaires.length > 0 && (
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                       <MessageSquare className="w-4 h-4" />
                       Commentaires ({selectedRevision.commentaires.length})
                     </h3>
@@ -1761,7 +1761,7 @@ const RevisionsModule: React.FC = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-medium text-sm">{comment.auteur}</span>
-                              <span className="text-xs text-[#767676]">{comment.date}</span>
+                              <span className="text-xs text-[#737373]">{comment.date}</span>
                               <span className={`px-2 py-0.5 rounded text-xs ${
                                 comment.type === 'validation' ? 'bg-green-100 text-green-700' :
                                 comment.type === 'question' ? 'bg-orange-100 text-orange-700' :
@@ -1770,7 +1770,7 @@ const RevisionsModule: React.FC = () => {
                                 {comment.type}
                               </span>
                             </div>
-                            <p className="text-sm text-[#191919]">{comment.contenu}</p>
+                            <p className="text-sm text-[#171717]">{comment.contenu}</p>
                           </div>
                         </div>
                       ))}
@@ -1781,7 +1781,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Documents */}
                 {selectedRevision.documents && selectedRevision.documents.length > 0 && (
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Documents Associés ({selectedRevision.documents.length})
                     </h3>
@@ -1792,7 +1792,7 @@ const RevisionsModule: React.FC = () => {
                             <FileText className="w-5 h-5 text-gray-500" />
                             <div>
                               <p className="text-sm font-medium">{doc.nom}</p>
-                              <p className="text-xs text-[#767676]">{doc.type} - {doc.taille}</p>
+                              <p className="text-xs text-[#737373]">{doc.type} - {doc.taille}</p>
                             </div>
                           </div>
                           <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
@@ -1861,12 +1861,12 @@ const RevisionsModule: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="bg-[#6A8A82]/10 text-[#6A8A82] p-2 rounded-lg">
+                <div className="bg-[#171717]/10 text-[#171717] p-2 rounded-lg">
                   <Layers className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#191919]">Lead Schedule - {selectedLeadSchedule.cycle}</h2>
-                  <p className="text-sm text-[#767676]">Feuille de travail principale</p>
+                  <h2 className="text-lg font-bold text-[#171717]">Lead Schedule - {selectedLeadSchedule.cycle}</h2>
+                  <p className="text-sm text-[#737373]">Feuille de travail principale</p>
                 </div>
               </div>
               <button
@@ -1882,21 +1882,21 @@ const RevisionsModule: React.FC = () => {
                 {/* Soldes et variations */}
                 <div className="grid grid-cols-4 gap-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-[#767676]">Solde N-1</p>
+                    <p className="text-xs text-[#737373]">Solde N-1</p>
                     <p className="text-lg font-bold">{formatMontant(selectedLeadSchedule.soldePrecedent)}</p>
                   </div>
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-[#767676]">Solde N</p>
+                    <p className="text-xs text-[#737373]">Solde N</p>
                     <p className="text-lg font-bold">{formatMontant(selectedLeadSchedule.soldeActuel)}</p>
                   </div>
                   <div className={`p-4 rounded-lg ${selectedLeadSchedule.variation >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-                    <p className="text-xs text-[#767676]">Variation</p>
+                    <p className="text-xs text-[#737373]">Variation</p>
                     <p className={`text-lg font-bold ${selectedLeadSchedule.variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {selectedLeadSchedule.variation >= 0 ? '+' : ''}{selectedLeadSchedule.variationPourcent}%
                     </p>
                   </div>
                   <div className="p-4 bg-purple-50 rounded-lg">
-                    <p className="text-xs text-[#767676]">Seuil de significativité</p>
+                    <p className="text-xs text-[#737373]">Seuil de significativité</p>
                     <p className="text-lg font-bold text-purple-800">{formatMontant(selectedLeadSchedule.seuilSignificativite)}</p>
                   </div>
                 </div>
@@ -1928,7 +1928,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assertions testées */}
                 <div>
-                  <h3 className="font-bold text-[#191919] mb-3">Assertions Testées</h3>
+                  <h3 className="font-bold text-[#171717] mb-3">Assertions Testées</h3>
                   <div className="space-y-3">
                     {selectedLeadSchedule.assertions.map((assertion) => (
                       <div key={assertion.code} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1950,7 +1950,7 @@ const RevisionsModule: React.FC = () => {
                             {assertion.testEffectue ? 'Testé' : 'En attente'}
                           </span>
                         </div>
-                        <p className="text-sm text-[#767676]">{assertion.description}</p>
+                        <p className="text-sm text-[#737373]">{assertion.description}</p>
                         {assertion.conclusion && (
                           <p className="text-sm text-green-700 mt-2 bg-green-50 p-2 rounded">
                             <strong>Conclusion:</strong> {assertion.conclusion}
@@ -1972,7 +1972,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Recommandations */}
                 {selectedLeadSchedule.recommandations && selectedLeadSchedule.recommandations.length > 0 && (
                   <div>
-                    <h3 className="font-bold text-[#191919] mb-3">Recommandations</h3>
+                    <h3 className="font-bold text-[#171717] mb-3">Recommandations</h3>
                     <ul className="space-y-2">
                       {selectedLeadSchedule.recommandations.map((rec, index) => (
                         <li key={index} className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
@@ -2003,7 +2003,7 @@ const RevisionsModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <h2 className="text-lg font-bold text-[#191919]">Nouvelle Révision Comptable</h2>
+              <h2 className="text-lg font-bold text-[#171717]">Nouvelle Révision Comptable</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -2016,10 +2016,10 @@ const RevisionsModule: React.FC = () => {
               <div className="space-y-6">
                 {/* Informations de base */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3">Informations de Base</h3>
+                  <h3 className="text-sm font-bold text-[#171717] mb-3">Informations de Base</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Compte SYSCOHADA *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Compte SYSCOHADA *</label>
                       <input
                         type="text"
                         placeholder="Ex: 401100"
@@ -2027,7 +2027,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Libellé du compte</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Libellé du compte</label>
                       <input
                         type="text"
                         placeholder="Libellé automatique"
@@ -2036,7 +2036,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Type de révision *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Type de révision *</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="">Sélectionner...</option>
                         <option value="anomalie">Anomalie</option>
@@ -2047,7 +2047,7 @@ const RevisionsModule: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Priorité *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Priorité *</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="basse">Basse</option>
                         <option value="moyenne">Moyenne</option>
@@ -2056,7 +2056,7 @@ const RevisionsModule: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Montant (FCFA) *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Montant (FCFA) *</label>
                       <input
                         type="number"
                         placeholder="Montant"
@@ -2064,7 +2064,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Niveau de risque</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Niveau de risque</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="faible">Faible</option>
                         <option value="modere">Modéré</option>
@@ -2077,7 +2077,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assertions ISA */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3">Assertions ISA Concernées</h3>
+                  <h3 className="text-sm font-bold text-[#171717] mb-3">Assertions ISA Concernées</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(assertionsAudit).map(([code, info]) => (
                       <label key={code} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
@@ -2090,10 +2090,10 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Description et impact */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3">Description et Impact</h3>
+                  <h3 className="text-sm font-bold text-[#171717] mb-3">Description et Impact</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Description détaillée *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Description détaillée *</label>
                       <textarea
                         rows={3}
                         placeholder="Décrivez l'anomalie ou l'ajustement..."
@@ -2101,7 +2101,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Impact</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Impact</label>
                       <input
                         type="text"
                         placeholder="Ex: Impact sur le résultat net"
@@ -2113,10 +2113,10 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assignation */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3">Assignation</h3>
+                  <h3 className="text-sm font-bold text-[#171717] mb-3">Assignation</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Responsable</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Responsable</label>
                       <input
                         type="text"
                         placeholder="Nom du responsable"
@@ -2124,7 +2124,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Date d'échéance</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Date d'échéance</label>
                       <input
                         type="date"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -2147,7 +2147,7 @@ const RevisionsModule: React.FC = () => {
                   toast.success('Révision créée avec succès');
                   setShowCreateModal(false);
                 }}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72]"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626]"
               >
                 Créer la révision
               </button>
@@ -2168,8 +2168,8 @@ const RevisionsModule: React.FC = () => {
                     <Scale className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[#191919]">Créer une Écriture d'Ajustement</h2>
-                    <p className="text-sm text-[#767676]">
+                    <h2 className="text-lg font-bold text-[#171717]">Créer une Écriture d'Ajustement</h2>
+                    <p className="text-sm text-[#737373]">
                       Révision: {selectedRevision.id} - {selectedRevision.compte} {selectedRevision.libelleCompte}
                     </p>
                   </div>
@@ -2188,7 +2188,7 @@ const RevisionsModule: React.FC = () => {
               <div className="space-y-6">
                 {/* Type d'ajustement */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-purple-500 rounded"></span>
                     Type d'Écriture
                   </h3>
@@ -2198,7 +2198,7 @@ const RevisionsModule: React.FC = () => {
                       <div>
                         <p className="font-semibold text-orange-800">PAJE</p>
                         <p className="text-xs text-orange-700">Proposed Adjusting Journal Entry</p>
-                        <p className="text-xs text-[#767676] mt-1">Écriture proposée en attente de validation</p>
+                        <p className="text-xs text-[#737373] mt-1">Écriture proposée en attente de validation</p>
                       </div>
                     </label>
                     <label className="flex items-center gap-3 p-4 border-2 border-green-300 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100">
@@ -2206,7 +2206,7 @@ const RevisionsModule: React.FC = () => {
                       <div>
                         <p className="font-semibold text-green-800">AAJE</p>
                         <p className="text-xs text-green-700">Actual Adjusting Journal Entry</p>
-                        <p className="text-xs text-[#767676] mt-1">Écriture validée à comptabiliser</p>
+                        <p className="text-xs text-[#737373] mt-1">Écriture validée à comptabiliser</p>
                       </div>
                     </label>
                   </div>
@@ -2214,21 +2214,21 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Informations de l'ajustement */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-blue-500 rounded"></span>
                     Informations de l'Ajustement
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Référence *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Référence *</label>
                       <input
                         type="text"
-                        defaultValue={`PAJE-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`}
+                        defaultValue={`PAJE-${new Date().getFullYear()}-001`}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Date de l'écriture</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Date de l'écriture</label>
                       <input
                         type="date"
                         defaultValue={new Date().toISOString().split('T')[0]}
@@ -2236,7 +2236,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Justification *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Justification *</label>
                       <textarea
                         rows={2}
                         defaultValue={selectedRevision.description}
@@ -2250,7 +2250,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Lignes d'écriture */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-[#191919] flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#171717] flex items-center gap-2">
                       <span className="w-1 h-4 bg-green-500 rounded"></span>
                       Lignes d'Écriture Comptable
                     </h3>
@@ -2264,11 +2264,11 @@ const RevisionsModule: React.FC = () => {
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left p-3 font-semibold text-[#191919]">Compte</th>
-                          <th className="text-left p-3 font-semibold text-[#191919]">Libellé</th>
-                          <th className="text-right p-3 font-semibold text-[#191919]">Débit (FCFA)</th>
-                          <th className="text-right p-3 font-semibold text-[#191919]">Crédit (FCFA)</th>
-                          <th className="text-center p-3 font-semibold text-[#191919]">Actions</th>
+                          <th className="text-left p-3 font-semibold text-[#171717]">Compte</th>
+                          <th className="text-left p-3 font-semibold text-[#171717]">Libellé</th>
+                          <th className="text-right p-3 font-semibold text-[#171717]">Débit (FCFA)</th>
+                          <th className="text-right p-3 font-semibold text-[#171717]">Crédit (FCFA)</th>
+                          <th className="text-center p-3 font-semibold text-[#171717]">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2370,7 +2370,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assertions concernées */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-indigo-500 rounded"></span>
                     Assertions ISA Concernées
                   </h3>
@@ -2388,18 +2388,18 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Pièces justificatives */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-orange-500 rounded"></span>
                     Pièces Justificatives
                   </h3>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#6A8A82] hover:bg-gray-50 cursor-pointer transition-colors">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#171717] hover:bg-gray-50 cursor-pointer transition-colors">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-[#767676]">Glissez-déposez vos fichiers ici ou cliquez pour parcourir</p>
+                    <p className="text-sm text-[#737373]">Glissez-déposez vos fichiers ici ou cliquez pour parcourir</p>
                     <p className="text-xs text-gray-400 mt-1">PDF, Excel, Images (max 10 MB)</p>
                   </div>
                   {selectedRevision.documents && selectedRevision.documents.length > 0 && (
                     <div className="mt-3 space-y-2">
-                      <p className="text-xs text-[#767676]">Documents de la révision :</p>
+                      <p className="text-xs text-[#737373]">Documents de la révision :</p>
                       {selectedRevision.documents.map((doc) => (
                         <div key={doc.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                           <FileText className="w-4 h-4 text-gray-500" />
@@ -2413,7 +2413,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Notes et commentaires */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-gray-500 rounded"></span>
                     Notes et Commentaires
                   </h3>
@@ -2429,7 +2429,7 @@ const RevisionsModule: React.FC = () => {
             {/* Footer */}
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg">
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 text-sm text-[#767676]">
+                <div className="flex items-center gap-2 text-sm text-[#737373]">
                   <Info className="w-4 h-4" />
                   <span>L'écriture sera soumise à validation avant comptabilisation</span>
                 </div>
@@ -2478,8 +2478,8 @@ const RevisionsModule: React.FC = () => {
                     <Edit className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[#191919]">Modifier la Révision</h2>
-                    <p className="text-sm text-[#767676]">{selectedRevision.id}</p>
+                    <h2 className="text-lg font-bold text-[#171717]">Modifier la Révision</h2>
+                    <p className="text-sm text-[#737373]">{selectedRevision.id}</p>
                   </div>
                 </div>
                 <button
@@ -2496,13 +2496,13 @@ const RevisionsModule: React.FC = () => {
               <div className="space-y-6">
                 {/* Informations du compte */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-[#6A8A82] rounded"></span>
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-[#171717] rounded"></span>
                     Informations du Compte
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Compte SYSCOHADA *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Compte SYSCOHADA *</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.compte}
@@ -2510,7 +2510,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Libellé du compte</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Libellé du compte</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.libelleCompte}
@@ -2522,13 +2522,13 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Type et Priorité */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-orange-500 rounded"></span>
                     Classification
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Type de révision *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Type de révision *</label>
                       <select
                         defaultValue={selectedRevision.type}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -2541,7 +2541,7 @@ const RevisionsModule: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Priorité *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Priorité *</label>
                       <select
                         defaultValue={selectedRevision.priorite}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -2553,7 +2553,7 @@ const RevisionsModule: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Statut</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Statut</label>
                       <select
                         defaultValue={selectedRevision.statut}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -2570,13 +2570,13 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Montant et Risque */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-purple-500 rounded"></span>
                     Montant et Évaluation
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Montant (FCFA) *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Montant (FCFA) *</label>
                       <input
                         type="number"
                         defaultValue={selectedRevision.montant}
@@ -2584,7 +2584,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Niveau de risque</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Niveau de risque</label>
                       <select
                         defaultValue={selectedRevision.niveauRisque}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -2596,7 +2596,7 @@ const RevisionsModule: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Type de test</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Type de test</label>
                       <select
                         defaultValue={selectedRevision.typeTest || ''}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -2616,13 +2616,13 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Description et Impact */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-blue-500 rounded"></span>
                     Description et Impact
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Description détaillée *</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Description détaillée *</label>
                       <textarea
                         rows={3}
                         defaultValue={selectedRevision.description}
@@ -2630,7 +2630,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Impact</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Impact</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.impact}
@@ -2642,7 +2642,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assertions ISA */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-indigo-500 rounded"></span>
                     Assertions ISA Concernées
                   </h3>
@@ -2662,13 +2662,13 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assignation */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-green-500 rounded"></span>
                     Assignation et Délais
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Responsable</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Responsable</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.responsable || ''}
@@ -2677,7 +2677,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Réviseur</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Réviseur</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.reviseur || ''}
@@ -2686,7 +2686,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#191919] mb-1">Date d'échéance</label>
+                      <label className="block text-sm font-medium text-[#171717] mb-1">Date d'échéance</label>
                       <input
                         type="date"
                         defaultValue={selectedRevision.dateEcheance || ''}
@@ -2698,7 +2698,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Pièce justificative */}
                 <div>
-                  <h3 className="text-sm font-bold text-[#191919] mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#171717] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-yellow-500 rounded"></span>
                     Pièce Justificative
                   </h3>
@@ -2715,7 +2715,7 @@ const RevisionsModule: React.FC = () => {
             {/* Footer */}
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg">
               <div className="flex justify-between items-center">
-                <div className="text-sm text-[#767676]">
+                <div className="text-sm text-[#737373]">
                   Dernière modification: {new Date(selectedRevision.dateDetection).toLocaleDateString('fr-FR')}
                 </div>
                 <div className="flex gap-3">
@@ -2730,7 +2730,7 @@ const RevisionsModule: React.FC = () => {
                       toast.success(`Révision ${selectedRevision.id} mise à jour avec succès`);
                       setShowEditModal(false);
                     }}
-                    className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] flex items-center gap-2"
+                    className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] flex items-center gap-2"
                   >
                     <CheckCircle className="w-4 h-4" />
                     Enregistrer les modifications

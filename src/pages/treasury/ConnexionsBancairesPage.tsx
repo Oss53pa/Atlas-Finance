@@ -212,9 +212,9 @@ const ConnexionsBancairesPage: React.FC = () => {
 
   const getAccountTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      'courant': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'courant': 'bg-[#171717]/10 text-[#171717]',
       'epargne': 'bg-green-100 text-green-800',
-      'depot': 'bg-[#B87333]/10 text-[#B87333]',
+      'depot': 'bg-[#525252]/10 text-[#525252]',
       'credit': 'bg-red-100 text-red-800'
     };
     return colors[type] || 'bg-gray-100 text-gray-800';
@@ -305,7 +305,7 @@ const ConnexionsBancairesPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <Building2 className="mr-3 h-7 w-7 text-[#6A8A82]" />
+              <Building2 className="mr-3 h-7 w-7 text-[#171717]" />
               Connexions Bancaires
             </h1>
             <p className="mt-2 text-gray-600">
@@ -316,7 +316,7 @@ const ConnexionsBancairesPage: React.FC = () => {
             <Button
               onClick={handleConnectNewAccount}
               disabled={isConnecting}
-              className="bg-[#6A8A82] hover:bg-[#6A8A82]/80"
+              className="bg-[#171717] hover:bg-[#171717]/80"
             >
               {isConnecting ? (
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -343,8 +343,8 @@ const ConnexionsBancairesPage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-6">
               <div className="flex items-center space-x-4">
-                <div className="p-2 bg-[#6A8A82]/10 rounded-full">
-                  <Building2 className="h-6 w-6 text-[#6A8A82]" />
+                <div className="p-2 bg-[#171717]/10 rounded-full">
+                  <Building2 className="h-6 w-6 text-[#171717]" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Comptes Connectés</p>
@@ -461,8 +461,8 @@ const ConnexionsBancairesPage: React.FC = () => {
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-[#6A8A82]/10 rounded-full">
-                              <Building2 className="h-6 w-6 text-[#6A8A82]" />
+                            <div className="p-2 bg-[#171717]/10 rounded-full">
+                              <Building2 className="h-6 w-6 text-[#171717]" />
                             </div>
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900">
@@ -715,21 +715,21 @@ const ConnexionsBancairesPage: React.FC = () => {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center space-x-3">
-                            <Key className="h-5 w-5 text-[#6A8A82]" />
+                            <Key className="h-5 w-5 text-[#171717]" />
                             <span>Authentification 2FA</span>
                           </div>
                           <Badge className="bg-green-100 text-green-800">Activé</Badge>
                         </div>
                         <div className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center space-x-3">
-                            <Shield className="h-5 w-5 text-[#6A8A82]" />
+                            <Shield className="h-5 w-5 text-[#171717]" />
                             <span>Certificat SSL</span>
                           </div>
                           <Badge className="bg-green-100 text-green-800">Activé</Badge>
                         </div>
                         <div className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center space-x-3">
-                            <Key className="h-5 w-5 text-[#6A8A82]" />
+                            <Key className="h-5 w-5 text-[#171717]" />
                             <span>Chiffrement des Données</span>
                           </div>
                           <Badge className="bg-green-100 text-green-800">AES-256</Badge>
@@ -770,7 +770,7 @@ const ConnexionsBancairesPage: React.FC = () => {
         >
           <div className="flex items-center space-x-4">
             <div className="animate-spin">
-              <RefreshCw className="h-6 w-6 text-[#6A8A82]" />
+              <RefreshCw className="h-6 w-6 text-[#171717]" />
             </div>
             <div>
               <p className="font-medium text-gray-900">Connexion en cours...</p>

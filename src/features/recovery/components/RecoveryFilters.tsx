@@ -23,7 +23,7 @@ export const RecoveryFilters: React.FC<RecoveryFiltersProps> = ({
   onClearFilters,
 }) => {
   return (
-    <div className="bg-white rounded-lg border border-[#D9D9D9] p-4">
+    <div className="bg-white rounded-lg border border-[#d4d4d4] p-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Input
           placeholder="Rechercher par client, référence..."

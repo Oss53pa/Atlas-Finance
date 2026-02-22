@@ -116,12 +116,12 @@ const AssetsClasses: React.FC = () => {
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; text: string; border: string }> = {
-      purple: { bg: 'bg-[#B87333]/10', text: 'text-[#B87333]', border: 'border-[#B87333]/20' },
-      blue: { bg: 'bg-[#6A8A82]/10', text: 'text-[#6A8A82]', border: 'border-[#6A8A82]/20' },
+      purple: { bg: 'bg-[#525252]/10', text: 'text-[#525252]', border: 'border-[#525252]/20' },
+      blue: { bg: 'bg-[#171717]/10', text: 'text-[#171717]', border: 'border-[#171717]/20' },
       green: { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' },
       orange: { bg: 'bg-orange-500/10', text: 'text-orange-500', border: 'border-orange-500/20' },
       red: { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20' },
-      indigo: { bg: 'bg-[#5A7A72]/10', text: 'text-[#5A7A72]', border: 'border-[#5A7A72]/20' }
+      indigo: { bg: 'bg-[#262626]/10', text: 'text-[#262626]', border: 'border-[#262626]/20' }
     };
     return colors[color] || colors.blue;
   };
@@ -176,7 +176,7 @@ const AssetsClasses: React.FC = () => {
                 onClick={() => setActiveView('grid')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeView === 'grid'
-                    ? 'bg-[#6A8A82]/10 text-[#6A8A82]'
+                    ? 'bg-[#171717]/10 text-[#171717]'
                     : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-subtle)]'
                 }`}
               >
@@ -186,7 +186,7 @@ const AssetsClasses: React.FC = () => {
                 onClick={() => setActiveView('table')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeView === 'table'
-                    ? 'bg-[#6A8A82]/10 text-[#6A8A82]'
+                    ? 'bg-[#171717]/10 text-[#171717]'
                     : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-subtle)]'
                 }`}
               >

@@ -313,7 +313,7 @@ const TreasuryForecastPanel: React.FC<TreasuryForecastPanelProps> = ({
               data={cashFlowForecast?.daily_forecast || []}
               xAxisKey="date"
               lines={[
-                { key: 'receivables_inflow', name: 'Encaissements clients', color: '#10B981' },
+                { key: 'receivables_inflow', name: 'Encaissements clients', color: '#22c55e' },
                 { key: 'payables_outflow', name: 'Paiements fournisseurs', color: '#EF4444' },
                 { key: 'cumulative_position', name: 'Position cumulative', color: '#3B82F6' }
               ]}

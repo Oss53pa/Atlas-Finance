@@ -89,10 +89,10 @@ class PDFGeneratorService {
     const doc = new jsPDF();
 
     // Configuration des couleurs du thème
-    const primaryColor = [106, 138, 130]; // #6A8A82
-    const secondaryColor = [184, 115, 51]; // #B87333
-    const textColor = [25, 25, 25]; // #191919
-    const grayColor = [118, 118, 118]; // #767676
+    const primaryColor = [23, 23, 23]; // #171717
+    const secondaryColor = [82, 82, 82]; // #525252
+    const textColor = [23, 23, 23]; // #171717
+    const grayColor = [115, 115, 115]; // #737373
 
     let yPosition = 20;
 

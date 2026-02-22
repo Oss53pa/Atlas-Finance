@@ -427,7 +427,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     dataKey="amount"
                     nameKey="status"
                     height={300}
-                    colors={['#10B981', '#F59E0B', '#EF4444', '#8B5CF6']}
+                    colors={['#22c55e', '#F59E0B', '#EF4444', '#8B5CF6']}
                   />
                 )}
               </CardContent>

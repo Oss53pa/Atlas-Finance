@@ -436,7 +436,7 @@ const IAAssistant: React.FC = () => {
         type: 'assistant',
         content: generateAIResponse(inputMessage),
         timestamp: new Date().toISOString(),
-        confidence: Math.random() * 20 + 80, // 80-100%
+        confidence: 0,
         sources: ['Base de connaissances', 'Données de l\'entreprise', 'Référentiel SYSCOHADA']
       };
 

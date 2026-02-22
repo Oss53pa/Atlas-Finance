@@ -14,6 +14,7 @@ import {
   Database,
   TrendingUp
 } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 interface FormulaVariable {
   name: string;
@@ -428,7 +429,7 @@ const AdvancedFormulaEditor: React.FC = () => {
                     <div className="space-y-2">
                       <div className="text-sm text-green-800">
                         <strong>Résultat:</strong> {typeof testResult.result === 'number'
-                          ? testResult.result.toLocaleString('fr-FR')
+                          ? formatCurrency(testResult.result as number)
                           : testResult.result
                         }
                       </div>
@@ -549,7 +550,7 @@ const AdvancedFormulaEditor: React.FC = () => {
                 <div className="text-xs text-green-600 mb-2">Résultat calculé:</div>
                 <div className="text-lg font-bold text-green-900">
                   {typeof testResult.result === 'number'
-                    ? testResult.result.toLocaleString('fr-FR')
+                    ? formatCurrency(testResult.result as number)
                     : testResult.result
                   }
                   {selectedTemplate === 'provision_clients' && ' XOF'}

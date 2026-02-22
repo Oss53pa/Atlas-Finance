@@ -170,14 +170,14 @@ const TaxConfiguration: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* En-tête */}
-      <div className="bg-[#6A8A82] rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
+      <div className="bg-[#171717] rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-white flex items-center">
               <CurrencyDollarIcon className="h-8 w-8 mr-3 text-white" />
               Configuration des Taxes et TVA
             </h1>
-            <p className="text-[#F0F3F2] mt-2">
+            <p className="text-[#f5f5f5] mt-2">
               Paramétrage complet des taxes selon SYSCOHADA et zones économiques
             </p>
           </div>
@@ -185,7 +185,7 @@ const TaxConfiguration: React.FC = () => {
             <select
               value={selectedZone}
               onChange={(e) => setSelectedZone(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
             >
               <option value="CEMAC">Zone CEMAC</option>
               <option value="UEMOA">Zone UEMOA</option>
@@ -194,7 +194,7 @@ const TaxConfiguration: React.FC = () => {
             </select>
             <button
               onClick={importZoneTaxes}
-              className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#6A8A82] transition-colors flex items-center"
+              className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#171717] transition-colors flex items-center"
             >
               <GlobeAltIcon className="h-5 w-5 mr-2" />
               Importer config zone
@@ -204,7 +204,7 @@ const TaxConfiguration: React.FC = () => {
       </div>
 
       {/* Onglets */}
-      <div className="bg-[#F0F3F2] rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div className="bg-[#f5f5f5] rounded-lg shadow-sm border border-gray-200 mb-6">
         <div className="flex border-b border-gray-200">
           {tabs.map((tab) => (
             <button
@@ -228,10 +228,10 @@ const TaxConfiguration: React.FC = () => {
             <div className="space-y-6">
               {/* Zone d'information */}
               {selectedZone && zoneConfigurations[selectedZone as keyof typeof zoneConfigurations] && (
-                <div className="bg-[#ECECEC] border border-[#6A8A82] rounded-lg p-4">
+                <div className="bg-[#e5e5e5] border border-[#171717] rounded-lg p-4">
                   <div className="flex items-start">
-                    <InformationCircleIcon className="h-5 w-5 text-[#6A8A82] mr-2 flex-shrink-0" />
-                    <div className="text-sm text-[#191919]">
+                    <InformationCircleIcon className="h-5 w-5 text-[#171717] mr-2 flex-shrink-0" />
+                    <div className="text-sm text-[#171717]">
                       <p className="font-medium">{zoneConfigurations[selectedZone as keyof typeof zoneConfigurations].name}</p>
                       <p>Pays: {zoneConfigurations[selectedZone as keyof typeof zoneConfigurations].countries.join(', ')}</p>
                     </div>
@@ -246,7 +246,7 @@ const TaxConfiguration: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => addTax()}
-                    className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#6A8A82] transition-colors flex items-center"
+                    className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#171717] transition-colors flex items-center"
                   >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Ajouter une taxe
@@ -268,7 +268,7 @@ const TaxConfiguration: React.FC = () => {
                 ) : (
                   <div className="space-y-3">
                     {fields.map((field, index) => (
-                      <div key={field.id} className="bg-[#ECECEC] border border-gray-200 rounded-lg p-4">
+                      <div key={field.id} className="bg-[#e5e5e5] border border-gray-200 rounded-lg p-4">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -282,7 +282,7 @@ const TaxConfiguration: React.FC = () => {
                                   {...field}
                                   type="text"
                                   placeholder="TVA"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 />
                               )}
                             />
@@ -300,7 +300,7 @@ const TaxConfiguration: React.FC = () => {
                                   {...field}
                                   type="text"
                                   placeholder="Taxe sur la Valeur Ajoutée"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 />
                               )}
                             />
@@ -316,7 +316,7 @@ const TaxConfiguration: React.FC = () => {
                               render={({ field }) => (
                                 <select
                                   {...field}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 >
                                   <option value="TVA">TVA</option>
                                   <option value="IS">Impôt sur les Sociétés</option>
@@ -348,7 +348,7 @@ const TaxConfiguration: React.FC = () => {
                                   max="100"
                                   placeholder="19.25"
                                   onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 />
                               )}
                             />
@@ -366,7 +366,7 @@ const TaxConfiguration: React.FC = () => {
                                   {...field}
                                   type="text"
                                   placeholder="445710"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 />
                               )}
                             />
@@ -384,7 +384,7 @@ const TaxConfiguration: React.FC = () => {
                                   {...field}
                                   type="text"
                                   placeholder="445660"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 />
                               )}
                             />
@@ -400,7 +400,7 @@ const TaxConfiguration: React.FC = () => {
                               render={({ field }) => (
                                 <select
                                   {...field}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 >
                                   <option value="HT">Hors Taxes</option>
                                   <option value="TTC">Toutes Taxes Comprises</option>
@@ -421,7 +421,7 @@ const TaxConfiguration: React.FC = () => {
                               render={({ field }) => (
                                 <select
                                   {...field}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 >
                                   <option value="CEMAC">CEMAC</option>
                                   <option value="UEMOA">UEMOA</option>
@@ -444,7 +444,7 @@ const TaxConfiguration: React.FC = () => {
                                 <input
                                   {...field}
                                   type="date"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 />
                               )}
                             />
@@ -460,7 +460,7 @@ const TaxConfiguration: React.FC = () => {
                               render={({ field }) => (
                                 <select
                                   {...field}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#171717]"
                                 >
                                   <option value="MENSUELLE">Mensuelle</option>
                                   <option value="TRIMESTRIELLE">Trimestrielle</option>
@@ -559,7 +559,7 @@ const TaxConfiguration: React.FC = () => {
                     render={({ field }) => (
                       <select
                         {...field}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                       >
                         <option value="DEDANS">TVA comprise (prix TTC)</option>
                         <option value="DEHORS">TVA en sus (prix HT)</option>
@@ -583,7 +583,7 @@ const TaxConfiguration: React.FC = () => {
                     render={({ field }) => (
                       <select
                         {...field}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                       >
                         <option value="UNITE">À l'unité</option>
                         <option value="DIZAINE">À la dizaine</option>
@@ -694,7 +694,7 @@ const TaxConfiguration: React.FC = () => {
               </div>
 
               {/* Simulateur de calcul */}
-              <div className="bg-[#ECECEC] rounded-lg p-6">
+              <div className="bg-[#e5e5e5] rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <CalculatorIcon className="h-5 w-5 mr-2" />
                   Simulateur de calcul TVA
@@ -752,7 +752,7 @@ const TaxConfiguration: React.FC = () => {
                     render={({ field }) => (
                       <select
                         {...field}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                       >
                         <option value="REEL_NORMAL">Régime Réel Normal</option>
                         <option value="REEL_SIMPLIFIE">Régime Réel Simplifié</option>
@@ -777,7 +777,7 @@ const TaxConfiguration: React.FC = () => {
                         min="0"
                         placeholder="50000000"
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                       />
                     )}
                   />
@@ -793,7 +793,7 @@ const TaxConfiguration: React.FC = () => {
                     render={({ field }) => (
                       <select
                         {...field}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                       >
                         <option value="MENSUELLE">Mensuelle</option>
                         <option value="TRIMESTRIELLE">Trimestrielle</option>
@@ -818,7 +818,7 @@ const TaxConfiguration: React.FC = () => {
                         max="30"
                         placeholder="15"
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 15)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                       />
                     )}
                   />
@@ -1065,8 +1065,8 @@ const TaxConfiguration: React.FC = () => {
                 ))}
               </div>
 
-              <div className="bg-[#F0F3F2] border border-[#6A8A82] rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">
+              <div className="bg-[#f5f5f5] border border-[#171717] rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">
                   Prochaines échéances
                 </h3>
                 <div className="space-y-3">
@@ -1110,7 +1110,7 @@ const TaxConfiguration: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#6A8A82] transition-colors flex items-center"
+              className="px-6 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#171717] transition-colors flex items-center"
             >
               <CheckCircleIcon className="h-5 w-5 mr-2" />
               Enregistrer la configuration

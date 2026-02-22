@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { 
-  TrendingUp, 
-  BarChart3, 
-  PieChart, 
+import { db } from '../../lib/db';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { formatCurrency } from '../../utils/formatters';
+import {
+  TrendingUp,
+  BarChart3,
+  PieChart,
   DollarSign,
   Users,
   Target,
@@ -22,73 +25,70 @@ const ManagerDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('financial');
 
-  // KPIs Executive style Kads Agency
+  // Live KPIs from Dexie
+  const liveKpiData = useLiveQuery(async () => {
+    const entries = await db.journalEntries.toArray();
+    // Revenue: credit on class 7
+    let revenue = 0;
+    let expenses = 0;
+    let treasury = 0;
+    for (const e of entries) {
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith('7')) revenue += l.credit - l.debit;
+        if (l.accountCode.startsWith('6')) expenses += l.debit - l.credit;
+        if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
+      }
+    }
+    const margin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
+    const pendingEntries = entries.filter(e => e.status === 'draft' || e.status === 'pending');
+    return { revenue, expenses, treasury, margin, pendingCount: pendingEntries.length };
+  }, []) || { revenue: 0, expenses: 0, treasury: 0, margin: 0, pendingCount: 0 };
+
   const kpis = [
     {
       title: 'Chiffre d\'Affaires',
-      value: '€2.4M',
-      change: '+15.3%',
-      trend: 'up',
+      value: formatCurrency(liveKpiData.revenue),
+      change: '',
+      trend: 'up' as const,
       color: 'blue',
       icon: DollarSign,
-      description: 'vs mois précédent',
-      target: '€2.8M'
+      description: 'Total produits',
+      target: '-'
     },
     {
       title: 'Marge Brute',
-      value: '38.5%',
-      change: '+2.1%',
-      trend: 'up',
+      value: `${liveKpiData.margin.toFixed(1)}%`,
+      change: '',
+      trend: 'up' as const,
       color: 'green',
       icon: TrendingUp,
-      description: 'Amélioration continue',
-      target: '40%'
+      description: 'Produits - Charges',
+      target: '-'
     },
     {
-      title: 'DSO Clients',
-      value: '32 jours',
-      change: '-5 jours',
-      trend: 'up',
+      title: 'Écritures en attente',
+      value: `${liveKpiData.pendingCount}`,
+      change: '',
+      trend: 'down' as const,
       color: 'orange',
       icon: Target,
-      description: 'Recouvrement optimisé',
-      target: '30 jours'
+      description: 'À valider',
+      target: '0'
     },
     {
       title: 'Trésorerie Nette',
-      value: '€890K',
-      change: '+12.8%',
-      trend: 'up',
+      value: formatCurrency(liveKpiData.treasury),
+      change: '',
+      trend: 'up' as const,
       color: 'purple',
       icon: BarChart3,
-      description: 'Position renforcée',
-      target: '€1M'
+      description: 'Comptes classe 5',
+      target: '-'
     }
   ];
 
-  const alerts = [
-    {
-      type: 'warning',
-      title: 'Factures impayées',
-      message: '12 factures dépassent 60 jours',
-      action: 'Voir détails',
-      time: '2h'
-    },
-    {
-      type: 'info',
-      title: 'Clôture mensuelle',
-      message: 'Clôture septembre à finaliser',
-      action: 'Finaliser',
-      time: '1j'
-    },
-    {
-      type: 'success',
-      title: 'Objectif atteint',
-      message: 'CA mensuel objectif dépassé de 15%',
-      action: 'Analyser',
-      time: '3h'
-    }
-  ];
+  // TODO: wire alerts to real audit/notification system
+  const alerts: Array<{ type: string; title: string; message: string; action: string; time: string }> = [];
 
   const tabs = [
     { id: 'financial', label: 'Financier', icon: DollarSign },
@@ -267,30 +267,28 @@ const ManagerDashboard: React.FC = () => {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {[
-                  { name: 'SARL CONGO BUSINESS', amount: '€245K', growth: '+18%', color: 'green' },
-                  { name: 'STE AFRICAINE TECH', amount: '€189K', growth: '+12%', color: 'green' },
-                  { name: 'CAMEROUN INDUSTRIES', amount: '€156K', growth: '-3%', color: 'red' },
-                  { name: 'GABON LOGISTICS', amount: '€134K', growth: '+25%', color: 'green' },
-                ].map((client, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 hover:bg-[var(--color-background-secondary)] rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
-                        <Users className="w-5 h-5 text-[var(--color-primary)]" />
+                {(() => {
+                  // Compute top clients from third parties (empty if no data)
+                  const topClients: Array<{ name: string; amount: string }> = [];
+                  return topClients.length === 0 ? (
+                    <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">Aucune donnée client disponible</p>
+                  ) : topClients.map((client, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 hover:bg-[var(--color-background-secondary)] rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                          <Users className="w-5 h-5 text-[var(--color-primary)]" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-[var(--color-text-primary)] text-sm">{client.name}</p>
+                          <p className="text-[var(--color-text-secondary)] text-xs">CA annuel</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-[var(--color-text-primary)] text-sm">{client.name}</p>
-                        <p className="text-[var(--color-text-secondary)] text-xs">CA annuel</p>
+                      <div className="text-right">
+                        <p className="font-semibold text-[var(--color-text-primary)]">{client.amount}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-[var(--color-text-primary)]">{client.amount}</p>
-                      <p className={`text-xs ${client.color === 'green' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
-                        {client.growth}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
             </div>
           </div>
@@ -308,20 +306,7 @@ const ManagerDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-3">
-                {[
-                  { sector: 'Services', percentage: '45%', color: 'blue' },
-                  { sector: 'Commerce', percentage: '30%', color: 'green' },
-                  { sector: 'Industrie', percentage: '15%', color: 'purple' },
-                  { sector: 'Autres', percentage: '10%', color: 'orange' },
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-3 h-3 rounded-full bg-${item.color}-500`}></div>
-                      <span className="text-sm text-[var(--color-text-primary)]">{item.sector}</span>
-                    </div>
-                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{item.percentage}</span>
-                  </div>
-                ))}
+                <p className="text-sm text-[var(--color-text-secondary)] py-2 text-center">Aucune donnée sectorielle disponible</p>
               </div>
             </div>
           </div>

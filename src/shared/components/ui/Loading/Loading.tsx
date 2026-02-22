@@ -23,8 +23,8 @@ export const Loading: React.FC<LoadingProps> = ({
 }) => {
   const content = (
     <div className={`flex flex-col items-center justify-center gap-3 ${className}`}>
-      <Loader2 className={`animate-spin text-[#6A8A82] ${sizeClasses[size]}`} />
-      {text && <p className="text-sm text-[#767676]">{text}</p>}
+      <Loader2 className={`animate-spin text-[#171717] ${sizeClasses[size]}`} />
+      {text && <p className="text-sm text-[#737373]">{text}</p>}
     </div>
   );
 
@@ -42,5 +42,5 @@ export const Loading: React.FC<LoadingProps> = ({
 Loading.displayName = 'Loading';
 
 export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`animate-pulse bg-[#ECECEC] rounded ${className}`} />
+  <div className={`animate-pulse bg-[#e5e5e5] rounded ${className}`} />
 );

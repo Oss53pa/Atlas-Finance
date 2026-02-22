@@ -31,7 +31,7 @@ export const TypingIndicator: React.FC = () => {
 const WisebookAvatar: React.FC = () => (
   <div className="avatar avatar--assistant avatar--typing">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#6A8A82"/>
+      <rect width="24" height="24" rx="6" fill="#171717"/>
       <path
         d="M6 9H18V15C18 15.5523 17.5523 16 17 16H7C6.44772 16 6 15.5523 6 15V9Z"
         fill="white"
@@ -42,7 +42,7 @@ const WisebookAvatar: React.FC = () => (
         fill="white"
       />
       {/* Points animés pour indiquer l'activité */}
-      <circle cx="9" cy="12" r="0.75" fill="#6A8A82">
+      <circle cx="9" cy="12" r="0.75" fill="#171717">
         <animate
           attributeName="opacity"
           values="0.3;1;0.3"
@@ -51,7 +51,7 @@ const WisebookAvatar: React.FC = () => (
           begin="0s"
         />
       </circle>
-      <circle cx="12" cy="12" r="0.75" fill="#6A8A82">
+      <circle cx="12" cy="12" r="0.75" fill="#171717">
         <animate
           attributeName="opacity"
           values="0.3;1;0.3"
@@ -60,7 +60,7 @@ const WisebookAvatar: React.FC = () => (
           begin="0.5s"
         />
       </circle>
-      <circle cx="15" cy="12" r="0.75" fill="#6A8A82">
+      <circle cx="15" cy="12" r="0.75" fill="#171717">
         <animate
           attributeName="opacity"
           values="0.3;1;0.3"

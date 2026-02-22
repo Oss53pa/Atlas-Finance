@@ -177,19 +177,19 @@ const PisteAuditModule: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-lg font-bold text-[#191919]">Piste d'Audit</h1>
-            <p className="text-[#767676]">Traçabilité complète des actions et modifications</p>
+            <h1 className="text-lg font-bold text-[#171717]">Piste d'Audit</h1>
+            <p className="text-[#737373]">Traçabilité complète des actions et modifications</p>
           </div>
           <div className="flex items-center space-x-3">
             <select
               value={selectedPeriode}
               onChange={(e) => setSelectedPeriode(e.target.value as typeof selectedPeriode)}
-              className="px-4 py-2 border border-[#E8E8E8] rounded-lg"
+              className="px-4 py-2 border border-[#e5e5e5] rounded-lg"
             >
               <option value="jour">{t('common.today')}</option>
               <option value="semaine">Cette semaine</option>
@@ -209,28 +209,28 @@ const PisteAuditModule: React.FC = () => {
         <div className="grid grid-cols-4 gap-4 p-4 bg-[var(--color-background-secondary)] rounded-lg">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[#767676]">Total actions</span>
-              <Activity className="w-4 h-4 text-[#767676]" />
+              <span className="text-xs text-[#737373]">Total actions</span>
+              <Activity className="w-4 h-4 text-[#737373]" />
             </div>
-            <p className="text-lg font-bold text-[#191919]">{stats.totalActions}</p>
+            <p className="text-lg font-bold text-[#171717]">{stats.totalActions}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[#767676]">{t('common.today')}</span>
+              <span className="text-xs text-[#737373]">{t('common.today')}</span>
               <Clock className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-primary)]">{stats.actionsAujourdhui}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[#767676]">Utilisateurs actifs</span>
+              <span className="text-xs text-[#737373]">Utilisateurs actifs</span>
               <User className="w-4 h-4 text-[var(--color-success)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-success)]">{stats.utilisateursActifs}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[#767676]">Anomalies</span>
+              <span className="text-xs text-[#737373]">Anomalies</span>
               <AlertCircle className="w-4 h-4 text-[var(--color-error)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-error)]">{stats.anomaliesDetectees}</p>
@@ -239,9 +239,9 @@ const PisteAuditModule: React.FC = () => {
       </div>
 
       {/* Tabs et contenu */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
         {/* Tabs */}
-        <div className="border-b border-[#E8E8E8]">
+        <div className="border-b border-[#e5e5e5]">
           <div className="flex space-x-6 px-6">
             {[
               { id: 'journal', label: 'Journal d\'audit', icon: History },
@@ -253,8 +253,8 @@ const PisteAuditModule: React.FC = () => {
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? 'border-[#6A8A82] text-[#191919]'
-                    : 'border-transparent text-[#767676] hover:text-[#191919]'
+                    ? 'border-[#171717] text-[#171717]'
+                    : 'border-transparent text-[#737373] hover:text-[#171717]'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -273,7 +273,7 @@ const PisteAuditModule: React.FC = () => {
                 <select
                   value={filterAction}
                   onChange={(e) => setFilterAction(e.target.value as typeof filterAction)}
-                  className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
+                  className="px-3 py-2 border border-[#e5e5e5] rounded-lg text-sm"
                 >
                   <option value="tous">Toutes actions</option>
                   <option value="creation">Création</option>
@@ -285,7 +285,7 @@ const PisteAuditModule: React.FC = () => {
                 <select
                   value={filterEntite}
                   onChange={(e) => setFilterEntite(e.target.value as typeof filterEntite)}
-                  className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
+                  className="px-3 py-2 border border-[#e5e5e5] rounded-lg text-sm"
                 >
                   <option value="tous">Toutes entités</option>
                   <option value="ecriture">{t('accounting.entry')}</option>
@@ -298,7 +298,7 @@ const PisteAuditModule: React.FC = () => {
                 <select
                   value={filterUtilisateur}
                   onChange={(e) => setFilterUtilisateur(e.target.value)}
-                  className="px-3 py-2 border border-[#E8E8E8] rounded-lg text-sm"
+                  className="px-3 py-2 border border-[#e5e5e5] rounded-lg text-sm"
                 >
                   <option value="tous">Tous utilisateurs</option>
                   {uniqueUsers.map(user => (
@@ -307,13 +307,13 @@ const PisteAuditModule: React.FC = () => {
                 </select>
               </div>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#767676]" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#737373]" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Rechercher..."
-                  className="pl-10 pr-4 py-2 border border-[#E8E8E8] rounded-lg"
+                  className="pl-10 pr-4 py-2 border border-[#e5e5e5] rounded-lg"
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ const PisteAuditModule: React.FC = () => {
               {filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="border border-[#E8E8E8] rounded-lg p-4 hover:bg-[var(--color-background-secondary)] transition-colors"
+                  className="border border-[#e5e5e5] rounded-lg p-4 hover:bg-[var(--color-background-secondary)] transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3 flex-1">
@@ -335,15 +335,15 @@ const PisteAuditModule: React.FC = () => {
                       {/* Détails */}
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-semibold text-[#191919]">
+                          <span className="font-semibold text-[#171717]">
                             {getActionLabel(entry.action)}
                           </span>
-                          <span className="text-[#767676]">-</span>
-                          <span className="text-[#191919]">{entry.entiteNom}</span>
+                          <span className="text-[#737373]">-</span>
+                          <span className="text-[#171717]">{entry.entiteNom}</span>
                           {getImpactBadge(entry.impact)}
                         </div>
-                        <p className="text-sm text-[#767676] mb-2">{entry.details}</p>
-                        <div className="flex items-center space-x-4 text-xs text-[#767676]">
+                        <p className="text-sm text-[#737373] mb-2">{entry.details}</p>
+                        <div className="flex items-center space-x-4 text-xs text-[#737373]">
                           <div className="flex items-center space-x-1">
                             <User className="w-3 h-3" />
                             <span>{entry.utilisateur}</span>
@@ -368,7 +368,7 @@ const PisteAuditModule: React.FC = () => {
                       }}
                       className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
                     >
-                      <ChevronRight className="w-4 h-4 text-[#767676]" />
+                      <ChevronRight className="w-4 h-4 text-[#737373]" />
                     </button>
                   </div>
                 </div>
@@ -378,7 +378,7 @@ const PisteAuditModule: React.FC = () => {
             {filteredEntries.length === 0 && (
               <div className="text-center py-12">
                 <Activity className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-[#767676]">Aucune entrée trouvée</p>
+                <p className="text-[#737373]">Aucune entrée trouvée</p>
               </div>
             )}
           </div>
@@ -388,8 +388,8 @@ const PisteAuditModule: React.FC = () => {
           <div className="p-6">
             <div className="grid grid-cols-2 gap-6">
               {/* Graphique des actions par type */}
-              <div className="border border-[#E8E8E8] rounded-lg p-4">
-                <h3 className="font-semibold text-[#191919] mb-4">Répartition par action</h3>
+              <div className="border border-[#e5e5e5] rounded-lg p-4">
+                <h3 className="font-semibold text-[#171717] mb-4">Répartition par action</h3>
                 <div className="space-y-3">
                   {Object.entries(
                     auditEntries.reduce((acc, entry) => {
@@ -409,8 +409,8 @@ const PisteAuditModule: React.FC = () => {
               </div>
 
               {/* Graphique des actions par utilisateur */}
-              <div className="border border-[#E8E8E8] rounded-lg p-4">
-                <h3 className="font-semibold text-[#191919] mb-4">Activité par utilisateur</h3>
+              <div className="border border-[#e5e5e5] rounded-lg p-4">
+                <h3 className="font-semibold text-[#171717] mb-4">Activité par utilisateur</h3>
                 <div className="space-y-3">
                   {Object.entries(
                     auditEntries.reduce((acc, entry) => {
@@ -423,7 +423,7 @@ const PisteAuditModule: React.FC = () => {
                     .map(([user, count]) => (
                       <div key={user} className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4 text-[#767676]" />
+                          <User className="w-4 h-4 text-[#737373]" />
                           <span className="text-sm">{user}</span>
                         </div>
                         <span className="font-semibold">{count}</span>
@@ -433,20 +433,20 @@ const PisteAuditModule: React.FC = () => {
               </div>
 
               {/* Timeline d'activité */}
-              <div className="border border-[#E8E8E8] rounded-lg p-4">
-                <h3 className="font-semibold text-[#191919] mb-4">Activité récente</h3>
+              <div className="border border-[#e5e5e5] rounded-lg p-4">
+                <h3 className="font-semibold text-[#171717] mb-4">Activité récente</h3>
                 <div className="space-y-2">
                   {['Dernière heure', 'Aujourd\'hui', 'Cette semaine', 'Ce mois'].map((period) => (
                     <div key={period} className="flex justify-between items-center">
-                      <span className="text-sm text-[#767676]">{period}</span>
+                      <span className="text-sm text-[#737373]">{period}</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-24 bg-[var(--color-border)] rounded-full h-2">
                           <div
-                            className="h-2 bg-gradient-to-r from-[#6A8A82] to-[#B87333] rounded-full"
-                            style={{width: `${Math.random() * 100}%`}}
+                            className="h-2 bg-gradient-to-r from-[#171717] to-[#525252] rounded-full"
+                            style={{width: '0%'}}
                           ></div>
                         </div>
-                        <span className="text-xs font-semibold">~{Math.floor(Math.random() * 50)}</span>
+                        <span className="text-xs font-semibold">0</span>
                       </div>
                     </div>
                   ))}
@@ -454,8 +454,8 @@ const PisteAuditModule: React.FC = () => {
               </div>
 
               {/* Alertes et anomalies */}
-              <div className="border border-[#E8E8E8] rounded-lg p-4">
-                <h3 className="font-semibold text-[#191919] mb-4">Alertes récentes</h3>
+              <div className="border border-[#e5e5e5] rounded-lg p-4">
+                <h3 className="font-semibold text-[#171717] mb-4">Alertes récentes</h3>
                 <div className="space-y-3">
                   <div className="flex items-start space-x-2 p-2 bg-[var(--color-error-lightest)] rounded-lg">
                     <AlertCircle className="w-4 h-4 text-[var(--color-error)] mt-0.5" />
@@ -480,17 +480,17 @@ const PisteAuditModule: React.FC = () => {
         {activeTab === 'configuration' && (
           <div className="p-6">
             <div className="max-w-2xl">
-              <h3 className="font-semibold text-[#191919] mb-4">Paramètres d'audit</h3>
+              <h3 className="font-semibold text-[#171717] mb-4">Paramètres d'audit</h3>
               
               <div className="space-y-4">
                 {/* Durée de conservation */}
-                <div className="border border-[#E8E8E8] rounded-lg p-4">
+                <div className="border border-[#e5e5e5] rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="font-medium text-[#191919]">Durée de conservation</p>
-                      <p className="text-sm text-[#767676]">Période de rétention des logs d'audit</p>
+                      <p className="font-medium text-[#171717]">Durée de conservation</p>
+                      <p className="text-sm text-[#737373]">Période de rétention des logs d'audit</p>
                     </div>
-                    <select className="px-3 py-2 border border-[#E8E8E8] rounded-lg" defaultValue="1 an">
+                    <select className="px-3 py-2 border border-[#e5e5e5] rounded-lg" defaultValue="1 an">
                       <option value="3 mois">3 mois</option>
                       <option value="6 mois">6 mois</option>
                       <option value="1 an">1 an</option>
@@ -501,13 +501,13 @@ const PisteAuditModule: React.FC = () => {
                 </div>
 
                 {/* Niveau de traçabilité */}
-                <div className="border border-[#E8E8E8] rounded-lg p-4">
+                <div className="border border-[#e5e5e5] rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="font-medium text-[#191919]">Niveau de traçabilité</p>
-                      <p className="text-sm text-[#767676]">Détail des informations enregistrées</p>
+                      <p className="font-medium text-[#171717]">Niveau de traçabilité</p>
+                      <p className="text-sm text-[#737373]">Détail des informations enregistrées</p>
                     </div>
-                    <select className="px-3 py-2 border border-[#E8E8E8] rounded-lg" defaultValue="Standard">
+                    <select className="px-3 py-2 border border-[#e5e5e5] rounded-lg" defaultValue="Standard">
                       <option value="Minimal">Minimal</option>
                       <option value="Standard">Standard</option>
                       <option value="Détaillé">Détaillé</option>
@@ -517,8 +517,8 @@ const PisteAuditModule: React.FC = () => {
                 </div>
 
                 {/* Actions auditées */}
-                <div className="border border-[#E8E8E8] rounded-lg p-4">
-                  <p className="font-medium text-[#191919] mb-3">Actions auditées</p>
+                <div className="border border-[#e5e5e5] rounded-lg p-4">
+                  <p className="font-medium text-[#171717] mb-3">Actions auditées</p>
                   <div className="space-y-2">
                     {[
                       { label: 'Créations', checked: true },
@@ -533,7 +533,7 @@ const PisteAuditModule: React.FC = () => {
                         <input
                           type="checkbox"
                           defaultChecked={item.checked}
-                          className="rounded border-[#E8E8E8]"
+                          className="rounded border-[#e5e5e5]"
                         />
                         <span className="text-sm">{item.label}</span>
                       </label>
@@ -542,8 +542,8 @@ const PisteAuditModule: React.FC = () => {
                 </div>
 
                 {/* Alertes automatiques */}
-                <div className="border border-[#E8E8E8] rounded-lg p-4">
-                  <p className="font-medium text-[#191919] mb-3">Alertes automatiques</p>
+                <div className="border border-[#e5e5e5] rounded-lg p-4">
+                  <p className="font-medium text-[#171717] mb-3">Alertes automatiques</p>
                   <div className="space-y-2">
                     {[
                       { label: 'Suppressions d\'écritures validées', checked: true },
@@ -556,7 +556,7 @@ const PisteAuditModule: React.FC = () => {
                         <input
                           type="checkbox"
                           defaultChecked={item.checked}
-                          className="rounded border-[#E8E8E8]"
+                          className="rounded border-[#e5e5e5]"
                         />
                         <span className="text-sm">{item.label}</span>
                       </label>
@@ -591,11 +591,11 @@ const PisteAuditModule: React.FC = () => {
       {showDetailModal && selectedEntry && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-[#E8E8E8]">
+            <div className="p-6 border-b border-[#e5e5e5]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[#191919]">Détails de l'action</h3>
-                  <p className="text-sm text-[#767676]">{selectedEntry.entiteNom}</p>
+                  <h3 className="text-lg font-bold text-[#171717]">Détails de l'action</h3>
+                  <p className="text-sm text-[#737373]">{selectedEntry.entiteNom}</p>
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
@@ -610,22 +610,22 @@ const PisteAuditModule: React.FC = () => {
               {/* Informations générales */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <p className="text-sm text-[#767676] mb-1">Action</p>
+                  <p className="text-sm text-[#737373] mb-1">Action</p>
                   <div className="flex items-center space-x-2">
                     {getActionIcon(selectedEntry.action)}
                     <span className="font-semibold">{getActionLabel(selectedEntry.action)}</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676] mb-1">Impact</p>
+                  <p className="text-sm text-[#737373] mb-1">Impact</p>
                   {getImpactBadge(selectedEntry.impact)}
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676] mb-1">Utilisateur</p>
+                  <p className="text-sm text-[#737373] mb-1">Utilisateur</p>
                   <p className="font-semibold">{selectedEntry.utilisateur}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676] mb-1">Date et heure</p>
+                  <p className="text-sm text-[#737373] mb-1">Date et heure</p>
                   <p className="font-semibold">
                     {new Date(selectedEntry.timestamp).toLocaleString('fr-FR')}
                   </p>
@@ -634,22 +634,22 @@ const PisteAuditModule: React.FC = () => {
 
               {/* Détails techniques */}
               <div className="bg-[var(--color-background-secondary)] rounded-lg p-4 mb-6">
-                <h4 className="font-semibold text-[#191919] mb-3">Informations techniques</h4>
+                <h4 className="font-semibold text-[#171717] mb-3">Informations techniques</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-[#767676]">Adresse IP</p>
+                    <p className="text-[#737373]">Adresse IP</p>
                     <p className="font-mono">{selectedEntry.ipAddress}</p>
                   </div>
                   <div>
-                    <p className="text-[#767676]">Navigateur</p>
+                    <p className="text-[#737373]">Navigateur</p>
                     <p className="font-mono">{selectedEntry.navigateur}</p>
                   </div>
                   <div>
-                    <p className="text-[#767676]">ID Entité</p>
+                    <p className="text-[#737373]">ID Entité</p>
                     <p className="font-mono">{selectedEntry.entiteId}</p>
                   </div>
                   <div>
-                    <p className="text-[#767676]">Type d'entité</p>
+                    <p className="text-[#737373]">Type d'entité</p>
                     <p className="font-mono">{selectedEntry.entite}</p>
                   </div>
                 </div>
@@ -658,7 +658,7 @@ const PisteAuditModule: React.FC = () => {
               {/* Changements */}
               {(selectedEntry.ancienneValeur || selectedEntry.nouvelleValeur) && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-[#191919] mb-3">Changements effectués</h4>
+                  <h4 className="font-semibold text-[#171717] mb-3">Changements effectués</h4>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedEntry.ancienneValeur && (
                       <div className="border border-[var(--color-error-light)] rounded-lg p-3 bg-[var(--color-error-lightest)]">
@@ -682,8 +682,8 @@ const PisteAuditModule: React.FC = () => {
 
               {/* Description */}
               <div className="mb-6">
-                <h4 className="font-semibold text-[#191919] mb-2">Description</h4>
-                <p className="text-[#767676]">{selectedEntry.details}</p>
+                <h4 className="font-semibold text-[#171717] mb-2">Description</h4>
+                <p className="text-[#737373]">{selectedEntry.details}</p>
               </div>
 
               {/* Actions */}

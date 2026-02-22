@@ -156,7 +156,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as 'full' | 'cycle' | 'spot' })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                   required
                 >
                   <option value="cycle">Cycle Count</option>
@@ -172,7 +172,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                 <select
                   value={formData.locationId}
                   onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                   required
                 >
                   <option value="">Select location...</option>
@@ -193,7 +193,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                 type="date"
                 value={formData.scheduledDate}
                 onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                 required
               />
             </div>
@@ -224,7 +224,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                               });
                             }
                           }}
-                          className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                          className="mr-2 text-[#171717] focus:ring-[#171717]"
                         />
                         {category.name}
                       </label>
@@ -255,7 +255,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                               });
                             }
                           }}
-                          className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                          className="mr-2 text-[#171717] focus:ring-[#171717]"
                         />
                         {category.name}
                       </label>
@@ -274,7 +274,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                 <button
                   type="button"
                   onClick={addCounter}
-                  className="text-[#6A8A82] hover:text-blue-700 text-sm"
+                  className="text-[#171717] hover:text-blue-700 text-sm"
                 >
                   + Add Counter
                 </button>
@@ -285,7 +285,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
                     <select
                       value={counter.userId}
                       onChange={(e) => updateCounter(index, 'userId', e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                       required
                     >
                       <option value="">Select user...</option>
@@ -317,7 +317,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                 rows={3}
                 placeholder="Additional instructions or notes..."
               />
@@ -326,7 +326,7 @@ const CreateCountModal: React.FC<CreateCountModalProps> = ({
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-[#6A8A82] text-white py-2 px-4 rounded-md hover:bg-[#5A7A72] transition-colors"
+                className="flex-1 bg-[#171717] text-white py-2 px-4 rounded-md hover:bg-[#262626] transition-colors"
               >
                 Create Count
               </button>
@@ -380,9 +380,9 @@ const CountDetailsModal: React.FC<CountDetailsModalProps> = ({
 
           {/* Status and Progress */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-[#6A8A82]/10 rounded-lg p-4 text-center">
-              <div className="text-lg font-bold text-[#6A8A82]">{count.items.length}</div>
-              <div className="text-sm text-[#6A8A82]">Total Items</div>
+            <div className="bg-[#171717]/10 rounded-lg p-4 text-center">
+              <div className="text-lg font-bold text-[#171717]">{count.items.length}</div>
+              <div className="text-sm text-[#171717]">Total Items</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-lg font-bold text-green-600">
@@ -609,7 +609,7 @@ const PhysicalInventory: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
         <div className="bg-white border border-gray-200 rounded-lg p-3">
           <div className="flex items-center gap-2">
-            <Package className="w-5 h-5 text-[#6A8A82]" />
+            <Package className="w-5 h-5 text-[#171717]" />
             <div>
               <p className="text-lg font-bold text-gray-900">{counts.length}</p>
               <p className="text-xs text-gray-600">Articles</p>
@@ -712,7 +712,7 @@ const PhysicalInventory: React.FC = () => {
                       placeholder="Rechercher..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-7 w-48 text-xs px-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                      className="h-7 w-48 text-xs px-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                     />
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                       {filteredCounts.length} articles
@@ -748,7 +748,7 @@ const PhysicalInventory: React.FC = () => {
                             </span>
                           </td>
                           <td className="py-2 px-3 text-center">
-                            <button className="p-1 text-gray-700 hover:text-[#6A8A82] rounded">
+                            <button className="p-1 text-gray-700 hover:text-[#171717] rounded">
                               <QrCode className="w-3 h-3" />
                             </button>
                           </td>
@@ -836,7 +836,7 @@ const PhysicalInventory: React.FC = () => {
                   <div key={team.id} className="border rounded p-2 bg-gray-50">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <UserCheck className="w-4 h-4 text-[#6A8A82]" />
+                        <UserCheck className="w-4 h-4 text-[#171717]" />
                         <span className="text-sm font-medium">{team.name}</span>
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">{team.members} membres</span>
                       </div>
@@ -848,7 +848,7 @@ const PhysicalInventory: React.FC = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                       <div
-                        className="bg-[#6A8A82] h-1.5 rounded-full"
+                        className="bg-[#171717] h-1.5 rounded-full"
                         style={{ width: `${team.progress}%` }}
                       ></div>
                     </div>

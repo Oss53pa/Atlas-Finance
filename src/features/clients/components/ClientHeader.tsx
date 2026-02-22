@@ -29,7 +29,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-[#D9D9D9] p-6 shadow-sm">
+    <div className="bg-white rounded-lg border border-[#d4d4d4] p-6 shadow-sm">
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4">
           <Button
@@ -39,7 +39,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
           />
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold text-[#191919]">{client.nom}</h1>
+              <h1 className="text-lg font-bold text-[#171717]">{client.nom}</h1>
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatutBadge(client.statut)}`}>
                 {client.statut}
               </span>
@@ -49,7 +49,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4 mt-2 text-sm text-[#767676]">
+            <div className="flex items-center gap-4 mt-2 text-sm text-[#737373]">
               <span>Code: {client.code}</span>
               <span>•</span>
               <span>{client.formeJuridique}</span>

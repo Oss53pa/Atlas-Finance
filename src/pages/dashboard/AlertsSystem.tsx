@@ -8,6 +8,7 @@ import {
   Shield, Zap, AlertCircle, Activity, BarChart3, Target
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 
 interface Alert {
   id: string;
@@ -188,7 +189,7 @@ const AlertsSystem: React.FC = () => {
     switch (type) {
       case 'critical': return 'bg-red-100 text-red-700 border-red-200';
       case 'warning': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'info': return 'bg-[#D1DDD9] text-[#588075] border-[#B3C9C3]';
+      case 'info': return 'bg-[#e5e5e5] text-[#525252] border-[#d4d4d4]';
       case 'success': return 'bg-green-100 text-green-700 border-green-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
@@ -256,15 +257,15 @@ const AlertsSystem: React.FC = () => {
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={cn(
               "p-2 rounded-lg border transition-colors",
-              soundEnabled ? "bg-[#E8EEEC] border-[#B3C9C3]" : "bg-gray-50 border-gray-200"
+              soundEnabled ? "bg-[#f5f5f5] border-[#d4d4d4]" : "bg-gray-50 border-gray-200"
             )}
           >
-            {soundEnabled ? <Volume2 className="w-5 h-5 text-[#6A8A82]" /> : <VolumeX className="w-5 h-5 text-gray-700" />}
+            {soundEnabled ? <Volume2 className="w-5 h-5 text-[#171717]" /> : <VolumeX className="w-5 h-5 text-gray-700" />}
           </button>
 
           <button
             onClick={() => setShowCreateRule(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#588075]"
+            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#525252]"
           >
             <Settings className="w-4 h-4" />
             Configurer Règles
@@ -301,13 +302,13 @@ const AlertsSystem: React.FC = () => {
           <p className="text-xs text-amber-600 mt-1">À surveiller</p>
         </div>
 
-        <div className="bg-[#E8EEEC] rounded-lg shadow p-4 border border-[#B3C9C3]">
+        <div className="bg-[#f5f5f5] rounded-lg shadow p-4 border border-[#d4d4d4]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-[#588075]">{t('status.inProgress')}</span>
-            <Clock className="w-5 h-5 text-[#78998F]" />
+            <span className="text-sm font-medium text-[#525252]">{t('status.inProgress')}</span>
+            <Clock className="w-5 h-5 text-[#737373]" />
           </div>
-          <p className="text-lg font-bold text-[#588075]">{stats.acknowledged}</p>
-          <p className="text-xs text-[#6A8A82] mt-1">Traitement</p>
+          <p className="text-lg font-bold text-[#525252]">{stats.acknowledged}</p>
+          <p className="text-xs text-[#171717] mt-1">Traitement</p>
         </div>
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
@@ -330,7 +331,7 @@ const AlertsSystem: React.FC = () => {
               placeholder="Rechercher dans les alertes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
             />
           </div>
 
@@ -338,7 +339,7 @@ const AlertsSystem: React.FC = () => {
             <select
               value={filter.type}
               onChange={(e) => setFilter({ ...filter, type: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
             >
               <option value="all">Tous types</option>
               <option value="critical">Critique</option>
@@ -350,7 +351,7 @@ const AlertsSystem: React.FC = () => {
             <select
               value={filter.category}
               onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
             >
               <option value="all">Toutes catégories</option>
               <option value="finance">Finance</option>
@@ -364,7 +365,7 @@ const AlertsSystem: React.FC = () => {
             <select
               value={filter.priority}
               onChange={(e) => setFilter({ ...filter, priority: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
             >
               <option value="all">Toutes priorités</option>
               <option value="high">Haute</option>
@@ -375,7 +376,7 @@ const AlertsSystem: React.FC = () => {
             <select
               value={filter.status}
               onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
             >
               <option value="all">Tous statuts</option>
               <option value="new">{t('actions.new')}</option>
@@ -423,7 +424,7 @@ const AlertsSystem: React.FC = () => {
                   {alert.value !== undefined && (
                     <div className="flex items-center gap-4 text-sm">
                       <span className="font-medium">
-                        Valeur: {alert.value.toLocaleString()} {alert.threshold && `/ Seuil: ${alert.threshold.toLocaleString()}`}
+                        Valeur: {formatCurrency(alert.value)} {alert.threshold && `/ Seuil: ${formatCurrency(alert.threshold)}`}
                       </span>
                       {alert.trend && (
                         <span className="flex items-center gap-1">
@@ -461,7 +462,7 @@ const AlertsSystem: React.FC = () => {
               <div className="flex flex-col gap-2">
                 <span className={cn(
                   "px-3 py-1 text-xs rounded-full font-medium",
-                  alert.status === 'new' && "bg-[#B3C9C3] text-[#4A665D]",
+                  alert.status === 'new' && "bg-[#d4d4d4] text-[#404040]",
                   alert.status === 'acknowledged' && "bg-amber-200 text-amber-800",
                   alert.status === 'resolved' && "bg-green-200 text-green-800",
                   alert.status === 'ignored' && "bg-gray-200 text-gray-800"

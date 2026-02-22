@@ -7,70 +7,69 @@ import { LucideIcon } from 'lucide-react';
 
 export const designTokens = {
   colors: {
-    // Système de couleurs Atlas Finance inspiré du design moderne chaud
     primary: {
-      50: '#fefdf7',   // Crème très clair
-      100: '#fef7e6',  // Beige très clair
-      200: '#fcedc1',  // Beige clair
-      300: '#f8dc85',  // Jaune doux
-      400: '#f4c842',  // Jaune principal
-      500: '#f0b429',  // Jaune-orange
-      600: '#e89611',  // Orange principal
-      700: '#c1720a',  // Orange foncé
-      800: '#9a5a0f',  // Orange très foncé
-      900: '#7c4912',  // Brun-orange
+      50: '#fafafa',
+      100: '#f5f5f5',
+      200: '#e5e5e5',
+      300: '#d4d4d4',
+      400: '#a3a3a3',
+      500: '#737373',
+      600: '#525252',
+      700: '#404040',
+      800: '#262626',
+      900: '#171717',
     },
     neutral: {
-      50: '#fefefe',   // Blanc pur
-      100: '#f8f7f4',  // Crème très subtil
-      200: '#f1efea',  // Beige très clair
-      300: '#e6e2d8',  // Beige clair
-      400: '#c5bfb0',  // Beige moyen
-      500: '#9b9488',  // Beige foncé
-      600: '#7a7062',  // Brun clair
-      700: '#5a5147',  // Brun moyen
-      800: '#3d3530',  // Brun foncé
-      900: '#2a1f1a',  // Brun très foncé
+      50: '#fafafa',
+      100: '#f5f5f5',
+      200: '#e5e5e5',
+      300: '#d4d4d4',
+      400: '#a3a3a3',
+      500: '#737373',
+      600: '#525252',
+      700: '#404040',
+      800: '#262626',
+      900: '#171717',
     },
     success: {
-      50: '#f0fdf4',   // Vert très clair
-      100: '#dcfce7',  // Vert clair
-      200: '#bbf7d0',  // Vert moyen clair
-      300: '#86efac',  // Vert moyen
-      400: '#4ade80',  // Vert vif
-      500: '#22c55e',  // Vert principal
-      600: '#16a34a',  // Vert foncé
-      700: '#15803d',  // Vert très foncé
+      50: '#f0fdf4',
+      100: '#dcfce7',
+      200: '#bbf7d0',
+      300: '#86efac',
+      400: '#4ade80',
+      500: '#22c55e',
+      600: '#16a34a',
+      700: '#15803d',
     },
     warning: {
-      50: '#FFF8F0',
-      100: '#FEF3E6',
-      200: '#FDE7CC',
-      300: '#FCDBB3',
-      400: '#FBCF99',
-      500: '#B87333',
-      600: '#A66629',
-      700: '#8B5522',
+      50: '#fffbeb',
+      100: '#fef3c7',
+      200: '#fde68a',
+      300: '#fcd34d',
+      400: '#fbbf24',
+      500: '#f59e0b',
+      600: '#d97706',
+      700: '#b45309',
     },
     error: {
-      50: '#FEF2F2',
-      100: '#FCE7E7',
-      200: '#F9CFCF',
-      300: '#F6B7B7',
-      400: '#F39F9F',
-      500: '#B85450',
-      600: '#A64C48',
-      700: '#8B403D',
+      50: '#fef2f2',
+      100: '#fee2e2',
+      200: '#fecaca',
+      300: '#fca5a5',
+      400: '#f87171',
+      500: '#ef4444',
+      600: '#dc2626',
+      700: '#b91c1c',
     },
     chart: {
-      primary: '#6A8A82',
-      secondary: '#B87333',
-      tertiary: '#7A99AC',
-      success: '#6A8A82',
-      warning: '#B87333',
-      error: '#B85450',
-      info: '#7A99AC',
-      neutral: '#767676',
+      primary: '#171717',
+      secondary: '#525252',
+      tertiary: '#737373',
+      success: '#22c55e',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#3b82f6',
+      neutral: '#a3a3a3',
     }
   },
   spacing: {
@@ -180,30 +179,30 @@ export const KPICard: React.FC<KPICardProps> = ({
     primary: {
       bg: 'bg-white/90',
       icon: 'bg-neutral-100 text-neutral-700',
-      text: 'text-[#191919]',
+      text: 'text-[#171717]',
       accent: 'text-neutral-700',
-      border: 'border-[#D9D9D9]/40'
+      border: 'border-[#d4d4d4]/40'
     },
     success: {
       bg: 'bg-white/90',
       icon: 'bg-neutral-100 text-neutral-700',
-      text: 'text-[#191919]',
+      text: 'text-[#171717]',
       accent: 'text-neutral-700',
-      border: 'border-[#D9D9D9]/40'
+      border: 'border-[#d4d4d4]/40'
     },
     warning: {
       bg: 'bg-white/90',
       icon: 'bg-neutral-100 text-neutral-600',
-      text: 'text-[#191919]',
+      text: 'text-[#171717]',
       accent: 'text-neutral-600',
-      border: 'border-[#D9D9D9]/40'
+      border: 'border-[#d4d4d4]/40'
     },
     error: {
       bg: 'bg-white/90',
       icon: 'bg-neutral-100 text-neutral-600',
-      text: 'text-[#191919]',
+      text: 'text-[#171717]',
       accent: 'text-neutral-600',
-      border: 'border-[#D9D9D9]/40'
+      border: 'border-[#d4d4d4]/40'
     },
     neutral: {
       bg: 'bg-white/90',
@@ -256,7 +255,7 @@ export const KPICard: React.FC<KPICardProps> = ({
             {trend && (
               <div className={`
                 inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-                ${trend.isPositive ? 'bg-[#6A8A82]/10 text-[#6A8A82]' : 'bg-[#B85450]/10 text-[#B85450]'}
+                ${trend.isPositive ? 'bg-[#171717]/10 text-[#171717]' : 'bg-[#ef4444]/10 text-[#ef4444]'}
               `}>
                 {trend.value}
               </div>
@@ -308,7 +307,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 mb-6 ${className}`}>
     <div className="flex items-center space-x-3">
       {Icon && (
-        <div className="p-2.5 bg-gradient-to-br from-[#6A8A82] to-[#5A7A72] rounded-xl shadow-md">
+        <div className="p-2.5 bg-gradient-to-br from-[#171717] to-[#262626] rounded-xl shadow-md">
           <Icon className="h-5 w-5 text-white" />
         </div>
       )}
@@ -348,10 +347,10 @@ export const ElegantButton: React.FC<ElegantButtonProps> = ({
   className = ''
 }) => {
   const variants = {
-    primary: 'bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] text-white shadow-lg hover:shadow-xl hover:from-[#5A7A72] hover:to-[#4A6A62]',
-    secondary: 'bg-[#ECECEC] text-[#191919] hover:bg-[#D9D9D9] shadow-sm',
-    outline: 'border-2 border-[#D9D9D9] text-[#444444] hover:border-[#6A8A82] hover:text-[#6A8A82] hover:bg-[#6A8A82]/5',
-    ghost: 'text-[#767676] hover:text-[#191919] hover:bg-[#ECECEC]'
+    primary: 'bg-gradient-to-r from-[#171717] to-[#262626] text-white shadow-lg hover:shadow-xl hover:from-[#262626] hover:to-[#262626]',
+    secondary: 'bg-[#e5e5e5] text-[#171717] hover:bg-[#d4d4d4] shadow-sm',
+    outline: 'border-2 border-[#d4d4d4] text-[#404040] hover:border-[#171717] hover:text-[#171717] hover:bg-[#171717]/5',
+    ghost: 'text-[#737373] hover:text-[#171717] hover:bg-[#e5e5e5]'
   };
 
   const sizes = {

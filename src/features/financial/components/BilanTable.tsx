@@ -44,28 +44,28 @@ export const BilanTable: React.FC<BilanTableProps> = ({
 
     return (
       <tr className={isBold ? 'font-semibold bg-[#F5F5F5]' : 'hover:bg-[#FAFAFA]'}>
-        <td className={`py-3 px-4 border-b border-[#D9D9D9]`} style={{ paddingLeft: `${16 + indent * 16}px` }}>
+        <td className={`py-3 px-4 border-b border-[#d4d4d4]`} style={{ paddingLeft: `${16 + indent * 16}px` }}>
           {label}
         </td>
-        <td className="py-3 px-4 text-right border-b border-[#D9D9D9]">
+        <td className="py-3 px-4 text-right border-b border-[#d4d4d4]">
           {formatCurrency(current)}
         </td>
         {showComparison && previous !== undefined && (
           <>
-            <td className="py-3 px-4 text-right border-b border-[#D9D9D9]">
+            <td className="py-3 px-4 text-right border-b border-[#d4d4d4]">
               {formatCurrency(previous)}
             </td>
-            <td className="py-3 px-4 text-right border-b border-[#D9D9D9]">
+            <td className="py-3 px-4 text-right border-b border-[#d4d4d4]">
               {variation && (
-                <span className={variation.variation >= 0 ? 'text-[#6A8A82]' : 'text-[#B85450]'}>
+                <span className={variation.variation >= 0 ? 'text-[#171717]' : 'text-[#ef4444]'}>
                   {variation.variation >= 0 ? '+' : ''}
                   {formatCurrency(variation.variation)}
                 </span>
               )}
             </td>
-            <td className="py-3 px-4 text-right border-b border-[#D9D9D9]">
+            <td className="py-3 px-4 text-right border-b border-[#d4d4d4]">
               {variation && (
-                <span className={variation.variationPercent >= 0 ? 'text-[#6A8A82]' : 'text-[#B85450]'}>
+                <span className={variation.variationPercent >= 0 ? 'text-[#171717]' : 'text-[#ef4444]'}>
                   {variation.variationPercent >= 0 ? '+' : ''}
                   {variation.variationPercent.toFixed(1)}%
                 </span>
@@ -79,8 +79,8 @@ export const BilanTable: React.FC<BilanTableProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-white rounded-lg border border-[#D9D9D9] overflow-hidden">
-        <div className="bg-[#6A8A82] text-white py-3 px-4">
+      <div className="bg-white rounded-lg border border-[#d4d4d4] overflow-hidden">
+        <div className="bg-[#171717] text-white py-3 px-4">
           <h3 className="text-lg font-semibold">ACTIF</h3>
         </div>
         <table className="w-full">
@@ -161,7 +161,7 @@ export const BilanTable: React.FC<BilanTableProps> = ({
               true,
               0
             )}
-            <tr className="bg-[#6A8A82] text-white font-bold">
+            <tr className="bg-[#171717] text-white font-bold">
               <td className="py-3 px-4">TOTAL ACTIF</td>
               <td className="py-3 px-4 text-right">{formatCurrency(bilan.actif.totalActif)}</td>
               {showComparison && previousBilan && (
@@ -175,8 +175,8 @@ export const BilanTable: React.FC<BilanTableProps> = ({
         </table>
       </div>
 
-      <div className="bg-white rounded-lg border border-[#D9D9D9] overflow-hidden">
-        <div className="bg-[#B87333] text-white py-3 px-4">
+      <div className="bg-white rounded-lg border border-[#d4d4d4] overflow-hidden">
+        <div className="bg-[#525252] text-white py-3 px-4">
           <h3 className="text-lg font-semibold">PASSIF</h3>
         </div>
         <table className="w-full">
@@ -250,7 +250,7 @@ export const BilanTable: React.FC<BilanTableProps> = ({
               false,
               1
             )}
-            <tr className="bg-[#B87333] text-white font-bold">
+            <tr className="bg-[#525252] text-white font-bold">
               <td className="py-3 px-4">TOTAL PASSIF</td>
               <td className="py-3 px-4 text-right">{formatCurrency(bilan.passif.totalPassif)}</td>
               {showComparison && previousBilan && (

@@ -259,19 +259,19 @@ const ClotureAnnuelle: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-lg font-bold text-[#191919]">Clôture Annuelle</h1>
-            <p className="text-[#767676]">Exercice comptable {selectedExercise}</p>
+            <h1 className="text-lg font-bold text-[#171717]">Clôture Annuelle</h1>
+            <p className="text-[#737373]">Exercice comptable {selectedExercise}</p>
           </div>
           <div className="flex items-center space-x-4">
             <select
               value={selectedExercise}
               onChange={(e) => setSelectedExercise(e.target.value)}
-              className="px-4 py-2 border border-[#E8E8E8] rounded-lg"
+              className="px-4 py-2 border border-[#e5e5e5] rounded-lg"
             >
               <option value="2024">Exercice 2024</option>
               <option value="2025">Exercice 2025</option>
@@ -283,8 +283,8 @@ const ClotureAnnuelle: React.FC = () => {
         {/* Progression globale */}
         <div className="mb-6">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-[#767676]">Progression globale</span>
-            <span className="font-bold text-[#191919]">{getGlobalProgress()}%</span>
+            <span className="text-[#737373]">Progression globale</span>
+            <span className="font-bold text-[#171717]">{getGlobalProgress()}%</span>
           </div>
           <div className="w-full bg-[var(--color-border)] rounded-full h-4">
             <div
@@ -319,7 +319,7 @@ const ClotureAnnuelle: React.FC = () => {
                   }`}>
                     {isComplete ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                   </div>
-                  <span className="text-xs font-medium text-[#191919]">{phase.nom}</span>
+                  <span className="text-xs font-medium text-[#171717]">{phase.nom}</span>
                   <span className={`text-xs ${
                     isComplete ? 'text-[var(--color-success)]' :
                     progress > 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]'
@@ -339,13 +339,13 @@ const ClotureAnnuelle: React.FC = () => {
       </div>
 
       {/* Contenu de la phase sélectionnée */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-[#191919] mb-2">
+          <h2 className="text-lg font-bold text-[#171717] mb-2">
             {phases.find(p => p.id === cloturePhase)?.nom || ''}
           </h2>
           <div className="flex items-center justify-between">
-            <p className="text-sm text-[#767676]">
+            <p className="text-sm text-[#737373]">
               {getEtapesByPhase(cloturePhase).filter(e => e.statut === 'complete').length} / {getEtapesByPhase(cloturePhase).length} étapes complétées
             </p>
             <div className="flex items-center space-x-2">
@@ -394,16 +394,16 @@ const ClotureAnnuelle: React.FC = () => {
 
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-semibold text-[#191919]">{etape.nom}</h3>
+                      <h3 className="font-semibold text-[#171717]">{etape.nom}</h3>
                       {etape.obligatoire && (
                         <span className="text-xs bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] px-2 py-0.5 rounded-full">
                           Obligatoire
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-[#767676] mb-2">{etape.description}</p>
+                    <p className="text-sm text-[#737373] mb-2">{etape.description}</p>
 
-                    <div className="flex items-center space-x-4 text-xs text-[#767676]">
+                    <div className="flex items-center space-x-4 text-xs text-[#737373]">
                       {etape.responsable && (
                         <span className="flex items-center space-x-1">
                           <span>👤</span>
@@ -468,7 +468,7 @@ const ClotureAnnuelle: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[var(--color-border)] p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#191919]">{selectedEtape.nom}</h3>
+                <h3 className="text-lg font-bold text-[#171717]">{selectedEtape.nom}</h3>
                 <button
                   onClick={() => setShowDetailsModal(false)}
                   className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg"
@@ -480,11 +480,11 @@ const ClotureAnnuelle: React.FC = () => {
 
             <div className="p-6">
               <div className="mb-6">
-                <p className="text-[#767676] mb-4">{selectedEtape.description}</p>
+                <p className="text-[#737373] mb-4">{selectedEtape.description}</p>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-[var(--color-background-secondary)] rounded-lg p-4">
-                    <span className="text-xs text-[#767676]">Statut</span>
+                    <span className="text-xs text-[#737373]">Statut</span>
                     <div className="mt-1">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         selectedEtape.statut === 'complete' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
@@ -501,23 +501,23 @@ const ClotureAnnuelle: React.FC = () => {
 
                   {selectedEtape.responsable && (
                     <div className="bg-[var(--color-background-secondary)] rounded-lg p-4">
-                      <span className="text-xs text-[#767676]">Responsable</span>
-                      <p className="mt-1 font-medium text-[#191919]">{selectedEtape.responsable}</p>
+                      <span className="text-xs text-[#737373]">Responsable</span>
+                      <p className="mt-1 font-medium text-[#171717]">{selectedEtape.responsable}</p>
                     </div>
                   )}
 
                   {selectedEtape.dateEcheance && (
                     <div className="bg-[var(--color-background-secondary)] rounded-lg p-4">
-                      <span className="text-xs text-[#767676]">Échéance</span>
-                      <p className="mt-1 font-medium text-[#191919]">
+                      <span className="text-xs text-[#737373]">Échéance</span>
+                      <p className="mt-1 font-medium text-[#171717]">
                         {new Date(selectedEtape.dateEcheance).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                   )}
 
                   <div className="bg-[var(--color-background-secondary)] rounded-lg p-4">
-                    <span className="text-xs text-[#767676]">Type</span>
-                    <p className="mt-1 font-medium text-[#191919]">
+                    <span className="text-xs text-[#737373]">Type</span>
+                    <p className="mt-1 font-medium text-[#171717]">
                       {selectedEtape.obligatoire ? 'Obligatoire' : 'Optionnel'}
                     </p>
                   </div>
@@ -526,13 +526,13 @@ const ClotureAnnuelle: React.FC = () => {
 
               {selectedEtape.documents && selectedEtape.documents.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-[#191919] mb-3">Documents associés</h4>
+                  <h4 className="font-semibold text-[#171717] mb-3">Documents associés</h4>
                   <div className="space-y-2">
                     {selectedEtape.documents.map((doc, index) => (
                       <div key={index} className="flex items-center justify-between p-3 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background-secondary)]">
                         <div className="flex items-center space-x-3">
                           <FileText className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                          <span className="text-sm text-[#191919]">{doc}</span>
+                          <span className="text-sm text-[#171717]">{doc}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]" aria-label="Voir les détails">

@@ -59,7 +59,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     '1': {
       nom: 'Comptes de ressources durables',
       shortName: 'Ressources durables',
-      color: '#2E7D32',
+      color: '#22c55e',
       icon: Building2,
       description: 'Capitaux propres et ressources assimilées',
       comptes: [
@@ -145,7 +145,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     '2': {
       nom: 'Actif immobilisé',
       shortName: 'Immobilisations',
-      color: '#1565C0',
+      color: '#3b82f6',
       icon: Building2,
       description: 'Immobilisations corporelles et incorporelles',
       comptes: [
@@ -361,7 +361,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     '6': {
       nom: 'Comptes de charges',
       shortName: 'Charges',
-      color: '#D32F2F',
+      color: '#ef4444',
       icon: TrendingUp,
       description: 'Charges des activités ordinaires',
       comptes: [
@@ -443,7 +443,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     '7': {
       nom: 'Comptes de produits',
       shortName: 'Produits',
-      color: '#388E3C',
+      color: '#22c55e',
       icon: TrendingUp,
       description: 'Produits des activités ordinaires',
       comptes: [

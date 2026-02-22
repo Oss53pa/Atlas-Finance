@@ -4,7 +4,7 @@ import {
 
 export const getStatutColor = (statut: string): string => {
   const colors: Record<string, string> = {
-    'EN_COURS': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+    'EN_COURS': 'bg-[#171717]/10 text-[#171717]',
     'RESOLU': 'bg-green-100 text-green-800',
     'CONTENTIEUX': 'bg-red-100 text-red-800',
     'IRRECUPERABLE': 'bg-gray-100 text-gray-800',
@@ -36,7 +36,7 @@ export const getNiveauColor = (niveau: string): string => {
     'RELANCE_1': 'bg-yellow-100 text-yellow-800',
     'RELANCE_2': 'bg-orange-100 text-orange-800',
     'RELANCE_3': 'bg-red-100 text-red-800',
-    'MISE_EN_DEMEURE': 'bg-[#B87333]/10 text-[#B87333]',
+    'MISE_EN_DEMEURE': 'bg-[#525252]/10 text-[#525252]',
     'CONTENTIEUX': 'bg-red-200 text-red-900',
   };
   return colors[niveau] || 'bg-gray-100 text-gray-800';
@@ -75,7 +75,4 @@ export const formatDateFR = (dateString: string): string => {
 };
 
 /** Chart color palette */
-export const CHART_COLORS = [
-  '#6A8A82', '#B87333', '#171717', '#737373',
-  '#404040', '#A3A3A3', '#525252', '#D4D4D4',
-];
+export const CHART_COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];

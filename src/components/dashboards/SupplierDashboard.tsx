@@ -578,7 +578,7 @@ const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                   dataKey="count"
                   nameKey="rating"
                   height={300}
-                  colors={['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6']}
+                  colors={['#22c55e', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6']}
                 />
               </CardContent>
             </Card>

@@ -389,7 +389,7 @@ export const FundCallDetails: React.FC = () => {
           height: 12px;
           border-radius: 50%;
           border: 3px solid white;
-          box-shadow: 0 0 0 2px #dee2e6;
+          box-shadow: 0 0 0 2px #e5e5e5;
         }
 
         .timeline::before {
@@ -399,7 +399,7 @@ export const FundCallDetails: React.FC = () => {
           top: 0;
           height: 100%;
           width: 2px;
-          background: #dee2e6;
+          background: #e5e5e5;
         }
 
         .avatar {

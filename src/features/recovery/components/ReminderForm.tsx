@@ -162,11 +162,11 @@ export const ReminderForm: React.FC<ReminderFormProps> = ({
 
       {formData.template !== 'custom' && (
         <div>
-          <label className="block text-sm font-medium text-[#191919] mb-2">
+          <label className="block text-sm font-medium text-[#171717] mb-2">
             Aperçu du Message
           </label>
-          <div className="bg-[#F5F5F5] border border-[#D9D9D9] rounded-lg p-4">
-            <p className="text-sm text-[#191919] whitespace-pre-wrap">
+          <div className="bg-[#F5F5F5] border border-[#d4d4d4] rounded-lg p-4">
+            <p className="text-sm text-[#171717] whitespace-pre-wrap">
               {getTemplatePreview()}
             </p>
           </div>

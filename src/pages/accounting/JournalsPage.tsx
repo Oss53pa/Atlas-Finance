@@ -487,17 +487,17 @@ const JournalsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header avec navigation */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/accounting')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[var(--color-surface-hover)] hover:bg-[var(--color-border-light)] transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">{t('accounting.title')}</span>
+              <ArrowLeft className="w-4 h-4 text-[#404040]" />
+              <span className="text-sm font-semibold text-[#404040]">{t('accounting.title')}</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -505,8 +505,8 @@ const JournalsPage: React.FC = () => {
                 <BookOpen className="w-5 h-5 text-[var(--color-text-secondary)]" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#191919]">Journaux Comptables</h1>
-                <p className="text-sm text-[#767676]">Gestion des journaux SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[#171717]">Journaux Comptables</h1>
+                <p className="text-sm text-[#737373]">Gestion des journaux SYSCOHADA</p>
               </div>
             </div>
           </div>
@@ -524,8 +524,8 @@ const JournalsPage: React.FC = () => {
       </div>
 
       {/* Navigation par onglets */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
-        <div className="px-6 border-b border-[#E8E8E8]">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+        <div className="px-6 border-b border-[#e5e5e5]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -536,7 +536,7 @@ const JournalsPage: React.FC = () => {
                   className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                      : 'border-transparent text-[#767676] hover:text-[#444444]'
+                      : 'border-transparent text-[#737373] hover:text-[#404040]'
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -556,9 +556,9 @@ const JournalsPage: React.FC = () => {
           {activeTab === 'journaux' && (
             <div className="space-y-4">
               {/* Header avec switch */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8] p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] p-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-[#191919]">📚 Gestion des Journaux</h2>
+                  <h2 className="font-semibold text-[#171717]">📚 Gestion des Journaux</h2>
                   <div className="flex items-center space-x-3">
                     {/* Switch vue */}
                     <div className="flex items-center bg-[var(--color-surface-hover)] rounded-lg p-1">
@@ -735,7 +735,7 @@ const JournalsPage: React.FC = () => {
 
               {/* Vue Table */}
               {viewMode === 'table' && (
-                <div className="bg-white rounded-lg border border-[#E8E8E8]">
+                <div className="bg-white rounded-lg border border-[#e5e5e5]">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-[var(--color-surface-hover)]">
@@ -778,7 +778,7 @@ const JournalsPage: React.FC = () => {
                                 </div>
                               </td>
                               <td className="px-4 py-4">
-                                <span className="font-medium text-[#191919]">{journal.libelle}</span>
+                                <span className="font-medium text-[#171717]">{journal.libelle}</span>
                               </td>
                               <td className="px-4 py-4 text-center">
                                 <span className="font-semibold">{journal.entries}</span>
@@ -798,7 +798,7 @@ const JournalsPage: React.FC = () => {
                                 )}
                               </td>
                               <td className="px-4 py-4 text-center">
-                                <span className="text-xs text-[#767676]">{journal.lastEntry}</span>
+                                <span className="text-xs text-[#737373]">{journal.lastEntry}</span>
                               </td>
                               <td className="px-4 py-4 text-center">
                                 <div className="flex items-center justify-center space-x-2">
@@ -908,13 +908,13 @@ const JournalsPage: React.FC = () => {
           {/* Journal sélectionné avec reproduction de l'image */}
           {activeTab === 'journal-view' && selectedJournal && (
             <div className="space-y-4">
-              <div className="bg-white rounded-lg border border-[#E8E8E8]">
+              <div className="bg-white rounded-lg border border-[#e5e5e5]">
                 {/* Header du journal réorganisé */}
                 <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)]">
                   {/* Ligne 1: Titre + Actions principales */}
                   <div className="flex items-center justify-between p-4 pb-3">
                     <div className="flex items-center space-x-4">
-                      <h3 className="text-lg font-bold text-[#191919]">
+                      <h3 className="text-lg font-bold text-[#171717]">
                         <Archive className="w-5 h-5 mr-2" />
                         {selectedJournal?.code === 'TOUS' ? 'Journal tous mouvements' : `Journal ${selectedJournal?.code} - ${selectedJournal?.libelle}`}
                       </h3>

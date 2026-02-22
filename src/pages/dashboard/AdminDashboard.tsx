@@ -169,12 +169,8 @@ const AdminDashboard: React.FC = () => {
     }
   ];
 
-  const users = [
-    { id: 1, name: 'Marie Dupont', email: 'marie@example.com', role: 'Comptable', status: 'active', lastLogin: '2h' },
-    { id: 2, name: 'Jean Martin', email: 'jean@example.com', role: 'Manager', status: 'active', lastLogin: '1h' },
-    { id: 3, name: 'Sophie Bernard', email: 'sophie@example.com', role: 'Comptable', status: 'inactive', lastLogin: '2j' },
-    { id: 4, name: 'Pierre Durand', email: 'pierre@example.com', role: 'Admin', status: 'active', lastLogin: '30min' },
-  ];
+  // TODO: wire to real user management when auth backend is available
+  const users: Array<{ id: number; name: string; email: string; role: string; status: string; lastLogin: string }> = [];
 
   const securityLogs = liveAuditLogs.length > 0 ? liveAuditLogs : [
     { time: '--:--', event: 'Aucun evenement enregistre', user: 'system', ip: 'local', type: 'info' },
@@ -278,10 +274,10 @@ const AdminDashboard: React.FC = () => {
                 <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Performance Serveur</h2>
                 <div className="space-y-4">
                   {[
-                    { label: 'CPU', value: '23%', color: 'green' },
-                    { label: 'RAM', value: '45%', color: 'blue' },
-                    { label: 'Disque', value: '68%', color: 'orange' },
-                    { label: 'Réseau', value: '12%', color: 'green' },
+                    { label: 'CPU', value: '0%', color: 'green' },
+                    { label: 'RAM', value: '0%', color: 'green' },
+                    { label: 'Disque', value: '0%', color: 'green' },
+                    { label: 'Réseau', value: '0%', color: 'green' },
                   ].map((item, index) => (
                     <div key={index}>
                       <div className="flex justify-between text-sm mb-1">

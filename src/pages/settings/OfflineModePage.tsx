@@ -1273,8 +1273,8 @@ const OfflineModePage: React.FC = () => {
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
               <div className="flex items-center space-x-3">
-                <div className="bg-[#6A8A82] bg-opacity-10 p-2 rounded-lg">
-                  <GitMerge className="w-5 h-5 text-[#6A8A82]" />
+                <div className="bg-[#171717] bg-opacity-10 p-2 rounded-lg">
+                  <GitMerge className="w-5 h-5 text-[#171717]" />
                 </div>
                 <h2 className="text-lg font-bold text-gray-900">Résolution Manuelle du Conflit</h2>
               </div>
@@ -1311,7 +1311,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <h4 className="font-medium text-gray-900 flex items-center space-x-2">
-                      <GitBranch className="w-4 h-4 text-[#6A8A82]" />
+                      <GitBranch className="w-4 h-4 text-[#171717]" />
                       <span>Valeur locale</span>
                     </h4>
                     <div className="bg-gray-50 p-3 rounded border border-gray-200">
@@ -1326,7 +1326,7 @@ const OfflineModePage: React.FC = () => {
 
                   <div className="space-y-2">
                     <h4 className="font-medium text-gray-900 flex items-center space-x-2">
-                      <Cloud className="w-4 h-4 text-[#7A99AC]" />
+                      <Cloud className="w-4 h-4 text-[#737373]" />
                       <span>Valeur serveur</span>
                     </h4>
                     <div className="bg-gray-50 p-3 rounded border border-gray-200">
@@ -1343,11 +1343,11 @@ const OfflineModePage: React.FC = () => {
                 {/* Champ d'édition */}
                 <div className="space-y-2">
                   <h4 className="font-medium text-gray-900 flex items-center space-x-2">
-                    <Edit className="w-4 h-4 text-[#B87333]" />
+                    <Edit className="w-4 h-4 text-[#525252]" />
                     <span>Valeur de fusion manuelle</span>
                   </h4>
                   <textarea
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82] font-mono text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717] font-mono text-sm"
                     rows={8}
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
@@ -1405,7 +1405,7 @@ const OfflineModePage: React.FC = () => {
               </Button>
               <Button
                 onClick={handleSaveManualEdit}
-                className="bg-[#6A8A82] hover:bg-[#7A99AC] text-white"
+                className="bg-[#171717] hover:bg-[#737373] text-white"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Sauvegarder la fusion

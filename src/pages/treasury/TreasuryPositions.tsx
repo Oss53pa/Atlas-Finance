@@ -188,9 +188,9 @@ const TreasuryPositions: React.FC = () => {
   const uniqueBanks = [...new Set(positions.map(p => p.bankName))];
 
   const chartData = [
-    { label: 'EUR', value: aggregatedData.totalEUR / 1000000, color: 'bg-[#6A8A82]' },
+    { label: 'EUR', value: aggregatedData.totalEUR / 1000000, color: 'bg-[#171717]' },
     { label: 'USD', value: (aggregatedData.totalUSD * (exchangeRateLookup['USD'] || 0.92)) / 1000000, color: 'bg-green-500' },
-    { label: 'GBP', value: (aggregatedData.totalGBP * (exchangeRateLookup['GBP'] || 1.15)) / 1000000, color: 'bg-[#B87333]' },
+    { label: 'GBP', value: (aggregatedData.totalGBP * (exchangeRateLookup['GBP'] || 1.15)) / 1000000, color: 'bg-[#525252]' },
     { label: 'CHF', value: (aggregatedData.totalCHF * (exchangeRateLookup['CHF'] || 1.08)) / 1000000, color: 'bg-orange-500' }
   ];
 
@@ -293,7 +293,7 @@ const TreasuryPositions: React.FC = () => {
                 <button
                   onClick={() => setViewMode('table')}
                   className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'table' ? 'bg-[#6A8A82]/10 text-[#6A8A82]' : 'text-neutral-400 hover:text-neutral-600'
+                    viewMode === 'table' ? 'bg-[#171717]/10 text-[#171717]' : 'text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   <BarChart3 className="h-4 w-4" />
@@ -301,7 +301,7 @@ const TreasuryPositions: React.FC = () => {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-colors ${
-                    viewMode === 'grid' ? 'bg-[#6A8A82]/10 text-[#6A8A82]' : 'text-neutral-400 hover:text-neutral-600'
+                    viewMode === 'grid' ? 'bg-[#171717]/10 text-[#171717]' : 'text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   <Target className="h-4 w-4" />
@@ -317,14 +317,14 @@ const TreasuryPositions: React.FC = () => {
                   placeholder="Rechercher..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                 />
               </div>
 
               <select
                 value={filterCurrency}
                 onChange={(e) => setFilterCurrency(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               >
                 <option value="all">Toutes les devises</option>
                 {uniqueCurrencies.map(currency => (
@@ -335,7 +335,7 @@ const TreasuryPositions: React.FC = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="active">Actif</option>
@@ -346,7 +346,7 @@ const TreasuryPositions: React.FC = () => {
               <select
                 value={filterBank}
                 onChange={(e) => setFilterBank(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               >
                 <option value="all">Toutes les banques</option>
                 {uniqueBanks.map(bank => (
@@ -391,8 +391,8 @@ const TreasuryPositions: React.FC = () => {
                       >
                         <td className="py-4 px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-[#6A8A82]/5 rounded-lg">
-                              <Building2 className="h-4 w-4 text-[#6A8A82]" />
+                            <div className="p-2 bg-[#171717]/5 rounded-lg">
+                              <Building2 className="h-4 w-4 text-[#171717]" />
                             </div>
                             <div>
                               <p className="font-medium text-neutral-800">{position.bankName}</p>
@@ -440,7 +440,7 @@ const TreasuryPositions: React.FC = () => {
                           <div className="flex justify-center space-x-2">
                             <button
                               onClick={() => setPositionModal({ isOpen: true, mode: 'view', position })}
-                              className="p-2 text-neutral-400 hover:text-[#6A8A82] transition-colors"
+                              className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
@@ -470,8 +470,8 @@ const TreasuryPositions: React.FC = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-[#6A8A82]/5 rounded-lg">
-                            <Building2 className="h-5 w-5 text-[#6A8A82]" />
+                          <div className="p-2 bg-[#171717]/5 rounded-lg">
+                            <Building2 className="h-5 w-5 text-[#171717]" />
                           </div>
                           <div>
                             <h4 className="font-semibold text-neutral-800">{position.bankName}</h4>
@@ -510,7 +510,7 @@ const TreasuryPositions: React.FC = () => {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => setPositionModal({ isOpen: true, mode: 'view', position })}
-                              className="p-2 text-neutral-400 hover:text-[#6A8A82] transition-colors"
+                              className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
                             >
                               <Eye className="h-4 w-4" />
                             </button>

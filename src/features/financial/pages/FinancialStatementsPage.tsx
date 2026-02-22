@@ -36,8 +36,8 @@ const FinancialStatementsPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#191919]">États Financiers SYSCOHADA</h1>
-          <p className="text-[#767676] mt-1">
+          <h1 className="text-lg font-bold text-[#171717]">États Financiers SYSCOHADA</h1>
+          <p className="text-[#737373] mt-1">
             Bilan, Compte de Résultat et Ratios Financiers
           </p>
         </div>
@@ -51,7 +51,7 @@ const FinancialStatementsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-[#D9D9D9] p-4">
+      <div className="bg-white rounded-lg border border-[#d4d4d4] p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Select
@@ -87,7 +87,7 @@ const FinancialStatementsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-[#D9D9D9]">
+      <div className="flex gap-2 border-b border-[#d4d4d4]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -96,8 +96,8 @@ const FinancialStatementsPage: React.FC = () => {
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-[#6A8A82] text-[#6A8A82] font-semibold'
-                  : 'border-transparent text-[#767676] hover:text-[#191919]'
+                  ? 'border-[#171717] text-[#171717] font-semibold'
+                  : 'border-transparent text-[#737373] hover:text-[#171717]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -130,55 +130,55 @@ const FinancialStatementsPage: React.FC = () => {
           <RatiosCard ratios={currentData.ratios} loading={loading} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Structure Financière</h3>
+            <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Structure Financière</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">Autonomie Financière</span>
+                  <span className="text-sm text-[#737373]">Autonomie Financière</span>
                   <span className="font-semibold">{currentData.ratios.autonomieFinanciere.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">Taux d'Endettement</span>
+                  <span className="text-sm text-[#737373]">Taux d'Endettement</span>
                   <span className="font-semibold">{currentData.ratios.endettement.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">Couverture des Emplois</span>
+                  <span className="text-sm text-[#737373]">Couverture des Emplois</span>
                   <span className="font-semibold">{currentData.ratios.couvertureEmplois.toFixed(1)}%</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Liquidité</h3>
+            <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Liquidité</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">Liquidité Générale</span>
+                  <span className="text-sm text-[#737373]">Liquidité Générale</span>
                   <span className="font-semibold">{currentData.ratios.liquiditeGenerale.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">Liquidité Réduite</span>
+                  <span className="text-sm text-[#737373]">Liquidité Réduite</span>
                   <span className="font-semibold">{currentData.ratios.liquiditeReduite.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">Liquidité Immédiate</span>
+                  <span className="text-sm text-[#737373]">Liquidité Immédiate</span>
                   <span className="font-semibold">{currentData.ratios.liquiditeImmediate.toFixed(1)}%</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Rentabilité</h3>
+            <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Rentabilité</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">Rentabilité Commerciale</span>
+                  <span className="text-sm text-[#737373]">Rentabilité Commerciale</span>
                   <span className="font-semibold">{currentData.ratios.rentabiliteCommerciale.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">ROE</span>
+                  <span className="text-sm text-[#737373]">ROE</span>
                   <span className="font-semibold">{currentData.ratios.roe.toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[#767676]">ROA</span>
+                  <span className="text-sm text-[#737373]">ROA</span>
                   <span className="font-semibold">{currentData.ratios.roa.toFixed(1)}%</span>
                 </div>
               </div>

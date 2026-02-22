@@ -57,7 +57,7 @@ const WorkspaceCustomization: React.FC = () => {
           name: 'Espace Comptable',
           description: 'Tableau de bord comptable',
           icon: 'Calculator',
-          color: '#6A8A82',
+          color: '#171717',
           is_active: true,
           order: 1,
           widget_count: 0,
@@ -170,10 +170,10 @@ const WorkspaceCustomization: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F7F3E9' }}>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#fafafa' }}>
         <div className="text-center">
-          <Loader className="animate-spin mx-auto mb-4" size={48} style={{ color: '#7A8B8E' }} />
-          <p className="text-lg" style={{ color: '#353A3B' }}>Chargement...</p>
+          <Loader className="animate-spin mx-auto mb-4" size={48} style={{ color: '#737373' }} />
+          <p className="text-lg" style={{ color: '#404040' }}>Chargement...</p>
         </div>
       </div>
     );
@@ -181,14 +181,14 @@ const WorkspaceCustomization: React.FC = () => {
 
   if (error || !dashboard) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F7F3E9' }}>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#fafafa' }}>
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#353A3B' }}>Erreur</h2>
-          <p className="mb-4" style={{ color: '#7A8B8E' }}>{error || 'Impossible de charger'}</p>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#404040' }}>Erreur</h2>
+          <p className="mb-4" style={{ color: '#737373' }}>{error || 'Impossible de charger'}</p>
           <button
             onClick={() => navigate('/workspace')}
             className="px-6 py-2 rounded-lg font-semibold"
-            style={{ backgroundColor: '#353A3B', color: '#FFFFFF' }}
+            style={{ backgroundColor: '#404040', color: '#FFFFFF' }}
           >
             Retour
           </button>
@@ -198,9 +198,9 @@ const WorkspaceCustomization: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F7F3E9' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#fafafa' }}>
       {/* Header */}
-      <div className="bg-white border-b" style={{ borderColor: '#D5D0CD' }}>
+      <div className="bg-white border-b" style={{ borderColor: '#e5e5e5' }}>
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -208,14 +208,14 @@ const WorkspaceCustomization: React.FC = () => {
                 onClick={() => navigate('/workspace')}
                 className="p-2 rounded-lg hover:bg-gray-100"
               >
-                <ArrowLeft size={24} style={{ color: '#353A3B' }} />
+                <ArrowLeft size={24} style={{ color: '#404040' }} />
               </button>
               <div>
-                <h1 className="text-lg font-bold" style={{ color: '#353A3B' }}>
+                <h1 className="text-lg font-bold" style={{ color: '#404040' }}>
                   <Settings size={32} className="inline mr-2" />
                   Personnaliser mon Workspace
                 </h1>
-                <p style={{ color: '#7A8B8E' }}>
+                <p style={{ color: '#737373' }}>
                   {dashboard.workspace.name}
                 </p>
               </div>
@@ -226,7 +226,7 @@ const WorkspaceCustomization: React.FC = () => {
                 onClick={handleReset}
                 disabled={saving}
                 className="px-4 py-2 rounded-lg border flex items-center gap-2 hover:opacity-80"
-                style={{ borderColor: '#D5D0CD', color: '#DC2626' }}
+                style={{ borderColor: '#e5e5e5', color: '#ef4444' }}
               >
                 <RotateCcw size={18} />
                 Réinitialiser
@@ -235,7 +235,7 @@ const WorkspaceCustomization: React.FC = () => {
                 onClick={handleSave}
                 disabled={saving}
                 className="px-6 py-2 rounded-lg flex items-center gap-2 hover:opacity-90"
-                style={{ backgroundColor: '#353A3B', color: '#FFFFFF' }}
+                style={{ backgroundColor: '#404040', color: '#FFFFFF' }}
               >
                 {saving ? (
                   <Loader size={18} className="animate-spin" />
@@ -251,18 +251,18 @@ const WorkspaceCustomization: React.FC = () => {
 
       <div className="container mx-auto px-6 py-8">
         {/* Préférences d'affichage */}
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-8" style={{ borderColor: '#D5D0CD' }}>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#353A3B' }}>
+        <div className="bg-white p-6 rounded-xl shadow-sm mb-8" style={{ borderColor: '#e5e5e5' }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: '#404040' }}>
             Préférences d'Affichage
           </h2>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: '#F7F3E9' }}>
+            <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: '#fafafa' }}>
               <div>
-                <div className="font-semibold" style={{ color: '#353A3B' }}>
+                <div className="font-semibold" style={{ color: '#404040' }}>
                   Message de bienvenue
                 </div>
-                <div className="text-sm" style={{ color: '#7A8B8E' }}>
+                <div className="text-sm" style={{ color: '#737373' }}>
                   Afficher le message de bienvenue au chargement
                 </div>
               </div>
@@ -280,12 +280,12 @@ const WorkspaceCustomization: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: '#F7F3E9' }}>
+            <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: '#fafafa' }}>
               <div>
-                <div className="font-semibold" style={{ color: '#353A3B' }}>
+                <div className="font-semibold" style={{ color: '#404040' }}>
                   Mode compact
                 </div>
-                <div className="text-sm" style={{ color: '#7A8B8E' }}>
+                <div className="text-sm" style={{ color: '#737373' }}>
                   Affichage condensé pour plus de widgets
                 </div>
               </div>
@@ -306,13 +306,13 @@ const WorkspaceCustomization: React.FC = () => {
         </div>
 
         {/* Gestion des Widgets */}
-        <div className="bg-white p-6 rounded-xl shadow-sm" style={{ borderColor: '#D5D0CD' }}>
+        <div className="bg-white p-6 rounded-xl shadow-sm" style={{ borderColor: '#e5e5e5' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold" style={{ color: '#353A3B' }}>
+            <h2 className="text-lg font-bold" style={{ color: '#404040' }}>
               <Grid size={24} className="inline mr-2" />
               Widgets
             </h2>
-            <p className="text-sm" style={{ color: '#7A8B8E' }}>
+            <p className="text-sm" style={{ color: '#737373' }}>
               Glissez-déposez pour réorganiser • Cliquez sur l'œil pour masquer
             </p>
           </div>
@@ -334,11 +334,11 @@ const WorkspaceCustomization: React.FC = () => {
                   } ${isHidden ? 'opacity-50' : ''} ${
                     isRequired ? 'cursor-not-allowed' : 'cursor-move hover:shadow-md'
                   }`}
-                  style={{ borderColor: isHidden ? '#D5D0CD' : widget.color }}
+                  style={{ borderColor: isHidden ? '#e5e5e5' : widget.color }}
                 >
                   <div className="flex items-center gap-4">
                     {!isRequired && (
-                      <GripVertical size={20} style={{ color: '#7A8B8E' }} />
+                      <GripVertical size={20} style={{ color: '#737373' }} />
                     )}
 
                     <div
@@ -349,11 +349,11 @@ const WorkspaceCustomization: React.FC = () => {
                     </div>
 
                     <div className="flex-1">
-                      <div className="font-semibold" style={{ color: '#353A3B' }}>
+                      <div className="font-semibold" style={{ color: '#404040' }}>
                         {widget.title}
                       </div>
                       {widget.description && (
-                        <div className="text-sm" style={{ color: '#7A8B8E' }}>
+                        <div className="text-sm" style={{ color: '#737373' }}>
                           {widget.description}
                         </div>
                       )}
@@ -365,7 +365,7 @@ const WorkspaceCustomization: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-sm px-3 py-1 rounded-full" style={{ backgroundColor: '#F7F3E9', color: '#7A8B8E' }}>
+                      <span className="text-sm px-3 py-1 rounded-full" style={{ backgroundColor: '#fafafa', color: '#737373' }}>
                         {widget.widget_type}
                       </span>
 
@@ -376,9 +376,9 @@ const WorkspaceCustomization: React.FC = () => {
                           title={isHidden ? 'Afficher' : 'Masquer'}
                         >
                           {isHidden ? (
-                            <EyeOff size={20} style={{ color: '#DC2626' }} />
+                            <EyeOff size={20} style={{ color: '#ef4444' }} />
                           ) : (
-                            <Eye size={20} style={{ color: '#10B981' }} />
+                            <Eye size={20} style={{ color: '#22c55e' }} />
                           )}
                         </button>
                       )}
@@ -390,7 +390,7 @@ const WorkspaceCustomization: React.FC = () => {
           </div>
 
           {widgets.length === 0 && (
-            <div className="text-center py-12" style={{ color: '#7A8B8E' }}>
+            <div className="text-center py-12" style={{ color: '#737373' }}>
               <Grid size={48} className="mx-auto mb-4 opacity-30" />
               <p>Aucun widget disponible</p>
             </div>

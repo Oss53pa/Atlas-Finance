@@ -63,7 +63,7 @@ const AssetMasterDataPage: React.FC = () => {
   if (loading || !asset) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-[#767676]">{t('common.loading')}</div>
+        <div className="text-[#737373]">{t('common.loading')}</div>
       </div>
     );
   }
@@ -72,14 +72,14 @@ const AssetMasterDataPage: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b border-[#D9D9D9] bg-white">
+      <div className="flex items-center justify-between p-4 border-b border-[#d4d4d4] bg-white">
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
             icon={ArrowLeft}
             onClick={() => navigate('/assets')}
           />
-          <h1 className="text-lg font-bold text-[#191919]">Fiche Immobilisation</h1>
+          <h1 className="text-lg font-bold text-[#171717]">Fiche Immobilisation</h1>
         </div>
         <div className="flex items-center gap-2">
           {editMode ? (
@@ -105,7 +105,7 @@ const AssetMasterDataPage: React.FC = () => {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-64 bg-gray-50 border-r border-[#D9D9D9] overflow-y-auto">
+        <div className="w-64 bg-gray-50 border-r border-[#d4d4d4] overflow-y-auto">
           <nav className="p-4 space-y-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -115,8 +115,8 @@ const AssetMasterDataPage: React.FC = () => {
                   onClick={() => setActiveTab(tab.id as 'general' | 'acquisition' | 'immobilisation' | 'maintenance')}
                   className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
                     activeTab === tab.id
-                      ? 'bg-[#6A8A82]/20 text-[#6A8A82] font-medium'
-                      : 'text-[#191919] hover:bg-gray-100'
+                      ? 'bg-[#171717]/20 text-[#171717] font-medium'
+                      : 'text-[#171717] hover:bg-gray-100'
                   }`}
                 >
                   <Icon className="w-4 h-4 mr-3" />
@@ -138,23 +138,23 @@ const AssetMasterDataPage: React.FC = () => {
             <div className="space-y-6">
               {activeTab === 'general' && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Information Générale</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Information Générale</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-[#767676]">Classe d'actif</label>
-                      <p className="font-medium text-[#191919]">{asset.general.asset_class}</p>
+                      <label className="text-sm text-[#737373]">Classe d'actif</label>
+                      <p className="font-medium text-[#171717]">{asset.general.asset_class}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Localisation</label>
-                      <p className="font-medium text-[#191919]">{asset.general.location}</p>
+                      <label className="text-sm text-[#737373]">Localisation</label>
+                      <p className="font-medium text-[#171717]">{asset.general.location}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Département</label>
-                      <p className="font-medium text-[#191919]">{asset.general.department || '-'}</p>
+                      <label className="text-sm text-[#737373]">Département</label>
+                      <p className="font-medium text-[#171717]">{asset.general.department || '-'}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Responsable</label>
-                      <p className="font-medium text-[#191919]">{asset.general.responsible_person || '-'}</p>
+                      <label className="text-sm text-[#737373]">Responsable</label>
+                      <p className="font-medium text-[#171717]">{asset.general.responsible_person || '-'}</p>
                     </div>
                   </div>
                 </div>
@@ -162,23 +162,23 @@ const AssetMasterDataPage: React.FC = () => {
 
               {activeTab === 'acquisition' && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Informations d'Acquisition</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Informations d'Acquisition</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-[#767676]">Date d'acquisition</label>
-                      <p className="font-medium text-[#191919]">
+                      <label className="text-sm text-[#737373]">Date d'acquisition</label>
+                      <p className="font-medium text-[#171717]">
                         {new Date(asset.acquisition.acquisition_date).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Coût d'acquisition</label>
-                      <p className="font-medium text-[#191919]">
+                      <label className="text-sm text-[#737373]">Coût d'acquisition</label>
+                      <p className="font-medium text-[#171717]">
                         {asset.acquisition.acquisition_cost.toLocaleString()} FCFA
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Fournisseur</label>
-                      <p className="font-medium text-[#191919]">{asset.acquisition.supplier || '-'}</p>
+                      <label className="text-sm text-[#737373]">Fournisseur</label>
+                      <p className="font-medium text-[#171717]">{asset.acquisition.supplier || '-'}</p>
                     </div>
                   </div>
                 </div>
@@ -186,25 +186,25 @@ const AssetMasterDataPage: React.FC = () => {
 
               {activeTab === 'immobilisation' && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Immobilisation</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Immobilisation</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-[#767676]">N° de compte</label>
-                      <p className="font-medium text-[#191919]">{asset.immobilisation.account_number}</p>
+                      <label className="text-sm text-[#737373]">N° de compte</label>
+                      <p className="font-medium text-[#171717]">{asset.immobilisation.account_number}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Méthode d'amortissement</label>
-                      <p className="font-medium text-[#191919]">{asset.immobilisation.depreciation_method}</p>
+                      <label className="text-sm text-[#737373]">Méthode d'amortissement</label>
+                      <p className="font-medium text-[#171717]">{asset.immobilisation.depreciation_method}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Valeur nette comptable</label>
-                      <p className="font-medium text-[#191919]">
+                      <label className="text-sm text-[#737373]">Valeur nette comptable</label>
+                      <p className="font-medium text-[#171717]">
                         {asset.immobilisation.net_book_value.toLocaleString()} FCFA
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Amortissement cumulé</label>
-                      <p className="font-medium text-[#191919]">
+                      <label className="text-sm text-[#737373]">Amortissement cumulé</label>
+                      <p className="font-medium text-[#171717]">
                         {asset.immobilisation.accumulated_depreciation.toLocaleString()} FCFA
                       </p>
                     </div>
@@ -214,19 +214,19 @@ const AssetMasterDataPage: React.FC = () => {
 
               {activeTab === 'maintenance' && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Données de Maintenance</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Données de Maintenance</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-[#767676]">Dernière maintenance</label>
-                      <p className="font-medium text-[#191919]">
+                      <label className="text-sm text-[#737373]">Dernière maintenance</label>
+                      <p className="font-medium text-[#171717]">
                         {asset.maintenance.last_maintenance_date
                           ? new Date(asset.maintenance.last_maintenance_date).toLocaleDateString('fr-FR')
                           : '-'}
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm text-[#767676]">Prochaine maintenance</label>
-                      <p className="font-medium text-[#191919]">
+                      <label className="text-sm text-[#737373]">Prochaine maintenance</label>
+                      <p className="font-medium text-[#171717]">
                         {asset.maintenance.next_maintenance_date
                           ? new Date(asset.maintenance.next_maintenance_date).toLocaleDateString('fr-FR')
                           : '-'}
@@ -248,9 +248,9 @@ const AssetMasterDataPage: React.FC = () => {
       >
         <ModalBody>
           <div className="text-center">
-            <p className="text-[#767676] mb-4">QR Code pour l'immobilisation {asset.asset_number}</p>
+            <p className="text-[#737373] mb-4">QR Code pour l'immobilisation {asset.asset_number}</p>
             <div className="flex justify-center">
-              <div className="w-48 h-48 bg-gray-100 border border-[#D9D9D9] rounded flex items-center justify-center">
+              <div className="w-48 h-48 bg-gray-100 border border-[#d4d4d4] rounded flex items-center justify-center">
                 QR Code Placeholder
               </div>
             </div>
