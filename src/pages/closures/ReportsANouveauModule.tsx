@@ -258,19 +258,19 @@ const ReportsANouveauModule: React.FC = () => {
           <div>
             <p className="text-xs text-[#737373] mb-1">Total Actif</p>
             <p className="font-semibold text-[#171717]">
-              {exerciceInfo.totalActif.toLocaleString('fr-FR')} FCFA
+              {formatCurrency(exerciceInfo.totalActif)}
             </p>
           </div>
           <div>
             <p className="text-xs text-[#737373] mb-1">Total Passif</p>
             <p className="font-semibold text-[#171717]">
-              {exerciceInfo.totalPassif.toLocaleString('fr-FR')} FCFA
+              {formatCurrency(exerciceInfo.totalPassif)}
             </p>
           </div>
           <div>
             <p className="text-xs text-[#737373] mb-1">Résultat N-1</p>
             <p className="font-semibold text-[var(--color-success)]">
-              {exerciceInfo.resultatN1.toLocaleString('fr-FR')} FCFA
+              {formatCurrency(exerciceInfo.resultatN1)}
             </p>
           </div>
           <div>
@@ -278,7 +278,7 @@ const ReportsANouveauModule: React.FC = () => {
             <p className={`font-semibold ${
               exerciceInfo.ecartGlobal === 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
             }`}>
-              {exerciceInfo.ecartGlobal.toLocaleString('fr-FR')} FCFA
+              {formatCurrency(exerciceInfo.ecartGlobal)}
             </p>
           </div>
         </div>
@@ -320,7 +320,7 @@ const ReportsANouveauModule: React.FC = () => {
             <DollarSign className="w-4 h-4 text-[#737373]" />
           </div>
           <p className="text-lg font-bold text-[#171717]">
-            {stats.ecartTotal.toLocaleString('fr-FR')}
+            {formatCurrency(stats.ecartTotal)}
           </p>
         </div>
       </div>
@@ -419,20 +419,20 @@ const ReportsANouveauModule: React.FC = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-right font-mono">
-                        {compte.soldeN1.toLocaleString('fr-FR')}
+                        {formatCurrency(compte.soldeN1)}
                       </td>
                       <td className="py-3 px-4">
                         <div className="text-right font-mono text-sm">
                           {compte.mouvementDebit > 0 && (
-                            <p className="text-[var(--color-error)]">D: {compte.mouvementDebit.toLocaleString('fr-FR')}</p>
+                            <p className="text-[var(--color-error)]">D: {formatCurrency(compte.mouvementDebit)}</p>
                           )}
                           {compte.mouvementCredit > 0 && (
-                            <p className="text-[var(--color-success)]">C: {compte.mouvementCredit.toLocaleString('fr-FR')}</p>
+                            <p className="text-[var(--color-success)]">C: {formatCurrency(compte.mouvementCredit)}</p>
                           )}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-right font-mono font-semibold">
-                        {compte.soldeN.toLocaleString('fr-FR')}
+                        {formatCurrency(compte.soldeN)}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
@@ -589,7 +589,7 @@ const ReportsANouveauModule: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-[#171717]">
-                        {report.montant.toLocaleString('fr-FR')} FCFA
+                        {formatCurrency(report.montant)}
                       </p>
                       <span className="text-xs bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] px-2 py-1 rounded-full">
                         Complété
@@ -683,13 +683,13 @@ const ReportsANouveauModule: React.FC = () => {
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <p className="text-xs text-blue-700 mb-1">Solde Exercice N-1 (Clôture)</p>
                     <p className="text-lg font-bold text-blue-900 font-mono">
-                      {selectedCompte.soldeN1.toLocaleString('fr-FR')} <span className="text-sm font-normal">FCFA</span>
+                      {formatCurrency(selectedCompte.soldeN1)} <span className="text-sm font-normal">FCFA</span>
                     </p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <p className="text-xs text-green-700 mb-1">Solde Exercice N (Ouverture)</p>
                     <p className="text-lg font-bold text-green-900 font-mono">
-                      {selectedCompte.soldeN.toLocaleString('fr-FR')} <span className="text-sm font-normal">FCFA</span>
+                      {formatCurrency(selectedCompte.soldeN)} <span className="text-sm font-normal">FCFA</span>
                     </p>
                   </div>
                 </div>
@@ -709,12 +709,12 @@ const ReportsANouveauModule: React.FC = () => {
                         <td className="py-3 px-4 text-sm">Solde de clôture N-1</td>
                         <td className="py-3 px-4 text-right font-mono text-sm">
                           {selectedCompte.type === 'actif' || selectedCompte.type === 'charge'
-                            ? selectedCompte.soldeN1.toLocaleString('fr-FR')
+                            ? formatCurrency(selectedCompte.soldeN1)
                             : '-'}
                         </td>
                         <td className="py-3 px-4 text-right font-mono text-sm">
                           {selectedCompte.type === 'passif' || selectedCompte.type === 'produit'
-                            ? selectedCompte.soldeN1.toLocaleString('fr-FR')
+                            ? formatCurrency(selectedCompte.soldeN1)
                             : '-'}
                         </td>
                       </tr>
@@ -722,7 +722,7 @@ const ReportsANouveauModule: React.FC = () => {
                         <tr className="border-b border-gray-100 bg-red-50">
                           <td className="py-3 px-4 text-sm text-red-800">Mouvement de report (Débit)</td>
                           <td className="py-3 px-4 text-right font-mono text-sm font-semibold text-red-700">
-                            {selectedCompte.mouvementDebit.toLocaleString('fr-FR')}
+                            {formatCurrency(selectedCompte.mouvementDebit)}
                           </td>
                           <td className="py-3 px-4 text-right font-mono text-sm">-</td>
                         </tr>
@@ -732,7 +732,7 @@ const ReportsANouveauModule: React.FC = () => {
                           <td className="py-3 px-4 text-sm text-green-800">Mouvement de report (Crédit)</td>
                           <td className="py-3 px-4 text-right font-mono text-sm">-</td>
                           <td className="py-3 px-4 text-right font-mono text-sm font-semibold text-green-700">
-                            {selectedCompte.mouvementCredit.toLocaleString('fr-FR')}
+                            {formatCurrency(selectedCompte.mouvementCredit)}
                           </td>
                         </tr>
                       )}
@@ -740,12 +740,12 @@ const ReportsANouveauModule: React.FC = () => {
                         <td className="py-3 px-4 text-sm">Solde d'ouverture N</td>
                         <td className="py-3 px-4 text-right font-mono text-sm">
                           {selectedCompte.type === 'actif' || selectedCompte.type === 'charge'
-                            ? selectedCompte.soldeN.toLocaleString('fr-FR')
+                            ? formatCurrency(selectedCompte.soldeN)
                             : '-'}
                         </td>
                         <td className="py-3 px-4 text-right font-mono text-sm">
                           {selectedCompte.type === 'passif' || selectedCompte.type === 'produit'
-                            ? selectedCompte.soldeN.toLocaleString('fr-FR')
+                            ? formatCurrency(selectedCompte.soldeN)
                             : '-'}
                         </td>
                       </tr>
@@ -770,7 +770,7 @@ const ReportsANouveauModule: React.FC = () => {
                     <p className={`text-lg font-bold font-mono ${
                       selectedCompte.ecart === 0 ? 'text-green-700' : 'text-red-700'
                     }`}>
-                      {selectedCompte.ecart.toLocaleString('fr-FR')} FCFA
+                      {formatCurrency(selectedCompte.ecart)}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -841,10 +841,10 @@ const ReportsANouveauModule: React.FC = () => {
                           <td className="py-1 font-mono">{selectedCompte.code}</td>
                           <td className="py-1">{selectedCompte.libelle}</td>
                           <td className="py-1 text-right font-mono">
-                            {selectedCompte.mouvementDebit > 0 ? selectedCompte.mouvementDebit.toLocaleString('fr-FR') : '-'}
+                            {selectedCompte.mouvementDebit > 0 ? formatCurrency(selectedCompte.mouvementDebit) : '-'}
                           </td>
                           <td className="py-1 text-right font-mono">
-                            {selectedCompte.mouvementCredit > 0 ? selectedCompte.mouvementCredit.toLocaleString('fr-FR') : '-'}
+                            {selectedCompte.mouvementCredit > 0 ? formatCurrency(selectedCompte.mouvementCredit) : '-'}
                           </td>
                         </tr>
                         {(selectedCompte.mouvementDebit > 0 || selectedCompte.mouvementCredit > 0) && (
@@ -856,10 +856,10 @@ const ReportsANouveauModule: React.FC = () => {
                               {selectedCompte.mouvementDebit > 0 ? 'Résultat de l\'exercice' : 'Report à nouveau'}
                             </td>
                             <td className="py-1 text-right font-mono">
-                              {selectedCompte.mouvementCredit > 0 ? selectedCompte.mouvementCredit.toLocaleString('fr-FR') : '-'}
+                              {selectedCompte.mouvementCredit > 0 ? formatCurrency(selectedCompte.mouvementCredit) : '-'}
                             </td>
                             <td className="py-1 text-right font-mono">
-                              {selectedCompte.mouvementDebit > 0 ? selectedCompte.mouvementDebit.toLocaleString('fr-FR') : '-'}
+                              {selectedCompte.mouvementDebit > 0 ? formatCurrency(selectedCompte.mouvementDebit) : '-'}
                             </td>
                           </tr>
                         )}
@@ -910,7 +910,7 @@ const ReportsANouveauModule: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-mono font-semibold">{hist.solde.toLocaleString('fr-FR')} FCFA</p>
+                        <p className="font-mono font-semibold">{formatCurrency(hist.solde)}</p>
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Complété</span>
                       </div>
                     </div>

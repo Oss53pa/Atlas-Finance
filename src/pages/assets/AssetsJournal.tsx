@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -380,7 +381,7 @@ const AssetsJournal: React.FC = () => {
                             {category.code === '234-SS' ? (
                               <div>
                                 <span className="text-green-500 font-semibold">
-                                  €{category.accounts.balanceSheet750.amount.toLocaleString('fr-FR')}
+                                  {formatCurrency(category.accounts.balanceSheet750.amount)}
                                 </span>
                               </div>
                             ) : (
@@ -397,10 +398,10 @@ const AssetsJournal: React.FC = () => {
                     <td className="p-2 text-right">
                       <div>
                         <div className="text-green-500">
-                          €{assetJournalConfig.totals.ytd.toLocaleString('fr-FR')}
+                          {formatCurrency(assetJournalConfig.totals.ytd)}
                         </div>
                         <div className="text-red-500 text-sm">
-                          ({Math.abs(assetJournalConfig.totals.adjustment).toLocaleString('fr-FR')})
+                          ({formatCurrency(Math.abs(assetJournalConfig.totals.adjustment))})
                         </div>
                       </div>
                     </td>
@@ -488,20 +489,20 @@ const AssetsJournal: React.FC = () => {
                               <td className="py-2 text-sm font-mono">{line.account}</td>
                               <td className="py-2 text-sm">{line.label}</td>
                               <td className="py-2 text-sm text-right font-medium">
-                                {line.debit > 0 && `€${line.debit.toLocaleString()}`}
+                                {line.debit > 0 && `€${formatCurrency(line.debit)}`}
                               </td>
                               <td className="py-2 text-sm text-right font-medium">
-                                {line.credit > 0 && `€${line.credit.toLocaleString()}`}
+                                {line.credit > 0 && `€${formatCurrency(line.credit)}`}
                               </td>
                             </tr>
                           ))}
                           <tr className="border-t-2 border-[var(--color-border)] font-semibold">
                             <td className="pt-2" colSpan={2}>Total</td>
                             <td className="pt-2 text-sm text-right">
-                              €{entry.totalDebit.toLocaleString()}
+                              {formatCurrency(entry.totalDebit)}
                             </td>
                             <td className="pt-2 text-sm text-right">
-                              €{entry.totalCredit.toLocaleString()}
+                              {formatCurrency(entry.totalCredit)}
                             </td>
                           </tr>
                         </tbody>

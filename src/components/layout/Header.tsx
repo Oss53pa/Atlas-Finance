@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     {
       id: '4',
       type: 'success',
-      title: 'Clôture mensuelle',
+      title: 'Clôture périodique',
       message: 'La clôture de novembre a été effectuée avec succès',
       time: 'Il y a 2 heures',
       read: true

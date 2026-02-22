@@ -2,6 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import 'fake-indexeddb/auto';
 import { db } from '../lib/db';
 import { verifyTrialBalance } from '../services/trialBalanceService';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 // ============================================================================
 // SEED DATA
@@ -75,7 +78,7 @@ describe('verifyTrialBalance', () => {
       ]),
     ]);
 
-    const result = await verifyTrialBalance();
+    const result = await verifyTrialBalance(adapter);
 
     expect(result.isBalanced).toBe(true);
     expect(result.ecartGlobal).toBe(0);
@@ -104,7 +107,7 @@ describe('verifyTrialBalance', () => {
       },
     ]);
 
-    const result = await verifyTrialBalance();
+    const result = await verifyTrialBalance(adapter);
 
     expect(result.ecartGlobal).toBe(1_000);
     expect(result.unbalancedEntries.length).toBeGreaterThan(0);
@@ -126,7 +129,7 @@ describe('verifyTrialBalance', () => {
       ]),
     ]);
 
-    const result = await verifyTrialBalance();
+    const result = await verifyTrialBalance(adapter);
 
     const seqCheck = result.checks.find(c => c.name.includes('séquentielle'));
     expect(seqCheck?.status).toBe('warning');
@@ -145,11 +148,11 @@ describe('verifyTrialBalance', () => {
       ]), date: '2025-06-01' },
     ]);
 
-    const result2026 = await verifyTrialBalance('2026');
+    const result2026 = await verifyTrialBalance(adapter, '2026');
     expect(result2026.entriesChecked).toBe(1);
     expect(result2026.totalDebits).toBe(100_000);
 
-    const result2025 = await verifyTrialBalance('2025');
+    const result2025 = await verifyTrialBalance(adapter, '2025');
     expect(result2025.entriesChecked).toBe(1);
     expect(result2025.totalDebits).toBe(200_000);
   });
@@ -163,7 +166,7 @@ describe('verifyTrialBalance', () => {
       ]),
     ]);
 
-    const result = await verifyTrialBalance();
+    const result = await verifyTrialBalance(adapter);
     const bilanCheck = result.checks.find(c => c.name.includes('Actif'));
     expect(bilanCheck?.status).toBe('pass');
   });
@@ -176,7 +179,7 @@ describe('verifyTrialBalance', () => {
       ]), status: 'draft' as const },
     ]);
 
-    const result = await verifyTrialBalance();
+    const result = await verifyTrialBalance(adapter);
     const statusCheck = result.checks.find(c => c.name.includes('Statut'));
     expect(statusCheck?.status).toBe('warning');
     expect(statusCheck?.details).toContain('brouillon');

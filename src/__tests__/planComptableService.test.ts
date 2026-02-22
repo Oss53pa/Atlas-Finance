@@ -5,6 +5,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { planComptableService } from '../services/accounting/planComptableService';
 import { db } from '../lib/db';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 describe('PlanComptableService (Dexie)', () => {
   beforeEach(async () => {
@@ -15,7 +18,7 @@ describe('PlanComptableService (Dexie)', () => {
 
   describe('createAccount', () => {
     it('should create an account with SYSCOHADA validation', async () => {
-      const account = await planComptableService.createAccount({
+      const account = await planComptableService.createAccount(adapter, {
         code: '411000',
         name: 'Clients',
         accountClass: '4',
@@ -33,7 +36,7 @@ describe('PlanComptableService (Dexie)', () => {
 
     it('should reject invalid class code', async () => {
       await expect(
-        planComptableService.createAccount({
+        planComptableService.createAccount(adapter, {
           code: '011000',
           name: 'Invalide',
           accountClass: '0',
@@ -47,7 +50,7 @@ describe('PlanComptableService (Dexie)', () => {
     });
 
     it('should reject duplicate code', async () => {
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '521000',
         name: 'Banque',
         accountClass: '5',
@@ -59,7 +62,7 @@ describe('PlanComptableService (Dexie)', () => {
       });
 
       await expect(
-        planComptableService.createAccount({
+        planComptableService.createAccount(adapter, {
           code: '521000',
           name: 'Banque duplicate',
           accountClass: '5',
@@ -74,7 +77,7 @@ describe('PlanComptableService (Dexie)', () => {
 
     it('should reject short code', async () => {
       await expect(
-        planComptableService.createAccount({
+        planComptableService.createAccount(adapter, {
           code: '4',
           name: 'Trop court',
           accountClass: '4',
@@ -89,7 +92,7 @@ describe('PlanComptableService (Dexie)', () => {
 
     it('should reject non-numeric code', async () => {
       await expect(
-        planComptableService.createAccount({
+        planComptableService.createAccount(adapter, {
           code: '41A000',
           name: 'Alpha',
           accountClass: '4',
@@ -105,35 +108,35 @@ describe('PlanComptableService (Dexie)', () => {
 
   describe('getAccounts', () => {
     beforeEach(async () => {
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '101000', name: 'Capital social', accountClass: '1', accountType: 'bilan',
         level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true,
       });
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '411000', name: 'Clients', accountClass: '4', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
       });
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '521000', name: 'Banque', accountClass: '5', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
       });
     });
 
     it('should return all accounts sorted by code', async () => {
-      const accounts = await planComptableService.getAccounts();
+      const accounts = await planComptableService.getAccounts(adapter);
       expect(accounts.length).toBe(3);
       expect(accounts[0].code).toBe('101000');
       expect(accounts[2].code).toBe('521000');
     });
 
     it('should filter by class', async () => {
-      const accounts = await planComptableService.getAccounts({ accountClass: '4' });
+      const accounts = await planComptableService.getAccounts(adapter, { accountClass: '4' });
       expect(accounts.length).toBe(1);
       expect(accounts[0].code).toBe('411000');
     });
 
     it('should filter by search', async () => {
-      const accounts = await planComptableService.getAccounts({ search: 'banque' });
+      const accounts = await planComptableService.getAccounts(adapter, { search: 'banque' });
       expect(accounts.length).toBe(1);
       expect(accounts[0].code).toBe('521000');
     });
@@ -141,30 +144,30 @@ describe('PlanComptableService (Dexie)', () => {
 
   describe('getAccountByCode', () => {
     it('should return account by code', async () => {
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '601000', name: 'Achats', accountClass: '6', accountType: 'gestion',
         level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true,
       });
 
-      const account = await planComptableService.getAccountByCode('601000');
+      const account = await planComptableService.getAccountByCode(adapter, '601000');
       expect(account).toBeDefined();
       expect(account!.name).toBe('Achats');
     });
 
     it('should return null for unknown code', async () => {
-      const account = await planComptableService.getAccountByCode('999999');
+      const account = await planComptableService.getAccountByCode(adapter, '999999');
       expect(account).toBeNull();
     });
   });
 
   describe('updateAccount', () => {
     it('should update account name', async () => {
-      const account = await planComptableService.createAccount({
+      const account = await planComptableService.createAccount(adapter, {
         code: '701000', name: 'Ventes', accountClass: '7', accountType: 'gestion',
         level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true,
       });
 
-      const updated = await planComptableService.updateAccount(account.id, {
+      const updated = await planComptableService.updateAccount(adapter, account.id, {
         name: 'Ventes de marchandises',
       });
 
@@ -174,19 +177,19 @@ describe('PlanComptableService (Dexie)', () => {
 
   describe('deactivateAccount', () => {
     it('should deactivate account without entries', async () => {
-      const account = await planComptableService.createAccount({
+      const account = await planComptableService.createAccount(adapter, {
         code: '471000', name: 'Comptes d\'attente', accountClass: '4', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
       });
 
-      await planComptableService.deactivateAccount(account.id);
+      await planComptableService.deactivateAccount(adapter, account.id);
 
-      const found = await planComptableService.getAccountByCode('471000');
+      const found = await planComptableService.getAccountByCode(adapter, '471000');
       expect(found!.isActive).toBe(false);
     });
 
     it('should throw for account with entries', async () => {
-      const account = await planComptableService.createAccount({
+      const account = await planComptableService.createAccount(adapter, {
         code: '411000', name: 'Clients', accountClass: '4', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
       });
@@ -211,23 +214,23 @@ describe('PlanComptableService (Dexie)', () => {
       });
 
       await expect(
-        planComptableService.deactivateAccount(account.id)
+        planComptableService.deactivateAccount(adapter, account.id)
       ).rejects.toThrow('a des écritures');
     });
   });
 
   describe('getHierarchy', () => {
     it('should group accounts by class', async () => {
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '101000', name: 'Capital', accountClass: '1', accountType: 'bilan',
         level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true,
       });
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '411000', name: 'Clients', accountClass: '4', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
       });
 
-      const hierarchy = await planComptableService.getHierarchy();
+      const hierarchy = await planComptableService.getHierarchy(adapter);
       expect(hierarchy.length).toBe(2);
 
       const class1 = hierarchy.find(h => h.classCode === '1');
@@ -238,16 +241,16 @@ describe('PlanComptableService (Dexie)', () => {
 
   describe('getStats', () => {
     it('should compute statistics', async () => {
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '411000', name: 'Clients', accountClass: '4', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
       });
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '701000', name: 'Ventes', accountClass: '7', accountType: 'gestion',
         level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true,
       });
 
-      const stats = await planComptableService.getStats();
+      const stats = await planComptableService.getStats(adapter);
       expect(stats.totalAccounts).toBe(2);
       expect(stats.activeAccounts).toBe(2);
       expect(stats.reconcilableAccounts).toBe(1);
@@ -257,10 +260,10 @@ describe('PlanComptableService (Dexie)', () => {
 
   describe('seedDefaultPlan', () => {
     it('should seed default SYSCOHADA accounts', async () => {
-      const count = await planComptableService.seedDefaultPlan();
+      const count = await planComptableService.seedDefaultPlan(adapter);
       expect(count).toBeGreaterThan(30); // At least 30+ default accounts
 
-      const accounts = await planComptableService.getAccounts();
+      const accounts = await planComptableService.getAccounts(adapter);
       const codes = accounts.map(a => a.code);
       expect(codes).toContain('101000');
       expect(codes).toContain('411000');
@@ -270,20 +273,20 @@ describe('PlanComptableService (Dexie)', () => {
     });
 
     it('should not seed again if accounts exist', async () => {
-      await planComptableService.seedDefaultPlan();
-      const secondCount = await planComptableService.seedDefaultPlan();
+      await planComptableService.seedDefaultPlan(adapter);
+      const secondCount = await planComptableService.seedDefaultPlan(adapter);
       expect(secondCount).toBe(0);
     });
   });
 
   describe('exportPlanComptable', () => {
     it('should export as CSV', async () => {
-      await planComptableService.createAccount({
+      await planComptableService.createAccount(adapter, {
         code: '411000', name: 'Clients', accountClass: '4', accountType: 'bilan',
         level: 4, normalBalance: 'debit', isReconcilable: true, isActive: true,
       });
 
-      const blob = await planComptableService.exportPlanComptable();
+      const blob = await planComptableService.exportPlanComptable(adapter);
       expect(blob.size).toBeGreaterThan(0);
       expect(blob.type).toContain('csv');
     });

@@ -266,7 +266,7 @@ export async function transitionEffet(
   const entryNumber = `EFF-${date.replace(/-/g, '')}-${effet.numero.substring(4, 10)}`;
   const entryId = crypto.randomUUID();
 
-  await safeAddEntry({
+  await safeAddEntry(adapter, {
     id: entryId,
     entryNumber,
     journal: 'OD',

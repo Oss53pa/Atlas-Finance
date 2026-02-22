@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -156,7 +157,7 @@ const RecouvrementPage: React.FC = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-gray-900">
-                {stats.totalOverdue.toLocaleString()} XOF
+                {formatCurrency(stats.totalOverdue)} XOF
               </p>
               <p className="text-gray-600 text-sm">Créances échues</p>
             </div>
@@ -263,7 +264,7 @@ const RecouvrementPage: React.FC = () => {
                         <div className="flex items-center space-x-4 text-sm text-gray-600">
                           <span className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1" />
-                            {customer.overdueAmount.toLocaleString()} XOF en retard
+                            {formatCurrency(customer.overdueAmount)} XOF en retard
                           </span>
                           <span className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />

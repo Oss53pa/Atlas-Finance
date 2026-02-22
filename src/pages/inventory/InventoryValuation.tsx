@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Calculator,
@@ -80,7 +81,7 @@ const ValuationComparison: React.FC<ValuationComparisonProps> = ({
               <XAxis dataKey="method" />
               <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
               <Tooltip
-                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Inventory Value']}
+                formatter={(value: number) => [`$${formatCurrency(value)}`, 'Inventory Value']}
               />
               <Bar dataKey="value" fill="#3B82F6" />
             </BarChart>
@@ -577,7 +578,7 @@ const InventoryValuation: React.FC = () => {
 
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-lg font-bold text-gray-600 mb-1">
-                {valuationData.items.length.toLocaleString()}
+                {formatCurrency(valuationData.items.length)}
               </div>
               <div className="text-sm text-gray-800">Items Valued</div>
             </div>
@@ -603,7 +604,7 @@ const InventoryValuation: React.FC = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']} />
+                    <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Value']} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -616,7 +617,7 @@ const InventoryValuation: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="category" />
                     <YAxis />
-                    <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, 'Impairment']} />
+                    <Tooltip formatter={(value: number) => [`$${formatCurrency(value)}`, 'Impairment']} />
                     <Bar dataKey="impairment" fill="#EF4444" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -649,7 +650,7 @@ const InventoryValuation: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-right font-mono">
-                      {item.quantity.toLocaleString()}
+                      {formatCurrency(item.quantity)}
                     </td>
                     <td className="py-4 px-4 text-right">
                       <CurrencyDisplay amount={item.unitCost} currency="USD" size="sm" />

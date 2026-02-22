@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@atlas/shared": ["../shared/src"],
+      "@atlas/shared/*": ["../shared/src/*"],
+      "@atlas/core": ["../core/src"],
+      "@atlas/core/*": ["../core/src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -490,14 +491,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
                               title="Cliquer pour voir les transactions de l'exercice N"
                             >
-                              {item.exerciceN.toLocaleString()}
+                              {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
                               title="Cliquer pour voir les transactions de l'exercice N-1"
                             >
-                              {item.exerciceN1.toLocaleString()}
+                              {formatCurrency(item.exerciceN1)}
                             </td>
                           </tr>
                         ))}
@@ -528,14 +529,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
                               title="Cliquer pour voir les transactions de l'exercice N"
                             >
-                              {item.exerciceN.toLocaleString()}
+                              {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
                               title="Cliquer pour voir les transactions de l'exercice N-1"
                             >
-                              {item.exerciceN1.toLocaleString()}
+                              {formatCurrency(item.exerciceN1)}
                             </td>
                           </tr>
                         ))}
@@ -591,14 +592,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
                               title="Cliquer pour voir les transactions de l'exercice N"
                             >
-                              {item.exerciceN.toLocaleString()}
+                              {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
                               title="Cliquer pour voir les transactions de l'exercice N-1"
                             >
-                              {item.exerciceN1.toLocaleString()}
+                              {formatCurrency(item.exerciceN1)}
                             </td>
                           </tr>
                         ))}
@@ -629,14 +630,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
                               title="Cliquer pour voir les transactions de l'exercice N"
                             >
-                              {item.exerciceN.toLocaleString()}
+                              {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
                               title="Cliquer pour voir les transactions de l'exercice N-1"
                             >
-                              {item.exerciceN1.toLocaleString()}
+                              {formatCurrency(item.exerciceN1)}
                             </td>
                           </tr>
                         ))}
@@ -682,8 +683,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <tr key={index} className="border-b border-[#e5e5e5]">
                             <td className="p-3 text-[#404040]">{item.code}</td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{item.exerciceN.toLocaleString()}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{item.exerciceN1.toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN)}</td>
+                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN1)}</td>
                           </tr>
                         ))}
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
@@ -715,8 +716,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <tr key={index} className="border-b border-[#e5e5e5]">
                             <td className="p-3 text-[#404040]">{item.code}</td>
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{item.exerciceN.toLocaleString()}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{item.exerciceN1.toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN)}</td>
+                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(item.exerciceN1)}</td>
                           </tr>
                         ))}
                         <tr className="border-t-2 border-[#e5e5e5] bg-gray-50">
@@ -784,7 +785,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.valeur)}
                             title="Cliquer pour voir les transactions"
                           >
-                            {item.valeur.toLocaleString()}
+                            {formatCurrency(item.valeur)}
                           </div>
                           <div className="text-sm text-[#737373]">{item.pourcentage}%</div>
                         </div>
@@ -818,7 +819,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.valeur)}
                             title="Cliquer pour voir les transactions"
                           >
-                            {item.valeur.toLocaleString()}
+                            {formatCurrency(item.valeur)}
                           </div>
                           <div className="text-sm text-[#737373]">{item.pourcentage}%</div>
                         </div>
@@ -874,8 +875,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     {sigData.map((sig, index) => (
                       <tr key={index} className={`border-b border-[#e5e5e5] ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
                         <td className="p-4 font-medium text-[#171717]">{sig.libelle}</td>
-                        <td className="p-4 text-right font-mono text-[#171717]">{sig.exerciceN.toLocaleString()}</td>
-                        <td className="p-4 text-right font-mono text-[#737373]">{sig.exerciceN1.toLocaleString()}</td>
+                        <td className="p-4 text-right font-mono text-[#171717]">{formatCurrency(sig.exerciceN)}</td>
+                        <td className="p-4 text-right font-mono text-[#737373]">{formatCurrency(sig.exerciceN1)}</td>
                         <td className={`p-4 text-right font-medium ${sig.variation.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
                           {sig.variation}
                         </td>
@@ -1000,7 +1001,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.montant)}
                               title="Cliquer pour voir les transactions"
                             >
-                              {item.montant.toLocaleString()}
+                              {formatCurrency(item.montant)}
                             </td>
                           </tr>
                         ))}
@@ -1047,7 +1048,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.montant)}
                               title="Cliquer pour voir les transactions"
                             >
-                              {item.montant.toLocaleString()}
+                              {formatCurrency(item.montant)}
                             </td>
                           </tr>
                         ))}
@@ -1118,7 +1119,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', Math.abs(item.montant))}
                               title="Cliquer pour voir les transactions"
                             >
-                              {item.montant >= 0 ? '' : '('}{Math.abs(item.montant).toLocaleString()}{item.montant >= 0 ? '' : ')'}
+                              {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
                         ))}
@@ -1165,7 +1166,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', Math.abs(item.montant))}
                               title="Cliquer pour voir les transactions"
                             >
-                              {item.montant >= 0 ? '' : '('}{Math.abs(item.montant).toLocaleString()}{item.montant >= 0 ? '' : ')'}
+                              {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
                         ))}
@@ -1195,7 +1196,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <tr key={index} className="border-b border-[#e5e5e5]">
                             <td className="p-3 text-[#404040]">{item.libelle}</td>
                             <td className={`p-3 text-right font-mono ${item.montant >= 0 ? 'text-[#171717]' : 'text-red-600'}`}>
-                              {item.montant >= 0 ? '' : '('}{Math.abs(item.montant).toLocaleString()}{item.montant >= 0 ? '' : ')'}
+                              {item.montant >= 0 ? '' : '('}{formatCurrency(Math.abs(item.montant))}{item.montant >= 0 ? '' : ')'}
                             </td>
                           </tr>
                         ))}
@@ -1318,7 +1319,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
                             <td className="p-3 font-medium text-[#525252]">{subAccount.code}</td>
                             <td className="p-3 text-[#171717]">{subAccount.libelle}</td>
-                            <td className="p-3 text-right font-mono">{subAccount.montant.toLocaleString()} €</td>
+                            <td className="p-3 text-right font-mono">{formatCurrency(subAccount.montant)}</td>
                             <td className="p-3 text-center">
                               <button
                                 onClick={() => openDetailModal(subAccount.code, subAccount.libelle, selectedPeriod, subAccount.montant)}
@@ -1341,7 +1342,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <p className="text-[#737373] text-sm">Liste des écritures comptables</p>
                       <p className="text-sm font-semibold text-[#525252]">
-                        Total: {selectedDetail.total?.toLocaleString()} €
+                        Total: {formatCurrency(selectedDetail.total)}
                       </p>
                     </div>
                   </div>
@@ -1365,7 +1366,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td className="p-3 font-medium text-[#525252]">{transaction.reference}</td>
                             <td className="p-3 text-[#171717]">{transaction.libelle}</td>
                             <td className="p-3 text-[#737373] text-xs">{transaction.tiers}</td>
-                            <td className="p-3 text-right font-mono text-[#171717]">{transaction.montant.toLocaleString()} €</td>
+                            <td className="p-3 text-right font-mono text-[#171717]">{formatCurrency(transaction.montant)}</td>
                             <td className="p-3 text-[#737373] text-xs">{transaction.piece}</td>
                           </tr>
                         ))}

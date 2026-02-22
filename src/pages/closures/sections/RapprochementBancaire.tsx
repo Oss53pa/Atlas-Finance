@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { toast } from 'react-hot-toast';
@@ -658,7 +659,7 @@ const RapprochementBancaire: React.FC = () => {
                       <item.icon className={`w-4 h-4 text-${item.color}-600`} />
                     </div>
                     <p className="text-lg font-bold">
-                      {item.value.toLocaleString('fr-FR')} FCFA
+                      {formatCurrency(item.value)}
                     </p>
                   </div>
                 ))}
@@ -711,7 +712,7 @@ const RapprochementBancaire: React.FC = () => {
                   >
                     {banques.map(bank => (
                       <option key={bank.id} value={bank.id}>
-                        {bank.nom} - Solde: {bank.solde.toLocaleString('fr-FR')} FCFA
+                        {bank.nom} - Solde: {formatCurrency(bank.solde)}
                       </option>
                     ))}
                   </select>
@@ -755,19 +756,17 @@ const RapprochementBancaire: React.FC = () => {
                   <div>
                     <p className="text-xs text-[#737373]">Volume Jour</p>
                     <p className="text-lg font-bold text-[#171717]">
-                      {moyensPaiement
+                      {formatCurrency(moyensPaiement
                         .filter(mp => mp.type === selectedTab)
-                        .reduce((sum, mp) => sum + mp.montantJour, 0)
-                        .toLocaleString('fr-FR')} FCFA
+                        .reduce((sum, mp) => sum + mp.montantJour, 0))}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-[#737373]">Volume Mois</p>
                     <p className="text-lg font-bold text-[#171717]">
-                      {moyensPaiement
+                      {formatCurrency(moyensPaiement
                         .filter(mp => mp.type === selectedTab)
-                        .reduce((sum, mp) => sum + mp.montantMois, 0)
-                        .toLocaleString('fr-FR')} FCFA
+                        .reduce((sum, mp) => sum + mp.montantMois, 0))}
                     </p>
                   </div>
                   <div>
@@ -915,7 +914,7 @@ const RapprochementBancaire: React.FC = () => {
                         <span className={`font-mono font-semibold ${
                           op.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                         }`}>
-                          {op.montantBanque.toLocaleString('fr-FR')} FCFA
+                          {formatCurrency(op.montantBanque)}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
@@ -923,7 +922,7 @@ const RapprochementBancaire: React.FC = () => {
                           <span className={`font-mono font-semibold ${
                             op.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                           }`}>
-                            {op.montantCompta.toLocaleString('fr-FR')} FCFA
+                            {formatCurrency(op.montantCompta)}
                           </span>
                         ) : (
                           <span className="text-[var(--color-text-secondary)]">-</span>
@@ -933,7 +932,7 @@ const RapprochementBancaire: React.FC = () => {
                         <td className="py-3 px-4 text-right">
                           {op.commission ? (
                             <span className="font-mono text-sm text-[var(--color-warning)]">
-                              {op.commission.toLocaleString('fr-FR')} FCFA
+                              {formatCurrency(op.commission)}
                             </span>
                           ) : (
                             <span className="text-[var(--color-text-secondary)]">-</span>
@@ -1423,20 +1422,20 @@ const RapprochementBancaire: React.FC = () => {
                     <div>
                       <p className="text-sm text-[var(--color-text-secondary)]">Montant Relevé Banque</p>
                       <p className={`font-medium font-mono text-lg ${selectedOperation.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
-                        {selectedOperation.typeOperation === 'credit' ? '+' : ''}{selectedOperation.montantBanque.toLocaleString('fr-FR')} FCFA
+                        {selectedOperation.typeOperation === 'credit' ? '+' : ''}{formatCurrency(selectedOperation.montantBanque)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-[var(--color-text-secondary)]">Montant Comptabilisé</p>
                       <p className={`font-medium font-mono text-lg ${selectedOperation.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
-                        {selectedOperation.montantCompta ? `${selectedOperation.typeOperation === 'credit' ? '+' : ''}${selectedOperation.montantCompta.toLocaleString('fr-FR')} FCFA` : '-'}
+                        {selectedOperation.montantCompta ? `${selectedOperation.typeOperation === 'credit' ? '+' : ''}${formatCurrency(selectedOperation.montantCompta)}` : '-'}
                       </p>
                     </div>
                     {selectedOperation.commission && (
                       <div>
                         <p className="text-sm text-[var(--color-text-secondary)]">Commission</p>
                         <p className="font-medium font-mono text-[var(--color-warning)]">
-                          -{selectedOperation.commission.toLocaleString('fr-FR')} FCFA
+                          -{formatCurrency(selectedOperation.commission)}
                         </p>
                       </div>
                     )}
@@ -1444,7 +1443,7 @@ const RapprochementBancaire: React.FC = () => {
                       <div>
                         <p className="text-sm text-[var(--color-text-secondary)]">Écart</p>
                         <p className="font-medium font-mono text-[var(--color-error)]">
-                          {(selectedOperation.montantBanque - selectedOperation.montantCompta).toLocaleString('fr-FR')} FCFA
+                          {formatCurrency((selectedOperation.montantBanque - selectedOperation.montantCompta))}
                         </p>
                       </div>
                     )}

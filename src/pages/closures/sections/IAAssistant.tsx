@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -452,7 +453,7 @@ const IAAssistant: React.FC = () => {
 
     if (lowerInput.includes('clôture') || lowerInput.includes('cloture') || lowerInput.includes('fermer')) {
       if (p) {
-        return `**Aperçu de la clôture en cours :**\n\n• ${p.totalEntries} écritures au total\n• ${p.entriesToLock} à verrouiller\n• Produits : ${p.totalProduits.toLocaleString()} FCFA\n• Charges : ${p.totalCharges.toLocaleString()} FCFA\n• **Résultat : ${p.resultatNet.toLocaleString()} FCFA** (${p.isBenefice ? 'Bénéfice' : 'Perte'})\n${p.warnings.length > 0 ? `\n⚠️ ${p.warnings.length} avertissement(s):\n${p.warnings.map(w => `  - ${w}`).join('\n')}` : '\n✅ Aucun avertissement'}\n\nVoulez-vous que Proph3t exécute la clôture automatiquement ?`;
+        return `**Aperçu de la clôture en cours :**\n\n• ${p.totalEntries} écritures au total\n• ${p.entriesToLock} à verrouiller\n• Produits : ${formatCurrency(p.totalProduits)}\n• Charges : ${formatCurrency(p.totalCharges)}\n• **Résultat : ${formatCurrency(p.resultatNet)}** (${p.isBenefice ? 'Bénéfice' : 'Perte'})\n${p.warnings.length > 0 ? `\n⚠️ ${p.warnings.length} avertissement(s):\n${p.warnings.map(w => `  - ${w}`).join('\n')}` : '\n✅ Aucun avertissement'}\n\nVoulez-vous que Proph3t exécute la clôture automatiquement ?`;
       }
       return 'Je n\'ai pas pu charger l\'aperçu de clôture. Vérifiez qu\'un exercice fiscal actif existe dans la base de données.';
     }
@@ -470,7 +471,7 @@ const IAAssistant: React.FC = () => {
     }
 
     if (p) {
-      return `Basé sur l'analyse de vos données (**${p.totalEntries}** écritures, résultat **${p.resultatNet.toLocaleString()} FCFA**), je vais examiner les éléments pertinents. Pouvez-vous préciser le domaine spécifique qui vous intéresse ?\n\nDomaines disponibles : stocks, créances clients, provisions, clôture comptable, amortissements.`;
+      return `Basé sur l'analyse de vos données (**${p.totalEntries}** écritures, résultat **${formatCurrency(p.resultatNet)}**), je vais examiner les éléments pertinents. Pouvez-vous préciser le domaine spécifique qui vous intéresse ?\n\nDomaines disponibles : stocks, créances clients, provisions, clôture comptable, amortissements.`;
     }
 
     return 'Je comprends votre question. Basé sur l\'analyse de vos données, je vais examiner les éléments pertinents et vous fournir une réponse détaillée avec des recommandations personnalisées. Pouvez-vous préciser le domaine spécifique qui vous intéresse ?';
@@ -594,7 +595,7 @@ const IAAssistant: React.FC = () => {
             <strong>Proph3t IA</strong> — Assistant de clôture automatisée
             {closurePreview && (
               <span className="ml-2 text-sm">
-                ({closurePreview.totalEntries} écritures, résultat {closurePreview.resultatNet.toLocaleString()} FCFA)
+                ({closurePreview.totalEntries} écritures, résultat {formatCurrency(closurePreview.resultatNet)})
               </span>
             )}
           </div>
@@ -1144,7 +1145,7 @@ const IAAssistant: React.FC = () => {
                       )}
 
                       <p className="text-xs text-[var(--color-text-secondary)] mt-3">
-                        Dernière mise à jour: {new Date(metrique.derniereMiseAJour).toLocaleString()}
+                        Dernière mise à jour: {formatCurrency(new Date(metrique.derniereMiseAJour))}
                       </p>
                     </div>
                   ))}

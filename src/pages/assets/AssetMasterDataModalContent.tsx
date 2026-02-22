@@ -1537,7 +1537,7 @@
                                             </span>
                                           </td>
                                           <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                                            {maintenance.amount.toLocaleString()} XAF
+                                            {formatCurrency(maintenance.amount)} XAF
                                           </td>
                                           <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <span className={`px-2 py-1 text-xs font-medium rounded ${
@@ -1691,7 +1691,7 @@
                                       newLifespan: '7 ans',
                                       oldResidual: '2 000 000',
                                       newResidual: '2 000 000',
-                                      responsible: 'Jean Dupont',
+                                      responsible: '',
                                       hasComment: true
                                     },
                                     {
@@ -1877,7 +1877,7 @@
                                     {sale.bookValue || '-'}
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                                    {sale.sellingPrice.toLocaleString()} XAF
+                                    {formatCurrency(sale.sellingPrice)} XAF
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                                     <span className="text-[#171717] hover:underline cursor-pointer">
@@ -2574,7 +2574,7 @@
                                     <td className="px-4 py-3 text-sm text-gray-600">{maintenance.description}</td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{maintenance.technician}</td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                                      {maintenance.cost.toLocaleString()} XAF
+                                      {formatCurrency(maintenance.cost)} XAF
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap text-center">
                                       <span className={`px-2 py-1 text-xs font-medium rounded ${
@@ -2718,7 +2718,7 @@
                                   category: 'Administratif',
                                   date: '15/01/2024',
                                   size: '2.5 MB',
-                                  addedBy: 'Jean Dupont',
+                                  addedBy: '',
                                   color: 'red'
                                 },
                                 {
@@ -2728,7 +2728,7 @@
                                   category: 'Contrat',
                                   date: '20/01/2024',
                                   size: '1.2 MB',
-                                  addedBy: 'Marie Martin',
+                                  addedBy: '',
                                   color: 'blue'
                                 },
                                 {
@@ -2748,7 +2748,7 @@
                                   category: 'Technique',
                                   date: '05/03/2024',
                                   size: '850 KB',
-                                  addedBy: 'Sophie Lambert',
+                                  addedBy: '',
                                   color: 'orange'
                                 }
                               ].map((file, index) => (
@@ -2890,7 +2890,7 @@
                             priority: 'Haute',
                             subject: 'Maintenance urgente requise',
                             content: 'Le véhicule nécessite une révision complète avant la fin du mois. Les freins montrent des signes d\'usure avancée et doivent être vérifiés immédiatement.',
-                            author: 'Jean Dupont',
+                            author: '',
                             date: '20/03/2024 14:30',
                             replies: 2,
                             hasAction: true,
@@ -2918,7 +2918,7 @@
                             priority: 'Normale',
                             subject: 'Changement d\'affectation',
                             content: 'L\'actif a été transféré du département Commercial vers le département Logistique.',
-                            author: 'Marie Martin',
+                            author: '',
                             date: '10/03/2024 09:00',
                             replies: 1,
                             hasAction: false,

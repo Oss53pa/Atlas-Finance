@@ -8,6 +8,9 @@ import {
   delettrage,
   getLettrageStats,
 } from '../services/lettrageService';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 // ============================================================================
 // HELPERS
@@ -71,7 +74,7 @@ describe('autoLettrage', () => {
       ]),
     ]);
 
-    const result = await autoLettrage({ parMontant: true });
+    const result = await autoLettrage(adapter, { parMontant: true });
 
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
     const match = result.matches.find(m => m.compte === '401000');
@@ -94,7 +97,7 @@ describe('autoLettrage', () => {
       ]),
     ]);
 
-    const result = await autoLettrage({ parMontant: true, parReference: true });
+    const result = await autoLettrage(adapter, { parMontant: true, parReference: true });
 
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
   });
@@ -111,7 +114,7 @@ describe('autoLettrage', () => {
       ]),
     ]);
 
-    const result = await autoLettrage();
+    const result = await autoLettrage(adapter);
 
     // Already lettered lines should be excluded → no new matches on 401000
     const match401 = result.matches.find(m => m.compte === '401000');
@@ -130,7 +133,7 @@ describe('autoLettrage', () => {
       ]),
     ]);
 
-    const result = await autoLettrage();
+    const result = await autoLettrage(adapter);
 
     // 512000 and 601000 are not eligible for lettrage
     expect(result.matches).toHaveLength(0);
@@ -152,7 +155,7 @@ describe('autoLettrage', () => {
       ]),
     ]);
 
-    const result = await autoLettrage();
+    const result = await autoLettrage(adapter);
 
     // e1-l1 (debit 200k) matches e2-l1 (credit 200k) → 2 matched
     // e3-l1 (debit 150k) has no matching credit → 1 unmatched
@@ -178,10 +181,10 @@ describe('applyLettrage', () => {
       ]),
     ]);
 
-    const result = await autoLettrage();
+    const result = await autoLettrage(adapter);
     expect(result.matches.length).toBeGreaterThan(0);
 
-    const applied = await applyLettrage(result.matches);
+    const applied = await applyLettrage(adapter, result.matches);
     expect(applied).toBeGreaterThan(0);
 
     // Check that lettrage codes were written
@@ -212,7 +215,7 @@ describe('applyManualLettrage', () => {
       ]),
     ]);
 
-    const code = await applyManualLettrage([
+    const code = await applyManualLettrage(adapter, [
       { entryId: 'e1', lineId: 'e1-l1' },
       { entryId: 'e2', lineId: 'e2-l1' },
     ]);
@@ -242,7 +245,7 @@ describe('delettrage', () => {
       ]),
     ]);
 
-    const count = await delettrage('AB');
+    const count = await delettrage(adapter, 'AB');
     expect(count).toBe(2);
 
     const e1 = await db.journalEntries.get('e1');
@@ -271,7 +274,7 @@ describe('getLettrageStats', () => {
       ]),
     ]);
 
-    const stats = await getLettrageStats();
+    const stats = await getLettrageStats(adapter);
 
     expect(stats.totalLines).toBe(3); // 2 on 401 + 1 on 411
     expect(stats.letteredLines).toBe(2);
@@ -292,11 +295,11 @@ describe('getLettrageStats', () => {
       ]),
     ]);
 
-    const stats40 = await getLettrageStats('40');
+    const stats40 = await getLettrageStats(adapter, '40');
     expect(stats40.totalLines).toBe(1);
     expect(stats40.letteredLines).toBe(1);
 
-    const stats41 = await getLettrageStats('41');
+    const stats41 = await getLettrageStats(adapter, '41');
     expect(stats41.totalLines).toBe(1);
     expect(stats41.letteredLines).toBe(0);
   });

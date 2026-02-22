@@ -16,7 +16,7 @@ class AssetMasterService {
           asset_class: 'Equipements',
           location: 'Site Principal',
           department: 'Infrastructure',
-          responsible_person: 'Jean Dupont'
+          responsible_person: ''
         },
         acquisition: {
           acquisition_date: new Date('2023-01-15'),

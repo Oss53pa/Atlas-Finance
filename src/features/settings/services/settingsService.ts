@@ -10,7 +10,7 @@ class SettingsService {
           id: 'company_name',
           label: 'Nom de la société',
           description: 'Nom officiel de votre entreprise',
-          value: 'Ma Société SARL',
+          value: '',
           type: 'text',
           required: true,
           category: 'general'

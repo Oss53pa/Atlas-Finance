@@ -5,6 +5,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { balanceService } from '../features/balance/services/balanceService';
 import { db } from '../lib/db';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 describe('BalanceService (Dexie)', () => {
   beforeEach(async () => {
@@ -62,7 +65,7 @@ describe('BalanceService (Dexie)', () => {
 
   describe('getBalance', () => {
     it('should return SYSCOHADA class hierarchy', async () => {
-      const balance = await balanceService.getBalance(defaultFilters);
+      const balance = await balanceService.getBalance(adapter, defaultFilters);
       expect(balance.length).toBeGreaterThan(0);
       const classCodes = balance.map(b => b.code);
       expect(classCodes).toContain('4'); // Tiers
@@ -71,7 +74,7 @@ describe('BalanceService (Dexie)', () => {
     });
 
     it('should aggregate movements by class', async () => {
-      const balance = await balanceService.getBalance(defaultFilters);
+      const balance = await balanceService.getBalance(adapter, defaultFilters);
       const class4 = balance.find(b => b.code === '4');
       expect(class4).toBeDefined();
       // Class 4: 411000 (D:236000), 443100 (C:36000), 445200 (D:14400), 401000 (C:94400)
@@ -80,14 +83,14 @@ describe('BalanceService (Dexie)', () => {
     });
 
     it('should have children at displayLevel 2', async () => {
-      const balance = await balanceService.getBalance(defaultFilters);
+      const balance = await balanceService.getBalance(adapter, defaultFilters);
       const class4 = balance.find(b => b.code === '4');
       expect(class4!.children).toBeDefined();
       expect(class4!.children!.length).toBeGreaterThan(0);
     });
 
     it('should filter by date range', async () => {
-      const filtered = await balanceService.getBalance({
+      const filtered = await balanceService.getBalance(adapter, {
         ...defaultFilters,
         period: { from: '2025-06-16', to: '2025-12-31' },
       });
@@ -97,7 +100,7 @@ describe('BalanceService (Dexie)', () => {
     });
 
     it('should filter by search term', async () => {
-      const filtered = await balanceService.getBalance({
+      const filtered = await balanceService.getBalance(adapter, {
         ...defaultFilters,
         searchAccount: '411',
       });
@@ -110,7 +113,7 @@ describe('BalanceService (Dexie)', () => {
 
   describe('calculateTotals', () => {
     it('should sum leaf account totals', async () => {
-      const balance = await balanceService.getBalance(defaultFilters);
+      const balance = await balanceService.getBalance(adapter, defaultFilters);
       const totals = balanceService.calculateTotals(balance);
       // All debits: 236000 + 80000 + 14400 = 330400
       // All credits: 200000 + 36000 + 94400 = 330400
@@ -121,7 +124,7 @@ describe('BalanceService (Dexie)', () => {
 
   describe('exportBalance', () => {
     it('should export as CSV blob', async () => {
-      const blob = await balanceService.exportBalance('xlsx', defaultFilters);
+      const blob = await balanceService.exportBalance(adapter, 'xlsx', defaultFilters);
       expect(blob.size).toBeGreaterThan(0);
       expect(blob.type).toContain('csv');
     });

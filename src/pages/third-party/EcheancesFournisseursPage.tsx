@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -56,52 +57,8 @@ const EcheancesFournisseursPage: React.FC = () => {
 
   const loadPaymentData = async () => {
     // Simulation de données
-    const mockPayments: SupplierPayment[] = [
-      {
-        id: '1',
-        supplierName: 'Supplier ABC',
-        invoiceNumber: 'FOURNISSEUR-001',
-        amount: 850000,
-        dueDate: new Date('2024-02-15'),
-        daysUntilDue: -5,
-        priority: 'high',
-        paymentTerms: '30 jours fin de mois'
-      },
-      {
-        id: '2',
-        supplierName: 'XYZ Supplies',
-        invoiceNumber: 'FOURNISSEUR-002',
-        amount: 450000,
-        dueDate: new Date('2024-02-20'),
-        daysUntilDue: 3,
-        discountRate: 2,
-        discountDeadline: new Date('2024-02-18'),
-        priority: 'medium',
-        paymentTerms: '2% 10j net 30j'
-      },
-      {
-        id: '3',
-        supplierName: 'Tech Solutions',
-        invoiceNumber: 'FOURNISSEUR-003',
-        amount: 1200000,
-        dueDate: new Date('2024-02-25'),
-        daysUntilDue: 8,
-        priority: 'low',
-        paymentTerms: '45 jours'
-      }
-    ];
-
-    const mockStats: PaymentStats = {
-      totalDue: 15600000,
-      dueThisWeek: 3200000,
-      overdueAmount: 2100000,
-      avgDPO: 28,
-      discountOpportunities: 8,
-      potentialSavings: 145000
-    };
-
-    setPayments(mockPayments);
-    setStats(mockStats);
+    setPayments([]);
+    setStats({ totalDue: 0, dueThisWeek: 0, overdueAmount: 0, avgDPO: 0, discountOpportunities: 0, potentialSavings: 0 });
     setLoading(false);
   };
 
@@ -186,7 +143,7 @@ const EcheancesFournisseursPage: React.FC = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-gray-900">
-                {stats.totalDue.toLocaleString()} XOF
+                {formatCurrency(stats.totalDue)} XOF
               </p>
               <p className="text-gray-600 text-sm">Total à payer</p>
             </div>
@@ -205,7 +162,7 @@ const EcheancesFournisseursPage: React.FC = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-gray-900">
-                {stats.dueThisWeek.toLocaleString()} XOF
+                {formatCurrency(stats.dueThisWeek)} XOF
               </p>
               <p className="text-gray-600 text-sm">Échéances 7 jours</p>
             </div>
@@ -224,7 +181,7 @@ const EcheancesFournisseursPage: React.FC = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-gray-900">
-                {stats.potentialSavings.toLocaleString()} XOF
+                {formatCurrency(stats.potentialSavings)} XOF
               </p>
               <p className="text-gray-600 text-sm">Économies escomptes</p>
             </div>
@@ -243,7 +200,7 @@ const EcheancesFournisseursPage: React.FC = () => {
                   {stats.discountOpportunities} opportunités d'escompte disponibles
                 </h3>
                 <p className="text-green-700">
-                  Économies potentielles: {stats.potentialSavings.toLocaleString()} XOF
+                  Économies potentielles: {formatCurrency(stats.potentialSavings)} XOF
                 </p>
               </div>
             </div>
@@ -300,7 +257,7 @@ const EcheancesFournisseursPage: React.FC = () => {
                           <span>{payment.invoiceNumber}</span>
                           <span className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1" />
-                            {payment.amount.toLocaleString()} XOF
+                            {formatCurrency(payment.amount)} XOF
                           </span>
                           <span className="flex items-center">
                             <Calendar className="h-4 w-4 mr-1" />
@@ -323,7 +280,7 @@ const EcheancesFournisseursPage: React.FC = () => {
                       {payment.discountRate && payment.discountDeadline && (
                         <div className="text-right">
                           <div className="text-sm font-medium text-green-600">
-                            -{Math.round(payment.amount * payment.discountRate / 100).toLocaleString()} XOF
+                            -{formatCurrency(Math.round(payment.amount * payment.discountRate / 100))} XOF
                           </div>
                           <div className="text-xs text-gray-700">
                             si payé avant {payment.discountDeadline.toLocaleDateString()}

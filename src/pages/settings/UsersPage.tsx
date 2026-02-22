@@ -604,11 +604,11 @@ const UsersPage: React.FC = () => {
             <div className="p-6">
               <div className="space-y-4">
                 {[
-                  { user: 'Marie Dupont', action: 'Connexion réussie', time: 'Il y a 2 heures', type: 'success' },
+                  { user: '', action: 'Connexion réussie', time: 'Il y a 2 heures', type: 'success' },
                   { user: 'Jean Martin', action: 'Modification utilisateur Sophie Bernard', time: 'Il y a 3 heures', type: 'info' },
                   { user: 'Sophie Bernard', action: 'Export rapport utilisateurs', time: 'Il y a 5 heures', type: 'info' },
                   { user: 'Pierre Leroy', action: 'Tentative connexion échouée', time: 'Il y a 6 heures', type: 'error' },
-                  { user: 'Marie Dupont', action: 'Création rôle Assistant RH', time: 'Hier à 16:30', type: 'success' },
+                  { user: '', action: 'Création rôle Assistant RH', time: 'Hier à 16:30', type: 'success' },
                   { user: 'Jean Martin', action: 'Suspension compte Pierre Leroy', time: 'Hier à 14:20', type: 'warning' }
                 ].map((log, index) => (
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-[var(--color-surface-hover)]">
@@ -827,7 +827,7 @@ const UsersPage: React.FC = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Jean Dupont</h3>
+                    <h3 className="font-medium text-gray-900">—</h3>
                     <p className="text-sm text-gray-600">Comptable - Finance</p>
                   </div>
                 </div>

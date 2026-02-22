@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
@@ -146,7 +147,7 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
                         </div>
                       </td>
                       <td className="py-4 px-4 text-right font-mono">
-                        {item.quantity.toLocaleString()} {item.unitOfMeasure}
+                        {formatCurrency(item.quantity)} {item.unitOfMeasure}
                       </td>
                       <td className="py-4 px-4 text-right">
                         <CurrencyDisplay amount={item.unitCost} currency={movement.currency} size="sm" />
@@ -189,18 +190,18 @@ const MovementDetailsModal: React.FC<MovementDetailsModalProps> = ({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Created by:</span>
-                <span className="font-medium">{movement.createdBy} on {new Date(movement.createdAt).toLocaleString()}</span>
+                <span className="font-medium">{movement.createdBy} on {formatCurrency(new Date(movement.createdAt))}</span>
               </div>
               {movement.approvedBy && movement.approvedAt && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Approved by:</span>
-                  <span className="font-medium">{movement.approvedBy} on {new Date(movement.approvedAt).toLocaleString()}</span>
+                  <span className="font-medium">{movement.approvedBy} on {formatCurrency(new Date(movement.approvedAt))}</span>
                 </div>
               )}
               {movement.postedBy && movement.postedAt && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Posted by:</span>
-                  <span className="font-medium">{movement.postedBy} on {new Date(movement.postedAt).toLocaleString()}</span>
+                  <span className="font-medium">{movement.postedBy} on {formatCurrency(new Date(movement.postedAt))}</span>
                 </div>
               )}
             </div>
@@ -512,7 +513,7 @@ const InventoryMovements: React.FC = () => {
               <Tooltip
                 labelFormatter={(date) => new Date(date).toLocaleDateString()}
                 formatter={(value: number, name: string) => [
-                  name === 'value' ? `$${value.toLocaleString()}` : value,
+                  name === 'value' ? `$${formatCurrency(value)}` : value,
                   name === 'value' ? 'Total Value' : 'Movement Count'
                 ]}
               />

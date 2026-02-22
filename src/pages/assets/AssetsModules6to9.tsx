@@ -183,7 +183,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
       description: 'L\'IA prévoit une défaillance des filtres dans 2 semaines',
       scheduledDate: '2024-01-20',
       estimatedDuration: 120,
-      assignedTo: 'Jean Dupont',
+      assignedTo: '',
       status: 'pending',
       parts: [
         { name: 'Filtre HEPA', quantity: 2, cost: 150 },
@@ -205,7 +205,7 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
       description: 'Fuite détectée par capteur IoT - intervention immédiate requise',
       scheduledDate: '2024-01-16',
       estimatedDuration: 240,
-      assignedTo: 'Marie Martin',
+      assignedTo: '',
       status: 'in-progress',
       laborCost: 450,
       aiRecommendation: {

@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useRef } from 'react';
 import { formatDate } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
@@ -373,10 +374,10 @@ const CollaborationModule: React.FC = () => {
                       </span>
                       <div className="flex items-center space-x-4 text-[#171717]">
                         {selectedChat.tiersInfo.chiffreAffaires && (
-                          <span>CA: {selectedChat.tiersInfo.chiffreAffaires.toLocaleString()} FCFA</span>
+                          <span>CA: {formatCurrency(selectedChat.tiersInfo.chiffreAffaires)}</span>
                         )}
                         {selectedChat.tiersInfo.encours && (
-                          <span>Encours: {selectedChat.tiersInfo.encours.toLocaleString()} FCFA</span>
+                          <span>Encours: {formatCurrency(selectedChat.tiersInfo.encours)}</span>
                         )}
                         {selectedChat.tiersInfo.evaluation && (
                           <span>Éval: {selectedChat.tiersInfo.evaluation}/10</span>

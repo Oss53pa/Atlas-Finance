@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -389,11 +390,11 @@ const CompteResultatPage: React.FC = () => {
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
                                 title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
                               >
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono font-bold bg-[#525252]/5">
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -411,11 +412,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3">TOTAL ACTIF</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm">
-                                {total.toLocaleString()}
+                                {formatCurrency(total)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono text-lg bg-[#525252]/20">
-                              {grandTotal.toLocaleString()}
+                              {formatCurrency(grandTotal)}
                             </td>
                           </tr>
                         );
@@ -471,11 +472,11 @@ const CompteResultatPage: React.FC = () => {
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
                                 title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
                               >
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono font-bold bg-[#171717]/5">
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -493,11 +494,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3">TOTAL PASSIF</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm">
-                                {total.toLocaleString()}
+                                {formatCurrency(total)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono text-lg bg-[#171717]/20">
-                              {grandTotal.toLocaleString()}
+                              {formatCurrency(grandTotal)}
                             </td>
                             <td className="p-3"></td>
                           </tr>
@@ -556,11 +557,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono font-bold bg-blue-100">
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -585,11 +586,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono font-bold bg-green-100">
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -661,7 +662,7 @@ const CompteResultatPage: React.FC = () => {
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
                                 title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
                               >
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td
@@ -669,7 +670,7 @@ const CompteResultatPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'total', total)}
                               title="Cliquer pour voir le détail du total annuel"
                             >
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -688,11 +689,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3">TOTAL PRODUITS</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm text-green-700">
-                                {total.toLocaleString()}
+                                {formatCurrency(total)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono text-lg bg-green-200 text-green-800">
-                              {grandTotal.toLocaleString()}
+                              {formatCurrency(grandTotal)}
                             </td>
                           </tr>
                         );
@@ -730,7 +731,7 @@ const CompteResultatPage: React.FC = () => {
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
                                 title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
                               >
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td
@@ -738,7 +739,7 @@ const CompteResultatPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'total', total)}
                               title="Cliquer pour voir le détail du total annuel"
                             >
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -757,11 +758,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3">TOTAL CHARGES</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm text-red-700">
-                                {total.toLocaleString()}
+                                {formatCurrency(total)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono text-lg bg-red-200 text-red-800">
-                              {grandTotal.toLocaleString()}
+                              {formatCurrency(grandTotal)}
                             </td>
                           </tr>
                         );
@@ -781,11 +782,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3">RÉSULTAT NET</td>
                             {monthlyResultats.map((resultat, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm text-[#525252]">
-                                {resultat.toLocaleString()}
+                                {formatCurrency(resultat)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono text-lg bg-[#525252]/20 text-[#525252]">
-                              {totalResultat.toLocaleString()}
+                              {formatCurrency(totalResultat)}
                             </td>
                           </tr>
                         );
@@ -842,11 +843,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono font-bold bg-blue-100">
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -871,11 +872,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono font-bold bg-green-100">
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -932,11 +933,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className={`p-2 text-right font-mono text-xs ${value < 0 ? 'text-red-600' : ''}`}>
-                                {value < 0 ? '(' : ''}{Math.abs(value).toLocaleString()}{value < 0 ? ')' : ''}
+                                {value < 0 ? '(' : ''}{formatCurrency(Math.abs(value))}{value < 0 ? ')' : ''}
                               </td>
                             ))}
                             <td className={`p-3 text-right font-mono font-bold bg-blue-100 ${total < 0 ? 'text-red-600' : ''}`}>
-                              {total < 0 ? '(' : ''}{Math.abs(total).toLocaleString()}{total < 0 ? ')' : ''}
+                              {total < 0 ? '(' : ''}{formatCurrency(Math.abs(total))}{total < 0 ? ')' : ''}
                             </td>
                           </tr>
                         );
@@ -960,11 +961,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className={`p-2 text-right font-mono text-xs ${value < 0 ? 'text-red-600' : ''}`}>
-                                {value < 0 ? '(' : ''}{Math.abs(value).toLocaleString()}{value < 0 ? ')' : ''}
+                                {value < 0 ? '(' : ''}{formatCurrency(Math.abs(value))}{value < 0 ? ')' : ''}
                               </td>
                             ))}
                             <td className={`p-3 text-right font-mono font-bold bg-orange-100 ${total < 0 ? 'text-red-600' : ''}`}>
-                              {total < 0 ? '(' : ''}{Math.abs(total).toLocaleString()}{total < 0 ? ')' : ''}
+                              {total < 0 ? '(' : ''}{formatCurrency(Math.abs(total))}{total < 0 ? ')' : ''}
                             </td>
                           </tr>
                         );
@@ -983,11 +984,11 @@ const CompteResultatPage: React.FC = () => {
                             <td className="p-3">VARIATION TRÉSORERIE</td>
                             {monthlyVariations.map((variation, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm text-[#525252]">
-                                +{variation.toLocaleString()}
+                                +{formatCurrency(variation)}
                               </td>
                             ))}
                             <td className="p-3 text-right font-mono text-lg bg-[#525252]/20 text-[#525252]">
-                              +{totalVariation.toLocaleString()}
+                              +{formatCurrency(totalVariation)}
                             </td>
                           </tr>
                         );
@@ -1052,7 +1053,7 @@ const CompteResultatPage: React.FC = () => {
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
                                 title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
                               >
-                                {value.toLocaleString()}
+                                {formatCurrency(value)}
                               </td>
                             ))}
                             <td
@@ -1060,7 +1061,7 @@ const CompteResultatPage: React.FC = () => {
                               onClick={() => openDetailModal(item.code, item.libelle, 'total', total)}
                               title="Cliquer pour voir le détail du total annuel"
                             >
-                              {total.toLocaleString()}
+                              {formatCurrency(total)}
                             </td>
                           </tr>
                         );
@@ -1198,7 +1199,7 @@ const CompteResultatPage: React.FC = () => {
                                 onClick={() => openDetailModal(ratio.code, ratio.nom, months[monthIndex], value)}
                                 title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
                               >
-                                {ratio.format === '%' ? `${value.toFixed(1)}%` : `${Math.round(value).toLocaleString()}€`}
+                                {ratio.format === '%' ? `${value.toFixed(1)}%` : `${formatCurrency(Math.round(value))}`}
                               </td>
                             ))}
                             <td
@@ -1206,7 +1207,7 @@ const CompteResultatPage: React.FC = () => {
                               onClick={() => openDetailModal(ratio.code, ratio.nom, 'moyenne', moyenne)}
                               title="Cliquer pour voir le détail de la moyenne annuelle"
                             >
-                              {ratio.format === '%' ? `${moyenne.toFixed(1)}%` : `${Math.round(moyenne).toLocaleString()}€`}
+                              {ratio.format === '%' ? `${moyenne.toFixed(1)}%` : `${formatCurrency(Math.round(moyenne))}`}
                             </td>
                           </tr>
                         );
@@ -1293,7 +1294,7 @@ const CompteResultatPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-[#737373]">Montant total</p>
-                    <p className="font-bold text-[#525252] text-lg">{selectedDetail.amount.toLocaleString()} €</p>
+                    <p className="font-bold text-[#525252] text-lg">{formatCurrency(selectedDetail.amount)}</p>
                   </div>
                 </div>
               </div>
@@ -1318,7 +1319,7 @@ const CompteResultatPage: React.FC = () => {
                           <td className="p-3 border-b border-[#e5e5e5] font-mono font-bold">{subAccount.code}</td>
                           <td className="p-3 border-b border-[#e5e5e5]">{subAccount.libelle}</td>
                           <td className="p-3 border-b border-[#e5e5e5] text-right font-mono font-bold">
-                            {subAccount.montant.toLocaleString()} €
+                            {formatCurrency(subAccount.montant)}
                           </td>
                           <td className="p-3 border-b border-[#e5e5e5] text-right text-sm text-[#737373]">
                             {subAccount.pourcentage.toFixed(1)}%
@@ -1357,7 +1358,7 @@ const CompteResultatPage: React.FC = () => {
                           <td className="p-3 border-b border-[#e5e5e5]">{transaction.tiers}</td>
                           <td className="p-3 border-b border-[#e5e5e5] font-mono text-xs">{transaction.piece}</td>
                           <td className="p-3 border-b border-[#e5e5e5] text-right font-mono font-bold">
-                            {transaction.montant.toLocaleString()} €
+                            {formatCurrency(transaction.montant)}
                           </td>
                         </tr>
                       ))}
@@ -1376,7 +1377,7 @@ const CompteResultatPage: React.FC = () => {
                     }
                   </span>
                   <span className="font-bold text-[#525252] text-lg">
-                    {selectedDetail.amount.toLocaleString()} €
+                    {formatCurrency(selectedDetail.amount)}
                   </span>
                 </div>
               </div>

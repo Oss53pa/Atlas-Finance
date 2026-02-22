@@ -1017,14 +1017,14 @@ const Lettrage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-gray-300 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">Marie Durand</span>
+                    <span className="text-sm text-gray-600">—</span>
                   </div>
                   <span className="text-sm font-bold">45</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-gray-300 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">Jean Martin</span>
+                    <span className="text-sm text-gray-600">—</span>
                   </div>
                   <span className="text-sm font-bold">38</span>
                 </div>

@@ -1418,7 +1418,7 @@ const ContactsModule: React.FC = () => {
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
                       <option value="">Sélectionner</option>
                       <option value="Marie Kouam">Marie Kouam</option>
-                      <option value="Jean Dupont">Jean Dupont</option>
+                      <option value="">—</option>
                       <option value="Sophie Martin">Sophie Martin</option>
                     </select>
                   </div>

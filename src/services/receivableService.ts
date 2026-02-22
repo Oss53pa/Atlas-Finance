@@ -359,7 +359,7 @@ export async function posterProvisions(
   const datePart = now.split('T')[0].replace(/-/g, '');
   const entryId = crypto.randomUUID();
 
-  await safeAddEntry({
+  await safeAddEntry(adapter, {
     id: entryId,
     entryNumber: `PROV-${datePart}-001`,
     journal: 'OD',

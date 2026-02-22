@@ -3,8 +3,12 @@
  * Verifies: rate CRUD, conversions, hedging positions, currency positions.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { exchangeRateService } from '../services/treasury/exchangeRateService';
+import { createExchangeRateService } from '../services/treasury/exchangeRateService';
 import { db } from '../lib/db';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
+const exchangeRateService = createExchangeRateService(adapter);
 
 describe('ExchangeRateService (Dexie)', () => {
   beforeEach(async () => {

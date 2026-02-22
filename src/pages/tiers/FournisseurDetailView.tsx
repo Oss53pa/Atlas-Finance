@@ -226,7 +226,7 @@ const FournisseurDetailView: React.FC = () => {
 
   const confirmPayment = () => {
     if (selectedEcheance) {
-      toast.success(`Paiement de ${selectedEcheance.montantRestant.toLocaleString('fr-FR')} XOF enregistré`);
+      toast.success(`Paiement de ${formatCurrency(selectedEcheance.montantRestant)} XOF enregistré`);
     }
     setShowPaymentModal(false);
     setSelectedEcheance(null);
@@ -1557,7 +1557,7 @@ const FournisseurDetailView: React.FC = () => {
                 <p className="text-sm text-[#171717]">Facture</p>
                 <p className="font-semibold text-[#171717]">{selectedEcheance.numeroFacture}</p>
                 <p className="text-lg font-bold text-[#171717] mt-2">
-                  {selectedEcheance.montantRestant.toLocaleString('fr-FR')} XOF
+                  {formatCurrency(selectedEcheance.montantRestant)} XOF
                 </p>
                 <p className="text-sm text-gray-500">
                   Échéance: {new Date(selectedEcheance.dateEcheance).toLocaleDateString('fr-FR')}
@@ -1600,7 +1600,7 @@ const FournisseurDetailView: React.FC = () => {
                 <div className="bg-green-50 p-3 rounded-lg flex items-center space-x-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <span className="text-sm text-green-700">
-                    Escompte de 2% disponible (-{Math.round(selectedEcheance.montantRestant * 0.02).toLocaleString('fr-FR')} XOF)
+                    Escompte de 2% disponible (-{formatCurrency(Math.round(selectedEcheance.montantRestant * 0.02))} XOF)
                   </span>
                 </div>
               )}

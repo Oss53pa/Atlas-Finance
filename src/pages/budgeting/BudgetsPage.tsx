@@ -924,13 +924,13 @@ const BudgetsPage: React.FC = () => {
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="text-sm text-blue-600 font-medium mb-1">Montant Total</div>
                   <div className="text-lg font-bold text-blue-900">
-                    {selectedBudget.totalAmount.toLocaleString()} {selectedBudget.currency}
+                    {formatCurrency(selectedBudget.totalAmount)}
                   </div>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg">
                   <div className="text-sm text-orange-600 font-medium mb-1">Consommé</div>
                   <div className="text-lg font-bold text-orange-900">
-                    {selectedBudget.consumedAmount.toLocaleString()} {selectedBudget.currency}
+                    {formatCurrency(selectedBudget.consumedAmount)}
                   </div>
                   <div className="text-xs text-orange-600 mt-1">
                     {selectedBudget.consumptionRate}% du budget
@@ -939,7 +939,7 @@ const BudgetsPage: React.FC = () => {
                 <div className="bg-green-50 p-4 rounded-lg">
                   <div className="text-sm text-green-600 font-medium mb-1">Restant</div>
                   <div className="text-lg font-bold text-green-900">
-                    {selectedBudget.remainingAmount.toLocaleString()} {selectedBudget.currency}
+                    {formatCurrency(selectedBudget.remainingAmount)}
                   </div>
                 </div>
               </div>

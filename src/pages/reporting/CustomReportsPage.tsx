@@ -264,7 +264,7 @@ const CustomReportsPage: React.FC = () => {
       progression: 75,
       dateCreation: '13/06/2025',
       dateModification: '13/06/2025 14:30',
-      responsable: 'Marie Dupont',
+      responsable: '',
       priorite: 'haute',
       tags: ['Q2', 'Finance', 'Trimestriel']
     },
@@ -277,7 +277,7 @@ const CustomReportsPage: React.FC = () => {
       progression: 45,
       dateCreation: '13/06/2025',
       dateModification: '13/06/2025 11:15',
-      responsable: 'Jean Martin',
+      responsable: '',
       priorite: 'normale',
       tags: ['Marketing', 'Mensuel']
     },
@@ -289,7 +289,7 @@ const CustomReportsPage: React.FC = () => {
       statut: 'termine',
       dateCreation: '12/06/2025',
       dateModification: '12/06/2025 16:45',
-      responsable: 'Sophie Bernard',
+      responsable: '',
       taille: '2.3 MB',
       format: 'PDF',
       priorite: 'normale',
@@ -301,7 +301,7 @@ const CustomReportsPage: React.FC = () => {
     {
       id: '1',
       rapport: 'Rapport CRM',
-      utilisateur: 'Marie Dupont',
+      utilisateur: '',
       module: 'CRM',
       debut: '13/06/2025 09:00',
       duree: '2h 15min',
@@ -311,7 +311,7 @@ const CustomReportsPage: React.FC = () => {
     {
       id: '2',
       rapport: 'Rapport Finance',
-      utilisateur: 'Jean Martin',
+      utilisateur: '',
       module: 'Finance',
       debut: '13/06/2025 10:30',
       duree: '45min',
@@ -321,7 +321,7 @@ const CustomReportsPage: React.FC = () => {
     {
       id: '3',
       rapport: 'Rapport Consolidé',
-      utilisateur: 'Sophie Bernard',
+      utilisateur: '',
       module: 'Consolidation',
       debut: '13/06/2025 08:45',
       duree: '3h 30min',
@@ -339,7 +339,7 @@ const CustomReportsPage: React.FC = () => {
       statut: 'planifie',
       dateCreation: '01/06/2025',
       dateModification: '01/06/2025',
-      responsable: 'Marie Dupont',
+      responsable: '',
       prochaineLancement: '01/07/2025 09:00',
       priorite: 'haute',
       tags: ['Finance', 'Mensuel', 'Automatique']
@@ -352,7 +352,7 @@ const CustomReportsPage: React.FC = () => {
       statut: 'planifie',
       dateCreation: '01/06/2025',
       dateModification: '01/06/2025',
-      responsable: 'Jean Martin',
+      responsable: '',
       prochaineLancement: '17/06/2025 14:00',
       priorite: 'normale',
       tags: ['Marketing', 'Hebdomadaire']
@@ -365,7 +365,7 @@ const CustomReportsPage: React.FC = () => {
       statut: 'planifie',
       dateCreation: '01/06/2025',
       dateModification: '01/06/2025',
-      responsable: 'Sophie Bernard',
+      responsable: '',
       prochaineLancement: '30/06/2025 16:00',
       priorite: 'normale',
       tags: ['RH', 'Mensuel', 'Dashboard']
@@ -745,7 +745,7 @@ const CustomReportsPage: React.FC = () => {
                     statut: 'termine',
                     dateCreation: '10/06/2025',
                     dateModification: '15/06/2025 10:30',
-                    responsable: 'Marie Dupont',
+                    responsable: '',
                     taille: '4.2 MB',
                     format: 'PDF',
                     priorite: 'haute',
@@ -760,7 +760,7 @@ const CustomReportsPage: React.FC = () => {
                     progression: 90,
                     dateCreation: '08/06/2025',
                     dateModification: '20/06/2025 16:45',
-                    responsable: 'Jean Martin',
+                    responsable: '',
                     taille: '1.8 MB',
                     priorite: 'normale',
                     tags: ['CRM', 'Commercial', 'Dashboard']
@@ -773,7 +773,7 @@ const CustomReportsPage: React.FC = () => {
                     statut: 'erreur',
                     dateCreation: '05/06/2025',
                     dateModification: '18/06/2025 08:15',
-                    responsable: 'Sophie Bernard',
+                    responsable: '',
                     taille: '12.5 MB',
                     priorite: 'critique',
                     tags: ['Annuel', 'Consolidation', 'Direction']
@@ -1099,7 +1099,7 @@ const CustomReportsPage: React.FC = () => {
                           nom: 'Rapport Performance Magasins',
                           type: 'commercial',
                           description: 'Modèle personnalisé pour analyser la performance des points de vente',
-                          createur: 'Jean Martin',
+                          createur: '',
                           dateCreation: '15/03/2025',
                           derniereModification: '20/03/2025',
                           utilisations: 12,
@@ -1110,7 +1110,7 @@ const CustomReportsPage: React.FC = () => {
                           nom: 'Analyse Coûts Projets',
                           type: 'financier',
                           description: 'Suivi détaillé des coûts et marges par projet avec alertes budgétaires',
-                          createur: 'Marie Dupont',
+                          createur: '',
                           dateCreation: '01/03/2025',
                           derniereModification: '18/03/2025',
                           utilisations: 8,
@@ -1121,7 +1121,7 @@ const CustomReportsPage: React.FC = () => {
                           nom: 'Dashboard Formation',
                           type: 'rh',
                           description: 'Tableau de bord formation avec plan, réalisations et évaluations',
-                          createur: 'Sophie Bernard',
+                          createur: '',
                           dateCreation: '10/03/2025',
                           derniereModification: '15/03/2025',
                           utilisations: 5,
@@ -1302,7 +1302,7 @@ const CustomReportsPage: React.FC = () => {
                           type: 'financier',
                           frequence: 'Quotidien',
                           statut: 'En attente',
-                          destinataires: ['Marie Dupont', 'Direction']
+                          destinataires: ['', 'Direction']
                         },
                         {
                           heure: '14:00',

@@ -172,7 +172,7 @@ export async function executerCarryForward(adapter: DataAdapter, config: CarryFo
   }));
 
   const entryId = crypto.randomUUID();
-  await safeAddEntry({
+  await safeAddEntry(adapter, {
     id: entryId,
     entryNumber: `AN-${config.openingDate.replace(/-/g, '').substring(0, 8)}-001`,
     journal: 'AN',

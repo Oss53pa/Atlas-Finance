@@ -11,6 +11,9 @@ import {
   validerLot,
   comptabiliserLot,
 } from '../services/entryWorkflow';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 // ============================================================================
 // SEED DATA
@@ -124,7 +127,7 @@ describe('validerEcriture', () => {
     const entry = makeDraftEntry('001');
     await db.journalEntries.add(entry);
 
-    const result = await validerEcriture('001');
+    const result = await validerEcriture(adapter, '001');
     expect(result.success).toBe(true);
     expect(result.newStatus).toBe('validated');
 
@@ -133,7 +136,7 @@ describe('validerEcriture', () => {
   });
 
   it('rejette une ecriture inexistante', async () => {
-    const result = await validerEcriture('nonexistent');
+    const result = await validerEcriture(adapter, 'nonexistent');
     expect(result.success).toBe(false);
     expect(result.error).toContain('introuvable');
   });
@@ -142,7 +145,7 @@ describe('validerEcriture', () => {
     const entry = { ...makeDraftEntry('002'), status: 'posted' as const };
     await db.journalEntries.add(entry);
 
-    const result = await validerEcriture('002');
+    const result = await validerEcriture(adapter, '002');
     expect(result.success).toBe(false);
     expect(result.error).toContain('non autorisée');
   });
@@ -157,7 +160,7 @@ describe('comptabiliserEcriture', () => {
     const entry = { ...makeDraftEntry('003'), status: 'validated' as const };
     await db.journalEntries.add(entry);
 
-    const result = await comptabiliserEcriture('003');
+    const result = await comptabiliserEcriture(adapter, '003');
     expect(result.success).toBe(true);
     expect(result.newStatus).toBe('posted');
 
@@ -169,7 +172,7 @@ describe('comptabiliserEcriture', () => {
     const entry = makeDraftEntry('004');
     await db.journalEntries.add(entry);
 
-    const result = await comptabiliserEcriture('004');
+    const result = await comptabiliserEcriture(adapter, '004');
     expect(result.success).toBe(false);
     expect(result.error).toContain('non autorisée');
   });
@@ -184,7 +187,7 @@ describe('retourBrouillon', () => {
     const entry = { ...makeDraftEntry('005'), status: 'validated' as const };
     await db.journalEntries.add(entry);
 
-    const result = await retourBrouillon('005');
+    const result = await retourBrouillon(adapter, '005');
     expect(result.success).toBe(true);
     expect(result.newStatus).toBe('draft');
   });
@@ -193,7 +196,7 @@ describe('retourBrouillon', () => {
     const entry = { ...makeDraftEntry('006'), status: 'posted' as const };
     await db.journalEntries.add(entry);
 
-    const result = await retourBrouillon('006');
+    const result = await retourBrouillon(adapter, '006');
     expect(result.success).toBe(false);
     expect(result.error).toContain('brouillon');
   });
@@ -211,7 +214,7 @@ describe('validerLot', () => {
       makeDraftEntry('012'),
     ]);
 
-    const result = await validerLot(['010', '011', '012']);
+    const result = await validerLot(adapter, ['010', '011', '012']);
     expect(result.validated).toBe(3);
     expect(result.failures).toHaveLength(0);
   });
@@ -222,7 +225,7 @@ describe('validerLot', () => {
       { ...makeDraftEntry('021'), status: 'posted' as const },
     ]);
 
-    const result = await validerLot(['020', '021']);
+    const result = await validerLot(adapter, ['020', '021']);
     expect(result.validated).toBe(1);
     expect(result.failures).toHaveLength(1);
     expect(result.failures[0].id).toBe('021');
@@ -236,7 +239,7 @@ describe('comptabiliserLot', () => {
       { ...makeDraftEntry('031'), status: 'validated' as const },
     ]);
 
-    const result = await comptabiliserLot(['030', '031']);
+    const result = await comptabiliserLot(adapter, ['030', '031']);
     expect(result.posted).toBe(2);
     expect(result.failures).toHaveLength(0);
   });

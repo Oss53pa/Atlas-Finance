@@ -6,6 +6,9 @@ import {
   validateJournalEntrySync,
   getNextPieceNumber,
 } from '../validators/journalEntryValidator';
+import { createTestAdapter } from '../test/createTestAdapter';
+
+const adapter = createTestAdapter();
 
 // Seed données de base
 async function seedTestData() {
@@ -33,7 +36,7 @@ beforeEach(async () => {
 
 describe('validateJournalEntry — Validation complete', () => {
   it('accepte une ecriture equilibree et valide', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: 'Achat de fournitures',
@@ -47,7 +50,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette une ecriture desequilibree de 1 FCFA', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: 'Achat',
@@ -62,7 +65,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette une ecriture avec 1 seule ligne', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: 'Test',
@@ -75,7 +78,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette une ligne avec debit ET credit', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: 'Test',
@@ -89,7 +92,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette une ligne vide (debit=0, credit=0)', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: 'Test',
@@ -104,7 +107,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette une ecriture sur periode cloturee', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2025-06-15',
       journal: 'AC',
       label: 'Achat ancien',
@@ -118,7 +121,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette une ecriture avec compte inexistant', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: 'Test',
@@ -132,7 +135,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette les montants negatifs', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: 'Test',
@@ -146,7 +149,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('signale un warning si le libelle est vide', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2026-03-15',
       journal: 'AC',
       label: '',
@@ -160,7 +163,7 @@ describe('validateJournalEntry — Validation complete', () => {
   });
 
   it('rejette une ecriture sans exercice couvrant la date', async () => {
-    const result = await validateJournalEntry({
+    const result = await validateJournalEntry(adapter, {
       date: '2030-01-01',
       journal: 'AC',
       label: 'Date future',
@@ -201,7 +204,7 @@ describe('validateJournalEntrySync — Validation legere', () => {
 
 describe('getNextPieceNumber', () => {
   it('retourne XX-000001 quand il n\'y a pas d\'ecritures', async () => {
-    const num = await getNextPieceNumber('AC');
+    const num = await getNextPieceNumber(adapter, 'AC');
     expect(num).toBe('AC-000001');
   });
 
@@ -220,7 +223,7 @@ describe('getNextPieceNumber', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    const num = await getNextPieceNumber('AC');
+    const num = await getNextPieceNumber(adapter, 'AC');
     expect(num).toBe('AC-000006');
   });
 
@@ -239,8 +242,8 @@ describe('getNextPieceNumber', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    const numAC = await getNextPieceNumber('AC');
-    const numVE = await getNextPieceNumber('VE');
+    const numAC = await getNextPieceNumber(adapter, 'AC');
+    const numVE = await getNextPieceNumber(adapter, 'VE');
     expect(numAC).toBe('AC-000001');
     expect(numVE).toBe('VE-000011');
   });

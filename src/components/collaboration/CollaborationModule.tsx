@@ -139,7 +139,7 @@ const CollaborationModule: React.FC = () => {
     },
     {
       id: 'dm-marie',
-      name: 'Marie Dupont',
+      name: '',
       type: 'direct',
       members: ['user1', 'user2'],
       lastMessage: 'Peux-tu vérifier les factures?',
@@ -153,7 +153,7 @@ const CollaborationModule: React.FC = () => {
     {
       id: '1',
       text: 'Bonjour tout le monde! 👋',
-      sender: 'Jean Dupont',
+      sender: '',
       senderId: 'user1',
       timestamp: new Date(Date.now() - 7200000),
       reactions: [
@@ -165,7 +165,7 @@ const CollaborationModule: React.FC = () => {
     {
       id: '2',
       text: 'La réunion de ce matin était très productive. Voici le compte-rendu en pièce jointe.',
-      sender: 'Marie Martin',
+      sender: '',
       senderId: 'user2',
       timestamp: new Date(Date.now() - 3600000),
       attachments: [
@@ -182,7 +182,7 @@ const CollaborationModule: React.FC = () => {
     {
       id: '3',
       text: 'Excellent travail sur le rapport financier! Les graphiques sont très clairs.',
-      sender: 'Pierre Durand',
+      sender: '',
       senderId: 'user3',
       timestamp: new Date(Date.now() - 1800000),
       replyTo: '2',
@@ -201,21 +201,21 @@ const CollaborationModule: React.FC = () => {
   const [users] = useState<User[]>([
     {
       id: 'user1',
-      name: 'Jean Dupont',
+      name: '',
       status: 'online',
       role: 'Directeur Financier',
       department: 'Finance'
     },
     {
       id: 'user2',
-      name: 'Marie Martin',
+      name: '',
       status: 'online',
       role: 'Comptable Senior',
       department: 'Comptabilité'
     },
     {
       id: 'user3',
-      name: 'Pierre Durand',
+      name: '',
       status: 'busy',
       role: 'Contrôleur de Gestion',
       department: 'Finance'
@@ -389,7 +389,7 @@ const CollaborationModule: React.FC = () => {
               <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-50" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Marie Dupont</p>
+              <p className="text-sm font-medium">—</p>
               <p className="text-xs text-gray-700">En ligne</p>
             </div>
             <button className="p-1 hover:bg-gray-200 rounded" aria-label="Paramètres">

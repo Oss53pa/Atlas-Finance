@@ -193,7 +193,7 @@ export async function executerReevaluation(
   const entryNumber = `REEVAL-${request.dateReevaluation.replace(/-/g, '')}-${request.assetId.substring(0, 6)}`;
   const entryId = crypto.randomUUID();
 
-  await safeAddEntry({
+  await safeAddEntry(adapter, {
     id: entryId,
     entryNumber,
     journal: 'OD',

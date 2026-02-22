@@ -213,7 +213,7 @@ interface EnhancedTasksModuleProps {
 const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
   userRole = 'comptable',
   currentUserId = 'user1',
-  currentUser = 'Marie Dupont'
+  currentUser = ''
 }) => {
   const { t } = useLanguage();
   const [tasks, setTasks] = useState<Task[]>([
@@ -223,7 +223,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       description: 'Analyser et valider le budget prévisionnel du deuxième trimestre avec les nouvelles projections',
       status: 'in-progress',
       priority: 'high',
-      assignee: 'Jean Dupont',
+      assignee: '',
       assigneeId: 'user2',
       assigneeTeam: 'Finance',
       dueDate: new Date('2024-03-15'),
@@ -248,12 +248,12 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
         { id: 'c2', text: 'Calculer les marges', completed: true },
         { id: 'c3', text: 'Valider avec direction', completed: false }
       ],
-      watchers: ['Marie Dupont', 'Pierre Durand'],
+      watchers: ['', ''],
       comments: [
         {
           id: 'com1',
           text: 'Les prévisions semblent optimistes, à revoir',
-          author: 'Marie Martin',
+          author: '',
           createdAt: new Date('2024-03-05')
         }
       ],
@@ -271,7 +271,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
           user: 'Admin',
           date: new Date('2024-03-01'),
           oldValue: null,
-          newValue: 'Jean Dupont',
+          newValue: '',
           details: 'Tâche assignée à Jean Dupont'
         }
       ]
@@ -282,7 +282,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       description: 'Finaliser les écritures et préparer les états financiers',
       status: 'todo',
       priority: 'urgent',
-      assignee: 'Marie Dupont',
+      assignee: '',
       assigneeId: 'user1',
       assigneeTeam: 'Comptabilité',
       dueDate: new Date('2024-03-10'),
@@ -310,7 +310,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       description: 'Vérifier les contrats et conditions avec les principaux fournisseurs',
       status: 'review',
       priority: 'medium',
-      assignee: 'Pierre Durand',
+      assignee: '',
       assigneeId: 'user3',
       assigneeTeam: 'Achats',
       dueDate: new Date('2024-03-20'),
@@ -324,7 +324,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
           url: '/files/contrats.pdf',
           size: 2456789,
           uploadedAt: new Date(),
-          uploadedBy: 'Pierre Durand',
+          uploadedBy: '',
           type: 'application/pdf'
         }
       ]
@@ -335,7 +335,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       description: 'Préparer et soumettre la déclaration TVA du mois',
       status: 'todo',
       priority: 'high',
-      assignee: 'Marie Dupont',
+      assignee: '',
       assigneeId: 'user1',
       assigneeTeam: 'Comptabilité',
       dueDate: new Date('2024-03-15'),
@@ -389,9 +389,9 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
 
   // Liste des utilisateurs disponibles pour l'attribution
   const availableUsers = [
-    { id: 'user1', name: 'Marie Dupont', role: 'Comptable', team: 'Comptabilité' },
-    { id: 'user2', name: 'Jean Dupont', role: 'Manager', team: 'Finance' },
-    { id: 'user3', name: 'Pierre Durand', role: 'Acheteur', team: 'Achats' },
+    { id: 'user1', name: '', role: 'Comptable', team: 'Comptabilité' },
+    { id: 'user2', name: '', role: 'Manager', team: 'Finance' },
+    { id: 'user3', name: '', role: 'Acheteur', team: 'Achats' },
     { id: 'user4', name: 'Sophie Leblanc', role: 'Analyste', team: 'Finance' },
     { id: 'user5', name: 'Alex Chen', role: 'Développeur', team: 'IT' }
   ];

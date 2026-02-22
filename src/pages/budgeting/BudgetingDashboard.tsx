@@ -374,7 +374,7 @@ const BudgetingDashboard: React.FC = () => {
                             <div className="w-8 h-8 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
                               <Users className="h-4 w-4 text-[var(--color-primary)]" />
                             </div>
-                            <span className="font-medium text-neutral-700">M. Dupont</span>
+                            <span className="font-medium text-neutral-700">—</span>
                           </div>
                         </td>
                         <td className="text-right p-6">
@@ -408,7 +408,7 @@ const BudgetingDashboard: React.FC = () => {
                             <div className="w-8 h-8 bg-[var(--color-info-lighter)] rounded-full flex items-center justify-center">
                               <Users className="h-4 w-4 text-[var(--color-info)]" />
                             </div>
-                            <span className="font-medium text-neutral-700">Mme Martin</span>
+                            <span className="font-medium text-neutral-700">—</span>
                           </div>
                         </td>
                         <td className="text-right p-6">

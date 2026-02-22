@@ -1038,7 +1038,7 @@ const CompleteAuthModule: React.FC = () => {
                     type="text"
                     defaultValue={editingUser?.fullName}
                     className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] text-[var(--color-text-primary)]"
-                    placeholder="Jean Dupont"
+                    placeholder=""
                   />
                 </div>
                 <div>
