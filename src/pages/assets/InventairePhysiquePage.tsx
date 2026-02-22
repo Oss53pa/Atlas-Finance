@@ -273,13 +273,13 @@ const InventairePhysiquePage: React.FC = () => {
   const getStatusColor = (statut: string) => {
     switch (statut) {
       case 'compte':
-        return 'text-[#6A8A82] bg-[#6A8A82]/10';
+        return 'text-[#171717] bg-[#171717]/10';
       case 'en_cours':
-        return 'text-[#B87333] bg-[#B87333]/10';
+        return 'text-[#525252] bg-[#525252]/10';
       case 'ecart':
         return 'text-red-600 bg-red-100';
       case 'valide':
-        return 'text-[#7A99AC] bg-[#7A99AC]/10';
+        return 'text-[#737373] bg-[#737373]/10';
       case 'non_compte':
         return 'text-gray-600 bg-gray-100';
       default:
@@ -307,11 +307,11 @@ const InventairePhysiquePage: React.FC = () => {
   const getPhysicalStateColor = (etat: string) => {
     switch (etat) {
       case 'excellent':
-        return 'text-[#6A8A82] bg-[#6A8A82]/10';
+        return 'text-[#171717] bg-[#171717]/10';
       case 'bon':
-        return 'text-[#7A99AC] bg-[#7A99AC]/10';
+        return 'text-[#737373] bg-[#737373]/10';
       case 'moyen':
-        return 'text-[#B87333] bg-[#B87333]/10';
+        return 'text-[#525252] bg-[#525252]/10';
       case 'mauvais':
         return 'text-red-600 bg-red-100';
       case 'hors_service':
@@ -324,19 +324,19 @@ const InventairePhysiquePage: React.FC = () => {
   const getDiscrepancyTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       'manquant': 'bg-red-50 text-red-700',
-      'excedent': 'bg-[#7A99AC]/10 text-[#7A99AC]',
-      'localisation': 'bg-[#B87333]/10 text-[#B87333]',
-      'etat': 'bg-[#B87333]/10 text-[#B87333]',
-      'valeur': 'bg-[#E8D5C4]/20 text-[#B87333]'
+      'excedent': 'bg-[#737373]/10 text-[#737373]',
+      'localisation': 'bg-[#525252]/10 text-[#525252]',
+      'etat': 'bg-[#525252]/10 text-[#525252]',
+      'valeur': 'bg-[#e5e5e5]/20 text-[#525252]'
     };
     return colors[type] || 'bg-gray-100 text-gray-800';
   };
 
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
-      'responsable': 'bg-[#B87333]/10 text-[#B87333]',
-      'compteur': 'bg-[#7A99AC]/10 text-[#7A99AC]',
-      'verificateur': 'bg-[#6A8A82]/10 text-[#6A8A82]'
+      'responsable': 'bg-[#525252]/10 text-[#525252]',
+      'compteur': 'bg-[#737373]/10 text-[#737373]',
+      'verificateur': 'bg-[#171717]/10 text-[#171717]'
     };
     return colors[role] || 'bg-gray-100 text-gray-800';
   };
@@ -389,7 +389,7 @@ const InventairePhysiquePage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
-              <ClipboardList className="mr-2 h-6 w-6 text-[#6A8A82]" />
+              <ClipboardList className="mr-2 h-6 w-6 text-[#171717]" />
               Inventaire Physique
             </h1>
             <p className="mt-1 text-sm text-gray-600">
@@ -400,7 +400,7 @@ const InventairePhysiquePage: React.FC = () => {
             <Button
               onClick={handleStartScanning}
               disabled={isScanning}
-              className="bg-[#6A8A82] hover:bg-[#5A7A72]"
+              className="bg-[#171717] hover:bg-[#262626]"
             >
               {isScanning ? (
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -411,7 +411,7 @@ const InventairePhysiquePage: React.FC = () => {
             </Button>
             <Button
               onClick={handleNewSession}
-              className="bg-[#6A8A82] hover:bg-[#5A7A72] text-white"
+              className="bg-[#171717] hover:bg-[#262626] text-white"
             >
               <Plus className="mr-2 h-4 w-4" />
               Nouvelle Session
@@ -431,15 +431,15 @@ const InventairePhysiquePage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <Card className="bg-[#6A8A82]/5 border-[#6A8A82]/20">
+          <Card className="bg-[#171717]/5 border-[#171717]/20">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-[#2C3E2F]">{currentSession.nom}</h2>
-                  <p className="text-xs text-[#6A8A82]">
+                  <h2 className="text-base font-semibold text-[#404040]">{currentSession.nom}</h2>
+                  <p className="text-xs text-[#171717]">
                     Du {formatDate(currentSession.date_debut)} au {formatDate(currentSession.date_fin_prevue)}
                   </p>
-                  <p className="text-xs text-[#6A8A82]">
+                  <p className="text-xs text-[#171717]">
                     Responsable: {currentSession.responsable} | Périmètre: {currentSession.perimetre}
                   </p>
                 </div>
@@ -470,7 +470,7 @@ const InventairePhysiquePage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-3">
               <div className="flex items-center space-x-3">
-                <div className="p-1 bg-[#7A99AC]/10 rounded">
+                <div className="p-1 bg-[#737373]/10 rounded">
                   <Package className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
@@ -492,7 +492,7 @@ const InventairePhysiquePage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-3">
               <div className="flex items-center space-x-3">
-                <div className="p-1 bg-[#6A8A82]/10 rounded">
+                <div className="p-1 bg-[#171717]/10 rounded">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </div>
                 <div>
@@ -532,7 +532,7 @@ const InventairePhysiquePage: React.FC = () => {
           <Card>
             <CardContent className="flex items-center p-3">
               <div className="flex items-center space-x-3">
-                <div className="p-1 bg-[#B87333]/10 rounded">
+                <div className="p-1 bg-[#525252]/10 rounded">
                   <Target className="h-4 w-4 text-purple-600" />
                 </div>
                 <div>
@@ -634,7 +634,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <Button 
                   onClick={handleStartScanning}
                   disabled={isScanning}
-                  className="w-full bg-[#6A8A82] hover:bg-[#5A7A72]"
+                  className="w-full bg-[#171717] hover:bg-[#262626]"
                 >
                   <QrCode className="mr-2 h-4 w-4" />
                   Scanner QR/Code-barres
@@ -665,7 +665,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <CardTitle className="flex items-center justify-between text-base">
                   <span>Articles à Compter</span>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="bg-[#7A99AC]/10 text-[#7A99AC]">
+                    <Badge variant="outline" className="bg-[#737373]/10 text-[#737373]">
                       {inventoryItems.length} articles
                     </Badge>
                     <Badge variant={inventoryItems.filter(i => i.statut_comptage === 'compte').length > 0 ? 'default' : 'secondary'}>
@@ -744,7 +744,7 @@ const InventairePhysiquePage: React.FC = () => {
                           <TableRow key={item.id} className="h-10 hover:bg-gray-50">
                             <TableCell className="py-1">
                               <div className="flex items-center space-x-2">
-                                <div className="p-0.5 bg-[#7A99AC]/10 rounded">
+                                <div className="p-0.5 bg-[#737373]/10 rounded">
                                   <Package className="h-3 w-3 text-blue-600" />
                                 </div>
                                 <div>
@@ -790,7 +790,7 @@ const InventairePhysiquePage: React.FC = () => {
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right py-2">
-                              <span className="font-semibold text-[#6A8A82] text-xs">
+                              <span className="font-semibold text-[#171717] text-xs">
                                 {formatCurrency(item.valeur_nette_comptable)}
                               </span>
                             </TableCell>
@@ -964,7 +964,7 @@ const InventairePhysiquePage: React.FC = () => {
                         </div>
 
                         {discrepancy.action_corrective && (
-                          <div className="bg-[#6A8A82]/5 border border-[#6A8A82]/20 rounded p-2 mb-2">
+                          <div className="bg-[#171717]/5 border border-[#171717]/20 rounded p-2 mb-2">
                             <p className="text-xs text-green-800">
                               <strong>Action:</strong> {discrepancy.action_corrective}
                             </p>
@@ -977,7 +977,7 @@ const InventairePhysiquePage: React.FC = () => {
                             Détails
                           </Button>
                           {discrepancy.statut_resolution !== 'resolu' && (
-                            <Button size="sm" className="bg-[#7A99AC] hover:bg-[#6A8A92]">
+                            <Button size="sm" className="bg-[#737373] hover:bg-[#525252]">
                               <Edit className="mr-2 h-4 w-4" />
                               Résoudre
                             </Button>
@@ -1000,7 +1000,7 @@ const InventairePhysiquePage: React.FC = () => {
                     Équipes d'Inventaire
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="secondary" className="bg-[#B87333]/10 text-[#B87333]">
+                    <Badge variant="secondary" className="bg-[#525252]/10 text-[#525252]">
                       {teamMembers.length} membres
                     </Badge>
                     <Badge variant="default">
@@ -1038,7 +1038,7 @@ const InventairePhysiquePage: React.FC = () => {
                     <div key={member.id} className="border rounded-lg p-2 hover:bg-gray-50">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center space-x-2">
-                          <div className="p-0.5 bg-[#B87333]/10 rounded">
+                          <div className="p-0.5 bg-[#525252]/10 rounded">
                             <Users className="h-3 w-3 text-purple-600" />
                           </div>
                           <div>
@@ -1093,7 +1093,7 @@ const InventairePhysiquePage: React.FC = () => {
                     Rapports d'Inventaire
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="default" className="bg-[#6A8A82]/10 text-[#6A8A82]">
+                    <Badge variant="default" className="bg-[#171717]/10 text-[#171717]">
                       5 rapports disponibles
                     </Badge>
                   </div>
@@ -1133,7 +1133,7 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-[#7A99AC]/10 rounded">
+                      <div className="p-1 bg-[#737373]/10 rounded">
                         <BarChart3 className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
@@ -1173,7 +1173,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-[#B87333]/10 rounded">
+                      <div className="p-1 bg-[#525252]/10 rounded">
                         <Users className="h-4 w-4 text-purple-600" />
                       </div>
                       <div>
@@ -1193,7 +1193,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-[#6A8A82]/10 rounded">
+                      <div className="p-1 bg-[#171717]/10 rounded">
                         <Target className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
@@ -1213,7 +1213,7 @@ const InventairePhysiquePage: React.FC = () => {
 
                   <div className="border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center space-x-2 mb-1">
-                      <div className="p-1 bg-[#E8D5C4]/20 rounded">
+                      <div className="p-1 bg-[#e5e5e5]/20 rounded">
                         <Calendar className="h-4 w-4 text-yellow-600" />
                       </div>
                       <div>
@@ -1275,8 +1275,8 @@ const InventairePhysiquePage: React.FC = () => {
       <Dialog open={showNewSessionModal} onOpenChange={setShowNewSessionModal}>
         <DialogContent className="max-w-2xl bg-white">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-[#2C3E2F]">
-              <ClipboardList className="mr-2 h-5 w-5 text-[#6A8A82]" />
+            <DialogTitle className="flex items-center text-[#404040]">
+              <ClipboardList className="mr-2 h-5 w-5 text-[#171717]" />
               Nouvelle Session d'Inventaire
             </DialogTitle>
             <DialogDescription>
@@ -1342,7 +1342,7 @@ const InventairePhysiquePage: React.FC = () => {
               Annuler
             </Button>
             <Button
-              className="bg-[#6A8A82] hover:bg-[#5A7A72]"
+              className="bg-[#171717] hover:bg-[#262626]"
               onClick={() => {
                 toast.success('Session d\'inventaire créée avec succès');
                 setShowNewSessionModal(false);
@@ -1358,8 +1358,8 @@ const InventairePhysiquePage: React.FC = () => {
       <Dialog open={showItemDetailModal} onOpenChange={setShowItemDetailModal}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-[#2C3E2F]">
-              <Eye className="mr-2 h-5 w-5 text-[#6A8A82]" />
+            <DialogTitle className="flex items-center text-[#404040]">
+              <Eye className="mr-2 h-5 w-5 text-[#171717]" />
               Détails de l'Immobilisation
             </DialogTitle>
           </DialogHeader>
@@ -1369,15 +1369,15 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-700">Code article</p>
-                    <p className="font-semibold text-[#2C3E2F]">{selectedItem.code}</p>
+                    <p className="font-semibold text-[#404040]">{selectedItem.code}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-700">Désignation</p>
-                    <p className="font-semibold text-[#2C3E2F]">{selectedItem.designation}</p>
+                    <p className="font-semibold text-[#404040]">{selectedItem.designation}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-700">Catégorie</p>
-                    <p className="font-semibold text-[#6A8A82]">{selectedItem.categorie}</p>
+                    <p className="font-semibold text-[#171717]">{selectedItem.categorie}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-700">Localisation</p>
@@ -1387,16 +1387,16 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-700">Valeur nette comptable</p>
-                    <p className="font-semibold text-[#6A8A82] text-lg">
+                    <p className="font-semibold text-[#171717] text-lg">
                       {formatCurrency(selectedItem.valeur_nette_comptable)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-700">État physique</p>
                     <Badge
-                      className={selectedItem.etat_physique === 'excellent' ? 'bg-[#6A8A82]/10 text-[#6A8A82]' :
-                               selectedItem.etat_physique === 'bon' ? 'bg-[#7A99AC]/10 text-[#7A99AC]' :
-                               'bg-[#B87333]/10 text-[#B87333]'}
+                      className={selectedItem.etat_physique === 'excellent' ? 'bg-[#171717]/10 text-[#171717]' :
+                               selectedItem.etat_physique === 'bon' ? 'bg-[#737373]/10 text-[#737373]' :
+                               'bg-[#525252]/10 text-[#525252]'}
                     >
                       {selectedItem.etat_physique}
                     </Badge>
@@ -1442,8 +1442,8 @@ const InventairePhysiquePage: React.FC = () => {
 
               {selectedItem.compteur && (
                 <div className="border-t pt-4">
-                  <h3 className="font-semibold mb-2 text-[#2C3E2F]">Compteur responsable</h3>
-                  <p className="text-[#6A8A82]">{selectedItem.compteur}</p>
+                  <h3 className="font-semibold mb-2 text-[#404040]">Compteur responsable</h3>
+                  <p className="text-[#171717]">{selectedItem.compteur}</p>
                 </div>
               )}
             </div>
@@ -1453,7 +1453,7 @@ const InventairePhysiquePage: React.FC = () => {
               Fermer
             </Button>
             <Button
-              className="bg-[#7A99AC] hover:bg-[#6A8A92]"
+              className="bg-[#737373] hover:bg-[#525252]"
               onClick={() => {
                 setShowItemDetailModal(false);
                 setShowEditItemModal(true);
@@ -1470,8 +1470,8 @@ const InventairePhysiquePage: React.FC = () => {
       <Dialog open={showEditItemModal} onOpenChange={setShowEditItemModal}>
         <DialogContent className="max-w-2xl bg-white">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-[#2C3E2F]">
-              <Edit className="mr-2 h-5 w-5 text-[#6A8A82]" />
+            <DialogTitle className="flex items-center text-[#404040]">
+              <Edit className="mr-2 h-5 w-5 text-[#171717]" />
               Modifier l'Immobilisation
             </DialogTitle>
           </DialogHeader>
@@ -1530,7 +1530,7 @@ const InventairePhysiquePage: React.FC = () => {
               Annuler
             </Button>
             <Button
-              className="bg-[#6A8A82] hover:bg-[#5A7A72]"
+              className="bg-[#171717] hover:bg-[#262626]"
               onClick={() => {
                 toast.success('Immobilisation modifiée avec succès');
                 setShowEditItemModal(false);
@@ -1546,8 +1546,8 @@ const InventairePhysiquePage: React.FC = () => {
       <Dialog open={showQrCodeModal} onOpenChange={setShowQrCodeModal}>
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-[#2C3E2F]">
-              <QrCode className="mr-2 h-5 w-5 text-[#6A8A82]" />
+            <DialogTitle className="flex items-center text-[#404040]">
+              <QrCode className="mr-2 h-5 w-5 text-[#171717]" />
               Code QR de l'Immobilisation
             </DialogTitle>
           </DialogHeader>
@@ -1555,11 +1555,11 @@ const InventairePhysiquePage: React.FC = () => {
             <div className="space-y-4">
               <div className="text-center">
                 <p className="text-sm text-gray-700 mb-2">Code article</p>
-                <p className="font-bold text-lg text-[#2C3E2F]">{selectedItem.code}</p>
+                <p className="font-bold text-lg text-[#404040]">{selectedItem.code}</p>
               </div>
-              <div className="bg-white p-8 rounded-lg border-2 border-[#6A8A82]/20">
+              <div className="bg-white p-8 rounded-lg border-2 border-[#171717]/20">
                 <div className="aspect-square bg-gray-100 rounded flex items-center justify-center">
-                  <QrCode className="h-32 w-32 text-[#6A8A82]" />
+                  <QrCode className="h-32 w-32 text-[#171717]" />
                 </div>
               </div>
               <div className="text-center text-sm text-gray-600">
@@ -1572,11 +1572,11 @@ const InventairePhysiquePage: React.FC = () => {
             <Button variant="outline" onClick={() => setShowQrCodeModal(false)}>
               Fermer
             </Button>
-            <Button className="bg-[#6A8A82] hover:bg-[#5A7A72]">
+            <Button className="bg-[#171717] hover:bg-[#262626]">
               <Download className="mr-2 h-4 w-4" />
               Télécharger
             </Button>
-            <Button className="bg-[#7A99AC] hover:bg-[#6A8A92]">
+            <Button className="bg-[#737373] hover:bg-[#525252]">
               <Camera className="mr-2 h-4 w-4" />
               Imprimer
             </Button>

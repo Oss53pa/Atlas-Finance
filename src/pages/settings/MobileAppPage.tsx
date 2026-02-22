@@ -60,90 +60,17 @@ const MobileAppPage: React.FC = () => {
     { id: 'settings', label: t('navigation.settings'), icon: Settings }
   ];
 
-  // Mock data for connected devices
-  const connectedDevices = [
-    {
-      id: 1,
-      name: 'iPhone 14 Pro',
-      type: 'iOS',
-      version: 'v2.3.1',
-      lastSync: '2024-03-20 14:30',
-      battery: 85,
-      status: 'online',
-      user: 'Jean Dupont'
-    },
-    {
-      id: 2,
-      name: 'Samsung Galaxy S23',
-      type: 'Android',
-      version: 'v2.3.0',
-      lastSync: '2024-03-20 13:15',
-      battery: 62,
-      status: 'online',
-      user: 'Marie Martin'
-    },
-    {
-      id: 3,
-      name: 'iPad Air',
-      type: 'iOS',
-      version: 'v2.3.1',
-      lastSync: '2024-03-20 09:45',
-      battery: 94,
-      status: 'offline',
-      user: 'Pierre Leblanc'
-    },
-    {
-      id: 4,
-      name: 'OnePlus 11',
-      type: 'Android',
-      version: 'v2.2.8',
-      lastSync: '2024-03-19 16:20',
-      battery: 45,
-      status: 'syncing',
-      user: 'Sophie Durand'
-    }
-  ];
+  // TODO: wire to real device registry when available
+  const connectedDevices: Array<{
+    id: number; name: string; type: string; version: string;
+    lastSync: string; battery: number; status: string; user: string;
+  }> = [];
 
-  // Mock sync history
-  const syncHistory = [
-    {
-      id: 1,
-      device: 'iPhone 14 Pro',
-      timestamp: '2024-03-20 14:30:15',
-      type: 'Complète',
-      items: 245,
-      duration: '2.3s',
-      status: 'success'
-    },
-    {
-      id: 2,
-      device: 'Samsung Galaxy S23',
-      timestamp: '2024-03-20 13:15:42',
-      type: 'Partielle',
-      items: 87,
-      duration: '1.1s',
-      status: 'success'
-    },
-    {
-      id: 3,
-      device: 'iPad Air',
-      timestamp: '2024-03-20 09:45:23',
-      type: 'Complète',
-      items: 312,
-      duration: '3.5s',
-      status: 'success'
-    },
-    {
-      id: 4,
-      device: 'OnePlus 11',
-      timestamp: '2024-03-19 16:20:11',
-      type: 'Échouée',
-      items: 0,
-      duration: '-',
-      status: 'failed',
-      error: 'Connexion interrompue'
-    }
-  ];
+  // TODO: wire to real sync log when available
+  const syncHistory: Array<{
+    id: number; device: string; timestamp: string; type: string;
+    items: number; duration: string; status: string; error?: string;
+  }> = [];
 
   // Mock app features
   const appFeatures = [
@@ -267,10 +194,9 @@ const MobileAppPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <Smartphone className="w-8 h-8 text-[var(--color-primary)]" />
-                  <span className="text-xs text-[var(--color-success)] font-medium">+8%</span>
                 </div>
-                <div className="text-lg font-bold">247</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Utilisateurs actifs</div>
+                <div className="text-lg font-bold">{connectedDevices.length}</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">Appareils connectés</div>
               </motion.div>
 
               <motion.div
@@ -281,9 +207,8 @@ const MobileAppPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <Download className="w-8 h-8 text-[var(--color-success)]" />
-                  <span className="text-xs text-[var(--color-success)] font-medium">v2.3.1</span>
                 </div>
-                <div className="text-lg font-bold">1,234</div>
+                <div className="text-lg font-bold">-</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Téléchargements</div>
               </motion.div>
 
@@ -295,9 +220,8 @@ const MobileAppPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <Star className="w-8 h-8 text-[var(--color-warning)]" />
-                  <span className="text-xs font-medium">4.8/5</span>
                 </div>
-                <div className="text-lg font-bold">4.8</div>
+                <div className="text-lg font-bold">-</div>
                 <div className="text-xs text-[var(--color-text-tertiary)]">Note moyenne</div>
               </motion.div>
 
@@ -309,10 +233,9 @@ const MobileAppPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <RefreshCw className="w-8 h-8 text-[var(--color-secondary)]" />
-                  <span className="text-xs text-[var(--color-success)] font-medium">Active</span>
                 </div>
-                <div className="text-lg font-bold">98.5%</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Taux de synchronisation</div>
+                <div className="text-lg font-bold">{syncHistory.filter(s => s.status === 'success').length}/{syncHistory.length || '-'}</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">Synchronisations réussies</div>
               </motion.div>
             </div>
 
@@ -386,30 +309,20 @@ const MobileAppPage: React.FC = () => {
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
               <h3 className="text-lg font-semibold mb-4">Activité récente</h3>
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-[var(--color-success)] rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">Nouvelle version 2.3.1 disponible</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Il y a 2 jours</div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">247 utilisateurs actifs ce mois</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Il y a 5 jours</div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-[var(--color-warning)] rounded-full"></div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">Maintenance planifiée le 25/03</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Il y a 1 semaine</div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                </div>
+                {syncHistory.length === 0 ? (
+                  <p className="text-sm text-[var(--color-text-tertiary)] py-4 text-center">Aucune activité récente</p>
+                ) : (
+                  syncHistory.slice(0, 3).map(sync => (
+                    <div key={sync.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className={`w-2 h-2 rounded-full ${sync.status === 'success' ? 'bg-[var(--color-success)]' : 'bg-[var(--color-error)]'}`}></div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{sync.device} — {sync.type}</div>
+                        <div className="text-xs text-[var(--color-text-tertiary)]">{sync.timestamp}</div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -939,7 +852,7 @@ const MobileAppPage: React.FC = () => {
                   toast.success('Code copié dans le presse-papier !');
                   navigator.clipboard.writeText('WB-2024-XYZ-123');
                 }}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] transition-colors"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors"
               >
                 Copier le code
               </button>

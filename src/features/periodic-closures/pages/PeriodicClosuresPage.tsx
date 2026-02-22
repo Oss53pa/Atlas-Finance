@@ -51,8 +51,8 @@ const PeriodicClosuresPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#191919]">Clôtures Périodiques</h1>
-          <p className="text-[#767676] mt-1">
+          <h1 className="text-lg font-bold text-[#171717]">Clôtures Périodiques</h1>
+          <p className="text-[#737373] mt-1">
             Gestion des clôtures mensuelles, trimestrielles et annuelles conformes SYSCOHADA
           </p>
         </div>
@@ -69,9 +69,9 @@ const PeriodicClosuresPage: React.FC = () => {
 
       <ClosureStats stats={stats} loading={statsLoading} />
 
-      <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
+      <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#191919]">Périodes de Clôture</h2>
+          <h2 className="text-lg font-semibold text-[#171717]">Périodes de Clôture</h2>
           <Button variant="outline" icon={Download} size="sm">
             Exporter
           </Button>
@@ -90,7 +90,7 @@ const PeriodicClosuresPage: React.FC = () => {
         size="lg"
       >
         <ModalBody>
-          <div className="text-center text-[#767676] py-8">
+          <div className="text-center text-[#737373] py-8">
             Formulaire de création de période à implémenter
           </div>
         </ModalBody>
@@ -117,33 +117,33 @@ const PeriodicClosuresPage: React.FC = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-sm text-[#767676]">Statut</p>
-                  <p className="font-semibold text-[#191919]">{selectedPeriod.status}</p>
+                  <p className="text-sm text-[#737373]">Statut</p>
+                  <p className="font-semibold text-[#171717]">{selectedPeriod.status}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676]">Exercice</p>
-                  <p className="font-semibold text-[#191919]">{selectedPeriod.fiscal_year}</p>
+                  <p className="text-sm text-[#737373]">Exercice</p>
+                  <p className="font-semibold text-[#171717]">{selectedPeriod.fiscal_year}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676]">Conformité</p>
-                  <p className="font-semibold text-[#191919]">
+                  <p className="text-sm text-[#737373]">Conformité</p>
+                  <p className="font-semibold text-[#171717]">
                     {selectedPeriod.syscohada_compliance_score}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676]">Validations</p>
-                  <p className="font-semibold text-[#191919]">
+                  <p className="text-sm text-[#737373]">Validations</p>
+                  <p className="font-semibold text-[#171717]">
                     {selectedPeriod.approvals_received.length} / {selectedPeriod.approvals_required.length}
                   </p>
                 </div>
               </div>
 
-              <div className="border-t border-[#D9D9D9] pt-4">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">
+              <div className="border-t border-[#d4d4d4] pt-4">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">
                   Étapes de Clôture
                 </h3>
                 {stepsLoading ? (
-                  <div className="text-center text-[#767676] py-8">
+                  <div className="text-center text-[#737373] py-8">
                     Chargement des étapes...
                   </div>
                 ) : (
@@ -152,15 +152,15 @@ const PeriodicClosuresPage: React.FC = () => {
               </div>
 
               {selectedPeriod.documents_generated.length > 0 && (
-                <div className="border-t border-[#D9D9D9] pt-4">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-2">
+                <div className="border-t border-[#d4d4d4] pt-4">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-2">
                     Documents Générés
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedPeriod.documents_generated.map((doc, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-[#F0F3F2] text-[#191919] rounded-full text-sm"
+                        className="px-3 py-1 bg-[#f5f5f5] text-[#171717] rounded-full text-sm"
                       >
                         {doc}
                       </span>

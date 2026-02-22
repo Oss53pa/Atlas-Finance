@@ -5,6 +5,7 @@
  */
 import { db, logAudit } from '../../../lib/db';
 import type { DBJournalEntry, DBAsset } from '../../../lib/db';
+import { Money } from '@/utils/money';
 
 export interface DepreciationEntry {
   assetId: string;
@@ -41,7 +42,7 @@ export function computeDepreciations(assets: DBAsset[], date: string): Depreciat
       assetName: asset.name,
       dotationAccountCode: '681' + asset.accountCode.substring(0, 1),
       amortissementAccountCode: asset.depreciationAccountCode || '28' + asset.accountCode.substring(1),
-      amount: Math.round(annualAmount * 100) / 100,
+      amount: new Money(annualAmount).round().toNumber(),
       date,
       exercice: currentDate.getFullYear().toString(),
     });

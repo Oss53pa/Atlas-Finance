@@ -177,7 +177,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 const WisebookAvatar: React.FC = () => (
   <div className="avatar avatar--assistant">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#6A8A82"/>
+      <rect width="24" height="24" rx="6" fill="#171717"/>
       <path
         d="M6 9H18V15C18 15.5523 17.5523 16 17 16H7C6.44772 16 6 15.5523 6 15V9Z"
         fill="white"
@@ -187,9 +187,9 @@ const WisebookAvatar: React.FC = () => (
         d="M7 7H17C17.5523 7 18 7.44772 18 8H6C6 7.44772 6.44772 7 7 7Z"
         fill="white"
       />
-      <circle cx="9" cy="12" r="0.75" fill="#6A8A82"/>
-      <circle cx="12" cy="12" r="0.75" fill="#6A8A82"/>
-      <circle cx="15" cy="12" r="0.75" fill="#6A8A82"/>
+      <circle cx="9" cy="12" r="0.75" fill="#171717"/>
+      <circle cx="12" cy="12" r="0.75" fill="#171717"/>
+      <circle cx="15" cy="12" r="0.75" fill="#171717"/>
     </svg>
   </div>
 );
@@ -197,11 +197,11 @@ const WisebookAvatar: React.FC = () => (
 const UserAvatar: React.FC = () => (
   <div className="avatar avatar--user">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="12" fill="#E5E7EB"/>
-      <circle cx="12" cy="10" r="3" fill="#9CA3AF"/>
+      <circle cx="12" cy="12" r="12" fill="#e5e5e5"/>
+      <circle cx="12" cy="10" r="3" fill="#a3a3a3"/>
       <path
         d="M7 18.2C7 16.4 8.9 15 12 15C15.1 15 17 16.4 17 18.2"
-        stroke="#9CA3AF"
+        stroke="#a3a3a3"
         strokeWidth="2"
         strokeLinecap="round"
       />
@@ -217,7 +217,7 @@ const LoadingSpinner: React.FC = () => (
 
 // Fonctions utilitaires
 function getConfidenceColor(confidence: number): string {
-  if (confidence > 0.8) return '#10B981'; // Vert
+  if (confidence > 0.8) return '#22c55e'; // Vert
   if (confidence > 0.6) return '#F59E0B'; // Orange
   return '#EF4444'; // Rouge
 }

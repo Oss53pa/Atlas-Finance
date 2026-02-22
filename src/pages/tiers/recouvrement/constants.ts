@@ -19,7 +19,7 @@ export const dossierTabs = [
 
 export const getStatutColor = (statut: string) => {
   const colors = {
-    'EN_COURS': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+    'EN_COURS': 'bg-[#171717]/10 text-[#171717]',
     'RESOLU': 'bg-green-100 text-green-800',
     'CONTENTIEUX': 'bg-red-100 text-red-800',
     'IRRECUPERABLE': 'bg-gray-100 text-gray-800',
@@ -51,7 +51,7 @@ export const getNiveauColor = (niveau: string) => {
     'RELANCE_1': 'bg-yellow-100 text-yellow-800',
     'RELANCE_2': 'bg-orange-100 text-orange-800',
     'RELANCE_3': 'bg-red-100 text-red-800',
-    'MISE_EN_DEMEURE': 'bg-[#B87333]/10 text-[#B87333]',
+    'MISE_EN_DEMEURE': 'bg-[#525252]/10 text-[#525252]',
     'CONTENTIEUX': 'bg-red-200 text-red-900'
   };
   return colors[niveau as keyof typeof colors] || 'bg-gray-100 text-gray-800';

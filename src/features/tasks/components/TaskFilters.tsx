@@ -30,7 +30,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
       </Button>
 
       {showFilters && (
-        <div className="bg-white p-4 rounded-lg border border-[#D9D9D9] grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg border border-[#d4d4d4] grid grid-cols-1 md:grid-cols-4 gap-4">
           <Select
             label="Statut"
             value={filters.status?.[0] || ''}

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { db } from '../../lib/db';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { History, Filter, Search, Eye, User, Calendar, FileText, X } from 'lucide-react';
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
@@ -39,63 +41,27 @@ const TrackChangePage: React.FC = () => {
     setSelectedLog(null);
   };
 
-  const changeLogs: ChangeLog[] = [
-    {
-      id: '1',
-      date: '28/09/2025',
-      time: '14:32',
-      user: 'Admin User',
-      module: t('navigation.settings'),
-      action: 'Modification',
-      description: 'Modification du modèle email "Facture"',
-      details: 'Titre modifié, contenu HTML mis à jour',
-      status: 'success'
-    },
-    {
-      id: '2',
-      date: '28/09/2025',
-      time: '14:15',
-      user: 'Admin User',
-      module: 'Notifications',
-      action: 'Ajout',
-      description: 'Ajout d\'un email de notification',
-      details: 'Email: admin@atlasfinance.com',
-      status: 'success'
-    },
-    {
-      id: '3',
-      date: '28/09/2025',
-      time: '13:45',
-      user: 'Admin User',
-      module: 'Apparence',
-      action: 'Modification',
-      description: 'Changement de thème',
-      details: 'Thème modifié: Élégance Sobre',
-      status: 'success'
-    },
-    {
-      id: '4',
-      date: '27/09/2025',
-      time: '16:20',
-      user: 'Jean Dupont',
-      module: t('navigation.accounting'),
-      action: 'Suppression',
-      description: 'Suppression d\'une écriture comptable',
-      details: 'Écriture #12345 supprimée',
-      status: 'warning'
-    },
-    {
-      id: '5',
-      date: '27/09/2025',
-      time: '11:10',
-      user: 'Marie Martin',
-      module: t('navigation.treasury'),
-      action: 'Modification',
-      description: 'Mise à jour d\'un paiement',
-      details: 'Paiement #9876 modifié',
-      status: 'success'
+  const changeLogs: ChangeLog[] = useLiveQuery(async () => {
+    try {
+      const logs = await db.auditLogs.orderBy('timestamp').reverse().limit(50).toArray();
+      return logs.map(log => {
+        const ts = new Date(log.timestamp);
+        return {
+          id: log.id,
+          date: ts.toLocaleDateString('fr-FR'),
+          time: ts.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+          user: log.userId || 'Système',
+          module: log.entityType || '-',
+          action: log.action || '-',
+          description: log.details || '-',
+          details: `${log.entityType} #${log.entityId}`,
+          status: 'success' as const,
+        };
+      });
+    } catch {
+      return [];
     }
-  ];
+  }, []) || [];
 
   const filteredLogs = changeLogs.filter(log => {
     const matchesSearch =
@@ -295,7 +261,7 @@ const TrackChangePage: React.FC = () => {
                 }}
                 buttonText="Exporter"
                 buttonVariant="outline"
-                className="border-[#6A8A82] text-[#6A8A82] hover:bg-[#6A8A82]/10"
+                className="border-[#171717] text-[#171717] hover:bg-[#171717]/10"
               />
             </div>
           </div>

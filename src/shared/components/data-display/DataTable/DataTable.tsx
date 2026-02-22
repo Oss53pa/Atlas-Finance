@@ -90,24 +90,24 @@ export const DataTable = <T extends Record<string, any>>({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A8A82]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#171717]" />
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-12 text-[#767676]">
+      <div className="text-center py-12 text-[#737373]">
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-lg border border-[#D9D9D9] bg-white ${className}`}>
+    <div className={`relative overflow-hidden rounded-lg border border-[#d4d4d4] bg-white ${className}`}>
       <div className="overflow-x-auto">
         <table className={`w-full ${compact ? 'text-sm' : ''}`}>
-          <thead className={`bg-[#FAFAFA] border-b border-[#E8E8E8] ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
+          <thead className={`bg-[#FAFAFA] border-b border-[#e5e5e5] ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
             <tr>
               {selectable && (
                 <th className="w-12 px-4 py-3">
@@ -115,7 +115,7 @@ export const DataTable = <T extends Record<string, any>>({
                     type="checkbox"
                     checked={selectedRows?.size === data.length && data.length > 0}
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-[#D9D9D9] text-[#6A8A82] focus:ring-[#6A8A82]"
+                    className="rounded border-[#d4d4d4] text-[#171717] focus:ring-[#171717]"
                   />
                 </th>
               )}
@@ -124,8 +124,8 @@ export const DataTable = <T extends Record<string, any>>({
                   key={column.key}
                   className={`
                     px-4 ${compact ? 'py-2' : 'py-3'}
-                    text-left text-xs font-semibold text-[#444444] uppercase tracking-wider
-                    ${column.sortable ? 'cursor-pointer select-none hover:bg-[#ECECEC]' : ''}
+                    text-left text-xs font-semibold text-[#404040] uppercase tracking-wider
+                    ${column.sortable ? 'cursor-pointer select-none hover:bg-[#e5e5e5]' : ''}
                     ${column.align === 'center' ? 'text-center' : ''}
                     ${column.align === 'right' ? 'text-right' : ''}
                     ${column.className || ''}
@@ -139,12 +139,12 @@ export const DataTable = <T extends Record<string, any>>({
                       <span className="inline-flex">
                         {activeSortColumn === column.key ? (
                           activeSortDirection === 'asc' ? (
-                            <ChevronUp className="h-4 w-4 text-[#6A8A82]" />
+                            <ChevronUp className="h-4 w-4 text-[#171717]" />
                           ) : (
-                            <ChevronDown className="h-4 w-4 text-[#6A8A82]" />
+                            <ChevronDown className="h-4 w-4 text-[#171717]" />
                           )
                         ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-[#767676]" />
+                          <ChevronsUpDown className="h-4 w-4 text-[#737373]" />
                         )}
                       </span>
                     )}
@@ -152,13 +152,13 @@ export const DataTable = <T extends Record<string, any>>({
                 </th>
               ))}
               {actions && (
-                <th className="px-4 py-3 text-right text-xs font-semibold text-[#444444] uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-[#404040] uppercase tracking-wider">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-[#E8E8E8]">
+          <tbody className="bg-white divide-y divide-[#e5e5e5]">
             {displayData.map((row, index) => {
               const rowId = getRowId(row, index);
               const isSelected = selectedRows?.has(rowId);
@@ -170,8 +170,8 @@ export const DataTable = <T extends Record<string, any>>({
                     ${striped && index % 2 === 1 ? 'bg-[#FAFAFA]' : ''}
                     ${hoverable ? 'hover:bg-[#F5F5F5] transition-colors' : ''}
                     ${onRowClick ? 'cursor-pointer' : ''}
-                    ${isSelected ? 'bg-[#6A8A82]/5' : ''}
-                    ${bordered ? 'border-b border-[#E8E8E8]' : ''}
+                    ${isSelected ? 'bg-[#171717]/5' : ''}
+                    ${bordered ? 'border-b border-[#e5e5e5]' : ''}
                   `}
                   onClick={() => onRowClick?.(row)}
                 >
@@ -184,7 +184,7 @@ export const DataTable = <T extends Record<string, any>>({
                           e.stopPropagation();
                           handleSelectRow(rowId, e.target.checked);
                         }}
-                        className="rounded border-[#D9D9D9] text-[#6A8A82] focus:ring-[#6A8A82]"
+                        className="rounded border-[#d4d4d4] text-[#171717] focus:ring-[#171717]"
                       />
                     </td>
                   )}
@@ -193,7 +193,7 @@ export const DataTable = <T extends Record<string, any>>({
                       key={column.key}
                       className={`
                         px-4 ${compact ? 'py-2' : 'py-3'}
-                        text-sm text-[#191919]
+                        text-sm text-[#171717]
                         ${column.align === 'center' ? 'text-center' : ''}
                         ${column.align === 'right' ? 'text-right' : ''}
                         ${column.className || ''}
@@ -217,8 +217,8 @@ export const DataTable = <T extends Record<string, any>>({
       </div>
 
       {pagination && (
-        <div className="px-4 py-3 border-t border-[#E8E8E8] bg-[#FAFAFA] flex items-center justify-between">
-          <div className="text-sm text-[#767676]">
+        <div className="px-4 py-3 border-t border-[#e5e5e5] bg-[#FAFAFA] flex items-center justify-between">
+          <div className="text-sm text-[#737373]">
             Affichage {Math.min((pagination.currentPage - 1) * pagination.pageSize + 1, pagination.totalItems)} à{' '}
             {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} sur {pagination.totalItems} résultats
           </div>
@@ -226,7 +226,7 @@ export const DataTable = <T extends Record<string, any>>({
             <select
               value={pagination.pageSize}
               onChange={(e) => pagination.onPageSizeChange(Number(e.target.value))}
-              className="px-2 py-1 border border-[#D9D9D9] rounded text-sm text-[#191919] focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-2 py-1 border border-[#d4d4d4] rounded text-sm text-[#171717] focus:outline-none focus:ring-2 focus:ring-[#171717]"
             >
               <option value={10}>10 / page</option>
               <option value={25}>25 / page</option>
@@ -237,14 +237,14 @@ export const DataTable = <T extends Record<string, any>>({
               <button
                 onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
                 disabled={pagination.currentPage === 1}
-                className="px-3 py-1 border border-[#D9D9D9] rounded text-sm text-[#191919] hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 border border-[#d4d4d4] rounded text-sm text-[#171717] hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Précédent
               </button>
               <button
                 onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
                 disabled={pagination.currentPage * pagination.pageSize >= pagination.totalItems}
-                className="px-3 py-1 border border-[#D9D9D9] rounded text-sm text-[#191919] hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 border border-[#d4d4d4] rounded text-sm text-[#171717] hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Suivant
               </button>

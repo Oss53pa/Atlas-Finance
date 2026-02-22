@@ -54,7 +54,7 @@ const JournalDashboard: React.FC = () => {
       const filtered = entries.filter(e => e.date >= dateRange.start && e.date <= dateRange.end);
       const byJournal: Record<string, number> = {};
       for (const e of filtered) byJournal[e.journal] = (byJournal[e.journal] || 0) + 1;
-      const colors: Record<string, string> = { VE: '#10B981', AC: '#EF4444', BQ: '#3B82F6', CA: '#F59E0B', OD: '#6B7280' };
+      const colors: Record<string, string> = { VE: '#22c55e', AC: '#EF4444', BQ: '#3B82F6', CA: '#F59E0B', OD: '#737373' };
       const names: Record<string, string> = { VE: 'Ventes', AC: 'Achats', BQ: 'Banque', CA: 'Caisse', OD: 'Opérations Diverses' };
       return Object.entries(byJournal).map(([key, value]) => ({
         name: names[key] || key, value, color: colors[key] || '#8B5CF6',
@@ -166,21 +166,21 @@ const JournalDashboard: React.FC = () => {
       {/* Header avec sélecteur de période */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#191919]">Dashboard Journaux Comptables</h1>
-          <p className="text-sm text-[#767676] mt-1">Vue d'ensemble de l'activité comptable</p>
+          <h1 className="text-lg font-bold text-[#171717]">Dashboard Journaux Comptables</h1>
+          <p className="text-sm text-[#737373] mt-1">Vue d'ensemble de l'activité comptable</p>
         </div>
         <div className="flex items-center space-x-3">
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="px-4 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+            className="px-4 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]"
           >
             <option value="today">{t('common.today')}</option>
             <option value="week">Cette semaine</option>
             <option value="month">Ce mois</option>
             <option value="year">Cette année</option>
           </select>
-          <span className="text-sm text-[#767676] flex items-center">
+          <span className="text-sm text-[#737373] flex items-center">
             <Calendar className="w-4 h-4 mr-1" />
             {new Date().toLocaleDateString('fr-FR')}
           </span>
@@ -188,8 +188,8 @@ const JournalDashboard: React.FC = () => {
       </div>
 
       {/* Sous-onglets */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8]">
-        <div className="px-4 border-b border-[#E8E8E8]">
+      <div className="bg-white rounded-lg border border-[#e5e5e5]">
+        <div className="px-4 border-b border-[#e5e5e5]">
           <nav className="flex space-x-6">
             {subTabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -199,8 +199,8 @@ const JournalDashboard: React.FC = () => {
                   onClick={() => setActiveSubTab(tab.id)}
                   className={`flex items-center space-x-2 py-3 border-b-2 font-medium text-sm transition-colors ${
                     activeSubTab === tab.id
-                      ? 'border-[#6A8A82] text-[#6A8A82]'
-                      : 'border-transparent text-[#767676] hover:text-[#444444]'
+                      ? 'border-[#171717] text-[#171717]'
+                      : 'border-transparent text-[#737373] hover:text-[#404040]'
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -218,20 +218,20 @@ const JournalDashboard: React.FC = () => {
             <div className="space-y-6">
               {/* Synthèse du jour */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Écritures du jour</p>
-                      <p className="text-lg font-bold text-[#191919] mt-1">{todaySummary.totalEntries}</p>
+                      <p className="text-sm text-[#737373]">Écritures du jour</p>
+                      <p className="text-lg font-bold text-[#171717] mt-1">{todaySummary.totalEntries}</p>
                     </div>
-                    <FileText className="w-8 h-8 text-[#6A8A82]" />
+                    <FileText className="w-8 h-8 text-[#171717]" />
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Total Débits</p>
+                      <p className="text-sm text-[#737373]">Total Débits</p>
                       <p className="text-lg font-bold text-red-600 mt-1">
                         {formatAmount(todaySummary.totalDebit)}
                       </p>
@@ -240,10 +240,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Total Crédits</p>
+                      <p className="text-sm text-[#737373]">Total Crédits</p>
                       <p className="text-lg font-bold text-green-600 mt-1">
                         {formatAmount(todaySummary.totalCredit)}
                       </p>
@@ -252,10 +252,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">{t('accounting.balance')}</p>
+                      <p className="text-sm text-[#737373]">{t('accounting.balance')}</p>
                       <p className={`text-lg font-bold mt-1 ${todaySummary.isBalanced ? 'text-green-600' : 'text-red-600'}`}>
                         {todaySummary.isBalanced ? 'Équilibrée' : 'Déséquilibrée'}
                       </p>
@@ -268,10 +268,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">{t('status.pending')}</p>
+                      <p className="text-sm text-[#737373]">{t('status.pending')}</p>
                       <p className="text-lg font-bold text-orange-600 mt-1">{todaySummary.pendingValidation}</p>
                     </div>
                     <Clock className="w-8 h-8 text-orange-500" />
@@ -282,9 +282,9 @@ const JournalDashboard: React.FC = () => {
               {/* Visualisations */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Répartition par type */}
-                <div className="bg-gray-50 rounded-lg p-6 border border-[#E8E8E8]">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
-                    <PieChart className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
+                    <PieChart className="w-5 h-5 mr-2 text-[#171717]" />
                     Répartition par type d'opération
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
@@ -296,7 +296,7 @@ const JournalDashboard: React.FC = () => {
                         labelLine={false}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
-                        fill="#8884d8"
+                        fill="#737373"
                         dataKey="value"
                       >
                         {operationsByType.map((entry, index) => (
@@ -310,16 +310,16 @@ const JournalDashboard: React.FC = () => {
                     {operationsByType.map((type, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }}></div>
-                        <span className="text-sm text-[#444444]">{type.name}: {type.value}%</span>
+                        <span className="text-sm text-[#404040]">{type.name}: {type.value}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Volume par jour */}
-                <div className="bg-gray-50 rounded-lg p-6 border border-[#E8E8E8]">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
-                    <BarChart3 className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2 text-[#171717]" />
                     Volume d'écritures (7 derniers jours)
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
@@ -329,7 +329,7 @@ const JournalDashboard: React.FC = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="validated" stackId="a" fill="#10B981" name="Validées" />
+                      <Bar dataKey="validated" stackId="a" fill="#22c55e" name="Validées" />
                       <Bar dataKey="pending" stackId="a" fill="#F59E0B" name="En attente" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -337,15 +337,15 @@ const JournalDashboard: React.FC = () => {
               </div>
 
               {/* Statistiques de contrôle */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-[#E8E8E8]">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2 text-[#6A8A82]" />
+              <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2 text-[#171717]" />
                   État des Contrôles
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
+                  <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-[#767676]">Journaux équilibrés</span>
+                      <span className="text-sm text-[#737373]">Journaux équilibrés</span>
                       <span className="text-lg font-bold text-green-600">3/5</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -353,9 +353,9 @@ const JournalDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
+                  <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-[#767676]">Écritures validées</span>
+                      <span className="text-sm text-[#737373]">Écritures validées</span>
                       <span className="text-lg font-bold text-blue-600">39/47</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -363,9 +363,9 @@ const JournalDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
+                  <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-[#767676]">Comptes complets</span>
+                      <span className="text-sm text-[#737373]">Comptes complets</span>
                       <span className="text-lg font-bold text-purple-600">44/47</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -382,11 +382,11 @@ const JournalDashboard: React.FC = () => {
             <div className="space-y-6">
               {/* Indicateurs de trésorerie */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Solde Caisse</p>
-                      <p className="text-lg font-bold text-[#191919] mt-1">
+                      <p className="text-sm text-[#737373]">Solde Caisse</p>
+                      <p className="text-lg font-bold text-[#171717] mt-1">
                         {formatAmount(treasuryData.cashBalance)}
                       </p>
                     </div>
@@ -394,11 +394,11 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Solde Banque</p>
-                      <p className="text-lg font-bold text-[#191919] mt-1">
+                      <p className="text-sm text-[#737373]">Solde Banque</p>
+                      <p className="text-lg font-bold text-[#171717] mt-1">
                         {formatAmount(treasuryData.bankBalance)}
                       </p>
                     </div>
@@ -406,10 +406,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Encaissements du jour</p>
+                      <p className="text-sm text-[#737373]">Encaissements du jour</p>
                       <p className="text-lg font-bold text-green-600 mt-1">
                         {formatAmount(treasuryData.dailyIn)}
                       </p>
@@ -418,10 +418,10 @@ const JournalDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 border border-[#E8E8E8]">
+                <div className="bg-gray-50 rounded-lg p-4 border border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#767676]">Décaissements du jour</p>
+                      <p className="text-sm text-[#737373]">Décaissements du jour</p>
                       <p className="text-lg font-bold text-red-600 mt-1">
                         {formatAmount(treasuryData.dailyOut)}
                       </p>
@@ -432,9 +432,9 @@ const JournalDashboard: React.FC = () => {
               </div>
 
               {/* Évolution de la trésorerie */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-[#E8E8E8]">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-[#6A8A82]" />
+              <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-[#171717]" />
                   Évolution de la trésorerie (7 derniers jours)
                 </h3>
                 <ResponsiveContainer width="100%" height={350}>
@@ -444,26 +444,26 @@ const JournalDashboard: React.FC = () => {
                     <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
                     <Tooltip formatter={(value: number) => formatAmount(value)} />
                     <Legend />
-                    <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#10B981" fill="#10B981" fillOpacity={0.6} name={t('treasury.receipts')} />
+                    <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#22c55e" fill="#22c55e" fillOpacity={0.6} name={t('treasury.receipts')} />
                     <Area type="monotone" dataKey="decaissements" stackId="2" stroke="#EF4444" fill="#EF4444" fillOpacity={0.6} name={t('treasury.payments')} />
-                    <Line type="monotone" dataKey="solde" stroke="#6A8A82" strokeWidth={2} name={t('accounting.balance')} />
+                    <Line type="monotone" dataKey="solde" stroke="#171717" strokeWidth={2} name={t('accounting.balance')} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Indicateurs de performance */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-[#E8E8E8]">
-                <h3 className="text-lg font-semibold text-[#191919] mb-6 flex items-center">
-                  <Activity className="w-5 h-5 mr-2 text-[#B87333]" />
+              <div className="bg-gray-50 rounded-lg p-6 border border-[#e5e5e5]">
+                <h3 className="text-lg font-semibold text-[#171717] mb-6 flex items-center">
+                  <Activity className="w-5 h-5 mr-2 text-[#525252]" />
                   Indicateurs de Performance
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="text-center">
                     <div className="mb-2">
-                      <Clock className="w-10 h-10 text-[#6A8A82] mx-auto" />
+                      <Clock className="w-10 h-10 text-[#171717] mx-auto" />
                     </div>
-                    <p className="text-lg font-bold text-[#191919]">{kpis.avgValidationTime}h</p>
-                    <p className="text-sm text-[#767676] mt-1">Temps moyen de validation</p>
+                    <p className="text-lg font-bold text-[#171717]">{kpis.avgValidationTime}h</p>
+                    <p className="text-sm text-[#737373] mt-1">Temps moyen de validation</p>
                   </div>
 
                   <div className="text-center">
@@ -471,7 +471,7 @@ const JournalDashboard: React.FC = () => {
                       <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
                     </div>
                     <p className="text-lg font-bold text-green-600">{kpis.complianceRate}%</p>
-                    <p className="text-sm text-[#767676] mt-1">Taux de conformité</p>
+                    <p className="text-sm text-[#737373] mt-1">Taux de conformité</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
@@ -487,7 +487,7 @@ const JournalDashboard: React.FC = () => {
                       <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
                     </div>
                     <p className="text-lg font-bold text-red-600">{kpis.errorRate}%</p>
-                    <p className="text-sm text-[#767676] mt-1">Taux d'erreur</p>
+                    <p className="text-sm text-[#737373] mt-1">Taux d'erreur</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
@@ -500,14 +500,14 @@ const JournalDashboard: React.FC = () => {
 
                   <div className="text-center">
                     <div className="mb-2">
-                      <Activity className="w-10 h-10 text-[#B87333] mx-auto" />
+                      <Activity className="w-10 h-10 text-[#525252] mx-auto" />
                     </div>
-                    <p className="text-lg font-bold text-[#B87333]">{kpis.automationRate}%</p>
-                    <p className="text-sm text-[#767676] mt-1">Taux d'automatisation</p>
+                    <p className="text-lg font-bold text-[#525252]">{kpis.automationRate}%</p>
+                    <p className="text-sm text-[#737373] mt-1">Taux d'automatisation</p>
                     <div className="mt-2">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-[#B87333] h-2 rounded-full"
+                          className="bg-[#525252] h-2 rounded-full"
                           style={{ width: `${kpis.automationRate}%` }}
                         ></div>
                       </div>

@@ -38,21 +38,21 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#FFFFFF'}}>
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64" style={{backgroundColor: '#353A3B', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}>
+      <div className="fixed inset-y-0 left-0 z-50 w-64" style={{backgroundColor: '#404040', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}>
         {/* Header */}
-        <div className="flex h-16 items-center justify-between px-4" style={{borderBottom: '1px solid #7A8B8E', backgroundColor: '#F7F3E9'}}>
+        <div className="flex h-16 items-center justify-between px-4" style={{borderBottom: '1px solid #737373', backgroundColor: '#fafafa'}}>
           <Link to="/dashboard" className="flex items-center space-x-3">
             <div 
               className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{backgroundColor: '#7A8B8E', color: '#FFFFFF'}}
+              style={{backgroundColor: '#737373', color: '#FFFFFF'}}
             >
               <Calculator size={18} />
             </div>
             <div>
-              <h1 className="text-lg font-bold" style={{color: '#353A3B', fontFamily: 'Sometype Mono, sans-serif', fontWeight: '700'}}>
+              <h1 className="text-lg font-bold" style={{color: '#404040', fontFamily: 'Sometype Mono, sans-serif', fontWeight: '700'}}>
                 Atlas Finance
               </h1>
-              <p className="text-xs" style={{color: '#7A8B8E', fontWeight: '500'}}>
+              <p className="text-xs" style={{color: '#737373', fontWeight: '500'}}>
                 Version 3.0.0
               </p>
             </div>
@@ -69,18 +69,18 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
                 className="flex items-center rounded-lg transition-all group"
                 style={{
                   padding: '12px 16px',
-                  color: '#D5D0CD',
+                  color: '#e5e5e5',
                   fontFamily: 'Sometype Mono, sans-serif',
                   fontWeight: '500',
                   textDecoration: 'none'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#7A8B8E';
+                  e.currentTarget.style.backgroundColor = '#737373';
                   e.currentTarget.style.color = '#FFFFFF';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#D5D0CD';
+                  e.currentTarget.style.color = '#e5e5e5';
                 }}
               >
                 <item.icon size={20} className="mr-3" />
@@ -90,7 +90,7 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
           </div>
           
           {/* Divider */}
-          <div className="my-6" style={{borderTop: '1px solid #7A8B8E'}}></div>
+          <div className="my-6" style={{borderTop: '1px solid #737373'}}></div>
           
           {/* Settings and Logout */}
           <div className="space-y-1">
@@ -99,18 +99,18 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
               className="flex items-center rounded-lg transition-all"
               style={{
                 padding: '12px 16px',
-                color: '#D5D0CD',
+                color: '#e5e5e5',
                 fontFamily: 'Sometype Mono, sans-serif',
                 fontWeight: '500',
                 textDecoration: 'none'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#7A8B8E';
+                e.currentTarget.style.backgroundColor = '#737373';
                 e.currentTarget.style.color = '#FFFFFF';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#D5D0CD';
+                e.currentTarget.style.color = '#e5e5e5';
               }}
             >
               <Settings size={20} className="mr-3" />
@@ -122,7 +122,7 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
               className="flex items-center rounded-lg transition-all"
               style={{
                 padding: '12px 16px',
-                color: '#D5D0CD',
+                color: '#e5e5e5',
                 fontFamily: 'Sometype Mono, sans-serif',
                 fontWeight: '500',
                 textDecoration: 'none'
@@ -133,7 +133,7 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#D5D0CD';
+                e.currentTarget.style.color = '#e5e5e5';
               }}
             >
               <LogOut size={20} className="mr-3" />
@@ -145,7 +145,7 @@ const ERPLayout: React.FC<ERPLayoutProps> = ({ children }) => {
       
       {/* Main Content */}
       <div className="pl-64">
-        <main style={{padding: '2rem 1.5rem', backgroundColor: '#F7F3E9', minHeight: '100vh'}}>
+        <main style={{padding: '2rem 1.5rem', backgroundColor: '#fafafa', minHeight: '100vh'}}>
           {children}
         </main>
       </div>

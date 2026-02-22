@@ -46,37 +46,37 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
       <tr
         className={`${
           isSection
-            ? 'bg-[#7A99AC] text-white font-semibold'
+            ? 'bg-[#737373] text-white font-semibold'
             : isBold
             ? 'font-semibold bg-[#F5F5F5]'
             : 'hover:bg-[#FAFAFA]'
         }`}
       >
         <td
-          className={`py-3 px-4 ${!isSection && 'border-b border-[#D9D9D9]'}`}
+          className={`py-3 px-4 ${!isSection && 'border-b border-[#d4d4d4]'}`}
           style={{ paddingLeft: `${16 + indent * 16}px` }}
         >
           {label}
         </td>
-        <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#D9D9D9]'}`}>
+        <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
           {formatCurrency(current)}
         </td>
         {showComparison && previous !== undefined && (
           <>
-            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#D9D9D9]'}`}>
+            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
               {formatCurrency(previous)}
             </td>
-            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#D9D9D9]'}`}>
+            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
               {variation && (
-                <span className={variation.variation >= 0 ? 'text-[#6A8A82]' : 'text-[#B85450]'}>
+                <span className={variation.variation >= 0 ? 'text-[#171717]' : 'text-[#ef4444]'}>
                   {variation.variation >= 0 ? '+' : ''}
                   {formatCurrency(variation.variation)}
                 </span>
               )}
             </td>
-            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#D9D9D9]'}`}>
+            <td className={`py-3 px-4 text-right ${!isSection && 'border-b border-[#d4d4d4]'}`}>
               {variation && (
-                <span className={variation.variationPercent >= 0 ? 'text-[#6A8A82]' : 'text-[#B85450]'}>
+                <span className={variation.variationPercent >= 0 ? 'text-[#171717]' : 'text-[#ef4444]'}>
                   {variation.variationPercent >= 0 ? '+' : ''}
                   {variation.variationPercent.toFixed(1)}%
                 </span>
@@ -89,8 +89,8 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-[#D9D9D9] overflow-hidden">
-      <div className="bg-[#6A8A82] text-white py-3 px-4">
+    <div className="bg-white rounded-lg border border-[#d4d4d4] overflow-hidden">
+      <div className="bg-[#171717] text-white py-3 px-4">
         <h3 className="text-lg font-semibold">COMPTE DE RÉSULTAT</h3>
       </div>
       <table className="w-full">
@@ -148,7 +148,7 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
 
           {renderLine('Impôts sur les Sociétés', cr.impotsSocietes, previousCR?.impotsSocietes, false, false, 1)}
 
-          <tr className="bg-[#6A8A82] text-white font-bold">
+          <tr className="bg-[#171717] text-white font-bold">
             <td className="py-3 px-4">RÉSULTAT NET</td>
             <td className="py-3 px-4 text-right">{formatCurrency(cr.resultatNet)}</td>
             {showComparison && previousCR && (

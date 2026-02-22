@@ -9,6 +9,7 @@ import {
   Bell, Flag, Timer, Archive, Filter, Search, ArrowRight
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 
 interface WorkflowStep {
   id: string;
@@ -321,7 +322,7 @@ const WorkflowsManager: React.FC = () => {
       case 'draft':
         return 'bg-gray-100 text-gray-700';
       default:
-        return 'bg-[#D1DDD9] text-[#588075]';
+        return 'bg-[#e5e5e5] text-[#525252]';
     }
   };
 
@@ -384,7 +385,7 @@ const WorkflowsManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <GitBranch className="w-8 h-8 text-[#6A8A82]" />
+            <GitBranch className="w-8 h-8 text-[#171717]" />
             Workflows & Approbations
           </h1>
           <p className="text-gray-600 mt-1">Automatisation et gestion des processus métier</p>
@@ -395,7 +396,7 @@ const WorkflowsManager: React.FC = () => {
             <Upload className="w-4 h-4" />
             Importer
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#588075]">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#525252]">
             <Plus className="w-4 h-4" />
             Nouveau Workflow
           </button>
@@ -407,7 +408,7 @@ const WorkflowsManager: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Workflows Actifs</span>
-            <Activity className="w-5 h-5 text-[#78998F]" />
+            <Activity className="w-5 h-5 text-[#737373]" />
           </div>
           <p className="text-lg font-bold text-gray-900">{stats.activeWorkflows}</p>
           <p className="text-xs text-gray-700 mt-1">En cours d'exécution</p>
@@ -452,7 +453,7 @@ const WorkflowsManager: React.FC = () => {
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                   activeTab === tab
-                    ? "border-[#78998F] text-[#6A8A82]"
+                    ? "border-[#737373] text-[#171717]"
                     : "border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300"
                 )}
               >
@@ -475,7 +476,7 @@ const WorkflowsManager: React.FC = () => {
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
               />
             </div>
             {activeTab === 'workflows' && (
@@ -483,7 +484,7 @@ const WorkflowsManager: React.FC = () => {
                 <select
                   value={filter.status}
                   onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
                 >
                   <option value="all">Tous les statuts</option>
                   <option value="active">Actif</option>
@@ -493,7 +494,7 @@ const WorkflowsManager: React.FC = () => {
                 <select
                   value={filter.category}
                   onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#78998F]"
+                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
                 >
                   <option value="all">Toutes catégories</option>
                   <option value="finance">Finance</option>
@@ -553,7 +554,7 @@ const WorkflowsManager: React.FC = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-[#6A8A82] h-2 rounded-full transition-all"
+                        className="bg-[#171717] h-2 rounded-full transition-all"
                         style={{ width: `${workflow.progress}%` }}
                       />
                     </div>
@@ -566,7 +567,7 @@ const WorkflowsManager: React.FC = () => {
                         <div className={cn(
                           "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium",
                           step.status === 'completed' && "bg-green-100 text-green-700",
-                          step.status === 'in_progress' && "bg-[#D1DDD9] text-[#588075]",
+                          step.status === 'in_progress' && "bg-[#e5e5e5] text-[#525252]",
                           step.status === 'pending' && "bg-gray-100 text-gray-700",
                           step.status === 'failed' && "bg-red-100 text-red-700"
                         )}>
@@ -617,7 +618,7 @@ const WorkflowsManager: React.FC = () => {
                         <span className="text-gray-700">Demandeur: {approval.requester}</span>
                         {approval.amount && (
                           <span className="font-medium text-gray-900">
-                            Montant: {approval.amount.toLocaleString()}
+                            Montant: {formatCurrency(approval.amount)}
                           </span>
                         )}
                       </div>
@@ -679,7 +680,7 @@ const WorkflowsManager: React.FC = () => {
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
                   <p className="text-sm text-gray-600 mb-3">{template.steps} étapes</p>
-                  <button className="w-full px-3 py-2 bg-[#E8EEEC] text-[#588075] rounded hover:bg-[#D1DDD9]">
+                  <button className="w-full px-3 py-2 bg-[#f5f5f5] text-[#525252] rounded hover:bg-[#e5e5e5]">
                     Utiliser ce modèle
                   </button>
                 </div>

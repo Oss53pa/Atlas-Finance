@@ -82,9 +82,9 @@ const ContactsModule: React.FC = () => {
 
   const getCiviliteColor = (civilite: string) => {
     const colors = {
-      'M': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'M': 'bg-[#171717]/10 text-[#171717]',
       'MME': 'bg-pink-100 text-pink-800',
-      'MLLE': 'bg-[#B87333]/10 text-[#B87333]',
+      'MLLE': 'bg-[#525252]/10 text-[#525252]',
       'DR': 'bg-green-100 text-green-800',
       'PR': 'bg-gray-100 text-gray-800'
     };
@@ -93,9 +93,9 @@ const ContactsModule: React.FC = () => {
 
   const getInteractionTypeColor = (type: string) => {
     const colors = {
-      'APPEL': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'APPEL': 'bg-[#171717]/10 text-[#171717]',
       'EMAIL': 'bg-green-100 text-green-800',
-      'RENCONTRE': 'bg-[#B87333]/10 text-[#B87333]',
+      'RENCONTRE': 'bg-[#525252]/10 text-[#525252]',
       'VISITE': 'bg-orange-100 text-orange-800',
       'DEMONSTRATION': 'bg-indigo-100 text-indigo-800',
       'NEGOTIATION': 'bg-red-100 text-red-800'
@@ -170,20 +170,20 @@ const ContactsModule: React.FC = () => {
     }))
   ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const COLORS = ['#7A99AC', '#6A89AC', '#5A79AC', '#4A69AC', '#3A59AC'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/tiers')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Tiers</span>
+              <ArrowLeft className="w-4 h-4 text-[#404040]" />
+              <span className="text-sm font-semibold text-[#404040]">Tiers</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -191,8 +191,8 @@ const ContactsModule: React.FC = () => {
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#191919]">Gestion des Communications</h1>
-                <p className="text-sm text-[#666666]">Centralisation et suivi des communications avec les tiers</p>
+                <h1 className="text-lg font-bold text-[#171717]">Gestion des Communications</h1>
+                <p className="text-sm text-[#525252]">Centralisation et suivi des communications avec les tiers</p>
               </div>
             </div>
           </div>
@@ -206,7 +206,7 @@ const ContactsModule: React.FC = () => {
               <span className="text-sm font-semibold">Nouveau Contact</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#737373] text-white rounded-lg hover:bg-[#525252] transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -221,8 +221,8 @@ const ContactsModule: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#7A99AC] shadow-sm'
-                  : 'text-[#666666] hover:text-[#444444]'
+                  ? 'bg-white text-[#737373] shadow-sm'
+                  : 'text-[#525252] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -236,7 +236,7 @@ const ContactsModule: React.FC = () => {
       {activeTab === 'liste' && (
         <div className="space-y-6">
           {/* Filters */}
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
                 <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
@@ -245,14 +245,14 @@ const ContactsModule: React.FC = () => {
                   placeholder="Rechercher par nom, prénom, email ou entreprise..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC] focus:border-transparent"
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373] focus:border-transparent"
                 />
               </div>
 
               <select
                 value={filterTiers}
                 onChange={(e) => setFilterTiers(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
               >
                 {tiersOptions.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -262,7 +262,7 @@ const ContactsModule: React.FC = () => {
               <select
                 value={filterStatut}
                 onChange={(e) => setFilterStatut(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
               >
                 {statutOptions.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -276,7 +276,7 @@ const ContactsModule: React.FC = () => {
           </div>
 
           {/* Contacts Table */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -364,7 +364,7 @@ const ContactsModule: React.FC = () => {
                         <div className="flex items-center space-x-2 justify-end">
                           <button
                             onClick={() => setSelectedContact(contact)}
-                            className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80"
+                            className="p-1 text-[#171717] hover:text-[#171717]/80"
                             title="Voir les détails"
                           >
                             <Eye className="w-4 h-4" />
@@ -374,7 +374,7 @@ const ContactsModule: React.FC = () => {
                               setContactForInteraction(contact);
                               setShowInteractionModal(true);
                             }}
-                            className="p-1 text-[#B87333] hover:text-[#B87333]/80"
+                            className="p-1 text-[#525252] hover:text-[#525252]/80"
                             title="Nouvelle interaction"
                           >
                             <MessageSquare className="w-4 h-4" />
@@ -416,47 +416,47 @@ const ContactsModule: React.FC = () => {
         <div className="space-y-6">
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Total Interactions</p>
-                  <p className="text-lg font-bold text-[#191919]">{allInteractions.length}</p>
+                  <p className="text-sm text-[#525252]">Total Interactions</p>
+                  <p className="text-lg font-bold text-[#171717]">{allInteractions.length}</p>
                 </div>
-                <MessageSquare className="w-8 h-8 text-[#6A8A82]" />
+                <MessageSquare className="w-8 h-8 text-[#171717]" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Cette Semaine</p>
-                  <p className="text-lg font-bold text-[#191919]">15</p>
+                  <p className="text-sm text-[#525252]">Cette Semaine</p>
+                  <p className="text-lg font-bold text-[#171717]">15</p>
                 </div>
                 <Calendar className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">En Attente</p>
-                  <p className="text-lg font-bold text-[#191919]">3</p>
+                  <p className="text-sm text-[#525252]">En Attente</p>
+                  <p className="text-lg font-bold text-[#171717]">3</p>
                 </div>
                 <Clock className="w-8 h-8 text-orange-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Taux Réponse</p>
-                  <p className="text-lg font-bold text-[#191919]">94%</p>
+                  <p className="text-sm text-[#525252]">Taux Réponse</p>
+                  <p className="text-lg font-bold text-[#171717]">94%</p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-[#B87333]" />
+                <TrendingUp className="w-8 h-8 text-[#525252]" />
               </div>
             </div>
           </div>
 
           {/* Recent Interactions */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#191919] mb-4">Interactions Récentes</h3>
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+            <h3 className="text-lg font-semibold text-[#171717] mb-4">Interactions Récentes</h3>
             <div className="space-y-4">
               {allInteractions.slice(0, 10).map((interaction) => {
                 const IconComponent = getInteractionIcon(interaction.type);
@@ -467,29 +467,29 @@ const ContactsModule: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-[#191919]">{interaction.sujet}</h4>
+                        <h4 className="font-medium text-[#171717]">{interaction.sujet}</h4>
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm text-[#666666]">{formatDate(interaction.date)}</span>
+                          <span className="text-sm text-[#525252]">{formatDate(interaction.date)}</span>
                           <button
                             onClick={() => {
                               setSelectedInteraction(interaction);
                               setShowInteractionDetailModal(true);
                             }}
-                            className="p-1.5 bg-[#6A8A82]/10 text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/20 transition-colors"
+                            className="p-1.5 bg-[#171717]/10 text-[#171717] rounded-lg hover:bg-[#171717]/20 transition-colors"
                             title="Voir les détails"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-sm text-[#666666] mt-1">{interaction.description}</p>
+                      <p className="text-sm text-[#525252] mt-1">{interaction.description}</p>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-[#191919]">{interaction.contactNom}</span>
-                          <span className="text-sm text-[#666666]">•</span>
-                          <span className="text-sm text-[#666666]">{interaction.contactEntreprise}</span>
+                          <span className="text-sm font-medium text-[#171717]">{interaction.contactNom}</span>
+                          <span className="text-sm text-[#525252]">•</span>
+                          <span className="text-sm text-[#525252]">{interaction.contactEntreprise}</span>
                         </div>
-                        <span className="text-sm text-[#666666]">par {interaction.responsable}</span>
+                        <span className="text-sm text-[#525252]">par {interaction.responsable}</span>
                       </div>
                       {interaction.prochaineSuivi && (
                         <div className="flex items-center mt-2">
@@ -514,8 +514,8 @@ const ContactsModule: React.FC = () => {
           {/* Charts Row 1 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Répartition par type de tiers */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition par Type de Tiers</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Type de Tiers</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <RechartsPieChart>
                   <Pie
@@ -524,7 +524,7 @@ const ContactsModule: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    fill="#8884d8"
+                    fill="#737373"
                     label={({ type, pourcentage }) => `${type} (${pourcentage}%)`}
                   >
                     {analyticsData.repartitionTiers.map((entry, index) => (
@@ -537,8 +537,8 @@ const ContactsModule: React.FC = () => {
             </div>
 
             {/* Évolution des interactions */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution des Interactions</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution des Interactions</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={analyticsData.interactionsParMois}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -546,9 +546,9 @@ const ContactsModule: React.FC = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="emails" stackId="1" stroke="#7A99AC" fill="#7A99AC" />
-                  <Area type="monotone" dataKey="appels" stackId="1" stroke="#6A89AC" fill="#6A89AC" />
-                  <Area type="monotone" dataKey="rencontres" stackId="1" stroke="#5A79AC" fill="#5A79AC" />
+                  <Area type="monotone" dataKey="emails" stackId="1" stroke="#737373" fill="#737373" />
+                  <Area type="monotone" dataKey="appels" stackId="1" stroke="#525252" fill="#525252" />
+                  <Area type="monotone" dataKey="rencontres" stackId="1" stroke="#525252" fill="#525252" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -557,8 +557,8 @@ const ContactsModule: React.FC = () => {
           {/* Charts Row 2 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top interacteurs */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Top Interacteurs</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Top Interacteurs</h3>
               <div className="space-y-3">
                 {analyticsData.topInteracteurs.map((contact, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -567,13 +567,13 @@ const ContactsModule: React.FC = () => {
                         <span className="text-sm font-bold text-green-600">{index + 1}</span>
                       </div>
                       <div>
-                        <p className="font-medium text-[#191919]">{contact.nom}</p>
-                        <p className="text-sm text-[#666666]">{contact.entreprise}</p>
+                        <p className="font-medium text-[#171717]">{contact.nom}</p>
+                        <p className="text-sm text-[#525252]">{contact.entreprise}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-[#191919]">{contact.interactions} interactions</p>
-                      <p className="text-sm text-[#666666]">Dernière: {formatDate(contact.derniere)}</p>
+                      <p className="font-medium text-[#171717]">{contact.interactions} interactions</p>
+                      <p className="text-sm text-[#525252]">Dernière: {formatDate(contact.derniere)}</p>
                     </div>
                   </div>
                 ))}
@@ -581,15 +581,15 @@ const ContactsModule: React.FC = () => {
             </div>
 
             {/* Répartition par fonction */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition par Fonction</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Fonction</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analyticsData.repartitionFonctions}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="fonction" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#7A99AC" />
+                  <Bar dataKey="count" fill="#737373" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -603,7 +603,7 @@ const ContactsModule: React.FC = () => {
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919]">Détails Contact</h2>
+                <h2 className="text-lg font-bold text-[#171717]">Détails Contact</h2>
                 <button
                   onClick={() => setSelectedContact(null)}
                   className="text-gray-700 hover:text-gray-600"
@@ -615,13 +615,13 @@ const ContactsModule: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Informations personnelles */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Informations Personnelles</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Informations Personnelles</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div className="flex items-center space-x-2">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getCiviliteColor(selectedContact.civilite)}`}>
                         {selectedContact.civilite}
                       </span>
-                      <span className="font-medium text-[#191919]">
+                      <span className="font-medium text-[#171717]">
                         {selectedContact.prenom} {selectedContact.nom}
                       </span>
                       {selectedContact.isPrincipal && (
@@ -630,49 +630,49 @@ const ContactsModule: React.FC = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Fonction</label>
-                      <p className="text-[#191919]">{selectedContact.fonction}</p>
+                      <p className="text-[#171717]">{selectedContact.fonction}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Département</label>
-                      <p className="text-[#191919]">{selectedContact.departement}</p>
+                      <p className="text-[#171717]">{selectedContact.departement}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Entreprise</label>
-                      <p className="text-[#191919]">{selectedContact.tiers}</p>
+                      <p className="text-[#171717]">{selectedContact.tiers}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700">Langue préférée</label>
-                      <p className="text-[#191919]">{selectedContact.languePrefere}</p>
+                      <p className="text-[#171717]">{selectedContact.languePrefere}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Informations de contact */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Informations de Contact</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Informations de Contact</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     {selectedContact.telephone && (
                       <div className="flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-gray-700" />
-                        <span className="text-[#191919]">{selectedContact.telephone}</span>
+                        <span className="text-[#171717]">{selectedContact.telephone}</span>
                       </div>
                     )}
                     {selectedContact.mobile && (
                       <div className="flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-gray-700" />
-                        <span className="text-[#191919]">{selectedContact.mobile} (Mobile)</span>
+                        <span className="text-[#171717]">{selectedContact.mobile} (Mobile)</span>
                       </div>
                     )}
                     {selectedContact.email && (
                       <div className="flex items-center space-x-2">
                         <Mail className="w-4 h-4 text-gray-700" />
-                        <span className="text-[#191919]">{selectedContact.email}</span>
+                        <span className="text-[#171717]">{selectedContact.email}</span>
                       </div>
                     )}
                     {selectedContact.linkedin && (
                       <div className="flex items-center space-x-2">
                         <Linkedin className="w-4 h-4 text-gray-700" />
-                        <span className="text-[#191919]">{selectedContact.linkedin}</span>
+                        <span className="text-[#171717]">{selectedContact.linkedin}</span>
                       </div>
                     )}
                   </div>
@@ -680,15 +680,15 @@ const ContactsModule: React.FC = () => {
 
                 {/* Notes */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Notes</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Notes</h3>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-[#191919]">{selectedContact.notes || 'Aucune note'}</p>
+                    <p className="text-[#171717]">{selectedContact.notes || 'Aucune note'}</p>
                   </div>
                 </div>
 
                 {/* Interactions récentes */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Interactions Récentes</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Interactions Récentes</h3>
                   <div className="bg-gray-50 rounded-lg p-4">
                     {selectedContact.interactions.length > 0 ? (
                       <div className="space-y-3">
@@ -700,15 +700,15 @@ const ContactsModule: React.FC = () => {
                                 <IconComponent className="w-3 h-3" />
                               </div>
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-[#191919]">{interaction.sujet}</p>
-                                <p className="text-xs text-[#666666]">{formatDate(interaction.date)}</p>
+                                <p className="text-sm font-medium text-[#171717]">{interaction.sujet}</p>
+                                <p className="text-xs text-[#525252]">{formatDate(interaction.date)}</p>
                               </div>
                             </div>
                           );
                         })}
                       </div>
                     ) : (
-                      <p className="text-[#666666] text-center">Aucune interaction</p>
+                      <p className="text-[#525252] text-center">Aucune interaction</p>
                     )}
                   </div>
                 </div>
@@ -721,7 +721,7 @@ const ContactsModule: React.FC = () => {
                 >
                   Fermer
                 </button>
-                <button className="px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC]">
+                <button className="px-4 py-2 bg-[#737373] text-white rounded-lg hover:bg-[#525252]">
                   Modifier
                 </button>
               </div>
@@ -735,60 +735,60 @@ const ContactsModule: React.FC = () => {
         <div className="space-y-6">
           {/* Header avec statistiques */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Entreprises</p>
-                  <p className="text-lg font-bold text-[#191919]">
+                  <p className="text-sm text-[#525252]">Entreprises</p>
+                  <p className="text-lg font-bold text-[#171717]">
                     {[...new Set(mockContacts.map(c => c.tiers))].length}
                   </p>
                 </div>
-                <Building className="w-8 h-8 text-[#6A8A82]" />
+                <Building className="w-8 h-8 text-[#171717]" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Total Contacts</p>
-                  <p className="text-lg font-bold text-[#191919]">{mockContacts.length}</p>
+                  <p className="text-sm text-[#525252]">Total Contacts</p>
+                  <p className="text-lg font-bold text-[#171717]">{mockContacts.length}</p>
                 </div>
                 <Users className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Contacts Principaux</p>
-                  <p className="text-lg font-bold text-[#191919]">
+                  <p className="text-sm text-[#525252]">Contacts Principaux</p>
+                  <p className="text-lg font-bold text-[#171717]">
                     {mockContacts.filter(c => c.isPrincipal).length}
                   </p>
                 </div>
                 <Star className="w-8 h-8 text-yellow-500" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Départements</p>
-                  <p className="text-lg font-bold text-[#191919]">
+                  <p className="text-sm text-[#525252]">Départements</p>
+                  <p className="text-lg font-bold text-[#171717]">
                     {[...new Set(mockContacts.map(c => c.departement).filter(Boolean))].length}
                   </p>
                 </div>
-                <Activity className="w-8 h-8 text-[#B87333]" />
+                <Activity className="w-8 h-8 text-[#525252]" />
               </div>
             </div>
           </div>
 
           {/* Organigramme hiérarchique */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#6A8A82] to-[#5A7A72] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#171717] to-[#262626] flex items-center justify-center">
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-[#191919]">Organigramme par Entreprise</h3>
-                  <p className="text-sm text-[#666666]">Visualisation hiérarchique des contacts</p>
+                  <h3 className="text-lg font-semibold text-[#171717]">Organigramme par Entreprise</h3>
+                  <p className="text-sm text-[#525252]">Visualisation hiérarchique des contacts</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -822,7 +822,7 @@ const ContactsModule: React.FC = () => {
                   <div key={entreprise} className="border border-gray-200 rounded-xl overflow-hidden">
                     {/* En-tête entreprise */}
                     <div
-                      className="bg-gradient-to-r from-[#6A8A82]/10 to-[#6A8A82]/5 p-4 cursor-pointer hover:from-[#6A8A82]/15 hover:to-[#6A8A82]/10 transition-colors"
+                      className="bg-gradient-to-r from-[#171717]/10 to-[#171717]/5 p-4 cursor-pointer hover:from-[#171717]/15 hover:to-[#171717]/10 transition-colors"
                       onClick={() => {
                         const newExpanded = new Set(expandedCompanies);
                         if (isExpanded) {
@@ -835,17 +835,17 @@ const ContactsModule: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-[#6A8A82] rounded-xl flex items-center justify-center shadow-md">
+                          <div className="w-12 h-12 bg-[#171717] rounded-xl flex items-center justify-center shadow-md">
                             <Building className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <h4 className="text-lg font-bold text-[#191919]">{entreprise}</h4>
+                            <h4 className="text-lg font-bold text-[#171717]">{entreprise}</h4>
                             <div className="flex items-center space-x-3 mt-1">
-                              <span className="text-sm text-[#666666] flex items-center">
+                              <span className="text-sm text-[#525252] flex items-center">
                                 <Users className="w-3 h-3 mr-1" />
                                 {contactsEntreprise.length} contact{contactsEntreprise.length > 1 ? 's' : ''}
                               </span>
-                              <span className="text-sm text-[#666666] flex items-center">
+                              <span className="text-sm text-[#525252] flex items-center">
                                 <Activity className="w-3 h-3 mr-1" />
                                 {departements.length} département{departements.length > 1 ? 's' : ''}
                               </span>
@@ -906,9 +906,9 @@ const ContactsModule: React.FC = () => {
                               </div>
                             </div>
                             <div className="mt-3 text-center">
-                              <p className="font-bold text-[#191919]">{contactPrincipal.prenom} {contactPrincipal.nom}</p>
-                              <p className="text-sm text-[#6A8A82] font-medium">{contactPrincipal.fonction}</p>
-                              <p className="text-xs text-[#666666]">{contactPrincipal.departement}</p>
+                              <p className="font-bold text-[#171717]">{contactPrincipal.prenom} {contactPrincipal.nom}</p>
+                              <p className="text-sm text-[#171717] font-medium">{contactPrincipal.fonction}</p>
+                              <p className="text-xs text-[#525252]">{contactPrincipal.departement}</p>
                             </div>
                             <div className="flex items-center space-x-2 mt-2">
                               {contactPrincipal.telephone && (
@@ -923,7 +923,7 @@ const ContactsModule: React.FC = () => {
                               )}
                               <button
                                 onClick={() => setSelectedContact(contactPrincipal)}
-                                className="p-1.5 bg-[#6A8A82]/10 text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/20"
+                                className="p-1.5 bg-[#171717]/10 text-[#171717] rounded-lg hover:bg-[#171717]/20"
                               >
                                 <Eye className="w-3 h-3" />
                               </button>
@@ -940,7 +940,7 @@ const ContactsModule: React.FC = () => {
                           {contactsEntreprise.filter(c => !c.isPrincipal).map((contact) => (
                             <div
                               key={contact.id}
-                              className="relative bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-[#6A8A82] hover:shadow-md transition-all"
+                              className="relative bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-[#171717] hover:shadow-md transition-all"
                             >
                               {/* Ligne de connexion vers le haut */}
                               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-300"></div>
@@ -952,10 +952,10 @@ const ContactsModule: React.FC = () => {
                                   </span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-[#191919] truncate">
+                                  <p className="font-semibold text-[#171717] truncate">
                                     {contact.prenom} {contact.nom}
                                   </p>
-                                  <p className="text-sm text-[#6A8A82] truncate">{contact.fonction}</p>
+                                  <p className="text-sm text-[#171717] truncate">{contact.fonction}</p>
                                   {contact.departement && (
                                     <span className="inline-flex items-center px-2 py-0.5 mt-1 text-xs bg-gray-200 text-gray-700 rounded-full">
                                       {contact.departement}
@@ -997,7 +997,7 @@ const ContactsModule: React.FC = () => {
                                 </div>
                                 <button
                                   onClick={() => setSelectedContact(contact)}
-                                  className="p-1.5 bg-[#6A8A82]/10 text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/20 transition-colors"
+                                  className="p-1.5 bg-[#171717]/10 text-[#171717] rounded-lg hover:bg-[#171717]/20 transition-colors"
                                   title="Voir les détails"
                                 >
                                   <Eye className="w-3.5 h-3.5" />
@@ -1006,7 +1006,7 @@ const ContactsModule: React.FC = () => {
 
                               {/* Badge nombre d'interactions */}
                               {contact.interactions.length > 0 && (
-                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#B87333] rounded-full flex items-center justify-center text-xs font-bold text-white">
+                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#525252] rounded-full flex items-center justify-center text-xs font-bold text-white">
                                   {contact.interactions.length}
                                 </div>
                               )}
@@ -1029,24 +1029,24 @@ const ContactsModule: React.FC = () => {
           </div>
 
           {/* Légende */}
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
-            <h4 className="text-sm font-semibold text-[#191919] mb-3">Légende</h4>
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
+            <h4 className="text-sm font-semibold text-[#171717] mb-3">Légende</h4>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center">
                   <Star className="w-3 h-3 text-white" />
                 </div>
-                <span className="text-sm text-[#666666]">Contact principal</span>
+                <span className="text-sm text-[#525252]">Contact principal</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
                   <User className="w-3 h-3 text-green-700" />
                 </div>
-                <span className="text-sm text-[#666666]">Contact secondaire</span>
+                <span className="text-sm text-[#525252]">Contact secondaire</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 bg-[#B87333] rounded-full flex items-center justify-center text-[10px] font-bold text-white">3</div>
-                <span className="text-sm text-[#666666]">Nombre d'interactions</span>
+                <div className="w-5 h-5 bg-[#525252] rounded-full flex items-center justify-center text-[10px] font-bold text-white">3</div>
+                <span className="text-sm text-[#525252]">Nombre d'interactions</span>
               </div>
             </div>
           </div>
@@ -1903,7 +1903,7 @@ const ContactsModule: React.FC = () => {
                 Fermer
               </button>
               <div className="flex gap-2">
-                <button className="px-4 py-2 text-sm font-medium text-[#6A8A82] bg-[#6A8A82]/10 hover:bg-[#6A8A82]/20 rounded-lg transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 text-sm font-medium text-[#171717] bg-[#171717]/10 hover:bg-[#171717]/20 rounded-lg transition-colors flex items-center gap-2">
                   <Edit className="w-4 h-4" />
                   Modifier
                 </button>

@@ -127,7 +127,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
       <Button
         variant={buttonVariant}
         onClick={() => setShowMenu(!showMenu)}
-        className={`border-[#6A8A82] text-[#6A8A82] hover:bg-[#6A8A82]/10 ${className}`}
+        className={`border-[#171717] text-[#171717] hover:bg-[#171717]/10 ${className}`}
       >
         <Download className="mr-2 h-4 w-4" />
         {buttonText}
@@ -140,7 +140,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
               onClick={() => handleExport('csv')}
               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-2 rounded-t-lg"
             >
-              <FileText className="w-4 h-4 text-[#6A8A82]" />
+              <FileText className="w-4 h-4 text-[#171717]" />
               <span>Export CSV</span>
             </button>
           )}
@@ -150,7 +150,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
               onClick={() => handleExport('excel')}
               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-2"
             >
-              <FileSpreadsheet className="w-4 h-4 text-[#7A99AC]" />
+              <FileSpreadsheet className="w-4 h-4 text-[#737373]" />
               <span>Export Excel</span>
             </button>
           )}

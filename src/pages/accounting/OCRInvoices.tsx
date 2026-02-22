@@ -143,160 +143,7 @@ const OCRInvoices: React.FC = () => {
     enhanceImage: true
   });
 
-  // Mock data for demonstration
-  const [scannedInvoices, setScannedInvoices] = useState<ScannedInvoice[]>([
-    {
-      id: '1',
-      fileName: 'FACT-2024-001.pdf',
-      fileSize: 245000,
-      fileType: 'application/pdf',
-      uploadDate: new Date(Date.now() - 3600000),
-      processedDate: new Date(Date.now() - 3000000),
-      status: 'validated',
-      confidence: 95,
-      extractedData: {
-        documentType: 'invoice',
-        documentNumber: 'FACT-2024-001',
-        documentDate: '2024-01-15',
-        dueDate: '2024-02-15',
-        supplierName: 'TECH SOLUTIONS SARL',
-        supplierAddress: 'Avenue de la République, Douala, Cameroun',
-        supplierCountry: 'CM',
-        supplierTaxId: 'M012345678901A',
-        supplierEmail: 'contact@techsolutions.cm',
-        supplierPhone: '+237 233 456 789',
-        customerName: 'ATLAS FINANCE ENTERPRISE',
-        customerAddress: 'Rue du Commerce, Yaoundé, Cameroun',
-        customerTaxId: 'M098765432109B',
-        subtotal: 5000000,
-        taxAmount: 962500,
-        discountAmount: 0,
-        shippingAmount: 50000,
-        totalAmount: 6012500,
-        currency: 'XAF',
-        paymentTerms: '30 jours',
-        paymentMethod: 'Virement bancaire',
-        items: [
-          {
-            id: '1',
-            description: 'Ordinateurs portables HP ProBook',
-            quantity: 10,
-            unitPrice: 450000,
-            taxRate: 19.25,
-            discount: 0,
-            total: 4500000,
-            accountCode: '2244',
-            analyticalCode: 'IT-001'
-          },
-          {
-            id: '2',
-            description: 'Licences Microsoft Office',
-            quantity: 10,
-            unitPrice: 50000,
-            taxRate: 19.25,
-            discount: 0,
-            total: 500000,
-            accountCode: '2113',
-            analyticalCode: 'IT-002'
-          }
-        ],
-        purchaseOrderRef: 'PO-2024-0089',
-        taxBreakdown: [
-          {
-            rate: 19.25,
-            base: 5000000,
-            amount: 962500
-          }
-        ]
-      },
-      originalFileUrl: '/documents/invoices/FACT-2024-001.pdf',
-      validatedBy: 'Jean Dupont',
-      validatedAt: new Date(Date.now() - 1800000),
-      tags: ['IT', 'Equipment', 'Q1-2024'],
-      auditLog: [
-        {
-          action: 'uploaded',
-          user: 'System',
-          timestamp: new Date(Date.now() - 3600000)
-        },
-        {
-          action: 'processed',
-          user: 'OCR Engine',
-          timestamp: new Date(Date.now() - 3000000)
-        },
-        {
-          action: 'validated',
-          user: 'Jean Dupont',
-          timestamp: new Date(Date.now() - 1800000)
-        }
-      ]
-    },
-    {
-      id: '2',
-      fileName: 'INV-SUPPLIER-2024-002.jpg',
-      fileSize: 1250000,
-      fileType: 'image/jpeg',
-      uploadDate: new Date(Date.now() - 7200000),
-      processedDate: new Date(Date.now() - 6600000),
-      status: 'review',
-      confidence: 78,
-      extractedData: {
-        documentType: 'invoice',
-        documentNumber: 'INV-2024-002',
-        documentDate: '2024-01-18',
-        dueDate: '2024-02-18',
-        supplierName: 'OFFICE PRO CAMEROUN',
-        supplierAddress: 'Boulevard de la Liberté, Douala',
-        supplierCountry: 'CM',
-        supplierTaxId: 'M987654321098C',
-        subtotal: 2500000,
-        taxAmount: 481250,
-        discountAmount: 100000,
-        shippingAmount: 0,
-        totalAmount: 2881250,
-        currency: 'XAF',
-        items: [
-          {
-            id: '1',
-            description: 'Fournitures de bureau diverses',
-            quantity: 1,
-            unitPrice: 2500000,
-            taxRate: 19.25,
-            discount: 100000,
-            total: 2400000,
-            accountCode: '6068'
-          }
-        ]
-      },
-      originalFileUrl: '/documents/invoices/INV-SUPPLIER-2024-002.jpg',
-      validationErrors: [
-        {
-          field: 'supplierTaxId',
-          message: 'Format du numéro de contribuable à vérifier',
-          severity: 'warning'
-        },
-        {
-          field: 'items',
-          message: 'Description des articles peu détaillée',
-          severity: 'info'
-        }
-      ],
-      tags: ['Office', 'Supplies'],
-      auditLog: [
-        {
-          action: 'uploaded',
-          user: 'Marie Martin',
-          timestamp: new Date(Date.now() - 7200000)
-        },
-        {
-          action: 'processed',
-          user: 'OCR Engine',
-          timestamp: new Date(Date.now() - 6600000),
-          details: 'Confidence faible - révision manuelle requise'
-        }
-      ]
-    }
-  ]);
+  const [scannedInvoices, setScannedInvoices] = useState<ScannedInvoice[]>([]);
 
   const stats = {
     total: scannedInvoices.length,
@@ -306,11 +153,11 @@ const OCRInvoices: React.FC = () => {
     totalAmount: scannedInvoices
       .filter(i => i.status === 'validated')
       .reduce((sum, i) => sum + i.extractedData.totalAmount, 0),
-    averageConfidence: Math.round(
-      scannedInvoices.reduce((sum, i) => sum + i.confidence, 0) / scannedInvoices.length
-    ),
-    processingTime: '2.3s',
-    successRate: 92
+    averageConfidence: scannedInvoices.length > 0
+      ? Math.round(scannedInvoices.reduce((sum, i) => sum + i.confidence, 0) / scannedInvoices.length)
+      : 0,
+    processingTime: '-',
+    successRate: 0
   };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -358,7 +205,7 @@ const OCRInvoices: React.FC = () => {
         uploadDate: new Date(),
         processedDate: new Date(),
         status: 'review',
-        confidence: Math.floor(Math.random() * 30) + 70,
+        confidence: 0,
         extractedData: {
           documentType: 'invoice',
           documentNumber: `INV-${Date.now()}`,
@@ -909,19 +756,10 @@ const OCRInvoices: React.FC = () => {
                     <h3 className="font-semibold text-[var(--color-text-primary)]">Volume mensuel</h3>
                     <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />
                   </div>
-                  <div className="text-lg font-bold text-[var(--color-text-primary)]">234</div>
+                  <div className="text-lg font-bold text-[var(--color-text-primary)]">{stats.total}</div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-                    +12% vs mois dernier
+                    Factures scannées
                   </p>
-                  <div className="mt-4 h-20 bg-[var(--color-background)] rounded-lg flex items-end justify-around p-2">
-                    {[40, 65, 45, 70, 85, 75, 90].map((height, i) => (
-                      <div
-                        key={i}
-                        className="w-4 bg-[var(--color-primary)] rounded-t"
-                        style={{ height: `${height}%` }}
-                      ></div>
-                    ))}
-                  </div>
                 </div>
 
                 <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
@@ -953,18 +791,25 @@ const OCRInvoices: React.FC = () => {
                     <Users className="w-5 h-5 text-[var(--color-info)]" />
                   </div>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--color-text-primary)]">Tech Solutions</span>
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">18</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--color-text-primary)]">Office Pro</span>
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">15</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--color-text-primary)]">Supply Co</span>
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">12</span>
-                    </div>
+                    {scannedInvoices.length === 0 ? (
+                      <p className="text-sm text-[var(--color-text-tertiary)]">Aucune facture scannée</p>
+                    ) : (
+                      Object.entries(
+                        scannedInvoices.reduce<Record<string, number>>((acc, inv) => {
+                          const name = inv.extractedData.supplierName;
+                          acc[name] = (acc[name] || 0) + 1;
+                          return acc;
+                        }, {})
+                      )
+                        .sort(([, a], [, b]) => b - a)
+                        .slice(0, 3)
+                        .map(([name, count]) => (
+                          <div key={name} className="flex items-center justify-between">
+                            <span className="text-sm text-[var(--color-text-primary)]">{name}</span>
+                            <span className="text-sm font-medium text-[var(--color-text-primary)]">{count}</span>
+                          </div>
+                        ))
+                    )}
                   </div>
                 </div>
 

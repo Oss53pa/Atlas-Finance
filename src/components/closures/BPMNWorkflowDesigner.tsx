@@ -385,7 +385,7 @@ const BPMNWorkflowDesigner: React.FC = () => {
           ref={canvasRef}
           className="absolute inset-0 mt-20 bg-gray-100 overflow-auto"
           style={{
-            backgroundImage: 'radial-gradient(circle, #d1d5db 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, #d4d4d4 1px, transparent 1px)',
             backgroundSize: '20px 20px'
           }}
           onDrop={(e) => {

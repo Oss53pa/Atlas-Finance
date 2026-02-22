@@ -282,7 +282,7 @@ const SimplifiedLayout: React.FC = () => {
                         themeType === 'elegant' && 'bg-[var(--color-primary-light)]'
                       )}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#2E7D69] to-[#D4AF37]" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#22c55e] to-[#D4AF37]" />
                       <div className="text-left">
                         <p className="text-sm font-medium">Élégance Sobre</p>
                         <p className="text-xs text-[var(--color-text-tertiary)]">Finance traditionnelle</p>
@@ -295,7 +295,7 @@ const SimplifiedLayout: React.FC = () => {
                         themeType === 'fintech' && 'bg-[var(--color-primary-light)]'
                       )}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#27AE60] to-[#2C3E50]" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#22c55e] to-[#2C3E50]" />
                       <div className="text-left">
                         <p className="text-sm font-medium">Modern Fintech</p>
                         <p className="text-xs text-[var(--color-text-tertiary)]">Tableau de bord moderne</p>
@@ -308,7 +308,7 @@ const SimplifiedLayout: React.FC = () => {
                         themeType === 'minimalist' && 'bg-[var(--color-primary-light)]'
                       )}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#6A8A82] to-[#B87333]" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#171717] to-[#525252]" />
                       <div className="text-left">
                         <p className="text-sm font-medium">Minimaliste Premium</p>
                         <p className="text-xs text-[var(--color-text-tertiary)]">Élégance minimaliste</p>

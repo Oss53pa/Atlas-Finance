@@ -8,13 +8,13 @@ export interface BadgeProps {
 }
 
 const variantClasses = {
-  primary: 'bg-[#6A8A82]/10 text-[#6A8A82]',
-  secondary: 'bg-[#B87333]/10 text-[#B87333]',
-  success: 'bg-[#6A8A82]/10 text-[#6A8A82]',
-  error: 'bg-[#B85450]/10 text-[#B85450]',
-  warning: 'bg-[#B87333]/10 text-[#B87333]',
-  info: 'bg-[#7A99AC]/10 text-[#7A99AC]',
-  neutral: 'bg-[#ECECEC] text-[#444444]',
+  primary: 'bg-[#171717]/10 text-[#171717]',
+  secondary: 'bg-[#525252]/10 text-[#525252]',
+  success: 'bg-[#171717]/10 text-[#171717]',
+  error: 'bg-[#ef4444]/10 text-[#ef4444]',
+  warning: 'bg-[#525252]/10 text-[#525252]',
+  info: 'bg-[#737373]/10 text-[#737373]',
+  neutral: 'bg-[#e5e5e5] text-[#404040]',
 };
 
 const sizeClasses = {

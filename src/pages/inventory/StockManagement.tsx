@@ -185,7 +185,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     On Order
                   </label>
-                  <p className="text-sm text-[#6A8A82]">
+                  <p className="text-sm text-[#171717]">
                     {stockLevel.quantityOnOrder.toLocaleString()}
                   </p>
                 </div>
@@ -237,7 +237,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   <select
                     value={formData.toLocationId}
                     onChange={(e) => setFormData({ ...formData, toLocationId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                     required
                   >
                     <option value="">Select location...</option>
@@ -260,7 +260,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                   min={type === 'adjustment' ? -stockLevel.quantityOnHand : 0}
                   max={type === 'transfer' ? stockLevel.quantityAvailable : undefined}
                   required
@@ -280,7 +280,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                 <select
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                   required
                 >
                   <option value="">Select reason...</option>
@@ -310,7 +310,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
                   rows={3}
                   placeholder="Additional notes..."
                 />
@@ -319,7 +319,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#6A8A82] text-white py-2 px-4 rounded-md hover:bg-[#5A7A72] transition-colors"
+                  className="flex-1 bg-[#171717] text-white py-2 px-4 rounded-md hover:bg-[#262626] transition-colors"
                 >
                   {type === 'adjustment' ? 'Adjust Stock' : 'Transfer Stock'}
                 </button>
@@ -557,7 +557,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort('item.name')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Item
                     <ArrowUpDown className="w-4 h-4" />
@@ -566,7 +566,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-left py-3 px-4">
                   <button
                     onClick={() => handleSort('location.name')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Location
                     <ArrowUpDown className="w-4 h-4" />
@@ -575,7 +575,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-right py-3 px-4">
                   <button
                     onClick={() => handleSort('quantityOnHand')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     On Hand
                     <ArrowUpDown className="w-4 h-4" />
@@ -587,7 +587,7 @@ const StockManagement: React.FC = () => {
                 <th className="text-right py-3 px-4">
                   <button
                     onClick={() => handleSort('totalValue')}
-                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#6A8A82]"
+                    className="flex items-center gap-1 font-medium text-gray-900 hover:text-[#171717]"
                   >
                     Value
                     <ArrowUpDown className="w-4 h-4" />
@@ -622,7 +622,7 @@ const StockManagement: React.FC = () => {
                   <td className="py-4 px-4 text-right font-mono text-yellow-600">
                     {stock.quantityAllocated.toLocaleString()}
                   </td>
-                  <td className="py-4 px-4 text-right font-mono text-[#6A8A82]">
+                  <td className="py-4 px-4 text-right font-mono text-[#171717]">
                     {stock.quantityOnOrder.toLocaleString()}
                   </td>
                   <td className="py-4 px-4 text-right">
@@ -643,7 +643,7 @@ const StockManagement: React.FC = () => {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => handleStockAction(stock, 'view')}
-                        className="p-1 text-gray-700 hover:text-[#6A8A82]"
+                        className="p-1 text-gray-700 hover:text-[#171717]"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />

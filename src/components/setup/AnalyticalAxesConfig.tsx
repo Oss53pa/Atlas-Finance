@@ -374,7 +374,7 @@ const AnalyticalAxesConfig: React.FC = () => {
             </div>
             <div className="text-xs text-gray-700 mt-1">
               {section.stats.allocationsCount} affectations • 
-              Budget: {section.budgetAmount?.toLocaleString() || 'N/A'} XAF •
+              Budget: {section.budgetAmount ? formatCurrency(section.budgetAmount) : 'N/A'} •
               Consommation: {section.stats.budgetConsumption?.toFixed(1) || '0'}%
             </div>
           </div>

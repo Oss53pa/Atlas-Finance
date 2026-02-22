@@ -87,7 +87,7 @@ const AccountingSettingsPage: React.FC = () => {
   if (loading && Object.keys(settings).length === 0) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-[#767676]">Chargement des paramètres...</div>
+        <div className="text-[#737373]">Chargement des paramètres...</div>
       </div>
     );
   }
@@ -102,8 +102,8 @@ const AccountingSettingsPage: React.FC = () => {
             onClick={() => navigate(-1)}
           />
           <div>
-            <h1 className="text-lg font-bold text-[#191919]">Paramètres Comptables</h1>
-            <p className="text-[#767676] mt-1">
+            <h1 className="text-lg font-bold text-[#171717]">Paramètres Comptables</h1>
+            <p className="text-[#737373] mt-1">
               Configuration de votre système comptable
             </p>
           </div>

@@ -751,14 +751,14 @@ export const AssetsModules6to9: React.FC<AssetsModules6to9Props> = ({ activeModu
                 datasets: [
                   {
                     label: 'Synchronisations réussies',
-                    data: Array.from({length: 30}, () => Math.floor(Math.random() * 50) + 10),
+                    data: Array.from({length: 30}, () => 0),
                     borderColor: 'rgb(34, 197, 94)',
                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
                     tension: 0.4
                   },
                   {
                     label: 'Erreurs',
-                    data: Array.from({length: 30}, () => Math.floor(Math.random() * 5)),
+                    data: Array.from({length: 30}, () => 0),
                     borderColor: 'rgb(239, 68, 68)',
                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     tension: 0.4

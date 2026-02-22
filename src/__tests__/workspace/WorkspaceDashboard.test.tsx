@@ -65,7 +65,7 @@ describe('WorkspaceDashboard', () => {
         widget_type: 'stat',
         title: 'Test Widget',
         icon: 'FileText',
-        color: '#10B981',
+        color: '#22c55e',
         config: {},
         order: 1,
         width: 1,

@@ -38,90 +38,8 @@ const EntriesPage: React.FC = () => {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
 
-  // Données des écritures pour DataTable
-  const ecrituresData: EcritureBrouillard[] = [
-    // Écritures manuelles équilibrées
-    {
-      id: 'manual-0',
-      numero: 'AC001',
-      journal: 'AC',
-      date: '10/09/2025',
-      source: 'Manuel',
-      libelle: 'Achat fournitures bureau',
-      debit: 150000,
-      credit: 150000,
-      equilibre: true,
-      statut: 'Brouillon',
-      type: 'achats'
-    },
-    {
-      id: 'manual-1',
-      numero: 'AC002',
-      journal: 'AC',
-      date: '10/09/2025',
-      source: 'Manuel',
-      libelle: 'Achat fournitures bureau',
-      debit: 150000,
-      credit: 150000,
-      equilibre: true,
-      statut: 'Brouillon',
-      type: 'achats'
-    },
-    // Écritures automatiques via API
-    {
-      id: 'auto-0',
-      numero: 'VT004',
-      journal: 'VT',
-      date: '10/09/2025',
-      source: 'API',
-      libelle: 'Vente marchandises CLIENT D',
-      debit: 250000,
-      credit: 210000,
-      equilibre: true,
-      statut: 'Brouillon',
-      type: 'ventes'
-    },
-    {
-      id: 'auto-1',
-      numero: 'VT005',
-      journal: 'VT',
-      date: '10/09/2025',
-      source: 'API',
-      libelle: 'Vente marchandises CLIENT E',
-      debit: 250000,
-      credit: 210000,
-      equilibre: true,
-      statut: 'Brouillon',
-      type: 'ventes'
-    },
-    {
-      id: 'auto-2',
-      numero: 'VT006',
-      journal: 'VT',
-      date: '10/09/2025',
-      source: 'API',
-      libelle: 'Vente marchandises CLIENT F',
-      debit: 250000,
-      credit: 210000,
-      equilibre: true,
-      statut: 'Brouillon',
-      type: 'ventes'
-    },
-    // Écriture déséquilibrée
-    {
-      id: 'od-001',
-      numero: 'OD001',
-      journal: 'OD',
-      date: '09/09/2025',
-      source: 'Manuel',
-      libelle: 'Régularisation charges (à corriger)',
-      debit: 120000,
-      credit: 100000,
-      equilibre: false,
-      statut: 'Brouillon',
-      type: 'operations'
-    }
-  ];
+  // TODO: wire to Dexie journalEntries query
+  const ecrituresData: EcritureBrouillard[] = [];
 
   // Configuration des colonnes pour DataTable
   const ecrituresColumns: Column<EcritureBrouillard>[] = [
@@ -174,7 +92,7 @@ const EntriesPage: React.FC = () => {
       width: '80px',
       align: 'center',
       render: (item) => (
-        <span className="text-sm font-mono text-[#B87333] font-semibold">{item.journal}</span>
+        <span className="text-sm font-mono text-[#525252] font-semibold">{item.journal}</span>
       )
     },
     {
@@ -312,7 +230,7 @@ const EntriesPage: React.FC = () => {
   // Fonction pour tout sélectionner
   const handleSelectAll = () => {
     // Sélectionner seulement les écritures équilibrées (pas les déséquilibrées)
-    const allIds = ['manual-0', 'manual-1', 'auto-0', 'auto-1', 'auto-2'];
+    const allIds = ecrituresData.filter(e => e.equilibre).map(e => e.id);
     setSelectedEntries(prev =>
       prev.length === allIds.length ? [] : allIds
     );
@@ -327,26 +245,26 @@ const EntriesPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-[#ECECEC] flex flex-col overflow-hidden">
+    <div className="h-screen bg-[#e5e5e5] flex flex-col overflow-hidden">
       {/* En-tête avec navigation de retour */}
-      <div className="bg-white border-b border-[#E8E8E8] px-4 py-3 flex-shrink-0">
+      <div className="bg-white border-b border-[#e5e5e5] px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/accounting')}
-              className="flex items-center space-x-2 text-[#767676] hover:text-[#6A8A82] transition-colors"
+              className="flex items-center space-x-2 text-[#737373] hover:text-[#171717] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm">Retour</span>
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#6A8A82]/20 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-[#6A8A82]" />
+              <div className="w-10 h-10 bg-[#171717]/20 rounded-lg flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[#171717]" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#191919]">Écritures Comptables</h1>
-                <p className="text-sm text-[#767676]">Saisie et gestion des écritures SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[#171717]">Écritures Comptables</h1>
+                <p className="text-sm text-[#737373]">Saisie et gestion des écritures SYSCOHADA</p>
               </div>
             </div>
           </div>
@@ -359,7 +277,7 @@ const EntriesPage: React.FC = () => {
 
             <button
               onClick={() => setShowTemplateModal(true)}
-              className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors flex items-center space-x-2"
             >
               <FileType className="w-4 h-4" />
               <span className="text-sm">Ajouter un modèle de saisie</span>
@@ -368,7 +286,7 @@ const EntriesPage: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center space-x-2"
               >
                 <Eye className="w-4 h-4" />
                 <span className="text-sm">Consulter un modèle</span>
@@ -394,7 +312,7 @@ const EntriesPage: React.FC = () => {
 
             <button
               onClick={() => navigate('/dashboard/comptable')}
-              className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5A7A72] transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center space-x-2"
             >
               <Home className="w-4 h-4" />
               <span className="text-sm">Workspace</span>
@@ -404,8 +322,8 @@ const EntriesPage: React.FC = () => {
       </div>
 
       {/* Navigation par onglets - Pleine largeur */}
-      <div className="bg-white border-y border-[#E8E8E8] shadow-sm flex flex-col flex-1 overflow-hidden w-full">
-        <div className="px-4 border-b border-[#E8E8E8]">
+      <div className="bg-white border-y border-[#e5e5e5] shadow-sm flex flex-col flex-1 overflow-hidden w-full">
+        <div className="px-4 border-b border-[#e5e5e5]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -416,8 +334,8 @@ const EntriesPage: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 px-2 text-sm font-medium border-b-2 transition-colors
                     ${activeTab === tab.id
-                      ? 'border-[#6A8A82] text-[#6A8A82]'
-                      : 'border-transparent text-[#767676] hover:text-[#6A8A82] hover:border-[#6A8A82]/30'
+                      ? 'border-[#171717] text-[#171717]'
+                      : 'border-transparent text-[#737373] hover:text-[#171717] hover:border-[#171717]/30'
                     }
                   `}
                 >
@@ -500,7 +418,7 @@ const EntriesPage: React.FC = () => {
       <button
         onClick={() => setShowEntryModal(true)}
         className="fixed top-1/2 right-8 transform -translate-y-1/2
-        w-14 h-14 bg-[#B87333] text-white rounded-full shadow-lg hover:bg-[#A86323] hover:shadow-xl transition-all duration-300 flex items-center
+        w-14 h-14 bg-[#525252] text-white rounded-full shadow-lg hover:bg-[#404040] hover:shadow-xl transition-all duration-300 flex items-center
         justify-center z-40 group"
       >
         <Plus className="w-6 h-6" />
@@ -532,9 +450,9 @@ const EntriesPage: React.FC = () => {
             <div className="flex items-center justify-center min-h-screen p-4">
               <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full relative">
                 {/* Header */}
-                <div className="p-6 border-b border-[#E8E8E8] bg-gradient-to-r from-[#6A8A82]/10 to-[#B87333]/10">
+                <div className="p-6 border-b border-[#e5e5e5] bg-gradient-to-r from-[#171717]/10 to-[#525252]/10">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-[#191919]">
+                    <h2 className="text-lg font-bold text-[#171717]">
                       Détails de l'écriture {selectedEntry.numero}
                     </h2>
                     <button
@@ -550,45 +468,45 @@ const EntriesPage: React.FC = () => {
                 <div className="p-6 space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-sm font-medium text-[#767676] mb-2">Informations générales</h3>
+                      <h3 className="text-sm font-medium text-[#737373] mb-2">Informations générales</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#444444]">N° Pièce:</span>
+                          <span className="text-sm text-[#404040]">N° Pièce:</span>
                           <span className="text-sm font-medium">{selectedEntry.numero}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#444444]">Journal:</span>
+                          <span className="text-sm text-[#404040]">Journal:</span>
                           <span className="text-sm font-medium">{selectedEntry.journal}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#444444]">Date:</span>
+                          <span className="text-sm text-[#404040]">Date:</span>
                           <span className="text-sm font-medium">{selectedEntry.date}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#444444]">Libellé:</span>
+                          <span className="text-sm text-[#404040]">Libellé:</span>
                           <span className="text-sm font-medium">{selectedEntry.libelle}</span>
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-medium text-[#767676] mb-2">Montants</h3>
+                      <h3 className="text-sm font-medium text-[#737373] mb-2">Montants</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#444444]">Débit:</span>
+                          <span className="text-sm text-[#404040]">Débit:</span>
                           <span className="text-sm font-medium text-[var(--color-error)]">
                             {formatCurrency(selectedEntry.debit ?? 0)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#444444]">Crédit:</span>
+                          <span className="text-sm text-[#404040]">Crédit:</span>
                           <span className="text-sm font-medium text-[var(--color-success)]">
                             {formatCurrency(selectedEntry.credit ?? 0)}
                           </span>
                         </div>
                         <div className="pt-2 border-t">
                           <div className="flex justify-between">
-                            <span className="text-sm font-medium text-[#444444]">État:</span>
+                            <span className="text-sm font-medium text-[#404040]">État:</span>
                             {selectedEntry.debit === selectedEntry.credit ? (
                               <span className="px-2 py-1 text-xs bg-[var(--color-success-light)] text-[var(--color-success)] rounded-full">
                                 <CheckCircle className="w-3 h-3 inline mr-1" />
@@ -608,15 +526,15 @@ const EntriesPage: React.FC = () => {
 
                   {/* Lignes d'écriture */}
                   <div>
-                    <h3 className="text-sm font-medium text-[#767676] mb-3">Lignes d'écriture</h3>
+                    <h3 className="text-sm font-medium text-[#737373] mb-3">Lignes d'écriture</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-[var(--color-surface-hover)]">
                           <tr>
-                            <th className="px-4 py-2 text-left text-sm font-medium text-[#444444]">{t('accounting.account')}</th>
-                            <th className="px-4 py-2 text-left text-sm font-medium text-[#444444]">{t('accounting.label')}</th>
-                            <th className="px-4 py-2 text-right text-sm font-medium text-[#444444]">{t('accounting.debit')}</th>
-                            <th className="px-4 py-2 text-right text-sm font-medium text-[#444444]">{t('accounting.credit')}</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-[#404040]">{t('accounting.account')}</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-[#404040]">{t('accounting.label')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-medium text-[#404040]">{t('accounting.debit')}</th>
+                            <th className="px-4 py-2 text-right text-sm font-medium text-[#404040]">{t('accounting.credit')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -639,13 +557,13 @@ const EntriesPage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-[#E8E8E8] flex justify-between">
+                <div className="p-6 border-t border-[#e5e5e5] flex justify-between">
                   <button
                     onClick={() => {
                       setShowDetailsModal(false);
                       handleEditEntry(selectedEntry);
                     }}
-                    className="px-4 py-2 border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-surface-hover)] flex items-center space-x-2"
+                    className="px-4 py-2 border border-[#d4d4d4] rounded-lg hover:bg-[var(--color-surface-hover)] flex items-center space-x-2"
                   >
                     <Edit className="w-4 h-4" />
                     <span>{t('common.edit')}</span>
@@ -653,7 +571,7 @@ const EntriesPage: React.FC = () => {
                   <div className="flex space-x-3">
                     <button
                       onClick={() => setShowDetailsModal(false)}
-                      className="px-4 py-2 text-[#444444] border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-surface-hover)]"
+                      className="px-4 py-2 text-[#404040] border border-[#d4d4d4] rounded-lg hover:bg-[var(--color-surface-hover)]"
                     >
                       Fermer
                     </button>
@@ -686,9 +604,9 @@ const EntriesPage: React.FC = () => {
             <div className="flex items-center justify-center min-h-screen p-4">
               <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full relative">
                 {/* Header */}
-                <div className="p-6 border-b border-[#E8E8E8]">
+                <div className="p-6 border-b border-[#e5e5e5]">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-[#191919]">Créer un modèle de saisie</h2>
+                    <h2 className="text-lg font-bold text-[#171717]">Créer un modèle de saisie</h2>
                     <button
                       onClick={() => setShowTemplateModal(false)}
                       className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
@@ -701,17 +619,17 @@ const EntriesPage: React.FC = () => {
                 {/* Corps du modal */}
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#444444] mb-2">Nom du modèle *</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-2">Nom du modèle *</label>
                     <input
                       type="text"
                       placeholder="Ex: Facture fournisseur avec TVA"
-                      className="w-full px-3 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]/20"
+                      className="w-full px-3 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]/20"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#444444] mb-2">Type de transaction *</label>
-                    <select className="w-full px-3 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]/20">
+                    <label className="block text-sm font-medium text-[#404040] mb-2">Type de transaction *</label>
+                    <select className="w-full px-3 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]/20">
                       <option value="">Sélectionnez un type</option>
                       <option value="achats">Facture d'Achat</option>
                       <option value="ventes">Facture de Vente</option>
@@ -721,7 +639,7 @@ const EntriesPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#444444] mb-2">Journal par défaut *</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-2">Journal par défaut *</label>
                     <SearchableDropdown
                       options={[
                         { value: 'AC', label: 'AC - Achats' },
@@ -739,16 +657,16 @@ const EntriesPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#444444] mb-2">Description</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-2">Description</label>
                     <textarea
                       rows={3}
                       placeholder="Description du modèle..."
-                      className="w-full px-3 py-2 border border-[#D9D9D9] rounded-lg focus:ring-2 focus:ring-[#6A8A82]/20"
+                      className="w-full px-3 py-2 border border-[#d4d4d4] rounded-lg focus:ring-2 focus:ring-[#171717]/20"
                     />
                   </div>
 
                   <div className="border rounded-lg p-4 bg-[var(--color-surface-hover)]">
-                    <h3 className="text-sm font-medium text-[#444444] mb-3">Lignes d'écriture par défaut</h3>
+                    <h3 className="text-sm font-medium text-[#404040] mb-3">Lignes d'écriture par défaut</h3>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <input type="text" placeholder={t('accounting.account')} className="w-24 px-2 py-1 border rounded text-sm" />
@@ -757,7 +675,7 @@ const EntriesPage: React.FC = () => {
                         <input type="text" placeholder={t('accounting.credit')} className="w-24 px-2 py-1 border rounded text-sm" />
                       </div>
                     </div>
-                    <button className="mt-3 text-sm text-[#6A8A82] hover:text-[#5A7A72] flex items-center space-x-1">
+                    <button className="mt-3 text-sm text-[#171717] hover:text-[#262626] flex items-center space-x-1">
                       <Plus className="w-4 h-4" />
                       <span>Ajouter une ligne</span>
                     </button>
@@ -766,20 +684,20 @@ const EntriesPage: React.FC = () => {
                   <div>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" className="rounded border-[var(--color-border)]" />
-                      <span className="text-sm text-[#444444]">Activer ce modèle</span>
+                      <span className="text-sm text-[#404040]">Activer ce modèle</span>
                     </label>
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-[#E8E8E8] flex justify-end space-x-3">
+                <div className="p-6 border-t border-[#e5e5e5] flex justify-end space-x-3">
                   <button
                     onClick={() => setShowTemplateModal(false)}
-                    className="px-4 py-2 text-[#444444] border border-[#D9D9D9] rounded-lg hover:bg-[var(--color-surface-hover)]"
+                    className="px-4 py-2 text-[#404040] border border-[#d4d4d4] rounded-lg hover:bg-[var(--color-surface-hover)]"
                   >
                     Annuler
                   </button>
-                  <button className="px-6 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323]">
+                  <button className="px-6 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040]">
                     Créer le modèle
                   </button>
                 </div>

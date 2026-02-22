@@ -76,8 +76,8 @@ const AssetsPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#191919]">Gestion des Immobilisations</h1>
-          <p className="text-[#767676] mt-1">
+          <h1 className="text-lg font-bold text-[#171717]">Gestion des Immobilisations</h1>
+          <p className="text-[#737373] mt-1">
             Suivi et gestion des actifs immobilisés
           </p>
         </div>
@@ -93,15 +93,15 @@ const AssetsPage: React.FC = () => {
 
       <AssetsStats stats={stats} loading={loading} />
 
-      <div className="flex gap-2 border-b border-[#D9D9D9]">
+      <div className="flex gap-2 border-b border-[#d4d4d4]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={`px-4 py-3 border-b-2 transition-colors ${
               activeTab === tab.id
-                ? 'border-[#6A8A82] text-[#6A8A82] font-semibold'
-                : 'border-transparent text-[#767676] hover:text-[#191919]'
+                ? 'border-[#171717] text-[#171717] font-semibold'
+                : 'border-transparent text-[#737373] hover:text-[#171717]'
             }`}
           >
             {tab.label}
@@ -111,7 +111,7 @@ const AssetsPage: React.FC = () => {
 
       {activeTab === 'assets' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-lg border border-[#D9D9D9] p-4">
+          <div className="bg-white rounded-lg border border-[#d4d4d4] p-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Input
                 placeholder="Rechercher par description..."
@@ -158,7 +158,7 @@ const AssetsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
+          <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
             <AssetsTable
               assets={pagination.paginateData(filteredData)}
               loading={loading}
@@ -170,9 +170,9 @@ const AssetsPage: React.FC = () => {
       )}
 
       {activeTab === 'maintenances' && (
-        <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
+        <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[#191919]">
+            <h2 className="text-lg font-semibold text-[#171717]">
               Maintenances Planifiées
             </h2>
             <Button icon={Plus} size="sm">
@@ -206,7 +206,7 @@ const AssetsPage: React.FC = () => {
         size="lg"
       >
         <ModalBody>
-          <p className="text-[#767676]">
+          <p className="text-[#737373]">
             Formulaire de planification de maintenance pour{' '}
             <strong>{selectedAsset?.assetNumber}</strong>
           </p>
@@ -228,7 +228,7 @@ const AssetsPage: React.FC = () => {
         size="xl"
       >
         <ModalBody>
-          <p className="text-[#767676]">Formulaire de création d'actif à venir...</p>
+          <p className="text-[#737373]">Formulaire de création d'actif à venir...</p>
         </ModalBody>
         <ModalFooter>
           <div className="flex gap-2">

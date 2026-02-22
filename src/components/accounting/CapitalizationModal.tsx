@@ -6,6 +6,7 @@ import {
 import { ModernCard, CardHeader, CardBody } from '../ui/ModernCard';
 import ModernButton from '../ui/ModernButton';
 import SearchableDropdown from '../ui/SearchableDropdown';
+import { Money } from '@/utils/money';
 
 interface CapitalizationModalProps {
   isOpen: boolean;
@@ -137,7 +138,7 @@ const CapitalizationModal: React.FC<CapitalizationModalProps> = ({
 
   useEffect(() => {
     if (formData.estimatedUsefulLife > 0) {
-      const rate = Math.round((100 / formData.estimatedUsefulLife) * 100) / 100;
+      const rate = new Money(100).divide(formData.estimatedUsefulLife).round().toNumber();
       setFormData(prev => ({ ...prev, depreciationRate: rate }));
     }
   }, [formData.estimatedUsefulLife]);

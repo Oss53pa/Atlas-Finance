@@ -45,10 +45,10 @@ const KadsAlert: React.FC<KadsAlertProps> = ({
       icon: AlertTriangle
     },
     info: {
-      bgClass: 'bg-[#6A8A82]/10 border-[#6A8A82]/40',
-      iconClass: 'text-[#6A8A82]',
-      textClass: 'text-[#6A8A82]',
-      actionClass: 'text-[#6A8A82] hover:text-[#5A7A72]',
+      bgClass: 'bg-[#171717]/10 border-[#171717]/40',
+      iconClass: 'text-[#171717]',
+      textClass: 'text-[#171717]',
+      actionClass: 'text-[#171717] hover:text-[#262626]',
       icon: Info
     }
   };

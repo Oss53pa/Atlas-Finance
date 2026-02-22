@@ -41,10 +41,10 @@ export const Alert: React.FC<AlertProps> = ({
       iconColor: 'text-red-500'
     },
     info: {
-      bg: 'bg-[#6A8A82]/10 border-[#6A8A82]/20',
-      text: 'text-[#6A8A82]',
+      bg: 'bg-[#171717]/10 border-[#171717]/20',
+      text: 'text-[#171717]',
       icon: Info,
-      iconColor: 'text-[#6A8A82]'
+      iconColor: 'text-[#171717]'
     }
   };
 
@@ -79,7 +79,7 @@ export const Alert: React.FC<AlertProps> = ({
         {dismissible && (
           <button
             onClick={onDismiss}
-            className={`flex-shrink-0 ml-2 p-1 rounded hover:bg-opacity-20 hover:bg-[#191919]/10 ${config.text} transition-colors`} aria-label="Fermer">
+            className={`flex-shrink-0 ml-2 p-1 rounded hover:bg-opacity-20 hover:bg-[#171717]/10 ${config.text} transition-colors`} aria-label="Fermer">
             <X className="h-4 w-4" />
           </button>
         )}

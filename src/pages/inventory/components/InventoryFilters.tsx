@@ -119,7 +119,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
             placeholder="Search items by SKU, name, or description..."
             value={filters.searchTerm || ''}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#171717] focus:border-transparent"
           />
         </div>
         <button
@@ -129,7 +129,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
           <Filter className="w-4 h-4" />
           Advanced Filters
           {hasActiveFilters() && (
-            <span className="bg-[#6A8A82]/100 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="bg-[#171717]/100 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               !
             </span>
           )}
@@ -155,7 +155,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
             </label>
             <button
               onClick={() => setShowPeriodModal(true)}
-              className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+              className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
             >
               <Calendar className="w-4 h-4 text-gray-700" />
               {filters.dateRange?.from && filters.dateRange?.to
@@ -188,7 +188,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
                       type="checkbox"
                       checked={filters.locations?.includes(location.id) || false}
                       onChange={(e) => handleMultiSelectChange('locations', location.id, e.target.checked)}
-                      className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                      className="mr-2 text-[#171717] focus:ring-[#171717]"
                     />
                     {location.name}
                   </label>
@@ -208,7 +208,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
                       type="checkbox"
                       checked={filters.categories?.includes(category.value) || false}
                       onChange={(e) => handleMultiSelectChange('categories', category.value, e.target.checked)}
-                      className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                      className="mr-2 text-[#171717] focus:ring-[#171717]"
                     />
                     {category.label}
                   </label>
@@ -228,7 +228,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
                       type="checkbox"
                       checked={filters.types?.includes(type.value) || false}
                       onChange={(e) => handleMultiSelectChange('types', type.value, e.target.checked)}
-                      className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                      className="mr-2 text-[#171717] focus:ring-[#171717]"
                     />
                     {type.label}
                   </label>
@@ -251,7 +251,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
                       type="checkbox"
                       checked={filters.status?.includes(status.value) || false}
                       onChange={(e) => handleMultiSelectChange('status', status.value, e.target.checked)}
-                      className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                      className="mr-2 text-[#171717] focus:ring-[#171717]"
                     />
                     {status.label}
                   </label>
@@ -271,7 +271,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
                       type="checkbox"
                       checked={filters.valuationMethods?.includes(method.value) || false}
                       onChange={(e) => handleMultiSelectChange('valuationMethods', method.value, e.target.checked)}
-                      className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                      className="mr-2 text-[#171717] focus:ring-[#171717]"
                     />
                     {method.label}
                   </label>
@@ -290,7 +290,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
                     type="checkbox"
                     checked={filters.showOnlyActiveItems || false}
                     onChange={(e) => handleBooleanChange('showOnlyActiveItems', e.target.checked)}
-                    className="mr-2 text-[#6A8A82] focus:ring-[#6A8A82]"
+                    className="mr-2 text-[#171717] focus:ring-[#171717]"
                   />
                   Active Items Only
                 </label>

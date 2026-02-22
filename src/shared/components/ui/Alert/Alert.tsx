@@ -11,27 +11,27 @@ export interface AlertProps {
 
 const variantConfig = {
   success: {
-    bg: 'bg-[#6A8A82]/10',
-    border: 'border-[#6A8A82]',
-    text: 'text-[#6A8A82]',
+    bg: 'bg-[#171717]/10',
+    border: 'border-[#171717]',
+    text: 'text-[#171717]',
     icon: CheckCircle,
   },
   error: {
-    bg: 'bg-[#B85450]/10',
-    border: 'border-[#B85450]',
-    text: 'text-[#B85450]',
+    bg: 'bg-[#ef4444]/10',
+    border: 'border-[#ef4444]',
+    text: 'text-[#ef4444]',
     icon: AlertCircle,
   },
   warning: {
-    bg: 'bg-[#B87333]/10',
-    border: 'border-[#B87333]',
-    text: 'text-[#B87333]',
+    bg: 'bg-[#525252]/10',
+    border: 'border-[#525252]',
+    text: 'text-[#525252]',
     icon: AlertTriangle,
   },
   info: {
-    bg: 'bg-[#7A99AC]/10',
-    border: 'border-[#7A99AC]',
-    text: 'text-[#7A99AC]',
+    bg: 'bg-[#737373]/10',
+    border: 'border-[#737373]',
+    text: 'text-[#737373]',
     icon: Info,
   },
 };
@@ -61,7 +61,7 @@ export const Alert: React.FC<AlertProps> = ({
           {title && (
             <h3 className={`font-semibold ${config.text} mb-1`}>{title}</h3>
           )}
-          <div className="text-sm text-[#444444]">{children}</div>
+          <div className="text-sm text-[#404040]">{children}</div>
         </div>
 
         {onClose && (

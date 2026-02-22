@@ -240,10 +240,10 @@ const FinancialStatements: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'text-[#B87333] bg-[#B87333]/5';
+      case 'published': return 'text-[#525252] bg-[#525252]/5';
       case 'approved': return 'text-green-600 bg-green-50';
       case 'review': return 'text-yellow-600 bg-yellow-50';
-      case 'draft': return 'text-[#6A8A82] bg-[#6A8A82]/5';
+      case 'draft': return 'text-[#171717] bg-[#171717]/5';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -270,8 +270,8 @@ const FinancialStatements: React.FC = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'profitability': return 'text-green-600 bg-green-50';
-      case 'liquidity': return 'text-[#6A8A82] bg-[#6A8A82]/5';
-      case 'efficiency': return 'text-[#B87333] bg-[#B87333]/5';
+      case 'liquidity': return 'text-[#171717] bg-[#171717]/5';
+      case 'efficiency': return 'text-[#525252] bg-[#525252]/5';
       case 'leverage': return 'text-orange-600 bg-orange-50';
       default: return 'text-gray-600 bg-gray-50';
     }
@@ -286,9 +286,9 @@ const FinancialStatements: React.FC = () => {
   };
 
   const chartData = [
-    { label: 'Publiés', value: aggregatedData.publishedStatements, color: 'bg-[#B87333]' },
+    { label: 'Publiés', value: aggregatedData.publishedStatements, color: 'bg-[#525252]' },
     { label: 'Approuvés', value: aggregatedData.approvedStatements, color: 'bg-green-500' },
-    { label: 'Brouillons', value: aggregatedData.draftStatements, color: 'bg-[#6A8A82]' }
+    { label: 'Brouillons', value: aggregatedData.draftStatements, color: 'bg-[#171717]' }
   ];
 
   const metricsChartData = mockMetrics.slice(0, 4).map(metric => ({
@@ -377,8 +377,8 @@ const FinancialStatements: React.FC = () => {
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     viewMode === mode
-                      ? 'bg-[#6A8A82] text-white shadow-md'
-                      : 'text-neutral-600 hover:text-[#6A8A82]'
+                      ? 'bg-[#171717] text-white shadow-md'
+                      : 'text-neutral-600 hover:text-[#171717]'
                   }`}
                 >
                   {mode === 'statements' ? 'États Financiers' :
@@ -392,7 +392,7 @@ const FinancialStatements: React.FC = () => {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
               >
                 <option value="2024-Q3">2024-Q3</option>
                 <option value="2024-Q2">2024-Q2</option>
@@ -438,14 +438,14 @@ const FinancialStatements: React.FC = () => {
                       placeholder="Rechercher..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                     />
                   </div>
 
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Tous les statuts</option>
                     <option value="draft">{t('accounting.draft')}</option>
@@ -457,7 +457,7 @@ const FinancialStatements: React.FC = () => {
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Tous les types</option>
                     <option value="balance_sheet">Bilan</option>
@@ -470,7 +470,7 @@ const FinancialStatements: React.FC = () => {
                   <select
                     value={filterFormat}
                     onChange={(e) => setFilterFormat(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Tous les formats</option>
                     <option value="ifrs">IFRS</option>
@@ -482,7 +482,7 @@ const FinancialStatements: React.FC = () => {
                   <select
                     value={filterPeriod}
                     onChange={(e) => setFilterPeriod(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Toutes les périodes</option>
                     <option value="2024-Q3">2024-Q3</option>
@@ -512,8 +512,8 @@ const FinancialStatements: React.FC = () => {
                       <div className="space-y-4">
                         <div className="flex justify-between items-start">
                           <div className="flex items-start space-x-4">
-                            <div className="p-3 bg-[#6A8A82]/10 rounded-lg">
-                              <FileText className="h-6 w-6 text-[#6A8A82]" />
+                            <div className="p-3 bg-[#171717]/10 rounded-lg">
+                              <FileText className="h-6 w-6 text-[#171717]" />
                             </div>
                             <div className="space-y-2">
                               <h4 className="font-semibold text-neutral-800 text-lg">{statement.title}</h4>
@@ -527,7 +527,7 @@ const FinancialStatements: React.FC = () => {
                                 <span>{statement.fileSize}</span>
                               </div>
                               <div className="flex items-center space-x-3">
-                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
                                   {statement.format.toUpperCase()}
                                 </span>
                                 {statement.consolidation && (
@@ -555,14 +555,14 @@ const FinancialStatements: React.FC = () => {
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setStatementModal({ isOpen: true, mode: 'view', statement })}
-                                className="p-2 text-neutral-400 hover:text-[#6A8A82] transition-colors"
+                                className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
                               <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Télécharger">
                                 <Download className="h-4 w-4" />
                               </button>
-                              <button className="p-2 text-neutral-400 hover:text-[#B87333] transition-colors" aria-label="Partager">
+                              <button className="p-2 text-neutral-400 hover:text-[#525252] transition-colors" aria-label="Partager">
                                 <Share2 className="h-4 w-4" />
                               </button>
                             </div>
@@ -736,15 +736,15 @@ const FinancialStatements: React.FC = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-[#6A8A82]/10 rounded-lg">
-                            <BookOpen className="h-5 w-5 text-[#6A8A82]" />
+                          <div className="p-2 bg-[#171717]/10 rounded-lg">
+                            <BookOpen className="h-5 w-5 text-[#171717]" />
                           </div>
                           <div>
                             <h4 className="font-semibold text-neutral-800">{template.name}</h4>
                             <p className="text-sm text-neutral-500">{template.type}</p>
                           </div>
                         </div>
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
                           {template.format.toUpperCase()}
                         </span>
                       </div>
@@ -771,7 +771,7 @@ const FinancialStatements: React.FC = () => {
                           <p>Dernier usage: {formatDate(template.lastUsed)}</p>
                         </div>
                         <div className="flex space-x-2">
-                          <button className="p-2 text-neutral-400 hover:text-[#6A8A82] transition-colors" aria-label="Voir les détails">
+                          <button className="p-2 text-neutral-400 hover:text-[#171717] transition-colors" aria-label="Voir les détails">
                             <Eye className="h-4 w-4" />
                           </button>
                           <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Ajouter">
@@ -832,7 +832,7 @@ const FinancialStatements: React.FC = () => {
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
                           Format
                         </label>
-                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
+                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#171717]/10 text-[#171717]">
                           {statementModal.statement.format.toUpperCase()}
                         </span>
                       </div>

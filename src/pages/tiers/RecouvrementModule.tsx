@@ -603,7 +603,7 @@ Service Contentieux
 
   const getStatutColor = (statut: string) => {
     const colors = {
-      'EN_COURS': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'EN_COURS': 'bg-[#171717]/10 text-[#171717]',
       'RESOLU': 'bg-green-100 text-green-800',
       'CONTENTIEUX': 'bg-red-100 text-red-800',
       'IRRECUPERABLE': 'bg-gray-100 text-gray-800',
@@ -635,7 +635,7 @@ Service Contentieux
       'RELANCE_1': 'bg-yellow-100 text-yellow-800',
       'RELANCE_2': 'bg-orange-100 text-orange-800',
       'RELANCE_3': 'bg-red-100 text-red-800',
-      'MISE_EN_DEMEURE': 'bg-[#B87333]/10 text-[#B87333]',
+      'MISE_EN_DEMEURE': 'bg-[#525252]/10 text-[#525252]',
       'CONTENTIEUX': 'bg-red-200 text-red-900'
     };
     return colors[niveau as keyof typeof colors] || 'bg-gray-100 text-gray-800';
@@ -946,14 +946,14 @@ Service Contentieux
             <div className="space-y-6">
               {/* KPIs principaux avec intégrations temps réel */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#666666]">Créances Totales</p>
-                      <p className="text-lg font-bold text-[#191919]">
+                      <p className="text-sm text-[#525252]">Créances Totales</p>
+                      <p className="text-lg font-bold text-[#171717]">
                         {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
                       </p>
-                      <p className="text-xs text-[#666666] mt-1">{analyticsData.statistiques.nombreCreances} dossiers</p>
+                      <p className="text-xs text-[#525252] mt-1">{analyticsData.statistiques.nombreCreances} dossiers</p>
                       <div className="flex items-center mt-2 text-xs text-blue-600">
                         <Link className="w-3 h-3 mr-1" />
                         <span>Comptabilité sync</span>
@@ -962,11 +962,11 @@ Service Contentieux
                     <DollarSign className="w-8 h-8 text-red-600" />
                   </div>
                 </div>
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#666666]">Recouvré ce mois</p>
-                      <p className="text-lg font-bold text-[#191919]">
+                      <p className="text-sm text-[#525252]">Recouvré ce mois</p>
+                      <p className="text-lg font-bold text-[#171717]">
                         {formatCurrency(analyticsData.statistiques.montantRecouvre)}
                       </p>
                       <p className="text-xs text-green-600 mt-1">↑ +12% vs mois précédent</p>
@@ -978,11 +978,11 @@ Service Contentieux
                     <CheckCircle className="w-8 h-8 text-green-600" />
                   </div>
                 </div>
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#666666]">Taux de succès</p>
-                      <p className="text-lg font-bold text-[#191919]">
+                      <p className="text-sm text-[#525252]">Taux de succès</p>
+                      <p className="text-lg font-bold text-[#171717]">
                         {analyticsData.statistiques.tauxRecouvrement}%
                       </p>
                       <p className="text-xs text-blue-600 mt-1">Objectif: 85%</p>
@@ -994,11 +994,11 @@ Service Contentieux
                     <TrendingUp className="w-8 h-8 text-blue-600" />
                   </div>
                 </div>
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#666666]">Délai moyen</p>
-                      <p className="text-lg font-bold text-[#191919]">
+                      <p className="text-sm text-[#525252]">Délai moyen</p>
+                      <p className="text-lg font-bold text-[#171717]">
                         {analyticsData.statistiques.delaiMoyenRecouvrement}j
                       </p>
                       <p className="text-xs text-orange-600 mt-1">{analyticsData.statistiques.creancesEnRetard} en retard</p>
@@ -1013,9 +1013,9 @@ Service Contentieux
               </div>
 
               {/* Panel des intégrations en temps réel */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Flux de Données Atlas Finance</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Flux de Données Atlas Finance</h3>
                   <div className="flex items-center space-x-2 text-sm text-green-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span>Synchronisation active</span>
@@ -1068,23 +1068,23 @@ Service Contentieux
               {/* Graphiques principaux */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Évolution mensuelle */}
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution du Recouvrement</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution du Recouvrement</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={analyticsData.evolutionRecouvrement}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="mois" />
                       <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Area type="monotone" dataKey="creances" stackId="1" stroke="#E74C3C" fill="#E74C3C" fillOpacity={0.3} name="Créances" />
-                      <Area type="monotone" dataKey="recouvre" stackId="2" stroke="#27AE60" fill="#27AE60" fillOpacity={0.6} name="Recouvré" />
+                      <Area type="monotone" dataKey="creances" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.3} name="Créances" />
+                      <Area type="monotone" dataKey="recouvre" stackId="2" stroke="#22c55e" fill="#22c55e" fillOpacity={0.6} name="Recouvré" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
 
                 {/* Répartition par niveau */}
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition par Niveau</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Niveau</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsPieChart>
                       <Pie
@@ -1093,7 +1093,7 @@ Service Contentieux
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
-                        fill="#8884d8"
+                        fill="#737373"
                         label={({ niveau, count }) => `${niveau} (${count})`}
                       >
                         {analyticsData.repartitionNiveaux.map((entry, index) => (
@@ -1107,8 +1107,8 @@ Service Contentieux
               </div>
 
               {/* Tableau de bord activités récentes */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Activités du jour</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Activités du jour</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-blue-50 rounded-lg p-4">
                     <div className="flex items-center justify-between">
@@ -1146,8 +1146,8 @@ Service Contentieux
           return (
             <div className="space-y-6">
               {/* Performance par agent */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Performance par Agent de Recouvrement</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Performance par Agent de Recouvrement</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50">
@@ -1222,8 +1222,8 @@ Service Contentieux
 
               {/* Graphique performance */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution des Taux de Succès</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution des Taux de Succès</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={[
                       { mois: 'Jan', marie: 85, jean: 68, equipe: 76 },
@@ -1237,24 +1237,24 @@ Service Contentieux
                       <XAxis dataKey="mois" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="marie" stroke="#27AE60" strokeWidth={2} name="Marie Diallo" />
-                      <Line type="monotone" dataKey="jean" stroke="#F39C12" strokeWidth={2} name="Jean Kouassi" />
-                      <Line type="monotone" dataKey="equipe" stroke="#7A99AC" strokeWidth={3} name="Moyenne équipe" />
+                      <Line type="monotone" dataKey="marie" stroke="#22c55e" strokeWidth={2} name="Marie Diallo" />
+                      <Line type="monotone" dataKey="jean" stroke="#f59e0b" strokeWidth={2} name="Jean Kouassi" />
+                      <Line type="monotone" dataKey="equipe" stroke="#737373" strokeWidth={3} name="Moyenne équipe" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
 
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition du Temps</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition du Temps</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsPieChart>
                       <Pie
                         dataKey="value"
                         data={[
-                          { name: 'Appels clients', value: 40, fill: '#7A99AC' },
-                          { name: 'Relances email', value: 25, fill: '#6A89AC' },
-                          { name: 'Dossiers juridiques', value: 20, fill: '#5A79AC' },
-                          { name: 'Administration', value: 15, fill: '#4A69AC' }
+                          { name: 'Appels clients', value: 40, fill: '#737373' },
+                          { name: 'Relances email', value: 25, fill: '#525252' },
+                          { name: 'Dossiers juridiques', value: 20, fill: '#525252' },
+                          { name: 'Administration', value: 15, fill: '#404040' }
                         ]}
                         cx="50%"
                         cy="50%"
@@ -1275,8 +1275,8 @@ Service Contentieux
             <div className="space-y-6">
               {/* Répartition géographique */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition Géographique</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition Géographique</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={[
                       { zone: 'Abidjan', creances: 450000, recouvre: 380000 },
@@ -1289,24 +1289,24 @@ Service Contentieux
                       <XAxis dataKey="zone" />
                       <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Bar dataKey="creances" fill="#E74C3C" name="Créances" />
-                      <Bar dataKey="recouvre" fill="#27AE60" name="Recouvré" />
+                      <Bar dataKey="creances" fill="#ef4444" name="Créances" />
+                      <Bar dataKey="recouvre" fill="#22c55e" name="Recouvré" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
 
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition par Secteur</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition par Secteur</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsPieChart>
                       <Pie
                         dataKey="montant"
                         data={[
-                          { secteur: 'Commerce', montant: 380000, fill: '#7A99AC' },
-                          { secteur: 'Services', montant: 280000, fill: '#6A89AC' },
-                          { secteur: 'Industrie', montant: 320000, fill: '#5A79AC' },
-                          { secteur: 'Agriculture', montant: 150000, fill: '#4A69AC' },
-                          { secteur: 'BTP', montant: 120000, fill: '#3A59AC' }
+                          { secteur: 'Commerce', montant: 380000, fill: '#737373' },
+                          { secteur: 'Services', montant: 280000, fill: '#525252' },
+                          { secteur: 'Industrie', montant: 320000, fill: '#525252' },
+                          { secteur: 'Agriculture', montant: 150000, fill: '#404040' },
+                          { secteur: 'BTP', montant: 120000, fill: '#404040' }
                         ]}
                         cx="50%"
                         cy="50%"
@@ -1321,8 +1321,8 @@ Service Contentieux
               </div>
 
               {/* Ancienneté détaillée */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Ancienneté des Créances par Secteur</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Ancienneté des Créances par Secteur</h3>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={[
                     { periode: '0-30j', commerce: 120000, services: 80000, industrie: 95000, agriculture: 45000, btp: 35000 },
@@ -1334,11 +1334,11 @@ Service Contentieux
                     <XAxis dataKey="periode" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Bar dataKey="commerce" stackId="a" fill="#7A99AC" name="Commerce" />
-                    <Bar dataKey="services" stackId="a" fill="#6A89AC" name="Services" />
-                    <Bar dataKey="industrie" stackId="a" fill="#5A79AC" name="Industrie" />
-                    <Bar dataKey="agriculture" stackId="a" fill="#4A69AC" name="Agriculture" />
-                    <Bar dataKey="btp" stackId="a" fill="#3A59AC" name="BTP" />
+                    <Bar dataKey="commerce" stackId="a" fill="#737373" name="Commerce" />
+                    <Bar dataKey="services" stackId="a" fill="#525252" name="Services" />
+                    <Bar dataKey="industrie" stackId="a" fill="#525252" name="Industrie" />
+                    <Bar dataKey="agriculture" stackId="a" fill="#404040" name="Agriculture" />
+                    <Bar dataKey="btp" stackId="a" fill="#404040" name="BTP" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1349,8 +1349,8 @@ Service Contentieux
           return (
             <div className="space-y-6">
               {/* Tendances temporelles */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Tendances sur 12 mois</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Tendances sur 12 mois</h3>
                 <ResponsiveContainer width="100%" height={400}>
                   <ComposedChart data={[
                     { mois: 'Jan 2023', creances: 180000, recouvre: 145000, taux: 80.5 },
@@ -1371,17 +1371,17 @@ Service Contentieux
                     <YAxis yAxisId="left" tickFormatter={(value) => `${value / 1000}k`} />
                     <YAxis yAxisId="right" orientation="right" domain={[75, 85]} />
                     <Tooltip />
-                    <Bar yAxisId="left" dataKey="creances" fill="#E74C3C" fillOpacity={0.3} name="Créances" />
-                    <Bar yAxisId="left" dataKey="recouvre" fill="#27AE60" fillOpacity={0.6} name="Recouvré" />
-                    <Line yAxisId="right" type="monotone" dataKey="taux" stroke="#7A99AC" strokeWidth={3} name="Taux %" />
+                    <Bar yAxisId="left" dataKey="creances" fill="#ef4444" fillOpacity={0.3} name="Créances" />
+                    <Bar yAxisId="left" dataKey="recouvre" fill="#22c55e" fillOpacity={0.6} name="Recouvré" />
+                    <Line yAxisId="right" type="monotone" dataKey="taux" stroke="#737373" strokeWidth={3} name="Taux %" />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Analyse des cycles */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Cycle de Recouvrement Moyen</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Cycle de Recouvrement Moyen</h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center">
@@ -1422,8 +1422,8 @@ Service Contentieux
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Facteurs de Réussite</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Facteurs de Réussite</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Contact dans les 24h</span>
@@ -1480,9 +1480,9 @@ Service Contentieux
           return (
             <div className="space-y-6">
               {/* Comparaison périodes */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[#191919]">Comparaison Périodes</h3>
+                  <h3 className="text-lg font-semibold text-[#171717]">Comparaison Périodes</h3>
                   <div className="flex space-x-2">
                     <select className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
                       <option>Ce mois vs mois précédent</option>
@@ -1494,7 +1494,7 @@ Service Contentieux
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-[#191919] mb-2">{formatCurrency(1250000)}</div>
+                    <div className="text-lg font-bold text-[#171717] mb-2">{formatCurrency(1250000)}</div>
                     <div className="text-sm text-gray-600 mb-1">Créances ce mois</div>
                     <div className="flex items-center justify-center text-sm">
                       <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -1503,7 +1503,7 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-[#191919] mb-2">{formatCurrency(980000)}</div>
+                    <div className="text-lg font-bold text-[#171717] mb-2">{formatCurrency(980000)}</div>
                     <div className="text-sm text-gray-600 mb-1">Montant recouvré</div>
                     <div className="flex items-center justify-center text-sm">
                       <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -1512,7 +1512,7 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-[#191919] mb-2">78.4%</div>
+                    <div className="text-lg font-bold text-[#171717] mb-2">78.4%</div>
                     <div className="text-sm text-gray-600 mb-1">Taux de succès</div>
                     <div className="flex items-center justify-center text-sm">
                       <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
@@ -1524,8 +1524,8 @@ Service Contentieux
               </div>
 
               {/* Comparaison détaillée */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution Comparative</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution Comparative</h3>
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart data={[
                     { mois: 'Jan', anneeActuelle: 180000, anneePrecedente: 165000 },
@@ -1539,15 +1539,15 @@ Service Contentieux
                     <XAxis dataKey="mois" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Line type="monotone" dataKey="anneeActuelle" stroke="#7A99AC" strokeWidth={3} name="2024" />
+                    <Line type="monotone" dataKey="anneeActuelle" stroke="#737373" strokeWidth={3} name="2024" />
                     <Line type="monotone" dataKey="anneePrecedente" stroke="#B0BEC5" strokeWidth={2} strokeDasharray="5 5" name="2023" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Benchmark secteur */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Benchmark Sectoriel</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Benchmark Sectoriel</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                     <div>
@@ -1588,8 +1588,8 @@ Service Contentieux
           return (
             <div className="space-y-6">
               {/* Prévisions financières */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Prévisions de Recouvrement - 6 prochains mois</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Prévisions de Recouvrement - 6 prochains mois</h3>
                 <ResponsiveContainer width="100%" height={350}>
                   <AreaChart data={[
                     { mois: 'Juil', prevision: 260000, optimiste: 285000, pessimiste: 230000, realise: null },
@@ -1603,17 +1603,17 @@ Service Contentieux
                     <XAxis dataKey="mois" />
                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
                     <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Area type="monotone" dataKey="pessimiste" stackId="1" stroke="#E74C3C" fill="#E74C3C" fillOpacity={0.2} name="Scénario pessimiste" />
-                    <Area type="monotone" dataKey="prevision" stackId="2" stroke="#7A99AC" fill="#7A99AC" fillOpacity={0.4} name="Prévision réaliste" />
-                    <Area type="monotone" dataKey="optimiste" stackId="3" stroke="#27AE60" fill="#27AE60" fillOpacity={0.2} name="Scénario optimiste" />
+                    <Area type="monotone" dataKey="pessimiste" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} name="Scénario pessimiste" />
+                    <Area type="monotone" dataKey="prevision" stackId="2" stroke="#737373" fill="#737373" fillOpacity={0.4} name="Prévision réaliste" />
+                    <Area type="monotone" dataKey="optimiste" stackId="3" stroke="#22c55e" fill="#22c55e" fillOpacity={0.2} name="Scénario optimiste" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Facteurs de risque */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Facteurs de Risque Identifiés</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Facteurs de Risque Identifiés</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                       <div className="flex items-center">
@@ -1648,8 +1648,8 @@ Service Contentieux
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Opportunités d'Amélioration</h3>
+                <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Opportunités d'Amélioration</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                       <div className="flex items-center">
@@ -1686,8 +1686,8 @@ Service Contentieux
               </div>
 
               {/* Simulation scenarios */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Simulation de Scénarios</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Simulation de Scénarios</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="text-center">
@@ -1738,7 +1738,7 @@ Service Contentieux
     return (
       <div className="space-y-6">
         {/* Navigation sous-onglets */}
-        <div className="bg-white rounded-lg p-2 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-2 border border-[#e5e5e5] shadow-sm">
           <div className="flex flex-wrap gap-1">
             {analyticsSubTabs.map((tab) => (
               <button
@@ -1746,8 +1746,8 @@ Service Contentieux
                 onClick={() => setAnalyticsView(tab.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                   analyticsView === tab.id
-                    ? 'bg-[#7A99AC] text-white'
-                    : 'text-[#666666] hover:bg-gray-100'
+                    ? 'bg-[#737373] text-white'
+                    : 'text-[#525252] hover:bg-gray-100'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -2556,7 +2556,7 @@ Service Contentieux
     return (
       <div className="space-y-6">
         {/* Barre de sous-navigation */}
-        <div className="bg-white rounded-lg p-2 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-2 border border-[#e5e5e5] shadow-sm">
           <div className="flex space-x-1">
             {contentieuxSubTabs.map((tab) => (
               <button
@@ -2564,8 +2564,8 @@ Service Contentieux
                 onClick={() => setContentieuxView(tab.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                   contentieuxView === tab.id
-                    ? 'bg-[#7A99AC] text-white'
-                    : 'text-[#666666] hover:bg-gray-100'
+                    ? 'bg-[#737373] text-white'
+                    : 'text-[#525252] hover:bg-gray-100'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -3322,7 +3322,7 @@ Service Contentieux
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#191919]">
+                  <h2 className="text-lg font-semibold text-[#171717]">
                     Modifier Dossier Contentieux
                   </h2>
                   <p className="text-gray-600 mt-1">
@@ -4323,7 +4323,7 @@ Service Contentieux
                   </button>
                   <button
                     onClick={handleSaveContentieux}
-                    className="px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#5a7a72] transition-colors flex items-center space-x-2"
+                    className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#262626] transition-colors flex items-center space-x-2"
                   >
                     <CheckCircle className="w-4 h-4" />
                     <span>Enregistrer les modifications</span>
@@ -4611,7 +4611,7 @@ Service Contentieux
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#191919]">
+                  <h2 className="text-lg font-semibold text-[#171717]">
                     Détail Exécution - {selectedExecutionDossier.reference}
                   </h2>
                   <p className="text-gray-600 mt-1">Client: {selectedExecutionDossier.client}</p>
@@ -4628,7 +4628,7 @@ Service Contentieux
                 {/* Informations générales */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-blue-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-[#191919] mb-3">Informations Générales</h3>
+                    <h3 className="font-semibold text-[#171717] mb-3">Informations Générales</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Référence:</span>
@@ -4640,7 +4640,7 @@ Service Contentieux
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Montant à recouvrer:</span>
-                        <span className="font-medium text-[#6A8A82]">{selectedExecutionDossier.montant.toLocaleString()} FCFA</span>
+                        <span className="font-medium text-[#171717]">{selectedExecutionDossier.montant.toLocaleString()} FCFA</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Statut:</span>
@@ -4656,7 +4656,7 @@ Service Contentieux
                   </div>
 
                   <div className="bg-orange-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-[#191919] mb-3">Dates & Délais</h3>
+                    <h3 className="font-semibold text-[#171717] mb-3">Dates & Délais</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Date de début:</span>
@@ -4685,7 +4685,7 @@ Service Contentieux
                 {/* Détails spécifiques selon le type d'exécution */}
                 <div className="bg-white border border-gray-200 rounded-lg">
                   <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="font-semibold text-[#191919]">Détails de l'Exécution</h3>
+                    <h3 className="font-semibold text-[#171717]">Détails de l'Exécution</h3>
                   </div>
                   <div className="p-4">
                     {selectedExecutionDossier.typeExecution === 'Saisie-attribution' && (
@@ -4894,7 +4894,7 @@ Service Contentieux
           {/* Informations générales */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-red-50 rounded-lg p-4">
-              <h3 className="font-semibold text-[#191919] mb-3">Informations Contentieuses</h3>
+              <h3 className="font-semibold text-[#171717] mb-3">Informations Contentieuses</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Référence:</span>
@@ -4918,11 +4918,11 @@ Service Contentieux
             </div>
 
             <div className="bg-orange-50 rounded-lg p-4">
-              <h3 className="font-semibold text-[#191919] mb-3">Montants</h3>
+              <h3 className="font-semibold text-[#171717] mb-3">Montants</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Principal:</span>
-                  <span className="font-medium text-[#6A8A82]">{selectedContentieuxDetail.montantPrincipal?.toLocaleString()} FCFA</span>
+                  <span className="font-medium text-[#171717]">{selectedContentieuxDetail.montantPrincipal?.toLocaleString()} FCFA</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Intérêts de retard:</span>
@@ -4934,7 +4934,7 @@ Service Contentieux
                 </div>
                 <div className="flex justify-between border-t pt-2">
                   <span className="text-gray-600 font-semibold">Montant total:</span>
-                  <span className="font-bold text-[#191919]">{selectedContentieuxDetail.montantTotal?.toLocaleString()} FCFA</span>
+                  <span className="font-bold text-[#171717]">{selectedContentieuxDetail.montantTotal?.toLocaleString()} FCFA</span>
                 </div>
               </div>
             </div>
@@ -4942,7 +4942,7 @@ Service Contentieux
 
           {/* Motif du transfert */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-[#191919] mb-3">Motif du Transfert en Contentieux</h3>
+            <h3 className="font-semibold text-[#171717] mb-3">Motif du Transfert en Contentieux</h3>
             <p className="text-gray-700 leading-relaxed">{selectedContentieuxDetail.motifTransfert}</p>
           </div>
 
@@ -7021,41 +7021,41 @@ Service Contentieux
           <div className="space-y-6">
             {/* KPIs consolidés */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Performance Globale</p>
-                    <p className="text-lg font-bold text-[#191919]">73%</p>
+                    <p className="text-sm text-[#525252]">Performance Globale</p>
+                    <p className="text-lg font-bold text-[#171717]">73%</p>
                     <p className="text-xs text-green-600">+5% vs mois dernier</p>
                   </div>
                   <Target className="w-8 h-8 text-blue-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Taux Transfert Amiable→Contentieux</p>
-                    <p className="text-lg font-bold text-[#191919]">18%</p>
+                    <p className="text-sm text-[#525252]">Taux Transfert Amiable→Contentieux</p>
+                    <p className="text-lg font-bold text-[#171717]">18%</p>
                     <p className="text-xs text-orange-600">↑ 2% ce mois</p>
                   </div>
                   <RefreshCw className="w-8 h-8 text-orange-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">ROI Contentieux</p>
+                    <p className="text-sm text-[#525252]">ROI Contentieux</p>
                     <p className="text-lg font-bold text-green-600">3.2x</p>
                     <p className="text-xs text-gray-600">Coût vs Recouvrement</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Délai Moyen</p>
-                    <p className="text-lg font-bold text-[#191919]">127j</p>
+                    <p className="text-sm text-[#525252]">Délai Moyen</p>
+                    <p className="text-lg font-bold text-[#171717]">127j</p>
                     <p className="text-xs text-gray-600">Transfert → Jugement</p>
                   </div>
                   <Clock className="w-8 h-8 text-purple-600" />
@@ -7066,8 +7066,8 @@ Service Contentieux
             {/* Graphiques comparatifs */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Performance Amiable vs Contentieux */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">
                   Comparatif Amiable vs Contentieux
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -7080,15 +7080,15 @@ Service Contentieux
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="taux_succes" fill="#7A99AC" name="Taux succès %" />
-                    <Bar dataKey="delai_moyen" fill="#FF9800" name="Délai (jours)" />
+                    <Bar dataKey="taux_succes" fill="#737373" name="Taux succès %" />
+                    <Bar dataKey="delai_moyen" fill="#f59e0b" name="Délai (jours)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Flux entre processus */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">
                   Flux mensuel Amiable → Contentieux
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -7104,16 +7104,16 @@ Service Contentieux
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="transferts" stroke="#FF5722" name="Transferts vers contentieux" />
-                    <Line type="monotone" dataKey="retours" stroke="#4CAF50" name="Retours en amiable" />
+                    <Line type="monotone" dataKey="transferts" stroke="#ef4444" name="Transferts vers contentieux" />
+                    <Line type="monotone" dataKey="retours" stroke="#22c55e" name="Retours en amiable" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Statistiques par type de procédure */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Performance par Type de Procédure</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Performance par Type de Procédure</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -7172,9 +7172,9 @@ Service Contentieux
         return (
           <div className="space-y-6">
             {/* Sélecteur de phase */}
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#191919]">Workflow Complet Module Recouvrement</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Workflow Complet Module Recouvrement</h3>
                 <select
                   value={activeWorkflowPhase}
                   onChange={(e) => setActiveWorkflowPhase(e.target.value)}
@@ -7190,7 +7190,7 @@ Service Contentieux
             </div>
 
             {/* Visualisation du workflow */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
               <div className="relative">
                 {/* Phase 1: Amiable */}
                 <div className={`mb-8 ${activeWorkflowPhase !== 'all' && activeWorkflowPhase !== 'amiable' ? 'opacity-30' : ''}`}>
@@ -7199,7 +7199,7 @@ Service Contentieux
                       <span className="text-blue-600 font-bold">1</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-[#191919] mb-2">Phase 1: Recouvrement Amiable (J+0 à J+90)</h4>
+                      <h4 className="font-semibold text-[#171717] mb-2">Phase 1: Recouvrement Amiable (J+0 à J+90)</h4>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                         <div className="flex items-center space-x-2">
                           <CheckCircle className="w-4 h-4 text-green-500" />
@@ -7239,7 +7239,7 @@ Service Contentieux
                       <span className="text-orange-600 font-bold">2</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-[#191919] mb-2">Phase 2: Transfert vers Contentieux (J+91)</h4>
+                      <h4 className="font-semibold text-[#171717] mb-2">Phase 2: Transfert vers Contentieux (J+91)</h4>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                         <div className="flex items-center space-x-2">
                           <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -7274,7 +7274,7 @@ Service Contentieux
                       <span className="text-red-600 font-bold">3</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-[#191919] mb-2">Phase 3: Procédure Contentieuse (J+91 à J+X)</h4>
+                      <h4 className="font-semibold text-[#171717] mb-2">Phase 3: Procédure Contentieuse (J+91 à J+X)</h4>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                         <div className="flex items-center space-x-2">
                           <Scale className="w-4 h-4 text-red-500" />
@@ -7313,7 +7313,7 @@ Service Contentieux
                       <span className="text-green-600 font-bold">4</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-[#191919] mb-2">Phase 4: Exécution et Clôture</h4>
+                      <h4 className="font-semibold text-[#171717] mb-2">Phase 4: Exécution et Clôture</h4>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                         <div className="flex items-center space-x-2">
                           <FileSignature className="w-4 h-4 text-green-500" />
@@ -7362,30 +7362,30 @@ Service Contentieux
           <div className="space-y-6">
             {/* Budget global */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Budget Total Contentieux</p>
-                    <p className="text-lg font-bold text-[#191919]">15M FCFA</p>
+                    <p className="text-sm text-[#525252]">Budget Total Contentieux</p>
+                    <p className="text-lg font-bold text-[#171717]">15M FCFA</p>
                     <p className="text-xs text-gray-600">Année 2024</p>
                   </div>
                   <Wallet className="w-8 h-8 text-blue-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Dépenses Engagées</p>
+                    <p className="text-sm text-[#525252]">Dépenses Engagées</p>
                     <p className="text-lg font-bold text-orange-600">8.7M FCFA</p>
                     <p className="text-xs text-gray-600">58% du budget</p>
                   </div>
                   <CreditCard className="w-8 h-8 text-orange-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Montants Recouvrés</p>
+                    <p className="text-sm text-[#525252]">Montants Recouvrés</p>
                     <p className="text-lg font-bold text-green-600">27.8M FCFA</p>
                     <p className="text-xs text-green-600">ROI: 3.2x</p>
                   </div>
@@ -7395,8 +7395,8 @@ Service Contentieux
             </div>
 
             {/* Détail des coûts par type */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition des Coûts</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition des Coûts</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                   <ResponsiveContainer width="100%" height={300}>
@@ -7413,7 +7413,7 @@ Service Contentieux
                         cx="50%"
                         cy="50%"
                         outerRadius={100}
-                        fill="#8884d8"
+                        fill="#737373"
                         label
                       >
                         {[0,1,2,3,4].map((index) => (
@@ -7457,8 +7457,8 @@ Service Contentieux
             </div>
 
             {/* Analyse coût/bénéfice par dossier */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Analyse Coût/Bénéfice par Dossier</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Analyse Coût/Bénéfice par Dossier</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -7504,38 +7504,38 @@ Service Contentieux
           <div className="space-y-6">
             {/* Statistiques exécution */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Jugements à exécuter</p>
-                    <p className="text-lg font-bold text-[#191919]">8</p>
+                    <p className="text-sm text-[#525252]">Jugements à exécuter</p>
+                    <p className="text-lg font-bold text-[#171717]">8</p>
                   </div>
                   <Gavel className="w-8 h-8 text-purple-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Saisies en cours</p>
+                    <p className="text-sm text-[#525252]">Saisies en cours</p>
                     <p className="text-lg font-bold text-orange-600">5</p>
                   </div>
                   <Lock className="w-8 h-8 text-orange-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Montants saisis</p>
+                    <p className="text-sm text-[#525252]">Montants saisis</p>
                     <p className="text-lg font-bold text-green-600">12.3M</p>
                   </div>
                   <Coins className="w-8 h-8 text-green-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Taux d'exécution</p>
-                    <p className="text-lg font-bold text-[#191919]">62%</p>
+                    <p className="text-sm text-[#525252]">Taux d'exécution</p>
+                    <p className="text-lg font-bold text-[#171717]">62%</p>
                   </div>
                   <CheckSquare className="w-8 h-8 text-blue-600" />
                 </div>
@@ -7543,8 +7543,8 @@ Service Contentieux
             </div>
 
             {/* Liste des exécutions */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Dossiers en Exécution</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Dossiers en Exécution</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -7594,8 +7594,8 @@ Service Contentieux
             </div>
 
             {/* Types de mesures d'exécution */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Mesures d'Exécution Disponibles</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Mesures d'Exécution Disponibles</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <h4 className="font-semibold text-blue-900 mb-2">Saisie-attribution</h4>
@@ -7633,15 +7633,15 @@ Service Contentieux
         return (
           <div className="space-y-6">
             {/* KPIs consolidés */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Indicateurs de Performance - Vue Consolidée</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Indicateurs de Performance - Vue Consolidée</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-bold text-[#191919]">82%</p>
+                  <p className="text-lg font-bold text-[#171717]">82%</p>
                   <p className="text-sm text-gray-600 mt-1">Taux succès amiable</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-bold text-[#191919]">67%</p>
+                  <p className="text-lg font-bold text-[#171717]">67%</p>
                   <p className="text-sm text-gray-600 mt-1">Taux succès contentieux</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
@@ -7649,15 +7649,15 @@ Service Contentieux
                   <p className="text-sm text-gray-600 mt-1">ROI global</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <p className="text-lg font-bold text-[#191919]">45j</p>
+                  <p className="text-lg font-bold text-[#171717]">45j</p>
                   <p className="text-sm text-gray-600 mt-1">Délai moyen amiable</p>
                 </div>
               </div>
             </div>
 
             {/* Évolution temporelle */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution des Performances</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution des Performances</h3>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={[
                   { mois: 'Août', amiable: 78, contentieux: 62, roi: 2.8 },
@@ -7673,16 +7673,16 @@ Service Contentieux
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="amiable" stroke="#4CAF50" name="Taux succès amiable %" />
-                  <Line yAxisId="left" type="monotone" dataKey="contentieux" stroke="#FF5722" name="Taux succès contentieux %" />
-                  <Line yAxisId="right" type="monotone" dataKey="roi" stroke="#2196F3" name="ROI (x)" strokeWidth={2} />
+                  <Line yAxisId="left" type="monotone" dataKey="amiable" stroke="#22c55e" name="Taux succès amiable %" />
+                  <Line yAxisId="left" type="monotone" dataKey="contentieux" stroke="#ef4444" name="Taux succès contentieux %" />
+                  <Line yAxisId="right" type="monotone" dataKey="roi" stroke="#3b82f6" name="ROI (x)" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {/* Analyse prédictive */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Analyse Prédictive</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Analyse Prédictive</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h4 className="font-semibold text-blue-900 mb-3">Prévisions Q1 2024</h4>
@@ -7714,15 +7714,15 @@ Service Contentieux
             </div>
 
             {/* Actions de reporting */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Rapports Disponibles</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Rapports Disponibles</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button
                   onClick={() => setShowRapportMensuelModal(true)}
                   className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-blue-400"
                 >
                   <FileText className="w-6 h-6 text-blue-600 mb-2" />
-                  <h4 className="font-semibold text-[#191919]">Rapport mensuel consolidé</h4>
+                  <h4 className="font-semibold text-[#171717]">Rapport mensuel consolidé</h4>
                   <p className="text-sm text-gray-600 mt-1">Amiable + Contentieux</p>
                 </button>
                 <button
@@ -7730,7 +7730,7 @@ Service Contentieux
                   className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-green-400"
                 >
                   <BarChart3 className="w-6 h-6 text-green-600 mb-2" />
-                  <h4 className="font-semibold text-[#191919]">Analyse ROI détaillée</h4>
+                  <h4 className="font-semibold text-[#171717]">Analyse ROI détaillée</h4>
                   <p className="text-sm text-gray-600 mt-1">Par phase et procédure</p>
                 </button>
                 <button
@@ -7738,7 +7738,7 @@ Service Contentieux
                   className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-orange-400"
                 >
                   <Users className="w-6 h-6 text-orange-600 mb-2" />
-                  <h4 className="font-semibold text-[#191919]">Performance équipes</h4>
+                  <h4 className="font-semibold text-[#171717]">Performance équipes</h4>
                   <p className="text-sm text-gray-600 mt-1">Agents et gestionnaires</p>
                 </button>
                 <button
@@ -7746,7 +7746,7 @@ Service Contentieux
                   className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-purple-400"
                 >
                   <TrendingUp className="w-6 h-6 text-purple-600 mb-2" />
-                  <h4 className="font-semibold text-[#191919]">Prévisions trésorerie</h4>
+                  <h4 className="font-semibold text-[#171717]">Prévisions trésorerie</h4>
                   <p className="text-sm text-gray-600 mt-1">3-6 mois glissants</p>
                 </button>
                 <button
@@ -7754,7 +7754,7 @@ Service Contentieux
                   className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-red-400"
                 >
                   <AlertTriangle className="w-6 h-6 text-red-600 mb-2" />
-                  <h4 className="font-semibold text-[#191919]">Dossiers à risque</h4>
+                  <h4 className="font-semibold text-[#171717]">Dossiers à risque</h4>
                   <p className="text-sm text-gray-600 mt-1">Alertes et escalades</p>
                 </button>
                 <button
@@ -7762,7 +7762,7 @@ Service Contentieux
                   className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-gray-500"
                 >
                   <Download className="w-6 h-6 text-gray-600 mb-2" />
-                  <h4 className="font-semibold text-[#191919]">Export personnalisé</h4>
+                  <h4 className="font-semibold text-[#171717]">Export personnalisé</h4>
                   <p className="text-sm text-gray-600 mt-1">Excel / PDF / CSV</p>
                 </button>
               </div>
@@ -7777,38 +7777,38 @@ Service Contentieux
           <div className="space-y-6">
             {/* En-tête avec statistiques */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Dossiers actifs</p>
-                    <p className="text-lg font-bold text-[#191919]">12</p>
+                    <p className="text-sm text-[#525252]">Dossiers actifs</p>
+                    <p className="text-lg font-bold text-[#171717]">12</p>
                   </div>
                   <Scale className="w-8 h-8 text-orange-600" />
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+              <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#666666]">Montant en contentieux</p>
-                    <p className="text-lg font-bold text-[#191919]">28.4M</p>
+                    <p className="text-sm text-[#525252]">Montant en contentieux</p>
+                    <p className="text-lg font-bold text-[#171717]">28.4M</p>
                   </div>
                   <DollarSign className="w-8 h-8 text-red-600" />
                 </div>
               </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Taux de succès</p>
+                  <p className="text-sm text-[#525252]">Taux de succès</p>
                   <p className="text-lg font-bold text-green-600">67%</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Audiences ce mois</p>
-                  <p className="text-lg font-bold text-[#191919]">8</p>
+                  <p className="text-sm text-[#525252]">Audiences ce mois</p>
+                  <p className="text-lg font-bold text-[#171717]">8</p>
                 </div>
                 <Calendar className="w-8 h-8 text-blue-600" />
               </div>
@@ -7816,7 +7816,7 @@ Service Contentieux
           </div>
 
           {/* Filtres et actions */}
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex flex-wrap gap-2">
                 <select
@@ -7846,7 +7846,7 @@ Service Contentieux
           </div>
 
           {/* Tableau des dossiers contentieux */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -7882,18 +7882,18 @@ Service Contentieux
                     <tr key={dossier.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <span className="text-sm font-medium text-[#191919]">{dossier.numeroRef}</span>
+                          <span className="text-sm font-medium text-[#171717]">{dossier.numeroRef}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-[#191919]">{dossier.client}</div>
+                          <div className="text-sm font-medium text-[#171717]">{dossier.client}</div>
                           <div className="text-xs text-gray-700">Origine: {dossier.origineAmiable}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-semibold text-[#191919]">
+                          <div className="text-sm font-semibold text-[#171717]">
                             {formatCurrency(dossier.montantTotal)}
                           </div>
                           <div className="text-xs text-gray-700">
@@ -7907,16 +7907,16 @@ Service Contentieux
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-[#191919]">
+                        <span className="text-sm text-[#171717]">
                           {dossier.typeProcedure.replace('_', ' ')}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-[#191919]">{dossier.avocat}</span>
+                        <span className="text-sm text-[#171717]">{dossier.avocat}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm text-[#191919]">{dossier.prochaineEcheance}</div>
+                          <div className="text-sm text-[#171717]">{dossier.prochaineEcheance}</div>
                           <div className={`text-xs font-medium ${getUrgenceIndicator(dossier.joursRestants)}`}>
                             Dans {dossier.joursRestants} jours
                           </div>
@@ -7979,7 +7979,7 @@ Service Contentieux
         return (
           <div className="space-y-6">
           {/* Header détail */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex items-center space-x-4 mb-2">
@@ -7992,7 +7992,7 @@ Service Contentieux
                   >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
-                  <h2 className="text-lg font-bold text-[#191919]">
+                  <h2 className="text-lg font-bold text-[#171717]">
                     Dossier Contentieux {selectedContentieux.numeroRef}
                   </h2>
                 </div>
@@ -8022,8 +8022,8 @@ Service Contentieux
             {/* Informations principales */}
             <div className="lg:col-span-2 space-y-6">
               {/* Timeline de la procédure */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Timeline de la procédure</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Timeline de la procédure</h3>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -8031,7 +8031,7 @@ Service Contentieux
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
-                        <span className="font-medium text-[#191919]">Transfert en contentieux</span>
+                        <span className="font-medium text-[#171717]">Transfert en contentieux</span>
                         <span className="text-sm text-gray-700">15/01/2024</span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">{selectedContentieux.motifTransfert}</p>
@@ -8043,7 +8043,7 @@ Service Contentieux
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
-                        <span className="font-medium text-[#191919]">Constitution du dossier</span>
+                        <span className="font-medium text-[#171717]">Constitution du dossier</span>
                         <span className="text-sm text-gray-700">16/01/2024</span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">Dossier complet transmis à {selectedContentieux.avocat}</p>
@@ -8055,7 +8055,7 @@ Service Contentieux
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
-                        <span className="font-medium text-[#191919]">Mise en demeure envoyée</span>
+                        <span className="font-medium text-[#171717]">Mise en demeure envoyée</span>
                         <span className="text-sm text-gray-700">18/01/2024</span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">En attente de réponse du débiteur</p>
@@ -8076,14 +8076,14 @@ Service Contentieux
               </div>
 
               {/* Documents du dossier */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Documents juridiques</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Documents juridiques</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <FileText className="w-5 h-5 text-gray-700" />
                       <div>
-                        <span className="text-sm font-medium text-[#191919]">Factures impayées.pdf</span>
+                        <span className="text-sm font-medium text-[#171717]">Factures impayées.pdf</span>
                         <span className="text-xs text-gray-700 ml-2">2.4 MB</span>
                       </div>
                     </div>
@@ -8095,7 +8095,7 @@ Service Contentieux
                     <div className="flex items-center space-x-3">
                       <FileText className="w-5 h-5 text-gray-700" />
                       <div>
-                        <span className="text-sm font-medium text-[#191919]">Contrat client.pdf</span>
+                        <span className="text-sm font-medium text-[#171717]">Contrat client.pdf</span>
                         <span className="text-xs text-gray-700 ml-2">1.2 MB</span>
                       </div>
                     </div>
@@ -8107,7 +8107,7 @@ Service Contentieux
                     <div className="flex items-center space-x-3">
                       <FileText className="w-5 h-5 text-gray-700" />
                       <div>
-                        <span className="text-sm font-medium text-[#191919]">Mise en demeure.pdf</span>
+                        <span className="text-sm font-medium text-[#171717]">Mise en demeure.pdf</span>
                         <span className="text-xs text-gray-700 ml-2">450 KB</span>
                       </div>
                     </div>
@@ -8123,8 +8123,8 @@ Service Contentieux
               </div>
 
               {/* Actions disponibles */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Actions de procédure</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Actions de procédure</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setShowAssignationModal(true)}
@@ -8157,31 +8157,31 @@ Service Contentieux
             {/* Sidebar avec informations complémentaires */}
             <div className="space-y-6">
               {/* Détails financiers */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Détails financiers</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Détails financiers</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Montant principal</span>
-                    <span className="text-sm font-semibold text-[#191919]">
+                    <span className="text-sm font-semibold text-[#171717]">
                       {formatCurrency(selectedContentieux.montantPrincipal)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Intérêts de retard</span>
-                    <span className="text-sm font-semibold text-[#191919]">
+                    <span className="text-sm font-semibold text-[#171717]">
                       {formatCurrency(selectedContentieux.interetsRetard)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Frais de procédure</span>
-                    <span className="text-sm font-semibold text-[#191919]">
+                    <span className="text-sm font-semibold text-[#171717]">
                       {formatCurrency(selectedContentieux.fraisProcedure)}
                     </span>
                   </div>
                   <hr />
                   <div className="flex justify-between">
                     <span className="text-sm font-semibold text-gray-700">Total à recouvrer</span>
-                    <span className="text-lg font-bold text-[#191919]">
+                    <span className="text-lg font-bold text-[#171717]">
                       {formatCurrency(selectedContentieux.montantTotal)}
                     </span>
                   </div>
@@ -8189,13 +8189,13 @@ Service Contentieux
               </div>
 
               {/* Informations avocat */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Avocat en charge</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Avocat en charge</h3>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <UserCircle className="w-10 h-10 text-gray-700" />
                     <div>
-                      <p className="font-semibold text-[#191919]">{selectedContentieux.avocat}</p>
+                      <p className="font-semibold text-[#171717]">{selectedContentieux.avocat}</p>
                       <p className="text-sm text-gray-600">Cabinet KONE & Associés</p>
                     </div>
                   </div>
@@ -8218,13 +8218,13 @@ Service Contentieux
               </div>
 
               {/* Prochaines échéances */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Prochaines échéances</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Prochaines échéances</h3>
                 <div className="space-y-3">
                   <div className="p-3 bg-red-50 rounded-lg border border-red-200">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-medium text-[#191919]">Délai de réponse mise en demeure</p>
+                        <p className="font-medium text-[#171717]">Délai de réponse mise en demeure</p>
                         <p className="text-sm text-gray-600 mt-1">01/02/2024</p>
                       </div>
                       <span className="text-xs font-semibold text-red-600">8 jours</span>
@@ -8233,7 +8233,7 @@ Service Contentieux
                   <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-medium text-[#191919]">Audience tribunal commerce</p>
+                        <p className="font-medium text-[#171717]">Audience tribunal commerce</p>
                         <p className="text-sm text-gray-600 mt-1">15/02/2024</p>
                       </div>
                       <span className="text-xs font-semibold text-yellow-600">22 jours</span>
@@ -8243,8 +8243,8 @@ Service Contentieux
               </div>
 
               {/* Actions rapides */}
-              <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Actions rapides</h3>
+              <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Actions rapides</h3>
                 <div className="space-y-2">
                   <button
                     onClick={() => setShowRetourAmiableModal(true)}
@@ -8274,20 +8274,20 @@ Service Contentieux
 
   };
 
-  const COLORS = ['#7A99AC', '#6A89AC', '#5A79AC', '#4A69AC', '#3A59AC'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/tiers')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Tiers</span>
+              <ArrowLeft className="w-4 h-4 text-[#404040]" />
+              <span className="text-sm font-semibold text-[#404040]">Tiers</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -8295,14 +8295,14 @@ Service Contentieux
                 <DollarSign className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#191919]">{t('thirdParty.collection')}</h1>
-                <p className="text-sm text-[#666666]">Gestion des créances et processus de recouvrement</p>
+                <h1 className="text-lg font-bold text-[#171717]">{t('thirdParty.collection')}</h1>
+                <p className="text-sm text-[#525252]">Gestion des créances et processus de recouvrement</p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#737373] text-white rounded-lg hover:bg-[#525252] transition-colors" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -8325,8 +8325,8 @@ Service Contentieux
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#7A99AC] shadow-sm'
-                  : 'text-[#666666] hover:text-[#444444]'
+                  ? 'bg-white text-[#737373] shadow-sm'
+                  : 'text-[#525252] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -8341,44 +8341,44 @@ Service Contentieux
         <div className="space-y-6">
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Créances Totales</p>
-                  <p className="text-lg font-bold text-[#191919]">
+                  <p className="text-sm text-[#525252]">Créances Totales</p>
+                  <p className="text-lg font-bold text-[#171717]">
                     {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
                   </p>
                 </div>
                 <DollarSign className="w-8 h-8 text-red-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Montant Recouvré</p>
-                  <p className="text-lg font-bold text-[#191919]">
+                  <p className="text-sm text-[#525252]">Montant Recouvré</p>
+                  <p className="text-lg font-bold text-[#171717]">
                     {formatCurrency(analyticsData.statistiques.montantRecouvre)}
                   </p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Taux Recouvrement</p>
-                  <p className="text-lg font-bold text-[#191919]">
+                  <p className="text-sm text-[#525252]">Taux Recouvrement</p>
+                  <p className="text-lg font-bold text-[#171717]">
                     {analyticsData.statistiques.tauxRecouvrement}%
                   </p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-[#6A8A82]" />
+                <TrendingUp className="w-8 h-8 text-[#171717]" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Délai Moyen</p>
-                  <p className="text-lg font-bold text-[#191919]">
+                  <p className="text-sm text-[#525252]">Délai Moyen</p>
+                  <p className="text-lg font-bold text-[#171717]">
                     {analyticsData.statistiques.delaiMoyenRecouvrement}j
                   </p>
                 </div>
@@ -8388,7 +8388,7 @@ Service Contentieux
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
                 <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
@@ -8397,14 +8397,14 @@ Service Contentieux
                   placeholder="Rechercher par nom ou code client..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC] focus:border-transparent"
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373] focus:border-transparent"
                 />
               </div>
 
               <select
                 value={filterStatut}
                 onChange={(e) => setFilterStatut(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
               >
                 {statutOptions.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -8414,7 +8414,7 @@ Service Contentieux
               <select
                 value={filterNiveau}
                 onChange={(e) => setFilterNiveau(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC]"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373]"
               >
                 {niveauOptions.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -8428,7 +8428,7 @@ Service Contentieux
           </div>
 
           {/* Créances Table */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
             {selectedFactures.size > 0 && (
               <div className="px-6 py-4 bg-blue-50 border-b border-blue-200">
                 <div className="flex items-center justify-between">
@@ -8559,7 +8559,7 @@ Service Contentieux
                         <div className="flex items-center space-x-2 justify-end">
                           <button
                             onClick={() => setSelectedCreance(creance)}
-                            className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80 relative"
+                            className="p-1 text-[#171717] hover:text-[#171717]/80 relative"
                             title="Voir détails"
                           >
                             <Eye className="w-4 h-4" />
@@ -8596,7 +8596,7 @@ Service Contentieux
                             )}
                           </button>
                           <button
-                            className="p-1 text-[#B87333] hover:text-[#B87333]/80 relative"
+                            className="p-1 text-[#525252] hover:text-[#525252]/80 relative"
                             title={creance.crmData?.contactPrincipal?.email ?
                               `Email à ${creance.crmData.contactPrincipal.nom}` : 'Email'}
                             onClick={() => {
@@ -8693,7 +8693,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919]">
+                <h2 className="text-lg font-bold text-[#171717]">
                   Détail Créance - {selectedCreance.clientNom}
                 </h2>
                 <button
@@ -8710,30 +8710,30 @@ Service Contentieux
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Informations client */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-[#191919]">Informations Client</h3>
+                    <h3 className="text-lg font-semibold text-[#171717]">Informations Client</h3>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Nom</label>
-                        <p className="text-[#191919]">{selectedCreance.clientNom}</p>
+                        <p className="text-[#171717]">{selectedCreance.clientNom}</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Code</label>
-                        <p className="text-[#191919]">{selectedCreance.clientCode}</p>
+                        <p className="text-[#171717]">{selectedCreance.clientCode}</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Assigné à</label>
-                        <p className="text-[#191919]">{selectedCreance.assigneA}</p>
+                        <p className="text-[#171717]">{selectedCreance.assigneA}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Informations créance */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-[#191919]">Informations Créance</h3>
+                    <h3 className="text-lg font-semibold text-[#171717]">Informations Créance</h3>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Montant total</label>
-                        <p className="text-[#191919] font-semibold">{formatCurrency(selectedCreance.montantTotal)}</p>
+                        <p className="text-[#171717] font-semibold">{formatCurrency(selectedCreance.montantTotal)}</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Jours de retard</label>
@@ -8756,7 +8756,7 @@ Service Contentieux
                   {/* Données CRM enrichies */}
                   {selectedCreance.crmData && (
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-[#191919] flex items-center">
+                      <h3 className="text-lg font-semibold text-[#171717] flex items-center">
                         <Users className="w-5 h-5 mr-2 text-blue-600" />
                         Profil CRM
                       </h3>
@@ -8807,7 +8807,7 @@ Service Contentieux
                   {/* Données commerciales */}
                   {selectedCreance.commercialData && (
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-[#191919] flex items-center">
+                      <h3 className="text-lg font-semibold text-[#171717] flex items-center">
                         <ShoppingCart className="w-5 h-5 mr-2 text-purple-600" />
                         Données Commerciales
                       </h3>
@@ -8843,7 +8843,7 @@ Service Contentieux
 
               {/* Factures */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Factures</h3>
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Factures</h3>
                 <div className="bg-gray-50 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gray-100">
@@ -8876,21 +8876,21 @@ Service Contentieux
 
               {/* Historique des relances */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[#191919] mb-4">Historique des Relances</h3>
+                <h3 className="text-lg font-semibold text-[#171717] mb-4">Historique des Relances</h3>
                 <div className="space-y-3">
                   {selectedCreance.relances.map((relance: CollectionAction) => {
                     const IconComponent = getActionIcon(relance.type);
                     return (
                       <div key={relance.id} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-full flex items-center justify-center">
-                          <IconComponent className="w-5 h-5 text-[#6A8A82]" />
+                        <div className="w-10 h-10 bg-[#171717]/10 rounded-full flex items-center justify-center">
+                          <IconComponent className="w-5 h-5 text-[#171717]" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-[#191919]">{relance.description}</h4>
-                            <span className="text-sm text-[#666666]">{formatDate(relance.date)}</span>
+                            <h4 className="font-medium text-[#171717]">{relance.description}</h4>
+                            <span className="text-sm text-[#525252]">{formatDate(relance.date)}</span>
                           </div>
-                          <p className="text-sm text-[#666666] mt-1">
+                          <p className="text-sm text-[#525252] mt-1">
                             <strong>Moyen:</strong> {relance.moyenCommunication} •
                             <strong> Responsable:</strong> {relance.responsable}
                           </p>
@@ -8909,9 +8909,9 @@ Service Contentieux
               {/* Commentaires */}
               {selectedCreance.commentaires && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Commentaires</h3>
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Commentaires</h3>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-[#191919]">{selectedCreance.commentaires}</p>
+                    <p className="text-[#171717]">{selectedCreance.commentaires}</p>
                   </div>
                 </div>
               )}
@@ -8965,8 +8965,8 @@ Service Contentieux
           </div>
 
           {/* Sous-onglets */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
-            <div className="border-b border-[#E8E8E8]">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+            <div className="border-b border-[#e5e5e5]">
               <div className="flex">
                 <button
                   onClick={() => setActiveRelanceSubTab('historique')}
@@ -8994,9 +8994,9 @@ Service Contentieux
             {/* Contenu du sous-onglet Historique */}
             {activeRelanceSubTab === 'historique' && (
               <div>
-            <div className="p-6 border-b border-[#E8E8E8]">
+            <div className="p-6 border-b border-[#e5e5e5]">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-[#191919]">Historique des Relances par Client</h2>
+                <h2 className="text-lg font-semibold text-[#171717]">Historique des Relances par Client</h2>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -9013,7 +9013,7 @@ Service Contentieux
               </div>
             </div>
 
-            <div className="divide-y divide-[#E8E8E8]">
+            <div className="divide-y divide-[#e5e5e5]">
               {[
                 {
                   client: 'SARL CONGO BUSINESS',
@@ -9081,7 +9081,7 @@ Service Contentieux
                         <ChevronRight className="w-5 h-5 text-gray-700" />
                       )}
                       <div>
-                        <h3 className="font-semibold text-[#191919]">{clientData.client}</h3>
+                        <h3 className="font-semibold text-[#171717]">{clientData.client}</h3>
                         <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
                           <span>{clientData.nombreRelances} relances</span>
                           <span>•</span>
@@ -9517,8 +9517,8 @@ Service Contentieux
                           <div className="bg-white border border-gray-300 rounded-lg h-[500px] overflow-hidden">
                             <div style={{ fontFamily: 'Arial, sans-serif', lineHeight: '1.6', height: '100%', overflowY: 'auto' }}>
                               {/* En-tête email */}
-                              <div style={{ backgroundColor: '#f8f9fa', padding: '20px' }}>
-                                <div style={{ backgroundColor: '#007bff', height: '4px', margin: '-20px -20px 20px -20px' }}></div>
+                              <div style={{ backgroundColor: '#fafafa', padding: '20px' }}>
+                                <div style={{ backgroundColor: '#3b82f6', height: '4px', margin: '-20px -20px 20px -20px' }}></div>
                                 <img src="/logo.png" alt="Logo" style={{ height: '40px', marginBottom: '10px' }} />
                                 <h2 style={{ color: '#333', margin: '0', fontSize: '20px' }}>
                                   {selectedTemplateType === 'rappel_amical' && 'Rappel de paiement - Facture en attente'}
@@ -9534,8 +9534,8 @@ Service Contentieux
                                 <p style={{ fontSize: '14px', color: '#333' }}>Madame, Monsieur <strong>SARL CONGO BUSINESS</strong>,</p>
 
                                 {selectedTemplateType === 'mise_demeure' && (
-                                  <div style={{ backgroundColor: '#fee', padding: '15px', borderLeft: '4px solid #dc3545', margin: '20px 0' }}>
-                                    <strong style={{ color: '#dc3545', fontSize: '16px' }}>MISE EN DEMEURE</strong>
+                                  <div style={{ backgroundColor: '#fee', padding: '15px', borderLeft: '4px solid #ef4444', margin: '20px 0' }}>
+                                    <strong style={{ color: '#ef4444', fontSize: '16px' }}>MISE EN DEMEURE</strong>
                                     <p style={{ margin: '10px 0 0 0', color: '#721c24', fontSize: '13px' }}>
                                       Ce courrier vaut mise en demeure au sens des dispositions légales en vigueur
                                     </p>
@@ -9543,48 +9543,48 @@ Service Contentieux
                                 )}
 
                                 {selectedTemplateType === 'pre_contentieux' && (
-                                  <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderLeft: '4px solid #ffc107', margin: '20px 0' }}>
+                                  <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderLeft: '4px solid #f59e0b', margin: '20px 0' }}>
                                     <strong style={{ color: '#856404', fontSize: '16px' }}>DOSSIER TRANSMIS AU CONTENTIEUX</strong>
                                   </div>
                                 )}
 
-                                <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '5px', margin: '20px 0' }}>
-                                  <h3 style={{ margin: '0 0 15px 0', color: '#495057', fontSize: '14px' }}>
+                                <div style={{ backgroundColor: '#fafafa', padding: '15px', borderRadius: '5px', margin: '20px 0' }}>
+                                  <h3 style={{ margin: '0 0 15px 0', color: '#525252', fontSize: '14px' }}>
                                     {multipleInvoices ? 'Détails des créances:' : 'Détails de la créance:'}
                                   </h3>
                                   {multipleInvoices ? (
                                     <>
                                       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px' }}>
                                         <thead>
-                                          <tr style={{ borderBottom: '1px solid #dee2e6' }}>
-                                            <th style={{ padding: '8px 0', textAlign: 'left', color: '#495057', fontSize: '12px', fontWeight: 'bold' }}>N° Facture</th>
-                                            <th style={{ padding: '8px 0', textAlign: 'right', color: '#495057', fontSize: '12px', fontWeight: 'bold' }}>Montant</th>
-                                            <th style={{ padding: '8px 0', textAlign: 'center', color: '#495057', fontSize: '12px', fontWeight: 'bold' }}>Échéance</th>
-                                            <th style={{ padding: '8px 0', textAlign: 'center', color: '#495057', fontSize: '12px', fontWeight: 'bold' }}>Retard</th>
+                                          <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
+                                            <th style={{ padding: '8px 0', textAlign: 'left', color: '#525252', fontSize: '12px', fontWeight: 'bold' }}>N° Facture</th>
+                                            <th style={{ padding: '8px 0', textAlign: 'right', color: '#525252', fontSize: '12px', fontWeight: 'bold' }}>Montant</th>
+                                            <th style={{ padding: '8px 0', textAlign: 'center', color: '#525252', fontSize: '12px', fontWeight: 'bold' }}>Échéance</th>
+                                            <th style={{ padding: '8px 0', textAlign: 'center', color: '#525252', fontSize: '12px', fontWeight: 'bold' }}>Retard</th>
                                           </tr>
                                         </thead>
                                         <tbody>
                                           <tr>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#333' }}>FAC-2024-089</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#dc3545', textAlign: 'right', fontWeight: 'bold' }}>185,000 FCFA</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'right', fontWeight: 'bold' }}>185,000 FCFA</td>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>15/12/2024</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#dc3545', textAlign: 'center' }}>37 jours</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'center' }}>37 jours</td>
                                           </tr>
                                           <tr>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#333' }}>FAC-2024-095</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#dc3545', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>20/12/2024</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#dc3545', textAlign: 'center' }}>32 jours</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'center' }}>32 jours</td>
                                           </tr>
                                           <tr>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#333' }}>FAC-2024-103</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#dc3545', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'right', fontWeight: 'bold' }}>150,000 FCFA</td>
                                             <td style={{ padding: '6px 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>28/12/2024</td>
-                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#dc3545', textAlign: 'center' }}>24 jours</td>
+                                            <td style={{ padding: '6px 0', fontSize: '12px', color: '#ef4444', textAlign: 'center' }}>24 jours</td>
                                           </tr>
                                         </tbody>
                                       </table>
-                                      <div style={{ borderTop: '2px solid #495057', paddingTop: '10px' }}>
+                                      <div style={{ borderTop: '2px solid #525252', paddingTop: '10px' }}>
                                         <table style={{ width: '100%' }}>
                                           <tbody>
                                             <tr>
@@ -9593,11 +9593,11 @@ Service Contentieux
                                             </tr>
                                             <tr>
                                               <td style={{ padding: '4px 0', color: '#666', fontSize: '13px', fontWeight: 'bold' }}>Retard moyen:</td>
-                                              <td style={{ padding: '4px 0', color: '#dc3545', fontSize: '13px', textAlign: 'right', fontWeight: 'bold' }}>31 jours</td>
+                                              <td style={{ padding: '4px 0', color: '#ef4444', fontSize: '13px', textAlign: 'right', fontWeight: 'bold' }}>31 jours</td>
                                             </tr>
                                             <tr>
                                               <td style={{ padding: '4px 0', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>MONTANT TOTAL:</td>
-                                              <td style={{ padding: '4px 0', color: '#dc3545', fontSize: '16px', textAlign: 'right', fontWeight: 'bold' }}>485,000 FCFA</td>
+                                              <td style={{ padding: '4px 0', color: '#ef4444', fontSize: '16px', textAlign: 'right', fontWeight: 'bold' }}>485,000 FCFA</td>
                                             </tr>
                                           </tbody>
                                         </table>
@@ -9612,7 +9612,7 @@ Service Contentieux
                                         </tr>
                                         <tr>
                                           <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Montant TTC:</td>
-                                          <td style={{ padding: '8px 0', fontWeight: 'bold', color: '#dc3545', fontSize: '16px' }}>485,000 FCFA</td>
+                                          <td style={{ padding: '8px 0', fontWeight: 'bold', color: '#ef4444', fontSize: '16px' }}>485,000 FCFA</td>
                                         </tr>
                                         <tr>
                                           <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Date d'émission:</td>
@@ -9624,13 +9624,13 @@ Service Contentieux
                                         </tr>
                                         <tr>
                                           <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Retard de paiement:</td>
-                                          <td style={{ padding: '8px 0', color: '#dc3545', fontSize: '14px' }}><strong>37 jours</strong></td>
+                                          <td style={{ padding: '8px 0', color: '#ef4444', fontSize: '14px' }}><strong>37 jours</strong></td>
                                         </tr>
                                         {(selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux') && (
                                           <>
                                             <tr>
-                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '13px', borderTop: '1px solid #dee2e6' }}>Intérêts de retard:</td>
-                                              <td style={{ padding: '8px 0', fontSize: '13px', borderTop: '1px solid #dee2e6' }}>12,500 FCFA</td>
+                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '13px', borderTop: '1px solid #e5e5e5' }}>Intérêts de retard:</td>
+                                              <td style={{ padding: '8px 0', fontSize: '13px', borderTop: '1px solid #e5e5e5' }}>12,500 FCFA</td>
                                             </tr>
                                             <tr>
                                               <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Frais de relance:</td>
@@ -9638,7 +9638,7 @@ Service Contentieux
                                             </tr>
                                             <tr>
                                               <td style={{ padding: '8px 0', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>TOTAL DÛ:</td>
-                                              <td style={{ padding: '8px 0', color: '#dc3545', fontSize: '18px', fontWeight: 'bold' }}>502,500 FCFA</td>
+                                              <td style={{ padding: '8px 0', color: '#ef4444', fontSize: '18px', fontWeight: 'bold' }}>502,500 FCFA</td>
                                             </tr>
                                           </>
                                         )}
@@ -9664,7 +9664,7 @@ Service Contentieux
                                   )}
                                   {selectedTemplateType === 'dernier_avis' && (
                                     <>
-                                      <p style={{ color: '#dc3545', fontWeight: 'bold' }}>Ceci constitue notre DERNIER AVIS AMIABLE.</p>
+                                      <p style={{ color: '#ef4444', fontWeight: 'bold' }}>Ceci constitue notre DERNIER AVIS AMIABLE.</p>
                                       <p>Malgré nos multiples relances (courriels, appels, courriers), la facture mentionnée ci-dessus demeure impayée.</p>
                                       <p><strong>Sans règlement intégral sous 72 heures, votre dossier sera automatiquement transmis à notre service contentieux</strong> qui engagera les procédures judiciaires appropriées.</p>
                                     </>
@@ -9684,7 +9684,7 @@ Service Contentieux
                                   )}
                                   {selectedTemplateType === 'pre_contentieux' && (
                                     <>
-                                      <p style={{ color: '#dc3545', fontWeight: 'bold' }}>Votre dossier a été transmis à notre service contentieux et à notre cabinet d'avocats.</p>
+                                      <p style={{ color: '#ef4444', fontWeight: 'bold' }}>Votre dossier a été transmis à notre service contentieux et à notre cabinet d'avocats.</p>
                                       <p>Une procédure judiciaire sera engagée sous 48 heures comprenant:</p>
                                       <ul style={{ marginLeft: '20px', color: '#333' }}>
                                         <li>Injonction de payer</li>
@@ -9704,8 +9704,8 @@ Service Contentieux
                                 {/* Call to action */}
                                 <div style={{ textAlign: 'center', margin: '30px 0' }}>
                                   <a href="#" style={{
-                                    backgroundColor: selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? '#dc3545' :
-                                                     selectedTemplateType === 'dernier_avis' ? '#fd7e14' : '#007bff',
+                                    backgroundColor: selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? '#ef4444' :
+                                                     selectedTemplateType === 'dernier_avis' ? '#f59e0b' : '#3b82f6',
                                     color: 'white',
                                     padding: '12px 30px',
                                     textDecoration: 'none',
@@ -9723,8 +9723,8 @@ Service Contentieux
 
                                 {/* Historique des relances pour les niveaux avancés */}
                                 {(selectedTemplateType === 'dernier_avis' || selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux') && (
-                                  <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '5px', margin: '20px 0' }}>
-                                    <h4 style={{ margin: '0 0 10px 0', color: '#495057', fontSize: '13px' }}>Historique des relances:</h4>
+                                  <div style={{ backgroundColor: '#fafafa', padding: '15px', borderRadius: '5px', margin: '20px 0' }}>
+                                    <h4 style={{ margin: '0 0 10px 0', color: '#525252', fontSize: '13px' }}>Historique des relances:</h4>
                                     <ul style={{ margin: '0', paddingLeft: '20px', fontSize: '12px', color: '#666' }}>
                                       <li>1er rappel: 22/12/2024 (Email)</li>
                                       <li>2ème rappel: 05/01/2025 (Email + SMS)</li>
@@ -9734,7 +9734,7 @@ Service Contentieux
                                   </div>
                                 )}
 
-                                <div style={{ borderTop: '1px solid #dee2e6', marginTop: '30px', paddingTop: '20px' }}>
+                                <div style={{ borderTop: '1px solid #e5e5e5', marginTop: '30px', paddingTop: '20px' }}>
                                   <p style={{ fontSize: '14px', color: '#333' }}>
                                     Cordialement,<br/>
                                     <strong>{selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux' ? 'Service Juridique et Contentieux' : 'Service Comptabilité'}</strong><br/>
@@ -9744,7 +9744,7 @@ Service Contentieux
                               </div>
 
                               {/* Pied de page */}
-                              <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderTop: '1px solid #dee2e6', fontSize: '11px', color: '#666' }}>
+                              <div style={{ backgroundColor: '#fafafa', padding: '20px', borderTop: '1px solid #e5e5e5', fontSize: '11px', color: '#666' }}>
                                 <p style={{ margin: '5px 0', fontWeight: 'bold' }}>Atlas Finance - Solutions de gestion d'entreprise</p>
                                 <p style={{ margin: '5px 0' }}>📍 123 Avenue de la République, Brazzaville, Congo</p>
                                 <p style={{ margin: '5px 0' }}>☎️ +242 06 XXX XX XX | ✉️ contact@atlasfinance.com | 🌐 www.atlasfinance.com</p>
@@ -9764,13 +9764,13 @@ Service Contentieux
   <meta charset="UTF-8">
   <style>
     body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; }
-    .header { background: #f8f9fa; padding: 20px; border-radius: 8px 8px 0 0; }
+    .header { background: #fafafa; padding: 20px; border-radius: 8px 8px 0 0; }
     .content { padding: 20px; background: #fff; }
-    .alert { background: #fee; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0; }
-    .info-box { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    .alert { background: #fee; padding: 15px; border-left: 4px solid #ef4444; margin: 20px 0; }
+    .info-box { background: #fafafa; padding: 15px; border-radius: 5px; margin: 20px 0; }
     .cta { text-align: center; margin: 30px 0; }
-    .btn { background: ${selectedTemplateType === 'mise_demeure' ? '#dc3545' : '#007bff'}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; }
-    .footer { background: #f8f9fa; padding: 20px; border-top: 1px solid #dee2e6; font-size: 12px; color: #666; }
+    .btn { background: ${selectedTemplateType === 'mise_demeure' ? '#ef4444' : '#3b82f6'}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; }
+    .footer { background: #fafafa; padding: 20px; border-top: 1px solid #e5e5e5; font-size: 12px; color: #666; }
   </style>
 </head>
 <body>
@@ -9784,7 +9784,7 @@ Service Contentieux
     <div class="info-box">
       <table>
         <tr><td>N° Facture:</td><td><strong>{invoice_number}</strong></td></tr>
-        <tr><td>Montant:</td><td><strong style="color: #dc3545;">{amount} FCFA</strong></td></tr>
+        <tr><td>Montant:</td><td><strong style="color: #ef4444;">{amount} FCFA</strong></td></tr>
         <tr><td>Échéance:</td><td>{due_date}</td></tr>
         <tr><td>Retard:</td><td><strong>{days_overdue} jours</strong></td></tr>
       </table>
@@ -10583,7 +10583,7 @@ Service Contentieux
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="value" fill="#8884d8" />
+                            <Bar dataKey="value" fill="#737373" />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -10617,8 +10617,8 @@ Service Contentieux
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
-                            <Line type="monotone" dataKey="receivables" stroke="#8884d8" name="Total receivables" />
-                            <Line type="monotone" dataKey="collection" stroke="#82ca9d" name="Total collection" />
+                            <Line type="monotone" dataKey="receivables" stroke="#737373" name="Total receivables" />
+                            <Line type="monotone" dataKey="collection" stroke="#22c55e" name="Total collection" />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
@@ -11587,7 +11587,7 @@ Service Contentieux
                           <XAxis dataKey="mois" />
                           <YAxis />
                           <Tooltip formatter={(value) => [`${value.toLocaleString()} FCFA`, 'Montant']} />
-                          <Area type="monotone" dataKey="montant" stroke="#10B981" fill="#10B981" fillOpacity={0.1} />
+                          <Area type="monotone" dataKey="montant" stroke="#22c55e" fill="#22c55e" fillOpacity={0.1} />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -11603,7 +11603,7 @@ Service Contentieux
                             <Pie
                               data={[
                                 { name: 'Virement bancaire', value: 5000, fill: '#3B82F6' },
-                                { name: 'Chèque', value: 8000, fill: '#10B981' },
+                                { name: 'Chèque', value: 8000, fill: '#22c55e' },
                                 { name: 'Espèces', value: 1500, fill: '#F59E0B' },
                                 { name: 'Carte bancaire', value: 0, fill: '#8B5CF6' }
                               ]}
@@ -12651,7 +12651,7 @@ Service Contentieux
                           <Tooltip />
                           <Legend />
                           <Line type="monotone" dataKey="actions" stroke="#3B82F6" name="Total Actions" strokeWidth={2} />
-                          <Line type="monotone" dataKey="reussites" stroke="#10B981" name="Actions Réussies" strokeWidth={2} />
+                          <Line type="monotone" dataKey="reussites" stroke="#22c55e" name="Actions Réussies" strokeWidth={2} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -12935,7 +12935,7 @@ Service Contentieux
 
       {/* Onglet Plans de Remboursement - Vue globale tous clients */}
       {activeTab === 'repaymentplan' && (
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
           {/* En-tête avec statistiques */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
@@ -13236,7 +13236,7 @@ Service Contentieux
                   <Tooltip />
                   <Legend />
                   <Line type="monotone" dataKey="total" stroke="#3B82F6" name="Total Plans" strokeWidth={2} />
-                  <Line type="monotone" dataKey="respectes" stroke="#10B981" name="Respectés" strokeWidth={2} />
+                  <Line type="monotone" dataKey="respectes" stroke="#22c55e" name="Respectés" strokeWidth={2} />
                   <Line type="monotone" dataKey="enRetard" stroke="#EF4444" name="En Retard" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
@@ -13546,7 +13546,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919]">
+                <h2 className="text-lg font-bold text-[#171717]">
                   Transfert vers le Contentieux
                 </h2>
                 <button
@@ -13568,23 +13568,23 @@ Service Contentieux
 
               {/* Informations du dossier */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 className="text-lg font-semibold text-[#191919] mb-3">Dossier à transférer</h3>
+                <h3 className="text-lg font-semibold text-[#171717] mb-3">Dossier à transférer</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700">Référence</label>
-                    <p className="text-[#191919] font-semibold">{selectedTransferDossier.numeroRef}</p>
+                    <p className="text-[#171717] font-semibold">{selectedTransferDossier.numeroRef}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">Client</label>
-                    <p className="text-[#191919]">{selectedTransferDossier.client}</p>
+                    <p className="text-[#171717]">{selectedTransferDossier.client}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">Montant Total</label>
-                    <p className="text-[#191919] font-semibold">{formatCurrency(selectedTransferDossier.montantTotal)}</p>
+                    <p className="text-[#171717] font-semibold">{formatCurrency(selectedTransferDossier.montantTotal)}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">Responsable actuel</label>
-                    <p className="text-[#191919]">{selectedTransferDossier.responsable}</p>
+                    <p className="text-[#171717]">{selectedTransferDossier.responsable}</p>
                   </div>
                 </div>
               </div>
@@ -13791,7 +13791,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#171717] flex items-center">
                   <FileText className="w-6 h-6 mr-2 text-blue-600" />
                   Rapport Mensuel Consolidé
                 </h2>
@@ -13838,7 +13838,7 @@ Service Contentieux
 
                 {/* Aperçu des sections */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-[#191919]">Sections du rapport</h3>
+                  <h3 className="font-semibold text-[#171717]">Sections du rapport</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
@@ -13912,7 +13912,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#171717] flex items-center">
                   <BarChart3 className="w-6 h-6 mr-2 text-green-600" />
                   Analyse ROI Détaillée
                 </h2>
@@ -13966,17 +13966,17 @@ Service Contentieux
                 {/* Métriques ROI */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[#191919] mb-2">ROI Global</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">ROI Global</h4>
                     <p className="text-lg font-bold text-green-600">3.2x</p>
                     <p className="text-sm text-gray-600">+15% vs période précédente</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[#191919] mb-2">Coût par €1 recouvré</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Coût par €1 recouvré</h4>
                     <p className="text-lg font-bold text-orange-600">0.31€</p>
                     <p className="text-sm text-gray-600">-8% vs objectif</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[#191919] mb-2">Break-even délai</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Break-even délai</h4>
                     <p className="text-lg font-bold text-blue-600">45j</p>
                     <p className="text-sm text-gray-600">Délai d'amortissement</p>
                   </div>
@@ -13984,7 +13984,7 @@ Service Contentieux
 
                 {/* Répartition des coûts */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-[#191919] mb-4">Répartition des Coûts par Phase</h4>
+                  <h4 className="font-semibold text-[#171717] mb-4">Répartition des Coûts par Phase</h4>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Amiable</span>
@@ -14043,7 +14043,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#171717] flex items-center">
                   <Users className="w-6 h-6 mr-2 text-orange-600" />
                   Performance des Équipes
                 </h2>
@@ -14110,19 +14110,19 @@ Service Contentieux
                 {/* Métriques d'équipe */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[#191919] mb-2">Productivité moyenne</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Productivité moyenne</h4>
                     <p className="text-lg font-bold text-orange-600">66 dossiers/mois</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[#191919] mb-2">Taux succès équipe</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Taux succès équipe</h4>
                     <p className="text-lg font-bold text-green-600">83.5%</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[#191919] mb-2">Formation requise</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Formation requise</h4>
                     <p className="text-lg font-bold text-red-600">2 agents</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[#191919] mb-2">Charge de travail</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Charge de travail</h4>
                     <p className="text-lg font-bold text-blue-600">87%</p>
                   </div>
                 </div>
@@ -14173,7 +14173,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#171717] flex items-center">
                   <TrendingUp className="w-6 h-6 mr-2 text-purple-600" />
                   Prévisions de Trésorerie
                 </h2>
@@ -14222,7 +14222,7 @@ Service Contentieux
                 {/* Prévisions consolidées */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[#191919] mb-2">Mois +1</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Mois +1</h4>
                     <p className="text-lg font-bold text-green-600">2.1M€</p>
                     <p className="text-sm text-gray-600">Encaissements prévus</p>
                     <div className="mt-2">
@@ -14233,7 +14233,7 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[#191919] mb-2">Mois +2</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Mois +2</h4>
                     <p className="text-lg font-bold text-blue-600">1.8M€</p>
                     <p className="text-sm text-gray-600">Encaissements prévus</p>
                     <div className="mt-2">
@@ -14244,7 +14244,7 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[#191919] mb-2">Mois +3</h4>
+                    <h4 className="font-semibold text-[#171717] mb-2">Mois +3</h4>
                     <p className="text-lg font-bold text-orange-600">1.5M€</p>
                     <p className="text-sm text-gray-600">Encaissements prévus</p>
                     <div className="mt-2">
@@ -14302,7 +14302,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#171717] flex items-center">
                   <AlertTriangle className="w-6 h-6 mr-2 text-red-600" />
                   Dossiers à Risque & Alertes
                 </h2>
@@ -14438,7 +14438,7 @@ Service Contentieux
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#191919] flex items-center">
+                <h2 className="text-lg font-bold text-[#171717] flex items-center">
                   <Download className="w-6 h-6 mr-2 text-gray-600" />
                   Export Personnalisé
                 </h2>
@@ -14453,7 +14453,7 @@ Service Contentieux
               <div className="space-y-6">
                 {/* Sélection du format */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-[#191919] mb-3">Format d'Export</h3>
+                  <h3 className="font-semibold text-[#171717] mb-3">Format d'Export</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100">
                       <input type="radio" name="format" value="excel" defaultChecked className="text-blue-600" />
@@ -14481,7 +14481,7 @@ Service Contentieux
 
                 {/* Sélection des données */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-[#191919] mb-3">Données à Exporter</h3>
+                  <h3 className="font-semibold text-[#171717] mb-3">Données à Exporter</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <h4 className="font-medium text-gray-700">Tables principales</h4>
@@ -14526,7 +14526,7 @@ Service Contentieux
 
                 {/* Filtres */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-[#191919] mb-3">Filtres</h3>
+                  <h3 className="font-semibold text-[#171717] mb-3">Filtres</h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Période</label>
@@ -14589,7 +14589,7 @@ Service Contentieux
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-lg font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#171717]">
                   Détail Plan de Remboursement - {selectedPlan.reference}
                 </h2>
                 <p className="text-gray-600 mt-1">Client: {selectedPlan.client}</p>
@@ -14606,7 +14606,7 @@ Service Contentieux
               {/* Informations générales */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-[#191919] mb-3">Informations du Plan</h3>
+                  <h3 className="font-semibold text-[#171717] mb-3">Informations du Plan</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Référence:</span>
@@ -14614,7 +14614,7 @@ Service Contentieux
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Montant total:</span>
-                      <span className="font-medium text-[#6A8A82]">{selectedPlan.montantTotal.toLocaleString()} FCFA</span>
+                      <span className="font-medium text-[#171717]">{selectedPlan.montantTotal.toLocaleString()} FCFA</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Mensualité:</span>
@@ -14628,7 +14628,7 @@ Service Contentieux
                 </div>
 
                 <div className="bg-green-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-[#191919] mb-3">Progression</h3>
+                  <h3 className="font-semibold text-[#171717] mb-3">Progression</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Échéances payées:</span>
@@ -14653,7 +14653,7 @@ Service Contentieux
               {/* Échéancier */}
               <div className="bg-white border border-gray-200 rounded-lg">
                 <div className="px-4 py-3 border-b border-gray-200">
-                  <h3 className="font-semibold text-[#191919]">Échéancier</h3>
+                  <h3 className="font-semibold text-[#171717]">Échéancier</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -14736,7 +14736,7 @@ Service Contentieux
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-lg font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#171717]">
                   Enregistrer un Paiement
                 </h2>
                 <p className="text-gray-600 mt-1">Plan: {selectedPlan.reference} - {selectedPlan.client}</p>
@@ -14752,7 +14752,7 @@ Service Contentieux
             <div className="p-6 space-y-6">
               {/* Informations du plan */}
               <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="font-semibold text-[#191919] mb-3">Informations du Plan</h3>
+                <h3 className="font-semibold text-[#171717] mb-3">Informations du Plan</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Montant total:</span>
@@ -14885,7 +14885,7 @@ Service Contentieux
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-lg font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#171717]">
                   Relance Plan de Remboursement
                 </h2>
                 <p className="text-gray-600 mt-1">Plan: {selectedPlan.reference} - {selectedPlan.client}</p>
@@ -14901,7 +14901,7 @@ Service Contentieux
             <div className="p-6 space-y-6">
               {/* Situation actuelle */}
               <div className="bg-orange-50 rounded-lg p-4">
-                <h3 className="font-semibold text-[#191919] mb-3">Situation du Plan</h3>
+                <h3 className="font-semibold text-[#171717] mb-3">Situation du Plan</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Statut actuel:</span>
@@ -15039,7 +15039,7 @@ L'équipe recouvrement`}
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
-                <h2 className="text-lg font-semibold text-[#191919]">
+                <h2 className="text-lg font-semibold text-[#171717]">
                   Nouvelle Action de Recouvrement
                 </h2>
                 {selectedCreance && (

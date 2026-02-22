@@ -5,6 +5,7 @@
 import { db } from '../../../lib/db';
 import type { DBThirdParty, DBJournalEntry } from '../../../lib/db';
 import { ClientDetail, Facture, Paiement } from '../types/client.types';
+import { Money } from '@/utils/money';
 
 class ClientService {
   /**
@@ -43,7 +44,7 @@ class ClientService {
 
       if (clientLine) {
         const montantTTC = clientLine.debit || clientLine.credit;
-        const montantTVA = Math.round(montantTTC * 0.1925 * 100) / 100; // ~19.25% reverse TVA
+        const montantTVA = new Money(montantTTC).multiply(0.1925).round().toNumber(); // ~19.25% reverse TVA
         const montantHT = montantTTC - montantTVA;
 
         factures.push({

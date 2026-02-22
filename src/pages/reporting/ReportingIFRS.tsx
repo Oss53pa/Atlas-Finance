@@ -236,8 +236,8 @@ const ReportingIFRS: React.FC = () => {
     switch (status) {
       case 'approved': return 'text-green-600 bg-green-50';
       case 'review': return 'text-yellow-600 bg-yellow-50';
-      case 'draft': return 'text-[#6A8A82] bg-[#6A8A82]/5';
-      case 'published': return 'text-[#B87333] bg-[#B87333]/5';
+      case 'draft': return 'text-[#171717] bg-[#171717]/5';
+      case 'published': return 'text-[#525252] bg-[#525252]/5';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -273,7 +273,7 @@ const ReportingIFRS: React.FC = () => {
   const chartData = [
     { label: 'Approuvés', value: aggregatedData.approvedReports, color: 'bg-green-500' },
     { label: 'En révision', value: aggregatedData.reviewReports, color: 'bg-yellow-500' },
-    { label: 'Brouillons', value: aggregatedData.draftReports, color: 'bg-[#6A8A82]' }
+    { label: 'Brouillons', value: aggregatedData.draftReports, color: 'bg-[#171717]' }
   ];
 
   return (
@@ -356,8 +356,8 @@ const ReportingIFRS: React.FC = () => {
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     viewMode === mode
-                      ? 'bg-[#6A8A82] text-white shadow-md'
-                      : 'text-neutral-600 hover:text-[#6A8A82]'
+                      ? 'bg-[#171717] text-white shadow-md'
+                      : 'text-neutral-600 hover:text-[#171717]'
                   }`}
                 >
                   {mode === 'reports' ? 'Rapports' :
@@ -371,7 +371,7 @@ const ReportingIFRS: React.FC = () => {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
               >
                 <option value="2024">2024</option>
                 <option value="2023">2023</option>
@@ -416,14 +416,14 @@ const ReportingIFRS: React.FC = () => {
                       placeholder="Rechercher..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                     />
                   </div>
 
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Tous les statuts</option>
                     <option value="draft">{t('accounting.draft')}</option>
@@ -435,7 +435,7 @@ const ReportingIFRS: React.FC = () => {
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Tous les types</option>
                     <option value="balance_sheet">Bilan</option>
@@ -448,7 +448,7 @@ const ReportingIFRS: React.FC = () => {
                   <select
                     value={filterPeriod}
                     onChange={(e) => setFilterPeriod(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Toutes les périodes</option>
                     <option value="2024-Q3">2024-Q3</option>
@@ -478,8 +478,8 @@ const ReportingIFRS: React.FC = () => {
                       <div className="space-y-4">
                         <div className="flex justify-between items-start">
                           <div className="flex items-start space-x-4">
-                            <div className="p-3 bg-[#6A8A82]/10 rounded-lg">
-                              <FileText className="h-6 w-6 text-[#6A8A82]" />
+                            <div className="p-3 bg-[#171717]/10 rounded-lg">
+                              <FileText className="h-6 w-6 text-[#171717]" />
                             </div>
                             <div className="space-y-2">
                               <h4 className="font-semibold text-neutral-800 text-lg">{report.title}</h4>
@@ -496,7 +496,7 @@ const ReportingIFRS: React.FC = () => {
                                 {report.standards.map(standard => (
                                   <span
                                     key={standard}
-                                    className="px-2 py-1 text-xs font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]"
+                                    className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]"
                                   >
                                     {standard}
                                   </span>
@@ -522,7 +522,7 @@ const ReportingIFRS: React.FC = () => {
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setReportModal({ isOpen: true, mode: 'view', report })}
-                                className="p-2 text-neutral-400 hover:text-[#6A8A82] transition-colors"
+                                className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -594,7 +594,7 @@ const ReportingIFRS: React.FC = () => {
                           <p className="text-sm text-neutral-500 mt-1">{standard.notes}</p>
                         </td>
                         <td className="py-4 px-4 text-center">
-                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
                             {standard.category === 'measurement' ? 'Évaluation' :
                              standard.category === 'presentation' ? 'Présentation' :
                              standard.category === 'disclosure' ? 'Information' : 'Consolidation'}
@@ -655,8 +655,8 @@ const ReportingIFRS: React.FC = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-[#6A8A82]/10 rounded-lg">
-                            <Building className="h-5 w-5 text-[#6A8A82]" />
+                          <div className="p-2 bg-[#171717]/10 rounded-lg">
+                            <Building className="h-5 w-5 text-[#171717]" />
                           </div>
                           <div>
                             <h4 className="font-semibold text-neutral-800">{entity.name}</h4>
@@ -766,7 +766,7 @@ const ReportingIFRS: React.FC = () => {
                           {reportModal.report.standards.map(standard => (
                             <span
                               key={standard}
-                              className="px-2 py-1 text-xs font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]"
+                              className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]"
                             >
                               {standard}
                             </span>

@@ -13,6 +13,7 @@ import { ChatbotProvider } from './components/layout/ChatbotProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FeatureErrorBoundary from './components/FeatureErrorBoundary';
 import RBACGuard from './components/auth/RBACGuard';
+import { DataProvider } from './contexts/DataContext';
 import './styles/globals.css';
 
 // Pages publiques
@@ -180,6 +181,7 @@ const LoadingFallback = () => <div className="flex items-center justify-center m
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <DataProvider>
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
@@ -399,6 +401,7 @@ function App() {
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
+      </DataProvider>
     </QueryClientProvider>
   );
 }

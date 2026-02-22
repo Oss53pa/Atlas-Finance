@@ -17,6 +17,7 @@ import {
   FileText,
   Clock
 } from 'lucide-react';
+import { Money } from '@/utils/money';
 
 interface Ratio {
   id: string;
@@ -99,7 +100,7 @@ const RatiosFinanciersPage: React.FC = () => {
       const resultatNet = ca - charges;
       const resultatExploitation = sumC('7') - sumD('6');
 
-      const safe = (num: number, den: number) => den !== 0 ? Math.round((num / den) * 1000) / 10 : 0;
+      const safe = (num: number, den: number) => den !== 0 ? new Money(num).divide(den).multiply(100).round(1).toNumber() : 0;
 
       const computedCategories: RatioCategory[] = [
         {
@@ -131,7 +132,7 @@ const RatiosFinanciersPage: React.FC = () => {
           ratios: [
             {
               id: 'liquidite_generale', name: 'Liquidité Générale',
-              value: passifCirculant !== 0 ? Math.round((actifCirculant / passifCirculant) * 100) / 100 : 0,
+              value: passifCirculant !== 0 ? new Money(actifCirculant).divide(passifCirculant).round().toNumber() : 0,
               benchmark: 1.5, trend: 'stable' as const, category: 'liquidite',
               interpretation: actifCirculant > passifCirculant * 1.5 ? 'Excellente liquidité' : 'Liquidité suffisante',
               formula: 'Actif Circulant / Passif Circulant',
@@ -141,7 +142,7 @@ const RatiosFinanciersPage: React.FC = () => {
             },
             {
               id: 'liquidite_reduite', name: 'Liquidité Réduite',
-              value: passifCirculant !== 0 ? Math.round(((creancesClients + tresorerie) / passifCirculant) * 100) / 100 : 0,
+              value: passifCirculant !== 0 ? new Money(creancesClients + tresorerie).divide(passifCirculant).round().toNumber() : 0,
               benchmark: 1.0, trend: 'stable' as const, category: 'liquidite',
               interpretation: 'Capacité de paiement',
               formula: '(Créances + Trésorerie) / Passif Circulant',
@@ -156,7 +157,7 @@ const RatiosFinanciersPage: React.FC = () => {
           ratios: [
             {
               id: 'rotation_stocks', name: 'Rotation des Stocks',
-              value: stocks !== 0 ? Math.round((charges / stocks) * 10) / 10 : 0,
+              value: stocks !== 0 ? new Money(charges).divide(stocks).round(1).toNumber() : 0,
               benchmark: 6, trend: 'stable' as const, category: 'activite',
               interpretation: 'Rotation des stocks', formula: 'CAMV / Stock Moyen',
               formula_detail: 'Coût Achat Marchandises Vendues / Stock Moyen',
@@ -165,7 +166,7 @@ const RatiosFinanciersPage: React.FC = () => {
             },
             {
               id: 'dso', name: 'DSO (jours)',
-              value: ca !== 0 ? Math.round((creancesClients / ca) * 360) : 0,
+              value: ca !== 0 ? new Money(creancesClients).divide(ca).multiply(360).round(0).toNumber() : 0,
               benchmark: 60, trend: 'stable' as const, category: 'activite',
               interpretation: ca !== 0 && (creancesClients / ca) * 360 < 60 ? 'Délai client acceptable' : 'Délai client élevé',
               formula: 'Créances Clients x 360 / CA TTC',
@@ -223,7 +224,7 @@ const RatiosFinanciersPage: React.FC = () => {
       total: totalRatios,
       syscohada_required: syscohadaRatios,
       compliant: compliantRatios,
-      compliance_rate: Math.round((compliantRatios / syscohadaRatios) * 100)
+      compliance_rate: new Money(compliantRatios).divide(syscohadaRatios).multiply(100).round(0).toNumber()
     };
   };
   

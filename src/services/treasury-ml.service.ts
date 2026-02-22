@@ -52,9 +52,9 @@ class TreasuryMLService {
         date.setDate(date.getDate() + i);
         predictions.push({
           forecast_date: date.toISOString().split('T')[0],
-          predicted_balance: 50000000 + Math.random() * 10000000,
-          confidence_lower: 45000000,
-          confidence_upper: 55000000
+          predicted_balance: 0, // TODO: wire to ML prediction model
+          confidence_lower: 0,
+          confidence_upper: 0
         });
       }
       return {

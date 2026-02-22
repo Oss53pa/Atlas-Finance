@@ -7,6 +7,7 @@ import {
   ArrowUpRight, ArrowDownRight, Sparkles, Bot, Lightbulb
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { formatCurrency } from '@/utils/formatters';
 import { LineChart as RechartsLineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 
 interface Prediction {
@@ -202,7 +203,7 @@ const AIInsights: React.FC = () => {
     switch (severity) {
       case 'critical': return 'bg-red-50 border-red-200';
       case 'warning': return 'bg-amber-50 border-amber-200';
-      case 'info': return 'bg-[#F0F5F4] border-[#D1DDD9]';
+      case 'info': return 'bg-[#f5f5f5] border-[#e5e5e5]';
       default: return 'bg-gray-50 border-gray-200';
     }
   };
@@ -217,7 +218,7 @@ const AIInsights: React.FC = () => {
   const renderPredictionsTab = () => (
     <div className="space-y-6">
       {/* AI Performance Overview */}
-      <div className="bg-gradient-to-r from-[#6A8A82] to-[#B87333] text-white rounded-lg p-6">
+      <div className="bg-gradient-to-r from-[#171717] to-[#525252] text-white rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
           <Brain className="w-8 h-8" />
           <div>
@@ -262,14 +263,14 @@ const AIInsights: React.FC = () => {
                 <h3 className="font-semibold text-gray-900">{prediction.title}</h3>
                 <p className="text-sm text-gray-900 mt-1">{prediction.description}</p>
               </div>
-              <Bot className="w-5 h-5 text-[#6A8A82]" />
+              <Bot className="w-5 h-5 text-[#171717]" />
             </div>
 
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
                 <span className="text-lg font-bold text-gray-900">
                   {prediction.type === 'revenue' || prediction.type === 'cashflow'
-                    ? `${prediction.value.toLocaleString()} DH`
+                    ? `${formatCurrency(prediction.value)}`
                     : `${prediction.value} unités`}
                 </span>
                 <span className="text-sm text-gray-600">{prediction.timeframe}</span>
@@ -287,7 +288,7 @@ const AIInsights: React.FC = () => {
                 <div
                   className={cn(
                     "h-2 rounded-full",
-                    prediction.confidence >= 80 ? "bg-[#10B981]" :
+                    prediction.confidence >= 80 ? "bg-[#22c55e]" :
                     prediction.confidence >= 60 ? "bg-[#F59E0B]" : "bg-[#EF4444]"
                   )}
                   style={{ width: `${prediction.confidence}%` }}
@@ -306,10 +307,10 @@ const AIInsights: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-[#6A8A82]/10 rounded-lg">
+            <div className="p-3 bg-[#171717]/10 rounded-lg">
               <div className="flex items-start gap-2">
-                <Lightbulb className="w-4 h-4 text-[#6A8A82] mt-0.5" />
-                <p className="text-sm text-[#6A8A82]">{prediction.recommendation}</p>
+                <Lightbulb className="w-4 h-4 text-[#171717] mt-0.5" />
+                <p className="text-sm text-[#171717]">{prediction.recommendation}</p>
               </div>
             </div>
           </div>
@@ -323,19 +324,19 @@ const AIInsights: React.FC = () => {
           <AreaChart data={forecastData}>
             <defs>
               <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6A8A82" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#6A8A82" stopOpacity={0.1} />
+                <stop offset="5%" stopColor="#171717" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#171717" stopOpacity={0.1} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-            <XAxis dataKey="date" stroke="#6B7280" />
-            <YAxis stroke="#6B7280" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+            <XAxis dataKey="date" stroke="#737373" />
+            <YAxis stroke="#737373" />
             <Tooltip />
             <Legend />
             <Area type="monotone" dataKey="upper" stroke="transparent" fill="#E0E7FF" name="Limite supérieure" />
             <Area type="monotone" dataKey="lower" stroke="transparent" fill="#FFFFFF" name="Limite inférieure" />
-            <Line type="monotone" dataKey="actual" stroke="#10B981" strokeWidth={2} dot={false} name="Réel" />
-            <Line type="monotone" dataKey="predicted" stroke="#6A8A82" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Prédiction" />
+            <Line type="monotone" dataKey="actual" stroke="#22c55e" strokeWidth={2} dot={false} name="Réel" />
+            <Line type="monotone" dataKey="predicted" stroke="#171717" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Prédiction" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -404,10 +405,10 @@ const AIInsights: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-[#10B981]" />}
+                    {insight.category === 'opportunity' && <TrendingUp className="w-5 h-5 text-[#22c55e]" />}
                     {insight.category === 'risk' && <AlertTriangle className="w-5 h-5 text-[#EF4444]" />}
-                    {insight.category === 'optimization' && <Zap className="w-5 h-5 text-[#6A8A82]" />}
-                    {insight.category === 'trend' && <Activity className="w-5 h-5 text-[#B87333]" />}
+                    {insight.category === 'optimization' && <Zap className="w-5 h-5 text-[#171717]" />}
+                    {insight.category === 'trend' && <Activity className="w-5 h-5 text-[#525252]" />}
                     <h4 className="font-medium text-gray-900">{insight.title}</h4>
                   </div>
                   <span className={cn(
@@ -423,7 +424,7 @@ const AIInsights: React.FC = () => {
                 <p className="text-sm text-gray-900 mb-2">{insight.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-900">
-                    {insight.potentialGain > 0 ? '+' : ''}{insight.potentialGain.toLocaleString()} DH
+                    {insight.potentialGain > 0 ? '+' : ''}{formatCurrency(insight.potentialGain)}
                   </span>
                   <span className="text-xs text-gray-600">
                     Confiance: {insight.confidence}%
@@ -438,10 +439,10 @@ const AIInsights: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Recommandations Prioritaires</h2>
           <div className="space-y-4">
             {insights.filter(i => i.priority === 'urgent' || i.priority === 'high').map((insight) => (
-              <div key={`priority-${insight.id}`} className="p-4 bg-gradient-to-r from-[#6A8A82]/10 to-[#B87333]/10 rounded-lg border border-[#6A8A82]/20">
+              <div key={`priority-${insight.id}`} className="p-4 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10 rounded-lg border border-[#171717]/20">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-[#6A8A82]/20 rounded-lg">
-                    <Lightbulb className="w-5 h-5 text-[#6A8A82]" />
+                  <div className="p-2 bg-[#171717]/20 rounded-lg">
+                    <Lightbulb className="w-5 h-5 text-[#171717]" />
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 mb-1">{insight.title}</h4>
@@ -449,7 +450,7 @@ const AIInsights: React.FC = () => {
                     <div className="space-y-2">
                       {insight.actionableSteps.map((step, i) => (
                         <div key={i} className="flex items-start gap-2">
-                          <ChevronRight className="w-4 h-4 text-[#6A8A82] mt-0.5" />
+                          <ChevronRight className="w-4 h-4 text-[#171717] mt-0.5" />
                           <span className="text-sm text-gray-900">{step}</span>
                         </div>
                       ))}
@@ -471,11 +472,11 @@ const AIInsights: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Score de Performance IA</h2>
           <ResponsiveContainer width="100%" height={350}>
             <RadarChart data={scoringData}>
-              <PolarGrid stroke="#E5E7EB" />
-              <PolarAngleAxis dataKey="metric" stroke="#6B7280" />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#6B7280" />
-              <Radar name="Votre Score" dataKey="score" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.6} />
-              <Radar name="Benchmark" dataKey="benchmark" stroke="#10B981" fill="#10B981" fillOpacity={0.3} />
+              <PolarGrid stroke="#e5e5e5" />
+              <PolarAngleAxis dataKey="metric" stroke="#737373" />
+              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#737373" />
+              <Radar name="Votre Score" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
+              <Radar name="Benchmark" dataKey="benchmark" stroke="#22c55e" fill="#22c55e" fillOpacity={0.3} />
               <Legend />
               <Tooltip />
             </RadarChart>
@@ -486,14 +487,14 @@ const AIInsights: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Analyse de Corrélations</h2>
           <ResponsiveContainer width="100%" height={350}>
             <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="x" name="Ventes" unit="k€" stroke="#6B7280" />
-              <YAxis dataKey="y" name="Marge" unit="%" stroke="#6B7280" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+              <XAxis dataKey="x" name="Ventes" unit="k€" stroke="#737373" />
+              <YAxis dataKey="y" name="Marge" unit="%" stroke="#737373" />
               <Tooltip cursor={{ strokeDasharray: '3 3' }} />
               <Legend />
-              <Scatter name="Produits A" data={correlationData.filter(d => d.category === 'A')} fill="#6A8A82" />
-              <Scatter name="Produits B" data={correlationData.filter(d => d.category === 'B')} fill="#10B981" />
-              <Scatter name="Produits C" data={correlationData.filter(d => d.category === 'C')} fill="#B87333" />
+              <Scatter name="Produits A" data={correlationData.filter(d => d.category === 'A')} fill="#171717" />
+              <Scatter name="Produits B" data={correlationData.filter(d => d.category === 'B')} fill="#22c55e" />
+              <Scatter name="Produits C" data={correlationData.filter(d => d.category === 'C')} fill="#525252" />
             </ScatterChart>
           </ResponsiveContainer>
         </div>
@@ -502,30 +503,30 @@ const AIInsights: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Métriques de Performance Détaillées</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div className="text-center p-4 bg-gradient-to-br from-[#6A8A82]/10 to-[#6A8A82]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[#6A8A82]/20 rounded-lg flex items-center justify-center mb-2">
-              <Target className="w-6 h-6 text-[#6A8A82]" />
+          <div className="text-center p-4 bg-gradient-to-br from-[#171717]/10 to-[#171717]/5 rounded-lg">
+            <div className="w-12 h-12 mx-auto bg-[#171717]/20 rounded-lg flex items-center justify-center mb-2">
+              <Target className="w-6 h-6 text-[#171717]" />
             </div>
             <div className="text-lg font-bold text-gray-900">94.2%</div>
             <div className="text-sm text-gray-900">Précision Prédictions</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-green-100 to-green-50 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[#D1FAE5] rounded-lg flex items-center justify-center mb-2">
-              <CheckCircle className="w-6 h-6 text-[#10B981]" />
+              <CheckCircle className="w-6 h-6 text-[#22c55e]" />
             </div>
             <div className="text-lg font-bold text-gray-900">98.1%</div>
             <div className="text-sm text-gray-900">Disponibilité Système</div>
           </div>
-          <div className="text-center p-4 bg-gradient-to-br from-[#B87333]/10 to-[#B87333]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[#B87333]/20 rounded-lg flex items-center justify-center mb-2">
-              <Clock className="w-6 h-6 text-[#B87333]" />
+          <div className="text-center p-4 bg-gradient-to-br from-[#525252]/10 to-[#525252]/5 rounded-lg">
+            <div className="w-12 h-12 mx-auto bg-[#525252]/20 rounded-lg flex items-center justify-center mb-2">
+              <Clock className="w-6 h-6 text-[#525252]" />
             </div>
             <div className="text-lg font-bold text-gray-900">1.2s</div>
             <div className="text-sm text-gray-900">Temps de Réponse</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[#D1DDD9] rounded-lg flex items-center justify-center mb-2">
-              <Activity className="w-6 h-6 text-[#78998F]" />
+            <div className="w-12 h-12 mx-auto bg-[#e5e5e5] rounded-lg flex items-center justify-center mb-2">
+              <Activity className="w-6 h-6 text-[#737373]" />
             </div>
             <div className="text-lg font-bold text-gray-900">24/7</div>
             <div className="text-sm text-gray-900">Surveillance Active</div>
@@ -571,7 +572,7 @@ const AIInsights: React.FC = () => {
           <select
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
           >
             <option value="revenue_forecast">Prévision CA</option>
             <option value="demand_forecast">Prévision Demande</option>
@@ -582,7 +583,7 @@ const AIInsights: React.FC = () => {
           <select
             value={timeHorizon}
             onChange={(e) => setTimeHorizon(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
           >
             <option value="1month">1 mois</option>
             <option value="3months">3 mois</option>
@@ -600,7 +601,7 @@ const AIInsights: React.FC = () => {
             <RefreshCw className="w-5 h-5" />
           </button>
 
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">
             <Download className="w-4 h-4" />
             Rapport IA
           </button>
@@ -620,7 +621,7 @@ const AIInsights: React.FC = () => {
                   className={cn(
                     "flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors",
                     activeTab === tab.id
-                      ? "border-[#6A8A82] text-[#6A8A82]"
+                      ? "border-[#171717] text-[#171717]"
                       : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-400"
                   )}
                 >

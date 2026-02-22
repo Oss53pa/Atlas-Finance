@@ -233,8 +233,8 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 w-80 overflow-hidden">
             {/* Header */}
             <div className={`px-3 py-2 ${
-              popup.type === 'task' ? 'bg-gradient-to-r from-[#6A8A82] to-[#5A7A72]' :
-              popup.type === 'alert' ? 'bg-gradient-to-r from-[#B87333] to-[#A86323]' :
+              popup.type === 'task' ? 'bg-gradient-to-r from-[#171717] to-[#262626]' :
+              popup.type === 'alert' ? 'bg-gradient-to-r from-[#525252] to-[#404040]' :
               popup.type === 'success' ? 'bg-green-600' :
               'bg-gray-600'
             } text-white`}>
@@ -305,7 +305,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                       onTaskClick(popup.taskDetails!.taskId);
                       handlePopupDismiss(popup.id);
                     }}
-                    className="flex-1 px-3 py-1.5 bg-[#6A8A82] text-white rounded text-xs font-medium hover:bg-[#5A7A72] transition-colors"
+                    className="flex-1 px-3 py-1.5 bg-[#171717] text-white rounded text-xs font-medium hover:bg-[#262626] transition-colors"
                   >
                     Voir la tâche
                   </button>

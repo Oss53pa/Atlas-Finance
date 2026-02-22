@@ -305,9 +305,9 @@ export const FundCallGraph: React.FC<FundCallGraphProps> = ({
   current_arrears = 0
 }) => {
   const chartData = [
-    { label: 'Arriérés\nPrécédents', value: previous_arrears, color: '#dc3545' },
-    { label: 'Dépenses\nCritiques', value: critical_expense, color: '#ffc107' },
-    { label: 'Arriérés\nActuels', value: current_arrears, color: '#0d6efd' }
+    { label: 'Arriérés\nPrécédents', value: previous_arrears, color: '#ef4444' },
+    { label: 'Dépenses\nCritiques', value: critical_expense, color: '#f59e0b' },
+    { label: 'Arriérés\nActuels', value: current_arrears, color: '#3b82f6' }
   ];
 
   return (

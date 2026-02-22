@@ -483,31 +483,31 @@ const FournisseurDetailView: React.FC = () => {
     );
   };
 
-  const COLORS = ['#6A8A82', '#B87333', '#5A6B65', '#9B6B2A'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   // Render Synthese Tab
   const renderSyntheseTab = () => (
     <div className="space-y-6">
       {/* KPIs Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">Volume Achats</p>
-              <p className="text-lg font-bold text-[#191919]">{formatCurrency(fournisseurDetail.financier.volumeAchatsAnnuel)}</p>
+              <p className="text-sm text-[#525252]">Volume Achats</p>
+              <p className="text-lg font-bold text-[#171717]">{formatCurrency(fournisseurDetail.financier.volumeAchatsAnnuel)}</p>
               <p className="text-xs text-green-600">+{fournisseurDetail.analyses.achats.evolutionVolume}% vs N-1</p>
             </div>
-            <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-[#6A8A82]" />
+            <div className="w-10 h-10 bg-[#171717]/10 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-[#171717]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">Encours Fournisseur</p>
-              <p className="text-lg font-bold text-[#191919]">{formatCurrency(fournisseurDetail.financier.encoursActuel)}</p>
+              <p className="text-sm text-[#525252]">Encours Fournisseur</p>
+              <p className="text-lg font-bold text-[#171717]">{formatCurrency(fournisseurDetail.financier.encoursActuel)}</p>
               <p className="text-xs text-orange-600">DPO: {fournisseurDetail.financier.dpo} jours</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -516,24 +516,24 @@ const FournisseurDetailView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">Score Performance</p>
-              <p className="text-lg font-bold text-[#191919]">{fournisseurDetail.analyses.performance.tauxServiceLevel}%</p>
-              <p className="text-xs text-[#B87333]">Qualité: {fournisseurDetail.analyses.performance.qualiteProduits}%</p>
+              <p className="text-sm text-[#525252]">Score Performance</p>
+              <p className="text-lg font-bold text-[#171717]">{fournisseurDetail.analyses.performance.tauxServiceLevel}%</p>
+              <p className="text-xs text-[#525252]">Qualité: {fournisseurDetail.analyses.performance.qualiteProduits}%</p>
             </div>
-            <div className="w-10 h-10 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
-              <Target className="w-5 h-5 text-[#B87333]" />
+            <div className="w-10 h-10 bg-[#525252]/10 rounded-lg flex items-center justify-center">
+              <Target className="w-5 h-5 text-[#525252]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#666666]">Conformité</p>
-              <p className="text-lg font-bold text-[#191919]">{fournisseurDetail.conformite.scoreConformite}%</p>
+              <p className="text-sm text-[#525252]">Conformité</p>
+              <p className="text-lg font-bold text-[#171717]">{fournisseurDetail.conformite.scoreConformite}%</p>
               <p className="text-xs text-green-600">Toutes attestations OK</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -546,8 +546,8 @@ const FournisseurDetailView: React.FC = () => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Évolution Achats */}
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-          <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution Achats vs Budget</h3>
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+          <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution Achats vs Budget</h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={evolutionAchats}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -555,15 +555,15 @@ const FournisseurDetailView: React.FC = () => {
               <YAxis />
               <Tooltip formatter={(value) => formatCurrency(value as number)} />
               <Legend />
-              <Area type="monotone" dataKey="achats" stackId="1" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.6} name="Achats Réels" />
-              <Line type="monotone" dataKey="budget" stroke="#B87333" strokeWidth={2} strokeDasharray="5 5" name="Budget" />
+              <Area type="monotone" dataKey="achats" stackId="1" stroke="#171717" fill="#171717" fillOpacity={0.6} name="Achats Réels" />
+              <Line type="monotone" dataKey="budget" stroke="#525252" strokeWidth={2} strokeDasharray="5 5" name="Budget" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
         {/* Répartition des Dépenses */}
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-          <h3 className="text-lg font-semibold text-[#191919] mb-4">Répartition des Dépenses</h3>
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+          <h3 className="text-lg font-semibold text-[#171717] mb-4">Répartition des Dépenses</h3>
           <ResponsiveContainer width="100%" height={300}>
             <RechartsPieChart>
               <Pie
@@ -572,7 +572,7 @@ const FournisseurDetailView: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                fill="#8884d8"
+                fill="#737373"
                 label={({ categorie, pourcentage }) => `${categorie}: ${pourcentage}%`}
               >
                 {repartitionDepenses.map((entry, index) => (
@@ -586,15 +586,15 @@ const FournisseurDetailView: React.FC = () => {
       </div>
 
       {/* Informations Fournisseur */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
         <div className="space-y-4">
           {/* Informations de Base */}
-          <div className="border-b border-[#E8E8E8]">
+          <div className="border-b border-[#e5e5e5]">
             <button
               onClick={() => toggleSection('infos-base')}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50"
             >
-              <h3 className="text-lg font-semibold text-[#191919]">Informations de Base</h3>
+              <h3 className="text-lg font-semibold text-[#171717]">Informations de Base</h3>
               {expandedSections.includes('infos-base') ?
                 <ChevronDown className="w-5 h-5" /> :
                 <ChevronRight className="w-5 h-5" />
@@ -605,37 +605,37 @@ const FournisseurDetailView: React.FC = () => {
               <div className="px-4 pb-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <h4 className="font-medium text-[#191919] mb-3">Identification</h4>
+                    <h4 className="font-medium text-[#171717] mb-3">Identification</h4>
                     <div className="space-y-2 text-sm">
-                      <div><span className="text-[#666666]">Raison sociale:</span> <span className="font-medium">{fournisseurDetail.raisonSociale}</span></div>
-                      <div><span className="text-[#666666]">Nom commercial:</span> <span className="font-medium">{fournisseurDetail.nomCommercial}</span></div>
-                      <div><span className="text-[#666666]">Forme juridique:</span> <span className="font-medium">{fournisseurDetail.formeJuridique}</span></div>
-                      <div><span className="text-[#666666]">SIRET:</span> <span className="font-medium">{fournisseurDetail.siret}</span></div>
-                      <div><span className="text-[#666666]">Code APE:</span> <span className="font-medium">{fournisseurDetail.codeAPE}</span></div>
-                      <div><span className="text-[#666666]">N° TVA:</span> <span className="font-medium">{fournisseurDetail.numeroTVA}</span></div>
-                      <div><span className="text-[#666666]">Groupe:</span> <span className="font-medium">{fournisseurDetail.groupe}</span></div>
+                      <div><span className="text-[#525252]">Raison sociale:</span> <span className="font-medium">{fournisseurDetail.raisonSociale}</span></div>
+                      <div><span className="text-[#525252]">Nom commercial:</span> <span className="font-medium">{fournisseurDetail.nomCommercial}</span></div>
+                      <div><span className="text-[#525252]">Forme juridique:</span> <span className="font-medium">{fournisseurDetail.formeJuridique}</span></div>
+                      <div><span className="text-[#525252]">SIRET:</span> <span className="font-medium">{fournisseurDetail.siret}</span></div>
+                      <div><span className="text-[#525252]">Code APE:</span> <span className="font-medium">{fournisseurDetail.codeAPE}</span></div>
+                      <div><span className="text-[#525252]">N° TVA:</span> <span className="font-medium">{fournisseurDetail.numeroTVA}</span></div>
+                      <div><span className="text-[#525252]">Groupe:</span> <span className="font-medium">{fournisseurDetail.groupe}</span></div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-[#191919] mb-3">Adresse</h4>
+                    <h4 className="font-medium text-[#171717] mb-3">Adresse</h4>
                     <div className="space-y-2 text-sm">
-                      <div><span className="text-[#666666]">Rue:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.rue}</span></div>
-                      <div><span className="text-[#666666]">Ville:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.ville}</span></div>
-                      <div><span className="text-[#666666]">Code postal:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.codePostal}</span></div>
-                      <div><span className="text-[#666666]">Pays:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.pays}</span></div>
+                      <div><span className="text-[#525252]">Rue:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.rue}</span></div>
+                      <div><span className="text-[#525252]">Ville:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.ville}</span></div>
+                      <div><span className="text-[#525252]">Code postal:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.codePostal}</span></div>
+                      <div><span className="text-[#525252]">Pays:</span> <span className="font-medium">{fournisseurDetail.adresseFacturation.pays}</span></div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-[#191919] mb-3">Contacts</h4>
+                    <h4 className="font-medium text-[#171717] mb-3">Contacts</h4>
                     <div className="space-y-2 text-sm">
-                      <div><span className="text-[#666666]">Contact comptable:</span> <span className="font-medium">{fournisseurDetail.contacts.comptabilite.nom}</span></div>
-                      <div><span className="text-[#666666]">Email:</span> <span className="font-medium">{fournisseurDetail.contacts.comptabilite.email}</span></div>
-                      <div><span className="text-[#666666]">Téléphone:</span> <span className="font-medium">{fournisseurDetail.contacts.comptabilite.telephone}</span></div>
+                      <div><span className="text-[#525252]">Contact comptable:</span> <span className="font-medium">{fournisseurDetail.contacts.comptabilite.nom}</span></div>
+                      <div><span className="text-[#525252]">Email:</span> <span className="font-medium">{fournisseurDetail.contacts.comptabilite.email}</span></div>
+                      <div><span className="text-[#525252]">Téléphone:</span> <span className="font-medium">{fournisseurDetail.contacts.comptabilite.telephone}</span></div>
                       <div className="mt-2">
-                        <div><span className="text-[#666666]">Contact commercial:</span> <span className="font-medium">{fournisseurDetail.contacts.commercial.nom}</span></div>
-                        <div><span className="text-[#666666]">Fonction:</span> <span className="font-medium">{fournisseurDetail.contacts.commercial.fonction}</span></div>
+                        <div><span className="text-[#525252]">Contact commercial:</span> <span className="font-medium">{fournisseurDetail.contacts.commercial.nom}</span></div>
+                        <div><span className="text-[#525252]">Fonction:</span> <span className="font-medium">{fournisseurDetail.contacts.commercial.fonction}</span></div>
                       </div>
                     </div>
                   </div>
@@ -645,12 +645,12 @@ const FournisseurDetailView: React.FC = () => {
           </div>
 
           {/* Paramètres Comptables */}
-          <div className="border-b border-[#E8E8E8]">
+          <div className="border-b border-[#e5e5e5]">
             <button
               onClick={() => toggleSection('params-comptables')}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50"
             >
-              <h3 className="text-lg font-semibold text-[#191919]">Paramètres Comptables</h3>
+              <h3 className="text-lg font-semibold text-[#171717]">Paramètres Comptables</h3>
               {expandedSections.includes('params-comptables') ?
                 <ChevronDown className="w-5 h-5" /> :
                 <ChevronRight className="w-5 h-5" />
@@ -661,32 +661,32 @@ const FournisseurDetailView: React.FC = () => {
               <div className="px-4 pb-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <h4 className="font-medium text-[#191919] mb-3">Comptes</h4>
+                    <h4 className="font-medium text-[#171717] mb-3">Comptes</h4>
                     <div className="space-y-2 text-sm">
-                      <div><span className="text-[#666666]">Compte collectif:</span> <span className="font-medium">{fournisseurDetail.comptabilite.compteCollectif}</span></div>
-                      <div><span className="text-[#666666]">Comptes auxiliaires:</span> <span className="font-medium">{fournisseurDetail.comptabilite.comptesAuxiliaires.join(', ')}</span></div>
-                      <div><span className="text-[#666666]">Compte charges:</span> <span className="font-medium">{fournisseurDetail.comptabilite.compteCharges}</span></div>
-                      <div><span className="text-[#666666]">Journal d'achat:</span> <span className="font-medium">{fournisseurDetail.comptabilite.journalAchat}</span></div>
+                      <div><span className="text-[#525252]">Compte collectif:</span> <span className="font-medium">{fournisseurDetail.comptabilite.compteCollectif}</span></div>
+                      <div><span className="text-[#525252]">Comptes auxiliaires:</span> <span className="font-medium">{fournisseurDetail.comptabilite.comptesAuxiliaires.join(', ')}</span></div>
+                      <div><span className="text-[#525252]">Compte charges:</span> <span className="font-medium">{fournisseurDetail.comptabilite.compteCharges}</span></div>
+                      <div><span className="text-[#525252]">Journal d'achat:</span> <span className="font-medium">{fournisseurDetail.comptabilite.journalAchat}</span></div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-[#191919] mb-3">TVA</h4>
+                    <h4 className="font-medium text-[#171717] mb-3">TVA</h4>
                     <div className="space-y-2 text-sm">
-                      <div><span className="text-[#666666]">Régime TVA:</span> <span className="font-medium">{fournisseurDetail.comptabilite.regimeTVA}</span></div>
-                      <div><span className="text-[#666666]">Taux défaut:</span> <span className="font-medium">{fournisseurDetail.comptabilite.tauxTVADefaut}%</span></div>
-                      <div><span className="text-[#666666]">TVA encaissement:</span> <span className="font-medium">{fournisseurDetail.comptabilite.tvaEncaissement ? 'Oui' : 'Non'}</span></div>
-                      <div><span className="text-[#666666]">Compte TVA:</span> <span className="font-medium">{fournisseurDetail.comptabilite.compteTVA}</span></div>
+                      <div><span className="text-[#525252]">Régime TVA:</span> <span className="font-medium">{fournisseurDetail.comptabilite.regimeTVA}</span></div>
+                      <div><span className="text-[#525252]">Taux défaut:</span> <span className="font-medium">{fournisseurDetail.comptabilite.tauxTVADefaut}%</span></div>
+                      <div><span className="text-[#525252]">TVA encaissement:</span> <span className="font-medium">{fournisseurDetail.comptabilite.tvaEncaissement ? 'Oui' : 'Non'}</span></div>
+                      <div><span className="text-[#525252]">Compte TVA:</span> <span className="font-medium">{fournisseurDetail.comptabilite.compteTVA}</span></div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-[#191919] mb-3">Paiement</h4>
+                    <h4 className="font-medium text-[#171717] mb-3">Paiement</h4>
                     <div className="space-y-2 text-sm">
-                      <div><span className="text-[#666666]">Mode règlement:</span> <span className="font-medium">{fournisseurDetail.comptabilite.modeReglement}</span></div>
-                      <div><span className="text-[#666666]">Conditions:</span> <span className="font-medium">{fournisseurDetail.comptabilite.conditionsPaiement}</span></div>
-                      <div><span className="text-[#666666]">Délai:</span> <span className="font-medium">{fournisseurDetail.comptabilite.delaiPaiement} jours</span></div>
-                      <div><span className="text-[#666666]">Escompte:</span> <span className="font-medium">{fournisseurDetail.comptabilite.escompte}%</span></div>
+                      <div><span className="text-[#525252]">Mode règlement:</span> <span className="font-medium">{fournisseurDetail.comptabilite.modeReglement}</span></div>
+                      <div><span className="text-[#525252]">Conditions:</span> <span className="font-medium">{fournisseurDetail.comptabilite.conditionsPaiement}</span></div>
+                      <div><span className="text-[#525252]">Délai:</span> <span className="font-medium">{fournisseurDetail.comptabilite.delaiPaiement} jours</span></div>
+                      <div><span className="text-[#525252]">Escompte:</span> <span className="font-medium">{fournisseurDetail.comptabilite.escompte}%</span></div>
                     </div>
                   </div>
                 </div>
@@ -702,14 +702,14 @@ const FournisseurDetailView: React.FC = () => {
   const renderComptableTab = () => (
     <div className="space-y-6">
       {/* Mouvements Comptables */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
-        <div className="p-4 border-b border-[#E8E8E8]">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+        <div className="p-4 border-b border-[#e5e5e5]">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-[#191919]">Mouvements Comptables Fournisseur</h3>
+            <h3 className="text-lg font-semibold text-[#171717]">Mouvements Comptables Fournisseur</h3>
             <div className="flex space-x-2">
               <button
                 onClick={handleExportMouvements}
-                className="px-3 py-1 text-sm bg-[#6A8A82] text-white rounded hover:bg-[#6A8A82]/90"
+                className="px-3 py-1 text-sm bg-[#171717] text-white rounded hover:bg-[#171717]/90"
               >
                 Exporter
               </button>
@@ -727,19 +727,19 @@ const FournisseurDetailView: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('common.date')}</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('accounting.piece')}</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">N° Facture</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('accounting.label')}</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.debit')}</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.credit')}</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">{t('accounting.balance')}</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">{t('thirdParty.reconciliation')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">{t('common.date')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">{t('accounting.piece')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">N° Facture</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">{t('accounting.label')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[#525252]">{t('accounting.debit')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[#525252]">{t('accounting.credit')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[#525252]">{t('accounting.balance')}</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">{t('thirdParty.reconciliation')}</th>
               </tr>
             </thead>
             <tbody>
               {mouvements.map((mouvement) => (
-                <tr key={mouvement.id} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                <tr key={mouvement.id} className="border-b border-[#e5e5e5] hover:bg-gray-50">
                   <td className="p-3 text-sm">{new Date(mouvement.dateComptable).toLocaleDateString('fr-FR')}</td>
                   <td className="p-3 text-sm font-medium">{mouvement.numeroPiece}</td>
                   <td className="p-3 text-sm">{mouvement.numeroFacture || '-'}</td>
@@ -762,27 +762,27 @@ const FournisseurDetailView: React.FC = () => {
       </div>
 
       {/* Échéancier Fournisseur */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
-        <div className="p-4 border-b border-[#E8E8E8]">
-          <h3 className="text-lg font-semibold text-[#191919]">Échéancier Fournisseur</h3>
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+        <div className="p-4 border-b border-[#e5e5e5]">
+          <h3 className="text-lg font-semibold text-[#171717]">Échéancier Fournisseur</h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Facture</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Échéance</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">Montant</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">Restant</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Statut</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Escompte</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Actions</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">Facture</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">Échéance</th>
+                <th className="text-right p-3 text-sm font-medium text-[#525252]">Montant</th>
+                <th className="text-right p-3 text-sm font-medium text-[#525252]">Restant</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Statut</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Escompte</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {echeances.map((echeance) => (
-                <tr key={echeance.id} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                <tr key={echeance.id} className="border-b border-[#e5e5e5] hover:bg-gray-50">
                   <td className="p-3 text-sm font-medium">{echeance.numeroFacture}</td>
                   <td className="p-3 text-sm">{new Date(echeance.dateEcheance).toLocaleDateString('fr-FR')}</td>
                   <td className="p-3 text-sm text-right font-medium">{formatCurrency(echeance.montant)}</td>
@@ -821,74 +821,74 @@ const FournisseurDetailView: React.FC = () => {
     <div className="space-y-6">
       {/* Analyse des Dettes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-          <h3 className="text-lg font-semibold text-[#191919] mb-4">Analyse des Dettes Fournisseur</h3>
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+          <h3 className="text-lg font-semibold text-[#171717] mb-4">Analyse des Dettes Fournisseur</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-[#666666]">Dette Totale</span>
-              <span className="font-semibold text-[#191919]">{formatCurrency(fournisseurDetail.financier.encoursActuel)}</span>
+              <span className="text-[#525252]">Dette Totale</span>
+              <span className="font-semibold text-[#171717]">{formatCurrency(fournisseurDetail.financier.encoursActuel)}</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-[#666666]">Factures en Attente</span>
-              <span className="font-semibold text-[#191919]">{formatCurrency(fournisseurDetail.financier.montantFacturesAttente)}</span>
+              <span className="text-[#525252]">Factures en Attente</span>
+              <span className="font-semibold text-[#171717]">{formatCurrency(fournisseurDetail.financier.montantFacturesAttente)}</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-[#666666]">Limite de Crédit</span>
-              <span className="font-semibold text-[#191919]">{formatCurrency(fournisseurDetail.financier.limiteCredit)}</span>
+              <span className="text-[#525252]">Limite de Crédit</span>
+              <span className="font-semibold text-[#171717]">{formatCurrency(fournisseurDetail.financier.limiteCredit)}</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-[#666666]">Utilisation Crédit</span>
+              <span className="text-[#525252]">Utilisation Crédit</span>
               <div className="flex items-center space-x-2">
                 <div className="w-20 bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-[#6A8A82] h-2 rounded-full"
+                    className="bg-[#171717] h-2 rounded-full"
                     style={{width: `${(fournisseurDetail.financier.encoursActuel / fournisseurDetail.financier.limiteCredit) * 100}%`}}
                   />
                 </div>
-                <span className="text-sm text-[#666666]">
+                <span className="text-sm text-[#525252]">
                   {Math.round((fournisseurDetail.financier.encoursActuel / fournisseurDetail.financier.limiteCredit) * 100)}%
                 </span>
               </div>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-[#666666]">DPO (Days Payable Outstanding)</span>
+              <span className="text-[#525252]">DPO (Days Payable Outstanding)</span>
               <span className="font-semibold text-green-600">{fournisseurDetail.financier.dpo} jours</span>
             </div>
           </div>
         </div>
 
         {/* Analyse des Achats */}
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-          <h3 className="text-lg font-semibold text-[#191919] mb-4">Performance Achats</h3>
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+          <h3 className="text-lg font-semibold text-[#171717] mb-4">Performance Achats</h3>
           <div className="space-y-4">
             <div className="text-center">
               <ResponsiveContainer width="100%" height={200}>
                 <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: fournisseurDetail.financier.scoreRisque}]}>
-                  <RadialBar dataKey="value" cornerRadius={10} fill="#6A8A82" />
-                  <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[#191919]">
+                  <RadialBar dataKey="value" cornerRadius={10} fill="#171717" />
+                  <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[#171717]">
                     {fournisseurDetail.financier.scoreRisque}/100
                   </text>
                 </RadialBarChart>
               </ResponsiveContainer>
-              <p className="text-sm text-[#666666] mt-2">Score Fournisseur Global</p>
+              <p className="text-sm text-[#525252] mt-2">Score Fournisseur Global</p>
             </div>
 
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[#666666]">Évolution Volume</span>
+                <span className="text-[#525252]">Évolution Volume</span>
                 <span className="font-medium text-green-600">+{fournisseurDetail.analyses.achats.evolutionVolume}%</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#666666]">Part dans Achats Totaux</span>
-                <span className="font-medium text-[#191919]">{fournisseurDetail.analyses.achats.partDansAchatsTotal}%</span>
+                <span className="text-[#525252]">Part dans Achats Totaux</span>
+                <span className="font-medium text-[#171717]">{fournisseurDetail.analyses.achats.partDansAchatsTotal}%</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#666666]">Économies Réalisées</span>
+                <span className="text-[#525252]">Économies Réalisées</span>
                 <span className="font-medium text-green-600">{formatCurrency(fournisseurDetail.analyses.achats.economiesRealisees)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#666666]">Taux de Négociation</span>
-                <span className="font-medium text-[#B87333]">{fournisseurDetail.analyses.achats.tauxNegociation}%</span>
+                <span className="text-[#525252]">Taux de Négociation</span>
+                <span className="font-medium text-[#525252]">{fournisseurDetail.analyses.achats.tauxNegociation}%</span>
               </div>
             </div>
           </div>
@@ -896,8 +896,8 @@ const FournisseurDetailView: React.FC = () => {
       </div>
 
       {/* Évolution DPO */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Évolution DPO et Délais de Paiement</h3>
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Évolution DPO et Délais de Paiement</h3>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={[
             {mois: 'Jan', dpo: 42, objectif: 45},
@@ -915,8 +915,8 @@ const FournisseurDetailView: React.FC = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="dpo" stroke="#6A8A82" strokeWidth={2} name="DPO Réel" />
-            <Line type="monotone" dataKey="objectif" stroke="#B87333" strokeDasharray="5 5" name="Objectif" />
+            <Line type="monotone" dataKey="dpo" stroke="#171717" strokeWidth={2} name="DPO Réel" />
+            <Line type="monotone" dataKey="objectif" stroke="#525252" strokeDasharray="5 5" name="Objectif" />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -927,14 +927,14 @@ const FournisseurDetailView: React.FC = () => {
   const renderAchatsTab = () => (
     <div className="space-y-6">
       {/* Historique des Commandes */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-[#191919]">Historique des Commandes</h3>
+          <h3 className="text-lg font-semibold text-[#171717]">Historique des Commandes</h3>
           <div className="flex space-x-2">
-            <button className="px-3 py-1 text-sm bg-[#6A8A82] text-white rounded hover:bg-[#6A8A82]/90">
+            <button className="px-3 py-1 text-sm bg-[#171717] text-white rounded hover:bg-[#171717]/90">
               Nouvelle Commande
             </button>
-            <button className="px-3 py-1 text-sm border border-[#6A8A82] text-[#6A8A82] rounded hover:bg-[#6A8A82]/10">
+            <button className="px-3 py-1 text-sm border border-[#171717] text-[#171717] rounded hover:bg-[#171717]/10">
               Voir Tout
             </button>
           </div>
@@ -944,19 +944,19 @@ const FournisseurDetailView: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">{t('common.date')}</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">N° Commande</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">Montant HT</th>
-                <th className="text-right p-3 text-sm font-medium text-[#666666]">Montant TTC</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Réception</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Réalisation</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Statut</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Actions</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">{t('common.date')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">N° Commande</th>
+                <th className="text-right p-3 text-sm font-medium text-[#525252]">Montant HT</th>
+                <th className="text-right p-3 text-sm font-medium text-[#525252]">Montant TTC</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Réception</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Réalisation</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Statut</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {commandes.map((commande) => (
-                <tr key={commande.id} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                <tr key={commande.id} className="border-b border-[#e5e5e5] hover:bg-gray-50">
                   <td className="p-3 text-sm">{new Date(commande.date).toLocaleDateString('fr-FR')}</td>
                   <td className="p-3 text-sm font-medium">{commande.numero}</td>
                   <td className="p-3 text-sm text-right font-medium">{formatCurrency(commande.montantHT)}</td>
@@ -997,8 +997,8 @@ const FournisseurDetailView: React.FC = () => {
 
       {/* Analyse des Services/Produits */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-          <h3 className="text-lg font-semibold text-[#191919] mb-4">Top Services/Produits Achetés</h3>
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+          <h3 className="text-lg font-semibold text-[#171717] mb-4">Top Services/Produits Achetés</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={[
               {service: 'Télécom', montant: 450000, commandes: 12},
@@ -1010,18 +1010,18 @@ const FournisseurDetailView: React.FC = () => {
               <YAxis />
               <Tooltip formatter={(value, name) => name === 'montant' ? formatCurrency(value as number) : value} />
               <Legend />
-              <Bar dataKey="montant" fill="#6A8A82" name="Montant (FCFA)" />
-              <Bar dataKey="commandes" fill="#B87333" name="Nb Commandes" />
+              <Bar dataKey="montant" fill="#171717" name="Montant (FCFA)" />
+              <Bar dataKey="commandes" fill="#525252" name="Nb Commandes" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-          <h3 className="text-lg font-semibold text-[#191919] mb-4">Performance Fournisseur</h3>
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+          <h3 className="text-lg font-semibold text-[#171717] mb-4">Performance Fournisseur</h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-[#666666]">Respect Délais Livraison</span>
+                <span className="text-[#525252]">Respect Délais Livraison</span>
                 <span className="font-medium">{fournisseurDetail.analyses.performance.respectDelais}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
@@ -1034,7 +1034,7 @@ const FournisseurDetailView: React.FC = () => {
 
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-[#666666]">Qualité Produits/Services</span>
+                <span className="text-[#525252]">Qualité Produits/Services</span>
                 <span className="font-medium">{fournisseurDetail.analyses.performance.qualiteProduits}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
@@ -1047,7 +1047,7 @@ const FournisseurDetailView: React.FC = () => {
 
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-[#666666]">Conformité Commandes</span>
+                <span className="text-[#525252]">Conformité Commandes</span>
                 <span className="font-medium">{fournisseurDetail.analyses.performance.conformiteCommandes}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
@@ -1060,12 +1060,12 @@ const FournisseurDetailView: React.FC = () => {
 
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-[#666666]">Taux de Service Level</span>
+                <span className="text-[#525252]">Taux de Service Level</span>
                 <span className="font-medium">{fournisseurDetail.analyses.performance.tauxServiceLevel}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div
-                  className="bg-[#6A8A82] h-3 rounded-full"
+                  className="bg-[#171717] h-3 rounded-full"
                   style={{width: `${fournisseurDetail.analyses.performance.tauxServiceLevel}%`}}
                 />
               </div>
@@ -1080,15 +1080,15 @@ const FournisseurDetailView: React.FC = () => {
   const renderDocumentsTab = () => (
     <div className="space-y-6">
       {/* Upload et Actions */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-[#191919]">Documents Fournisseur</h3>
+          <h3 className="text-lg font-semibold text-[#171717]">Documents Fournisseur</h3>
           <div className="flex space-x-2">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90">
               <Upload className="w-4 h-4" />
               <span className="text-sm font-semibold">Ajouter Document</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 border border-[#6A8A82] text-[#6A8A82] rounded-lg hover:bg-[#6A8A82]/10">
+            <button className="flex items-center space-x-2 px-4 py-2 border border-[#171717] text-[#171717] rounded-lg hover:bg-[#171717]/10">
               <Folder className="w-4 h-4" />
               <span className="text-sm font-semibold">Créer Dossier</span>
             </button>
@@ -1117,20 +1117,20 @@ const FournisseurDetailView: React.FC = () => {
       </div>
 
       {/* Documents Récents */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Documents Récents</h3>
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Documents Récents</h3>
         <div className="space-y-3">
-          <div className="flex items-center space-x-4 p-3 border border-[#E8E8E8] rounded-lg hover:bg-gray-50">
+          <div className="flex items-center space-x-4 p-3 border border-[#e5e5e5] rounded-lg hover:bg-gray-50">
             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
               <FileText className="w-5 h-5 text-red-600" />
             </div>
             <div className="flex-1">
-              <h4 className="font-medium text-[#191919]">Contrat Cadre Services Télécom 2024.pdf</h4>
-              <p className="text-sm text-[#666666]">Ajouté le 01/01/2024 par Jean Mbarga</p>
-              <p className="text-xs text-[#666666]">Taille: 3.2 MB</p>
+              <h4 className="font-medium text-[#171717]">Contrat Cadre Services Télécom 2024.pdf</h4>
+              <p className="text-sm text-[#525252]">Ajouté le 01/01/2024 par Jean Mbarga</p>
+              <p className="text-xs text-[#525252]">Taille: 3.2 MB</p>
             </div>
             <div className="flex space-x-2">
-              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
+              <button className="p-2 text-[#171717] hover:bg-[#171717]/10 rounded" aria-label="Voir les détails">
                 <Eye className="w-4 h-4" />
               </button>
               <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
@@ -1139,17 +1139,17 @@ const FournisseurDetailView: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 p-3 border border-[#E8E8E8] rounded-lg hover:bg-gray-50">
+          <div className="flex items-center space-x-4 p-3 border border-[#e5e5e5] rounded-lg hover:bg-gray-50">
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <FileCheck className="w-5 h-5 text-green-600" />
             </div>
             <div className="flex-1">
-              <h4 className="font-medium text-[#191919]">Attestation Fiscale 2024.pdf</h4>
-              <p className="text-sm text-[#666666]">Ajouté le 15/09/2024 par Marie Ngono</p>
-              <p className="text-xs text-[#666666]">Taille: 456 KB</p>
+              <h4 className="font-medium text-[#171717]">Attestation Fiscale 2024.pdf</h4>
+              <p className="text-sm text-[#525252]">Ajouté le 15/09/2024 par Marie Ngono</p>
+              <p className="text-xs text-[#525252]">Taille: 456 KB</p>
             </div>
             <div className="flex space-x-2">
-              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
+              <button className="p-2 text-[#171717] hover:bg-[#171717]/10 rounded" aria-label="Voir les détails">
                 <Eye className="w-4 h-4" />
               </button>
               <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
@@ -1158,17 +1158,17 @@ const FournisseurDetailView: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 p-3 border border-[#E8E8E8] rounded-lg hover:bg-gray-50">
+          <div className="flex items-center space-x-4 p-3 border border-[#e5e5e5] rounded-lg hover:bg-gray-50">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-blue-600" />
             </div>
             <div className="flex-1">
-              <h4 className="font-medium text-[#191919]">Certificat ISO 9001_2024.pdf</h4>
-              <p className="text-sm text-[#666666]">Ajouté le 10/06/2024 par Paul Atangana</p>
-              <p className="text-xs text-[#666666]">Taille: 1.8 MB</p>
+              <h4 className="font-medium text-[#171717]">Certificat ISO 9001_2024.pdf</h4>
+              <p className="text-sm text-[#525252]">Ajouté le 10/06/2024 par Paul Atangana</p>
+              <p className="text-xs text-[#525252]">Taille: 1.8 MB</p>
             </div>
             <div className="flex space-x-2">
-              <button className="p-2 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded" aria-label="Voir les détails">
+              <button className="p-2 text-[#171717] hover:bg-[#171717]/10 rounded" aria-label="Voir les détails">
                 <Eye className="w-4 h-4" />
               </button>
               <button className="p-2 text-blue-600 hover:bg-blue-100 rounded" aria-label="Télécharger">
@@ -1185,19 +1185,19 @@ const FournisseurDetailView: React.FC = () => {
   const renderConformiteTab = () => (
     <div className="space-y-6">
       {/* Score de Conformité Global */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Score de Conformité Global</h3>
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Score de Conformité Global</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
             <ResponsiveContainer width="100%" height={200}>
               <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[{value: fournisseurDetail.conformite.scoreConformite}]}>
-                <RadialBar dataKey="value" cornerRadius={10} fill="#6A8A82" />
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[#191919]">
+                <RadialBar dataKey="value" cornerRadius={10} fill="#171717" />
+                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-[#171717]">
                   {fournisseurDetail.conformite.scoreConformite}%
                 </text>
               </RadialBarChart>
             </ResponsiveContainer>
-            <p className="text-sm text-[#666666] mt-2">Score Global</p>
+            <p className="text-sm text-[#525252] mt-2">Score Global</p>
           </div>
 
           <div className="col-span-2">
@@ -1212,7 +1212,7 @@ const FournisseurDetailView: React.FC = () => {
                   }
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#191919]">Attestations Fiscales</p>
+                  <p className="text-sm font-medium text-[#171717]">Attestations Fiscales</p>
                   <p className={`text-xs ${fournisseurDetail.conformite.attestationsFiscales ? 'text-green-600' : 'text-red-600'}`}>
                     {fournisseurDetail.conformite.attestationsFiscales ? 'À jour' : 'Manquantes'}
                   </p>
@@ -1229,7 +1229,7 @@ const FournisseurDetailView: React.FC = () => {
                   }
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#191919]">Attestations Sociales</p>
+                  <p className="text-sm font-medium text-[#171717]">Attestations Sociales</p>
                   <p className={`text-xs ${fournisseurDetail.conformite.attestationsSociales ? 'text-green-600' : 'text-red-600'}`}>
                     {fournisseurDetail.conformite.attestationsSociales ? 'À jour' : 'Manquantes'}
                   </p>
@@ -1246,7 +1246,7 @@ const FournisseurDetailView: React.FC = () => {
                   }
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#191919]">Assurance RC</p>
+                  <p className="text-sm font-medium text-[#171717]">Assurance RC</p>
                   <p className={`text-xs ${fournisseurDetail.conformite.assuranceRC ? 'text-green-600' : 'text-red-600'}`}>
                     {fournisseurDetail.conformite.assuranceRC ? 'Valide' : 'Expirée'}
                   </p>
@@ -1263,7 +1263,7 @@ const FournisseurDetailView: React.FC = () => {
                   }
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#191919]">Conformité RGPD</p>
+                  <p className="text-sm font-medium text-[#171717]">Conformité RGPD</p>
                   <p className={`text-xs ${fournisseurDetail.conformite.rgpdConforme ? 'text-green-600' : 'text-red-600'}`}>
                     {fournisseurDetail.conformite.rgpdConforme ? 'Conforme' : 'Non conforme'}
                   </p>
@@ -1275,25 +1275,25 @@ const FournisseurDetailView: React.FC = () => {
       </div>
 
       {/* Certifications */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Certifications</h3>
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Certifications</h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Type</th>
-                <th className="text-left p-3 text-sm font-medium text-[#666666]">Numéro</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Date Validité</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Statut</th>
-                <th className="text-center p-3 text-sm font-medium text-[#666666]">Actions</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">Type</th>
+                <th className="text-left p-3 text-sm font-medium text-[#525252]">Numéro</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Date Validité</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Statut</th>
+                <th className="text-center p-3 text-sm font-medium text-[#525252]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {fournisseurDetail.conformite.certifications.map((cert, index) => (
-                <tr key={index} className="border-b border-[#E8E8E8] hover:bg-gray-50">
+                <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
                   <td className="p-3">
                     <div className="flex items-center space-x-2">
-                      <Award className="w-4 h-4 text-[#6A8A82]" />
+                      <Award className="w-4 h-4 text-[#171717]" />
                       <span className="text-sm font-medium">{cert.type}</span>
                     </div>
                   </td>
@@ -1326,21 +1326,21 @@ const FournisseurDetailView: React.FC = () => {
       </div>
 
       {/* Audit et Évaluation */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Audit et Évaluation</h3>
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Audit et Évaluation</h3>
         <div className="space-y-4">
           <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-            <span className="text-[#666666]">Dernier Audit</span>
-            <span className="font-medium text-[#191919]">
+            <span className="text-[#525252]">Dernier Audit</span>
+            <span className="font-medium text-[#171717]">
               {fournisseurDetail.conformite.dernierAudit ? new Date(fournisseurDetail.conformite.dernierAudit).toLocaleDateString('fr-FR') : 'Aucun'}
             </span>
           </div>
           <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-            <span className="text-[#666666]">Prochain Audit Prévu</span>
+            <span className="text-[#525252]">Prochain Audit Prévu</span>
             <span className="font-medium text-orange-600">15/12/2024</span>
           </div>
           <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-            <span className="text-[#666666]">Évaluation Performance</span>
+            <span className="text-[#525252]">Évaluation Performance</span>
             <div className="flex items-center space-x-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <CheckSquare
@@ -1353,8 +1353,8 @@ const FournisseurDetailView: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-[#E8E8E8]">
-          <h4 className="font-medium text-[#191919] mb-3">Points de Vigilance</h4>
+        <div className="mt-6 pt-6 border-t border-[#e5e5e5]">
+          <h4 className="font-medium text-[#171717] mb-3">Points de Vigilance</h4>
           <div className="space-y-2">
             <div className="flex items-start space-x-2 p-2 bg-yellow-50 rounded">
               <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
@@ -1377,26 +1377,26 @@ const FournisseurDetailView: React.FC = () => {
   );
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/tiers/fournisseurs')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Liste Fournisseurs</span>
+              <ArrowLeft className="w-4 h-4 text-[#404040]" />
+              <span className="text-sm font-semibold text-[#404040]">Liste Fournisseurs</span>
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-[#6A8A82] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-[#171717] flex items-center justify-center">
                 <Building className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#191919]">{fournisseurDetail.raisonSociale}</h1>
-                <p className="text-sm text-[#666666]">Code: {fournisseurDetail.code} • {fournisseurDetail.secteurActivite}</p>
+                <h1 className="text-lg font-bold text-[#171717]">{fournisseurDetail.raisonSociale}</h1>
+                <p className="text-sm text-[#525252]">Code: {fournisseurDetail.code} • {fournisseurDetail.secteurActivite}</p>
               </div>
             </div>
           </div>
@@ -1408,9 +1408,9 @@ const FournisseurDetailView: React.FC = () => {
 
             <button
               onClick={() => setShowPeriodModal(true)}
-              className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#171717]"
             >
-              <Calendar className="w-4 h-4 text-[#666666]" />
+              <Calendar className="w-4 h-4 text-[#525252]" />
               <span>
                 {dateRange.period === 'custom'
                   ? `${dateRange.startDate} - ${dateRange.endDate}`
@@ -1428,7 +1428,7 @@ const FournisseurDetailView: React.FC = () => {
               <span className="text-sm font-semibold">{t('common.print')}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 transition-colors">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors">
               <Edit className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.edit')}</span>
             </button>
@@ -1443,8 +1443,8 @@ const FournisseurDetailView: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#6A8A82] shadow-sm'
-                  : 'text-[#666666] hover:text-[#444444]'
+                  ? 'bg-white text-[#171717] shadow-sm'
+                  : 'text-[#525252] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -1479,7 +1479,7 @@ const FournisseurDetailView: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-[#191919]">Lettrage Automatique</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Lettrage Automatique</h3>
                 <button
                   onClick={() => setShowLettrageModal(false)}
                   className="text-gray-500 hover:text-gray-700 text-xl"
@@ -1543,7 +1543,7 @@ const FournisseurDetailView: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-[#191919]">Enregistrer le Paiement</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Enregistrer le Paiement</h3>
                 <button
                   onClick={() => setShowPaymentModal(false)}
                   className="text-gray-500 hover:text-gray-700 text-xl"
@@ -1553,10 +1553,10 @@ const FournisseurDetailView: React.FC = () => {
               </div>
             </div>
             <div className="p-6 space-y-4">
-              <div className="bg-[#6A8A82]/10 p-4 rounded-lg">
-                <p className="text-sm text-[#6A8A82]">Facture</p>
-                <p className="font-semibold text-[#191919]">{selectedEcheance.numeroFacture}</p>
-                <p className="text-lg font-bold text-[#6A8A82] mt-2">
+              <div className="bg-[#171717]/10 p-4 rounded-lg">
+                <p className="text-sm text-[#171717]">Facture</p>
+                <p className="font-semibold text-[#171717]">{selectedEcheance.numeroFacture}</p>
+                <p className="text-lg font-bold text-[#171717] mt-2">
                   {selectedEcheance.montantRestant.toLocaleString('fr-FR')} XOF
                 </p>
                 <p className="text-sm text-gray-500">
@@ -1614,7 +1614,7 @@ const FournisseurDetailView: React.FC = () => {
               </button>
               <button
                 onClick={confirmPayment}
-                className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90"
+                className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
               >
                 Confirmer le paiement
               </button>

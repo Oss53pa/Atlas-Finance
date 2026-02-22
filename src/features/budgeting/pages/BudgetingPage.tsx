@@ -12,6 +12,7 @@ import { SessionsTable } from '../components/SessionsTable';
 import { MonthlyBudgetChart } from '../components/MonthlyBudgetChart';
 import { BudgetAlerts } from '../components/BudgetAlerts';
 import { DepartmentBudget, BudgetSession } from '../types/budgeting.types';
+import { formatCurrency } from '@/utils/formatters';
 
 const BudgetingPage: React.FC = () => {
   const { t } = useLanguage();
@@ -54,8 +55,8 @@ const BudgetingPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#191919]">Budget & Planification</h1>
-          <p className="text-[#767676] mt-1">
+          <h1 className="text-lg font-bold text-[#171717]">Budget & Planification</h1>
+          <p className="text-[#737373] mt-1">
             Gestion et suivi des budgets départementaux
           </p>
         </div>
@@ -78,7 +79,7 @@ const BudgetingPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-[#D9D9D9]">
+      <div className="flex gap-2 border-b border-[#d4d4d4]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -87,8 +88,8 @@ const BudgetingPage: React.FC = () => {
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-[#6A8A82] text-[#6A8A82] font-semibold'
-                  : 'border-transparent text-[#767676] hover:text-[#191919]'
+                  ? 'border-[#171717] text-[#171717] font-semibold'
+                  : 'border-transparent text-[#737373] hover:text-[#171717]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -104,8 +105,8 @@ const BudgetingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-                <h2 className="text-lg font-semibold text-[#191919] mb-4">
+              <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+                <h2 className="text-lg font-semibold text-[#171717] mb-4">
                   Budgets par Département
                 </h2>
                 <DepartmentsTable
@@ -120,8 +121,8 @@ const BudgetingPage: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-                <h2 className="text-lg font-semibold text-[#191919] mb-4">Alertes</h2>
+              <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+                <h2 className="text-lg font-semibold text-[#171717] mb-4">Alertes</h2>
                 <BudgetAlerts alerts={alerts} loading={alertsLoading} maxDisplay={5} />
               </div>
             </div>
@@ -131,8 +132,8 @@ const BudgetingPage: React.FC = () => {
 
       {activeTab === 'sessions' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
-            <h2 className="text-lg font-semibold text-[#191919] mb-4">
+          <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
+            <h2 className="text-lg font-semibold text-[#171717] mb-4">
               Sessions Budgétaires
             </h2>
             <SessionsTable sessions={sessions} loading={loading} />
@@ -142,9 +143,9 @@ const BudgetingPage: React.FC = () => {
 
       {activeTab === 'analysis' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-[#D9D9D9] p-6">
+          <div className="bg-white rounded-lg border border-[#d4d4d4] p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[#191919]">
+              <h2 className="text-lg font-semibold text-[#171717]">
                 Analyse Mensuelle {selectedYear}
               </h2>
               <div className="flex gap-2">
@@ -152,8 +153,8 @@ const BudgetingPage: React.FC = () => {
                   onClick={() => setChartType('bar')}
                   className={`px-3 py-1 rounded ${
                     chartType === 'bar'
-                      ? 'bg-[#6A8A82] text-white'
-                      : 'bg-[#F5F5F5] text-[#767676]'
+                      ? 'bg-[#171717] text-white'
+                      : 'bg-[#F5F5F5] text-[#737373]'
                   }`}
                 >
                   Barres
@@ -162,8 +163,8 @@ const BudgetingPage: React.FC = () => {
                   onClick={() => setChartType('line')}
                   className={`px-3 py-1 rounded ${
                     chartType === 'line'
-                      ? 'bg-[#6A8A82] text-white'
-                      : 'bg-[#F5F5F5] text-[#767676]'
+                      ? 'bg-[#171717] text-white'
+                      : 'bg-[#F5F5F5] text-[#737373]'
                   }`}
                 >
                   Lignes
@@ -186,7 +187,7 @@ const BudgetingPage: React.FC = () => {
         size="lg"
       >
         <ModalBody>
-          <p className="text-[#767676]">Formulaire de création de session à venir...</p>
+          <p className="text-[#737373]">Formulaire de création de session à venir...</p>
         </ModalBody>
         <ModalFooter>
           <div className="flex gap-2">
@@ -209,15 +210,15 @@ const BudgetingPage: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[#767676]">{t('navigation.budget')}</p>
-                  <p className="text-lg font-bold text-[#191919]">
-                    {selectedDepartment.budget.toLocaleString()} FCFA
+                  <p className="text-sm text-[#737373]">{t('navigation.budget')}</p>
+                  <p className="text-lg font-bold text-[#171717]">
+                    {formatCurrency(selectedDepartment.budget)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[#767676]">Réalisé</p>
-                  <p className="text-lg font-bold text-[#6A8A82]">
-                    {selectedDepartment.actual.toLocaleString()} FCFA
+                  <p className="text-sm text-[#737373]">Réalisé</p>
+                  <p className="text-lg font-bold text-[#171717]">
+                    {formatCurrency(selectedDepartment.actual)}
                   </p>
                 </div>
               </div>

@@ -635,13 +635,13 @@ class AnalyticsService {
     const colors: Record<string, string> = {
       'ACTIVITE': '#3B82F6',
       'CENTRE_COUT': '#EF4444',
-      'CENTRE_PROFIT': '#10B981',
+      'CENTRE_PROFIT': '#22c55e',
       'PROJET': '#8B5CF6',
       'PRODUIT': '#F59E0B',
       'CLIENT': '#06B6D4',
       'GEOGRAPHIE': '#EC4899',
       'RESPONSABLE': '#6366F1',
-      'AUTRE': '#6B7280',
+      'AUTRE': '#737373',
     };
     return colors[type] || colors['AUTRE'];
   }

@@ -166,10 +166,10 @@ export const radarChartOptions: ChartOptions<'radar'> = {
 
 // Couleurs du thème pour les graphiques
 export const chartColors = {
-  primary: 'rgb(106, 138, 130)',
-  primaryLight: 'rgba(106, 138, 130, 0.1)',
-  secondary: 'rgb(184, 115, 51)',
-  secondaryLight: 'rgba(184, 115, 51, 0.1)',
+  primary: 'rgb(23, 23, 23)',
+  primaryLight: 'rgba(23, 23, 23, 0.1)',
+  secondary: 'rgb(82, 82, 82)',
+  secondaryLight: 'rgba(82, 82, 82, 0.1)',
   success: 'rgb(34, 197, 94)',
   successLight: 'rgba(34, 197, 94, 0.1)',
   danger: 'rgb(239, 68, 68)',

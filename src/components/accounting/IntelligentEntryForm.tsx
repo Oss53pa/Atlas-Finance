@@ -11,6 +11,7 @@ import SearchableDropdown from '../ui/SearchableDropdown';
 import { TVAValidator, TVAValidationResult } from '../../utils/tvaValidation';
 import { validateJournalEntrySync } from '../../validators/journalEntryValidator';
 import { Money } from '@/utils/money';
+import { toast } from 'react-hot-toast';
 
 // Types
 interface JournalType {
@@ -106,7 +107,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
   const [tvaValidation, setTvaValidation] = useState<TVAValidationResult | null>(null);
 
   // Configurations par type de journal
-  const configurationsJournal = {
+  const configurationsJournal: Record<string, { label: string; comptesDefaut: Record<string, string>; champsSaisieRapide: string[]; validations: string[] }> = {
     'AC': {
       label: 'Achats',
       comptesDefaut: {
@@ -220,7 +221,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
 
   // Génération automatique des écritures
   const genererEcrituresAutomatiques = useCallback(() => {
-    const config = journalType?.code ? configurationsJournal[journalType.code] : {};
+    const config = (journalType?.code && configurationsJournal[journalType.code]) || configurationsJournal['OD'];
     const nouvelleLignes: LigneEcriture[] = [];
     
     switch (journalType?.code) {
@@ -370,7 +371,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
     ];
     
     // Filtrer selon le type de journal
-    const config = journalType?.code ? configurationsJournal[journalType.code] : {};
+    const config = (journalType?.code && configurationsJournal[journalType.code]) || configurationsJournal['OD'];
     let suggestionsFiltered = suggestionsMock;
     
     if (journalType?.code === 'AC') {
@@ -410,7 +411,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
     }
 
     // Validations spécifiques par journal
-    const config = journalType?.code ? configurationsJournal[journalType.code] : {};
+    const config = (journalType?.code && configurationsJournal[journalType.code]) || configurationsJournal['OD'];
 
     if (config.validations?.includes('piece_obligatoire') && !saisieRapide.piece) {
       erreurs.push('Numéro de pièce obligatoire');
@@ -441,8 +442,8 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
 
   // Rendu du formulaire de saisie rapide
   const renderSaisieRapide = () => {
-    const config = journalType?.code ? configurationsJournal[journalType.code] : {};
-    
+    const config = (journalType?.code && configurationsJournal[journalType.code]) || configurationsJournal['OD'];
+
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -933,7 +934,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
             onClick={() => {
               const validation = validerEcriture();
               if (!validation.valide) {
-                alert(validation.erreurs.join('\n'));
+                toast.error(validation.erreurs.join('\n'));
               }
             }}
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
@@ -948,7 +949,7 @@ const IntelligentEntryForm: React.FC<IntelligentEntryFormProps> = ({
               if (validation.valide) {
                 onSubmit(lignes);
               } else {
-                alert(validation.erreurs.join('\n'));
+                toast.error(validation.erreurs.join('\n'));
               }
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"

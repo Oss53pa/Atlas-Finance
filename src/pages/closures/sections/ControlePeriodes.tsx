@@ -265,23 +265,23 @@ const ControlePeriodes: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header avec statistiques */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8]">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5]">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-bold text-[#191919] flex items-center space-x-2">
-              <Shield className="w-6 h-6 text-[#6A8A82]" />
+            <h2 className="text-lg font-bold text-[#171717] flex items-center space-x-2">
+              <Shield className="w-6 h-6 text-[#171717]" />
               <span>Contrôle des Périodes de Clôture</span>
             </h2>
-            <p className="text-sm text-[#767676] mt-1">
+            <p className="text-sm text-[#737373] mt-1">
               Date système: {dateActuelle.toLocaleDateString('fr-FR')}
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2">
+            <button className="px-4 py-2 border border-[#e5e5e5] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2">
               <History className="w-4 h-4" />
               <span>Historique</span>
             </button>
-            <button className="px-4 py-2 border border-[#E8E8E8] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2" aria-label="Paramètres">
+            <button className="px-4 py-2 border border-[#e5e5e5] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2" aria-label="Paramètres">
               <Settings className="w-4 h-4" />
               <span>{t('navigation.settings')}</span>
             </button>
@@ -354,7 +354,7 @@ const ControlePeriodes: React.FC = () => {
                       onClick={() => setSelectedPeriode(periode.periode)}
                       className={`w-full text-left p-3 hover:bg-[var(--color-background-secondary)] border-l-4 transition-colors ${
                         selectedPeriode === periode.periode
-                          ? 'bg-[#6A8A82]/10 border-[#6A8A82]'
+                          ? 'bg-[#171717]/10 border-[#171717]'
                           : 'border-transparent'
                       }`}
                     >
@@ -374,7 +374,7 @@ const ControlePeriodes: React.FC = () => {
                         >
                           {periode.statut.replace('_', ' ')}
                         </Badge>
-                        <span className="text-xs text-[#767676]">
+                        <span className="text-xs text-[#737373]">
                           {periode.progression}%
                         </span>
                       </div>
@@ -406,24 +406,24 @@ const ControlePeriodes: React.FC = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-sm text-[#767676]">Période</p>
+                      <p className="text-sm text-[#737373]">Période</p>
                       <p className="font-medium">
                         {selectedPeriodeData.dateDebut.toLocaleDateString('fr-FR')} -
                         {selectedPeriodeData.dateFin.toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-[#767676]">Responsable</p>
+                      <p className="text-sm text-[#737373]">Responsable</p>
                       <p className="font-medium">{selectedPeriodeData.responsable}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-[#767676]">Date d'ouverture</p>
+                      <p className="text-sm text-[#737373]">Date d'ouverture</p>
                       <p className="font-medium">
                         {selectedPeriodeData.dateOuverture.toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-[#767676]">Date de clôture</p>
+                      <p className="text-sm text-[#737373]">Date de clôture</p>
                       <p className="font-medium">
                         {selectedPeriodeData.dateCloture
                           ? selectedPeriodeData.dateCloture.toLocaleDateString('fr-FR')
@@ -468,7 +468,7 @@ const ControlePeriodes: React.FC = () => {
                             <span className="text-sm">{etape.nom}</span>
                           </div>
                           {etape.dateComplete && (
-                            <span className="text-xs text-[#767676]">
+                            <span className="text-xs text-[#737373]">
                               {etape.dateComplete.toLocaleDateString('fr-FR')}
                             </span>
                           )}
@@ -483,7 +483,7 @@ const ControlePeriodes: React.FC = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Shield className="w-5 h-5 text-[#6A8A82]" />
+                    <Shield className="w-5 h-5 text-[#171717]" />
                     <span>Contrôles de Clôture</span>
                   </CardTitle>
                 </CardHeader>
@@ -523,7 +523,7 @@ const ControlePeriodes: React.FC = () => {
                           disabled={!clotureCheck.canClose}
                           className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
                             clotureCheck.canClose
-                              ? 'bg-[#6A8A82] text-white hover:bg-[#5a7a72]'
+                              ? 'bg-[#171717] text-white hover:bg-[#262626]'
                               : 'bg-[var(--color-border)] text-[var(--color-text-secondary)] cursor-not-allowed'
                           }`}
                         >
@@ -563,7 +563,7 @@ const ControlePeriodes: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <FileWarning className="w-5 h-5 text-[#767676]" />
+                <FileWarning className="w-5 h-5 text-[#737373]" />
                 <span>Règles de Clôture Actives</span>
               </CardTitle>
             </CardHeader>
@@ -590,7 +590,7 @@ const ControlePeriodes: React.FC = () => {
                       )}
                       <div>
                         <p className="font-medium text-sm">{regle.nom}</p>
-                        <p className="text-xs text-[#767676] mt-1">{regle.description}</p>
+                        <p className="text-xs text-[#737373] mt-1">{regle.description}</p>
                       </div>
                     </div>
                   </div>

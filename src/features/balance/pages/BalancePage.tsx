@@ -48,23 +48,23 @@ const BalancePage: React.FC = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Scale className="w-8 h-8 text-[#6A8A82]" />
+          <Scale className="w-8 h-8 text-[#171717]" />
           <div>
-            <h1 className="text-lg font-bold text-[#191919]">Balance Comptable</h1>
-            <p className="text-[#767676] mt-1">
+            <h1 className="text-lg font-bold text-[#171717]">Balance Comptable</h1>
+            <p className="text-[#737373] mt-1">
               Vue synthétique des comptes - Période du {filters.period.from} au {filters.period.to}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex bg-[#ECECEC] rounded-lg p-1">
+          <div className="flex bg-[#e5e5e5] rounded-lg p-1">
             <button
               onClick={() => setViewMode('tree')}
               className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'tree'
-                  ? 'bg-[#6A8A82] text-white'
-                  : 'text-[#767676] hover:bg-[#D9D9D9]'
+                  ? 'bg-[#171717] text-white'
+                  : 'text-[#737373] hover:bg-[#d4d4d4]'
               }`}
             >
               <TreePine className="w-4 h-4" />
@@ -73,8 +73,8 @@ const BalancePage: React.FC = () => {
               onClick={() => setViewMode('list')}
               className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'list'
-                  ? 'bg-[#6A8A82] text-white'
-                  : 'text-[#767676] hover:bg-[#D9D9D9]'
+                  ? 'bg-[#171717] text-white'
+                  : 'text-[#737373] hover:bg-[#d4d4d4]'
               }`}
             >
               <List className="w-4 h-4" />
@@ -100,10 +100,10 @@ const BalancePage: React.FC = () => {
         onToggleFilters={() => setShowFilters(!showFilters)}
       />
 
-      <div className="bg-white rounded-lg border border-[#D9D9D9] overflow-hidden">
+      <div className="bg-white rounded-lg border border-[#d4d4d4] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-[#6A8A82] text-white">
+            <thead className="bg-[#171717] text-white">
               <tr>
                 {visibleColumns.compte && (
                   <th className="px-4 py-3 text-left font-semibold">{t('accounting.account')}</th>
@@ -134,7 +134,7 @@ const BalancePage: React.FC = () => {
             {loading ? (
               <tbody>
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-[#767676]">
+                  <td colSpan={8} className="px-4 py-8 text-center text-[#737373]">
                     Chargement de la balance...
                   </td>
                 </tr>

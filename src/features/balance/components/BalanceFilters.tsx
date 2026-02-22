@@ -30,7 +30,7 @@ export const BalanceFilters: React.FC<BalanceFiltersProps> = ({
       </div>
 
       {showFilters && (
-        <div className="bg-white p-4 rounded-lg border border-[#D9D9D9] space-y-4">
+        <div className="bg-white p-4 rounded-lg border border-[#d4d4d4] space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               label="Date de début"

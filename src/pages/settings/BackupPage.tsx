@@ -1161,7 +1161,7 @@ const BackupPage: React.FC = () => {
             <div>
               <Label>Clé générée</Label>
               <div className="mt-2 p-3 bg-gray-900 text-green-400 rounded-lg font-mono text-xs break-all">
-                {Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)}
+                {'••••••••••••••••••••••••••••••••••••••••'}
               </div>
             </div>
 

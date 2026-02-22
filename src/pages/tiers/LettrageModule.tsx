@@ -27,8 +27,8 @@ const LettrageModule: React.FC = () => {
           onClick={() => navigate('/tiers')}
           className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 text-[#444444]" />
-          <span className="text-sm font-medium text-[#444444]">Retour Gestion Tiers</span>
+          <ArrowLeft className="w-4 h-4 text-[#404040]" />
+          <span className="text-sm font-medium text-[#404040]">Retour Gestion Tiers</span>
         </button>
         <div className="text-sm text-gray-500">
           Module de lettrage intégré - Rapprochement des comptes clients et fournisseurs

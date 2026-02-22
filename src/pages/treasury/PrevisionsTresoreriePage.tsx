@@ -303,7 +303,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
             </div>
 
             {/* Cash Summary */}
-            <div className="p-4 bg-[#6A8A82]/10 rounded-lg">
+            <div className="p-4 bg-[#171717]/10 rounded-lg">
               <h4 className="font-medium text-[var(--color-text-primary)] mb-3">💰 Cash</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-white rounded border">
@@ -377,7 +377,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                       const getStatusStyle = (statut: string) => {
                         switch (statut) {
                           case 'En cours': return 'bg-yellow-100 text-yellow-800';
-                          case 'Planifie': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
+                          case 'Planifie': return 'bg-[#171717]/10 text-[#171717]';
                           default: return 'bg-gray-100 text-gray-800';
                         }
                       };
@@ -412,7 +412,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => navigate(`/treasury/cash-flow/plan/${plan.id}`)}
-                                className="p-1 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded transition-colors"
+                                className="p-1 text-[#171717] hover:text-[#171717]/80 hover:bg-[#171717]/5 rounded transition-colors"
                                 title="Modifier le plan"
                               >
                                 ✏️

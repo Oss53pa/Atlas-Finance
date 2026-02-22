@@ -113,7 +113,7 @@ const ClotureMensuelle: React.FC = () => {
     // Simuler la progression
     let progress = 10;
     const interval = setInterval(() => {
-      progress += Math.random() * 20;
+      progress += 15;
       if (progress >= 100) {
         progress = 100;
         clearInterval(interval);
@@ -151,20 +151,20 @@ const ClotureMensuelle: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-lg font-bold text-[#191919]">Clôture Mensuelle</h1>
-            <p className="text-[#767676]">Processus de clôture pour {moisNoms[selectedMonth]} {selectedYear}</p>
+            <h1 className="text-lg font-bold text-[#171717]">Clôture Mensuelle</h1>
+            <p className="text-[#737373]">Processus de clôture pour {moisNoms[selectedMonth]} {selectedYear}</p>
           </div>
           <div className="flex items-center space-x-4">
             {/* Sélection du mois */}
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="px-4 py-2 border border-[#E8E8E8] rounded-lg"
+              className="px-4 py-2 border border-[#e5e5e5] rounded-lg"
             >
               {moisNoms.slice(1).map((mois, index) => (
                 <option key={index + 1} value={index + 1}>{mois}</option>
@@ -173,7 +173,7 @@ const ClotureMensuelle: React.FC = () => {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="px-4 py-2 border border-[#E8E8E8] rounded-lg"
+              className="px-4 py-2 border border-[#e5e5e5] rounded-lg"
             >
               {[2024, 2025, 2026].map(year => (
                 <option key={year} value={year}>{year}</option>
@@ -185,12 +185,12 @@ const ClotureMensuelle: React.FC = () => {
         {/* Barre de progression globale */}
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-[#767676]">Progression globale</span>
-            <span className="font-semibold text-[#191919]">{progressionGlobale()}%</span>
+            <span className="text-[#737373]">Progression globale</span>
+            <span className="font-semibold text-[#171717]">{progressionGlobale()}%</span>
           </div>
           <div className="w-full bg-[var(--color-border)] rounded-full h-3">
             <div
-              className="h-3 bg-gradient-to-r from-[#6A8A82] to-[#B87333] rounded-full transition-all duration-500"
+              className="h-3 bg-gradient-to-r from-[#171717] to-[#525252] rounded-full transition-all duration-500"
               style={{width: `${progressionGlobale()}%`}}
             ></div>
           </div>
@@ -207,7 +207,7 @@ const ClotureMensuelle: React.FC = () => {
               {clotureStatus === 'validee' ? 'Validée' :
                clotureStatus === 'en_cours' ? 'En cours' : 'En attente'}
             </div>
-            <span className="text-sm text-[#767676]">
+            <span className="text-sm text-[#737373]">
               Dernière modification: {new Date().toLocaleDateString('fr-FR')}
             </span>
           </div>
@@ -227,8 +227,8 @@ const ClotureMensuelle: React.FC = () => {
       </div>
 
       {/* Liste des étapes */}
-      <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-        <h2 className="text-lg font-bold text-[#191919] mb-6">Étapes de clôture</h2>
+      <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+        <h2 className="text-lg font-bold text-[#171717] mb-6">Étapes de clôture</h2>
 
         <div className="space-y-4">
           {etapes.map((etape, index) => (
@@ -259,20 +259,20 @@ const ClotureMensuelle: React.FC = () => {
                   {/* Informations de l'étape */}
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-semibold text-[#191919]">{etape.nom}</h3>
+                      <h3 className="font-semibold text-[#171717]">{etape.nom}</h3>
                       {etape.obligatoire && (
                         <span className="text-xs bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] px-2 py-0.5 rounded-full">
                           Obligatoire
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-[#767676] mb-3">{etape.description}</p>
+                    <p className="text-sm text-[#737373] mb-3">{etape.description}</p>
 
                     {/* Barre de progression de l'étape */}
                     {(etape.statut === 'en_cours' || etape.statut === 'complete') && (
                       <div>
                         <div className="flex justify-between text-xs mb-1">
-                          <span className="text-[#767676]">Progression</span>
+                          <span className="text-[#737373]">Progression</span>
                           <span className="font-medium">{etape.progression}%</span>
                         </div>
                         <div className="w-full bg-[var(--color-border)] rounded-full h-2">
@@ -340,10 +340,10 @@ const ClotureMensuelle: React.FC = () => {
       {showValidationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-[#191919] mb-4">
+            <h3 className="text-lg font-bold text-[#171717] mb-4">
               Confirmer la validation de la clôture
             </h3>
-            <p className="text-[#767676] mb-6">
+            <p className="text-[#737373] mb-6">
               Êtes-vous sûr de vouloir valider la clôture mensuelle de {moisNoms[selectedMonth]} {selectedYear} ?
               Cette action est irréversible.
             </p>

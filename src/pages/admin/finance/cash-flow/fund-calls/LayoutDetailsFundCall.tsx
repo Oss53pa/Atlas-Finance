@@ -169,21 +169,21 @@ export const LayoutDetailsFundCall: React.FC = () => {
       <style jsx>{`
         .nav-tabs .nav-link.active {
           background-color: white;
-          border-color: #dee2e6 #dee2e6 white;
-          color: #0d6efd;
+          border-color: #e5e5e5 #e5e5e5 white;
+          color: #3b82f6;
           font-weight: 600;
         }
 
         .nav-tabs .nav-link {
           border: none;
           border-bottom: 3px solid transparent;
-          color: #6c757d;
+          color: #737373;
           transition: all 0.3s;
         }
 
         .nav-tabs .nav-link:hover {
-          border-bottom-color: #0d6efd;
-          color: #0d6efd;
+          border-bottom-color: #3b82f6;
+          color: #3b82f6;
         }
 
         .cursor-pointer {

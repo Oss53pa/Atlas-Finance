@@ -174,27 +174,27 @@ const BudgetRecapPage: React.FC = () => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate(-1)}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm text-[#444444]">Retour</span>
+              <ArrowLeft className="w-4 h-4 text-[#404040]" />
+              <span className="text-sm text-[#404040]">Retour</span>
             </button>
 
             <div>
-              <h1 className="text-lg font-bold text-[#191919]">Budget Récap</h1>
+              <h1 className="text-lg font-bold text-[#171717]">Budget Récap</h1>
               <div className="flex items-center space-x-3 mt-1">
-                <span className="text-sm text-[#767676]">
+                <span className="text-sm text-[#737373]">
                   {department || 'Tous les départements'}
                 </span>
-                <span className="text-sm text-[#767676]">•</span>
-                <span className="text-sm font-medium text-[#B87333]">
+                <span className="text-sm text-[#737373]">•</span>
+                <span className="text-sm font-medium text-[#525252]">
                   {type === 'revenue' ? 'Revenus' : 'Dépenses'}
                 </span>
               </div>
@@ -203,14 +203,14 @@ const BudgetRecapPage: React.FC = () => {
 
           <div className="flex items-center space-x-3">
             {/* Sélecteur d'année */}
-            <div className="flex items-center bg-white border border-[#E8E8E8] rounded-lg">
+            <div className="flex items-center bg-white border border-[#e5e5e5] rounded-lg">
               <button
                 onClick={() => setSelectedYear((prev) => (parseInt(prev) - 1).toString())}
                 className="p-2 hover:bg-gray-50"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-4 py-2 font-medium text-[#191919]">{selectedYear}</span>
+              <span className="px-4 py-2 font-medium text-[#171717]">{selectedYear}</span>
               <button
                 onClick={() => setSelectedYear((prev) => (parseInt(prev) + 1).toString())}
                 className="p-2 hover:bg-gray-50"
@@ -219,12 +219,12 @@ const BudgetRecapPage: React.FC = () => {
               </button>
             </div>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-white border border-[#E8E8E8] rounded-lg hover:bg-gray-50" aria-label="Filtrer">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-white border border-[#e5e5e5] rounded-lg hover:bg-gray-50" aria-label="Filtrer">
               <Filter className="w-4 h-4" />
               <span className="text-sm">{t('common.filter')}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323]" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040]" aria-label="Télécharger">
               <Download className="w-4 h-4" />
               <span className="text-sm">{t('common.export')}</span>
             </button>
@@ -241,33 +241,33 @@ const BudgetRecapPage: React.FC = () => {
       </div>
 
       {/* Titre de la section */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] mb-4">
-        <h2 className="text-lg font-bold text-[#191919]">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] mb-4">
+        <h2 className="text-lg font-bold text-[#171717]">
           {type === 'revenue' ? 'Revenus' : 'Dépenses'}
         </h2>
       </div>
 
       {/* Tableau des données */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-100 border-b border-[#E8E8E8]">
+            <thead className="bg-gray-100 border-b border-[#e5e5e5]">
               <tr>
-                <th className="text-left p-3 text-sm font-medium text-[#444444] sticky left-0 bg-gray-100 min-w-[100px]">
+                <th className="text-left p-3 text-sm font-medium text-[#404040] sticky left-0 bg-gray-100 min-w-[100px]">
                   Compte
                 </th>
-                <th className="text-left p-3 text-sm font-medium text-[#444444] min-w-[200px]">
+                <th className="text-left p-3 text-sm font-medium text-[#404040] min-w-[200px]">
                   Account Description
                 </th>
                 {months.map((month) => (
-                  <th key={month} className="text-right p-3 text-sm font-medium text-[#444444] min-w-[100px]">
+                  <th key={month} className="text-right p-3 text-sm font-medium text-[#404040] min-w-[100px]">
                     {month}
                   </th>
                 ))}
-                <th className="text-right p-3 text-sm font-medium text-[#444444] bg-gray-200 min-w-[120px]">
+                <th className="text-right p-3 text-sm font-medium text-[#404040] bg-gray-200 min-w-[120px]">
                   Total
                 </th>
-                <th className="p-3 text-sm font-medium text-[#444444] bg-gray-200 min-w-[50px]">
+                <th className="p-3 text-sm font-medium text-[#404040] bg-gray-200 min-w-[50px]">
                   Action
                 </th>
               </tr>
@@ -275,49 +275,49 @@ const BudgetRecapPage: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {data.map((row, index) => (
                 <tr key={row.compte} className="hover:bg-gray-50">
-                  <td className="p-3 text-sm font-medium text-[#191919] sticky left-0 bg-white">
+                  <td className="p-3 text-sm font-medium text-[#171717] sticky left-0 bg-white">
                     {row.compte}
                   </td>
-                  <td className="p-3 text-sm text-[#444444]">
+                  <td className="p-3 text-sm text-[#404040]">
                     {row.description}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.jan)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.feb)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.mar)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.apr)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.may)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.jun)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.jul)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.aug)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.sep)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.oct)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.nov)}
                   </td>
-                  <td className="p-3 text-sm text-right text-[#767676]">
+                  <td className="p-3 text-sm text-right text-[#737373]">
                     {formatAmount(row.dec)}
                   </td>
-                  <td className="p-3 text-sm text-right font-bold text-[#191919] bg-gray-50">
+                  <td className="p-3 text-sm text-right font-bold text-[#171717] bg-gray-50">
                     {formatAmount(row.total)}
                   </td>
                   <td className="p-3 text-center bg-gray-50">
@@ -326,7 +326,7 @@ const BudgetRecapPage: React.FC = () => {
                       className="p-1 hover:bg-gray-200 rounded"
                       title="Voir les détails"
                     >
-                      <Eye className="w-4 h-4 text-[#B87333]" />
+                      <Eye className="w-4 h-4 text-[#525252]" />
                     </button>
                   </td>
                 </tr>
@@ -334,11 +334,11 @@ const BudgetRecapPage: React.FC = () => {
 
               {/* Ligne de total */}
               <tr className="bg-gray-100 font-bold">
-                <td className="p-3 text-sm text-[#191919] sticky left-0 bg-gray-100" colSpan={2}>
+                <td className="p-3 text-sm text-[#171717] sticky left-0 bg-gray-100" colSpan={2}>
                   TOTAL
                 </td>
                 {months.map((month, idx) => (
-                  <td key={month} className="p-3 text-sm text-right text-[#191919]">
+                  <td key={month} className="p-3 text-sm text-right text-[#171717]">
                     {formatAmount(
                       data.reduce((sum, row) => {
                         const monthKey = month.toLowerCase() as keyof typeof row;
@@ -348,7 +348,7 @@ const BudgetRecapPage: React.FC = () => {
                     )}
                   </td>
                 ))}
-                <td className="p-3 text-sm text-right text-[#191919] bg-gray-200">
+                <td className="p-3 text-sm text-right text-[#171717] bg-gray-200">
                   {formatAmount(data.reduce((sum, row) => sum + row.total, 0))}
                 </td>
                 <td className="p-3 text-center bg-gray-200">
@@ -357,7 +357,7 @@ const BudgetRecapPage: React.FC = () => {
                     className="p-1 hover:bg-gray-300 rounded"
                     title="Voir tous les détails"
                   >
-                    <Eye className="w-4 h-4 text-[#191919]" />
+                    <Eye className="w-4 h-4 text-[#171717]" />
                   </button>
                 </td>
               </tr>
@@ -368,14 +368,14 @@ const BudgetRecapPage: React.FC = () => {
 
       {/* Statistiques en bas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
-          <p className="text-xs text-[#767676] mb-2">Moyenne mensuelle</p>
-          <p className="text-lg font-bold text-[#B87333]">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+          <p className="text-xs text-[#737373] mb-2">Moyenne mensuelle</p>
+          <p className="text-lg font-bold text-[#525252]">
             {formatAmount(Math.round(data.reduce((sum, row) => sum + row.total, 0) / 12))}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
-          <p className="text-xs text-[#767676] mb-2">Mois le plus élevé</p>
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+          <p className="text-xs text-[#737373] mb-2">Mois le plus élevé</p>
           <p className="text-lg font-bold text-green-600">
             {(() => {
               let maxMonth = 'jan';
@@ -395,8 +395,8 @@ const BudgetRecapPage: React.FC = () => {
             })()}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
-          <p className="text-xs text-[#767676] mb-2">Mois le plus bas</p>
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+          <p className="text-xs text-[#737373] mb-2">Mois le plus bas</p>
           <p className="text-lg font-bold text-red-600">
             {(() => {
               let minMonth = 'jan';
@@ -416,9 +416,9 @@ const BudgetRecapPage: React.FC = () => {
             })()}
           </p>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-[#E8E8E8]">
-          <p className="text-xs text-[#767676] mb-2">Nombre de comptes</p>
-          <p className="text-lg font-bold text-[#191919]">
+        <div className="bg-white rounded-lg p-4 border border-[#e5e5e5]">
+          <p className="text-xs text-[#737373] mb-2">Nombre de comptes</p>
+          <p className="text-lg font-bold text-[#171717]">
             {data.length}
           </p>
         </div>

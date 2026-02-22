@@ -148,7 +148,7 @@ const CompteComptableSearch: React.FC<CompteComptableSearchProps> = ({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               disabled={disabled}
-              className="w-full px-3 py-2 pr-8 border border-[#D9D9D9] rounded-md focus:ring-2 focus:ring-[#6A8A82]/20 focus:border-[#6A8A82] text-sm"
+              className="w-full px-3 py-2 pr-8 border border-[#d4d4d4] rounded-md focus:ring-2 focus:ring-[#171717]/20 focus:border-[#171717] text-sm"
             />
             <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
           </div>
@@ -162,7 +162,7 @@ const CompteComptableSearch: React.FC<CompteComptableSearchProps> = ({
                 setInputMode(newMode);
                 setSearchQuery('');
               }}
-              className="ml-2 px-3 py-2 bg-[#6A8A82]/10 text-[#6A8A82] border border-[#6A8A82]/30 rounded-md hover:bg-[#6A8A82]/20 transition-colors text-xs font-medium"
+              className="ml-2 px-3 py-2 bg-[#171717]/10 text-[#171717] border border-[#171717]/30 rounded-md hover:bg-[#171717]/20 transition-colors text-xs font-medium"
             >
               {inputMode === 'code' ? 'Code' : 'Libellé'}
               <ChevronDown className="w-3 h-3 ml-1 inline" />
@@ -194,7 +194,7 @@ const CompteComptableSearch: React.FC<CompteComptableSearchProps> = ({
                   {getCategoryIcon(compte.categorie)}
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-mono text-sm font-semibold text-[#6A8A82]">
+                      <span className="font-mono text-sm font-semibold text-[#171717]">
                         {compte.code}
                       </span>
                       <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded">

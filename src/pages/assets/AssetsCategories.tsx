@@ -108,8 +108,8 @@ const AssetsCategories: React.FC = () => {
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; text: string; border: string }> = {
-      blue: { bg: 'bg-[#6A8A82]/10', text: 'text-[#6A8A82]', border: 'border-[#6A8A82]/20' },
-      purple: { bg: 'bg-[#B87333]/10', text: 'text-[#B87333]', border: 'border-[#B87333]/20' },
+      blue: { bg: 'bg-[#171717]/10', text: 'text-[#171717]', border: 'border-[#171717]/20' },
+      purple: { bg: 'bg-[#525252]/10', text: 'text-[#525252]', border: 'border-[#525252]/20' },
       green: { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' },
       orange: { bg: 'bg-orange-500/10', text: 'text-orange-500', border: 'border-orange-500/20' },
       red: { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20' }

@@ -11,8 +11,8 @@
 
 /* Variables CSS pour le chatbot */
 :root {
-  --chat-primary: #6A8A82;
-  --chat-secondary: #B87333;
+  --chat-primary: #171717;
+  --chat-secondary: #525252;
   --chat-background: #FFFFFF;
   --chat-surface: #F8FAFC;
   --chat-border: #E2E8F0;
@@ -29,7 +29,7 @@
 .chat-widget-toggle {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #6A8A82, #4A6A62);
+  background: linear-gradient(135deg, #171717, #262626);
   color: white;
   border: none;
   border-radius: 50%;
@@ -161,7 +161,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #6A8A82;
+  background: #171717;
   animation: typing 1.4s infinite;
 }
 
@@ -727,7 +727,7 @@
 
 .message-input__container--focused {
   border-color: var(--chat-primary);
-  box-shadow: 0 0 0 2px rgba(106, 138, 130, 0.1);
+  box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.1);
 }
 
 .message-input__field {

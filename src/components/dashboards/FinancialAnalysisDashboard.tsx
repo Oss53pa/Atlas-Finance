@@ -133,10 +133,10 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#191919]">
+          <h1 className="text-lg font-bold text-[#171717]">
             Analyse Financière Avancée
           </h1>
-          <p className="text-[#191919]/70 mt-1">
+          <p className="text-[#171717]/70 mt-1">
             TAFIRE SYSCOHADA, SIG et ratios financiers
           </p>
         </div>
@@ -175,11 +175,11 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent className="p-4 text-center">
-                <TrendingUp className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <TrendingUp className="h-8 w-8 text-[#171717] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[#171717]">
                   {formatCurrency(tafireData?.self_financing_capacity || 0)}
                 </div>
-                <p className="text-sm text-[#191919]/70">Capacité d'Autofinancement</p>
+                <p className="text-sm text-[#171717]/70">Capacité d'Autofinancement</p>
               </CardContent>
             </Card>
 
@@ -189,27 +189,27 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                 <div className="text-lg font-bold text-[var(--color-success)]">
                   {formatCurrency(tafireData?.operating_cash_surplus || 0)}
                 </div>
-                <p className="text-sm text-[#191919]/70">Flux d'Exploitation (ETE)</p>
+                <p className="text-sm text-[#171717]/70">Flux d'Exploitation (ETE)</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Target className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <Target className="h-8 w-8 text-[#171717] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[#171717]">
                   {formatCurrency(tafireData?.free_cash_flow || 0)}
                 </div>
-                <p className="text-sm text-[#191919]/70">Free Cash Flow</p>
+                <p className="text-sm text-[#171717]/70">Free Cash Flow</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <DollarSign className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <DollarSign className="h-8 w-8 text-[#171717] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[#171717]">
                   {formatCurrency(tafireData?.cash_variation || 0)}
                 </div>
-                <p className="text-sm text-[#191919]/70">Variation Trésorerie</p>
+                <p className="text-sm text-[#171717]/70">Variation Trésorerie</p>
               </CardContent>
             </Card>
           </div>
@@ -484,23 +484,23 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-[#191919]">{ratio.name}</h4>
+                    <h4 className="font-medium text-[#171717]">{ratio.name}</h4>
                     <Badge className={getRatioStatusColor(ratio)}>
                       {ratio.status}
                     </Badge>
                   </div>
                   
                   <div className="text-center mb-3">
-                    <div className="text-lg font-bold text-[#6A8A82]">
+                    <div className="text-lg font-bold text-[#171717]">
                       {ratio.value}{ratio.unit}
                     </div>
-                    <p className="text-sm text-[#191919]/50">
+                    <p className="text-sm text-[#171717]/50">
                       Norme: {ratio.benchmark_value}{ratio.unit}
                     </p>
                   </div>
                   
                   {/* Gauge visuel */}
-                  <div className="relative h-4 bg-[#ECECEC] rounded-full overflow-hidden">
+                  <div className="relative h-4 bg-[#e5e5e5] rounded-full overflow-hidden">
                     <div 
                       className={`h-full transition-all duration-500 ${
                         ratio.performance_vs_benchmark >= 0 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-error)]'
@@ -511,7 +511,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     />
                   </div>
                   
-                  <div className="flex justify-between text-xs text-[#191919]/50 mt-1">
+                  <div className="flex justify-between text-xs text-[#171717]/50 mt-1">
                     <span>0</span>
                     <span>{ratio.benchmark_value}</span>
                     <span>{(ratio.benchmark_value * 1.5).toFixed(1)}</span>
@@ -529,14 +529,14 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-[#6A8A82] mb-2">
+                  <div className="text-lg font-bold text-[#171717] mb-2">
                     {ratiosData?.overall_score?.toFixed(0) || 0}%
                   </div>
-                  <p className="text-[#191919]/70 mb-4">Score Global</p>
+                  <p className="text-[#171717]/70 mb-4">Score Global</p>
                   <Progress value={ratiosData?.overall_score || 0} className="mb-4" />
                   <Badge className={`
                     ${(ratiosData?.overall_score || 0) >= 85 ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                      (ratiosData?.overall_score || 0) >= 70 ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                      (ratiosData?.overall_score || 0) >= 70 ? 'bg-[#e5e5e5] text-[#171717]' :
                       (ratiosData?.overall_score || 0) >= 50 ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
                       'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                   `}>
@@ -558,16 +558,16 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                     <div key={index} className={`p-3 rounded border ${
                       alert.severity === 'CRITICAL' ? 'bg-[var(--color-error-lightest)] border-[var(--color-error-light)]' :
                       alert.severity === 'WARNING' ? 'bg-[var(--color-warning-lightest)] border-[var(--color-warning-light)]' :
-                      'bg-[#ECECEC] border-[#ECECEC]'
+                      'bg-[#e5e5e5] border-[#e5e5e5]'
                     }`}>
                       <div className="flex items-center space-x-2 mb-1">
                         <AlertTriangle className={`h-4 w-4 ${
                           alert.severity === 'CRITICAL' ? 'text-[var(--color-error)]' :
-                          alert.severity === 'WARNING' ? 'text-[var(--color-warning)]' : 'text-[#6A8A82]'
+                          alert.severity === 'WARNING' ? 'text-[var(--color-warning)]' : 'text-[#171717]'
                         }`} />
                         <p className="font-medium">{alert.title}</p>
                       </div>
-                      <p className="text-sm text-[#191919]/70">{alert.description}</p>
+                      <p className="text-sm text-[#171717]/70">{alert.description}</p>
                     </div>
                   ))}
                 </div>
@@ -616,7 +616,7 @@ const FinancialAnalysisDashboard: React.FC<FinancialAnalysisDashboardProps> = ({
                         <TableCell>
                           <Badge className={`
                             ${benchmark.performance === 'ABOVE' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                              benchmark.performance === 'EQUAL' ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                              benchmark.performance === 'EQUAL' ? 'bg-[#e5e5e5] text-[#171717]' :
                               'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                           `}>
                             {benchmark.performance === 'ABOVE' ? 'Au-dessus' :

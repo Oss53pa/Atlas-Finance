@@ -1,12 +1,12 @@
               {/* Header with Photo and Asset Info */}
-              <div className="bg-gradient-to-r from-[#D5D0CD]/10 to-[#6A8A82]/10 border-b border-[#D5D0CD] p-6">
+              <div className="bg-gradient-to-r from-[#e5e5e5]/10 to-[#171717]/10 border-b border-[#e5e5e5] p-6">
                 <div className="flex items-start space-x-6">
                   {/* Photo Section */}
                   <div className="flex-shrink-0">
-                    <div className="w-32 h-32 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center group hover:border-[#6A8A82]/40 transition-colors cursor-pointer">
+                    <div className="w-32 h-32 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center group hover:border-[#171717]/40 transition-colors cursor-pointer">
                       <div className="text-center">
-                        <Camera className="w-8 h-8 text-gray-700 mx-auto mb-2 group-hover:text-[#6A8A82]" />
-                        <p className="text-xs text-gray-700 group-hover:text-[#6A8A82]">Ajouter photo</p>
+                        <Camera className="w-8 h-8 text-gray-700 mx-auto mb-2 group-hover:text-[#171717]" />
+                        <p className="text-xs text-gray-700 group-hover:text-[#171717]">Ajouter photo</p>
                       </div>
                     </div>
                   </div>
@@ -22,7 +22,7 @@
                       </div>
                       <div>
                         <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">Asset Number</label>
-                        <p className="text-sm font-semibold text-[#6A8A82] mt-0.5">
+                        <p className="text-sm font-semibold text-[#171717] mt-0.5">
                           {newAssetForm.asset_number || '235377'}
                         </p>
                       </div>
@@ -52,7 +52,7 @@
                       </div>
                       <p className="text-xs font-medium text-gray-700">QR Code</p>
                       <p className="text-xs text-gray-700 mt-1">{newAssetForm.asset_number || '235377'}</p>
-                      <button className="mt-1 text-xs text-[#6A8A82] hover:text-[#5A7A72] font-medium">
+                      <button className="mt-1 text-xs text-[#171717] hover:text-[#262626] font-medium">
                         Générer
                       </button>
                     </div>
@@ -82,7 +82,7 @@
                           onClick={() => setActiveFormTab(section.id)}
                           className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
                             activeFormTab === section.id
-                              ? 'bg-[#6A8A82]/20 text-[#5A7A72] font-medium'
+                              ? 'bg-[#171717]/20 text-[#262626] font-medium'
                               : 'text-gray-700 hover:bg-gray-100'
                           }`}
                         >
@@ -116,7 +116,7 @@
                                 onClick={() => setActiveGeneralTab(tab.id)}
                                 className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                                   activeGeneralTab === tab.id
-                                    ? 'border-[#6A8A82] text-[#6A8A82]'
+                                    ? 'border-[#171717] text-[#171717]'
                                     : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                               >
@@ -136,7 +136,7 @@
                             {/* Section principale */}
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <Info className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <Info className="w-5 h-5 mr-2 text-[#171717]" />
                                 Informations de base
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -242,7 +242,7 @@
                                         value="active"
                                         checked={newAssetForm.active_status === 'active'}
                                         onChange={(e) => setNewAssetForm({...newAssetForm, active_status: e.target.value})}
-                                        className="mr-2 text-[#6A8A82] focus:ring-blue-500"
+                                        className="mr-2 text-[#171717] focus:ring-blue-500"
                                       />
                                       <span className="flex items-center">
                                         <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
@@ -256,7 +256,7 @@
                                         value="inactive"
                                         checked={newAssetForm.active_status === 'inactive'}
                                         onChange={(e) => setNewAssetForm({...newAssetForm, active_status: e.target.value})}
-                                        className="mr-2 text-[#6A8A82] focus:ring-blue-500"
+                                        className="mr-2 text-[#171717] focus:ring-blue-500"
                                       />
                                       <span className="flex items-center">
                                         <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
@@ -275,7 +275,7 @@
                         {activeGeneralTab === 'warranty' && (
                           <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                              <Shield className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                              <Shield className="w-5 h-5 mr-2 text-[#171717]" />
                               Warranty Information
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -350,7 +350,7 @@
                         {activeGeneralTab === 'insurance' && (
                           <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                              <FileText className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                              <FileText className="w-5 h-5 mr-2 text-[#171717]" />
                               Insurance Information
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -426,7 +426,7 @@
                         {activeGeneralTab === 'location' && (
                           <div className="space-y-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                              <MapPin className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                              <MapPin className="w-5 h-5 mr-2 text-[#171717]" />
                               Current Location
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -522,7 +522,7 @@
                                   />
                                   <button
                                     type="button"
-                                    className="px-3 py-2 bg-[#6A8A82]/50 text-[#6A8A82] border border-[#6A8A82]/30 rounded-lg hover:bg-[#6A8A82]/20"
+                                    className="px-3 py-2 bg-[#171717]/50 text-[#171717] border border-[#171717]/30 rounded-lg hover:bg-[#171717]/20"
                                     title="Obtenir la position actuelle"
                                   >
                                     <MapPin className="w-5 h-5" />
@@ -550,7 +550,7 @@
                             {/* Material Data Section */}
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <Package className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <Package className="w-5 h-5 mr-2 text-[#171717]" />
                                 Material Data
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -597,7 +597,7 @@
                             {/* Serial & Batch Numbers Section */}
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <Tag className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <Tag className="w-5 h-5 mr-2 text-[#171717]" />
                                 Numéros de série et lots
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -667,7 +667,7 @@
                       {/* Vendor/Supplier Information Section */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <Users className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                          <Users className="w-5 h-5 mr-2 text-[#171717]" />
                           Vendor/Supplier Information
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -709,7 +709,7 @@
                       {/* Purchase Order Details Section */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <FileText className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                          <FileText className="w-5 h-5 mr-2 text-[#171717]" />
                           Purchase Order Details
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -790,7 +790,7 @@
                       {/* Asset Address and Ownership Section */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <MapPin className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                          <MapPin className="w-5 h-5 mr-2 text-[#171717]" />
                           Asset Address and Ownership
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -857,7 +857,7 @@
                                 onClick={() => setActiveImmobilisationTab(tab.id)}
                                 className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                                   activeImmobilisationTab === tab.id
-                                    ? 'border-[#6A8A82] text-[#6A8A82]'
+                                    ? 'border-[#171717] text-[#171717]'
                                     : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                               >
@@ -874,19 +874,19 @@
                         {/* Overview Tab */}
                         {activeImmobilisationTab === 'overview' && (
                           <div className="space-y-6">
-                            <div className="bg-[#6A8A82]/50 border border-[#6A8A82]/20 rounded-lg p-6">
-                              <h4 className="text-lg font-semibold text-[#353A3B] mb-4">Vue d'ensemble de l'immobilisation</h4>
+                            <div className="bg-[#171717]/50 border border-[#171717]/20 rounded-lg p-6">
+                              <h4 className="text-lg font-semibold text-[#404040] mb-4">Vue d'ensemble de l'immobilisation</h4>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                  <label className="text-sm text-[#5A7A72]">Code immobilisation</label>
-                                  <p className="text-lg font-bold text-[#353A3B]">{newAssetForm.asset_number || 'IMM-2024-001'}</p>
+                                  <label className="text-sm text-[#262626]">Code immobilisation</label>
+                                  <p className="text-lg font-bold text-[#404040]">{newAssetForm.asset_number || 'IMM-2024-001'}</p>
                                 </div>
                                 <div>
-                                  <label className="text-sm text-[#5A7A72]">Catégorie</label>
-                                  <p className="text-lg font-bold text-[#353A3B]">{newAssetForm.asset_category || 'Non défini'}</p>
+                                  <label className="text-sm text-[#262626]">Catégorie</label>
+                                  <p className="text-lg font-bold text-[#404040]">{newAssetForm.asset_category || 'Non défini'}</p>
                                 </div>
                                 <div>
-                                  <label className="text-sm text-[#5A7A72]">Statut</label>
+                                  <label className="text-sm text-[#262626]">Statut</label>
                                   <p className="text-lg font-bold text-green-700">En service</p>
                                 </div>
                               </div>
@@ -930,7 +930,7 @@
                         {activeImmobilisationTab === 'values' && (
                           <div className="space-y-6">
                             <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                              <DollarSign className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                              <DollarSign className="w-5 h-5 mr-2 text-[#171717]" />
                               Valeurs de l'immobilisation
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -996,10 +996,10 @@
                             {/* Asset Information Section */}
                             <div>
                               <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <Info className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <Info className="w-5 h-5 mr-2 text-[#171717]" />
                                 Asset Information
                               </h4>
-                              <div className="bg-[#6A8A82]/50 border border-[#6A8A82]/20 rounded-lg p-6">
+                              <div className="bg-[#171717]/50 border border-[#171717]/20 rounded-lg p-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                   <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1091,11 +1091,11 @@
                                         type="text"
                                         value={newAssetForm.total_capitalized_cost || '59160515,00'}
                                         onChange={(e) => setNewAssetForm({...newAssetForm, total_capitalized_cost: e.target.value})}
-                                        className="w-full px-3 py-2 bg-[#6A8A82]/20 border border-[#6A8A82]/30 rounded-l-lg font-bold text-right text-[#353A3B]"
+                                        className="w-full px-3 py-2 bg-[#171717]/20 border border-[#171717]/30 rounded-l-lg font-bold text-right text-[#404040]"
                                         placeholder="59160515,00"
                                         readOnly
                                       />
-                                      <span className="px-3 py-2 bg-[#6A8A82]/20 border border-l-0 border-[#6A8A82]/30 rounded-r-lg text-[#353A3B] font-semibold">
+                                      <span className="px-3 py-2 bg-[#171717]/20 border border-l-0 border-[#171717]/30 rounded-r-lg text-[#404040] font-semibold">
                                         XAF
                                       </span>
                                     </div>
@@ -1107,7 +1107,7 @@
                             {/* Depreciation Details Section */}
                             <div>
                               <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <TrendingDown className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <TrendingDown className="w-5 h-5 mr-2 text-[#171717]" />
                                 Depreciation Details
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1216,7 +1216,7 @@
                             {/* Reporting and Verification Section */}
                             <div>
                               <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <FileText className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <FileText className="w-5 h-5 mr-2 text-[#171717]" />
                                 Reporting and Verification
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1271,7 +1271,7 @@
                         {activeImmobilisationTab === 'table' && (
                           <div className="space-y-6">
                             <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                              <BarChart3 className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                              <BarChart3 className="w-5 h-5 mr-2 text-[#171717]" />
                               Table d'amortissement
                             </h4>
                             <div className="overflow-x-auto">
@@ -1317,7 +1317,7 @@
                             {/* Cost Accounting Section - Assets List */}
                             <div className="space-y-4">
                               <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                                <Database className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <Database className="w-5 h-5 mr-2 text-[#171717]" />
                                 Cost Accounting - Assets List
                               </h4>
 
@@ -1325,7 +1325,7 @@
                                 <div className="flex items-center justify-between mb-4">
                                   <h5 className="text-sm font-semibold text-gray-700">Assets List</h5>
                                   <div className="flex space-x-2">
-                                    <button className="px-3 py-1 bg-[#6A8A82]/50 text-[#6A8A82] text-xs font-medium rounded hover:bg-[#6A8A82]/20">
+                                    <button className="px-3 py-1 bg-[#171717]/50 text-[#171717] text-xs font-medium rounded hover:bg-[#171717]/20">
                                       Export CSV
                                     </button>
                                     <button className="px-3 py-1 bg-green-50 text-green-600 text-xs font-medium rounded hover:bg-green-100">
@@ -1401,7 +1401,7 @@
                                             {asset.name}
                                           </td>
                                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                            <span className="px-2 py-1 text-xs font-medium bg-[#6A8A82]/20 text-[#5A7A72] rounded">
+                                            <span className="px-2 py-1 text-xs font-medium bg-[#171717]/20 text-[#262626] rounded">
                                               {asset.category}
                                             </span>
                                           </td>
@@ -1421,7 +1421,7 @@
                                   <span>Showing 5 of 150 assets</span>
                                   <div className="flex space-x-1">
                                     <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">Previous</button>
-                                    <button className="px-2 py-1 bg-[#6A8A82] text-white rounded">1</button>
+                                    <button className="px-2 py-1 bg-[#171717] text-white rounded">1</button>
                                     <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">2</button>
                                     <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">3</button>
                                     <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">Next</button>
@@ -1433,7 +1433,7 @@
                             {/* Cost Accounting - Maintenance */}
                             <div className="space-y-4">
                               <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                                <Wrench className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <Wrench className="w-5 h-5 mr-2 text-[#171717]" />
                                 Cost Accounting - Maintenance
                               </h4>
 
@@ -1441,7 +1441,7 @@
                                 <div className="flex items-center justify-between mb-4">
                                   <h5 className="text-sm font-semibold text-gray-700">Maintenance History</h5>
                                   <div className="flex space-x-2">
-                                    <button className="px-3 py-1 bg-[#6A8A82]/50 text-[#6A8A82] text-xs font-medium rounded hover:bg-[#6A8A82]/20">
+                                    <button className="px-3 py-1 bg-[#171717]/50 text-[#171717] text-xs font-medium rounded hover:bg-[#171717]/20">
                                       Export PDF
                                     </button>
                                     <button className="px-3 py-1 bg-green-50 text-green-600 text-xs font-medium rounded hover:bg-green-100">
@@ -1527,12 +1527,12 @@
                                             {maintenance.description}
                                           </td>
                                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                            <span className="text-[#6A8A82] hover:underline cursor-pointer">
+                                            <span className="text-[#171717] hover:underline cursor-pointer">
                                               {maintenance.grse}
                                             </span>
                                           </td>
                                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                            <span className="text-[#6A8A82] hover:underline cursor-pointer">
+                                            <span className="text-[#171717] hover:underline cursor-pointer">
                                               {maintenance.invoice}
                                             </span>
                                           </td>
@@ -1587,11 +1587,11 @@
                           <div className="space-y-6">
                             <div className="flex items-center justify-between mb-4">
                               <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                                <History className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                                <History className="w-5 h-5 mr-2 text-[#171717]" />
                                 Historique des changements
                               </h4>
                               <div className="flex space-x-2">
-                                <button className="px-3 py-1 bg-[#6A8A82]/50 text-[#6A8A82] text-xs font-medium rounded hover:bg-[#6A8A82]/20 flex items-center">
+                                <button className="px-3 py-1 bg-[#171717]/50 text-[#171717] text-xs font-medium rounded hover:bg-[#171717]/20 flex items-center">
                                   <Download className="w-3 h-3 mr-1" />
                                   Export
                                 </button>
@@ -1717,7 +1717,7 @@
                                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                         {item.date}
                                       </td>
-                                      <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-[#6A8A82]">
+                                      <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-[#171717]">
                                         {item.assetNumber}
                                       </td>
                                       <td className="px-3 py-2 text-xs text-gray-700 max-w-[150px] truncate">
@@ -1764,7 +1764,7 @@
                                       <td className="px-3 py-2 whitespace-nowrap text-center">
                                         {item.hasComment ? (
                                           <button
-                                            className="text-[#6A8A82] hover:text-[#5A7A72]"
+                                            className="text-[#171717] hover:text-[#262626]"
                                             title="Voir les commentaires"
                                           >
                                             <FileText className="w-4 h-4" />
@@ -1784,7 +1784,7 @@
                               <span>Affichage de 3 sur 150 changements</span>
                               <div className="flex space-x-1">
                                 <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">Précédent</button>
-                                <button className="px-2 py-1 bg-[#6A8A82] text-white rounded">1</button>
+                                <button className="px-2 py-1 bg-[#171717] text-white rounded">1</button>
                                 <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">2</button>
                                 <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">3</button>
                                 <button className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">Suivant</button>
@@ -1800,7 +1800,7 @@
                   {activeFormTab === 'vente' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
-                        <TrendingUp className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                        <TrendingUp className="w-5 h-5 mr-2 text-[#171717]" />
                         Données de vente
                       </h3>
 
@@ -1809,7 +1809,7 @@
                         <div className="flex items-center justify-between mb-4">
                           <h5 className="text-sm font-semibold text-gray-700">Historique des ventes</h5>
                           <div className="flex space-x-2">
-                            <button className="px-3 py-1 bg-[#6A8A82]/50 text-[#6A8A82] text-xs font-medium rounded hover:bg-[#6A8A82]/20">
+                            <button className="px-3 py-1 bg-[#171717]/50 text-[#171717] text-xs font-medium rounded hover:bg-[#171717]/20">
                               Export Excel
                             </button>
                             <button className="px-3 py-1 bg-green-50 text-green-600 text-xs font-medium rounded hover:bg-green-100">
@@ -1880,13 +1880,13 @@
                                     {sale.sellingPrice.toLocaleString()} XAF
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                    <span className="text-[#6A8A82] hover:underline cursor-pointer">
+                                    <span className="text-[#171717] hover:underline cursor-pointer">
                                       {sale.invoice}
                                     </span>
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-center">
                                     <div className="flex items-center justify-center space-x-2">
-                                      <button className="text-[#6A8A82] hover:text-[#5A7A72]" aria-label="Voir les détails">
+                                      <button className="text-[#171717] hover:text-[#262626]" aria-label="Voir les détails">
                                         <Eye className="w-4 h-4" />
                                       </button>
                                       <button className="text-gray-600 hover:text-gray-800">
@@ -1943,28 +1943,28 @@
                           <div className="space-y-2">
                             <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <div className="flex items-center">
-                                <FileText className="w-4 h-4 text-[#6A8A82] mr-2" />
+                                <FileText className="w-4 h-4 text-[#171717] mr-2" />
                                 <span className="text-sm text-gray-700">Facture de vente</span>
                               </div>
-                              <button className="text-[#6A8A82] hover:text-[#5A7A72] text-sm">
+                              <button className="text-[#171717] hover:text-[#262626] text-sm">
                                 Télécharger
                               </button>
                             </div>
                             <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <div className="flex items-center">
-                                <FileText className="w-4 h-4 text-[#6A8A82] mr-2" />
+                                <FileText className="w-4 h-4 text-[#171717] mr-2" />
                                 <span className="text-sm text-gray-700">Contrat de cession</span>
                               </div>
-                              <button className="text-[#6A8A82] hover:text-[#5A7A72] text-sm">
+                              <button className="text-[#171717] hover:text-[#262626] text-sm">
                                 Télécharger
                               </button>
                             </div>
                             <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <div className="flex items-center">
-                                <FileText className="w-4 h-4 text-[#6A8A82] mr-2" />
+                                <FileText className="w-4 h-4 text-[#171717] mr-2" />
                                 <span className="text-sm text-gray-700">Certificat de transfert</span>
                               </div>
-                              <button className="text-[#6A8A82] hover:text-[#5A7A72] text-sm">
+                              <button className="text-[#171717] hover:text-[#262626] text-sm">
                                 Télécharger
                               </button>
                             </div>
@@ -1978,7 +1978,7 @@
                   {activeFormTab === 'composants' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
-                        <Package className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                        <Package className="w-5 h-5 mr-2 text-[#171717]" />
                         Composants de l'actif
                       </h3>
 
@@ -1987,7 +1987,7 @@
                         <div className="flex items-center justify-between mb-4">
                           <h5 className="text-sm font-semibold text-gray-700">Liste des composants</h5>
                           <div className="flex space-x-2">
-                            <button className="px-3 py-1 bg-[#6A8A82]/50 text-[#6A8A82] text-xs font-medium rounded hover:bg-[#6A8A82]/20">
+                            <button className="px-3 py-1 bg-[#171717]/50 text-[#171717] text-xs font-medium rounded hover:bg-[#171717]/20">
                               Export Excel
                             </button>
                             <button className="px-3 py-1 bg-green-50 text-green-600 text-xs font-medium rounded hover:bg-green-100">
@@ -2057,7 +2057,7 @@
                                 }
                               ].map((composant, index) => (
                                 <tr key={index} className="hover:bg-gray-50">
-                                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-[#6A8A82]">
+                                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-[#171717]">
                                     {composant.code}
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -2069,7 +2069,7 @@
                                   <td className="px-4 py-3 whitespace-nowrap">
                                     <span className={`px-2 py-1 text-xs font-medium rounded ${
                                       composant.etat === 'Neuf' ? 'bg-green-100 text-green-700' :
-                                      composant.etat === 'Bon' ? 'bg-[#6A8A82]/20 text-[#5A7A72]' :
+                                      composant.etat === 'Bon' ? 'bg-[#171717]/20 text-[#262626]' :
                                       composant.etat === 'Usagé' ? 'bg-yellow-100 text-yellow-700' :
                                       'bg-red-100 text-red-700'
                                     }`}>
@@ -2087,7 +2087,7 @@
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-center">
                                     <div className="flex items-center justify-center space-x-2">
-                                      <button className="text-[#6A8A82] hover:text-[#5A7A72]" aria-label="Voir les détails">
+                                      <button className="text-[#171717] hover:text-[#262626]" aria-label="Voir les détails">
                                         <Eye className="w-4 h-4" />
                                       </button>
                                       <button className="text-gray-600 hover:text-gray-800">
@@ -2112,7 +2112,7 @@
                               <span>Neuf: 1</span>
                             </div>
                             <div className="flex items-center">
-                              <span className="w-3 h-3 bg-[#6A8A82]/20 rounded-full mr-2"></span>
+                              <span className="w-3 h-3 bg-[#171717]/20 rounded-full mr-2"></span>
                               <span>Bon: 1</span>
                             </div>
                             <div className="flex items-center">
@@ -2129,7 +2129,7 @@
                   {activeFormTab === 'maintenance' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
-                        <Wrench className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                        <Wrench className="w-5 h-5 mr-2 text-[#171717]" />
                         Données de maintenance
                       </h3>
 
@@ -2147,7 +2147,7 @@
                                 onClick={() => setActiveMaintenanceTab(tab.id)}
                                 className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                                   (activeMaintenanceTab || 'contract') === tab.id
-                                    ? 'border-[#6A8A82] text-[#6A8A82]'
+                                    ? 'border-[#171717] text-[#171717]'
                                     : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                               >
@@ -2434,7 +2434,7 @@
                                   <td className="px-4 py-3 whitespace-nowrap text-sm">Maintenance préventive</td>
                                   <td className="px-4 py-3 whitespace-nowrap text-sm text-right">15,000,000</td>
                                   <td className="px-4 py-3 whitespace-nowrap text-center">
-                                    <button className="text-[#6A8A82] hover:text-[#5A7A72]">
+                                    <button className="text-[#171717] hover:text-[#262626]">
                                       <Edit className="w-4 h-4" />
                                     </button>
                                   </td>
@@ -2514,7 +2514,7 @@
                           <div className="flex items-center justify-between mb-4">
                             <h5 className="text-sm font-semibold text-gray-700">Maintenance History</h5>
                             <div className="flex space-x-2">
-                              <button className="px-3 py-1 bg-[#6A8A82]/50 text-[#6A8A82] text-xs font-medium rounded hover:bg-[#6A8A82]/20">
+                              <button className="px-3 py-1 bg-[#171717]/50 text-[#171717] text-xs font-medium rounded hover:bg-[#171717]/20">
                                 Export Excel
                               </button>
                               <button className="px-3 py-1 bg-green-50 text-green-600 text-xs font-medium rounded hover:bg-green-100">
@@ -2566,7 +2566,7 @@
                                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{maintenance.date}</td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm">
                                       <span className={`px-2 py-1 text-xs font-medium rounded ${
-                                        maintenance.type === 'Préventive' ? 'bg-[#6A8A82]/20 text-[#5A7A72]' : 'bg-orange-100 text-orange-700'
+                                        maintenance.type === 'Préventive' ? 'bg-[#171717]/20 text-[#262626]' : 'bg-orange-100 text-orange-700'
                                       }`}>
                                         {maintenance.type}
                                       </span>
@@ -2594,7 +2594,7 @@
                             <div className="bg-white border border-gray-200 rounded-lg p-3">
                               <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-600">Total maintenances</span>
-                                <span className="text-lg font-semibold text-[#6A8A82]">12</span>
+                                <span className="text-lg font-semibold text-[#171717]">12</span>
                               </div>
                             </div>
                             <div className="bg-white border border-gray-200 rounded-lg p-3">
@@ -2619,12 +2619,12 @@
                   {activeFormTab === 'attachements' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
-                        <Paperclip className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                        <Paperclip className="w-5 h-5 mr-2 text-[#171717]" />
                         Attachements
                       </h3>
 
                       {/* Upload Area */}
-                      <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-[#6A8A82]/40 transition-colors">
+                      <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-[#171717]/40 transition-colors">
                         <div className="text-center">
                           <Upload className="w-12 h-12 text-gray-700 mx-auto mb-4" />
                           <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -2633,7 +2633,7 @@
                           <p className="text-xs text-gray-700 mb-4">
                             ou cliquez pour parcourir
                           </p>
-                          <button className="px-4 py-2 bg-[#6A8A82] text-white text-sm rounded-lg hover:bg-[#5A7A72] transition-colors">
+                          <button className="px-4 py-2 bg-[#171717] text-white text-sm rounded-lg hover:bg-[#262626] transition-colors">
                             Sélectionner des fichiers
                           </button>
                           <p className="text-xs text-gray-700 mt-2">
@@ -2668,7 +2668,7 @@
                         <div className="flex items-center justify-between mb-4">
                           <h5 className="text-sm font-semibold text-gray-700">Documents attachés</h5>
                           <div className="flex space-x-2">
-                            <button className="px-3 py-1 bg-[#6A8A82]/50 text-[#6A8A82] text-xs font-medium rounded hover:bg-[#6A8A82]/20 flex items-center">
+                            <button className="px-3 py-1 bg-[#171717]/50 text-[#171717] text-xs font-medium rounded hover:bg-[#171717]/20 flex items-center">
                               <Filter className="w-3 h-3 mr-1" />
                               Filtrer
                             </button>
@@ -2758,7 +2758,7 @@
                                       {file.type}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-[#6A8A82] hover:underline cursor-pointer">
+                                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-[#171717] hover:underline cursor-pointer">
                                     {file.name}
                                   </td>
                                   <td className="px-4 py-3 text-sm text-gray-600">
@@ -2778,7 +2778,7 @@
                                   </td>
                                   <td className="px-4 py-3 whitespace-nowrap text-center">
                                     <div className="flex items-center justify-center space-x-2">
-                                      <button className="text-[#6A8A82] hover:text-[#5A7A72]" title="Voir" aria-label="Voir les détails">
+                                      <button className="text-[#171717] hover:text-[#262626]" title="Voir" aria-label="Voir les détails">
                                         <Eye className="w-4 h-4" />
                                       </button>
                                       <button className="text-green-600 hover:text-green-800" title={t('actions.download')} aria-label="Télécharger">
@@ -2807,7 +2807,7 @@
                   {activeFormTab === 'notes' && (
                     <div className="space-y-6">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
-                        <Edit className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                        <Edit className="w-5 h-5 mr-2 text-[#171717]" />
                         Notes
                       </h3>
 
@@ -2815,8 +2815,8 @@
                       <div className="bg-white border border-gray-200 rounded-lg p-4">
                         <div className="flex items-start space-x-3">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-[#6A8A82]/20 rounded-full flex items-center justify-center">
-                              <User className="w-5 h-5 text-[#6A8A82]" />
+                            <div className="w-10 h-10 bg-[#171717]/20 rounded-full flex items-center justify-center">
+                              <User className="w-5 h-5 text-[#171717]" />
                             </div>
                           </div>
                           <div className="flex-1">
@@ -2840,7 +2840,7 @@
                                   <option>Urgente</option>
                                 </select>
                               </div>
-                              <button className="px-4 py-2 bg-[#6A8A82] text-white text-sm rounded-lg hover:bg-[#5A7A72] transition-colors">
+                              <button className="px-4 py-2 bg-[#171717] text-white text-sm rounded-lg hover:bg-[#262626] transition-colors">
                                 Ajouter la note
                               </button>
                             </div>
@@ -2851,7 +2851,7 @@
                       {/* Notes Filter */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <button className="px-3 py-1 bg-[#6A8A82] text-white text-xs font-medium rounded">
+                          <button className="px-3 py-1 bg-[#171717] text-white text-xs font-medium rounded">
                             Toutes (8)
                           </button>
                           <button className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded hover:bg-gray-200">
@@ -2956,7 +2956,7 @@
                                       {note.priority}
                                     </span>
                                     {note.hasAction && (
-                                      <span className="px-2 py-1 text-xs font-medium bg-[#B87333]/10 text-purple-700 rounded flex items-center">
+                                      <span className="px-2 py-1 text-xs font-medium bg-[#525252]/10 text-purple-700 rounded flex items-center">
                                         <Clock className="w-3 h-3 mr-1" />
                                         Action requise
                                       </span>
@@ -2985,7 +2985,7 @@
                                     </div>
                                     <div className="flex items-center space-x-3">
                                       {note.replies > 0 && (
-                                        <button className="flex items-center text-[#6A8A82] hover:text-[#5A7A72]">
+                                        <button className="flex items-center text-[#171717] hover:text-[#262626]">
                                           <FileText className="w-3 h-3 mr-1" />
                                           {note.replies} réponse{note.replies > 1 ? 's' : ''}
                                         </button>
@@ -3007,7 +3007,7 @@
 
                       {/* Load More */}
                       <div className="text-center">
-                        <button className="px-4 py-2 text-sm text-[#6A8A82] hover:text-[#5A7A72] font-medium">
+                        <button className="px-4 py-2 text-sm text-[#171717] hover:text-[#262626] font-medium">
                           Charger plus de notes...
                         </button>
                       </div>
@@ -3029,7 +3029,7 @@
                     </span>
                   )}
                   {wiseFMData && (
-                    <span className="text-xs bg-[#6A8A82]/20 text-[#5A7A72] px-2 py-1 rounded-full">
+                    <span className="text-xs bg-[#171717]/20 text-[#262626] px-2 py-1 rounded-full">
                       WiseFM connecté
                     </span>
                   )}

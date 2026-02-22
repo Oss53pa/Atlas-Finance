@@ -260,9 +260,9 @@ const DashboardsPage: React.FC = () => {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'personal': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
+      case 'personal': return 'bg-[#171717]/10 text-[#171717]';
       case 'shared': return 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]';
-      case 'public': return 'bg-[#B87333]/10 text-[#B87333]';
+      case 'public': return 'bg-[#525252]/10 text-[#525252]';
       case 'template': return 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-darker)]';
       default: return 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]';
     }
@@ -344,7 +344,7 @@ const DashboardsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-[#6A8A82] hover:bg-[#6A8A82]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            className="bg-[#171717] hover:bg-[#171717]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <PlusIcon className="h-5 w-5" />
             <span>Nouveau Tableau de Bord</span>
@@ -360,8 +360,8 @@ const DashboardsPage: React.FC = () => {
               <p className="text-sm font-medium text-[var(--color-text-primary)]">Total Tableaux</p>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">{totalDashboards}</p>
             </div>
-            <div className="h-12 w-12 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
-              <ChartBarIcon className="h-6 w-6 text-[#6A8A82]" />
+            <div className="h-12 w-12 bg-[#171717]/10 rounded-lg flex items-center justify-center">
+              <ChartBarIcon className="h-6 w-6 text-[#171717]" />
             </div>
           </div>
         </div>
@@ -382,10 +382,10 @@ const DashboardsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[var(--color-text-primary)]">Partagés</p>
-              <p className="text-lg font-bold text-[#B87333]">{sharedDashboards}</p>
+              <p className="text-lg font-bold text-[#525252]">{sharedDashboards}</p>
             </div>
-            <div className="h-12 w-12 bg-[#B87333]/10 rounded-lg flex items-center justify-center">
-              <ShareIcon className="h-6 w-6 text-[#B87333]" />
+            <div className="h-12 w-12 bg-[#525252]/10 rounded-lg flex items-center justify-center">
+              <ShareIcon className="h-6 w-6 text-[#525252]" />
             </div>
           </div>
         </div>
@@ -414,7 +414,7 @@ const DashboardsPage: React.FC = () => {
                 placeholder="Rechercher un tableau de bord..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-[var(--color-border-dark)] rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-[var(--color-border-dark)] rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               />
             </div>
             <button
@@ -434,7 +434,7 @@ const DashboardsPage: React.FC = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               >
                 <option value="all">Toutes les catégories</option>
                 <option value="Finance">Finance</option>
@@ -451,7 +451,7 @@ const DashboardsPage: React.FC = () => {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               >
                 <option value="all">Tous les types</option>
                 <option value="personal">Personnel</option>
@@ -466,7 +466,7 @@ const DashboardsPage: React.FC = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#6A8A82] focus:border-transparent"
+                className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#171717] focus:border-transparent"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="active">Actif</option>
@@ -580,7 +580,7 @@ const DashboardsPage: React.FC = () => {
                 {/* Statistiques */}
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-[#6A8A82]">{dashboard.widgetCount}</div>
+                    <div className="text-lg font-bold text-[#171717]">{dashboard.widgetCount}</div>
                     <div className="text-xs text-[var(--color-text-secondary)]">Widgets</div>
                   </div>
                   <div className="text-center">
@@ -607,7 +607,7 @@ const DashboardsPage: React.FC = () => {
 
                 {/* Actions */}
                 <div className="flex items-center justify-between">
-                  <button className="bg-[#6A8A82] hover:bg-[#6A8A82]/90 text-white px-4 py-2 rounded text-sm transition-colors flex-1 mr-3">
+                  <button className="bg-[#171717] hover:bg-[#171717]/90 text-white px-4 py-2 rounded text-sm transition-colors flex-1 mr-3">
                     Ouvrir
                   </button>
                   <div className="flex space-x-1">
@@ -626,14 +626,14 @@ const DashboardsPage: React.FC = () => {
                         setSelectedDashboard(dashboard);
                         setShowEditModal(true);
                       }}
-                      className="p-2 text-[var(--color-text-secondary)] hover:text-[#6A8A82] transition-colors"
+                      className="p-2 text-[var(--color-text-secondary)] hover:text-[#171717] transition-colors"
                       title="Configurer"
                     >
                       <Cog6ToothIcon className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDuplicate(dashboard)}
-                      className="p-2 text-[var(--color-text-secondary)] hover:text-[#6A8A82] transition-colors"
+                      className="p-2 text-[var(--color-text-secondary)] hover:text-[#171717] transition-colors"
                       title="Dupliquer"
                       disabled={duplicateDashboardMutation.isPending}
                     >
@@ -722,7 +722,7 @@ const DashboardsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button
-                          className="p-2 text-[var(--color-text-secondary)] hover:text-[#6A8A82] transition-colors"
+                          className="p-2 text-[var(--color-text-secondary)] hover:text-[#171717] transition-colors"
                           title="Ouvrir" aria-label="Voir les détails">
                           <EyeIcon className="h-4 w-4" />
                         </button>
@@ -741,7 +741,7 @@ const DashboardsPage: React.FC = () => {
                             setSelectedDashboard(dashboard);
                             setShowEditModal(true);
                           }}
-                          className="p-2 text-[var(--color-text-secondary)] hover:text-[#6A8A82] transition-colors"
+                          className="p-2 text-[var(--color-text-secondary)] hover:text-[#171717] transition-colors"
                           title="Configurer"
                         >
                           <Cog6ToothIcon className="h-4 w-4" />

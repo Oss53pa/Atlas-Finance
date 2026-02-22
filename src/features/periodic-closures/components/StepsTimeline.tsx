@@ -42,7 +42,7 @@ export const StepsTimeline: React.FC<StepsTimelineProps> = ({
           className={`relative flex items-start gap-4 p-4 rounded-lg border-2 transition-all ${getStatusColor(step.status)}`}
         >
           {index < steps.length - 1 && (
-            <div className="absolute left-6 top-14 bottom-[-16px] w-0.5 bg-[#D9D9D9]" />
+            <div className="absolute left-6 top-14 bottom-[-16px] w-0.5 bg-[#d4d4d4]" />
           )}
 
           <div className="flex-shrink-0 mt-1">
@@ -53,7 +53,7 @@ export const StepsTimeline: React.FC<StepsTimelineProps> = ({
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-semibold text-[#191919]">{step.name}</h4>
+                  <h4 className="font-semibold text-[#171717]">{step.name}</h4>
                   {step.mandatory && (
                     <span className="px-2 py-0.5 text-xs bg-[var(--color-error-lighter)] text-[var(--color-error-dark)] rounded">
                       Obligatoire
@@ -65,9 +65,9 @@ export const StepsTimeline: React.FC<StepsTimelineProps> = ({
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-[#767676] mt-1">{step.description}</p>
+                <p className="text-sm text-[#737373] mt-1">{step.description}</p>
 
-                <div className="flex items-center gap-4 mt-2 text-xs text-[#767676]">
+                <div className="flex items-center gap-4 mt-2 text-xs text-[#737373]">
                   {step.estimated_duration && (
                     <span>⏱️ {step.estimated_duration}</span>
                   )}

@@ -100,7 +100,7 @@ const TasksModule: React.FC = () => {
   const getStatusColor = (status: string) => {
     const colors = {
       'todo': 'bg-gray-100 text-gray-700',
-      'in-progress': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'in-progress': 'bg-[#171717]/10 text-[#171717]',
       'review': 'bg-yellow-100 text-yellow-700',
       'done': 'bg-green-100 text-green-700'
     };
@@ -203,7 +203,7 @@ const TasksModule: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-20 h-1.5 bg-gray-200 rounded-full">
                     <div
-                      className="h-full bg-[#6A8A82] rounded-full"
+                      className="h-full bg-[#171717] rounded-full"
                       style={{ width: `${task.progress}%` }}
                     />
                   </div>
@@ -245,7 +245,7 @@ const TasksModule: React.FC = () => {
           </div>
           <button
             onClick={() => setShowNewTask(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
           >
             <Plus className="w-4 h-4" />
             Nouvelle tâche
@@ -261,7 +261,7 @@ const TasksModule: React.FC = () => {
               placeholder="Rechercher une tâche..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+              className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
             />
           </div>
           <div className="flex gap-2">
@@ -271,7 +271,7 @@ const TasksModule: React.FC = () => {
                 onClick={() => setFilter(status)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   filter === status
-                    ? 'bg-[#B87333] text-white'
+                    ? 'bg-[#525252] text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -305,13 +305,13 @@ const TasksModule: React.FC = () => {
           </div>
 
           {/* In Progress Column */}
-          <div className="bg-[#6A8A82]/5 rounded-lg p-4">
+          <div className="bg-[#171717]/5 rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-[#6A8A82] flex items-center gap-2">
+              <h3 className="font-semibold text-[#171717] flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 En cours
               </h3>
-              <span className="bg-[#6A8A82]/20 px-2 py-1 rounded-full text-xs text-[#6A8A82]">
+              <span className="bg-[#171717]/20 px-2 py-1 rounded-full text-xs text-[#171717]">
                 {tasksByStatus['in-progress'].length}
               </span>
             </div>
@@ -368,7 +368,7 @@ const TasksModule: React.FC = () => {
                   type="text"
                   value={newTask.title}
                   onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   placeholder="Entrez le titre de la tâche"
                 />
               </div>
@@ -379,7 +379,7 @@ const TasksModule: React.FC = () => {
                 <textarea
                   value={newTask.description}
                   onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   rows={3}
                   placeholder="Description optionnelle"
                 />
@@ -392,7 +392,7 @@ const TasksModule: React.FC = () => {
                   <select
                     value={newTask.priority}
                     onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as typeof prev.priority }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   >
                     <option value="low">Faible</option>
                     <option value="medium">Moyenne</option>
@@ -408,7 +408,7 @@ const TasksModule: React.FC = () => {
                     type="date"
                     value={newTask.dueDate}
                     onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B87333]/50"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#525252]/50"
                   />
                 </div>
               </div>
@@ -422,7 +422,7 @@ const TasksModule: React.FC = () => {
               </button>
               <button
                 onClick={addTask}
-                className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors"
+                className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors"
               >
                 Créer la tâche
               </button>

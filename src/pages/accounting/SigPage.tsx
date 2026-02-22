@@ -37,6 +37,7 @@ import {
   TableBody,
   TableCell
 } from '../../components/ui';
+import { Money } from '@/utils/money';
 
 interface SigItem {
   id: string;
@@ -125,8 +126,8 @@ const SigPage: React.FC = () => {
     return { n: compute(entriesN), n1: compute(entriesN1) };
   }, [entriesN, entriesN1]);
 
-  const safePct = (val: number, base: number) => base !== 0 ? Math.round((val / base) * 1000) / 10 : 0;
-  const safeVar = (n: number, n1: number) => n1 !== 0 ? Math.round(((n - n1) / Math.abs(n1)) * 1000) / 10 : 0;
+  const safePct = (val: number, base: number) => base !== 0 ? new Money(val).divide(base).multiply(100).round(1).toNumber() : 0;
+  const safeVar = (n: number, n1: number) => n1 !== 0 ? new Money(n).subtract(n1).divide(Math.abs(n1)).multiply(100).round(1).toNumber() : 0;
 
   const soldesIntermediaires: SigItem[] = useMemo(() => {
     const { n, n1 } = sigComputed;
@@ -165,16 +166,16 @@ const SigPage: React.FC = () => {
       const dettesTotales = Math.abs(net(entries, '16', '17', '40', '42', '43', '44'));
       const stocks = net(entries, '3');
       const creancesClients = net(entries, '41');
-      const safe = (a: number, b: number) => b !== 0 ? Math.round((a / b) * 100) / 100 : 0;
+      const safe = (a: number, b: number) => b !== 0 ? new Money(a).divide(b).round().toNumber() : 0;
       return {
         liqGenerale: safe(actifCirculant, dettesCT),
         liqImmediate: safe(disponibilites, dettesCT),
-        roa: totalActif !== 0 ? Math.round((sig.rn / totalActif) * 1000) / 10 : 0,
-        roe: capitauxPropres !== 0 ? Math.round((sig.rn / capitauxPropres) * 1000) / 10 : 0,
-        margeNette: sig.ca !== 0 ? Math.round((sig.rn / sig.ca) * 1000) / 10 : 0,
-        endettement: (totalActif + capitauxPropres) !== 0 ? Math.round((dettesTotales / (totalActif + capitauxPropres)) * 1000) / 10 : 0,
-        rotationStocks: stocks !== 0 ? Math.round((net(entries, '601') / stocks) * 10) / 10 : 0,
-        delaiClients: sig.ca !== 0 ? Math.round((creancesClients * 360 / sig.ca)) : 0,
+        roa: totalActif !== 0 ? new Money(sig.rn).divide(totalActif).multiply(100).round(1).toNumber() : 0,
+        roe: capitauxPropres !== 0 ? new Money(sig.rn).divide(capitauxPropres).multiply(100).round(1).toNumber() : 0,
+        margeNette: sig.ca !== 0 ? new Money(sig.rn).divide(sig.ca).multiply(100).round(1).toNumber() : 0,
+        endettement: (totalActif + capitauxPropres) !== 0 ? new Money(dettesTotales).divide(totalActif + capitauxPropres).multiply(100).round(1).toNumber() : 0,
+        rotationStocks: stocks !== 0 ? new Money(net(entries, '601')).divide(stocks).round(1).toNumber() : 0,
+        delaiClients: sig.ca !== 0 ? new Money(creancesClients).multiply(360).divide(sig.ca).round(0).toNumber() : 0,
       };
     };
     const rN = computeRatios(entriesN, n);

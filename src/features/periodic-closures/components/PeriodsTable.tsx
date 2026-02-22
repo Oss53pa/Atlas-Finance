@@ -46,8 +46,8 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
       sortable: true,
       render: (row: ClosurePeriod) => (
         <div>
-          <div className="font-medium text-[#191919]">{row.period}</div>
-          <div className="text-sm text-[#767676]">Exercice {row.fiscal_year}</div>
+          <div className="font-medium text-[#171717]">{row.period}</div>
+          <div className="text-sm text-[#737373]">Exercice {row.fiscal_year}</div>
         </div>
       )
     },
@@ -80,7 +80,7 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
       sortable: true,
       render: (row: ClosurePeriod) => (
         <div className="flex items-center gap-2">
-          <div className="w-20 h-2 bg-[#ECECEC] rounded-full overflow-hidden">
+          <div className="w-20 h-2 bg-[#e5e5e5] rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 row.syscohada_compliance_score >= 90 ? 'bg-[var(--color-success)]' :
@@ -89,7 +89,7 @@ export const PeriodsTable: React.FC<PeriodsTableProps> = ({
               style={{ width: `${row.syscohada_compliance_score}%` }}
             />
           </div>
-          <span className="text-sm text-[#767676]">{row.syscohada_compliance_score}%</span>
+          <span className="text-sm text-[#737373]">{row.syscohada_compliance_score}%</span>
         </div>
       )
     },

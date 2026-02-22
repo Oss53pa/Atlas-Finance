@@ -211,14 +211,14 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#6A8A82] to-[#B87333] rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#171717] to-[#525252] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">W</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#191919]" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
+              <h1 className="text-lg font-bold text-[#171717]" style={{ fontFamily: 'Sometype Mono, sans-serif' }}>
                 Atlas Finance Executive
               </h1>
-              <p className="text-[#191919]/70">
+              <p className="text-[#171717]/70">
                 Vue d'ensemble consolidée • Temps réel
               </p>
             </div>
@@ -240,7 +240,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               variant="outline"
               size="sm"
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={autoRefresh ? 'bg-[#F0F3F2] border-[#6A8A82]' : ''}
+              className={autoRefresh ? 'bg-[#f5f5f5] border-[#171717]' : ''}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
               {autoRefresh ? 'Live' : 'Manuel'}
@@ -279,7 +279,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           <CardContent>
             <div className="grid gap-3 md:grid-cols-2">
               {criticalAlerts.alerts.slice(0, 4).map((alert, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-[#F0F3F2] border border-[var(--color-error-light)] rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-[#f5f5f5] border border-[var(--color-error-light)] rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Badge className="bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]">
                       {alert.module}
@@ -321,22 +321,22 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             const moduleColor = getModuleColor(kpi.module);
             
             return (
-              <Card key={index} className={`hover:shadow-lg transition-all duration-300 border-l-4 border-l-[#6A8A82]`}>
+              <Card key={index} className={`hover:shadow-lg transition-all duration-300 border-l-4 border-l-[#171717]`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className={`p-3 rounded-xl bg-[#ECECEC]`}>
-                        <Icon className={`h-7 w-7 text-[#6A8A82]`} />
+                      <div className={`p-3 rounded-xl bg-[#e5e5e5]`}>
+                        <Icon className={`h-7 w-7 text-[#171717]`} />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[#191919]/70 uppercase tracking-wide">
+                        <p className="text-sm font-medium text-[#171717]/70 uppercase tracking-wide">
                           {kpi.title}
                         </p>
-                        <p className="text-lg font-bold text-[#191919] mt-1">
+                        <p className="text-lg font-bold text-[#171717] mt-1">
                           {kpi.value}
                         </p>
                         {kpi.subValue && (
-                          <p className="text-sm text-[#191919]/50 mt-1">{kpi.subValue}</p>
+                          <p className="text-sm text-[#171717]/50 mt-1">{kpi.subValue}</p>
                         )}
                       </div>
                     </div>
@@ -349,7 +349,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                           {Math.abs(kpi.change)}%
                         </span>
                       </div>
-                      <p className="text-xs text-[#191919]/50 mt-1">vs période préc.</p>
+                      <p className="text-xs text-[#171717]/50 mt-1">vs période préc.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -380,7 +380,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </span>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline">Données consolidées</Badge>
-                  <Badge className="bg-[#ECECEC] text-[#6A8A82]">Temps réel</Badge>
+                  <Badge className="bg-[#e5e5e5] text-[#171717]">Temps réel</Badge>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -418,10 +418,10 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   {performanceBenchmark?.modules_performance?.map((module, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-[#191919]">{module.name}</h4>
+                        <h4 className="font-medium text-[#171717]">{module.name}</h4>
                         <Badge className={`
                           ${module.score >= 95 ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
-                            module.score >= 80 ? 'bg-[#ECECEC] text-[#6A8A82]' :
+                            module.score >= 80 ? 'bg-[#e5e5e5] text-[#171717]' :
                             module.score >= 65 ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' :
                             'bg-[var(--color-error-lighter)] text-[var(--color-error-darker)]'}
                         `}>
@@ -429,7 +429,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                         </Badge>
                       </div>
                       <Progress value={module.score} className="mb-2" />
-                      <div className="grid grid-cols-2 gap-2 text-xs text-[#191919]/70">
+                      <div className="grid grid-cols-2 gap-2 text-xs text-[#171717]/70">
                         <span>Objectifs atteints: {module.targets_met}/{module.total_targets}</span>
                         <span className="text-right">Status: {module.status}</span>
                       </div>
@@ -465,8 +465,8 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                             {action.module}
                           </Badge>
                           <div>
-                            <p className="font-medium text-[#191919]">{action.title}</p>
-                            <p className="text-sm text-[#191919]/70">{action.description}</p>
+                            <p className="font-medium text-[#171717]">{action.title}</p>
+                            <p className="text-sm text-[#171717]/70">{action.description}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -488,27 +488,27 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           {/* Widgets temps réel modulaires */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Widget Trésorerie */}
-            <Card className="border-l-4 border-l-[#6A8A82]">
+            <Card className="border-l-4 border-l-[#171717]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-[#6A8A82] flex items-center">
+                <CardTitle className="text-sm font-medium text-[#171717] flex items-center">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Trésorerie
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#171717]">
                   {formatCurrency(consolidatedKPIs?.cashPosition || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-[#191919]/70">Disponible</span>
-                  <span className="text-xs font-medium text-[#6A8A82]">
+                  <span className="text-xs text-[#171717]/70">Disponible</span>
+                  <span className="text-xs font-medium text-[#171717]">
                     {formatCurrency(consolidatedKPIs?.cashPosition + consolidatedKPIs?.creditLines || 0)}
                   </span>
                 </div>
                 <div className="mt-2">
-                  <div className="h-1 bg-[#ECECEC] rounded">
+                  <div className="h-1 bg-[#e5e5e5] rounded">
                     <div
-                      className="h-1 bg-[#6A8A82] rounded transition-all duration-500"
+                      className="h-1 bg-[#171717] rounded transition-all duration-500"
                       style={{ 
                         width: `${Math.min(100, (consolidatedKPIs?.cashPosition / (consolidatedKPIs?.cashPosition + consolidatedKPIs?.creditLines) * 100) || 0)}%` 
                       }}
@@ -531,7 +531,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   {formatCurrency(consolidatedKPIs?.totalReceivables || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-[#191919]/70">DSO</span>
+                  <span className="text-xs text-[#171717]/70">DSO</span>
                   <span className={`text-xs font-medium ${
                     consolidatedKPIs?.dso <= 30 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                   }`}>
@@ -539,7 +539,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#191919]/70">{t('thirdParty.collection')}</span>
+                  <span className="text-xs text-[#171717]/70">{t('thirdParty.collection')}</span>
                   <span className="text-xs font-medium text-[var(--color-success)]">
                     {formatPercent(consolidatedKPIs?.collectionRate || 0)}
                   </span>
@@ -548,25 +548,25 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
 
             {/* Widget Fournisseurs */}
-            <Card className="border-l-4 border-l-[#B87333]">
+            <Card className="border-l-4 border-l-[#525252]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-[#B87333] flex items-center">
+                <CardTitle className="text-sm font-medium text-[#525252] flex items-center">
                   <CreditCard className="h-4 w-4 mr-2" />
                   Fournisseurs
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-lg font-bold text-[#B87333]">
+                <div className="text-lg font-bold text-[#525252]">
                   {formatCurrency(consolidatedKPIs?.totalPayables || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-[#191919]/70">DPO</span>
-                  <span className="text-xs font-medium text-[#B87333]">
+                  <span className="text-xs text-[#171717]/70">DPO</span>
+                  <span className="text-xs font-medium text-[#525252]">
                     {consolidatedKPIs?.dpo || 0}j
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#191919]/70">Escomptes</span>
+                  <span className="text-xs text-[#171717]/70">Escomptes</span>
                   <span className="text-xs font-medium text-[var(--color-success)]">
                     {formatCurrency(consolidatedKPIs?.discountsCaptured || 0)}
                   </span>
@@ -575,19 +575,19 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             </Card>
 
             {/* Widget Performance */}
-            <Card className="border-l-4 border-l-[#6A8A82]">
+            <Card className="border-l-4 border-l-[#171717]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-[#6A8A82] flex items-center">
+                <CardTitle className="text-sm font-medium text-[#171717] flex items-center">
                   <Activity className="h-4 w-4 mr-2" />
                   Performance
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <div className="text-lg font-bold text-[#171717]">
                   {formatPercent(consolidatedKPIs?.operatingMargin || 0)}
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-[#191919]/70">Marge</span>
+                  <span className="text-xs text-[#171717]/70">Marge</span>
                   <span className={`text-xs font-medium ${
                     consolidatedKPIs?.operatingMargin >= 15 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                   }`}>
@@ -595,8 +595,8 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#191919]/70">Cycle BFR</span>
-                  <span className="text-xs font-medium text-[#6A8A82]">
+                  <span className="text-xs text-[#171717]/70">Cycle BFR</span>
+                  <span className="text-xs font-medium text-[#171717]">
                     {consolidatedKPIs?.cashConversionCycle || 0}j
                   </span>
                 </div>
@@ -622,7 +622,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   dataKey="amount"
                   nameKey="category"
                   height={300}
-                  colors={['#3B82F6', '#10B981', '#F59E0B', '#EF4444']}
+                  colors={['#3B82F6', '#22c55e', '#F59E0B', '#EF4444']}
                 />
               </CardContent>
             </Card>
@@ -637,7 +637,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{ratio.name}</p>
-                        <p className="text-sm text-[#191919]/70">{ratio.description}</p>
+                        <p className="text-sm text-[#171717]/70">{ratio.description}</p>
                       </div>
                       <div className="text-right">
                         <p className={`text-lg font-bold ${
@@ -646,7 +646,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                         }`}>
                           {ratio.value}
                         </p>
-                        <p className="text-xs text-[#191919]/50">
+                        <p className="text-xs text-[#171717]/50">
                           Norme: {ratio.benchmark}
                         </p>
                       </div>
@@ -685,12 +685,12 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent className="p-4 text-center">
-                <Clock className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <Clock className="h-8 w-8 text-[#171717] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[#171717]">
                   {operationalMetrics?.processing_times?.average_entry_time || 0}s
                 </div>
-                <p className="text-sm text-[#191919]/70">Temps Saisie Écriture</p>
-                <p className="text-xs text-[#191919]/50">Objectif: &lt; 0.5s</p>
+                <p className="text-sm text-[#171717]/70">Temps Saisie Écriture</p>
+                <p className="text-xs text-[#171717]/50">Objectif: &lt; 0.5s</p>
               </CardContent>
             </Card>
 
@@ -700,30 +700,30 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <div className="text-lg font-bold text-[var(--color-success)]">
                   {operationalMetrics?.automation_rates?.reconciliation || 0}%
                 </div>
-                <p className="text-sm text-[#191919]/70">Lettrage Auto</p>
-                <p className="text-xs text-[#191919]/50">Objectif: &gt; 98%</p>
+                <p className="text-sm text-[#171717]/70">Lettrage Auto</p>
+                <p className="text-xs text-[#171717]/50">Objectif: &gt; 98%</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Target className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <Target className="h-8 w-8 text-[#171717] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[#171717]">
                   {operationalMetrics?.performance_scores?.overall_system || 0}%
                 </div>
-                <p className="text-sm text-[#191919]/70">Performance Système</p>
-                <p className="text-xs text-[#191919]/50">Score global</p>
+                <p className="text-sm text-[#171717]/70">Performance Système</p>
+                <p className="text-xs text-[#171717]/50">Score global</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Shield className="h-8 w-8 text-[#6A8A82] mx-auto mb-2" />
-                <div className="text-lg font-bold text-[#6A8A82]">
+                <Shield className="h-8 w-8 text-[#171717] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[#171717]">
                   99.9%
                 </div>
-                <p className="text-sm text-[#191919]/70">Disponibilité</p>
-                <p className="text-xs text-[#191919]/50">SLA respecté</p>
+                <p className="text-sm text-[#171717]/70">Disponibilité</p>
+                <p className="text-xs text-[#171717]/50">SLA respecté</p>
               </CardContent>
             </Card>
           </div>
@@ -753,33 +753,33 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                     <tr>
                       <td className="py-2">Temps réponse moyen</td>
                       <td className="text-center font-bold text-[var(--color-success)]">&lt; 100ms</td>
-                      <td className="text-center text-[#191919]/70">500-1000ms</td>
-                      <td className="text-center text-[#191919]/70">300-800ms</td>
-                      <td className="text-center text-[#191919]/70">200-500ms</td>
+                      <td className="text-center text-[#171717]/70">500-1000ms</td>
+                      <td className="text-center text-[#171717]/70">300-800ms</td>
+                      <td className="text-center text-[#171717]/70">200-500ms</td>
                       <td className="text-center font-bold text-[var(--color-success)]">5-10x</td>
                     </tr>
                     <tr>
                       <td className="py-2">Clôture mensuelle</td>
                       <td className="text-center font-bold text-[var(--color-success)]">&lt; 30min</td>
-                      <td className="text-center text-[#191919]/70">2-4h</td>
-                      <td className="text-center text-[#191919]/70">1-3h</td>
-                      <td className="text-center text-[#191919]/70">1-2h</td>
+                      <td className="text-center text-[#171717]/70">2-4h</td>
+                      <td className="text-center text-[#171717]/70">1-3h</td>
+                      <td className="text-center text-[#171717]/70">1-2h</td>
                       <td className="text-center font-bold text-[var(--color-success)]">4-8x</td>
                     </tr>
                     <tr>
                       <td className="py-2">Lettrage automatique</td>
                       <td className="text-center font-bold text-[var(--color-success)]">&gt; 98%</td>
-                      <td className="text-center text-[#191919]/70">70-80%</td>
-                      <td className="text-center text-[#191919]/70">75-85%</td>
-                      <td className="text-center text-[#191919]/70">60-70%</td>
+                      <td className="text-center text-[#171717]/70">70-80%</td>
+                      <td className="text-center text-[#171717]/70">75-85%</td>
+                      <td className="text-center text-[#171717]/70">60-70%</td>
                       <td className="text-center font-bold text-[var(--color-success)]">+20%</td>
                     </tr>
                     <tr>
                       <td className="py-2">SYSCOHADA natif</td>
                       <td className="text-center font-bold text-[var(--color-success)]">100%</td>
-                      <td className="text-center text-[#191919]/70">Adapté</td>
-                      <td className="text-center text-[#191919]/70">Adapté</td>
-                      <td className="text-center text-[#191919]/70">Partiel</td>
+                      <td className="text-center text-[#171717]/70">Adapté</td>
+                      <td className="text-center text-[#171717]/70">Adapté</td>
+                      <td className="text-center text-[#171717]/70">Partiel</td>
                       <td className="text-center font-bold text-[var(--color-success)]">Natif</td>
                     </tr>
                   </tbody>
@@ -802,12 +802,12 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-[#191919]">Objectifs de Performance</h4>
+                  <h4 className="font-semibold text-[#171717]">Objectifs de Performance</h4>
                   {performanceBenchmark?.performance_targets?.map((target, index) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded">
                       <div>
                         <p className="font-medium">{target.metric_name}</p>
-                        <p className="text-sm text-[#191919]/70">
+                        <p className="text-sm text-[#171717]/70">
                           Actuel: {target.current_value} • Cible: {target.target_value}
                         </p>
                       </div>
@@ -825,12 +825,12 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-[#191919]">Score Global</h4>
-                  <div className="text-center p-6 bg-[#ECECEC] rounded-lg border border-[#ECECEC]">
-                    <div className="text-lg font-bold text-[#6A8A82] mb-2">
+                  <h4 className="font-semibold text-[#171717]">Score Global</h4>
+                  <div className="text-center p-6 bg-[#e5e5e5] rounded-lg border border-[#e5e5e5]">
+                    <div className="text-lg font-bold text-[#171717] mb-2">
                       {performanceBenchmark?.global_score?.toFixed(1) || 0}%
                     </div>
-                    <p className="text-[#6A8A82] font-medium">Excellence Opérationnelle</p>
+                    <p className="text-[#171717] font-medium">Excellence Opérationnelle</p>
                     <Progress 
                       value={performanceBenchmark?.global_score || 0} 
                       className="mt-3 h-2"
@@ -844,11 +844,11 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                       </p>
                       <p className="text-[var(--color-success-darker)] text-xs">Objectifs dépassés</p>
                     </div>
-                    <div className="text-center p-2 bg-[#ECECEC] rounded">
-                      <p className="font-bold text-[#6A8A82]">
+                    <div className="text-center p-2 bg-[#e5e5e5] rounded">
+                      <p className="font-bold text-[#171717]">
                         {performanceBenchmark?.targets_met || 0}
                       </p>
-                      <p className="text-[#6A8A82] text-xs">Objectifs atteints</p>
+                      <p className="text-[#171717] text-xs">Objectifs atteints</p>
                     </div>
                   </div>
                 </div>
@@ -859,7 +859,7 @@ const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       </Tabs>
 
       {/* Footer avec métriques système */}
-      <div className="flex items-center justify-between text-sm text-[#191919]/50 pt-4 border-t">
+      <div className="flex items-center justify-between text-sm text-[#171717]/50 pt-4 border-t">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>

@@ -230,7 +230,7 @@ const AssetsClassSummary: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] rounded-lg p-6 text-white">
+      <div className="bg-gradient-to-r from-[#171717] to-[#262626] rounded-lg p-6 text-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <p className="text-white/80 text-sm uppercase tracking-wide">Classe</p>
@@ -353,7 +353,7 @@ const AssetsClassSummary: React.FC = () => {
               <thead>
                 <tr className="border-b-2 border-[var(--color-border)]">
                   <th colSpan={2} className="text-left py-2 px-2 font-semibold"></th>
-                  <th colSpan={6} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[#6A8A82]/10/50 dark:bg-blue-900/10">
+                  <th colSpan={6} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[#171717]/10/50 dark:bg-blue-900/10">
                     Assets at Cost
                   </th>
                   <th colSpan={7} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-orange-50/50 dark:bg-orange-900/10">
@@ -362,7 +362,7 @@ const AssetsClassSummary: React.FC = () => {
                   <th className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-green-50/50 dark:bg-green-900/10">
                     Closing Value
                   </th>
-                  <th colSpan={4} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[#B87333]/10/50 dark:bg-purple-900/10">
+                  <th colSpan={4} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-[#525252]/10/50 dark:bg-purple-900/10">
                     Revaluation Reserve
                   </th>
                   <th colSpan={2} className="text-center py-2 px-2 font-semibold text-[var(--color-text-primary)] bg-red-50/50 dark:bg-red-900/10">
@@ -525,13 +525,13 @@ const AssetsClassSummary: React.FC = () => {
                 return (
                   <div key={cls.code} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#B87333]/100" />
+                      <div className="w-3 h-3 rounded-full bg-[#525252]/100" />
                       <span className="text-sm">{cls.description}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-[#B87333]/100 h-2 rounded-full"
+                          className="bg-[#525252]/100 h-2 rounded-full"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>

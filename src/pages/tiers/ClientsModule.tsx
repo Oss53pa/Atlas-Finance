@@ -709,13 +709,13 @@ const ClientsModule: React.FC = () => {
   // Data pour graphique Balance Âgée
   const balanceAgeeChartData = [
     { name: 'Non échu', value: totauxBalanceAgee.nonEchu, color: '#22c55e' },
-    { name: '0-30 jours', value: totauxBalanceAgee.echu0_30, color: '#eab308' },
-    { name: '31-60 jours', value: totauxBalanceAgee.echu31_60, color: '#f97316' },
+    { name: '0-30 jours', value: totauxBalanceAgee.echu0_30, color: '#f59e0b' },
+    { name: '31-60 jours', value: totauxBalanceAgee.echu31_60, color: '#f59e0b' },
     { name: '61-90 jours', value: totauxBalanceAgee.echu61_90, color: '#ef4444' },
-    { name: '+90 jours', value: totauxBalanceAgee.echuPlus90, color: '#991b1b' }
+    { name: '+90 jours', value: totauxBalanceAgee.echuPlus90, color: '#ef4444' }
   ];
 
-  const COLORS = ['#6A8A82', '#B87333', '#7A99AC', '#5A79AC'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   const tabs = [
     { id: 'liste', label: 'Liste Clients', icon: Users },
@@ -726,8 +726,8 @@ const ClientsModule: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header avec navigation */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E8E8E8]">
-        <h2 className="text-lg font-bold text-[#191919] mb-6">Gestion des Clients</h2>
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-[#e5e5e5]">
+        <h2 className="text-lg font-bold text-[#171717] mb-6">Gestion des Clients</h2>
 
         {/* Navigation Tabs */}
         <div className="flex space-x-1 mt-6 bg-gray-100 rounded-lg p-1">
@@ -740,8 +740,8 @@ const ClientsModule: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-white text-[#7A99AC] shadow-sm'
-                    : 'text-[#666666] hover:text-[#444444]'
+                    ? 'bg-white text-[#737373] shadow-sm'
+                    : 'text-[#525252] hover:text-[#404040]'
                 }`}
               >
                 <IconComponent className="w-4 h-4" />
@@ -805,20 +805,20 @@ const ClientsModule: React.FC = () => {
           {/* Actions et Filtres */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 w-5 h-5 text-[#666666]" />
+              <Search className="absolute left-3 top-3 w-5 h-5 text-[#525252]" />
               <input
                 type="text"
                 placeholder="Rechercher (nom, code, compte comptable)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                className="w-full pl-10 pr-4 py-3 border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
               />
             </div>
 
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-4 py-3 border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
             >
               <option value="all">Toutes catégories</option>
               <option value="GRAND_COMPTE">Grand Compte</option>
@@ -830,7 +830,7 @@ const ClientsModule: React.FC = () => {
             <select
               value={selectedStatut}
               onChange={(e) => setSelectedStatut(e.target.value)}
-              className="px-4 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="px-4 py-3 border border-[#e5e5e5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
             >
               <option value="all">Tous statuts</option>
               <option value="ACTIF">Actif</option>
@@ -842,7 +842,7 @@ const ClientsModule: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenNewClientModal}
-              className="flex items-center space-x-2 px-4 py-3 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90"
+              className="flex items-center space-x-2 px-4 py-3 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
             >
               <Plus className="w-5 h-5" />
               <span className="font-semibold">Nouveau Client</span>
@@ -850,15 +850,15 @@ const ClientsModule: React.FC = () => {
           </div>
 
           {/* Table des clients */}
-          <div className="bg-white rounded-lg shadow-sm border border-[#E8E8E8]">
-            <div className="p-4 border-b border-[#E8E8E8]">
+          <div className="bg-white rounded-lg shadow-sm border border-[#e5e5e5]">
+            <div className="p-4 border-b border-[#e5e5e5]">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-[#666666]">
+                <p className="text-sm text-[#525252]">
                   {filteredClients.length} client(s) trouvé(s)
                 </p>
                 <div className="flex items-center space-x-2">
                   {selectedClients.length > 0 && (
-                    <span className="text-sm text-[#6A8A82] font-medium">
+                    <span className="text-sm text-[#171717] font-medium">
                       {selectedClients.length} sélectionné(s)
                     </span>
                   )}
@@ -884,7 +884,7 @@ const ClientsModule: React.FC = () => {
                   />
                   <button
                     type="button"
-                    className="flex items-center space-x-2 px-3 py-2 text-sm border border-[#E8E8E8] rounded hover:bg-gray-50"
+                    className="flex items-center space-x-2 px-3 py-2 text-sm border border-[#e5e5e5] rounded hover:bg-gray-50"
                   >
                     <Filter className="w-4 h-4" />
                     <span>Plus de filtres</span>
@@ -905,21 +905,21 @@ const ClientsModule: React.FC = () => {
                         className="rounded"
                       />
                     </th>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Code</th>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Compte</th>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Client</th>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">NIU/RCCM</th>
-                    <th className="text-left p-3 text-sm font-medium text-[#666666]">Catégorie</th>
-                    <th className="text-right p-3 text-sm font-medium text-[#666666]">Encours</th>
-                    <th className="text-center p-3 text-sm font-medium text-[#666666]">DSO</th>
-                    <th className="text-center p-3 text-sm font-medium text-[#666666]">Note</th>
-                    <th className="text-center p-3 text-sm font-medium text-[#666666]">Statut</th>
-                    <th className="text-center p-3 text-sm font-medium text-[#666666]">Actions</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#525252]">Code</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#525252]">Compte</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#525252]">Client</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#525252]">NIU/RCCM</th>
+                    <th className="text-left p-3 text-sm font-medium text-[#525252]">Catégorie</th>
+                    <th className="text-right p-3 text-sm font-medium text-[#525252]">Encours</th>
+                    <th className="text-center p-3 text-sm font-medium text-[#525252]">DSO</th>
+                    <th className="text-center p-3 text-sm font-medium text-[#525252]">Note</th>
+                    <th className="text-center p-3 text-sm font-medium text-[#525252]">Statut</th>
+                    <th className="text-center p-3 text-sm font-medium text-[#525252]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredClients.map((client) => (
-                    <tr key={client.id} className="border-t border-[#E8E8E8] hover:bg-gray-50">
+                    <tr key={client.id} className="border-t border-[#e5e5e5] hover:bg-gray-50">
                       <td className="p-3">
                         <input
                           type="checkbox"
@@ -929,21 +929,21 @@ const ClientsModule: React.FC = () => {
                         />
                       </td>
                       <td className="p-3">
-                        <span className="text-sm font-medium text-[#191919]">{client.code}</span>
+                        <span className="text-sm font-medium text-[#171717]">{client.code}</span>
                       </td>
                       <td className="p-3">
-                        <span className="text-sm font-mono text-[#6A8A82]">{client.compteComptable}</span>
+                        <span className="text-sm font-mono text-[#171717]">{client.compteComptable}</span>
                       </td>
                       <td className="p-3">
                         <div>
-                          <p className="text-sm font-medium text-[#191919]">{client.raisonSociale}</p>
-                          <p className="text-xs text-[#666666]">{client.secteurActivite}</p>
+                          <p className="text-sm font-medium text-[#171717]">{client.raisonSociale}</p>
+                          <p className="text-xs text-[#525252]">{client.secteurActivite}</p>
                         </div>
                       </td>
                       <td className="p-3">
                         <div>
-                          <p className="text-xs font-mono text-[#666666]">{client.niu}</p>
-                          <p className="text-xs text-[#999999]">{client.rccm}</p>
+                          <p className="text-xs font-mono text-[#525252]">{client.niu}</p>
+                          <p className="text-xs text-[#a3a3a3]">{client.rccm}</p>
                         </div>
                       </td>
                       <td className="p-3">
@@ -953,7 +953,7 @@ const ClientsModule: React.FC = () => {
                       </td>
                       <td className="p-3 text-right">
                         <div>
-                          <p className="text-sm font-medium text-[#191919]">{formatCurrency(client.encoursActuel)}</p>
+                          <p className="text-sm font-medium text-[#171717]">{formatCurrency(client.encoursActuel)}</p>
                           {client.encoursActuel > client.limiteCredit * 0.8 && (
                             <p className="text-xs text-orange-600">Proche limite</p>
                           )}
@@ -961,8 +961,8 @@ const ClientsModule: React.FC = () => {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center space-x-1">
-                          <Clock className="w-3 h-3 text-[#666666]" />
-                          <span className="text-sm text-[#666666]">{client.dso}j</span>
+                          <Clock className="w-3 h-3 text-[#525252]" />
+                          <span className="text-sm text-[#525252]">{client.dso}j</span>
                         </div>
                       </td>
                       <td className="p-3 text-center">
@@ -988,7 +988,7 @@ const ClientsModule: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleViewClient(client.id)}
-                            className="p-1 text-[#6A8A82] hover:bg-[#6A8A82]/10 rounded"
+                            className="p-1 text-[#171717] hover:bg-[#171717]/10 rounded"
                             title="Voir"
                           >
                             <Eye className="w-4 h-4" />
@@ -1018,16 +1018,16 @@ const ClientsModule: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className="p-4 border-t border-[#E8E8E8] flex items-center justify-between">
-              <span className="text-sm text-[#666666]">
+            <div className="p-4 border-t border-[#e5e5e5] flex items-center justify-between">
+              <span className="text-sm text-[#525252]">
                 Affichage de 1 à {filteredClients.length} sur {filteredClients.length} entrées
               </span>
               <div className="flex items-center space-x-2">
-                <button type="button" className="px-3 py-1 border border-[#E8E8E8] rounded text-sm disabled:opacity-50" disabled>
+                <button type="button" className="px-3 py-1 border border-[#e5e5e5] rounded text-sm disabled:opacity-50" disabled>
                   Précédent
                 </button>
-                <button type="button" className="px-3 py-1 bg-[#6A8A82] text-white rounded text-sm">1</button>
-                <button type="button" className="px-3 py-1 border border-[#E8E8E8] rounded text-sm disabled:opacity-50" disabled>
+                <button type="button" className="px-3 py-1 bg-[#171717] text-white rounded text-sm">1</button>
+                <button type="button" className="px-3 py-1 border border-[#e5e5e5] rounded text-sm disabled:opacity-50" disabled>
                   Suivant
                 </button>
               </div>
@@ -1040,11 +1040,11 @@ const ClientsModule: React.FC = () => {
       {activeTab === 'balance-agee' && (
         <div className="space-y-6">
           {/* Header avec actions */}
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-[#191919]">Balance Âgée des Créances Clients</h3>
-                <p className="text-sm text-[#666666]">Analyse de l'ancienneté des créances au {new Date().toLocaleDateString('fr-FR')}</p>
+                <h3 className="text-lg font-semibold text-[#171717]">Balance Âgée des Créances Clients</h3>
+                <p className="text-sm text-[#525252]">Analyse de l'ancienneté des créances au {new Date().toLocaleDateString('fr-FR')}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -1080,12 +1080,12 @@ const ClientsModule: React.FC = () => {
 
           {/* KPIs Balance Âgée */}
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <Wallet className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-lg font-bold text-[#191919]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
-              <p className="text-xs text-[#666666]">Total Créances</p>
+              <p className="text-lg font-bold text-[#171717]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
+              <p className="text-xs text-[#525252]">Total Créances</p>
             </div>
 
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -1134,15 +1134,15 @@ const ClientsModule: React.FC = () => {
           </div>
 
           {/* Sous-onglets Balance Âgée */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm overflow-hidden">
-            <div className="flex border-b border-[#E8E8E8]">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm overflow-hidden">
+            <div className="flex border-b border-[#e5e5e5]">
               <button
                 type="button"
                 onClick={() => setBalanceAgeeSubTab('repartition')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
                   balanceAgeeSubTab === 'repartition'
-                    ? 'bg-[#6A8A82]/10 text-[#6A8A82] border-b-2 border-[#6A8A82]'
-                    : 'text-[#666666] hover:bg-gray-50'
+                    ? 'bg-[#171717]/10 text-[#171717] border-b-2 border-[#171717]'
+                    : 'text-[#525252] hover:bg-gray-50'
                 }`}
               >
                 <PieChart className="w-4 h-4" />
@@ -1153,8 +1153,8 @@ const ClientsModule: React.FC = () => {
                 onClick={() => setBalanceAgeeSubTab('detail')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
                   balanceAgeeSubTab === 'detail'
-                    ? 'bg-[#6A8A82]/10 text-[#6A8A82] border-b-2 border-[#6A8A82]'
-                    : 'text-[#666666] hover:bg-gray-50'
+                    ? 'bg-[#171717]/10 text-[#171717] border-b-2 border-[#171717]'
+                    : 'text-[#525252] hover:bg-gray-50'
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -1165,8 +1165,8 @@ const ClientsModule: React.FC = () => {
                 onClick={() => setBalanceAgeeSubTab('risques')}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center space-x-2 ${
                   balanceAgeeSubTab === 'risques'
-                    ? 'bg-[#6A8A82]/10 text-[#6A8A82] border-b-2 border-[#6A8A82]'
-                    : 'text-[#666666] hover:bg-gray-50'
+                    ? 'bg-[#171717]/10 text-[#171717] border-b-2 border-[#171717]'
+                    : 'text-[#525252] hover:bg-gray-50'
                 }`}
               >
                 <AlertTriangle className="w-4 h-4" />
@@ -1180,8 +1180,8 @@ const ClientsModule: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                   {/* Graphique Donut Moderne */}
                   <div className="lg:col-span-2 bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 shadow-inner">
-                    <h4 className="text-lg font-semibold text-[#191919] mb-2 text-center">Distribution des Créances</h4>
-                    <p className="text-sm text-[#666666] text-center mb-4">Répartition par ancienneté</p>
+                    <h4 className="text-lg font-semibold text-[#171717] mb-2 text-center">Distribution des Créances</h4>
+                    <p className="text-sm text-[#525252] text-center mb-4">Répartition par ancienneté</p>
                     <div className="relative">
                       <ResponsiveContainer width="100%" height={320}>
                         <RechartsPieChart>
@@ -1224,9 +1224,9 @@ const ClientsModule: React.FC = () => {
                       {/* Centre du Donut avec Total */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-lg">
-                          <p className="text-xs text-[#666666] uppercase tracking-wide">Total</p>
-                          <p className="text-lg font-bold text-[#191919]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
-                          <p className="text-xs text-[#666666]">{balanceAgeeData.length} clients</p>
+                          <p className="text-xs text-[#525252] uppercase tracking-wide">Total</p>
+                          <p className="text-lg font-bold text-[#171717]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
+                          <p className="text-xs text-[#525252]">{balanceAgeeData.length} clients</p>
                         </div>
                       </div>
                     </div>
@@ -1234,7 +1234,7 @@ const ClientsModule: React.FC = () => {
 
                   {/* Légende détaillée et statistiques */}
                   <div className="lg:col-span-3 space-y-3">
-                    <h4 className="text-lg font-semibold text-[#191919] mb-4">Détail par Tranche d'Ancienneté</h4>
+                    <h4 className="text-lg font-semibold text-[#171717] mb-4">Détail par Tranche d'Ancienneté</h4>
                     {balanceAgeeChartData.map((item, idx) => {
                       const percent = totauxBalanceAgee.totalCreances > 0
                         ? ((item.value / totauxBalanceAgee.totalCreances) * 100).toFixed(1)
@@ -1250,7 +1250,7 @@ const ClientsModule: React.FC = () => {
                       return (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-[#E8E8E8] hover:shadow-md transition-all duration-200 cursor-pointer group"
+                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-[#e5e5e5] hover:shadow-md transition-all duration-200 cursor-pointer group"
                           style={{ borderLeft: `4px solid ${item.color}` }}
                         >
                           <div className="flex items-center space-x-4">
@@ -1261,12 +1261,12 @@ const ClientsModule: React.FC = () => {
                               <div className="w-5 h-5 rounded-full" style={{ backgroundColor: item.color }}></div>
                             </div>
                             <div>
-                              <p className="font-semibold text-[#191919] group-hover:text-[#6A8A82] transition-colors">{item.name}</p>
-                              <p className="text-sm text-[#666666]">{clientCount} client(s) concerné(s)</p>
+                              <p className="font-semibold text-[#171717] group-hover:text-[#171717] transition-colors">{item.name}</p>
+                              <p className="text-sm text-[#525252]">{clientCount} client(s) concerné(s)</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-[#191919]">{formatCurrency(item.value)}</p>
+                            <p className="text-lg font-bold text-[#171717]">{formatCurrency(item.value)}</p>
                             <div className="flex items-center justify-end space-x-2">
                               <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
                                 <div
@@ -1274,7 +1274,7 @@ const ClientsModule: React.FC = () => {
                                   style={{ width: `${percent}%`, backgroundColor: item.color }}
                                 ></div>
                               </div>
-                              <span className="text-sm font-medium text-[#666666] min-w-[45px] text-right">{percent}%</span>
+                              <span className="text-sm font-medium text-[#525252] min-w-[45px] text-right">{percent}%</span>
                             </div>
                           </div>
                         </div>
@@ -1285,7 +1285,7 @@ const ClientsModule: React.FC = () => {
 
                 {/* Graphique en barres empilées */}
                 <div className="mt-6 bg-gray-50 rounded-lg p-6">
-                  <h4 className="text-md font-semibold text-[#191919] mb-4">Évolution par Client</h4>
+                  <h4 className="text-md font-semibold text-[#171717] mb-4">Évolution par Client</h4>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={balanceAgeeData.slice(0, 8)} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" />
@@ -1294,10 +1294,10 @@ const ClientsModule: React.FC = () => {
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
                       <Legend />
                       <Bar dataKey="nonEchu" stackId="a" fill="#22C55E" name="Non Échu" />
-                      <Bar dataKey="echu0_30" stackId="a" fill="#EAB308" name="0-30j" />
-                      <Bar dataKey="echu31_60" stackId="a" fill="#F97316" name="31-60j" />
+                      <Bar dataKey="echu0_30" stackId="a" fill="#f59e0b" name="0-30j" />
+                      <Bar dataKey="echu31_60" stackId="a" fill="#f59e0b" name="31-60j" />
                       <Bar dataKey="echu61_90" stackId="a" fill="#EF4444" name="61-90j" />
-                      <Bar dataKey="echuPlus90" stackId="a" fill="#991B1B" name="+90j" />
+                      <Bar dataKey="echuPlus90" stackId="a" fill="#ef4444" name="+90j" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1315,7 +1315,7 @@ const ClientsModule: React.FC = () => {
                       <input
                         type="text"
                         placeholder="Rechercher un client..."
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#171717]"
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
@@ -1328,37 +1328,37 @@ const ClientsModule: React.FC = () => {
                       <option value="+90">+90 jours</option>
                     </select>
                   </div>
-                  <p className="text-sm text-[#666666]">{balanceAgeeData.length} clients</p>
+                  <p className="text-sm text-[#525252]">{balanceAgeeData.length} clients</p>
                 </div>
 
                 {/* Tableau détaillé */}
-                <div className="overflow-x-auto border border-[#E8E8E8] rounded-lg">
+                <div className="overflow-x-auto border border-[#e5e5e5] rounded-lg">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 font-medium text-[#666666]">Code</th>
-                        <th className="text-left p-3 font-medium text-[#666666]">Client</th>
-                        <th className="text-right p-3 font-medium text-[#666666]">Total Créances</th>
+                        <th className="text-left p-3 font-medium text-[#525252]">Code</th>
+                        <th className="text-left p-3 font-medium text-[#525252]">Client</th>
+                        <th className="text-right p-3 font-medium text-[#525252]">Total Créances</th>
                         <th className="text-right p-3 font-medium text-green-600">Non Échu</th>
                         <th className="text-right p-3 font-medium text-yellow-600">0-30j</th>
                         <th className="text-right p-3 font-medium text-orange-600">31-60j</th>
                         <th className="text-right p-3 font-medium text-red-600">61-90j</th>
                         <th className="text-right p-3 font-medium text-red-800">+90j</th>
                         <th className="text-right p-3 font-medium text-purple-600">Provision</th>
-                        <th className="text-center p-3 font-medium text-[#666666]">Actions</th>
+                        <th className="text-center p-3 font-medium text-[#525252]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {balanceAgeeData.map((item) => {
                         const hasRisk = item.echuPlus90 > 0 || item.echu61_90 > 0;
                         return (
-                          <tr key={item.clientId} className={`border-t border-[#E8E8E8] hover:bg-gray-50 ${hasRisk ? 'bg-red-50/30' : ''}`}>
+                          <tr key={item.clientId} className={`border-t border-[#e5e5e5] hover:bg-gray-50 ${hasRisk ? 'bg-red-50/30' : ''}`}>
                             <td className="p-3">
                               <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{item.clientCode}</span>
                             </td>
                             <td className="p-3">
                               <div className="flex items-center space-x-2">
-                                <p className="font-medium text-[#191919]">{item.clientNom}</p>
+                                <p className="font-medium text-[#171717]">{item.clientNom}</p>
                                 {hasRisk && <AlertTriangle className="w-4 h-4 text-red-500" />}
                               </div>
                             </td>
@@ -1371,7 +1371,7 @@ const ClientsModule: React.FC = () => {
                             <td className="p-3 text-right text-purple-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <button type="button" className="p-1 text-gray-500 hover:text-[#6A8A82]" title="Voir détail">
+                                <button type="button" className="p-1 text-gray-500 hover:text-[#171717]" title="Voir détail">
                                   <Eye className="w-4 h-4" />
                                 </button>
                                 <button type="button" className="p-1 text-gray-500 hover:text-blue-600" title="Envoyer relance">
@@ -1449,7 +1449,7 @@ const ClientsModule: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Liste des clients à risque élevé */}
-                  <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
+                  <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
                     <div className="p-4 bg-red-50 border-b border-red-200">
                       <div className="flex items-center justify-between">
                         <h4 className="text-md font-semibold text-red-800">Clients à Risque Élevé</h4>
@@ -1459,7 +1459,7 @@ const ClientsModule: React.FC = () => {
                       </div>
                       <p className="text-xs text-red-600 mt-1">Créances échues de plus de 90 jours</p>
                     </div>
-                    <div className="divide-y divide-[#E8E8E8] max-h-96 overflow-y-auto">
+                    <div className="divide-y divide-[#e5e5e5] max-h-96 overflow-y-auto">
                       {balanceAgeeData
                         .filter(item => item.echuPlus90 > 0)
                         .sort((a, b) => b.echuPlus90 - a.echuPlus90)
@@ -1467,12 +1467,12 @@ const ClientsModule: React.FC = () => {
                           <div key={idx} className="p-4 hover:bg-gray-50">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium text-[#191919]">{item.clientNom}</p>
-                                <p className="text-xs text-[#666666]">{item.clientCode}</p>
+                                <p className="font-medium text-[#171717]">{item.clientNom}</p>
+                                <p className="text-xs text-[#525252]">{item.clientCode}</p>
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-red-800">{formatCurrency(item.echuPlus90)}</p>
-                                <p className="text-xs text-[#666666]">échu +90j</p>
+                                <p className="text-xs text-[#525252]">échu +90j</p>
                               </div>
                             </div>
                             <div className="mt-3 flex items-center space-x-2">
@@ -1500,7 +1500,7 @@ const ClientsModule: React.FC = () => {
                           </div>
                         ))}
                       {balanceAgeeData.filter(item => item.echuPlus90 > 0).length === 0 && (
-                        <div className="p-8 text-center text-[#666666]">
+                        <div className="p-8 text-center text-[#525252]">
                           <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
                           <p>Aucun client à risque critique</p>
                         </div>
@@ -1510,10 +1510,10 @@ const ClientsModule: React.FC = () => {
 
                   {/* Actions recommandées */}
                   <div className="space-y-4">
-                    <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                      <div className="p-4 bg-[#6A8A82]/10 border-b border-[#E8E8E8]">
-                        <h4 className="text-md font-semibold text-[#191919]">Plan d'Actions Recommandé</h4>
-                        <p className="text-xs text-[#666666] mt-1">Actions prioritaires basées sur l'analyse</p>
+                    <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                      <div className="p-4 bg-[#171717]/10 border-b border-[#e5e5e5]">
+                        <h4 className="text-md font-semibold text-[#171717]">Plan d'Actions Recommandé</h4>
+                        <p className="text-xs text-[#525252] mt-1">Actions prioritaires basées sur l'analyse</p>
                       </div>
                       <div className="p-4 space-y-3">
                         {/* Action 1 */}
@@ -1626,7 +1626,7 @@ const ClientsModule: React.FC = () => {
       {activeTab === 'analytics' && (
         <div className="space-y-6">
           {/* Filters Bar */}
-          <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
@@ -1634,7 +1634,7 @@ const ClientsModule: React.FC = () => {
                   onClick={() => setShowPeriodModal(true)}
                   className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
                 >
-                  <Calendar className="w-4 h-4 text-[#666666]" />
+                  <Calendar className="w-4 h-4 text-[#525252]" />
                   <span>
                     {dateRange.period === 'custom'
                       ? `${dateRange.startDate} - ${dateRange.endDate}`
@@ -1651,7 +1651,7 @@ const ClientsModule: React.FC = () => {
                   onClick={() => setCompareMode(!compareMode)}
                   className={`px-4 py-2 rounded-lg text-sm transition-colors ${
                     compareMode
-                      ? 'bg-[#6A8A82] text-white'
+                      ? 'bg-[#171717] text-white'
                       : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -1683,65 +1683,65 @@ const ClientsModule: React.FC = () => {
 
           {/* KPIs principale */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <Building className="w-5 h-5 text-[#6A8A82]" />
+                <Building className="w-5 h-5 text-[#171717]" />
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">+12%</span>
               </div>
-              <p className="text-lg font-bold text-[#191919]">110</p>
-              <p className="text-sm text-[#666666]">Clients Actifs</p>
+              <p className="text-lg font-bold text-[#171717]">110</p>
+              <p className="text-sm text-[#525252]">Clients Actifs</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronUp className="w-3 h-3 text-green-500 mr-1" />
                 <span>8 nouveaux ce mois</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <DollarSign className="w-5 h-5 text-purple-600" />
                 <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">+18%</span>
               </div>
-              <p className="text-lg font-bold text-[#191919]">69.7M</p>
-              <p className="text-sm text-[#666666]">CA Total</p>
+              <p className="text-lg font-bold text-[#171717]">69.7M</p>
+              <p className="text-sm text-[#525252]">CA Total</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <TrendingUp className="w-3 h-3 text-purple-500 mr-1" />
                 <span>FCFA YTD</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <Clock className="w-5 h-5 text-blue-600" />
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">-5j</span>
               </div>
-              <p className="text-lg font-bold text-[#191919]">38j</p>
-              <p className="text-sm text-[#666666]">DSO Moyen</p>
+              <p className="text-lg font-bold text-[#171717]">38j</p>
+              <p className="text-sm text-[#525252]">DSO Moyen</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <ChevronDown className="w-3 h-3 text-green-500 mr-1" />
                 <span>Amélioration</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <Target className="w-5 h-5 text-orange-600" />
                 <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">89%</span>
               </div>
-              <p className="text-lg font-bold text-[#191919]">89%</p>
-              <p className="text-sm text-[#666666]">Taux Recouvrement</p>
+              <p className="text-lg font-bold text-[#171717]">89%</p>
+              <p className="text-sm text-[#525252]">Taux Recouvrement</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <Info className="w-3 h-3 text-orange-500 mr-1" />
                 <span>Objectif: 95%</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <Shield className="w-5 h-5 text-green-600" />
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">85%</span>
               </div>
-              <p className="text-lg font-bold text-[#191919]">4.1/5</p>
-              <p className="text-sm text-[#666666]">Score Fidélité</p>
+              <p className="text-lg font-bold text-[#171717]">4.1/5</p>
+              <p className="text-sm text-[#525252]">Score Fidélité</p>
               <div className="mt-2 flex items-center text-xs text-gray-700">
                 <Award className="w-3 h-3 text-green-500 mr-1" />
                 <span>Excellente fidélisation</span>
@@ -1752,16 +1752,16 @@ const ClientsModule: React.FC = () => {
           {/* Indicateurs de Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Performance Ventes */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#191919]">Performance Ventes</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Performance Ventes</h3>
                 <Zap className="w-5 h-5 text-yellow-500" />
               </div>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#666666]">Taux de Conversion</span>
-                    <span className="text-sm font-semibold text-[#191919]">78%</span>
+                    <span className="text-sm text-[#525252]">Taux de Conversion</span>
+                    <span className="text-sm font-semibold text-[#171717]">78%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-green-500 h-2 rounded-full" style={{ width: '78%' }}></div>
@@ -1769,8 +1769,8 @@ const ClientsModule: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#666666]">Taux de Recouvrement</span>
-                    <span className="text-sm font-semibold text-[#191919]">89%</span>
+                    <span className="text-sm text-[#525252]">Taux de Recouvrement</span>
+                    <span className="text-sm font-semibold text-[#171717]">89%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-blue-500 h-2 rounded-full" style={{ width: '89%' }}></div>
@@ -1778,17 +1778,17 @@ const ClientsModule: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#666666]">Respect Délais Paiement</span>
-                    <span className="text-sm font-semibold text-[#191919]">82%</span>
+                    <span className="text-sm text-[#525252]">Respect Délais Paiement</span>
+                    <span className="text-sm font-semibold text-[#171717]">82%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-[#6A8A82] h-2 rounded-full" style={{ width: '82%' }}></div>
+                    <div className="bg-[#171717] h-2 rounded-full" style={{ width: '82%' }}></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm text-[#666666]">Satisfaction Client</span>
-                    <span className="text-sm font-semibold text-[#191919]">92%</span>
+                    <span className="text-sm text-[#525252]">Satisfaction Client</span>
+                    <span className="text-sm font-semibold text-[#171717]">92%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-purple-500 h-2 rounded-full" style={{ width: '92%' }}></div>
@@ -1798,9 +1798,9 @@ const ClientsModule: React.FC = () => {
             </div>
 
             {/* Analyse par Catégorie */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#191919]">Analyse par Catégorie</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Analyse par Catégorie</h3>
                 <Users className="w-5 h-5 text-purple-500" />
               </div>
               <div className="space-y-3">
@@ -1848,10 +1848,10 @@ const ClientsModule: React.FC = () => {
             </div>
 
             {/* Top Clients */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#191919]">Top 5 Clients</h3>
-                <Award className="w-5 h-5 text-[#B87333]" />
+                <h3 className="text-lg font-semibold text-[#171717]">Top 5 Clients</h3>
+                <Award className="w-5 h-5 text-[#525252]" />
               </div>
               <div className="space-y-3">
                 {[
@@ -1872,11 +1872,11 @@ const ClientsModule: React.FC = () => {
                         {idx + 1}
                       </span>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-[#191919] truncate">{client.nom}</p>
-                        <p className="text-xs text-[#666666]">{formatCurrency(client.montant)}</p>
+                        <p className="text-sm font-medium text-[#171717] truncate">{client.nom}</p>
+                        <p className="text-xs text-[#525252]">{formatCurrency(client.montant)}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-semibold text-[#6A8A82]">{client.part}%</span>
+                    <span className="text-xs font-semibold text-[#171717]">{client.part}%</span>
                   </div>
                 ))}
               </div>
@@ -1886,9 +1886,9 @@ const ClientsModule: React.FC = () => {
           {/* Graphiques principaux */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Evolution du CA */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#191919]">Évolution du CA</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Évolution du CA</h3>
                 <div className="flex items-center space-x-2">
                   <button type="button" className="p-1 text-gray-700 hover:text-gray-600" aria-label="Information">
                     <Info className="w-4 h-4" />
@@ -1906,7 +1906,7 @@ const ClientsModule: React.FC = () => {
                     <Line
                       type="monotone"
                       dataKey="ca2024"
-                      stroke="#B87333"
+                      stroke="#525252"
                       strokeWidth={2}
                       strokeDasharray="5 5"
                       name="CA 2024"
@@ -1915,10 +1915,10 @@ const ClientsModule: React.FC = () => {
                   <Line
                     type="monotone"
                     dataKey="ca2025"
-                    stroke="#6A8A82"
+                    stroke="#171717"
                     strokeWidth={2}
                     name="CA 2025"
-                    dot={{ fill: '#6A8A82' }}
+                    dot={{ fill: '#171717' }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
@@ -1926,9 +1926,9 @@ const ClientsModule: React.FC = () => {
             </div>
 
             {/* Répartition par Catégorie */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#191919]">Répartition par Catégorie</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Répartition par Catégorie</h3>
                 <div className="flex items-center space-x-2">
                   <select className="text-sm border border-gray-300 rounded px-2 py-1">
                     <option>Par CA</option>
@@ -1950,7 +1950,7 @@ const ClientsModule: React.FC = () => {
                     cy="50%"
                     innerRadius={60}
                     outerRadius={100}
-                    fill="#8884d8"
+                    fill="#737373"
                     label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}
                   >
                     {[
@@ -1959,7 +1959,7 @@ const ClientsModule: React.FC = () => {
                       { categorie: 'TPE', ca: 5500000 },
                       { categorie: 'PARTICULIER', ca: 1200000 }
                     ].map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={['#6A8A82', '#B87333', '#7A99AC', '#5A79AC'][index % 4]} />
+                      <Cell key={`cell-${index}`} fill={['#171717', '#525252', '#737373', '#525252'][index % 4]} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => formatCurrency(value as number)} />
@@ -1971,22 +1971,22 @@ const ClientsModule: React.FC = () => {
           {/* Analyse Performance & Risques */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Radar Performance */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Évaluation Performance</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Évaluation Performance</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <RadarChart data={analyticsData.performanceClients}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="critere" />
                   <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                  <Radar name="Score Moyen" dataKey="score" stroke="#6A8A82" fill="#6A8A82" fillOpacity={0.6} />
+                  <Radar name="Score Moyen" dataKey="score" stroke="#171717" fill="#171717" fillOpacity={0.6} />
                   <Tooltip />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
 
             {/* Matrice Risques Clients */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Matrice des Risques Clients</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Matrice des Risques Clients</h3>
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-1 row-span-3"></div>
                 <div className="text-center text-xs text-gray-700 pb-2">Faible Encours</div>
@@ -2022,7 +2022,7 @@ const ClientsModule: React.FC = () => {
           </div>
 
           {/* Tableau de Bord Prédictif */}
-          <div className="bg-gradient-to-r from-[#6A8A82] to-[#7A99AC] rounded-lg p-6 text-white">
+          <div className="bg-gradient-to-r from-[#171717] to-[#737373] rounded-lg p-6 text-white">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-bold">Insights & Prédictions Clients</h3>
@@ -2072,14 +2072,14 @@ const ClientsModule: React.FC = () => {
       {showNewClientModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-[#E8E8E8]">
+            <div className="p-6 border-b border-[#e5e5e5]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[#191919]">Nouveau Client</h3>
-                  <p className="text-sm text-[#666666]">Étape {formStep} sur 4</p>
+                  <h3 className="text-lg font-bold text-[#171717]">Nouveau Client</h3>
+                  <p className="text-sm text-[#525252]">Étape {formStep} sur 4</p>
                 </div>
                 <button type="button" onClick={handleCloseNewClientModal} className="p-2 hover:bg-gray-100 rounded-full">
-                  <X className="w-5 h-5 text-[#666666]" />
+                  <X className="w-5 h-5 text-[#525252]" />
                 </button>
               </div>
               {/* Progress bar */}
@@ -2087,11 +2087,11 @@ const ClientsModule: React.FC = () => {
                 {[1, 2, 3, 4].map((step) => (
                   <div
                     key={step}
-                    className={`flex-1 h-2 rounded-full ${step <= formStep ? 'bg-[#6A8A82]' : 'bg-gray-200'}`}
+                    className={`flex-1 h-2 rounded-full ${step <= formStep ? 'bg-[#171717]' : 'bg-gray-200'}`}
                   />
                 ))}
               </div>
-              <div className="flex mt-2 text-xs text-[#666666]">
+              <div className="flex mt-2 text-xs text-[#525252]">
                 <span className="flex-1">Identification</span>
                 <span className="flex-1">Adresse & Contact</span>
                 <span className="flex-1">Comptabilité</span>
@@ -2103,36 +2103,36 @@ const ClientsModule: React.FC = () => {
               {/* Étape 1: Identification */}
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <h4 className="text-md font-semibold text-[#191919] flex items-center">
-                    <FileCheck className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                  <h4 className="text-md font-semibold text-[#171717] flex items-center">
+                    <FileCheck className="w-5 h-5 mr-2 text-[#171717]" />
                     Identification de l'entreprise
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-[#666666] mb-1">Code client *</label>
+                      <label className="block text-sm text-[#525252] mb-1">Code client *</label>
                       <div className="flex space-x-2">
                         <input
                           type="text"
                           value={newClient.code}
                           onChange={(e) => setNewClient({ ...newClient, code: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="flex-1 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="CLI008"
                         />
                         <button
                           type="button"
                           onClick={generateClientCode}
-                          className="px-3 py-2 bg-gray-100 text-[#666666] rounded-lg hover:bg-gray-200"
+                          className="px-3 py-2 bg-gray-100 text-[#525252] rounded-lg hover:bg-gray-200"
                         >
                           Auto
                         </button>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-[#666666] mb-1">Catégorie *</label>
+                      <label className="block text-sm text-[#525252] mb-1">Catégorie *</label>
                       <select
                         value={newClient.categorie}
                         onChange={(e) => setNewClient({ ...newClient, categorie: e.target.value as NewClientForm['categorie'] })}
-                        className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                       >
                         <option value="GRAND_COMPTE">Grand Compte</option>
                         <option value="PME">PME</option>
@@ -2141,60 +2141,60 @@ const ClientsModule: React.FC = () => {
                       </select>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm text-[#666666] mb-1">Raison sociale *</label>
+                      <label className="block text-sm text-[#525252] mb-1">Raison sociale *</label>
                       <input
                         type="text"
                         value={newClient.raisonSociale}
                         onChange={(e) => setNewClient({ ...newClient, raisonSociale: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         placeholder="Nom légal de l'entreprise"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#666666] mb-1">Nom commercial</label>
+                      <label className="block text-sm text-[#525252] mb-1">Nom commercial</label>
                       <input
                         type="text"
                         value={newClient.nomCommercial}
                         onChange={(e) => setNewClient({ ...newClient, nomCommercial: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#666666] mb-1">Secteur d'activité *</label>
+                      <label className="block text-sm text-[#525252] mb-1">Secteur d'activité *</label>
                       <input
                         type="text"
                         value={newClient.secteurActivite}
                         onChange={(e) => setNewClient({ ...newClient, secteurActivite: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         placeholder="Ex: Commerce, BTP, Services..."
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#666666] mb-1">RCCM *</label>
+                      <label className="block text-sm text-[#525252] mb-1">RCCM *</label>
                       <input
                         type="text"
                         value={newClient.rccm}
                         onChange={(e) => setNewClient({ ...newClient, rccm: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         placeholder="RC/YDE/2024/X/XXXX"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#666666] mb-1">NIU (Numéro d'Identification Unique) *</label>
+                      <label className="block text-sm text-[#525252] mb-1">NIU (Numéro d'Identification Unique) *</label>
                       <input
                         type="text"
                         value={newClient.niu}
                         onChange={(e) => setNewClient({ ...newClient, niu: e.target.value })}
-                        className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         placeholder="M0XXXXXXXXXX"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[#666666] mb-1">Régime TVA *</label>
+                      <label className="block text-sm text-[#525252] mb-1">Régime TVA *</label>
                       <select
                         value={newClient.regimeTVA}
                         onChange={(e) => setNewClient({ ...newClient, regimeTVA: e.target.value as NewClientForm['regimeTVA'] })}
-                        className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                       >
                         <option value="REEL_NORMAL">Réel Normal</option>
                         <option value="REEL_SIMPLIFIE">Réel Simplifié</option>
@@ -2210,55 +2210,55 @@ const ClientsModule: React.FC = () => {
               {formStep === 2 && (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-md font-semibold text-[#191919] flex items-center mb-4">
-                      <MapPin className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <MapPin className="w-5 h-5 mr-2 text-[#171717]" />
                       Adresse
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-sm text-[#666666] mb-1">Adresse *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Adresse *</label>
                         <input
                           type="text"
                           value={newClient.adresse}
                           onChange={(e) => setNewClient({ ...newClient, adresse: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="Rue, numéro, quartier"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Boîte Postale</label>
+                        <label className="block text-sm text-[#525252] mb-1">Boîte Postale</label>
                         <input
                           type="text"
                           value={newClient.codePostal}
                           onChange={(e) => setNewClient({ ...newClient, codePostal: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="BP 1234"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Ville *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Ville *</label>
                         <input
                           type="text"
                           value={newClient.ville}
                           onChange={(e) => setNewClient({ ...newClient, ville: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Région</label>
+                        <label className="block text-sm text-[#525252] mb-1">Région</label>
                         <input
                           type="text"
                           value={newClient.region}
                           onChange={(e) => setNewClient({ ...newClient, region: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Pays *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Pays *</label>
                         <select
                           value={newClient.pays}
                           onChange={(e) => setNewClient({ ...newClient, pays: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         >
                           <option value="Cameroun">Cameroun</option>
                           <option value="Gabon">Gabon</option>
@@ -2272,65 +2272,65 @@ const ClientsModule: React.FC = () => {
                   </div>
 
                   <div>
-                    <h4 className="text-md font-semibold text-[#191919] flex items-center mb-4">
-                      <Users className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <Users className="w-5 h-5 mr-2 text-[#171717]" />
                       Contact Principal
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Nom du contact *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Nom du contact *</label>
                         <input
                           type="text"
                           value={newClient.contactPrincipal}
                           onChange={(e) => setNewClient({ ...newClient, contactPrincipal: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Fonction</label>
+                        <label className="block text-sm text-[#525252] mb-1">Fonction</label>
                         <input
                           type="text"
                           value={newClient.fonction}
                           onChange={(e) => setNewClient({ ...newClient, fonction: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="Directeur Financier, DAF..."
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Email *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Email *</label>
                         <input
                           type="email"
                           value={newClient.email}
                           onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Téléphone *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Téléphone *</label>
                         <input
                           type="tel"
                           value={newClient.telephone}
                           onChange={(e) => setNewClient({ ...newClient, telephone: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="+237 6XX XXX XXX"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Téléphone secondaire</label>
+                        <label className="block text-sm text-[#525252] mb-1">Téléphone secondaire</label>
                         <input
                           type="tel"
                           value={newClient.telephoneSecondaire}
                           onChange={(e) => setNewClient({ ...newClient, telephoneSecondaire: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Fax</label>
+                        <label className="block text-sm text-[#525252] mb-1">Fax</label>
                         <input
                           type="tel"
                           value={newClient.fax}
                           onChange={(e) => setNewClient({ ...newClient, fax: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         />
                       </div>
                     </div>
@@ -2342,37 +2342,37 @@ const ClientsModule: React.FC = () => {
               {formStep === 3 && (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-md font-semibold text-[#191919] flex items-center mb-4">
-                      <BookOpen className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <BookOpen className="w-5 h-5 mr-2 text-[#171717]" />
                       Paramètres Comptables SYSCOHADA
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Compte comptable client *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Compte comptable client *</label>
                         <div className="flex space-x-2">
                           <input
                             type="text"
                             value={newClient.compteComptable}
                             onChange={(e) => setNewClient({ ...newClient, compteComptable: e.target.value })}
-                            className="w-24 px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
+                            className="w-24 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono"
                             placeholder="411"
                           />
                           <input
                             type="text"
                             value={newClient.compteAuxiliaire}
                             onChange={(e) => setNewClient({ ...newClient, compteAuxiliaire: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
+                            className="flex-1 px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono"
                             placeholder="Code auxiliaire"
                           />
                         </div>
-                        <p className="text-xs text-[#999999] mt-1">Compte 411 - Clients (SYSCOHADA)</p>
+                        <p className="text-xs text-[#a3a3a3] mt-1">Compte 411 - Clients (SYSCOHADA)</p>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Journal de ventes *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Journal de ventes *</label>
                         <select
                           value={newClient.journalVentes}
                           onChange={(e) => setNewClient({ ...newClient, journalVentes: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         >
                           <option value="VE">VE - Ventes</option>
                           <option value="VX">VX - Ventes Export</option>
@@ -2380,11 +2380,11 @@ const ClientsModule: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Taux TVA applicable (%)</label>
+                        <label className="block text-sm text-[#525252] mb-1">Taux TVA applicable (%)</label>
                         <select
                           value={newClient.tauxTVA}
                           onChange={(e) => setNewClient({ ...newClient, tauxTVA: parseFloat(e.target.value) })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         >
                           <option value={19.25}>19,25% - Taux normal Cameroun</option>
                           <option value={18}>18% - Taux CEMAC standard</option>
@@ -2393,11 +2393,11 @@ const ClientsModule: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Devise *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Devise *</label>
                         <select
                           value={newClient.devise}
                           onChange={(e) => setNewClient({ ...newClient, devise: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         >
                           <option value="XAF">XAF - Franc CFA CEMAC</option>
                           <option value="EUR">EUR - Euro</option>
@@ -2408,38 +2408,38 @@ const ClientsModule: React.FC = () => {
                   </div>
 
                   <div>
-                    <h4 className="text-md font-semibold text-[#191919] flex items-center mb-4">
-                      <Landmark className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <Landmark className="w-5 h-5 mr-2 text-[#171717]" />
                       Coordonnées Bancaires (optionnel)
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Banque</label>
+                        <label className="block text-sm text-[#525252] mb-1">Banque</label>
                         <input
                           type="text"
                           value={newClient.banque}
                           onChange={(e) => setNewClient({ ...newClient, banque: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="Nom de la banque"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Code SWIFT/BIC</label>
+                        <label className="block text-sm text-[#525252] mb-1">Code SWIFT/BIC</label>
                         <input
                           type="text"
                           value={newClient.swift}
                           onChange={(e) => setNewClient({ ...newClient, swift: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono"
                           placeholder="XXXXXXXX"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-[#666666] mb-1">IBAN / RIB</label>
+                        <label className="block text-sm text-[#525252] mb-1">IBAN / RIB</label>
                         <input
                           type="text"
                           value={newClient.iban}
                           onChange={(e) => setNewClient({ ...newClient, iban: e.target.value })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82] font-mono"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717] font-mono"
                           placeholder="CM21 XXXX XXXX XXXX XXXX XXXX XXX"
                         />
                       </div>
@@ -2452,17 +2452,17 @@ const ClientsModule: React.FC = () => {
               {formStep === 4 && (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-md font-semibold text-[#191919] flex items-center mb-4">
-                      <CreditCard className="w-5 h-5 mr-2 text-[#6A8A82]" />
+                    <h4 className="text-md font-semibold text-[#171717] flex items-center mb-4">
+                      <CreditCard className="w-5 h-5 mr-2 text-[#171717]" />
                       Conditions de Paiement
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Mode de règlement *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Mode de règlement *</label>
                         <select
                           value={newClient.modeReglement}
                           onChange={(e) => setNewClient({ ...newClient, modeReglement: e.target.value as NewClientForm['modeReglement'] })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         >
                           <option value="VIREMENT">Virement bancaire</option>
                           <option value="CHEQUE">Chèque</option>
@@ -2473,11 +2473,11 @@ const ClientsModule: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Délai de paiement (jours) *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Délai de paiement (jours) *</label>
                         <select
                           value={newClient.delaiPaiement}
                           onChange={(e) => setNewClient({ ...newClient, delaiPaiement: parseInt(e.target.value) })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         >
                           <option value={0}>Comptant</option>
                           <option value={15}>15 jours</option>
@@ -2488,33 +2488,33 @@ const ClientsModule: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Limite de crédit (XAF) *</label>
+                        <label className="block text-sm text-[#525252] mb-1">Limite de crédit (XAF) *</label>
                         <input
                           type="number"
                           value={newClient.limiteCredit}
                           onChange={(e) => setNewClient({ ...newClient, limiteCredit: parseInt(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Remise commerciale (%)</label>
+                        <label className="block text-sm text-[#525252] mb-1">Remise commerciale (%)</label>
                         <input
                           type="number"
                           step="0.5"
                           value={newClient.remise}
                           onChange={(e) => setNewClient({ ...newClient, remise: parseFloat(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="0"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[#666666] mb-1">Escompte pour paiement anticipé (%)</label>
+                        <label className="block text-sm text-[#525252] mb-1">Escompte pour paiement anticipé (%)</label>
                         <input
                           type="number"
                           step="0.5"
                           value={newClient.escompte}
                           onChange={(e) => setNewClient({ ...newClient, escompte: parseFloat(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 border border-[#E8E8E8] rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                          className="w-full px-3 py-2 border border-[#e5e5e5] rounded-lg focus:ring-2 focus:ring-[#171717]"
                           placeholder="0"
                         />
                       </div>
@@ -2523,30 +2523,30 @@ const ClientsModule: React.FC = () => {
 
                   {/* Récapitulatif */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-md font-semibold text-[#191919] mb-3">Récapitulatif</h4>
+                    <h4 className="text-md font-semibold text-[#171717] mb-3">Récapitulatif</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-[#666666]">Code client:</span>
+                        <span className="text-[#525252]">Code client:</span>
                         <span className="ml-2 font-medium">{newClient.code || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[#666666]">Raison sociale:</span>
+                        <span className="text-[#525252]">Raison sociale:</span>
                         <span className="ml-2 font-medium">{newClient.raisonSociale || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[#666666]">Compte comptable:</span>
+                        <span className="text-[#525252]">Compte comptable:</span>
                         <span className="ml-2 font-mono">{newClient.compteComptable}{newClient.compteAuxiliaire}</span>
                       </div>
                       <div>
-                        <span className="text-[#666666]">NIU:</span>
+                        <span className="text-[#525252]">NIU:</span>
                         <span className="ml-2 font-mono">{newClient.niu || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[#666666]">Délai paiement:</span>
+                        <span className="text-[#525252]">Délai paiement:</span>
                         <span className="ml-2 font-medium">{newClient.delaiPaiement} jours</span>
                       </div>
                       <div>
-                        <span className="text-[#666666]">Limite crédit:</span>
+                        <span className="text-[#525252]">Limite crédit:</span>
                         <span className="ml-2 font-medium">{formatCurrency(newClient.limiteCredit)}</span>
                       </div>
                     </div>
@@ -2555,11 +2555,11 @@ const ClientsModule: React.FC = () => {
               )}
             </div>
 
-            <div className="p-6 border-t border-[#E8E8E8] flex justify-between">
+            <div className="p-6 border-t border-[#e5e5e5] flex justify-between">
               <button
                 type="button"
                 onClick={() => formStep > 1 ? setFormStep(formStep - 1) : handleCloseNewClientModal()}
-                className="px-4 py-2 border border-[#E8E8E8] rounded-lg text-[#666666] hover:bg-gray-50"
+                className="px-4 py-2 border border-[#e5e5e5] rounded-lg text-[#525252] hover:bg-gray-50"
               >
                 {formStep > 1 ? 'Précédent' : 'Annuler'}
               </button>
@@ -2568,7 +2568,7 @@ const ClientsModule: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setFormStep(formStep + 1)}
-                    className="px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90"
+                    className="px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90"
                   >
                     Suivant
                   </button>
@@ -2576,7 +2576,7 @@ const ClientsModule: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleSaveNewClient}
-                    className="px-6 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#6A8A82]/90 font-semibold"
+                    className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 font-semibold"
                   >
                     Créer le client
                   </button>

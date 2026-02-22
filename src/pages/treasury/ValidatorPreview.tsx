@@ -148,26 +148,26 @@ const ValidatorPreview: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header pour validateur externe */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-[#B87333] rounded-lg flex items-center justify-center text-white font-bold">
+            <div className="w-12 h-12 bg-[#525252] rounded-lg flex items-center justify-center text-white font-bold">
               💰
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#191919]">
+              <h1 className="text-lg font-bold text-[#171717]">
                 📋 Validation Appel de Fonds {fundCallData.reference}
               </h1>
-              <p className="text-sm text-[#767676]">
+              <p className="text-sm text-[#737373]">
                 Initié par {fundCallData.initiePar} le {fundCallData.date} - Validation externe sécurisée
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-[#B87333]/10 text-[#B87333]">
+            <span className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-[#525252]/10 text-[#525252]">
               ⏰ Expire dans 6 jours
             </span>
           </div>
@@ -175,8 +175,8 @@ const ValidatorPreview: React.FC = () => {
       </div>
 
       {/* Navigation par onglets IDENTIQUE */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
-        <div className="border-b border-[#E8E8E8]">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+        <div className="border-b border-[#e5e5e5]">
           <nav className="flex space-x-8 px-6">
             {detailTabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -187,8 +187,8 @@ const ValidatorPreview: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'border-[#B87333] text-[#B87333]'
-                      : 'border-transparent text-[#767676] hover:text-[#444444]'
+                      ? 'border-[#525252] text-[#525252]'
+                      : 'border-transparent text-[#737373] hover:text-[#404040]'
                     }
                   `}
                 >
@@ -207,12 +207,12 @@ const ValidatorPreview: React.FC = () => {
 
           {activeTab === 'position_avant' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-[#E8E8E8] p-6">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-[#191919]">📊 Position des Comptes Avant l'Appel</h3>
+                  <h3 className="font-semibold text-[#171717]">📊 Position des Comptes Avant l'Appel</h3>
                   <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-[#767676]">Issue: <strong className="text-[#6A8A82]">{fundCallData.date}</strong></span>
-                    <span className="text-[#767676]">Due: <strong className="text-[#B87333]">23/05/2025</strong></span>
+                    <span className="text-[#737373]">Issue: <strong className="text-[#171717]">{fundCallData.date}</strong></span>
+                    <span className="text-[#737373]">Due: <strong className="text-[#525252]">23/05/2025</strong></span>
                   </div>
                 </div>
 
@@ -221,7 +221,7 @@ const ValidatorPreview: React.FC = () => {
 
                   <div className="bg-gray-50 rounded-lg p-6" style={{maxHeight: '400px', overflowY: 'auto'}}>
                     {/* Reste du contenu identique... */}
-                    <p className="text-center text-[#767676] py-8">
+                    <p className="text-center text-[#737373] py-8">
                       [Interface identique à l'appel de fonds original avec tous les détails]
                     </p>
                   </div>
@@ -233,24 +233,24 @@ const ValidatorPreview: React.FC = () => {
           {/* Tous les autres onglets avec le même contenu que FundCallDetails */}
           {activeTab !== 'position_avant' && (
             <div className="text-center py-12">
-              <h3 className="text-lg font-semibold text-[#767676] mb-2">
+              <h3 className="text-lg font-semibold text-[#737373] mb-2">
                 Interface Identique à l'Appel de Fonds Original
               </h3>
-              <p className="text-[#767676]">
+              <p className="text-[#737373]">
                 Contenu exact de l'onglet "{detailTabs.find(t => t.id === activeTab)?.label}"
               </p>
             </div>
           )}
 
           {/* Section validation équilibrée */}
-          <div className="mt-6 bg-[#B87333]/10 border border-[#B87333] rounded-lg p-4">
-            <h4 className="text-sm font-medium text-[#B87333] mb-3">✅ Votre Validation</h4>
+          <div className="mt-6 bg-[#525252]/10 border border-[#525252] rounded-lg p-4">
+            <h4 className="text-sm font-medium text-[#525252] mb-3">✅ Votre Validation</h4>
 
             <form className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs text-[#767676] mb-1">Décision *</label>
-                  <select className="w-full text-sm px-2 py-1 border border-[#E8E8E8] rounded">
+                  <label className="block text-xs text-[#737373] mb-1">Décision *</label>
+                  <select className="w-full text-sm px-2 py-1 border border-[#e5e5e5] rounded">
                     <option>Sélectionnez...</option>
                     <option>✅ Approuver</option>
                     <option>❌ Rejeter</option>
@@ -258,21 +258,21 @@ const ValidatorPreview: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-[#767676] mb-1">Montant accordé (FCFA)</label>
-                  <input type="number" placeholder="Optionnel" className="w-full text-sm px-2 py-1 border border-[#E8E8E8] rounded" />
+                  <label className="block text-xs text-[#737373] mb-1">Montant accordé (FCFA)</label>
+                  <input type="number" placeholder="Optionnel" className="w-full text-sm px-2 py-1 border border-[#e5e5e5] rounded" />
                 </div>
                 <div className="flex items-end">
-                  <button className="w-full py-1 bg-[#B87333] text-white rounded text-sm hover:bg-[#A86323] transition-colors">
+                  <button className="w-full py-1 bg-[#525252] text-white rounded text-sm hover:bg-[#404040] transition-colors">
                     📤 Valider
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs text-[#767676] mb-1">Commentaires *</label>
+                <label className="block text-xs text-[#737373] mb-1">Commentaires *</label>
                 <textarea
                   rows={2}
-                  className="w-full text-sm px-2 py-1 border border-[#E8E8E8] rounded"
+                  className="w-full text-sm px-2 py-1 border border-[#e5e5e5] rounded"
                   placeholder="Précisez les raisons de votre décision..."
                 ></textarea>
               </div>

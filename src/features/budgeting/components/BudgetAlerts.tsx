@@ -61,7 +61,7 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
             title={
               <div className="flex items-center justify-between">
                 <span>{alert.title}</span>
-                <span className="text-xs font-normal text-[#767676]">
+                <span className="text-xs font-normal text-[#737373]">
                   {formatDate(alert.date, 'short')}
                 </span>
               </div>
@@ -70,7 +70,7 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
             <div className="space-y-2">
               <p className="text-sm">{alert.message}</p>
 
-              <div className="flex items-center gap-4 text-xs text-[#767676] pt-2 border-t border-[#D9D9D9]">
+              <div className="flex items-center gap-4 text-xs text-[#737373] pt-2 border-t border-[#d4d4d4]">
                 <span>
                   <strong>Département:</strong> {alert.department}
                 </span>
@@ -82,10 +82,10 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
               </div>
 
               {alert.threshold && alert.currentValue && (
-                <div className="mt-2 pt-2 border-t border-[#D9D9D9]">
+                <div className="mt-2 pt-2 border-t border-[#d4d4d4]">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#767676]">Seuil: {formatCurrency(alert.threshold)}</span>
-                    <span className={alert.currentValue > alert.threshold ? 'text-[#B85450] font-semibold' : 'text-[#6A8A82]'}>
+                    <span className="text-[#737373]">Seuil: {formatCurrency(alert.threshold)}</span>
+                    <span className={alert.currentValue > alert.threshold ? 'text-[#ef4444] font-semibold' : 'text-[#171717]'}>
                       Actuel: {formatCurrency(alert.currentValue)}
                     </span>
                   </div>
@@ -93,8 +93,8 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
                     <div
                       className={`h-2 rounded-full transition-all ${
                         alert.currentValue > alert.threshold
-                          ? 'bg-[#B85450]'
-                          : 'bg-[#6A8A82]'
+                          ? 'bg-[#ef4444]'
+                          : 'bg-[#171717]'
                       }`}
                       style={{
                         width: `${Math.min((alert.currentValue / alert.threshold) * 100, 100)}%`,
@@ -109,7 +109,7 @@ export const BudgetAlerts: React.FC<BudgetAlertsProps> = ({
       })}
 
       {maxDisplay && alerts.length > maxDisplay && (
-        <p className="text-sm text-center text-[#767676]">
+        <p className="text-sm text-center text-[#737373]">
           +{alerts.length - maxDisplay} autres alertes
         </p>
       )}

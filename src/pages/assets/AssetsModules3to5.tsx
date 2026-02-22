@@ -1023,7 +1023,7 @@ export const renderInventaireAuto = () => {
                         </div>
                         <div className="flex justify-between text-xs text-gray-700 mt-1">
                           <span>{Math.round((zone.verified / zone.total) * 100)}% complété</span>
-                          <span>MAJ: il y a {Math.floor(Math.random() * 60)} min</span>
+                          <span>MAJ: —</span>
                         </div>
                       </div>
                     ))}

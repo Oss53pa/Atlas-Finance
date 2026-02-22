@@ -158,7 +158,7 @@ const CollaborationModule: React.FC = () => {
     const colors = {
       'ACTIVE': 'bg-green-100 text-green-800',
       'SUSPENDUE': 'bg-yellow-100 text-yellow-800',
-      'TERMINEE': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'TERMINEE': 'bg-[#171717]/10 text-[#171717]',
       'ANNULEE': 'bg-red-100 text-red-800'
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
@@ -167,7 +167,7 @@ const CollaborationModule: React.FC = () => {
   const getPriorityColor = (priority: string) => {
     const colors = {
       'HAUTE': 'bg-red-100 text-red-800',
-      'NORMALE': 'bg-[#6A8A82]/10 text-[#6A8A82]',
+      'NORMALE': 'bg-[#171717]/10 text-[#171717]',
       'BASSE': 'bg-gray-100 text-gray-800'
     };
     return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
@@ -183,20 +183,20 @@ const CollaborationModule: React.FC = () => {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const COLORS = ['#7A99AC', '#6A89AC', '#5A79AC', '#4A69AC'];
+  const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
 
   return (
-    <div className="p-6 bg-[#ECECEC] min-h-screen ">
+    <div className="p-6 bg-[#e5e5e5] min-h-screen ">
       {/* Header */}
-      <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm mb-6">
+      <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/tiers')}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 text-[#444444]" />
-              <span className="text-sm font-semibold text-[#444444]">Tiers</span>
+              <ArrowLeft className="w-4 h-4 text-[#404040]" />
+              <span className="text-sm font-semibold text-[#404040]">Tiers</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -204,8 +204,8 @@ const CollaborationModule: React.FC = () => {
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[#191919]">Chat & Collaboration</h1>
-                <p className="text-sm text-[#666666]">Communication en temps réel et collaboration équipe</p>
+                <h1 className="text-lg font-bold text-[#171717]">Chat & Collaboration</h1>
+                <p className="text-sm text-[#525252]">Communication en temps réel et collaboration équipe</p>
               </div>
             </div>
           </div>
@@ -228,8 +228,8 @@ const CollaborationModule: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-white text-[#7A99AC] shadow-sm'
-                  : 'text-[#666666] hover:text-[#444444]'
+                  ? 'bg-white text-[#737373] shadow-sm'
+                  : 'text-[#525252] hover:text-[#404040]'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -244,7 +244,7 @@ const CollaborationModule: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
           {/* Chat List */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm h-full flex flex-col">
+            <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm h-full flex flex-col">
               <div className="p-4 border-b border-gray-200">
                 <div className="relative">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
@@ -253,7 +253,7 @@ const CollaborationModule: React.FC = () => {
                     placeholder="Rechercher..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC] text-sm"
+                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373] text-sm"
                   />
                 </div>
               </div>
@@ -264,13 +264,13 @@ const CollaborationModule: React.FC = () => {
                     key={chat.id}
                     onClick={() => setSelectedChat(chat)}
                     className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                      selectedChat?.id === chat.id ? 'bg-[#6A8A82]/5 border-l-4 border-l-[#7A99AC]' : ''
+                      selectedChat?.id === chat.id ? 'bg-[#171717]/5 border-l-4 border-l-[#737373]' : ''
                     }`}
                   >
                     <div className="flex items-start space-x-3">
                       <div className="relative">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
-                          chat.type === 'tiers' ? 'bg-[#6A8A82]' : 'bg-green-500'
+                          chat.type === 'tiers' ? 'bg-[#171717]' : 'bg-green-500'
                         }`}>
                           {chat.type === 'tiers' ? (
                             <Building className="w-5 h-5" />
@@ -287,7 +287,7 @@ const CollaborationModule: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium text-gray-900 truncate">{chat.name}</p>
                           {chat.unreadCount > 0 && (
-                            <span className="bg-[#7A99AC] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            <span className="bg-[#737373] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                               {chat.unreadCount}
                             </span>
                           )}
@@ -307,12 +307,12 @@ const CollaborationModule: React.FC = () => {
           {/* Chat Window */}
           <div className="lg:col-span-3">
             {selectedChat ? (
-              <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm h-full flex flex-col">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm h-full flex flex-col">
                 {/* Chat Header */}
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
-                      selectedChat.type === 'tiers' ? 'bg-[#6A8A82]' : 'bg-green-500'
+                      selectedChat.type === 'tiers' ? 'bg-[#171717]' : 'bg-green-500'
                     }`}>
                       {selectedChat.type === 'tiers' ? (
                         <Building className="w-5 h-5" />
@@ -354,12 +354,12 @@ const CollaborationModule: React.FC = () => {
 
                 {/* Tiers Info Bar (pour les chats tiers) */}
                 {selectedChat.type === 'tiers' && selectedChat.tiersInfo && (
-                  <div className="px-4 py-2 bg-[#6A8A82]/5 border-b border-[#6A8A82]/20">
+                  <div className="px-4 py-2 bg-[#171717]/5 border-b border-[#171717]/20">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-[#6A8A82] font-medium">
+                      <span className="text-[#171717] font-medium">
                         {selectedChat.tiersInfo.type}
                       </span>
-                      <div className="flex items-center space-x-4 text-[#6A8A82]">
+                      <div className="flex items-center space-x-4 text-[#171717]">
                         {selectedChat.tiersInfo.chiffreAffaires && (
                           <span>CA: {selectedChat.tiersInfo.chiffreAffaires.toLocaleString()} FCFA</span>
                         )}
@@ -383,7 +383,7 @@ const CollaborationModule: React.FC = () => {
                     >
                       <div className={`max-w-xs lg:max-w-md ${
                         message.isOwn
-                          ? 'bg-[#7A99AC] text-white rounded-l-lg rounded-tr-lg'
+                          ? 'bg-[#737373] text-white rounded-l-lg rounded-tr-lg'
                           : 'bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg'
                       } p-3`}>
                         {!message.isOwn && (
@@ -407,7 +407,7 @@ const CollaborationModule: React.FC = () => {
                         )}
 
                         <p className={`text-xs mt-1 ${
-                          message.isOwn ? 'text-[#6A8A82]/70' : 'text-gray-700'
+                          message.isOwn ? 'text-[#171717]/70' : 'text-gray-700'
                         }`}>
                           {formatTime(message.timestamp)}
                         </p>
@@ -433,7 +433,7 @@ const CollaborationModule: React.FC = () => {
                         onChange={(e) => setMessageText(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                         placeholder="Tapez votre message..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7A99AC] focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#737373] focus:border-transparent"
                       />
                     </div>
                     <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
@@ -442,7 +442,7 @@ const CollaborationModule: React.FC = () => {
                     <button
                       onClick={handleSendMessage}
                       disabled={!messageText.trim()}
-                      className="p-2 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 bg-[#737373] text-white rounded-lg hover:bg-[#525252] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Send className="w-4 h-4" />
                     </button>
@@ -450,7 +450,7 @@ const CollaborationModule: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm h-full flex items-center justify-center">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm h-full flex items-center justify-center">
                 <div className="text-center">
                   <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">Sélectionnez une conversation</h3>
@@ -467,49 +467,49 @@ const CollaborationModule: React.FC = () => {
         <div className="space-y-6">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Collaborations Actives</p>
-                  <p className="text-lg font-bold text-[#191919]">12</p>
+                  <p className="text-sm text-[#525252]">Collaborations Actives</p>
+                  <p className="text-lg font-bold text-[#171717]">12</p>
                 </div>
-                <Users className="w-8 h-8 text-[#6A8A82]" />
+                <Users className="w-8 h-8 text-[#171717]" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Tâches en Cours</p>
-                  <p className="text-lg font-bold text-[#191919]">28</p>
+                  <p className="text-sm text-[#525252]">Tâches en Cours</p>
+                  <p className="text-lg font-bold text-[#171717]">28</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Échéances Cette Semaine</p>
-                  <p className="text-lg font-bold text-[#191919]">5</p>
+                  <p className="text-sm text-[#525252]">Échéances Cette Semaine</p>
+                  <p className="text-lg font-bold text-[#171717]">5</p>
                 </div>
                 <Clock className="w-8 h-8 text-orange-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Taux Completion</p>
-                  <p className="text-lg font-bold text-[#191919]">78%</p>
+                  <p className="text-sm text-[#525252]">Taux Completion</p>
+                  <p className="text-lg font-bold text-[#171717]">78%</p>
                 </div>
-                <Target className="w-8 h-8 text-[#B87333]" />
+                <Target className="w-8 h-8 text-[#525252]" />
               </div>
             </div>
           </div>
 
           {/* Collaborations List */}
-          <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
+          <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-[#191919]">Collaborations en Cours</h3>
+                <h3 className="text-lg font-semibold text-[#171717]">Collaborations en Cours</h3>
                 <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                   <Plus className="w-4 h-4" />
                   <span className="text-sm font-semibold">Nouvelle Collaboration</span>
@@ -522,7 +522,7 @@ const CollaborationModule: React.FC = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h4 className="text-lg font-semibold text-[#191919]">{collab.title}</h4>
+                          <h4 className="text-lg font-semibold text-[#171717]">{collab.title}</h4>
                           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(collab.status)}`}>
                             {collab.status}
                           </span>
@@ -544,7 +544,7 @@ const CollaborationModule: React.FC = () => {
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <button className="p-2 text-[#6A8A82] hover:text-[#6A8A82]/80 hover:bg-[#6A8A82]/5 rounded-lg" aria-label="Voir les détails">
+                        <button className="p-2 text-[#171717] hover:text-[#171717]/80 hover:bg-[#171717]/5 rounded-lg" aria-label="Voir les détails">
                           <Eye className="w-4 h-4" />
                         </button>
                         <button className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg">
@@ -561,7 +561,7 @@ const CollaborationModule: React.FC = () => {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-[#7A99AC] h-2 rounded-full"
+                          className="bg-[#737373] h-2 rounded-full"
                           style={{ width: `${collab.progress}%` }}
                         ></div>
                       </div>
@@ -573,7 +573,7 @@ const CollaborationModule: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         {collab.participants.map((participant) => (
                           <div key={participant.id} className="flex items-center bg-gray-100 rounded-full px-3 py-1">
-                            <div className="w-6 h-6 bg-[#7A99AC] rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
+                            <div className="w-6 h-6 bg-[#737373] rounded-full flex items-center justify-center text-white text-xs font-semibold mr-2">
                               {participant.name.split(' ').map(n => n[0]).join('')}
                             </div>
                             <span className="text-sm text-gray-700">{participant.name}</span>
@@ -615,11 +615,11 @@ const CollaborationModule: React.FC = () => {
                       <p className="text-sm font-medium text-gray-700 mb-2">Documents ({collab.documents.length})</p>
                       <div className="flex items-center space-x-4">
                         {collab.documents.map((doc) => (
-                          <div key={doc.id} className="flex items-center bg-[#6A8A82]/5 rounded-lg px-3 py-2">
-                            <File className="w-4 h-4 text-[#6A8A82] mr-2" />
+                          <div key={doc.id} className="flex items-center bg-[#171717]/5 rounded-lg px-3 py-2">
+                            <File className="w-4 h-4 text-[#171717] mr-2" />
                             <div>
-                              <p className="text-sm font-medium text-[#6A8A82]">{doc.name}</p>
-                              <p className="text-xs text-[#6A8A82]">{doc.size} MB • {doc.uploadedBy}</p>
+                              <p className="text-sm font-medium text-[#171717]">{doc.name}</p>
+                              <p className="text-xs text-[#171717]">{doc.size} MB • {doc.uploadedBy}</p>
                             </div>
                           </div>
                         ))}
@@ -638,38 +638,38 @@ const CollaborationModule: React.FC = () => {
         <div className="space-y-6">
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Messages Total</p>
-                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.totalMessages}</p>
+                  <p className="text-sm text-[#525252]">Messages Total</p>
+                  <p className="text-lg font-bold text-[#171717]">{analyticsData.statistiques.totalMessages}</p>
                 </div>
-                <MessageSquare className="w-8 h-8 text-[#6A8A82]" />
+                <MessageSquare className="w-8 h-8 text-[#171717]" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Messages Aujourd'hui</p>
-                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.messagesAujourdhui}</p>
+                  <p className="text-sm text-[#525252]">Messages Aujourd'hui</p>
+                  <p className="text-lg font-bold text-[#171717]">{analyticsData.statistiques.messagesAujourdhui}</p>
                 </div>
                 <Activity className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Collaborations Actives</p>
-                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.collaborationsActives}</p>
+                  <p className="text-sm text-[#525252]">Collaborations Actives</p>
+                  <p className="text-lg font-bold text-[#171717]">{analyticsData.statistiques.collaborationsActives}</p>
                 </div>
-                <Users className="w-8 h-8 text-[#B87333]" />
+                <Users className="w-8 h-8 text-[#525252]" />
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 border border-[#E8E8E8] shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#666666]">Taux Réponse</p>
-                  <p className="text-lg font-bold text-[#191919]">{analyticsData.statistiques.tauxReponse}%</p>
+                  <p className="text-sm text-[#525252]">Taux Réponse</p>
+                  <p className="text-lg font-bold text-[#171717]">{analyticsData.statistiques.tauxReponse}%</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-orange-600" />
               </div>
@@ -679,8 +679,8 @@ const CollaborationModule: React.FC = () => {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Activité par jour */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Activité par Jour</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Activité par Jour</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analyticsData.activiteParJour}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -688,15 +688,15 @@ const CollaborationModule: React.FC = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="messages" name="Messages" fill="#7A99AC" />
-                  <Bar dataKey="collaborations" name="Collaborations" fill="#6A89AC" />
+                  <Bar dataKey="messages" name="Messages" fill="#737373" />
+                  <Bar dataKey="collaborations" name="Collaborations" fill="#525252" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             {/* Types de communication */}
-            <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#191919] mb-4">Types de Communication</h3>
+            <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#171717] mb-4">Types de Communication</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <RechartsPieChart>
                   <Pie
@@ -705,7 +705,7 @@ const CollaborationModule: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    fill="#8884d8"
+                    fill="#737373"
                     label={({ type, pourcentage }) => `${type} (${pourcentage}%)`}
                   >
                     {analyticsData.typesCommunication.map((entry, index) => (
@@ -719,14 +719,14 @@ const CollaborationModule: React.FC = () => {
           </div>
 
           {/* Temps de réponse */}
-          <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
-            <h3 className="text-lg font-semibold text-[#191919] mb-4">Temps de Réponse</h3>
+          <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
+            <h3 className="text-lg font-semibold text-[#171717] mb-4">Temps de Réponse</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {analyticsData.tempsReponse.map((item, index) => (
                 <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-[#666666] mb-2">{item.periode}</p>
-                  <p className="text-lg font-bold text-[#191919]">{item.count}</p>
-                  <p className="text-sm text-[#666666]">messages</p>
+                  <p className="text-sm text-[#525252] mb-2">{item.periode}</p>
+                  <p className="text-lg font-bold text-[#171717]">{item.count}</p>
+                  <p className="text-sm text-[#525252]">messages</p>
                 </div>
               ))}
             </div>
@@ -736,13 +736,13 @@ const CollaborationModule: React.FC = () => {
 
       {/* Visioconférence Tab */}
       {activeTab === 'visioconference' && (
-        <div className="bg-white rounded-lg p-6 border border-[#E8E8E8] shadow-sm">
+        <div className="bg-white rounded-lg p-6 border border-[#e5e5e5] shadow-sm">
           <div className="text-center py-12">
             <Video className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[#191919] mb-2">Visioconférence</h3>
-            <p className="text-[#666666] mb-6">Lancez des appels vidéo avec vos contacts et équipes</p>
+            <h3 className="text-lg font-semibold text-[#171717] mb-2">Visioconférence</h3>
+            <p className="text-[#525252] mb-6">Lancez des appels vidéo avec vos contacts et équipes</p>
             <div className="space-y-4">
-              <button className="flex items-center space-x-2 px-6 py-3 bg-[#7A99AC] text-white rounded-lg hover:bg-[#6A89AC] mx-auto">
+              <button className="flex items-center space-x-2 px-6 py-3 bg-[#737373] text-white rounded-lg hover:bg-[#525252] mx-auto">
                 <Video className="w-5 h-5" />
                 <span>Démarrer un appel vidéo</span>
               </button>

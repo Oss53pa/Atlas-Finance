@@ -1,5 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { db } from '../../lib/db';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { formatCurrency } from '../../utils/formatters';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Target, Award,
   Activity, Briefcase, Globe, BarChart3, PieChart, LineChart,
@@ -42,106 +45,93 @@ const ExecutiveDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
 
-  // Executive KPIs
+  // Live executive metrics from Dexie
+  const liveExec = useLiveQuery(async () => {
+    const entries = await db.journalEntries.toArray();
+    let revenue = 0, expenses = 0, treasury = 0;
+    const monthlyRevenue = new Array(12).fill(0);
+    for (const e of entries) {
+      const month = new Date(e.date).getMonth();
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith('7')) {
+          const val = l.credit - l.debit;
+          revenue += val;
+          if (month >= 0 && month < 12) monthlyRevenue[month] += val;
+        }
+        if (l.accountCode.startsWith('6')) expenses += l.debit - l.credit;
+        if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
+      }
+    }
+    const grossMargin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
+    const netMargin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
+    return { revenue, expenses, treasury, grossMargin, netMargin, monthlyRevenue };
+  }, []) || { revenue: 0, expenses: 0, treasury: 0, grossMargin: 0, netMargin: 0, monthlyRevenue: new Array(12).fill(0) };
+
   const executiveMetrics = {
     revenue: {
-      current: 12500000,
-      previous: 10800000,
-      target: 12000000,
-      growth: 15.7,
-      achievement: 104.2
+      current: liveExec.revenue,
+      previous: 0,
+      target: 0,
+      growth: 0,
+      achievement: 0
     },
     profitability: {
-      grossMargin: 42.5,
-      netMargin: 18.3,
-      ebitda: 2287500,
-      roe: 22.5,
-      roa: 15.8
+      grossMargin: liveExec.grossMargin,
+      netMargin: liveExec.netMargin,
+      ebitda: liveExec.revenue - liveExec.expenses,
+      roe: 0,
+      roa: 0
     },
     operational: {
-      customerSatisfaction: 92,
-      employeeEngagement: 85,
-      marketShare: 18.5,
-      innovationIndex: 78,
-      operationalEfficiency: 88
+      customerSatisfaction: 0,
+      employeeEngagement: 0,
+      marketShare: 0,
+      innovationIndex: 0,
+      operationalEfficiency: 0
     }
   };
 
-  // Strategic Goals Progress
-  const strategicGoals = [
-    { name: 'Expansion Marché', progress: 78, status: 'on-track', target: '100M€' },
-    { name: 'Transformation Digitale', progress: 65, status: 'at-risk', target: 'Q4 2024' },
-    { name: 'Excellence Opérationnelle', progress: 82, status: 'on-track', target: '95%' },
-    { name: 'Développement Durable', progress: 45, status: 'delayed', target: '2025' },
-    { name: 'Innovation Produit', progress: 90, status: 'ahead', target: '10 lancements' }
-  ];
+  // TODO: wire to real strategic planning module
+  const strategicGoals: Array<{ name: string; progress: number; status: string; target: string }> = [];
 
-  // Department Performance
-  const departmentPerformance = [
-    { name: 'Commercial', score: 92, budget: 95, headcount: 48, efficiency: 88 },
-    { name: 'Production', score: 85, budget: 78, headcount: 125, efficiency: 92 },
-    { name: 'R&D', score: 78, budget: 102, headcount: 32, efficiency: 75 },
-    { name: 'Marketing', score: 88, budget: 88, headcount: 22, efficiency: 85 },
-    { name: 'Finance', score: 95, budget: 92, headcount: 18, efficiency: 94 },
-    { name: 'RH', score: 82, budget: 85, headcount: 15, efficiency: 80 }
-  ];
+  // TODO: wire to real department data
+  const departmentPerformance: Array<{ name: string; score: number; budget: number; headcount: number; efficiency: number }> = [];
 
-  // Revenue Trend Data
+  // Revenue Trend Data from Dexie monthly aggregation
   const revenueTrendData = {
     labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
     datasets: [
       {
         label: 'Revenu Réel',
-        data: [950000, 980000, 1020000, 1050000, 1080000, 1100000, 1120000, 1150000, 1180000, 1200000, 1220000, 1250000],
+        data: liveExec.monthlyRevenue,
         borderColor: 'var(--color-primary)',
         backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)',
         tension: 0.4,
         fill: true
-      },
-      {
-        label: 'Objectif',
-        data: [1000000, 1000000, 1000000, 1100000, 1100000, 1100000, 1200000, 1200000, 1200000, 1200000, 1200000, 1200000],
-        borderColor: 'var(--color-secondary)',
-        borderDash: [5, 5],
-        tension: 0.4,
-        fill: false
       }
     ]
   };
 
-  // Market Position Radar
+  // Market Position Radar — empty until real survey data available
   const marketPositionData = {
     labels: ['Prix', 'Qualité', 'Innovation', 'Service', 'Délais', 'Réputation'],
     datasets: [
       {
         label: 'Notre Position',
-        data: [75, 90, 85, 88, 82, 92],
+        data: [0, 0, 0, 0, 0, 0],
         backgroundColor: 'rgba(var(--color-primary-rgb), 0.2)',
         borderColor: 'var(--color-primary)',
         pointBackgroundColor: 'var(--color-primary)'
-      },
-      {
-        label: 'Moyenne Marché',
-        data: [70, 75, 70, 75, 80, 78],
-        backgroundColor: 'rgba(var(--color-secondary-rgb), 0.2)',
-        borderColor: 'var(--color-secondary)',
-        pointBackgroundColor: 'var(--color-secondary)'
       }
     ]
   };
 
-  // Profitability Breakdown mémorisé
+  // Profitability Breakdown — empty until real product data available
   const profitabilityData = useMemo(() => ({
-    labels: ['Ventes Produits', 'Services', 'Licences', 'Maintenance', 'Autres'],
+    labels: ['Pas de données'],
     datasets: [{
-      data: [45, 25, 15, 10, 5],
-      backgroundColor: [
-        'var(--color-primary)',
-        'var(--color-success)',
-        'var(--color-warning)',
-        'var(--color-info)',
-        'var(--color-secondary)'
-      ]
+      data: [100],
+      backgroundColor: ['var(--color-secondary)']
     }]
   }), []);
 

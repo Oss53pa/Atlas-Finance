@@ -92,7 +92,7 @@ const PositionTresoreriePage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
-                <Wallet className="h-8 w-8 text-[#6A8A82] mr-3" />
+                <Wallet className="h-8 w-8 text-[#171717] mr-3" />
                 Position Trésorerie Temps Réel
               </h1>
               <p className="text-gray-600">
@@ -106,13 +106,13 @@ const PositionTresoreriePage: React.FC = () => {
                   type="checkbox"
                   checked={autoRefresh}
                   onChange={(e) => setAutoRefresh(e.target.checked)}
-                  className="w-4 h-4 text-[#6A8A82] rounded"
+                  className="w-4 h-4 text-[#171717] rounded"
                 />
                 <span className="text-sm text-gray-600">Auto-refresh</span>
               </div>
               <button
                 onClick={loadTreasuryPosition}
-                className="p-2 text-gray-600 hover:text-[#6A8A82] transition-colors" aria-label="Actualiser">
+                className="p-2 text-gray-600 hover:text-[#171717] transition-colors" aria-label="Actualiser">
                 <RefreshCw className="h-5 w-5" />
               </button>
             </div>
@@ -188,8 +188,8 @@ const PositionTresoreriePage: React.FC = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-[#6A8A82]/10 rounded-lg flex items-center justify-center">
-                        <Building2 className="h-5 w-5 text-[#6A8A82]" />
+                      <div className="w-10 h-10 bg-[#171717]/10 rounded-lg flex items-center justify-center">
+                        <Building2 className="h-5 w-5 text-[#171717]" />
                       </div>
                       <div>
                         <h4 className="font-medium text-gray-900">{account.bankName}</h4>

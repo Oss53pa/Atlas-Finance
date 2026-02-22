@@ -97,7 +97,7 @@ const PeriodSelectorModal: React.FC<PeriodSelectorModalProps> = ({
               type="date"
               value={dateRange.start}
               onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]/20 focus:border-[#6A8A82]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717]/20 focus:border-[#171717]"
             />
           </div>
 
@@ -109,7 +109,7 @@ const PeriodSelectorModal: React.FC<PeriodSelectorModalProps> = ({
               type="date"
               value={dateRange.end}
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82]/20 focus:border-[#6A8A82]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717]/20 focus:border-[#171717]"
             />
           </div>
 
@@ -118,37 +118,37 @@ const PeriodSelectorModal: React.FC<PeriodSelectorModalProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => handleQuickPeriod('thisMonth')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#6A8A82]/5 hover:border-[#6A8A82] transition-colors"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#171717]/5 hover:border-[#171717] transition-colors"
               >
                 Ce mois
               </button>
               <button
                 onClick={() => handleQuickPeriod('lastMonth')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#6A8A82]/5 hover:border-[#6A8A82] transition-colors"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#171717]/5 hover:border-[#171717] transition-colors"
               >
                 Mois dernier
               </button>
               <button
                 onClick={() => handleQuickPeriod('thisQuarter')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#7A99AC]/5 hover:border-[#7A99AC] transition-colors"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#737373]/5 hover:border-[#737373] transition-colors"
               >
                 Ce trimestre
               </button>
               <button
                 onClick={() => handleQuickPeriod('lastQuarter')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#7A99AC]/5 hover:border-[#7A99AC] transition-colors"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#737373]/5 hover:border-[#737373] transition-colors"
               >
                 Trimestre dernier
               </button>
               <button
                 onClick={() => handleQuickPeriod('thisYear')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#B87333]/5 hover:border-[#B87333] transition-colors"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#525252]/5 hover:border-[#525252] transition-colors"
               >
                 Cette année
               </button>
               <button
                 onClick={() => handleQuickPeriod('lastYear')}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#B87333]/5 hover:border-[#B87333] transition-colors"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[#525252]/5 hover:border-[#525252] transition-colors"
               >
                 Année dernière
               </button>
@@ -157,9 +157,9 @@ const PeriodSelectorModal: React.FC<PeriodSelectorModalProps> = ({
 
           {/* Affichage de la période sélectionnée */}
           {dateRange.start && dateRange.end && (
-            <div className="bg-[#6A8A82]/5 border border-[#6A8A82]/20 rounded-lg p-3">
+            <div className="bg-[#171717]/5 border border-[#171717]/20 rounded-lg p-3">
               <p className="text-sm text-gray-600">Période sélectionnée :</p>
-              <p className="text-sm font-medium text-[#6A8A82]">
+              <p className="text-sm font-medium text-[#171717]">
                 Du {new Date(dateRange.start).toLocaleDateString('fr-FR')} au {new Date(dateRange.end).toLocaleDateString('fr-FR')}
               </p>
             </div>

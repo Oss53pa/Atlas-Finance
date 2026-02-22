@@ -316,7 +316,7 @@ export const FundCallPreApprouve: React.FC = () => {
         }
 
         .cursor-pointer:hover {
-          background-color: #f8f9fa !important;
+          background-color: #fafafa !important;
         }
       `}</style>
     </div>

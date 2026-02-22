@@ -96,63 +96,63 @@ export const PlanRemboursementTable: React.FC<PlanRemboursementTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="bg-[#F5F5F5] border border-[#D9D9D9] rounded-lg p-4">
+      <div className="bg-[#F5F5F5] border border-[#d4d4d4] rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-[#767676]">Montant Total</p>
-            <p className="text-lg font-semibold text-[#191919]">
+            <p className="text-sm text-[#737373]">Montant Total</p>
+            <p className="text-lg font-semibold text-[#171717]">
               {formatCurrency(plan.montantTotal)}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#767676]">Montant Payé</p>
-            <p className="text-lg font-semibold text-[#6A8A82]">
+            <p className="text-sm text-[#737373]">Montant Payé</p>
+            <p className="text-lg font-semibold text-[#171717]">
               {formatCurrency(totalPaye)}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#767676]">Montant Restant</p>
-            <p className="text-lg font-semibold text-[#B85450]">
+            <p className="text-sm text-[#737373]">Montant Restant</p>
+            <p className="text-lg font-semibold text-[#ef4444]">
               {formatCurrency(totalRestant)}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#767676]">Progression</p>
+            <p className="text-sm text-[#737373]">Progression</p>
             <div className="flex items-center gap-2 mt-1">
-              <div className="flex-1 bg-white rounded-full h-2 border border-[#D9D9D9]">
+              <div className="flex-1 bg-white rounded-full h-2 border border-[#d4d4d4]">
                 <div
-                  className="bg-[#6A8A82] h-full rounded-full transition-all"
+                  className="bg-[#171717] h-full rounded-full transition-all"
                   style={{ width: `${Math.min(pourcentagePaye, 100)}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold text-[#191919]">
+              <span className="text-sm font-semibold text-[#171717]">
                 {pourcentagePaye.toFixed(0)}%
               </span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-[#D9D9D9]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-[#d4d4d4]">
           <div>
-            <p className="text-sm text-[#767676]">Date Début</p>
-            <p className="font-medium text-[#191919]">
+            <p className="text-sm text-[#737373]">Date Début</p>
+            <p className="font-medium text-[#171717]">
               {formatDate(plan.dateDebut, 'short')}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#767676]">Date Fin</p>
-            <p className="font-medium text-[#191919]">
+            <p className="text-sm text-[#737373]">Date Fin</p>
+            <p className="font-medium text-[#171717]">
               {formatDate(plan.dateFin, 'short')}
             </p>
           </div>
 
           <div>
-            <p className="text-sm text-[#767676]">Nombre d'Échéances</p>
-            <p className="font-medium text-[#191919]">{plan.nombreEcheances}</p>
+            <p className="text-sm text-[#737373]">Nombre d'Échéances</p>
+            <p className="font-medium text-[#171717]">{plan.nombreEcheances}</p>
           </div>
         </div>
       </div>

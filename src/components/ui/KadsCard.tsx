@@ -47,7 +47,7 @@ const KadsCard: React.FC<KadsCardProps> = ({
   return (
     <div 
       className={`
-        bg-white rounded-xl p-4 shadow-sm border border-[#D5D0CD]
+        bg-white rounded-xl p-4 shadow-sm border border-[#e5e5e5]
         hover:shadow-lg transition-all duration-300 group
         ${onClick ? 'cursor-pointer hover:scale-105' : ''}
         ${className}
@@ -76,16 +76,16 @@ const KadsCard: React.FC<KadsCardProps> = ({
       </div>
       
       <div className="space-y-2">
-        <h3 className="text-lg font-bold text-[#353A3B]">{value}</h3>
-        <p className="text-[#353A3B] opacity-80 font-medium">{title}</p>
+        <h3 className="text-lg font-bold text-[#404040]">{value}</h3>
+        <p className="text-[#404040] opacity-80 font-medium">{title}</p>
         {description && (
-          <p className="text-[#353A3B] opacity-60 text-sm">{description}</p>
+          <p className="text-[#404040] opacity-60 text-sm">{description}</p>
         )}
         
         {target && (
           <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-[#353A3B] opacity-50">Objectif: {target}</span>
-            <div className="w-16 h-1 bg-[#D5D0CD] bg-opacity-50 rounded-full overflow-hidden">
+            <span className="text-xs text-[#404040] opacity-50">Objectif: {target}</span>
+            <div className="w-16 h-1 bg-[#e5e5e5] bg-opacity-50 rounded-full overflow-hidden">
               <div className={`h-full bg-${color}-500 rounded-full`} style={{width: '75%'}}></div>
             </div>
           </div>

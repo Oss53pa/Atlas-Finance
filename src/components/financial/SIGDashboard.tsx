@@ -196,17 +196,17 @@ const SIGDashboard: React.FC = () => {
 
   // Données pour la répartition de la VA
   const valueAddedBreakdown = [
-    { name: 'Personnel', value: sigData.staffCosts, color: '#B85450' },
-    { name: 'Impôts/Taxes', value: sigData.taxesAndDuties, color: '#B87333' },
-    { name: 'Dotations', value: sigData.depreciationProvisionsDotations, color: '#7A99AC' },
-    { name: 'Résultat', value: sigData.finalNetResult, color: '#6A8A82' }
+    { name: 'Personnel', value: sigData.staffCosts, color: '#ef4444' },
+    { name: 'Impôts/Taxes', value: sigData.taxesAndDuties, color: '#525252' },
+    { name: 'Dotations', value: sigData.depreciationProvisionsDotations, color: '#737373' },
+    { name: 'Résultat', value: sigData.finalNetResult, color: '#171717' }
   ];
 
   // Données pour l'évolution des marges
   const marginData = [
-    { name: 'Taux VA', value: sigData.addedValueRate, color: '#7A99AC' },
-    { name: 'Marge Exploit.', value: sigData.operatingMarginRate, color: '#6A8A82' },
-    { name: 'Marge Nette', value: sigData.netMarginRate, color: '#B87333' }
+    { name: 'Taux VA', value: sigData.addedValueRate, color: '#737373' },
+    { name: 'Marge Exploit.', value: sigData.operatingMarginRate, color: '#171717' },
+    { name: 'Marge Nette', value: sigData.netMarginRate, color: '#525252' }
   ];
 
   return (
@@ -293,8 +293,8 @@ const SIGDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#6A8A82' : '#B85450'} />
-                <Line type="monotone" dataKey="cumulative" stroke="#7A99AC" strokeWidth={3} name="Cumul" />
+                <Bar dataKey="value" fill={(entry, index) => entry > 0 ? '#171717' : '#ef4444'} />
+                <Line type="monotone" dataKey="cumulative" stroke="#737373" strokeWidth={3} name="Cumul" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -407,7 +407,7 @@ const SIGDashboard: React.FC = () => {
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#737373"
                     dataKey="value"
                   >
                     {valueAddedBreakdown.map((entry, index) => (

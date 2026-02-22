@@ -36,9 +36,9 @@ const TAFIREDashboard: React.FC = () => {
 
 
   const getFlowColor = (value: number): string => {
-    if (value > 0) return '#6A8A82';
-    if (value < 0) return '#B85450';
-    return '#767676';
+    if (value > 0) return '#171717';
+    if (value < 0) return '#ef4444';
+    return '#737373';
   };
 
   const getFlowIcon = (value: number) => {
@@ -204,8 +204,8 @@ const TAFIREDashboard: React.FC = () => {
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="value" fill="#6A8A82" />
-                <Line type="monotone" dataKey="cumulative" stroke="#7A99AC" strokeWidth={3} name="Trésorerie cumulative" />
+                <Bar dataKey="value" fill="#171717" />
+                <Line type="monotone" dataKey="cumulative" stroke="#737373" strokeWidth={3} name="Trésorerie cumulative" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -219,7 +219,7 @@ const TAFIREDashboard: React.FC = () => {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="value" fill="#6A8A82" />
+                <Bar dataKey="value" fill="#171717" />
               </BarChart>
             </ResponsiveContainer>
           </div>

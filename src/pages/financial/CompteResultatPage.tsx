@@ -169,60 +169,17 @@ const CompteResultatPage: React.FC = () => {
     ];
   };
 
-  // Génération des détails de transactions pour un compte
-  const generateTransactionDetails = (accountCode: string, month: string, amount: number) => {
-    const transactions = [];
-    const numTransactions = Math.floor(Math.random() * 8) + 3; // 3-10 transactions
-    let remainingAmount = amount;
-
-    for (let i = 0; i < numTransactions; i++) {
-      const isLast = i === numTransactions - 1;
-      const transactionAmount = isLast ? remainingAmount : Math.floor(remainingAmount * (0.1 + Math.random() * 0.4));
-      remainingAmount -= transactionAmount;
-
-      transactions.push({
-        id: `TR-${month}-${accountCode}-${i + 1}`,
-        date: `${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}/${month.padStart(2, '0')}/2024`,
-        reference: `REF${month}${String(i + 1).padStart(3, '0')}`,
-        libelle: getTransactionLibelle(accountCode),
-        montant: transactionAmount,
-        tiers: getTiers(accountCode),
-        piece: `PC${month}${String(i + 1).padStart(4, '0')}`
-      });
-    }
-
-    return transactions.sort((a, b) => new Date(a.date.split('/').reverse().join('-')).getTime() - new Date(b.date.split('/').reverse().join('-')).getTime());
+  // TODO: wire to Dexie query for real transaction details
+  const generateTransactionDetails = (_accountCode: string, _month: string, _amount: number) => {
+    return [] as Array<{ id: string; date: string; reference: string; libelle: string; montant: number; tiers: string; piece: string }>;
   };
 
-  const getTransactionLibelle = (accountCode: string) => {
-    const libelles = {
-      '21': ['Achat logiciel comptabilité', 'Licence Microsoft Office', 'Développement site web'],
-      '22/23': ['Acquisition terrain industriel', 'Terrain commercial centre-ville'],
-      '24': ['Construction bâtiment administratif', 'Rénovation bureaux', 'Extension entrepôt'],
-      '245': ['Achat machine production', 'Matériel informatique', 'Outillage spécialisé'],
-      '31': ['Achat marchandises', 'Stock matières premières', 'Produits finis'],
-      '41': ['Facture client ABC', 'Vente client XYZ', 'Prestation services'],
-      '52': ['Virement bancaire', 'Encaissement chèque', 'Paiement fournisseur'],
-      '53': ['Espèces caisse', 'Petite caisse', 'Caisse principale'],
-      '70': ['Vente marchandises détail', 'Vente export', 'Vente locale'],
-      '72': ['Production vendue', 'Prestations services', 'Travaux façon'],
-      '60': ['Achat matières premières', 'Achats marchandises', 'Approvisionnements'],
-      '66': ['Salaires personnel', 'Charges sociales', 'Primes personnel']
-    };
-    const accountLibelles = libelles[accountCode as keyof typeof libelles] || ['Transaction générale'];
-    return accountLibelles[Math.floor(Math.random() * accountLibelles.length)];
+  const getTransactionLibelle = (_accountCode: string) => {
+    return 'Transaction';
   };
 
-  const getTiers = (accountCode: string) => {
-    const tiers = {
-      '21': ['Microsoft France', 'SAP France', 'Oracle'],
-      '41': ['Client SA', 'Société ABC', 'Entreprise XYZ'],
-      '52': ['BNP Paribas', 'Crédit Agricole', 'Société Générale'],
-      '60': ['Fournisseur A', 'Supplier B', 'Grossiste C'],
-      '66': ['Personnel', 'URSSAF', 'Caisse retraite']
-    };
-    const accountTiers = tiers[accountCode as keyof typeof tiers] || ['Tiers générique'];
-    return accountTiers[Math.floor(Math.random() * accountTiers.length)];
+  const getTiers = (_accountCode: string) => {
+    return 'Tiers';
   };
 
   // Génération des sous-comptes
@@ -320,38 +277,38 @@ const CompteResultatPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#ECECEC] ">
+    <div className="min-h-screen bg-[#e5e5e5] ">
       {/* En-tête */}
-      <div className="bg-white border-b border-[#E8E8E8] p-6">
+      <div className="bg-white border-b border-[#e5e5e5] p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/financial-analysis-advanced')}
-              className="flex items-center space-x-2 px-4 py-2 text-[#767676] hover:text-[#B87333] transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 text-[#737373] hover:text-[#525252] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm">Retour</span>
             </button>
-            <div className="h-6 w-px bg-[#E8E8E8]" />
+            <div className="h-6 w-px bg-[#e5e5e5]" />
             <div>
-              <h1 className="text-lg font-bold text-[#191919]">États Financiers Mensuels SYSCOHADA</h1>
-              <p className="text-sm text-[#767676]">Tableaux financiers mensualisés de janvier à décembre 2024</p>
+              <h1 className="text-lg font-bold text-[#171717]">États Financiers Mensuels SYSCOHADA</h1>
+              <p className="text-sm text-[#737373]">Tableaux financiers mensualisés de janvier à décembre 2024</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <div className="text-sm text-[#767676]">
+            <div className="text-sm text-[#737373]">
               Exercice 2024 • Données mensualisées
             </div>
-            <button className="p-2 border border-[#D9D9D9] rounded-lg hover:bg-gray-50" aria-label="Actualiser">
-              <RefreshCw className="w-4 h-4 text-[#767676]" />
+            <button className="p-2 border border-[#d4d4d4] rounded-lg hover:bg-gray-50" aria-label="Actualiser">
+              <RefreshCw className="w-4 h-4 text-[#737373]" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Navigation par onglets */}
-      <div className="bg-white rounded-lg border border-[#E8E8E8] shadow-sm">
-        <div className="px-6 border-b border-[#E8E8E8]">
+      <div className="bg-white rounded-lg border border-[#e5e5e5] shadow-sm">
+        <div className="px-6 border-b border-[#e5e5e5]">
           <nav className="flex space-x-8">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
@@ -362,8 +319,8 @@ const CompteResultatPage: React.FC = () => {
                   className={`
                     flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'border-[#B87333] text-[#B87333]'
-                      : 'border-transparent text-[#767676] hover:text-[#444444]'
+                      ? 'border-[#525252] text-[#525252]'
+                      : 'border-transparent text-[#737373] hover:text-[#404040]'
                     }
                   `}
                 >
@@ -381,27 +338,27 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">BILAN SYSCOHADA - Exercice 2024</h2>
-                <p className="text-[#767676]">Données mensualisées de janvier à décembre</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">BILAN SYSCOHADA - Exercice 2024</h2>
+                <p className="text-[#737373]">Données mensualisées de janvier à décembre</p>
               </div>
 
               {/* ACTIF */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                <div className="bg-[#B87333] text-white p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div className="bg-[#525252] text-white p-4">
                   <h3 className="text-lg font-bold text-left">ACTIF</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">{t('accounting.label')}</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Réf</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-[#B87333]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-[#525252]/10 font-bold">TOTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -410,20 +367,20 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={index} className="border-b border-[#E8E8E8] hover:bg-gray-50">
-                            <td className="p-3 text-[#444444] font-medium">
+                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                            <td className="p-3 text-[#404040] font-medium">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
-                                  className="p-1 hover:bg-[#B87333] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td
                                 key={monthIndex}
@@ -434,7 +391,7 @@ const CompteResultatPage: React.FC = () => {
                                 {value.toLocaleString()}
                               </td>
                             ))}
-                            <td className="p-3 text-right font-mono font-bold bg-[#B87333]/5">
+                            <td className="p-3 text-right font-mono font-bold bg-[#525252]/5">
                               {total.toLocaleString()}
                             </td>
                           </tr>
@@ -448,7 +405,7 @@ const CompteResultatPage: React.FC = () => {
                         const grandTotal = monthlyTotals.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr className="bg-[#B87333]/10 font-bold border-t-2 border-[#B87333]">
+                          <tr className="bg-[#525252]/10 font-bold border-t-2 border-[#525252]">
                             <td className="p-3">TA</td>
                             <td className="p-3">TOTAL ACTIF</td>
                             {monthlyTotals.map((total, index) => (
@@ -456,7 +413,7 @@ const CompteResultatPage: React.FC = () => {
                                 {total.toLocaleString()}
                               </td>
                             ))}
-                            <td className="p-3 text-right font-mono text-lg bg-[#B87333]/20">
+                            <td className="p-3 text-right font-mono text-lg bg-[#525252]/20">
                               {grandTotal.toLocaleString()}
                             </td>
                           </tr>
@@ -468,22 +425,22 @@ const CompteResultatPage: React.FC = () => {
               </div>
 
               {/* PASSIF */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                <div className="bg-[#6A8A82] text-white p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div className="bg-[#171717] text-white p-4">
                   <h3 className="text-lg font-bold text-left">PASSIF</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">{t('accounting.label')}</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Réf</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-[#6A8A82]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-[#171717]/10 font-bold">TOTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -492,20 +449,20 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={index} className="border-b border-[#E8E8E8] hover:bg-gray-50">
-                            <td className="p-3 text-[#444444] font-medium">
+                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                            <td className="p-3 text-[#404040] font-medium">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
-                                  className="p-1 hover:bg-[#6A8A82] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[#171717] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td
                                 key={monthIndex}
@@ -516,7 +473,7 @@ const CompteResultatPage: React.FC = () => {
                                 {value.toLocaleString()}
                               </td>
                             ))}
-                            <td className="p-3 text-right font-mono font-bold bg-[#6A8A82]/5">
+                            <td className="p-3 text-right font-mono font-bold bg-[#171717]/5">
                               {total.toLocaleString()}
                             </td>
                           </tr>
@@ -530,7 +487,7 @@ const CompteResultatPage: React.FC = () => {
                         const grandTotal = monthlyTotals.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr className="bg-[#6A8A82]/10 font-bold border-t-2 border-[#6A8A82]">
+                          <tr className="bg-[#171717]/10 font-bold border-t-2 border-[#171717]">
                             <td className="p-3">TP</td>
                             <td className="p-3">TOTAL PASSIF</td>
                             {monthlyTotals.map((total, index) => (
@@ -538,7 +495,7 @@ const CompteResultatPage: React.FC = () => {
                                 {total.toLocaleString()}
                               </td>
                             ))}
-                            <td className="p-3 text-right font-mono text-lg bg-[#6A8A82]/20">
+                            <td className="p-3 text-right font-mono text-lg bg-[#171717]/20">
                               {grandTotal.toLocaleString()}
                             </td>
                             <td className="p-3"></td>
@@ -556,26 +513,26 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan-fonctionnel' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">BILAN FONCTIONNEL - Exercice 2024</h2>
-                <p className="text-[#767676]">Analyse fonctionnelle des emplois et ressources mensualisée</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">BILAN FONCTIONNEL - Exercice 2024</h2>
+                <p className="text-[#737373]">Analyse fonctionnelle des emplois et ressources mensualisée</p>
               </div>
 
               {/* EMPLOIS ET RESSOURCES MENSUALISÉS */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                <div className="bg-[#7A99AC] text-white p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div className="bg-[#737373] text-white p-4">
                   <h3 className="text-lg font-bold text-left">BILAN FONCTIONNEL</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">Analyse fonctionnelle</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[200px]">Analyse fonctionnelle</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-[#7A99AC]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-[#737373]/10 font-bold">TOTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -594,8 +551,8 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`emploi-${index}`} className="border-b border-[#E8E8E8] hover:bg-blue-50">
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                          <tr key={`emploi-${index}`} className="border-b border-[#e5e5e5] hover:bg-blue-50">
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
                                 {value.toLocaleString()}
@@ -623,8 +580,8 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`ressource-${index}`} className="border-b border-[#E8E8E8] hover:bg-green-50">
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                          <tr key={`ressource-${index}`} className="border-b border-[#e5e5e5] hover:bg-green-50">
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
                                 {value.toLocaleString()}
@@ -647,27 +604,27 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">COMPTE DE RÉSULTAT - Exercice 2024</h2>
-                <p className="text-[#767676]">Produits et charges mensualisés</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">COMPTE DE RÉSULTAT - Exercice 2024</h2>
+                <p className="text-[#737373]">Produits et charges mensualisés</p>
               </div>
 
               {/* PRODUITS ET CHARGES SUPERPOSÉS */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                <div className="bg-[#B87333] text-white p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div className="bg-[#525252] text-white p-4">
                   <h3 className="text-lg font-bold text-left">COMPTE DE RÉSULTAT SYSCOHADA</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">{t('accounting.label')}</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Réf</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-[#B87333]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-[#525252]/10 font-bold">TOTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -682,20 +639,20 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`produit-${index}`} className="border-b border-[#E8E8E8] hover:bg-green-50">
-                            <td className="p-3 text-[#444444] font-medium">
+                          <tr key={`produit-${index}`} className="border-b border-[#e5e5e5] hover:bg-green-50">
+                            <td className="p-3 text-[#404040] font-medium">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
-                                  className="p-1 hover:bg-[#B87333] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td
                                 key={monthIndex}
@@ -751,20 +708,20 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`charge-${index}`} className="border-b border-[#E8E8E8] hover:bg-red-50">
-                            <td className="p-3 text-[#444444] font-medium">
+                          <tr key={`charge-${index}`} className="border-b border-[#e5e5e5] hover:bg-red-50">
+                            <td className="p-3 text-[#404040] font-medium">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
-                                  className="p-1 hover:bg-[#B87333] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td
                                 key={monthIndex}
@@ -818,15 +775,15 @@ const CompteResultatPage: React.FC = () => {
                         const totalResultat = monthlyResultats.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr className="bg-[#B87333]/10 font-bold border-t-4 border-[#B87333]">
+                          <tr className="bg-[#525252]/10 font-bold border-t-4 border-[#525252]">
                             <td className="p-3">RN</td>
                             <td className="p-3">RÉSULTAT NET</td>
                             {monthlyResultats.map((resultat, index) => (
-                              <td key={index} className="p-2 text-right font-mono text-sm text-[#B87333]">
+                              <td key={index} className="p-2 text-right font-mono text-sm text-[#525252]">
                                 {resultat.toLocaleString()}
                               </td>
                             ))}
-                            <td className="p-3 text-right font-mono text-lg bg-[#B87333]/20 text-[#B87333]">
+                            <td className="p-3 text-right font-mono text-lg bg-[#525252]/20 text-[#525252]">
                               {totalResultat.toLocaleString()}
                             </td>
                           </tr>
@@ -843,25 +800,25 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'tableau-financement' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">TABLEAU DE FINANCEMENT - Exercice 2024</h2>
-                <p className="text-[#767676]">Analyse des flux financiers mensualisée</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">TABLEAU DE FINANCEMENT - Exercice 2024</h2>
+                <p className="text-[#737373]">Analyse des flux financiers mensualisée</p>
               </div>
 
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                <div className="bg-[#7A99AC] text-white p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div className="bg-[#737373] text-white p-4">
                   <h3 className="text-lg font-bold text-left">TABLEAU DE FINANCEMENT</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">Flux financiers</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[200px]">Flux financiers</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-[#7A99AC]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-[#737373]/10 font-bold">TOTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -880,8 +837,8 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`emploi-${index}`} className="border-b border-[#E8E8E8] hover:bg-blue-50">
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                          <tr key={`emploi-${index}`} className="border-b border-[#e5e5e5] hover:bg-blue-50">
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
                                 {value.toLocaleString()}
@@ -909,8 +866,8 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`ressource-${index}`} className="border-b border-[#E8E8E8] hover:bg-green-50">
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                          <tr key={`ressource-${index}`} className="border-b border-[#e5e5e5] hover:bg-green-50">
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className="p-2 text-right font-mono text-xs">
                                 {value.toLocaleString()}
@@ -933,25 +890,25 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'flux-tresorerie' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">TABLEAU FLUX TRÉSORERIE - Exercice 2024</h2>
-                <p className="text-[#767676]">Flux de trésorerie par activité mensualisés</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">TABLEAU FLUX TRÉSORERIE - Exercice 2024</h2>
+                <p className="text-[#737373]">Flux de trésorerie par activité mensualisés</p>
               </div>
 
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                <div className="bg-[#6A8A82] text-white p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div className="bg-[#171717] text-white p-4">
                   <h3 className="text-lg font-bold text-left">TABLEAU DES FLUX DE TRÉSORERIE</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">Flux de trésorerie</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[200px]">Flux de trésorerie</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-[#6A8A82]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-[#171717]/10 font-bold">TOTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -970,8 +927,8 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`operationnel-${index}`} className="border-b border-[#E8E8E8] hover:bg-blue-50">
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                          <tr key={`operationnel-${index}`} className="border-b border-[#e5e5e5] hover:bg-blue-50">
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className={`p-2 text-right font-mono text-xs ${value < 0 ? 'text-red-600' : ''}`}>
                                 {value < 0 ? '(' : ''}{Math.abs(value).toLocaleString()}{value < 0 ? ')' : ''}
@@ -998,8 +955,8 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={`investissement-${index}`} className="border-b border-[#E8E8E8] hover:bg-orange-50">
-                            <td className="p-3 text-[#191919]">{item.libelle}</td>
+                          <tr key={`investissement-${index}`} className="border-b border-[#e5e5e5] hover:bg-orange-50">
+                            <td className="p-3 text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td key={monthIndex} className={`p-2 text-right font-mono text-xs ${value < 0 ? 'text-red-600' : ''}`}>
                                 {value < 0 ? '(' : ''}{Math.abs(value).toLocaleString()}{value < 0 ? ')' : ''}
@@ -1021,14 +978,14 @@ const CompteResultatPage: React.FC = () => {
                         const totalVariation = monthlyVariations.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr className="bg-[#B87333]/10 font-bold border-t-4 border-[#B87333]">
+                          <tr className="bg-[#525252]/10 font-bold border-t-4 border-[#525252]">
                             <td className="p-3">VARIATION TRÉSORERIE</td>
                             {monthlyVariations.map((variation, index) => (
-                              <td key={index} className="p-2 text-right font-mono text-sm text-[#B87333]">
+                              <td key={index} className="p-2 text-right font-mono text-sm text-[#525252]">
                                 +{variation.toLocaleString()}
                               </td>
                             ))}
-                            <td className="p-3 text-right font-mono text-lg bg-[#B87333]/20 text-[#B87333]">
+                            <td className="p-3 text-right font-mono text-lg bg-[#525252]/20 text-[#525252]">
                               +{totalVariation.toLocaleString()}
                             </td>
                           </tr>
@@ -1045,26 +1002,26 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'sig' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">SIG (SOLDES INTERMÉDIAIRES) - Exercice 2024</h2>
-                <p className="text-[#767676]">Formation du résultat mensualisée</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">SIG (SOLDES INTERMÉDIAIRES) - Exercice 2024</h2>
+                <p className="text-[#737373]">Formation du résultat mensualisée</p>
               </div>
 
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
-                <div className="bg-[#B87333] text-white p-4">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
+                <div className="bg-[#525252] text-white p-4">
                   <h3 className="text-lg font-bold text-left">SOLDES INTERMÉDIAIRES DE GESTION</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[200px]">Soldes intermédiaires</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Réf</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[200px]">Soldes intermédiaires</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[90px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-[#B87333]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-[#525252]/10 font-bold">TOTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1073,20 +1030,20 @@ const CompteResultatPage: React.FC = () => {
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
 
                         return (
-                          <tr key={index} className={`border-b border-[#E8E8E8] hover:bg-gray-50 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                            <td className="p-3 text-[#444444] font-medium">
+                          <tr key={index} className={`border-b border-[#e5e5e5] hover:bg-gray-50 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                            <td className="p-3 text-[#404040] font-medium">
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
                                   onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
-                                  className="p-1 hover:bg-[#B87333] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${item.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
-                            <td className="p-3 font-medium text-[#191919]">{item.libelle}</td>
+                            <td className="p-3 font-medium text-[#171717]">{item.libelle}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td
                                 key={monthIndex}
@@ -1098,7 +1055,7 @@ const CompteResultatPage: React.FC = () => {
                               </td>
                             ))}
                             <td
-                              className="p-3 text-right font-mono font-bold bg-[#B87333]/5 hover:bg-blue-50 cursor-pointer"
+                              className="p-3 text-right font-mono font-bold bg-[#525252]/5 hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'total', total)}
                               title="Cliquer pour voir le détail du total annuel"
                             >
@@ -1118,12 +1075,12 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'ratios' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">RATIOS FINANCIERS - Exercice 2024</h2>
-                <p className="text-[#767676]">Indicateurs de performance mensualisés</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">RATIOS FINANCIERS - Exercice 2024</h2>
+                <p className="text-[#737373]">Indicateurs de performance mensualisés</p>
               </div>
 
               {/* RATIOS DE RENTABILITÉ */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
                 <div className="bg-green-600 text-white p-4">
                   <h3 className="text-lg font-bold text-left">RATIOS DE RENTABILITÉ</h3>
                 </div>
@@ -1131,14 +1088,14 @@ const CompteResultatPage: React.FC = () => {
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[150px]">Ratios</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Réf</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[150px]">Ratios</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[80px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[80px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-green-100 font-bold">MOYENNE</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-green-100 font-bold">MOYENNE</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1151,20 +1108,20 @@ const CompteResultatPage: React.FC = () => {
                         const moyenne = monthlyValues.reduce((sum, value) => sum + value, 0) / monthlyValues.length;
 
                         return (
-                          <tr key={index} className="border-b border-[#E8E8E8] hover:bg-gray-50">
-                            <td className="p-3 text-[#444444] font-medium">
+                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                            <td className="p-3 text-[#404040] font-medium">
                               <div className="flex items-center space-x-2">
                                 <span>{ratio.code}</span>
                                 <button
                                   onClick={() => openDetailModal(ratio.code, `Sous-comptes de ${ratio.nom}`, 'sous-comptes', moyenne)}
-                                  className="p-1 hover:bg-[#B87333] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${ratio.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
-                            <td className="p-3 font-medium text-[#191919]">{ratio.nom}</td>
+                            <td className="p-3 font-medium text-[#171717]">{ratio.nom}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td
                                 key={monthIndex}
@@ -1191,7 +1148,7 @@ const CompteResultatPage: React.FC = () => {
               </div>
 
               {/* RATIOS D'ACTIVITÉ */}
-              <div className="bg-white rounded-lg border border-[#E8E8E8] overflow-hidden">
+              <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
                 <div className="bg-blue-600 text-white p-4">
                   <h3 className="text-lg font-bold text-left">RATIOS D'ACTIVITÉ</h3>
                 </div>
@@ -1199,14 +1156,14 @@ const CompteResultatPage: React.FC = () => {
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Réf</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8] min-w-[150px]">Ratios</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Réf</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5] min-w-[150px]">Ratios</th>
                         {months.map(month => (
-                          <th key={month} className="text-right p-2 border-b border-[#E8E8E8] min-w-[80px] text-xs">
+                          <th key={month} className="text-right p-2 border-b border-[#e5e5e5] min-w-[80px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[#E8E8E8] min-w-[100px] bg-blue-100 font-bold">MOYENNE</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5] min-w-[100px] bg-blue-100 font-bold">MOYENNE</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1219,20 +1176,20 @@ const CompteResultatPage: React.FC = () => {
                         const moyenne = monthlyValues.reduce((sum, value) => sum + value, 0) / monthlyValues.length;
 
                         return (
-                          <tr key={index} className="border-b border-[#E8E8E8] hover:bg-gray-50">
-                            <td className="p-3 text-[#444444] font-medium">
+                          <tr key={index} className="border-b border-[#e5e5e5] hover:bg-gray-50">
+                            <td className="p-3 text-[#404040] font-medium">
                               <div className="flex items-center space-x-2">
                                 <span>{ratio.code}</span>
                                 <button
                                   onClick={() => openDetailModal(ratio.code, `Sous-comptes de ${ratio.nom}`, 'sous-comptes', moyenne)}
-                                  className="p-1 hover:bg-[#B87333] hover:text-white rounded transition-colors"
+                                  className="p-1 hover:bg-[#525252] hover:text-white rounded transition-colors"
                                   title={`Voir les sous-comptes de ${ratio.code}`}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
-                            <td className="p-3 font-medium text-[#191919]">{ratio.nom}</td>
+                            <td className="p-3 font-medium text-[#171717]">{ratio.nom}</td>
                             {monthlyValues.map((value, monthIndex) => (
                               <td
                                 key={monthIndex}
@@ -1264,27 +1221,27 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'export' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[#191919] mb-2">Export États Financiers Mensuels</h2>
-                <p className="text-[#767676]">Téléchargement des tableaux pour l'exercice 2024</p>
+                <h2 className="text-lg font-bold text-[#171717] mb-2">Export États Financiers Mensuels</h2>
+                <p className="text-[#737373]">Téléchargement des tableaux pour l'exercice 2024</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tabs.slice(0, -1).map((tab) => {
                   const IconComponent = tab.icon;
                   return (
-                    <div key={tab.id} className="bg-white rounded-lg p-6 border border-[#E8E8E8] hover:shadow-md transition-shadow">
+                    <div key={tab.id} className="bg-white rounded-lg p-6 border border-[#e5e5e5] hover:shadow-md transition-shadow">
                       <div className="text-center">
-                        <div className="w-10 h-10 rounded-lg bg-[#B87333]/10 flex items-center justify-center mx-auto mb-4">
-                          <IconComponent className="w-5 h-5 text-[#B87333]" />
+                        <div className="w-10 h-10 rounded-lg bg-[#525252]/10 flex items-center justify-center mx-auto mb-4">
+                          <IconComponent className="w-5 h-5 text-[#525252]" />
                         </div>
-                        <h3 className="font-semibold text-[#191919] mb-2">{tab.label}</h3>
-                        <p className="text-sm text-[#767676] mb-4">Exercice 2024 - Mensualisé</p>
+                        <h3 className="font-semibold text-[#171717] mb-2">{tab.label}</h3>
+                        <p className="text-sm text-[#737373] mb-4">Exercice 2024 - Mensualisé</p>
                         <div className="space-y-2">
-                          <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors">
+                          <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors">
                             <Download className="w-4 h-4" />
                             <span>PDF</span>
                           </button>
-                          <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[#E8E8E8] text-[#444444] rounded-lg hover:bg-gray-50 transition-colors">
+                          <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[#e5e5e5] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors">
                             <FileText className="w-4 h-4" />
                             <span>Excel</span>
                           </button>
@@ -1304,7 +1261,7 @@ const CompteResultatPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-hidden">
             {/* En-tête du modal */}
-            <div className="bg-[#B87333] text-white p-6 flex items-center justify-between">
+            <div className="bg-[#525252] text-white p-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold">
                   {selectedDetail.type === 'sous-comptes' ? 'Sous-comptes' : 'Détail des transactions'}
@@ -1326,16 +1283,16 @@ const CompteResultatPage: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-[#767676]">{t('accounting.account')}</p>
-                    <p className="font-bold text-[#191919]">{selectedDetail.accountCode}</p>
+                    <p className="text-sm text-[#737373]">{t('accounting.account')}</p>
+                    <p className="font-bold text-[#171717]">{selectedDetail.accountCode}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-[#767676]">Période</p>
-                    <p className="font-bold text-[#191919]">{selectedDetail.month} 2024</p>
+                    <p className="text-sm text-[#737373]">Période</p>
+                    <p className="font-bold text-[#171717]">{selectedDetail.month} 2024</p>
                   </div>
                   <div>
-                    <p className="text-sm text-[#767676]">Montant total</p>
-                    <p className="font-bold text-[#B87333] text-lg">{selectedDetail.amount.toLocaleString()} €</p>
+                    <p className="text-sm text-[#737373]">Montant total</p>
+                    <p className="font-bold text-[#525252] text-lg">{selectedDetail.amount.toLocaleString()} €</p>
                   </div>
                 </div>
               </div>
@@ -1347,28 +1304,28 @@ const CompteResultatPage: React.FC = () => {
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-100 sticky top-0">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Code</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.label')}</th>
-                        <th className="text-right p-3 border-b border-[#E8E8E8]">Montant</th>
-                        <th className="text-right p-3 border-b border-[#E8E8E8]">%</th>
-                        <th className="text-center p-3 border-b border-[#E8E8E8]">Actions</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Code</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">{t('accounting.label')}</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5]">Montant</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5]">%</th>
+                        <th className="text-center p-3 border-b border-[#e5e5e5]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedDetail.subAccounts?.map((subAccount, index: number) => (
                         <tr key={subAccount.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
-                          <td className="p-3 border-b border-[#E8E8E8] font-mono font-bold">{subAccount.code}</td>
-                          <td className="p-3 border-b border-[#E8E8E8]">{subAccount.libelle}</td>
-                          <td className="p-3 border-b border-[#E8E8E8] text-right font-mono font-bold">
+                          <td className="p-3 border-b border-[#e5e5e5] font-mono font-bold">{subAccount.code}</td>
+                          <td className="p-3 border-b border-[#e5e5e5]">{subAccount.libelle}</td>
+                          <td className="p-3 border-b border-[#e5e5e5] text-right font-mono font-bold">
                             {subAccount.montant.toLocaleString()} €
                           </td>
-                          <td className="p-3 border-b border-[#E8E8E8] text-right text-sm text-[#767676]">
+                          <td className="p-3 border-b border-[#e5e5e5] text-right text-sm text-[#737373]">
                             {subAccount.pourcentage.toFixed(1)}%
                           </td>
-                          <td className="p-3 border-b border-[#E8E8E8] text-center">
+                          <td className="p-3 border-b border-[#e5e5e5] text-center">
                             <button
                               onClick={() => openDetailModal(subAccount.code, subAccount.libelle, selectedPeriod, subAccount.montant)}
-                              className="px-2 py-1 text-xs bg-[#B87333] text-white rounded hover:bg-[#A86323] transition-colors"
+                              className="px-2 py-1 text-xs bg-[#525252] text-white rounded hover:bg-[#404040] transition-colors"
                             >
                               Transactions
                             </button>
@@ -1382,23 +1339,23 @@ const CompteResultatPage: React.FC = () => {
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-100 sticky top-0">
                       <tr>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('common.date')}</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Référence</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.label')}</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">Tiers</th>
-                        <th className="text-left p-3 border-b border-[#E8E8E8]">{t('accounting.piece')}</th>
-                        <th className="text-right p-3 border-b border-[#E8E8E8]">Montant</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">{t('common.date')}</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Référence</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">{t('accounting.label')}</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">Tiers</th>
+                        <th className="text-left p-3 border-b border-[#e5e5e5]">{t('accounting.piece')}</th>
+                        <th className="text-right p-3 border-b border-[#e5e5e5]">Montant</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedDetail.transactions?.map((transaction, index: number) => (
                         <tr key={transaction.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
-                          <td className="p-3 border-b border-[#E8E8E8]">{transaction.date}</td>
-                          <td className="p-3 border-b border-[#E8E8E8] font-mono text-xs">{transaction.reference}</td>
-                          <td className="p-3 border-b border-[#E8E8E8]">{transaction.libelle}</td>
-                          <td className="p-3 border-b border-[#E8E8E8]">{transaction.tiers}</td>
-                          <td className="p-3 border-b border-[#E8E8E8] font-mono text-xs">{transaction.piece}</td>
-                          <td className="p-3 border-b border-[#E8E8E8] text-right font-mono font-bold">
+                          <td className="p-3 border-b border-[#e5e5e5]">{transaction.date}</td>
+                          <td className="p-3 border-b border-[#e5e5e5] font-mono text-xs">{transaction.reference}</td>
+                          <td className="p-3 border-b border-[#e5e5e5]">{transaction.libelle}</td>
+                          <td className="p-3 border-b border-[#e5e5e5]">{transaction.tiers}</td>
+                          <td className="p-3 border-b border-[#e5e5e5] font-mono text-xs">{transaction.piece}</td>
+                          <td className="p-3 border-b border-[#e5e5e5] text-right font-mono font-bold">
                             {transaction.montant.toLocaleString()} €
                           </td>
                         </tr>
@@ -1411,27 +1368,27 @@ const CompteResultatPage: React.FC = () => {
               {/* Résumé */}
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-[#191919]">
+                  <span className="font-bold text-[#171717]">
                     {selectedDetail.type === 'sous-comptes'
                       ? `TOTAL (${selectedDetail.subAccounts?.length || 0} sous-comptes)`
                       : `TOTAL (${selectedDetail.transactions?.length || 0} transactions)`
                     }
                   </span>
-                  <span className="font-bold text-[#B87333] text-lg">
+                  <span className="font-bold text-[#525252] text-lg">
                     {selectedDetail.amount.toLocaleString()} €
                   </span>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-[#E8E8E8]">
+              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-[#e5e5e5]">
                 <button
                   onClick={closeModal}
-                  className="px-4 py-2 border border-[#D9D9D9] rounded-lg text-[#444444] hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-[#d4d4d4] rounded-lg text-[#404040] hover:bg-gray-50 transition-colors"
                 >
                   Fermer
                 </button>
-                <button className="px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#A86323] transition-colors flex items-center space-x-2" aria-label="Télécharger">
+                <button className="px-4 py-2 bg-[#525252] text-white rounded-lg hover:bg-[#404040] transition-colors flex items-center space-x-2" aria-label="Télécharger">
                   <Download className="w-4 h-4" />
                   <span>{t('common.export')}</span>
                 </button>

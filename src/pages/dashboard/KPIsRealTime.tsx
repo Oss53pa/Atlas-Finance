@@ -147,7 +147,7 @@ const KPIsRealTime: React.FC = () => {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#A1BBB4] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6A8A82]"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#d4d4d4] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#171717]"></div>
             </label>
             <span className="text-sm font-medium">Live</span>
           </div>
@@ -168,7 +168,7 @@ const KPIsRealTime: React.FC = () => {
           {/* Export Button */}
           <button
             onClick={exportData}
-            className="flex items-center gap-2 px-4 py-2 bg-[#6A8A82] text-white rounded-lg hover:bg-[#588075]"
+            className="flex items-center gap-2 px-4 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#525252]"
           >
             <Download className="w-4 h-4" />
             Exporter
@@ -187,7 +187,7 @@ const KPIsRealTime: React.FC = () => {
               className={cn(
                 "px-3 py-1 rounded-lg text-sm font-medium transition-all",
                 filterCategory === cat
-                  ? "bg-[#6A8A82] text-white"
+                  ? "bg-[#171717] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               )}
             >
@@ -204,7 +204,7 @@ const KPIsRealTime: React.FC = () => {
             key={kpi.id}
             className={cn(
               "bg-white rounded-lg shadow p-4 cursor-pointer transition-all hover:shadow-lg",
-              selectedKPI === kpi.id && "ring-2 ring-[#78998F]",
+              selectedKPI === kpi.id && "ring-2 ring-[#737373]",
               fullscreenKPI === kpi.id && "fixed inset-4 z-50"
             )}
             onClick={() => setSelectedKPI(kpi.id)}
@@ -282,14 +282,14 @@ const KPIsRealTime: React.FC = () => {
                   <AreaChart data={kpi.history}>
                     <defs>
                       <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#78998F" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#78998F" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#737373" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#737373" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <Area
                       type="monotone"
                       dataKey="value"
-                      stroke="#78998F"
+                      stroke="#737373"
                       fillOpacity={1}
                       fill={`url(#gradient-${kpi.id})`}
                     />
@@ -307,19 +307,19 @@ const KPIsRealTime: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Temps Réel</h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={realTimeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#D1D5DB" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d4" />
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={(value) => new Date(value).toLocaleTimeString()}
-                stroke="#6B7280"
+                stroke="#737373"
               />
-              <YAxis stroke="#6B7280" />
+              <YAxis stroke="#737373" />
               <Tooltip
                 labelFormatter={(value) => new Date(value).toLocaleTimeString()}
               />
               <Legend />
-              <Line type="monotone" dataKey="sales" stroke="#78998F" name="Ventes" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="orders" stroke="#10B981" name="Commandes" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="sales" stroke="#737373" name="Ventes" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="orders" stroke="#22c55e" name="Commandes" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="conversion" stroke="#F59E0B" name="Conversion (%)" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -329,10 +329,10 @@ const KPIsRealTime: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Global Performance</h2>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="#D1D5DB" />
-              <PolarAngleAxis dataKey="subject" stroke="#6B7280" />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#6B7280" />
-              <Radar name="Performance" dataKey="A" stroke="#78998F" fill="#78998F" fillOpacity={0.6} />
+              <PolarGrid stroke="#d4d4d4" />
+              <PolarAngleAxis dataKey="subject" stroke="#737373" />
+              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#737373" />
+              <Radar name="Performance" dataKey="A" stroke="#737373" fill="#737373" fillOpacity={0.6} />
               <Tooltip />
             </RadarChart>
           </ResponsiveContainer>
@@ -350,7 +350,7 @@ const KPIsRealTime: React.FC = () => {
                 <div className={cn(
                   "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl",
                   index === 0 && "bg-gradient-to-br from-amber-400 to-amber-600",
-                  index === 1 && "bg-gradient-to-br from-[#8BA99F] to-[#6A8A82]",
+                  index === 1 && "bg-gradient-to-br from-[#a3a3a3] to-[#171717]",
                   index === 2 && "bg-gradient-to-br from-purple-400 to-purple-600"
                 )}>
                   #{index + 1}
@@ -372,9 +372,9 @@ const KPIsRealTime: React.FC = () => {
       </div>
 
       {/* Alerts & Notifications */}
-      <div className="bg-gradient-to-r from-[#E8EEEC] to-indigo-50 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-[#f5f5f5] to-indigo-50 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Bell className="w-6 h-6 text-[#6A8A82]" />
+          <Bell className="w-6 h-6 text-[#171717]" />
           <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

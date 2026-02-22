@@ -227,9 +227,9 @@ const AssetsDisposals: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-[#6A8A82] bg-[#6A8A82]/10';
-      case 'in_process': return 'text-[#B87333] bg-[#B87333]/10';
-      case 'planned': return 'text-[#7A99AC] bg-[#7A99AC]/10';
+      case 'completed': return 'text-[#171717] bg-[#171717]/10';
+      case 'in_process': return 'text-[#525252] bg-[#525252]/10';
+      case 'planned': return 'text-[#737373] bg-[#737373]/10';
       case 'cancelled': return 'text-gray-600 bg-gray-100';
       default: return 'text-gray-600 bg-gray-100';
     }
@@ -237,12 +237,12 @@ const AssetsDisposals: React.FC = () => {
 
   const getDisposalTypeColor = (type: string) => {
     switch (type) {
-      case 'sale': return 'text-[#6A8A82] bg-[#6A8A82]/10';
-      case 'donation': return 'text-[#7A99AC] bg-[#7A99AC]/10';
-      case 'trade_in': return 'text-[#B87333] bg-[#B87333]/10';
+      case 'sale': return 'text-[#171717] bg-[#171717]/10';
+      case 'donation': return 'text-[#737373] bg-[#737373]/10';
+      case 'trade_in': return 'text-[#525252] bg-[#525252]/10';
       case 'destruction': return 'text-red-600 bg-red-50';
-      case 'scrap': return 'text-[#E8D5C4] bg-[#E8D5C4]/20';
-      case 'transfer': return 'text-[#C9B037] bg-[#C9B037]/10';
+      case 'scrap': return 'text-[#e5e5e5] bg-[#e5e5e5]/20';
+      case 'transfer': return 'text-[#f59e0b] bg-[#f59e0b]/10';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -283,19 +283,19 @@ const AssetsDisposals: React.FC = () => {
   };
 
   const statusChartData = [
-    { label: 'Terminés', value: aggregatedData.completedDisposals, color: 'bg-[#6A8A82]' },
-    { label: t('status.inProgress'), value: aggregatedData.inProcessDisposals, color: 'bg-[#B87333]' },
-    { label: 'Planifiés', value: aggregatedData.plannedDisposals, color: 'bg-[#7A99AC]' }
+    { label: 'Terminés', value: aggregatedData.completedDisposals, color: 'bg-[#171717]' },
+    { label: t('status.inProgress'), value: aggregatedData.inProcessDisposals, color: 'bg-[#525252]' },
+    { label: 'Planifiés', value: aggregatedData.plannedDisposals, color: 'bg-[#737373]' }
   ];
 
   const typeChartData = Object.entries(typeLabels).map(([key, label]) => ({
     label,
     value: filteredDisposals.filter(d => d.disposalType === key).length,
-    color: key === 'sale' ? 'bg-[#6A8A82]' :
-           key === 'donation' ? 'bg-[#7A99AC]' :
-           key === 'trade_in' ? 'bg-[#B87333]' :
+    color: key === 'sale' ? 'bg-[#171717]' :
+           key === 'donation' ? 'bg-[#737373]' :
+           key === 'trade_in' ? 'bg-[#525252]' :
            key === 'destruction' ? 'bg-red-600' :
-           key === 'scrap' ? 'bg-[#E8D5C4]' : 'bg-[#C9B037]'
+           key === 'scrap' ? 'bg-[#e5e5e5]' : 'bg-[#f59e0b]'
   }));
 
   return (
@@ -403,8 +403,8 @@ const AssetsDisposals: React.FC = () => {
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     viewMode === mode
-                      ? 'bg-[#7A99AC] text-white shadow-md'
-                      : 'text-gray-600 hover:text-[#7A99AC]'
+                      ? 'bg-[#737373] text-white shadow-md'
+                      : 'text-gray-600 hover:text-[#737373]'
                   }`}
                 >
                   {mode === 'disposals' ? 'Sorties' :
@@ -581,12 +581,12 @@ const AssetsDisposals: React.FC = () => {
                                   <span>{typeLabels[disposal.disposalType]}</span>
                                 </span>
                                 {disposal.environmentalCompliance && (
-                                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
+                                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
                                     Conforme env.
                                   </span>
                                 )}
                                 {disposal.dataWiping && (
-                                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#7A99AC]/10 text-[#7A99AC]">
+                                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#737373]/10 text-[#737373]">
                                     Données effacées
                                   </span>
                                 )}
@@ -601,13 +601,13 @@ const AssetsDisposals: React.FC = () => {
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setDisposalModal({ isOpen: true, mode: 'view', disposal })}
-                                className="p-2 text-gray-700 hover:text-[#7A99AC] transition-colors"
+                                className="p-2 text-gray-700 hover:text-[#737373] transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => setDisposalModal({ isOpen: true, mode: 'edit', disposal })}
-                                className="p-2 text-gray-700 hover:text-[#6A8A82] transition-colors"
+                                className="p-2 text-gray-700 hover:text-[#171717] transition-colors"
                               >
                                 <Edit className="h-4 w-4" />
                               </button>
@@ -626,7 +626,7 @@ const AssetsDisposals: React.FC = () => {
                           </div>
                           <div>
                             <p className="text-sm text-gray-600">Plus/Moins-value:</p>
-                            <p className={`font-medium ${disposal.gainLoss >= 0 ? 'text-[#6A8A82]' : 'text-var(--color-red-primary)'}`}>
+                            <p className={`font-medium ${disposal.gainLoss >= 0 ? 'text-[#171717]' : 'text-var(--color-red-primary)'}`}>
                               {disposal.gainLoss >= 0 ? '+' : ''}{formatCurrency(disposal.gainLoss)}
                             </p>
                           </div>
@@ -653,7 +653,7 @@ const AssetsDisposals: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Approbations en Attente
                 </h3>
-                <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#B87333]/10 text-[#B87333]">
+                <span className="px-3 py-1 text-sm font-medium rounded-full bg-[#525252]/10 text-[#525252]">
                   {aggregatedData.pendingApprovals} en attente
                 </span>
               </div>
@@ -674,8 +674,8 @@ const AssetsDisposals: React.FC = () => {
                       <div className="space-y-4">
                         <div className="flex justify-between items-start">
                           <div className="flex items-start space-x-4">
-                            <div className="p-3 bg-[#B87333]/10 rounded-lg">
-                              <Clock className="h-6 w-6 text-[#B87333]" />
+                            <div className="p-3 bg-[#525252]/10 rounded-lg">
+                              <Clock className="h-6 w-6 text-[#525252]" />
                             </div>
                             <div className="space-y-2">
                               <h4 className="font-semibold text-gray-900">{disposal.assetName}</h4>
@@ -713,13 +713,13 @@ const AssetsDisposals: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="bg-[#B87333]/10 p-4 rounded-lg">
+                        <div className="bg-[#525252]/10 p-4 rounded-lg">
                           <p className="text-sm font-medium text-var(--color-yellow-dark)">Commentaires de l'approbateur:</p>
-                          <p className="text-sm text-[#B87333] mt-1">{approval.comments}</p>
+                          <p className="text-sm text-[#525252] mt-1">{approval.comments}</p>
                           {approval.conditions && approval.conditions.length > 0 && (
                             <div className="mt-2">
                               <p className="text-sm font-medium text-var(--color-yellow-dark)">Conditions:</p>
-                              <ul className="list-disc list-inside text-sm text-[#B87333] mt-1">
+                              <ul className="list-disc list-inside text-sm text-[#525252] mt-1">
                                 {approval.conditions.map((condition, i) => (
                                   <li key={i}>{condition}</li>
                                 ))}
@@ -743,27 +743,27 @@ const AssetsDisposals: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">Impact Financier</h3>
 
                 <div className="space-y-4">
-                  <div className="p-4 bg-[#7A99AC]/10 rounded-lg">
+                  <div className="p-4 bg-[#737373]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[#7A99AC]">Valeur Originale Totale</span>
+                      <span className="text-sm font-medium text-[#737373]">Valeur Originale Totale</span>
                       <span className="text-lg font-bold text-var(--color-blue-dark)">
                         {formatCurrency(aggregatedData.totalOriginalValue)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#B87333]/10 rounded-lg">
+                  <div className="p-4 bg-[#525252]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[#B87333]">Valeur Comptable Nette</span>
+                      <span className="text-sm font-medium text-[#525252]">Valeur Comptable Nette</span>
                       <span className="text-lg font-bold text-var(--color-yellow-dark)">
                         {formatCurrency(aggregatedData.totalBookValue)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#6A8A82]/10 rounded-lg">
+                  <div className="p-4 bg-[#171717]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[#6A8A82]">Valeur de Cession</span>
+                      <span className="text-sm font-medium text-[#171717]">Valeur de Cession</span>
                       <span className="text-lg font-bold text-var(--color-green-dark)">
                         {formatCurrency(aggregatedData.totalDisposalValue)}
                       </span>
@@ -771,11 +771,11 @@ const AssetsDisposals: React.FC = () => {
                   </div>
 
                   <div className={`p-4 rounded-lg ${
-                    aggregatedData.totalGainLoss >= 0 ? 'bg-[#6A8A82]/10' : 'bg-red-50'
+                    aggregatedData.totalGainLoss >= 0 ? 'bg-[#171717]/10' : 'bg-red-50'
                   }`}>
                     <div className="flex justify-between items-center">
                       <span className={`text-sm font-medium ${
-                        aggregatedData.totalGainLoss >= 0 ? 'text-[#6A8A82]' : 'text-var(--color-red-primary)'
+                        aggregatedData.totalGainLoss >= 0 ? 'text-[#171717]' : 'text-var(--color-red-primary)'
                       }`}>
                         {aggregatedData.totalGainLoss >= 0 ? 'Plus-value Totale' : 'Moins-value Totale'}
                       </span>
@@ -795,14 +795,14 @@ const AssetsDisposals: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">Conformité et Processus</h3>
 
                 <div className="space-y-4">
-                  <div className="p-4 bg-[#6A8A82]/10 rounded-lg">
+                  <div className="p-4 bg-[#171717]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[#6A8A82]">Conformité Environnementale</span>
+                      <span className="text-sm font-medium text-[#171717]">Conformité Environnementale</span>
                       <span className="text-lg font-bold text-var(--color-green-dark)">
                         {formatPercentage(aggregatedData.complianceRate)}
                       </span>
                     </div>
-                    <div className="w-full bg-[#6A8A82]/30 rounded-full h-2 mt-2">
+                    <div className="w-full bg-[#171717]/30 rounded-full h-2 mt-2">
                       <div
                         className="bg-green-600 h-2 rounded-full"
                         style={{ width: `${aggregatedData.complianceRate * 100}%` }}
@@ -810,29 +810,29 @@ const AssetsDisposals: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#7A99AC]/10 rounded-lg">
+                  <div className="p-4 bg-[#737373]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[#7A99AC]">Taux de Finalisation</span>
+                      <span className="text-sm font-medium text-[#737373]">Taux de Finalisation</span>
                       <span className="text-lg font-bold text-var(--color-blue-dark)">
                         {formatPercentage(aggregatedData.completedDisposals / aggregatedData.totalDisposals)}
                       </span>
                     </div>
-                    <div className="w-full bg-[#7A99AC]/30 rounded-full h-2 mt-2">
+                    <div className="w-full bg-[#737373]/30 rounded-full h-2 mt-2">
                       <div
-                        className="bg-[#7A99AC] h-2 rounded-full"
+                        className="bg-[#737373] h-2 rounded-full"
                         style={{ width: `${(aggregatedData.completedDisposals / aggregatedData.totalDisposals) * 100}%` }}
                       ></div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#B87333]/10 rounded-lg">
+                  <div className="p-4 bg-[#525252]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[#B87333]">Approbations en Attente</span>
+                      <span className="text-sm font-medium text-[#525252]">Approbations en Attente</span>
                       <span className="text-lg font-bold text-var(--color-yellow-dark)">
                         {aggregatedData.pendingApprovals}
                       </span>
                     </div>
-                    <p className="text-sm text-[#B87333] mt-1">Traitement nécessaire</p>
+                    <p className="text-sm text-[#525252] mt-1">Traitement nécessaire</p>
                   </div>
                 </div>
               </div>
@@ -952,7 +952,7 @@ const AssetsDisposals: React.FC = () => {
                           Plus/Moins-Value
                         </label>
                         <p className={`font-semibold ${
-                          disposalModal.disposal.gainLoss >= 0 ? 'text-[#6A8A82]' : 'text-red-600'
+                          disposalModal.disposal.gainLoss >= 0 ? 'text-[#171717]' : 'text-red-600'
                         }`}>
                           {disposalModal.disposal.gainLoss >= 0 ? '+' : ''}{formatCurrency(disposalModal.disposal.gainLoss)}
                         </p>
@@ -980,7 +980,7 @@ const AssetsDisposals: React.FC = () => {
                           </label>
                           <select
                             defaultValue={disposalModal.disposal.disposalType}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           >
                             <option value="sale">Vente</option>
                             <option value="donation">Don</option>
@@ -998,7 +998,7 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="date"
                             defaultValue={disposalModal.disposal.plannedDate}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1009,7 +1009,7 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="number"
                             defaultValue={disposalModal.disposal.disposalValue}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1021,7 +1021,7 @@ const AssetsDisposals: React.FC = () => {
                             type="text"
                             defaultValue={disposalModal.disposal.method}
                             placeholder="Ex: Vente aux enchères, vente directe..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
                       </div>
@@ -1035,7 +1035,7 @@ const AssetsDisposals: React.FC = () => {
                           <textarea
                             defaultValue={disposalModal.disposal.reason}
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1047,7 +1047,7 @@ const AssetsDisposals: React.FC = () => {
                             type="text"
                             defaultValue={disposalModal.disposal.buyer || disposalModal.disposal.recipient}
                             placeholder="Nom de l'acheteur ou bénéficiaire"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1057,7 +1057,7 @@ const AssetsDisposals: React.FC = () => {
                           </label>
                           <select
                             defaultValue={disposalModal.disposal.status}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           >
                             <option value="planned">Planifié</option>
                             <option value="in_process">En cours</option>
@@ -1074,7 +1074,7 @@ const AssetsDisposals: React.FC = () => {
                             type="text"
                             defaultValue={disposalModal.disposal.location}
                             placeholder="Lieu de récupération"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1092,7 +1092,7 @@ const AssetsDisposals: React.FC = () => {
                               Plus/Moins-value
                             </label>
                             <div className={`p-2 bg-gray-50 rounded text-sm font-semibold ${
-                              disposalModal.disposal.gainLoss >= 0 ? 'text-[#6A8A82]' : 'text-red-600'
+                              disposalModal.disposal.gainLoss >= 0 ? 'text-[#171717]' : 'text-red-600'
                             }`}>
                               {disposalModal.disposal.gainLoss >= 0 ? '+' : ''}{formatCurrency(disposalModal.disposal.gainLoss)}
                             </div>
@@ -1110,7 +1110,7 @@ const AssetsDisposals: React.FC = () => {
                         defaultValue={disposalModal.disposal.notes}
                         placeholder="Informations complémentaires..."
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                       />
                     </div>
                   </div>
@@ -1123,7 +1123,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Sélectionner l'actif *
                           </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]">
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]">
                             <option value="">-- Choisir un actif --</option>
                             <option value="1">ORD-001 - Ordinateur Dell XPS</option>
                             <option value="2">VEH-002 - Véhicule Toyota</option>
@@ -1136,7 +1136,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Type de sortie *
                           </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]">
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]">
                             <option value="">-- Sélectionner le type --</option>
                             <option value="sale">Vente</option>
                             <option value="donation">Don</option>
@@ -1153,7 +1153,7 @@ const AssetsDisposals: React.FC = () => {
                           </label>
                           <input
                             type="date"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1164,7 +1164,7 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="number"
                             placeholder="0"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1172,7 +1172,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Méthode de cession
                           </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]">
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]">
                             <option value="">-- Sélectionner --</option>
                             <option value="public_auction">Vente aux enchères publiques</option>
                             <option value="direct_sale">Vente directe</option>
@@ -1191,7 +1191,7 @@ const AssetsDisposals: React.FC = () => {
                           <textarea
                             placeholder="Décrire la raison..."
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1202,7 +1202,7 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="text"
                             placeholder="Nom de l'acheteur ou bénéficiaire"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1213,7 +1213,7 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="text"
                             placeholder="Téléphone ou email"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1224,7 +1224,7 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="text"
                             placeholder="Lieu de récupération"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                           />
                         </div>
 
@@ -1232,7 +1232,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="flex items-center space-x-2">
                             <input
                               type="checkbox"
-                              className="rounded border-gray-300 text-[#6A8A82] focus:ring-[#6A8A82]"
+                              className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
                             />
                             <span className="text-sm text-gray-900">Conformité environnementale requise</span>
                           </label>
@@ -1242,7 +1242,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="flex items-center space-x-2">
                             <input
                               type="checkbox"
-                              className="rounded border-gray-300 text-[#6A8A82] focus:ring-[#6A8A82]"
+                              className="rounded border-gray-300 text-[#171717] focus:ring-[#171717]"
                             />
                             <span className="text-sm text-gray-900">Effacement des données effectué</span>
                           </label>
@@ -1255,12 +1255,12 @@ const AssetsDisposals: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-900 mb-2">
                         Documents justificatifs
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#6A8A82] transition-colors">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#171717] transition-colors">
                         <Upload className="h-10 w-10 text-gray-700 mx-auto mb-2" />
                         <p className="text-sm text-gray-600">
                           Glissez-déposez vos fichiers ici ou
                         </p>
-                        <button className="text-sm text-[#6A8A82] hover:text-[#5A7A72] font-medium mt-1">
+                        <button className="text-sm text-[#171717] hover:text-[#262626] font-medium mt-1">
                           Parcourir les fichiers
                         </button>
                       </div>
@@ -1274,7 +1274,7 @@ const AssetsDisposals: React.FC = () => {
                       <textarea
                         placeholder="Informations complémentaires..."
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6A8A82] focus:border-[#6A8A82]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#171717] focus:border-[#171717]"
                       />
                     </div>
                   </div>

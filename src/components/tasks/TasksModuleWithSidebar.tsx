@@ -147,9 +147,9 @@ const TasksModuleWithSidebar: React.FC = () => {
 
   const getProgressColor = (progress: number) => {
     if (progress >= 90) return 'bg-green-500';
-    if (progress >= 60) return 'bg-[#6A8A82]';
+    if (progress >= 60) return 'bg-[#171717]';
     if (progress >= 30) return 'bg-[#F59E0B]';
-    return 'bg-[#B87333]';
+    return 'bg-[#525252]';
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -172,7 +172,7 @@ const TasksModuleWithSidebar: React.FC = () => {
         <div className="flex gap-1 mb-2">
           {task.tags.map((tag, idx) => (
             <span key={idx} className={`text-xs px-2 py-1 rounded-full ${
-              idx === 0 ? 'bg-[#6A8A82]/10 text-[#6A8A82]' : 'bg-[#B87333]/10 text-[#B87333]'
+              idx === 0 ? 'bg-[#171717]/10 text-[#171717]' : 'bg-[#525252]/10 text-[#525252]'
             }`}>
               {tag}
             </span>
@@ -211,8 +211,8 @@ const TasksModuleWithSidebar: React.FC = () => {
         <div className="flex items-center gap-3">
           {/* Assignees */}
           <div className="flex -space-x-2">
-            <div className="w-6 h-6 rounded-full bg-[#6A8A82]/20 border-2 border-white flex items-center justify-center">
-              <User className="w-3 h-3 text-[#6A8A82]" />
+            <div className="w-6 h-6 rounded-full bg-[#171717]/20 border-2 border-white flex items-center justify-center">
+              <User className="w-3 h-3 text-[#171717]" />
             </div>
           </div>
 
@@ -244,7 +244,7 @@ const TasksModuleWithSidebar: React.FC = () => {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#6A8A82] to-[#5A7A72] rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#171717] to-[#262626] rounded-lg flex items-center justify-center text-white font-bold shadow-md">
               WB
             </div>
             <div>
@@ -261,7 +261,7 @@ const TasksModuleWithSidebar: React.FC = () => {
             <input
               type="text"
               placeholder="Rechercher..."
-              className="pl-10 pr-3 py-2 w-full border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+              className="pl-10 pr-3 py-2 w-full border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#171717]"
             />
           </div>
         </div>
@@ -276,7 +276,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                 onClick={() => setActiveSection('tasks')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
                   activeSection === 'tasks'
-                    ? 'bg-[#6A8A82]/10 text-[#6A8A82]'
+                    ? 'bg-[#171717]/10 text-[#171717]'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -284,7 +284,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                   <CheckSquare className="w-4 h-4" />
                   <span className="text-sm font-medium">Tâches</span>
                 </div>
-                <span className="text-xs font-medium bg-[#B87333]/20 text-[#B87333] px-2 py-0.5 rounded-full">
+                <span className="text-xs font-medium bg-[#525252]/20 text-[#525252] px-2 py-0.5 rounded-full">
                   6
                 </span>
               </button>
@@ -294,7 +294,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                 onClick={() => setActiveSection('activities')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
                   activeSection === 'activities'
-                    ? 'bg-[#6A8A82]/10 text-[#6A8A82]'
+                    ? 'bg-[#171717]/10 text-[#171717]'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -361,8 +361,8 @@ const TasksModuleWithSidebar: React.FC = () => {
           {/* User Profile */}
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-3 px-3">
-              <div className="w-8 h-8 rounded-full bg-[#6A8A82]/20 flex items-center justify-center">
-                <User className="w-4 h-4 text-[#6A8A82]" />
+              <div className="w-8 h-8 rounded-full bg-[#171717]/20 flex items-center justify-center">
+                <User className="w-4 h-4 text-[#171717]" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">Utilisateur</p>
@@ -392,7 +392,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowNewTask(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] text-white rounded-lg hover:from-[#5A7A72] hover:to-[#4A6A62] transition-all shadow-md"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#171717] to-[#262626] text-white rounded-lg hover:from-[#262626] hover:to-[#262626] transition-all shadow-md"
               >
                 <Plus className="w-4 h-4" />
                 Créer une tâche
@@ -416,7 +416,7 @@ const TasksModuleWithSidebar: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#6A8A82]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#171717]"></div>
                   <h3 className="font-semibold text-gray-700">À faire</h3>
                 </div>
                 <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
@@ -452,7 +452,7 @@ const TasksModuleWithSidebar: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#B87333]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#525252]"></div>
                   <h3 className="font-semibold text-gray-700">En révision</h3>
                 </div>
                 <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
@@ -470,7 +470,7 @@ const TasksModuleWithSidebar: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#22c55e]"></div>
                   <h3 className="font-semibold text-gray-700">{t('status.completed')}</h3>
                 </div>
                 <button className="p-1 hover:bg-gray-100 rounded" aria-label="Ajouter">
@@ -499,7 +499,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                   placeholder="Entrez le titre de la tâche"
                 />
               </div>
@@ -508,7 +508,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                   Description
                 </label>
                 <textarea
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                   rows={3}
                   placeholder="Description optionnelle"
                 />
@@ -518,7 +518,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Priorité
                   </label>
-                  <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]">
+                  <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]">
                     <option value="low">Faible</option>
                     <option value="medium">Moyenne</option>
                     <option value="high">Haute</option>
@@ -531,7 +531,7 @@ const TasksModuleWithSidebar: React.FC = () => {
                   </label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6A8A82]"
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#171717]"
                   />
                 </div>
               </div>
@@ -545,7 +545,7 @@ const TasksModuleWithSidebar: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowNewTask(false)}
-                className="px-4 py-2 bg-gradient-to-r from-[#6A8A82] to-[#5A7A72] text-white rounded-lg hover:from-[#5A7A72] hover:to-[#4A6A62] transition-all"
+                className="px-4 py-2 bg-gradient-to-r from-[#171717] to-[#262626] text-white rounded-lg hover:from-[#262626] hover:to-[#262626] transition-all"
               >
                 Créer la tâche
               </button>

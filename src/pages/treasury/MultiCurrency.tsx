@@ -223,9 +223,9 @@ const MultiCurrency: React.FC = () => {
   const chartData = filteredCurrencies.map(curr => ({
     label: curr.currency,
     value: curr.equivalentEUR / 1000000,
-    color: curr.currency === 'EUR' ? 'bg-[#6A8A82]' :
+    color: curr.currency === 'EUR' ? 'bg-[#171717]' :
            curr.currency === 'USD' ? 'bg-green-500' :
-           curr.currency === 'GBP' ? 'bg-[#B87333]' :
+           curr.currency === 'GBP' ? 'bg-[#525252]' :
            curr.currency === 'CHF' ? 'bg-orange-500' : 'bg-pink-500'
   }));
 
@@ -317,8 +317,8 @@ const MultiCurrency: React.FC = () => {
                   onClick={() => setViewMode(mode)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     viewMode === mode
-                      ? 'bg-[#6A8A82] text-white shadow-md'
-                      : 'text-neutral-600 hover:text-[#6A8A82]'
+                      ? 'bg-[#171717] text-white shadow-md'
+                      : 'text-neutral-600 hover:text-[#171717]'
                   }`}
                 >
                   {mode === 'overview' ? 'Vue d\'ensemble' :
@@ -332,7 +332,7 @@ const MultiCurrency: React.FC = () => {
               <select
                 value={selectedBaseCurrency}
                 onChange={(e) => setSelectedBaseCurrency(e.target.value)}
-                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
               >
                 <option value="EUR">EUR</option>
                 <option value="USD">USD</option>
@@ -377,14 +377,14 @@ const MultiCurrency: React.FC = () => {
                       placeholder="Rechercher une devise..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                      className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                     />
                   </div>
 
                   <select
                     value={filterExposure}
                     onChange={(e) => setFilterExposure(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Toutes les expositions</option>
                     <option value="low">Exposition faible</option>
@@ -395,7 +395,7 @@ const MultiCurrency: React.FC = () => {
                   <select
                     value={filterHedged}
                     onChange={(e) => setFilterHedged(e.target.value)}
-                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#6A8A82]"
+                    className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[#171717]"
                   >
                     <option value="all">Toutes les positions</option>
                     <option value="hedged">Positions couvertes</option>
@@ -437,7 +437,7 @@ const MultiCurrency: React.FC = () => {
                         >
                           <td className="py-4 px-4">
                             <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-[#6A8A82]/5 rounded-lg">
+                              <div className="p-2 bg-[#171717]/5 rounded-lg">
                                 {getCurrencyIcon(currency.currency)}
                               </div>
                               <div>
@@ -500,7 +500,7 @@ const MultiCurrency: React.FC = () => {
                             <div className="flex justify-center space-x-2">
                               <button
                                 onClick={() => setCurrencyModal({ isOpen: true, mode: 'view', currency: currency.currency })}
-                                className="p-2 text-neutral-400 hover:text-[#6A8A82] transition-colors"
+                                className="p-2 text-neutral-400 hover:text-[#171717] transition-colors"
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -615,14 +615,14 @@ const MultiCurrency: React.FC = () => {
                       >
                         <td className="py-4 px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-[#6A8A82]/5 rounded-lg">
+                            <div className="p-2 bg-[#171717]/5 rounded-lg">
                               {getCurrencyIcon(position.currency)}
                             </div>
                             <span className="font-semibold text-neutral-800">{position.currency}</span>
                           </div>
                         </td>
                         <td className="py-4 px-4">
-                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#6A8A82]/10 text-[#6A8A82]">
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#171717]/10 text-[#171717]">
                             {position.type.toUpperCase()}
                           </span>
                         </td>
@@ -657,7 +657,7 @@ const MultiCurrency: React.FC = () => {
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                             position.status === 'active' ? 'bg-green-50 text-green-600' :
                             position.status === 'expired' ? 'bg-gray-50 text-gray-600' :
-                            'bg-[#6A8A82]/10 text-[#6A8A82]'
+                            'bg-[#171717]/10 text-[#171717]'
                           }`}>
                             {position.status === 'active' ? 'Actif' :
                              position.status === 'expired' ? 'Expiré' : 'Exercé'}

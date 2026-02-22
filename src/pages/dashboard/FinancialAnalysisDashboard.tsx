@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
+import { db } from '../../lib/db';
+import { useLiveQuery } from 'dexie-react-hooks';
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
   LineChart, Calculator, Percent, ArrowUpRight, ArrowDownRight,
@@ -39,65 +41,75 @@ const FinancialAnalysisDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('ytd');
   const [comparisonMode, setComparisonMode] = useState('previous');
 
-  // Financial Metrics
+  // Live Financial Metrics from Dexie
+  const liveFinancials = useLiveQuery(async () => {
+    const entries = await db.journalEntries.toArray();
+    let revenue = 0, expenses = 0, treasury = 0;
+    const monthlyRev = new Array(12).fill(0);
+    const monthlyExp = new Array(12).fill(0);
+    for (const e of entries) {
+      const m = new Date(e.date).getMonth();
+      for (const l of e.lines) {
+        if (l.accountCode.startsWith('7')) { const v = l.credit - l.debit; revenue += v; monthlyRev[m] += v; }
+        if (l.accountCode.startsWith('6')) { const v = l.debit - l.credit; expenses += v; monthlyExp[m] += v; }
+        if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
+      }
+    }
+    return { revenue, expenses, treasury, monthlyRev, monthlyExp };
+  }, []) || { revenue: 0, expenses: 0, treasury: 0, monthlyRev: new Array(12).fill(0), monthlyExp: new Array(12).fill(0) };
+
   const financialMetrics = {
     revenue: {
-      current: 8750000,
-      previous: 7250000,
-      budget: 8500000,
-      variance: 20.7,
-      budgetVariance: 2.9
+      current: liveFinancials.revenue,
+      previous: 0,
+      budget: 0,
+      variance: 0,
+      budgetVariance: 0
     },
     expenses: {
-      current: 6125000,
-      previous: 5450000,
-      budget: 6000000,
-      variance: 12.4,
-      budgetVariance: 2.1
+      current: liveFinancials.expenses,
+      previous: 0,
+      budget: 0,
+      variance: 0,
+      budgetVariance: 0
     },
     profit: {
-      gross: 2625000,
-      net: 1575000,
-      ebitda: 2100000,
-      grossMargin: 30,
-      netMargin: 18,
-      ebitdaMargin: 24
+      gross: liveFinancials.revenue - liveFinancials.expenses,
+      net: liveFinancials.revenue - liveFinancials.expenses,
+      ebitda: liveFinancials.revenue - liveFinancials.expenses,
+      grossMargin: liveFinancials.revenue > 0 ? ((liveFinancials.revenue - liveFinancials.expenses) / liveFinancials.revenue * 100) : 0,
+      netMargin: liveFinancials.revenue > 0 ? ((liveFinancials.revenue - liveFinancials.expenses) / liveFinancials.revenue * 100) : 0,
+      ebitdaMargin: liveFinancials.revenue > 0 ? ((liveFinancials.revenue - liveFinancials.expenses) / liveFinancials.revenue * 100) : 0
     },
     cashflow: {
-      operating: 1890000,
-      investing: -750000,
-      financing: -350000,
-      net: 790000,
-      freeFlow: 1140000
+      operating: liveFinancials.treasury,
+      investing: 0,
+      financing: 0,
+      net: liveFinancials.treasury,
+      freeFlow: liveFinancials.treasury
     },
     ratios: {
-      currentRatio: 2.4,
-      quickRatio: 1.8,
-      debtToEquity: 0.35,
-      roe: 22.5,
-      roa: 15.2,
-      workingCapital: 3250000
+      currentRatio: 0,
+      quickRatio: 0,
+      debtToEquity: 0,
+      roe: 0,
+      roa: 0,
+      workingCapital: 0
     }
   };
 
-  // Detailed P&L Data
+  // P&L computed from live data
   const plData = [
-    { category: 'Ventes Produits', actual: 6500000, budget: 6200000, previous: 5800000 },
-    { category: 'Services', actual: 2250000, budget: 2300000, previous: 1450000 },
-    { category: 'Coût des Ventes', actual: -3875000, budget: -3800000, previous: -3250000 },
-    { category: 'Charges Personnel', actual: -1750000, budget: -1700000, previous: -1600000 },
-    { category: 'Charges Externes', actual: -500000, budget: -500000, previous: -450000 },
-    { category: 'Amortissements', actual: -525000, budget: -500000, previous: -500000 },
-    { category: 'Charges Financières', actual: -125000, budget: -100000, previous: -100000 },
-    { category: 'Impôts', actual: -400000, budget: -400000, previous: -350000 }
+    { category: 'Produits (classe 7)', actual: liveFinancials.revenue, budget: 0, previous: 0 },
+    { category: 'Charges (classe 6)', actual: -liveFinancials.expenses, budget: 0, previous: 0 },
   ];
 
-  // Cash Flow Waterfall Data
+  // Cash Flow from live treasury
   const cashFlowData = {
-    labels: ['Solde Initial', 'Ventes', 'Achats', 'Salaires', 'Charges', 'Investissements', 'Financement', 'Solde Final'],
+    labels: ['Trésorerie nette'],
     datasets: [{
       label: 'Flux de Trésorerie',
-      data: [2500000, 8750000, -3875000, -1750000, -625000, -750000, -350000, 3900000],
+      data: [liveFinancials.treasury],
       backgroundColor: (context: any) => {
         const value = context.raw;
         return value >= 0 ? 'rgba(var(--color-success-rgb), 0.8)' : 'rgba(var(--color-danger-rgb), 0.8)';
@@ -105,46 +117,25 @@ const FinancialAnalysisDashboard: React.FC = () => {
     }]
   };
 
-  // Revenue Mix
+  // Revenue/Expense mix — empty until product-level data available
   const revenueMixData = {
-    labels: ['Produits A', 'Produits B', 'Services Premium', 'Services Standard', 'Licences', 'Autres'],
-    datasets: [{
-      data: [35, 25, 18, 12, 7, 3],
-      backgroundColor: [
-        'var(--color-primary)',
-        'var(--color-success)',
-        'var(--color-warning)',
-        'var(--color-info)',
-        'var(--color-secondary)',
-        'var(--color-text-secondary)'
-      ]
-    }]
+    labels: ['Pas de données'],
+    datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }]
   };
 
-  // Expense Breakdown
   const expenseBreakdownData = {
-    labels: ['Personnel', 'Matières Premières', 'Services', 'Loyers', 'Marketing', 'IT', 'Autres'],
-    datasets: [{
-      data: [40, 25, 12, 8, 7, 5, 3],
-      backgroundColor: [
-        'var(--color-danger)',
-        'var(--color-warning)',
-        'var(--color-info)',
-        'var(--color-secondary)',
-        'var(--color-primary)',
-        'var(--color-success)',
-        'var(--color-text-secondary)'
-      ]
-    }]
+    labels: ['Pas de données'],
+    datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }]
   };
 
-  // Monthly Trend
+  // Monthly Trend from Dexie aggregation
+  const monthlyProfitData = liveFinancials.monthlyRev.map((r: number, i: number) => r - liveFinancials.monthlyExp[i]);
   const monthlyTrendData = {
     labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
     datasets: [
       {
         label: 'Revenus',
-        data: [650000, 680000, 720000, 700000, 750000, 780000, 820000, 850000, 880000, 920000, 950000, 980000],
+        data: liveFinancials.monthlyRev,
         borderColor: 'var(--color-success)',
         backgroundColor: 'rgba(var(--color-success-rgb), 0.1)',
         tension: 0.4,
@@ -152,7 +143,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
       },
       {
         label: 'Dépenses',
-        data: [480000, 490000, 510000, 500000, 520000, 530000, 550000, 560000, 570000, 580000, 590000, 600000],
+        data: liveFinancials.monthlyExp,
         borderColor: 'var(--color-danger)',
         backgroundColor: 'rgba(var(--color-danger-rgb), 0.1)',
         tension: 0.4,
@@ -160,7 +151,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
       },
       {
         label: 'Profit Net',
-        data: [170000, 190000, 210000, 200000, 230000, 250000, 270000, 290000, 310000, 340000, 360000, 380000],
+        data: monthlyProfitData,
         borderColor: 'var(--color-primary)',
         backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)',
         tension: 0.4,
@@ -169,25 +160,13 @@ const FinancialAnalysisDashboard: React.FC = () => {
     ]
   };
 
-  // Working Capital Trend
+  // Working Capital — empty until balance sheet data
   const workingCapitalData = {
     labels: ['Q1', 'Q2', 'Q3', 'Q4'],
     datasets: [
-      {
-        label: 'Créances Clients',
-        data: [1200000, 1350000, 1450000, 1550000],
-        backgroundColor: 'var(--color-success)'
-      },
-      {
-        label: 'Stocks',
-        data: [800000, 850000, 900000, 950000],
-        backgroundColor: 'var(--color-warning)'
-      },
-      {
-        label: 'Dettes Fournisseurs',
-        data: [-600000, -650000, -700000, -750000],
-        backgroundColor: 'var(--color-danger)'
-      }
+      { label: 'Créances Clients', data: [0, 0, 0, 0], backgroundColor: 'var(--color-success)' },
+      { label: 'Stocks', data: [0, 0, 0, 0], backgroundColor: 'var(--color-warning)' },
+      { label: 'Dettes Fournisseurs', data: [0, 0, 0, 0], backgroundColor: 'var(--color-danger)' }
     ]
   };
 

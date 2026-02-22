@@ -246,21 +246,21 @@ const CompanySetupWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F3F2] py-8">
+    <div className="min-h-screen bg-[#f5f5f5] py-8">
       <div className="max-w-4xl mx-auto">
         {/* Header avec progression */}
-        <div className="bg-[#6A8A82] rounded-lg shadow-lg border border-gray-200 mb-8 p-6">
+        <div className="bg-[#171717] rounded-lg shadow-lg border border-gray-200 mb-8 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-lg font-bold text-white flex items-center">
                 <SparklesIcon className="h-8 w-8 mr-3 text-white" />
                 Assistant de Configuration Atlas Finance
               </h1>
-              <p className="text-[#F0F3F2] mt-2">Configuration complète en 4 étapes selon SYSCOHADA</p>
+              <p className="text-[#f5f5f5] mt-2">Configuration complète en 4 étapes selon SYSCOHADA</p>
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-white">Étape {currentStep}/4</div>
-              <div className="text-sm text-[#F0F3F2]">
+              <div className="text-sm text-[#f5f5f5]">
                 {Math.round((currentStep / steps.length) * 100)}% complété
               </div>
             </div>
@@ -318,7 +318,7 @@ const CompanySetupWizard: React.FC = () => {
           <div className="mt-6">
             <div className="bg-gray-200 rounded-full h-2">
               <div
-                className="bg-[#B87333] h-2 rounded-full transition-all duration-500"
+                className="bg-[#525252] h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(currentStep / steps.length) * 100}%` }}
               ></div>
             </div>
@@ -328,7 +328,7 @@ const CompanySetupWizard: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           {/* Étape 1: Informations Entreprise */}
           {currentStep === 1 && (
-            <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
+            <div className="bg-[#f5f5f5] rounded-lg shadow-lg border border-gray-200 p-8">
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
                 <BuildingOfficeIcon className="h-6 w-6 mr-2 text-blue-600" />
                 Informations de l'Entreprise
@@ -336,8 +336,8 @@ const CompanySetupWizard: React.FC = () => {
               
               <div className="space-y-6">
                 {/* Identité légale */}
-                <div className="bg-[#ECECEC] rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4">Identité Légale</h3>
+                <div className="bg-[#e5e5e5] rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4">Identité Légale</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -486,8 +486,8 @@ const CompanySetupWizard: React.FC = () => {
                 </div>
 
                 {/* Adresse complète */}
-                <div className="bg-[#ECECEC] rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
+                <div className="bg-[#e5e5e5] rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
                     <MapPinIcon className="h-5 w-5 mr-2" />
                     Siège Social
                   </h3>
@@ -570,8 +570,8 @@ const CompanySetupWizard: React.FC = () => {
                 </div>
 
                 {/* Coordonnées */}
-                <div className="bg-[#ECECEC] rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
+                <div className="bg-[#e5e5e5] rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
                     <PhoneIcon className="h-5 w-5 mr-2" />
                     Coordonnées
                   </h3>
@@ -649,8 +649,8 @@ const CompanySetupWizard: React.FC = () => {
                 </div>
 
                 {/* Données économiques */}
-                <div className="bg-[#ECECEC] rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
+                <div className="bg-[#e5e5e5] rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
                     <CurrencyDollarIcon className="h-5 w-5 mr-2" />
                     Données Économiques
                   </h3>
@@ -705,8 +705,8 @@ const CompanySetupWizard: React.FC = () => {
                 </div>
 
                 {/* Logo et options avancées */}
-                <div className="bg-[#ECECEC] rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
+                <div className="bg-[#e5e5e5] rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
                     <PhotoIcon className="h-5 w-5 mr-2" />
                     Logo et Options
                   </h3>
@@ -720,7 +720,7 @@ const CompanySetupWizard: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => logoInputRef.current?.click()}
-                          className="text-[#6A8A82] hover:text-[#B87333] font-medium"
+                          className="text-[#171717] hover:text-[#525252] font-medium"
                         >
                           Cliquer pour télécharger
                         </button>
@@ -761,11 +761,11 @@ const CompanySetupWizard: React.FC = () => {
                       </div>
 
                       {watchedValues.multiEtablissements && (
-                        <div className="bg-[#F0F3F2] border border-[#6A8A82] rounded-lg p-4">
-                          <p className="text-sm text-[#191919] font-medium mb-2">
+                        <div className="bg-[#f5f5f5] border border-[#171717] rounded-lg p-4">
+                          <p className="text-sm text-[#171717] font-medium mb-2">
                             🏢 Mode Multi-établissements activé
                           </p>
-                          <p className="text-xs text-[#191919]">
+                          <p className="text-xs text-[#171717]">
                             Vous pourrez configurer vos différents sites après cette étape.
                             Chaque établissement peut avoir son propre plan comptable et ses journaux.
                           </p>
@@ -794,7 +794,7 @@ const CompanySetupWizard: React.FC = () => {
           )}
 
           {/* Navigation */}
-          <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-6 mt-6">
+          <div className="bg-[#f5f5f5] rounded-lg shadow-lg border border-gray-200 p-6 mt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {currentStep > 1 && (
@@ -823,7 +823,7 @@ const CompanySetupWizard: React.FC = () => {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="flex items-center space-x-2 px-6 py-2 bg-[#B87333] text-white rounded-md hover:bg-[#6A8A82] transition-colors"
+                    className="flex items-center space-x-2 px-6 py-2 bg-[#525252] text-white rounded-md hover:bg-[#171717] transition-colors"
                   >
                     <span>Suivant</span>
                     <ArrowRightIcon className="h-4 w-4" />
@@ -831,7 +831,7 @@ const CompanySetupWizard: React.FC = () => {
                 ) : (
                   <button
                     type="submit"
-                    className="flex items-center space-x-2 px-6 py-2 bg-[#B87333] text-white rounded-md hover:bg-[#6A8A82] transition-colors"
+                    className="flex items-center space-x-2 px-6 py-2 bg-[#525252] text-white rounded-md hover:bg-[#171717] transition-colors"
                   >
                     <CheckCircleIcon className="h-4 w-4" />
                     <span>Finaliser Configuration</span>
@@ -850,7 +850,7 @@ const CompanySetupWizard: React.FC = () => {
 const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any }> = ({
   control, errors, watchedValues
 }) => (
-  <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
+  <div className="bg-[#f5f5f5] rounded-lg shadow-lg border border-gray-200 p-8">
     <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
       <CalculatorIcon className="h-6 w-6 mr-2 text-green-600" />
       Configuration Comptable SYSCOHADA
@@ -858,8 +858,8 @@ const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any
     
     <div className="space-y-6">
       {/* Référentiel SYSCOHADA */}
-      <div className="bg-[#ECECEC] rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Référentiel SYSCOHADA</h3>
+      <div className="bg-[#e5e5e5] rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Référentiel SYSCOHADA</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
@@ -928,8 +928,8 @@ const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any
       </div>
 
       {/* Plan comptable sectoriel */}
-      <div className="bg-[#ECECEC] rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4">Plan Comptable Sectoriel</h3>
+      <div className="bg-[#e5e5e5] rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4">Plan Comptable Sectoriel</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Secteur spécialisé</label>
@@ -977,8 +977,8 @@ const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any
       </div>
 
       {/* Devises */}
-      <div className="bg-[#ECECEC] rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
+      <div className="bg-[#e5e5e5] rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
           <GlobeAltIcon className="h-5 w-5 mr-2" />
           Configuration Devises
         </h3>
@@ -1080,8 +1080,8 @@ const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any
       </div>
 
       {/* Comptabilité analytique */}
-      <div className="bg-[#ECECEC] rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-[#191919] mb-4 flex items-center">
+      <div className="bg-[#e5e5e5] rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-[#171717] mb-4 flex items-center">
           <Cog6ToothIcon className="h-5 w-5 mr-2" />
           Comptabilité Analytique
         </h3>
@@ -1111,7 +1111,7 @@ const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any
           </div>
 
           {watchedValues.activerAnalytique && (
-            <div className="bg-white rounded-lg border border-[#6A8A82] p-4">
+            <div className="bg-white rounded-lg border border-[#171717] p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1159,7 +1159,7 @@ const CompteConfigStep: React.FC<{ control: any; errors: any; watchedValues: any
 const FiscalYearConfigStep: React.FC<{ control: any; errors: any; watchedValues: any }> = ({
   control, errors, watchedValues
 }) => (
-  <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
+  <div className="bg-[#f5f5f5] rounded-lg shadow-lg border border-gray-200 p-8">
     <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
       <CalendarIcon className="h-6 w-6 mr-2 text-purple-600" />
       Exercice Comptable
@@ -1167,7 +1167,7 @@ const FiscalYearConfigStep: React.FC<{ control: any; errors: any; watchedValues:
     
     <div className="space-y-6">
       {/* Dates d'exercice */}
-      <div className="bg-[#ECECEC] rounded-lg p-6">
+      <div className="bg-[#e5e5e5] rounded-lg p-6">
         <h3 className="text-lg font-semibold text-purple-900 mb-4">Période de l'Exercice</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -1242,7 +1242,7 @@ const FiscalYearConfigStep: React.FC<{ control: any; errors: any; watchedValues:
       </div>
 
       {/* Périodes comptables */}
-      <div className="bg-[#ECECEC] rounded-lg p-6">
+      <div className="bg-[#e5e5e5] rounded-lg p-6">
         <h3 className="text-lg font-semibold text-green-900 mb-4">Découpage en Périodes</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -1314,7 +1314,7 @@ const FiscalYearConfigStep: React.FC<{ control: any; errors: any; watchedValues:
 const ImportDataStep: React.FC<{ control: any; errors: any; watchedValues: any }> = ({
   control, errors, watchedValues
 }) => (
-  <div className="bg-[#F0F3F2] rounded-lg shadow-lg border border-gray-200 p-8">
+  <div className="bg-[#f5f5f5] rounded-lg shadow-lg border border-gray-200 p-8">
     <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
       <DocumentArrowUpIcon className="h-6 w-6 mr-2 text-orange-600" />
       Import Données Existantes
@@ -1322,7 +1322,7 @@ const ImportDataStep: React.FC<{ control: any; errors: any; watchedValues: any }
     
     <div className="space-y-6">
       {/* Activation import */}
-      <div className="bg-[#ECECEC] rounded-lg p-6">
+      <div className="bg-[#e5e5e5] rounded-lg p-6">
         <div className="flex items-center space-x-3 mb-4">
           <Controller
             name="importerDonnees"

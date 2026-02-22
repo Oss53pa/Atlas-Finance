@@ -182,7 +182,7 @@ const ReconciliationPage: React.FC = () => {
       case 'rapproche': return 'bg-green-100 text-green-800';
       case 'non_rapproche': return 'bg-red-100 text-red-800';
       case 'ecart': return 'bg-yellow-100 text-yellow-800';
-      case 'en_attente': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
+      case 'en_attente': return 'bg-[#171717]/10 text-[#171717]';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -201,8 +201,8 @@ const ReconciliationPage: React.FC = () => {
     switch (type) {
       case 'montant': return 'bg-red-100 text-red-800';
       case 'date': return 'bg-yellow-100 text-yellow-800';
-      case 'reference': return 'bg-[#6A8A82]/10 text-[#6A8A82]';
-      case 'absent_comptable': return 'bg-[#B87333]/10 text-[#B87333]';
+      case 'reference': return 'bg-[#171717]/10 text-[#171717]';
+      case 'absent_comptable': return 'bg-[#525252]/10 text-[#525252]';
       case 'absent_banque': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -338,12 +338,12 @@ const ReconciliationPage: React.FC = () => {
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[#6A8A82]/10 rounded-full">
-                <GitCompare className="h-6 w-6 text-[#6A8A82]" />
+              <div className="p-2 bg-[#171717]/10 rounded-full">
+                <GitCompare className="h-6 w-6 text-[#171717]" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Taux Rapprochement</p>
-                <p className="text-lg font-bold text-[#6A8A82]">
+                <p className="text-lg font-bold text-[#171717]">
                   {reconciliationData?.match_rate ? `${reconciliationData.match_rate}%` : '0%'}
                 </p>
               </div>
@@ -365,7 +365,7 @@ const ReconciliationPage: React.FC = () => {
                 <Button
                   onClick={handleAutoReconciliation}
                   disabled={!filters.compte || autoReconciliationMutation.isPending}
-                  className="bg-[#6A8A82] hover:bg-[#6A8A82]/80 text-white"
+                  className="bg-[#171717] hover:bg-[#171717]/80 text-white"
                 >
                   {autoReconciliationMutation.isPending ? (
                     <>
@@ -513,7 +513,7 @@ const ReconciliationPage: React.FC = () => {
                       <TableRow 
                         key={item.id} 
                         className={`hover:bg-gray-50 ${
-                          selectedItems.has(item.id) ? 'bg-[#6A8A82]/5' : ''
+                          selectedItems.has(item.id) ? 'bg-[#171717]/5' : ''
                         }`}
                       >
                         {reconciliationMode === 'manual' && (
@@ -704,9 +704,9 @@ const ReconciliationPage: React.FC = () => {
       {showDetailModal && selectedItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[#6A8A82]/10 to-[#B87333]/10">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-[#171717]/10 to-[#525252]/10">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-[#6A8A82] rounded-lg flex items-center justify-center text-white">
+                <div className="w-12 h-12 bg-[#171717] rounded-lg flex items-center justify-center text-white">
                   <GitCompare className="w-6 h-6" />
                 </div>
                 <div>

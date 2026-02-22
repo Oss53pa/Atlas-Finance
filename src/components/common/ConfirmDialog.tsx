@@ -97,7 +97,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <Icon className={`w-6 h-6 ${variantConfig.iconColor}`} />
           </div>
           <div className="flex-1">
-            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-[#191919]">
+            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-[#171717]">
               {title}
             </h3>
           </div>
@@ -113,7 +113,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
         {/* Content */}
         <div className="p-6">
-          <p id="confirm-dialog-description" className="text-[#444444] leading-relaxed">
+          <p id="confirm-dialog-description" className="text-[#404040] leading-relaxed">
             {message}
           </p>
         </div>
@@ -122,7 +122,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <div className="flex items-center justify-end space-x-3 p-6 bg-gray-50 rounded-b-lg">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-[#D9D9D9] rounded-lg text-[#444444] hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="px-4 py-2 border border-[#d4d4d4] rounded-lg text-[#404040] hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
             disabled={confirmLoading}
             tabIndex={0}
           >

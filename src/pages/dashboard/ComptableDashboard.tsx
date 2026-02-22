@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { db } from '../../lib/db';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { formatCurrency } from '../../utils/formatters';
 import { 
   Calculator, 
   FileText, 
@@ -48,52 +51,90 @@ const ComptableDashboard: React.FC = () => {
     window.location.href = path;
   };
 
-  // Données métriques style Kads Agency
+  // Live metrics from Dexie
+  const liveData = useLiveQuery(async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const allEntries = await db.journalEntries.toArray();
+    const todayEntries = allEntries.filter(e => e.date === today);
+    const pendingEntries = allEntries.filter(e => e.status === 'draft' || e.status === 'pending');
+    const validatedEntries = allEntries.filter(e => e.status === 'posted');
+
+    // Compute treasury balance from class 5 accounts
+    let treasuryBalance = 0;
+    for (const entry of allEntries) {
+      for (const line of entry.lines) {
+        if (line.accountCode.startsWith('5')) {
+          treasuryBalance += line.debit - line.credit;
+        }
+      }
+    }
+
+    // Recent entries
+    const recent = allEntries
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 10)
+      .map(e => {
+        const totalDebit = e.lines.reduce((s, l) => s + l.debit, 0);
+        const totalCredit = e.lines.reduce((s, l) => s + l.credit, 0);
+        return {
+          id: e.entryNumber || e.id,
+          date: new Date(e.date).toLocaleDateString('fr-FR'),
+          description: e.description || e.reference || '-',
+          debit: formatCurrency(totalDebit),
+          credit: formatCurrency(totalCredit),
+          status: e.status === 'posted' ? 'validated' : e.status === 'draft' ? 'draft' : 'pending',
+        };
+      });
+
+    return {
+      todayCount: todayEntries.length,
+      pendingCount: pendingEntries.length,
+      validatedCount: validatedEntries.length,
+      treasuryBalance,
+      recentEntries: recent,
+    };
+  }, []) || { todayCount: 0, pendingCount: 0, validatedCount: 0, treasuryBalance: 0, recentEntries: [] };
+
   const metrics = [
     {
       title: 'Écritures du jour',
-      value: '47',
-      change: '+12%',
-      trend: 'up',
+      value: String(liveData.todayCount),
+      change: '',
+      trend: 'up' as const,
       color: 'blue',
       icon: FileText,
       description: 'Nouvelles écritures'
     },
     {
       title: 'En attente validation',
-      value: '8',
-      change: '-5%',
-      trend: 'down', 
+      value: String(liveData.pendingCount),
+      change: '',
+      trend: 'down' as const,
       color: 'orange',
       icon: Clock,
       description: 'À valider'
     },
     {
-      title: 'Lettrage automatique',
-      value: '156',
-      change: '+23%',
-      trend: 'up',
+      title: 'Écritures validées',
+      value: String(liveData.validatedCount),
+      change: '',
+      trend: 'up' as const,
       color: 'green',
       icon: CheckCircle,
-      description: 'Lettré aujourd\'hui'
+      description: 'Total validées'
     },
     {
       title: 'Solde de trésorerie',
-      value: '2.4M€',
-      change: '+8.5%',
-      trend: 'up',
+      value: formatCurrency(liveData.treasuryBalance),
+      change: '',
+      trend: 'up' as const,
       color: 'purple',
       icon: DollarSign,
       description: 'Position actuelle'
     }
   ];
 
-  const recentEntries = [
-    { id: 'E2024001', date: '10/09/2025', description: 'Achat fournitures bureau', debit: '450.00', credit: '0.00', status: 'validated' },
-    { id: 'E2024002', date: '10/09/2025', description: 'Vente client ABC Corp', debit: '0.00', credit: '2,500.00', status: 'pending' },
-    { id: 'E2024003', date: '10/09/2025', description: 'Salaires septembre', debit: '15,000.00', credit: '0.00', status: 'validated' },
-    { id: 'E2024004', date: '10/09/2025', description: 'Facture électricité', debit: '280.00', credit: '0.00', status: 'draft' },
-  ];
+  const recentEntries = liveData.recentEntries;
 
   const quickActions = [
     { label: 'Nouvelle écriture', icon: Plus, color: 'blue', path: '/accounting/entries' },
