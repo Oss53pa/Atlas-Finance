@@ -1,0 +1,25 @@
+{
+  "name": "@atlas/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5181 && electron .\"",
+    "electron:build": "vite build && electron-builder"
+  },
+  "dependencies": {
+    "@atlas/shared": "workspace:*",
+    "@atlas/core": "workspace:*",
+    "@atlas/data": "workspace:*"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.0",
+    "concurrently": "^8.2.0",
+    "wait-on": "^7.2.0"
+  }
+}

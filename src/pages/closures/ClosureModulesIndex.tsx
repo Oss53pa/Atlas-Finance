@@ -25,15 +25,15 @@ const ClosureModulesIndex: React.FC = () => {
   const modules: ClosureModule[] = [
     {
       id: 'periodic',
-      title: 'Clôture Périodique',
-      description: 'Workflow SYSCOHADA complet avec contrôles automatiques, provisions et états financiers',
+      title: 'Clôture Mensuelle & Annuelle',
+      description: 'Module unifié : clôture mensuelle réversible (6 étapes) et annuelle irréversible (7 étapes) conformes SYSCOHADA',
       path: '/closures/periodic',
       icon: Calendar,
       color: 'bg-purple-500',
       features: [
-        'Contrôles de cohérence automatiques',
-        'Provisions et régularisations',
-        'États financiers SYSCOHADA'
+        'Clôture mensuelle (vérification, régularisations, verrouillage)',
+        '17 contrôles de cohérence (9 mensuels, 7 bloquants annuels)',
+        'Affectation du résultat, reports à nouveau, états financiers'
       ]
     },
     {
