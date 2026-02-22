@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Calendar,
@@ -43,7 +44,7 @@ const SimpleClosurePage: React.FC = () => {
 
   const startClosure = async () => {
     if (!selectedFiscalYear) {
-      alert('Veuillez sélectionner un exercice fiscal');
+      toast('Veuillez sélectionner un exercice fiscal');
       return;
     }
 

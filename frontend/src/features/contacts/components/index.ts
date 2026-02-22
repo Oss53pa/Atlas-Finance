@@ -1,1 +1,0 @@
-export { CreateContactModal, EditContactModal, ContactDetailModal } from './ContactModals';

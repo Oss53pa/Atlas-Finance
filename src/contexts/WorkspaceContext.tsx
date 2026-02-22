@@ -8,7 +8,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { workspaceService } from '../services/workspace.service';
 import type { Workspace, WorkspaceRole, WorkspaceDashboard } from '../types/workspace.types';
 
 interface WorkspaceContextType {
@@ -78,58 +77,31 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
     }
   }, []);
 
+  // Construire un workspace par défaut pour un rôle
+  const buildDefaultWorkspace = useCallback((role: WorkspaceRole): Workspace => ({
+    id: `default-${role}`,
+    role: role,
+    role_display: role.charAt(0).toUpperCase() + role.slice(1),
+    name: `Espace ${role}`,
+    description: `Espace de travail pour ${role}`,
+    icon: 'LayoutDashboard',
+    color: role === 'admin' ? '#DC2626' : role === 'manager' ? '#B87333' : '#6A8A82',
+    is_active: true,
+    order: 0,
+    widget_count: 0,
+    action_count: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }), []);
+
   // Charger un workspace par rôle
   const loadWorkspaceByRole = useCallback(async (role: WorkspaceRole) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const workspace = await workspaceService.getByRole(role);
-      setCurrentWorkspace(workspace);
-
-      // Charger automatiquement le dashboard
-      if (workspace?.id) {
-        await loadWorkspaceDashboard(workspace.id);
-      }
-    } catch (err: unknown) {
-      console.error('Erreur chargement workspace:', err);
-      setError(err instanceof Error ? err.message : 'Erreur lors du chargement du workspace');
-
-      // En cas d'erreur, créer un workspace par défaut
-      const defaultWorkspace: Workspace = {
-        id: `default-${role}`,
-        role: role,
-        role_display: role.charAt(0).toUpperCase() + role.slice(1),
-        name: `Espace ${role}`,
-        description: `Espace de travail pour ${role}`,
-        icon: 'LayoutDashboard',
-        color: role === 'admin' ? '#DC2626' : role === 'manager' ? '#B87333' : '#6A8A82',
-        is_active: true,
-        order: 0,
-        widget_count: 0,
-        action_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setCurrentWorkspace(defaultWorkspace);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setCurrentWorkspace]);
+    setCurrentWorkspace(buildDefaultWorkspace(role));
+  }, [setCurrentWorkspace, buildDefaultWorkspace]);
 
   // Charger le dashboard d'un workspace
-  const loadWorkspaceDashboard = useCallback(async (workspaceId: string) => {
-    setIsLoading(true);
-
-    try {
-      const dashboard = await workspaceService.getDashboard(workspaceId);
-      setWorkspaceDashboard(dashboard);
-    } catch (err: unknown) {
-      console.error('Erreur chargement dashboard:', err);
-      // Ne pas bloquer si le dashboard ne charge pas
-    } finally {
-      setIsLoading(false);
-    }
+  const loadWorkspaceDashboard = useCallback(async (_workspaceId: string) => {
+    // Mode local — pas de dashboard backend
   }, []);
 
   // Rafraîchir le dashboard actuel

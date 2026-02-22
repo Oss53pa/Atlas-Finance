@@ -39,10 +39,20 @@ import {
   SelectValue
 } from '../../components/ui';
 import { exerciceService } from '../../services/exercice.service';
-import { createExerciceSchema } from '../../services/modules/core.service';
 import { z } from 'zod';
 import { formatDate, formatCurrency } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+
+const createExerciceSchema = z.object({
+  libelle: z.string().min(1, 'Le libellé est requis'),
+  date_debut: z.string().min(1, 'La date de début est requise'),
+  date_fin: z.string().min(1, 'La date de fin est requise'),
+  type: z.enum(['normal', 'court', 'long', 'exceptionnel']),
+  plan_comptable: z.enum(['syscohada', 'pcg', 'ifrs']).optional(),
+  devise: z.string().optional(),
+  cloture_anticipee: z.boolean().optional(),
+  reouverture_auto: z.boolean().optional(),
+});
 
 const ExercicePage: React.FC = () => {
   const { t } = useLanguage();

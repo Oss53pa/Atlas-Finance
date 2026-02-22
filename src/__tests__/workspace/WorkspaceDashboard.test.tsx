@@ -7,7 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import WorkspaceDashboard from '../../pages/workspace/WorkspaceDashboard';
 import { workspaceService } from '../../services/workspace.service';
-import type { WorkspaceRole } from '../../types/workspace.types';
+import type { WorkspaceRole, Workspace, WorkspaceDashboard as WorkspaceDashboardType } from '../../types/workspace.types';
 
 // Mock du service workspace
 jest.mock('../../services/workspace.service');
@@ -22,9 +22,9 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('WorkspaceDashboard', () => {
-  const mockWorkspace: Record<string, unknown> = {
+  const mockWorkspace = {
     id: '1',
-    role: 'comptable',
+    role: 'comptable' as const,
     role_display: 'Comptable',
     name: 'Espace Comptable',
     description: 'Tableau de bord comptable',
@@ -36,9 +36,9 @@ describe('WorkspaceDashboard', () => {
     action_count: 5,
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
-  };
+  } as Workspace;
 
-  const mockDashboard: Record<string, unknown> = {
+  const mockDashboard = {
     workspace: mockWorkspace,
     user_preferences: undefined,
     statistics: [
@@ -93,7 +93,7 @@ describe('WorkspaceDashboard', () => {
       },
     ],
     pending_tasks: 0,
-  };
+  } as WorkspaceDashboardType;
 
   beforeEach(() => {
     jest.clearAllMocks();

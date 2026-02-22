@@ -243,19 +243,19 @@ const AdvancedBalance: React.FC = () => {
             </button>
             
             <ExportMenu
-              data={filteredData}
+              data={filteredData as Record<string, unknown>[]}
               filename="balance-avancee"
-              columns={[
-                { key: 'compte', label: 'Compte' },
-                { key: 'libelle', label: 'Libellé' },
-                { key: 'debitPrecedent', label: 'Débit Précédent' },
-                { key: 'creditPrecedent', label: 'Crédit Précédent' },
-                { key: 'debitMouvement', label: 'Débit Mouvement' },
-                { key: 'creditMouvement', label: 'Crédit Mouvement' },
-                { key: 'debitSolde', label: 'Débit Solde' },
-                { key: 'creditSolde', label: 'Crédit Solde' },
-                { key: 'type', label: 'Type' }
-              ]}
+              columns={{
+                compte: 'Compte',
+                libelle: 'Libellé',
+                debitPrecedent: 'Débit Précédent',
+                creditPrecedent: 'Crédit Précédent',
+                debitMouvement: 'Débit Mouvement',
+                creditMouvement: 'Crédit Mouvement',
+                debitSolde: 'Débit Solde',
+                creditSolde: 'Crédit Solde',
+                type: 'Type'
+              }}
               buttonText="Exporter"
             />
           </div>

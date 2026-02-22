@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import AdvancedTaskForm from './AdvancedTaskForm';
 import {
@@ -1320,7 +1321,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
     if (draggedTask && draggedTask.status !== newStatus) {
       // Vérifier les permissions
       if (userRole === 'comptable' && draggedTask.assigneeId !== currentUserId) {
-        alert('Vous ne pouvez modifier que vos propres tâches');
+        toast.success('Vous ne pouvez modifier que vos propres tâches');
         return;
       }
 
@@ -1658,7 +1659,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
           setTasks(prev => [...prev, newTaskData]);
           setShowNewTask(false);
           // Notification de succès
-          alert('Tâche créée avec succès!');
+          toast.success('Tâche créée avec succès!');
         }}
         mode="create"
       />

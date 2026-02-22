@@ -4,6 +4,7 @@
  * Gestion complète des fournisseurs avec échéances et lettrage
  */
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -100,14 +101,14 @@ const ModernSupplierDashboard: React.FC = () => {
 
   const handlePaymentSupplier = (supplier: Supplier) => {
     // Naviguer vers le module de paiement ou ouvrir un modal de paiement
-    alert(`Gestion des paiements pour: ${supplier.legal_name}`);
+    toast(`Gestion des paiements pour: ${supplier.legal_name}`);
   };
 
   const handleCallSupplier = (supplier: Supplier) => {
     if (supplier.main_phone) {
       window.location.href = `tel:${supplier.main_phone}`;
     } else {
-      alert('Aucun numéro de téléphone disponible pour ce fournisseur');
+      toast('Aucun numéro de téléphone disponible pour ce fournisseur');
     }
   };
 
@@ -115,7 +116,7 @@ const ModernSupplierDashboard: React.FC = () => {
     if (supplier.email) {
       window.location.href = `mailto:${supplier.email}`;
     } else {
-      alert('Aucun email disponible pour ce fournisseur');
+      toast('Aucun email disponible pour ce fournisseur');
     }
   };
 
@@ -952,7 +953,7 @@ const ModernSupplierDashboard: React.FC = () => {
             <div className="flex justify-end space-x-3 p-6 border-t">
               <Button variant="outline" onClick={() => setShowEditModal(false)}>Annuler</Button>
               <Button onClick={() => {
-                alert('Modifications sauvegardées (simulation)');
+                toast.success('Modifications sauvegardées (simulation)');
                 setShowEditModal(false);
               }}>Enregistrer</Button>
             </div>

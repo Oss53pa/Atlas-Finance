@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -47,7 +48,7 @@ interface AccountData {
 const AdvancedGeneralLedger: React.FC = () => {
   const { t } = useLanguage();
   // États principaux
-  const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger'>('intelligent');
+  const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger' | 'movements'>('intelligent');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
@@ -226,17 +227,17 @@ const AdvancedGeneralLedger: React.FC = () => {
             </button>
             
             <ExportMenu
-              data={accountsData}
+              data={accountsData as Record<string, unknown>[]}
               filename="grand-livre-general"
-              columns={[
-                { key: 'compte', label: 'Compte' },
-                { key: 'libelle', label: 'Libellé' },
-                { key: 'soldeOuverture', label: 'Solde Ouverture' },
-                { key: 'totalDebit', label: 'Total Débit' },
-                { key: 'totalCredit', label: 'Total Crédit' },
-                { key: 'soldeFermeture', label: 'Solde Fermeture' },
-                { key: 'nombreEcritures', label: 'Nombre Écritures' }
-              ]}
+              columns={{
+                compte: 'Compte',
+                libelle: 'Libellé',
+                soldeOuverture: 'Solde Ouverture',
+                totalDebit: 'Total Débit',
+                totalCredit: 'Total Crédit',
+                soldeFermeture: 'Solde Fermeture',
+                nombreEcritures: 'Nombre Écritures'
+              }}
               buttonText="Exporter"
             />
           </div>
@@ -517,16 +518,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                     title="Exporter les résultats"
                   >
                     <ExportMenu
-                      data={accountsData}
+                      data={accountsData as Record<string, unknown>[]}
                       filename="compte-detail"
-                      columns={[
-                        { key: 'compte', label: 'Compte' },
-                        { key: 'libelle', label: 'Libellé' },
-                        { key: 'soldeFermeture', label: 'Solde' }
-                      ]}
+                      columns={{
+                        compte: 'Compte',
+                        libelle: 'Libellé',
+                        soldeFermeture: 'Solde'
+                      }}
                       buttonText=""
-                      iconOnly={true}
-                      buttonVariant="icon"
+                      buttonVariant="ghost"
                     />
                   </button>
 
@@ -677,7 +677,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                             entry.confidence >= 85 ? 'bg-yellow-500' : 'bg-red-500'
                           }`} title={`Confiance IA: ${entry.confidence}%`}></div>
                           {entry.aiFlags.includes('anomaly_detected') && (
-                            <AlertTriangle className="h-3 w-3 text-orange-500" title="Anomalie détectée" />
+                            <span title="Anomalie détectée"><AlertTriangle className="h-3 w-3 text-orange-500" /></span>
                           )}
                           {entry.annotations > 0 && (
                             <div className="relative">
@@ -3325,16 +3325,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                 Annuler
               </button>
               <ExportMenu
-                data={accountsData}
+                data={accountsData as Record<string, unknown>[]}
                 filename="grand-livre-export"
-                columns={[
-                  { key: 'compte', label: 'Compte' },
-                  { key: 'libelle', label: 'Libellé' },
-                  { key: 'soldeOuverture', label: 'Solde Ouverture' },
-                  { key: 'totalDebit', label: 'Total Débit' },
-                  { key: 'totalCredit', label: 'Total Crédit' },
-                  { key: 'soldeFermeture', label: 'Solde Fermeture' }
-                ]}
+                columns={{
+                  compte: 'Compte',
+                  libelle: 'Libellé',
+                  soldeOuverture: 'Solde Ouverture',
+                  totalDebit: 'Total Débit',
+                  totalCredit: 'Total Crédit',
+                  soldeFermeture: 'Solde Fermeture'
+                }}
                 buttonText="Exporter"
               />
             </div>
@@ -3411,7 +3411,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <button
                 onClick={() => {
                   setShowEmailModal(false);
-                  alert('Email envoyé avec succès!');
+                  toast.success('Email envoyé avec succès!');
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
@@ -3546,7 +3546,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => {
                   setShowAnnotationModal(false);
                   setAnnotation('');
-                  alert('Annotation ajoutée avec succès!');
+                  toast.success('Annotation ajoutée avec succès!');
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
@@ -3580,7 +3580,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(shareLink);
-                    alert('Lien copié!');
+                    toast.success('Lien copié!');
                   }}
                   className="px-4 py-2 bg-[#6A8A82] text-white rounded-r-md hover:bg-[#5A7A72]"
                 >
@@ -3672,7 +3672,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <button
                 onClick={() => {
                   setShowAISettingsModal(false);
-                  alert('Paramètres IA enregistrés');
+                  toast.success('Paramètres IA enregistrés');
                 }}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
               >
@@ -3734,7 +3734,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <button
                 onClick={() => {
                   setShowNewWorkspaceModal(false);
-                  alert('Espace de travail créé avec succès!');
+                  toast.success('Espace de travail créé avec succès!');
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
@@ -3792,7 +3792,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <button
                 onClick={() => {
                   setShowJoinWorkspaceModal(false);
-                  alert(`Vous avez rejoint l'espace: ${selectedWorkspace}`);
+                  toast(`Vous avez rejoint l'espace: ${selectedWorkspace}`);
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >

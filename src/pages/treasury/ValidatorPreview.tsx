@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+
 import {
   Calendar, DollarSign, Users, CheckCircle, BarChart3,
   Plus, Eye, Edit, Target
@@ -91,21 +91,9 @@ const ValidatorPreview: React.FC = () => {
     setExpandedPaymentDetails(newExpanded);
   };
 
-  // Charger les données du Grand Livre (identique)
   useEffect(() => {
-    const fetchAccountPayableData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('http://127.0.0.1:8888/accounting/account-payable/grand-livre/');
-        setAccountPayableData(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Erreur lors du chargement du Grand Livre:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchAccountPayableData();
+    setAccountPayableData(null);
+    setLoading(false);
   }, []);
 
   // Transformer les données du Grand Livre (identique)

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Download, FileText, FileSpreadsheet, File } from 'lucide-react';
 
 interface ExportButtonProps {
@@ -141,7 +142,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
     } catch (error) {
       console.error('Export failed:', error);
       // In a real application, you would show a proper error notification
-      alert('Export failed. Please try again.');
+      toast.error('Export failed. Please try again.');
     } finally {
       setIsExporting(false);
     }

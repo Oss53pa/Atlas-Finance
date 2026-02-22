@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type DBAsset } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -383,23 +384,23 @@ const AssetsMaintenance: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      alert('Veuillez corriger les erreurs du formulaire');
+      toast.error('Veuillez corriger les erreurs du formulaire');
       return;
     }
 
     try {
       if (maintenanceModal.mode === 'create') {
         // Create new maintenance record
-        alert('Maintenance créée avec succès!');
+        toast.success('Maintenance créée avec succès!');
       } else if (maintenanceModal.mode === 'edit') {
         // Update existing maintenance record
-        alert('Maintenance mise à jour avec succès!');
+        toast.success('Maintenance mise à jour avec succès!');
       }
       setMaintenanceModal({ isOpen: false, mode: 'view' });
       resetForm();
     } catch (error) {
       console.error('Error submitting maintenance:', error);
-      alert('Erreur lors de l\'enregistrement');
+      toast.error('Erreur lors de l\'enregistrement');
     }
   };
 

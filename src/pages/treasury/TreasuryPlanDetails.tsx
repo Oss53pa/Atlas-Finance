@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -1535,7 +1536,7 @@ const TreasuryPlanDetails: React.FC = () => {
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              alert(`Transaction ${transactionType} ajoutée avec succès !`);
+              toast.success(`Transaction ${transactionType} ajoutée avec succès !`);
               setShowTransactionModal(false);
             }}>
               <div className="space-y-4">

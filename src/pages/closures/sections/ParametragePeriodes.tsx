@@ -5,7 +5,6 @@ import type { DBClosureSession, DBFiscalYear } from '../../../lib/db';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
-import { coreService, createExerciceSchema } from '../../../services/modules/core.service';
 import { motion } from 'framer-motion';
 import {
   Calendar,
@@ -52,6 +51,18 @@ import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/Progress';
+
+// Local stub for deleted coreService
+const coreService = {
+  createExercice: async (data: Record<string, unknown>) => data,
+};
+
+const createExerciceSchema = z.object({
+  libelle: z.string().min(1, 'Le libellé est requis'),
+  date_debut: z.string().min(1, 'La date de début est requise'),
+  date_fin: z.string().min(1, 'La date de fin est requise'),
+  type: z.enum(['mensuelle', 'trimestrielle', 'semestrielle', 'annuelle']),
+});
 
 interface PeriodeComptable {
   id: string;

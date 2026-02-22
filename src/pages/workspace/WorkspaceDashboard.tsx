@@ -22,7 +22,6 @@ import {
   AlertCircle,
   Loader
 } from 'lucide-react';
-import { workspaceService } from '../../services/workspace.service';
 import { WorkspaceDashboard as WorkspaceDashboardType } from '../../types/workspace.types';
 
 const WorkspaceDashboard: React.FC = () => {
@@ -37,12 +36,28 @@ const WorkspaceDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Récupérer le workspace de l'utilisateur
-      const myWorkspace = await workspaceService.getMyWorkspace();
-
-      // Récupérer le dashboard complet
-      const dashboardData = await workspaceService.getDashboard(myWorkspace.id);
-      setDashboard(dashboardData);
+      // Mode local — workspace par défaut
+      setDashboard({
+        workspace: {
+          id: 'default',
+          role: 'comptable',
+          role_display: 'Comptable',
+          name: 'Espace Comptable',
+          description: 'Tableau de bord comptable',
+          icon: 'Calculator',
+          color: '#6A8A82',
+          is_active: true,
+          order: 1,
+          widget_count: 0,
+          action_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        statistics: [],
+        widgets: [],
+        quick_actions: [],
+        pending_tasks: 0,
+      });
     } catch (err: any) {
       console.error('Erreur chargement workspace:', err);
       setError(err?.message || 'Erreur lors du chargement du workspace');

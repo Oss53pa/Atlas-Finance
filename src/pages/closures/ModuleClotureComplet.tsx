@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Calendar,
@@ -225,17 +226,17 @@ const ModuleClotureComplet: React.FC = () => {
 
   const exporterBalance = (format: 'PDF' | 'EXCEL') => {
     // Simulation export
-    alert(`Export ${format} de la balance en cours...`);
+    toast.success(`Export ${format} de la balance en cours...`);
   };
 
   const exporterJournal = () => {
     // Simulation export journal
-    alert('Export du journal de clôture en cours...');
+    toast.success('Export du journal de clôture en cours...');
   };
 
   const exporterFEC = () => {
     // Simulation export FEC
-    alert('Génération fichier FEC en cours...');
+    toast('Génération fichier FEC en cours...');
   };
 
   return (

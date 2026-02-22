@@ -23,7 +23,7 @@ const PieChart: React.FC<PieChartProps> = ({ data, dataKey, nameKey, height, col
                 style={{ backgroundColor: colors?.[index] || `hsl(${index * 60}, 70%, 50%)` }}
               ></div>
               <span className="text-sm text-gray-600">
-                {item[nameKey]}: {item[dataKey]}
+                {String(item[nameKey])}: {String(item[dataKey])}
               </span>
             </div>
           ))}

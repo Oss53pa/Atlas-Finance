@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, Control, FieldValues, UseFormSetValue } from 'react-hook-form';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import {
   Sparkles as SparklesIcon,
@@ -18,7 +18,9 @@ import {
   FileText as DocumentTextIcon,
   DollarSign as CurrencyDollarIcon,
   Scale as ScaleIcon,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Copy as DocumentDuplicateIcon,
+  Trash2 as TrashIcon
 } from 'lucide-react';
 import {
   Card,
@@ -135,7 +137,7 @@ const IntelligentEntryAssistant: React.FC = () => {
         reference: '',
         description: '',
         notes: '',
-        attachments: [],
+        attachments: [] as string[],
       },
       transactionData: {
         type: 'GENERAL',
@@ -157,17 +159,17 @@ const IntelligentEntryAssistant: React.FC = () => {
             enabled: false,
             method: 'MANUAL',
             totalAmount: 0,
-            splitLines: [],
-            suggestions: [],
+            splitLines: [] as { account: string; description: string; amount: number; percentage: number }[],
+            suggestions: [] as string[],
           },
-          
+
           // Analytics et dimensions
           analytics: {
             costCenter: '',
             project: '',
             department: '',
             analyticalAccount: '',
-            tags: [],
+            tags: [] as string[],
           },
           
           // Métadonnées ligne
@@ -323,8 +325,8 @@ const IntelligentEntryAssistant: React.FC = () => {
         debitAmount: line.debitAmount || 0,
         creditAmount: line.creditAmount || 0,
         thirdParty: line.thirdParty || '',
-        intelligentSplit: { enabled: false, method: 'MANUAL', totalAmount: 0, splitLines: [] },
-        analytics: line.analytics || { costCenter: '', project: '', department: '', analyticalAccount: '', tags: [] },
+        intelligentSplit: { enabled: false, method: 'MANUAL', totalAmount: 0, splitLines: [] as { account: string; description: string; amount: number; percentage: number }[], suggestions: [] as string[] },
+        analytics: line.analytics || { costCenter: '', project: '', department: '', analyticalAccount: '', tags: [] as string[] },
         lineNotes: '',
         confidence: 95,
         aiSuggested: true,
@@ -375,7 +377,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                   <Badge className="bg-indigo-100 text-indigo-800">
                     Mode {assistantMode}
                   </Badge>
-                  <Select value={assistantMode} onValueChange={setAssistantMode}>
+                  <Select value={assistantMode} onValueChange={(v: string) => setAssistantMode(v as 'GUIDED' | 'SMART' | 'EXPERT')}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
@@ -414,7 +416,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                           <Input type="date" {...field} />
                           {assistantMode === 'SMART' && (
                             <div className="absolute right-2 top-2">
-                              <LightBulbIcon className="h-4 w-4 text-yellow-500" title="Suggestion: Fin de mois détectée" />
+                              <span title="Suggestion: Fin de mois détectée"><LightBulbIcon className="h-4 w-4 text-yellow-500" /></span>
                             </div>
                           )}
                         </div>
@@ -542,8 +544,8 @@ const IntelligentEntryAssistant: React.FC = () => {
                         debitAmount: 0,
                         creditAmount: 0,
                         thirdParty: '',
-                        intelligentSplit: { enabled: false, method: 'MANUAL', totalAmount: 0, splitLines: [] },
-                        analytics: { costCenter: '', project: '', department: '', analyticalAccount: '', tags: [] },
+                        intelligentSplit: { enabled: false, method: 'MANUAL', totalAmount: 0, splitLines: [] as { account: string; description: string; amount: number; percentage: number }[], suggestions: [] as string[] },
+                        analytics: { costCenter: '', project: '', department: '', analyticalAccount: '', tags: [] as string[] },
                         lineNotes: '',
                         confidence: 100,
                         aiSuggested: false,
@@ -558,14 +560,15 @@ const IntelligentEntryAssistant: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   {entries.map((entry, index) => (
-                    <IntelligentEntryLine 
+                    <IntelligentEntryLine
                       key={entry.id}
                       entry={entry}
                       index={index}
-                      control={control}
+                      control={control as Control<FieldValues>}
                       contextAnalysis={contextAnalysis}
                       onRemove={() => removeEntry(index)}
                       assistantMode={assistantMode}
+                      setValue={setValue as UseFormSetValue<FieldValues>}
                     />
                   ))}
                 </div>
@@ -740,7 +743,7 @@ const IntelligentEntryAssistant: React.FC = () => {
             </Card>
 
             {/* Templates suggérés */}
-            {contextAnalysis?.templateMatches?.length > 0 && (
+            {(contextAnalysis?.templateMatches?.length ?? 0) > 0 && (
               <Card className="border-green-200">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center text-green-900">
@@ -750,7 +753,7 @@ const IntelligentEntryAssistant: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {contextAnalysis.templateMatches.slice(0, 3).map((template: TemplateSuggestion, index: number) => (
+                    {contextAnalysis?.templateMatches?.slice(0, 3).map((template: TemplateSuggestion, index: number) => (
                       <div key={template.id} className="p-3 border border-green-200 rounded-lg hover:bg-green-50 cursor-pointer"
                            onClick={() => applyTemplate(template)}>
                         <div className="flex items-center justify-between">
@@ -826,11 +829,13 @@ interface ContextAnalysisResult {
 const IntelligentEntryLine: React.FC<{
   entry: EntryField;
   index: number;
-  control: ReturnType<typeof useForm>['control'];
+  control: Control<FieldValues>;
   contextAnalysis: ContextAnalysisResult | null | undefined;
   onRemove: () => void;
   assistantMode: string;
-}> = ({ entry, index, control, contextAnalysis, onRemove, assistantMode }) => {
+  setValue: UseFormSetValue<FieldValues>;
+}> = ({ entry, index, control, contextAnalysis, onRemove, assistantMode, setValue }) => {
+  const { t } = useLanguage();
   const [showVentilation, setShowVentilation] = useState(false);
   
   return (
@@ -903,7 +908,7 @@ const IntelligentEntryLine: React.FC<{
                     <SelectItem value="401">401 - Fournisseurs</SelectItem>
                   </SelectContent>
                 </Select>
-                {assistantMode === 'SMART' && contextAnalysis?.suggestedAccounts?.length > 0 && (
+                {assistantMode === 'SMART' && (contextAnalysis?.suggestedAccounts?.length ?? 0) > 0 && (
                   <MagicWandIcon className="absolute right-8 top-2 h-4 w-4 text-purple-500" />
                 )}
               </div>
@@ -964,11 +969,12 @@ const IntelligentEntryLine: React.FC<{
 
       {/* Ventilation intelligente */}
       {showVentilation && (
-        <IntelligentVentilationPanel 
+        <IntelligentVentilationPanel
           control={control}
           lineIndex={index}
           entry={entry}
           contextAnalysis={contextAnalysis}
+          setValue={setValue}
         />
       )}
     </div>
@@ -977,11 +983,12 @@ const IntelligentEntryLine: React.FC<{
 
 // Panel de ventilation intelligente
 const IntelligentVentilationPanel: React.FC<{
-  control: ReturnType<typeof useForm>['control'];
+  control: Control<FieldValues>;
   lineIndex: number;
   entry: EntryField;
   contextAnalysis: ContextAnalysisResult | null | undefined;
-}> = ({ control, lineIndex, entry, contextAnalysis }) => {
+  setValue: UseFormSetValue<FieldValues>;
+}> = ({ control, lineIndex, entry, contextAnalysis, setValue }) => {
   return (
     <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
       <h4 className="font-medium text-purple-900 mb-3 flex items-center">

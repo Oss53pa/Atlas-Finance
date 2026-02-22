@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Database, Calculator, FileText, Calendar, Download,
@@ -2234,7 +2235,7 @@ const ClotureComptableFinal: React.FC = () => {
                     <h3 className="font-medium mb-2">Journal de Clôture</h3>
                     <p className="text-sm text-[var(--color-text-primary)] mb-4">Export PDF complet</p>
                     <button
-                      onClick={() => alert('Export PDF journal en cours...')}
+                      onClick={() => toast.success('Export PDF journal en cours...')}
                       className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
                     >
                       Exporter PDF
@@ -2246,7 +2247,7 @@ const ClotureComptableFinal: React.FC = () => {
                     <h3 className="font-medium mb-2">Balance Générale</h3>
                     <p className="text-sm text-[var(--color-text-primary)] mb-4">Export Excel avec formules</p>
                     <button
-                      onClick={() => alert('Export Excel balance en cours...')}
+                      onClick={() => toast.success('Export Excel balance en cours...')}
                       className="w-full px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)]"
                     >
                       Exporter Excel
@@ -2258,7 +2259,7 @@ const ClotureComptableFinal: React.FC = () => {
                     <h3 className="font-medium mb-2">Fichier FEC</h3>
                     <p className="text-sm text-[var(--color-text-primary)] mb-4">Pour administration</p>
                     <button
-                      onClick={() => alert('Génération FEC en cours...')}
+                      onClick={() => toast('Génération FEC en cours...')}
                       className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                     >
                       Générer FEC

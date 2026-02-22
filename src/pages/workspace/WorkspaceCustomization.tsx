@@ -8,6 +8,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import {
   Settings,
@@ -20,7 +21,6 @@ import {
   GripVertical,
   Loader
 } from 'lucide-react';
-import { workspaceService, userWorkspacePreferenceService } from '../../services/workspace.service';
 import { WorkspaceDashboard, WorkspaceWidget, WorkspaceCustomization as CustomizationType } from '../../types/workspace.types';
 
 const WorkspaceCustomization: React.FC = () => {
@@ -48,8 +48,28 @@ const WorkspaceCustomization: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const myWorkspace = await workspaceService.getMyWorkspace();
-      const dashboardData = await workspaceService.getDashboard(myWorkspace.id);
+      // Mode local — workspace par défaut
+      const dashboardData: WorkspaceDashboard = {
+        workspace: {
+          id: 'default',
+          role: 'comptable',
+          role_display: 'Comptable',
+          name: 'Espace Comptable',
+          description: 'Tableau de bord comptable',
+          icon: 'Calculator',
+          color: '#6A8A82',
+          is_active: true,
+          order: 1,
+          widget_count: 0,
+          action_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        statistics: [],
+        widgets: [],
+        quick_actions: [],
+        pending_tasks: 0,
+      };
       setDashboard(dashboardData);
       setWidgets(dashboardData.widgets || []);
 
@@ -115,14 +135,15 @@ const WorkspaceCustomization: React.FC = () => {
         }, {} as Record<string, number>),
       };
 
-      await workspaceService.customize(dashboard.workspace.id, customization);
+      // Mode local — no-op (pas de backend)
+      void customization;
 
       // Succès
-      alert('Personnalisation enregistrée avec succès!');
+      toast.success('Personnalisation enregistrée avec succès!');
       navigate('/workspace');
     } catch (err: unknown) {
       console.error('Erreur sauvegarde:', err);
-      alert(`Erreur: ${err instanceof Error ? err.message : 'Impossible de sauvegarder'}`);
+      toast.error(`Erreur: ${err instanceof Error ? err.message : 'Impossible de sauvegarder'}`);
     } finally {
       setSaving(false);
     }
@@ -134,14 +155,14 @@ const WorkspaceCustomization: React.FC = () => {
 
     try {
       setSaving(true);
-      await workspaceService.resetCustomization(dashboard.workspace.id);
+      // Mode local — no-op (pas de backend)
 
       // Recharger
       await loadDashboard();
-      alert('Personnalisation réinitialisée!');
+      toast.success('Personnalisation réinitialisée!');
     } catch (err: unknown) {
       console.error('Erreur reset:', err);
-      alert(`Erreur: ${err instanceof Error ? err.message : 'Impossible de réinitialiser'}`);
+      toast.error(`Erreur: ${err instanceof Error ? err.message : 'Impossible de réinitialiser'}`);
     } finally {
       setSaving(false);
     }

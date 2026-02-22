@@ -197,11 +197,11 @@ const EnhancedCompanyConfiguration: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert(`Le fichier ${type} doit faire moins de 5MB`);
+        toast(`Le fichier ${type} doit faire moins de 5MB`);
         return;
       }
       if (!['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
-        alert('Format autorisé: JPG, PNG, GIF, SVG');
+        toast('Format autorisé: JPG, PNG, GIF, SVG');
         return;
       }
 

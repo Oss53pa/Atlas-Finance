@@ -1,11 +1,10 @@
 /**
- * SERVICE EXERCICE - Wrapper pour compatibilité frontend
- * Utilise coreService en backend avec adaptation des propriétés
+ * SERVICE EXERCICE - Mode local (Dexie/IndexedDB)
+ * Fournit les données d'exercices comptables localement
  */
 
-import { coreService, type Exercice as BackendExercice } from './modules/core.service';
+import { db } from '../lib/db';
 
-// Type frontend (legacy)
 interface FrontendExercice {
   id: string;
   name: string;
@@ -20,187 +19,118 @@ interface FrontendExercice {
   isLocked: boolean;
   duree_mois?: number;
   remainingDays?: number;
+  stats?: {
+    total_ecritures: number;
+    montant_total: number;
+    resultat_net: number;
+  };
+  plan_comptable?: string;
+  devise?: string;
 }
 
-/**
- * Convertit un exercice backend vers format frontend
- */
-const mapToFrontend = (exercice: BackendExercice): FrontendExercice => {
-  const isLocked = exercice.statut === 'cloture' || exercice.statut === 'archive';
-
-  return {
-    id: exercice.id,
-    name: exercice.libelle,
-    libelle: exercice.libelle,
-    startDate: exercice.date_debut,
-    endDate: exercice.date_fin,
-    date_debut: exercice.date_debut,
-    date_fin: exercice.date_fin,
-    status: exercice.statut === 'ouvert' ? 'active' :
-            exercice.statut === 'cloture' ? 'closed' :
-            'pending',
-    statut: exercice.statut,
-    isCurrent: exercice.statut === 'ouvert',
-    isLocked,
-    duree_mois: calculateDurationInMonths(exercice.date_debut, exercice.date_fin),
-    remainingDays: calculateRemainingDays(exercice.date_fin),
-  };
-};
-
-/**
- * Calcule la durée en mois entre deux dates
- */
 const calculateDurationInMonths = (startDate: string, endDate: string): number => {
   const start = new Date(startDate);
   const end = new Date(endDate);
-
   const months = (end.getFullYear() - start.getFullYear()) * 12 +
                  (end.getMonth() - start.getMonth());
-
   return Math.max(1, months);
 };
 
-/**
- * Calcule les jours restants avant la fin de l'exercice
- */
 const calculateRemainingDays = (endDate: string): number => {
   const end = new Date(endDate);
   const today = new Date();
   const diffTime = end.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return Math.max(0, diffDays);
+  return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 };
 
-/**
- * Service exercice avec adaptation frontend/backend
- */
 export const exerciceService = {
-  /**
-   * Récupère la liste des exercices
-   */
-  getExercices: async () => {
+  getExercices: async (): Promise<FrontendExercice[]> => {
     try {
-      const exercices = await coreService.getExercices();
-      const mapped = exercices.map(mapToFrontend);
-
-      return {
-        exercices: mapped,
-        totalPages: 1,
-        totalCount: mapped.length,
-        currentPage: 1,
-      };
-    } catch (error) {
-      console.error('Erreur lors de la récupération des exercices:', error);
-
-      // Fallback sur données mock en cas d'erreur
-      return {
-        exercices: [],
-        totalPages: 1,
-        totalCount: 0,
-        currentPage: 1,
-      };
+      const fiscalYears = await db.fiscalYears.toArray();
+      return fiscalYears.map(fy => ({
+        id: fy.id,
+        name: fy.name,
+        libelle: fy.name,
+        startDate: fy.startDate,
+        endDate: fy.endDate,
+        date_debut: fy.startDate,
+        date_fin: fy.endDate,
+        status: fy.isClosed ? 'closed' : 'active',
+        statut: fy.isClosed ? 'cloture' : 'ouvert',
+        isCurrent: !fy.isClosed,
+        isLocked: fy.isClosed,
+        duree_mois: calculateDurationInMonths(fy.startDate, fy.endDate),
+        remainingDays: calculateRemainingDays(fy.endDate),
+        plan_comptable: 'syscohada',
+        devise: 'XAF',
+        stats: { total_ecritures: 0, montant_total: 0, resultat_net: 0 },
+      }));
+    } catch {
+      return [];
     }
   },
 
-  /**
-   * Récupère l'exercice courant
-   */
-  getCurrentExercice: async () => {
+  getCurrentExercice: async (): Promise<FrontendExercice | null> => {
     try {
-      const exercice = await coreService.getCurrentExercice();
-
-      if (!exercice) {
-        return null;
-      }
-
-      return mapToFrontend(exercice);
-    } catch (error) {
-      console.error('Erreur lors de la récupération de l\'exercice courant:', error);
+      const fiscalYears = await db.fiscalYears.toArray();
+      const current = fiscalYears.find(fy => !fy.isClosed);
+      if (!current) return null;
+      return {
+        id: current.id,
+        name: current.name,
+        libelle: current.name,
+        startDate: current.startDate,
+        endDate: current.endDate,
+        date_debut: current.startDate,
+        date_fin: current.endDate,
+        status: 'active',
+        statut: 'ouvert',
+        isCurrent: true,
+        isLocked: false,
+        duree_mois: calculateDurationInMonths(current.startDate, current.endDate),
+        remainingDays: calculateRemainingDays(current.endDate),
+        plan_comptable: 'syscohada',
+        devise: 'XAF',
+        stats: { total_ecritures: 0, montant_total: 0, resultat_net: 0 },
+      };
+    } catch {
       return null;
     }
   },
 
-  /**
-   * Crée un nouvel exercice
-   */
   createExercice: async (data: {
     libelle: string;
-    code?: string;
     date_debut: string;
     date_fin: string;
-    type: 'normal' | 'court' | 'long' | 'exceptionnel';
-    plan_comptable?: 'syscohada' | 'pcg' | 'ifrs';
+    type: string;
+    plan_comptable?: string;
     devise?: string;
-    cloture_anticipee?: boolean;
-    reouverture_auto?: boolean;
   }) => {
-    try {
-      // Générer un code si non fourni
-      const code = data.code || `EX${new Date().getFullYear()}`;
-
-      const exercice = await coreService.createExercice({
-        code,
-        libelle: data.libelle,
-        date_debut: data.date_debut,
-        date_fin: data.date_fin,
-        type: data.type,
-        plan_comptable: data.plan_comptable || 'syscohada',
-        devise: data.devise || 'XAF',
-        cloture_anticipee: data.cloture_anticipee || false,
-        reouverture_auto: data.reouverture_auto || false,
-      });
-
-      return {
-        success: true,
-        data: mapToFrontend(exercice)
-      };
-    } catch (error: unknown) {
-      console.error('Erreur lors de la création de l\'exercice:', error);
-      throw new Error(error instanceof Error ? error.message : 'Erreur lors de la création de l\'exercice');
-    }
+    const id = crypto.randomUUID();
+    await db.fiscalYears.add({
+      id,
+      code: `EX${new Date(data.date_debut).getFullYear()}`,
+      name: data.libelle,
+      startDate: data.date_debut,
+      endDate: data.date_fin,
+      isClosed: false,
+      createdAt: new Date().toISOString(),
+    });
+    return { success: true, data: { id, libelle: data.libelle } };
   },
 
-  /**
-   * Clôture un exercice
-   */
   closeExercice: async (id: string) => {
-    try {
-      await coreService.clotureExercice(id);
-      return { success: true };
-    } catch (error) {
-      console.error(`Erreur lors de la clôture de l'exercice ${id}:`, error);
-      throw error;
-    }
+    await db.fiscalYears.update(id, { isClosed: true });
+    return { success: true };
   },
 
-  /**
-   * Réouvre un exercice (via update)
-   */
   reopenExercice: async (id: string) => {
-    try {
-      // Cette fonctionnalité nécessite une méthode backend spécifique
-      // Pour l'instant, on utilise l'update
-      await coreService.updateExercice(id, {
-        // Le statut sera géré par le backend
-      });
-      return { success: true };
-    } catch (error) {
-      console.error(`Erreur lors de la réouverture de l'exercice ${id}:`, error);
-      throw error;
-    }
+    await db.fiscalYears.update(id, { isClosed: false });
+    return { success: true };
   },
 
-  /**
-   * Supprime un exercice
-   */
   deleteExercice: async (id: string) => {
-    try {
-      await coreService.deleteExercice(id);
-      return { success: true };
-    } catch (error) {
-      console.error(`Erreur lors de la suppression de l'exercice ${id}:`, error);
-      throw error;
-    }
+    await db.fiscalYears.delete(id);
+    return { success: true };
   },
 };

@@ -4,6 +4,7 @@
  * Respecte exactement le cahier des charges fourni sections A-G
  */
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -206,7 +207,7 @@ const ClotureComptableIntegree: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        alert(`Provision validée - Écriture ${data.ecriture.numero} créée`);
+        toast.success(`Provision validée - Écriture ${data.ecriture.numero} créée`);
       } else {
         setError('Erreur lors de la validation de la provision');
       }

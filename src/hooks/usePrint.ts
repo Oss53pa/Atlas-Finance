@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 
 export interface PrintOptions {
   title?: string;
+  fileName?: string;
   orientation?: 'portrait' | 'landscape' | 'auto';
   pageSize?: 'A4' | 'A3';
   margins?: {
