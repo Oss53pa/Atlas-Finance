@@ -12,7 +12,7 @@ import { MessageList } from './components/MessageList';
 import { MessageInput } from './components/MessageInput';
 import { QuickReplies } from './components/QuickReplies';
 import { PalomaAvatar } from './components/PalomaAvatar';
-import { Move, Minimize2, Maximize2 } from 'lucide-react';
+import { Move, Minimize2, Maximize2, MessageCircle } from 'lucide-react';
 import './ChatWidget.css';
 
 interface ChatWidgetProps {
@@ -92,10 +92,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           transition: isDragging ? 'none' : 'all 0.3s ease',
         }}
       >
-        <PalomaAvatar size="lg" showName={true} />
-        <span className="chat-widget-toggle__name proph3t-font">
-          Proph3t
-        </span>
+        <MessageCircle size={24} strokeWidth={2} />
+        <span className="chat-widget-toggle__status" />
       </button>
     );
   }

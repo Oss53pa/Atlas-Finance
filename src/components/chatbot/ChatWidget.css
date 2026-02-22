@@ -25,61 +25,79 @@
   --chat-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Toggle Button - Bouton flottant amélioré */
+/* Toggle Button - Bouton flottant minimaliste */
 .chat-widget-toggle {
-  width: 85px;
-  height: 85px;
+  width: 56px;
+  height: 56px;
   background: linear-gradient(135deg, #6A8A82, #4A6A62);
   color: white;
-  border: 3px solid white;
+  border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(106, 138, 130, 0.4), 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: var(--chat-transition);
   z-index: 1000;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: visible;
   position: relative;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .chat-widget-toggle:hover {
-  transform: scale(1.08);
-  box-shadow: 0 15px 40px rgba(106, 138, 130, 0.5), 0 8px 20px rgba(0, 0, 0, 0.25);
-  background: linear-gradient(135deg, #4A6A62, #6A8A82);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .chat-widget-toggle:active {
-  transform: scale(1.02);
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.chat-widget-toggle__name {
+/* Status indicator (petit point vert "en ligne") */
+.chat-widget-toggle__status {
   position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #B87333, #D4A574);
-  color: white;
-  font-size: 16px;
-  font-weight: 400;
-  padding: 4px 14px;
-  border-radius: 20px;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: #22C55E;
   border: 2px solid white;
-  white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  letter-spacing: 1px;
-  animation: namePulse 3s infinite ease-in-out;
+  border-radius: 50%;
 }
 
-@keyframes namePulse {
-  0%, 100% {
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    transform: translateX(-50%) scale(1.05);
-  }
+/* Tooltip au hover */
+.chat-widget-toggle::before {
+  content: "Proph3t — Assistante IA";
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1A202C;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.chat-widget-toggle:hover::before {
+  opacity: 1;
 }
 
 /* Styles pour l'avatar Paloma */
@@ -904,8 +922,8 @@
   animation: palomaThinking 1.5s infinite ease-in-out;
 }
 
-/* Hover effect sur Paloma */
-.chat-widget-toggle:hover .paloma-avatar {
+/* Hover effect sur Paloma dans le header */
+.chat-widget__header:hover .paloma-avatar {
   animation: palomaWave 0.6s ease-in-out;
 }
 
@@ -933,6 +951,12 @@
   .chat-widget-toggle {
     bottom: 16px;
     right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .chat-widget-toggle::before {
+    display: none;
   }
 }
 
@@ -963,11 +987,16 @@
     background: var(--chat-surface);
     color: var(--chat-text);
   }
+
+  .chat-widget-toggle__status {
+    border-color: #2D3748;
+  }
 }
 
 /* Animations d'accessibilité */
 @media (prefers-reduced-motion: reduce) {
   .chat-widget,
+  .chat-widget-toggle,
   .message-bubble,
   .typing-indicator,
   .message-list__typing,
