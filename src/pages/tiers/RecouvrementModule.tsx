@@ -5142,7 +5142,7 @@ Service Contentieux
                 type: 'Assignation',
                 titre: 'Assignation avocat',
                 description: `Dossier assigné à ${selectedContentieuxDetail.avocat}`,
-                utilisateur: 'Jean Martin',
+                utilisateur: '',
                 statut: 'success'
               },
               {
@@ -5206,7 +5206,7 @@ Service Contentieux
           dateCreation: '2024-01-15',
           statut: 'final',
           taille: '2.3 MB',
-          auteur: 'Me Martin DUBOIS',
+          auteur: 'Me —',
           description: 'Assignation devant le Tribunal de Commerce'
         },
         {
@@ -5246,7 +5246,7 @@ Service Contentieux
           dateCreation: '2024-02-01',
           statut: 'brouillon',
           taille: '4.7 MB',
-          auteur: 'Me Martin DUBOIS',
+          auteur: 'Me —',
           description: 'Conclusions en cours de finalisation'
         },
         {
@@ -5256,7 +5256,7 @@ Service Contentieux
           dateCreation: '2024-01-28',
           statut: 'final',
           taille: '145 KB',
-          auteur: 'Me Martin DUBOIS',
+          auteur: 'Me —',
           description: 'Stratégie de défense et points de droit'
         },
         {
@@ -5520,7 +5520,7 @@ Service Contentieux
         {
           id: 1,
           type: 'avocat',
-          description: 'Honoraires Me Martin DUBOIS - Phase instruction',
+          description: 'Honoraires Me — - Phase instruction',
           montant: 450000,
           dateEngagement: '2024-01-15',
           dateFacturation: '2024-01-30',
@@ -5894,7 +5894,7 @@ Service Contentieux
         {
           id: 1,
           type: 'avocat',
-          correspondant: 'Me Martin DUBOIS',
+          correspondant: 'Me —',
           sujet: 'Point sur l\'avancement de la procédure',
           dateEnvoi: '2024-02-15 14:30',
           statut: 'lu',
@@ -5930,7 +5930,7 @@ Service Contentieux
         {
           id: 4,
           type: 'avocat',
-          correspondant: 'Me Martin DUBOIS',
+          correspondant: 'Me —',
           sujet: 'Stratégie procédurale',
           dateEnvoi: '2024-02-05 11:20',
           statut: 'envoye',
@@ -6122,7 +6122,7 @@ Service Contentieux
                       <label className="block text-sm font-medium text-gray-700 mb-2">Destinataire</label>
                       <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                         <option>Choisir un correspondant...</option>
-                        <option>Me Martin DUBOIS (Avocat)</option>
+                        <option>Me — (Avocat)</option>
                         <option>SCP Huissiers ALPHA</option>
                         <option>SARL TECH SOLUTIONS (Débiteur)</option>
                         <option>Cabinet EXPERTISE+</option>
@@ -11771,7 +11771,7 @@ Service Contentieux
                               montantPenalite: 300,
                               statut: 'Envoyée facturation',
                               dateValidation: '2024-03-02',
-                              validateur: 'Jean Martin'
+                              validateur: ''
                             }
                           ].map((penalite, index) => (
                             <tr key={index} className="hover:bg-gray-50">
@@ -12410,7 +12410,7 @@ Service Contentieux
                             type: 'Relance',
                             action: 'Email de relance envoyé',
                             description: 'Envoi d\'une relance amiable par email concernant la facture FAC001 en retard de 45 jours',
-                            user: 'Jean Martin',
+                            user: '',
                             statut: 'Envoyé',
                             icon: Mail,
                             iconColor: 'text-blue-500',
@@ -12423,7 +12423,7 @@ Service Contentieux
                             type: 'Appel',
                             action: 'Appel téléphonique client',
                             description: 'Contact téléphonique avec le client pour négocier un plan de remboursement. Client réceptif.',
-                            user: 'Sophie Bernard',
+                            user: '',
                             statut: 'Terminé',
                             icon: Phone,
                             iconColor: 'text-green-500',
@@ -12449,7 +12449,7 @@ Service Contentieux
                             type: 'Plan',
                             action: 'Plan de remboursement créé',
                             description: 'Création du plan PLN-2024-001 : 14,700 FCFA sur 6 mois, mensualité de 2,450 FCFA',
-                            user: 'Jean Martin',
+                            user: '',
                             statut: 'Actif',
                             icon: Calendar,
                             iconColor: 'text-purple-500',
@@ -12462,7 +12462,7 @@ Service Contentieux
                             type: 'Courrier',
                             action: 'Mise en demeure envoyée',
                             description: 'Envoi d\'une mise en demeure par courrier recommandé avec AR pour factures impayées',
-                            user: 'Sophie Bernard',
+                            user: '',
                             statut: 'Accusé reçu',
                             icon: FileText,
                             iconColor: 'text-red-500',
@@ -12501,7 +12501,7 @@ Service Contentieux
                             type: 'Ouverture',
                             action: 'Dossier de recouvrement ouvert',
                             description: 'Ouverture du dossier REC-2024-001 pour un montant total de 16,000 FCFA',
-                            user: 'Jean Martin',
+                            user: '',
                             statut: 'Ouvert',
                             icon: FileText,
                             iconColor: 'text-blue-500',
@@ -12776,7 +12776,7 @@ Service Contentieux
                               type: 'Contrat',
                               taille: '1.2 MB',
                               dateAjout: '2024-03-15',
-                              ajoutePar: 'Jean Martin',
+                              ajoutePar: '',
                               description: 'Contrat de location signé - CTR-2024-001',
                               extension: 'pdf'
                             },
@@ -12785,7 +12785,7 @@ Service Contentieux
                               type: 'Correspondance',
                               taille: '45 KB',
                               dateAjout: '2024-03-15',
-                              ajoutePar: 'Sophie Bernard',
+                              ajoutePar: '',
                               description: 'Email de relance envoyé au client',
                               extension: 'eml'
                             },
@@ -12794,7 +12794,7 @@ Service Contentieux
                               type: 'Juridique',
                               taille: '890 KB',
                               dateAjout: '2024-02-28',
-                              ajoutePar: 'Jean Martin',
+                              ajoutePar: '',
                               description: 'Mise en demeure envoyée par courrier recommandé',
                               extension: 'pdf'
                             },
@@ -12812,7 +12812,7 @@ Service Contentieux
                               type: 'Plan',
                               taille: '156 KB',
                               dateAjout: '2024-03-01',
-                              ajoutePar: 'Jean Martin',
+                              ajoutePar: '',
                               description: 'Échéancier détaillé du plan PLN-2024-001',
                               extension: 'xlsx'
                             }
@@ -12906,14 +12906,14 @@ Service Contentieux
                         {
                           action: 'Document téléchargé',
                           document: 'Facture_FAC001.pdf',
-                          user: 'Jean Martin',
+                          user: '',
                           date: '2024-03-18 10:15',
                           description: 'Document téléchargé pour vérification'
                         },
                         {
                           action: 'Document modifié',
                           document: 'Plan_remboursement_PLN001.xlsx',
-                          user: 'Sophie Bernard',
+                          user: '',
                           date: '2024-03-02 16:45',
                           description: 'Échéancier mis à jour avec nouveaux montants'
                         }
@@ -13286,8 +13286,8 @@ Service Contentieux
                 </label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                   <option value="marie_dupont">—</option>
-                  <option value="jean_martin">Jean Martin</option>
-                  <option value="sophie_bernard">Sophie Bernard</option>
+                  <option value="jean_martin">—</option>
+                  <option value="sophie_bernard">—</option>
                 </select>
               </div>
 
@@ -15154,9 +15154,9 @@ L'équipe recouvrement`}
                   <option value="">Sélectionner un responsable...</option>
                   <option value="">—</option>
                   <option value="">—</option>
-                  <option value="Pierre Bernard">Pierre Bernard</option>
-                  <option value="Sophie Dubois">Sophie Dubois</option>
-                  <option value="Luc Moreau">Luc Moreau</option>
+                  <option value="">—</option>
+                  <option value="">—</option>
+                  <option value="">—</option>
                 </select>
               </div>
 

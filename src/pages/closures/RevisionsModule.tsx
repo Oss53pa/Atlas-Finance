@@ -253,7 +253,7 @@ const RevisionsModule: React.FC = () => {
       description: 'Écart de rapprochement fournisseur non justifié - Facture n°FA-2025-0145 du fournisseur SODECI non comptabilisée',
       dateDetection: '2025-01-15',
       dateEcheance: '2025-01-25',
-      responsable: 'Kouamé Marie',
+      responsable: '',
       reviseur: 'Diallo Amadou',
       assertions: ['exhaustivite', 'exactitude', 'cut_off'],
       niveauRisque: 'eleve',
@@ -261,7 +261,7 @@ const RevisionsModule: React.FC = () => {
       referentiel: 'SYSCOHADA',
       pieceJustificative: 'Relevé fournisseur + Facture FA-2025-0145',
       commentaires: [
-        { id: '1', auteur: 'Kouamé Marie', date: '2025-01-15', contenu: 'Facture en attente de réception du service achats', type: 'note' },
+        { id: '1', auteur: '', date: '2025-01-15', contenu: 'Facture en attente de réception du service achats', type: 'note' },
         { id: '2', auteur: 'Diallo Amadou', date: '2025-01-16', contenu: 'Confirmer avec le fournisseur le montant exact', type: 'question' }
       ],
       documents: [
@@ -384,7 +384,7 @@ const RevisionsModule: React.FC = () => {
       impact: 'Dotations aux amortissements',
       description: 'Correction calcul amortissement dégressif - Matériel informatique acquis en N-1',
       dateDetection: '2025-01-05',
-      responsable: 'Kouamé Marie',
+      responsable: '',
       assertions: ['valorisation', 'exactitude'],
       niveauRisque: 'faible',
       typeTest: 'recalcul',
@@ -447,7 +447,7 @@ const RevisionsModule: React.FC = () => {
         { code: 'valorisation', libelle: 'Valorisation', description: 'Conversion devises correcte', risque: 'modere', testEffectue: true, conclusion: 'Cours de clôture vérifié' }
       ],
       statutRevue: 'termine',
-      preparePar: 'Kouamé Marie',
+      preparePar: '',
       revisePar: 'Diallo Amadou',
       datePreparation: '2025-01-15',
       dateRevision: '2025-01-18',
@@ -514,7 +514,7 @@ const RevisionsModule: React.FC = () => {
         { code: 'valorisation', libelle: 'Valorisation', description: 'Montants corrects', risque: 'faible', testEffectue: true, conclusion: 'RAS' }
       ],
       statutRevue: 'en_cours',
-      preparePar: 'Kouamé Marie',
+      preparePar: '',
       datePreparation: '2025-01-15'
     }
   ]);

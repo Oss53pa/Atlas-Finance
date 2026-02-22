@@ -179,7 +179,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     journal: getJournalByType('purchase'),
     reference: '',
     description: '',
-    preparePar: 'Jean Dupont (Comptable)',
+    preparePar: '',
     approuvePar: ''
   });
 
@@ -333,7 +333,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       journal: getJournalByType('purchase'),
       reference: '',
       description: '',
-      preparePar: 'Jean Dupont (Comptable)',
+      preparePar: '',
       approuvePar: ''
     });
     setLignesEcriture([
@@ -1089,8 +1089,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-1">Approuvé par</label>
                       <SearchableDropdown
                         options={[
-                          { value: 'manager', label: 'Marie Martin (Manager)' },
-                          { value: 'directeur', label: 'Pierre Durand (Directeur)' }
+                          { value: 'manager', label: 'Manager' },
+                          { value: 'directeur', label: 'Directeur' }
                         ]}
                         value={details.approuvePar}
                         onChange={(value) => setDetails({...details, approuvePar: value})}

@@ -191,7 +191,7 @@ const CollaborationModule: React.FC = () => {
     {
       id: '4',
       text: 'N\'oubliez pas la deadline pour la clôture mensuelle: vendredi 17h!',
-      sender: 'Sophie Leblanc',
+      sender: '',
       senderId: 'user4',
       timestamp: new Date(Date.now() - 900000),
       isRead: false
@@ -222,14 +222,14 @@ const CollaborationModule: React.FC = () => {
     },
     {
       id: 'user4',
-      name: 'Sophie Leblanc',
+      name: '',
       status: 'away',
       role: 'Assistante Comptable',
       department: 'Comptabilité'
     },
     {
       id: 'user5',
-      name: 'Alex Chen',
+      name: '',
       status: 'offline',
       role: 'Développeur',
       department: 'IT'

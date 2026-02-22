@@ -155,7 +155,7 @@ const ContactsModule: React.FC = () => {
     topInteracteurs: [
       { nom: 'Jean MAMBOU', entreprise: 'CONGO BUSINESS', interactions: 25, derniere: '2024-09-18' },
       { nom: 'Sophie NDONG', entreprise: 'AFRICAINE TECH', interactions: 18, derniere: '2024-09-17' },
-      { nom: 'Martin NKOMO', entreprise: 'CEMAC SUPPLIES', interactions: 15, derniere: '2024-09-16' },
+      { nom: '', entreprise: 'CEMAC SUPPLIES', interactions: 15, derniere: '2024-09-16' },
       { nom: 'Christine OBIANG', entreprise: 'AFRICA MATERIALS', interactions: 12, derniere: '2024-09-15' }
     ],
     repartitionFonctions: [
@@ -1417,9 +1417,9 @@ const ContactsModule: React.FC = () => {
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
                       <option value="">Sélectionner</option>
-                      <option value="Marie Kouam">Marie Kouam</option>
                       <option value="">—</option>
-                      <option value="Sophie Martin">Sophie Martin</option>
+                      <option value="">—</option>
+                      <option value="">—</option>
                     </select>
                   </div>
                 </div>

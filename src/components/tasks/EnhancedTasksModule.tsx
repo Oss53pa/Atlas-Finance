@@ -272,7 +272,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
           date: new Date('2024-03-01'),
           oldValue: null,
           newValue: '',
-          details: 'Tâche assignée à Jean Dupont'
+          details: 'Tâche assignée'
         }
       ]
     },
@@ -349,7 +349,7 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
       description: 'Compiler et analyser les données financières du trimestre',
       status: 'in-progress',
       priority: 'medium',
-      assignee: 'Sophie Leblanc',
+      assignee: '',
       assigneeId: 'user4',
       assigneeTeam: 'Finance',
       dueDate: new Date('2024-03-25'),
@@ -392,8 +392,8 @@ const EnhancedTasksModule: React.FC<EnhancedTasksModuleProps> = ({
     { id: 'user1', name: '', role: 'Comptable', team: 'Comptabilité' },
     { id: 'user2', name: '', role: 'Manager', team: 'Finance' },
     { id: 'user3', name: '', role: 'Acheteur', team: 'Achats' },
-    { id: 'user4', name: 'Sophie Leblanc', role: 'Analyste', team: 'Finance' },
-    { id: 'user5', name: 'Alex Chen', role: 'Développeur', team: 'IT' }
+    { id: 'user4', name: '', role: 'Analyste', team: 'Finance' },
+    { id: 'user5', name: '', role: 'Développeur', team: 'IT' }
   ];
 
   // Filtrer les tâches selon le rôle

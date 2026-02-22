@@ -16,7 +16,7 @@ const CollaborativeAnnotations: React.FC<CollaborativeAnnotationsProps> = ({ ent
   const [annotations] = useState([
     {
       id: '1',
-      user: 'Marie Dubois',
+      user: '',
       text: 'Vérifier ce virement avec le service trésorerie',
       date: '2024-01-20T10:30:00Z'
     }

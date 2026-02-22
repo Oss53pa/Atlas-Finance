@@ -39,6 +39,7 @@ export type TableName =
   | 'inventoryItems'
   | 'aliasTiers'
   | 'aliasPrefixConfig'
+  | 'fiscalPeriods'
 
 export interface QueryFilters {
   where?: Record<string, any>

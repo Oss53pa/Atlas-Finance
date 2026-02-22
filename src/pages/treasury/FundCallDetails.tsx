@@ -1455,7 +1455,7 @@ const FundCallDetails: React.FC = () => {
                             <option>Sélectionner</option>
                             <option>—</option>
                             <option>—</option>
-                            <option>Paul Durand</option>
+                            <option>—</option>
                           </select>
                         </td>
                         <td className="px-4 py-3 text-sm text-[#404040]">-</td>

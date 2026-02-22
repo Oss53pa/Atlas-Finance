@@ -1380,7 +1380,7 @@ const ClientDetailView: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-[#171717]">Contrat de Maintenance 2024.pdf</h4>
-                    <p className="text-sm text-[#525252]">Ajouté le 15/09/2024 par Marie Kouam</p>
+                    <p className="text-sm text-[#525252]">Ajouté le 15/09/2024 par —</p>
                     <p className="text-xs text-[#525252]">Taille: 2.4 MB</p>
                   </div>
                   <div className="flex space-x-2">
@@ -1478,7 +1478,7 @@ const ClientDetailView: React.FC = () => {
                         <User className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm">Marie Kouam</p>
+                        <p className="font-medium text-sm">—</p>
                         <p className="text-xs text-[#525252]">Commercial</p>
                       </div>
                     </div>
@@ -1682,7 +1682,7 @@ const ClientDetailView: React.FC = () => {
                           planification de la prochaine commande trimestre Q4
                         </p>
                         <div className="flex items-center space-x-4 mt-2 text-xs text-[#525252]">
-                          <span>Par: Marie Kouam</span>
+                          <span>Par: —</span>
                           <span>•</span>
                           <span>15/09/2024 à 10:15</span>
                           <span>•</span>
@@ -1842,7 +1842,7 @@ const ClientDetailView: React.FC = () => {
                           Validation workflow approuvée par Jean MAMBOU
                         </p>
                         <div className="flex items-center space-x-4 mt-2 text-xs text-[#525252]">
-                          <span>Par: Marie Kouam</span>
+                          <span>Par: —</span>
                           <span>•</span>
                           <span>01/09/2024 à 16:30</span>
                           <span>•</span>
@@ -1885,7 +1885,7 @@ const ClientDetailView: React.FC = () => {
                   Client très satisfait de nos services. Intéressé par l'extension ERP complète
                   pour Q1 2025. À recontacter début décembre pour présentation détaillée.
                 </p>
-                <p className="text-xs text-yellow-600 mt-2">Par: Marie Kouam</p>
+                <p className="text-xs text-yellow-600 mt-2">Par: —</p>
               </div>
 
               <div className="p-4 bg-blue-50 border-l-4 border-blue-400 rounded">

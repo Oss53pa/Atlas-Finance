@@ -41,6 +41,10 @@ export interface ClotureContext {
   userId: string;
   /** ID de l'exercice d'ouverture (N+1) — requis pour reports */
   openingExerciceId?: string;
+  /** ID de la période fiscale (clôture mensuelle) */
+  periodId?: string;
+  /** Code de la période, e.g. "2025-01" */
+  periodCode?: string;
   onProgress?: (step: ClotureStep) => void;
   onError?: (step: ClotureStep, error: Error) => void;
 }
@@ -69,6 +73,16 @@ const STEPS_DEF: Omit<ClotureStep, 'status'>[] = [
 
 /** Steps that block the entire workflow if they fail */
 const BLOCKING_STEPS = new Set(['CONTROLES', 'VERROUILLAGE', 'CALCUL_RESULTAT']);
+
+const MONTHLY_STEPS_DEF: Omit<ClotureStep, 'status'>[] = [
+  { id: 'M_VERIFICATION',    label: 'Vérification des pré-requis' },
+  { id: 'M_REGULARISATIONS', label: 'Régularisations (CCA/FNP/FAE/PCA)' },
+  { id: 'M_EXTOURNES',       label: 'Extournes automatiques' },
+  { id: 'M_CONTROLES',       label: 'Contrôles de cohérence (9/17)' },
+  { id: 'M_VERROUILLAGE',    label: 'Verrouillage de la période' },
+];
+
+const MONTHLY_BLOCKING_STEPS = new Set(['M_VERIFICATION', 'M_CONTROLES', 'M_VERROUILLAGE']);
 
 // ============================================================================
 // ORCHESTRATOR
@@ -268,8 +282,128 @@ export const closureOrchestrator = {
     }
   },
 
+  // ===========================================================================
+  // MONTHLY CLOSURE
+  // ===========================================================================
+
+  /** Return a fresh set of monthly steps */
+  getMonthlySteps(): ClotureStep[] {
+    return MONTHLY_STEPS_DEF.map(s => ({ ...s, status: 'pending' as const }));
+  },
+
+  /** Execute monthly closure workflow */
+  async executeMonthly(ctx: ClotureContext): Promise<ClotureStep[]> {
+    const results: ClotureStep[] = this.getMonthlySteps();
+
+    for (const step of results) {
+      step.status = 'running';
+      step.timestamp = new Date().toISOString();
+      ctx.onProgress?.(step);
+
+      try {
+        const message = await this._executeMonthlyStep(step.id, ctx);
+        step.status = 'done';
+        step.message = message || 'OK';
+      } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        step.status = 'error';
+        step.message = err.message;
+        ctx.onError?.(step, err);
+
+        if (MONTHLY_BLOCKING_STEPS.has(step.id)) break;
+      }
+      ctx.onProgress?.(step);
+    }
+
+    await this._logAudit(ctx, results);
+    return results;
+  },
+
+  /** Reopen a locked period */
+  async reopenPeriod(adapter: DataAdapter, periodId: string, userId: string): Promise<void> {
+    await adapter.update('fiscalPeriods', periodId, {
+      status: 'rouverte',
+      reopenedAt: new Date().toISOString(),
+      reopenedBy: userId,
+    });
+    await adapter.logAudit({
+      action: 'PERIOD_REOPENED',
+      entityType: 'fiscalPeriod',
+      entityId: periodId,
+      details: JSON.stringify({ userId }),
+      timestamp: new Date().toISOString(),
+      previousHash: '',
+    });
+  },
+
+  async _executeMonthlyStep(stepId: string, ctx: ClotureContext): Promise<string> {
+    const fy = await ctx.adapter.getById<DBFiscalYear>('fiscalYears', ctx.exerciceId);
+    if (!fy) throw new Error(`Exercice ${ctx.exerciceId} introuvable`);
+
+    switch (stepId) {
+      case 'M_VERIFICATION': {
+        // Check no draft entries in the period
+        const allEntries = await ctx.adapter.getAll<any>('journalEntries');
+        const periodEntries = allEntries.filter((e: any) => {
+          if (!ctx.periodCode) return e.date >= fy.startDate && e.date <= fy.endDate;
+          return e.date.startsWith(ctx.periodCode);
+        });
+        const drafts = periodEntries.filter((e: any) => e.status === 'draft');
+        if (drafts.length > 0) {
+          throw new Error(`${drafts.length} écriture(s) en brouillon dans la période`);
+        }
+        return `${periodEntries.length} écritures vérifiées, aucun brouillon`;
+      }
+
+      case 'M_REGULARISATIONS': {
+        // Preview — actual regularisations are done via RegularisationsTab
+        return 'Régularisations à saisir manuellement via l\'onglet dédié';
+      }
+
+      case 'M_EXTOURNES': {
+        const result = await genererExtournes(ctx.adapter, {
+          exerciceClotureId: ctx.exerciceId,
+          dateExtourne: fy.startDate,
+        });
+        return result.count
+          ? `${result.count} extourne(s) générée(s)`
+          : 'Aucune extourne nécessaire';
+      }
+
+      case 'M_CONTROLES': {
+        const check = await canClose(ctx.adapter, ctx.exerciceId);
+        if (!check.canClose) {
+          throw new Error(`Pré-requis non satisfaits : ${check.reasons.join(', ')}`);
+        }
+        return 'Contrôles de cohérence passés avec succès';
+      }
+
+      case 'M_VERROUILLAGE': {
+        if (!ctx.periodId) throw new Error('Aucune période sélectionnée');
+        await ctx.adapter.update('fiscalPeriods', ctx.periodId, {
+          status: 'cloturee',
+          closedAt: new Date().toISOString(),
+          closedBy: ctx.userId,
+          progression: 100,
+        });
+        await ctx.adapter.logAudit({
+          action: 'PERIOD_LOCKED',
+          entityType: 'fiscalPeriod',
+          entityId: ctx.periodId,
+          details: JSON.stringify({ periodCode: ctx.periodCode, userId: ctx.userId }),
+          timestamp: new Date().toISOString(),
+          previousHash: '',
+        });
+        return `Période ${ctx.periodCode || ctx.periodId} verrouillée`;
+      }
+
+      default:
+        throw new Error(`Étape mensuelle inconnue: ${stepId}`);
+    }
+  },
+
   _isBlocking(stepId: string): boolean {
-    return BLOCKING_STEPS.has(stepId);
+    return BLOCKING_STEPS.has(stepId) || MONTHLY_BLOCKING_STEPS.has(stepId);
   },
 
   async _logAudit(ctx: ClotureContext, steps: ClotureStep[]): Promise<void> {
