@@ -1,15 +1,22 @@
+/**
+ * CloturesPeriodiquesPage — Module clôture comptable unifié.
+ * Mode Mensuelle (6 onglets, réversible) + Mode Annuelle (7 onglets, irréversible).
+ * Source de vérité: Dexie via DataAdapter.
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { getClosureSessions } from '../../services/closureService';
 import { closureOrchestrator } from '../../services/cloture/closureOrchestrator';
 import type { ClotureStep, ClotureContext } from '../../services/cloture/closureOrchestrator';
-import { useControlesCoherence } from './hooks/useControlesCoherence';
-import type { ControleStatut } from './hooks/useControlesCoherence';
-import type { DBFiscalYear, DBClosureSession } from '../../lib/db';
+import { useControlesCoherence, MONTHLY_CONTROL_IDS, ANNUAL_BLOCKING_IDS } from './hooks/useControlesCoherence';
+import type { ControleStatut, ControleResult } from './hooks/useControlesCoherence';
+import { useFiscalPeriods } from './hooks/useFiscalPeriods';
+import type { DBFiscalYear, DBClosureSession, DBFiscalPeriod } from '../../lib/db';
 import { formatCurrency } from '../../utils/formatters';
 import toast from 'react-hot-toast';
 import {
   Lock,
+  Unlock,
   Calendar,
   CheckCircle,
   AlertTriangle,
@@ -21,13 +28,34 @@ import {
   XCircle,
   ChevronRight,
   Info,
+  BarChart3,
+  Settings,
+  BookOpen,
+  ClipboardCheck,
+  ArrowRight,
 } from 'lucide-react';
+
+// Sections
+import ControlePeriodes from './sections/ControlePeriodes';
+import Immobilisations from './sections/Immobilisations';
+import RapprochementBancaire from './sections/RapprochementBancaire';
+import EtatsSYSCOHADA from './sections/EtatsSYSCOHADA';
+import ValidationFinale from './sections/ValidationFinale';
+
+// New components
+import RegularisationsTab from './components/RegularisationsTab';
+import AffectationTab from './components/AffectationTab';
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-type TabId = 'dashboard' | 'controles' | 'execution';
+type ClotureMode = 'mensuelle' | 'annuelle';
+
+type MonthlyTabId = 'dashboard' | 'verification' | 'regularisations' | 'controles' | 'verrouillage' | 'etats';
+type AnnualTabId = 'dashboard' | 'travaux' | 'inventaire' | 'controles' | 'etats' | 'validation' | 'affectation';
+
+type TabId = MonthlyTabId | AnnualTabId;
 
 interface FYStats {
   totalEntries: number;
@@ -42,11 +70,11 @@ interface FYStats {
 // ============================================================================
 
 const STATUT_BADGE: Record<ControleStatut, { bg: string; text: string; label: string }> = {
-  conforme:        { bg: 'bg-green-100', text: 'text-green-800', label: 'Conforme' },
-  non_conforme:    { bg: 'bg-red-100',   text: 'text-red-800',   label: 'Non conforme' },
-  attention:       { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Attention' },
-  non_applicable:  { bg: 'bg-gray-100',  text: 'text-gray-500',  label: 'N/A' },
-  en_attente:      { bg: 'bg-gray-100',  text: 'text-gray-500',  label: 'En attente' },
+  conforme:       { bg: 'bg-green-100', text: 'text-green-800', label: 'Conforme' },
+  non_conforme:   { bg: 'bg-red-100',   text: 'text-red-800',   label: 'Non conforme' },
+  attention:      { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Attention' },
+  non_applicable: { bg: 'bg-gray-100',  text: 'text-gray-500',  label: 'N/A' },
+  en_attente:     { bg: 'bg-gray-100',  text: 'text-gray-500',  label: 'En attente' },
 };
 
 const STEP_ICON: Record<string, React.ReactNode> = {
@@ -57,29 +85,56 @@ const STEP_ICON: Record<string, React.ReactNode> = {
   skipped:  <Info className="w-4 h-4 text-gray-400" />,
 };
 
+const MONTHLY_TABS: { id: MonthlyTabId; label: string; icon: React.ReactNode }[] = [
+  { id: 'dashboard',        label: 'Tableau de bord',   icon: <BarChart3 className="w-4 h-4" /> },
+  { id: 'verification',     label: 'Vérification',      icon: <ClipboardCheck className="w-4 h-4" /> },
+  { id: 'regularisations',  label: 'Régularisations',   icon: <BookOpen className="w-4 h-4" /> },
+  { id: 'controles',        label: 'Contrôles',         icon: <Shield className="w-4 h-4" /> },
+  { id: 'verrouillage',     label: 'Verrouillage',      icon: <Lock className="w-4 h-4" /> },
+  { id: 'etats',            label: 'États de gestion',  icon: <FileText className="w-4 h-4" /> },
+];
+
+const ANNUAL_TABS: { id: AnnualTabId; label: string; icon: React.ReactNode }[] = [
+  { id: 'dashboard',   label: 'Tableau de bord',       icon: <BarChart3 className="w-4 h-4" /> },
+  { id: 'travaux',     label: 'Travaux préparatoires',  icon: <Settings className="w-4 h-4" /> },
+  { id: 'inventaire',  label: 'Écritures d\'inventaire', icon: <BookOpen className="w-4 h-4" /> },
+  { id: 'controles',   label: 'Contrôles',              icon: <Shield className="w-4 h-4" /> },
+  { id: 'etats',       label: 'États financiers',       icon: <FileText className="w-4 h-4" /> },
+  { id: 'validation',  label: 'Validation finale',      icon: <CheckCircle className="w-4 h-4" /> },
+  { id: 'affectation', label: 'Affectation & Reports',  icon: <ArrowRight className="w-4 h-4" /> },
+];
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
 function CloturesPeriodiquesPage() {
   const { adapter } = useData();
+  const [mode, setMode] = useState<ClotureMode>('mensuelle');
   const [tab, setTab] = useState<TabId>('dashboard');
 
-  // --- Dashboard state ---
+  // FY state
   const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
+  const [selectedFYId, setSelectedFYId] = useState('');
+  const [openingFYId, setOpeningFYId] = useState('');
   const [activeFY, setActiveFY] = useState<DBFiscalYear | null>(null);
   const [sessions, setSessions] = useState<DBClosureSession[]>([]);
   const [fyStats, setFyStats] = useState<FYStats | null>(null);
   const [dashLoading, setDashLoading] = useState(true);
 
-  // --- Execution state ---
-  const [selectedFYId, setSelectedFYId] = useState('');
-  const [openingFYId, setOpeningFYId] = useState('');
+  // Period state (monthly)
+  const [selectedPeriodId, setSelectedPeriodId] = useState('');
+  const { periods, refresh: refreshPeriods, createPeriodsForFY, lockPeriod, unlockPeriod } = useFiscalPeriods(selectedFYId);
+
+  // Execution state
   const [steps, setSteps] = useState<ClotureStep[]>([]);
   const [executing, setExecuting] = useState(false);
 
+  // Sub-tab for travaux préparatoires
+  const [travauxSubTab, setTravauxSubTab] = useState<'controle' | 'immobilisations' | 'rapprochement'>('controle');
+
   // =========================================================================
-  // LOAD DASHBOARD DATA
+  // LOAD DATA
   // =========================================================================
 
   const loadDashboard = useCallback(async () => {
@@ -91,14 +146,18 @@ function CloturesPeriodiquesPage() {
       const active = fys.find(fy => fy.isActive) || fys.find(fy => !fy.isClosed) || fys[0] || null;
       setActiveFY(active);
 
+      if (active && !selectedFYId) {
+        setSelectedFYId(active.id);
+      }
+
       const allSessions = await getClosureSessions(adapter);
       setSessions(allSessions);
 
-      if (active) {
-        setSelectedFYId(active.id);
+      const targetFY = selectedFYId ? fys.find(f => f.id === selectedFYId) : active;
+      if (targetFY) {
         const allEntries = await adapter.getAll<any>('journalEntries');
         const entries = allEntries.filter(
-          (e: any) => e.date >= active.startDate && e.date <= active.endDate
+          (e: any) => e.date >= targetFY.startDate && e.date <= targetFY.endDate
         );
 
         let produits = 0;
@@ -119,36 +178,83 @@ function CloturesPeriodiquesPage() {
           resultat: produits - charges,
         });
       }
-    } catch (err) {
+    } catch {
       toast.error('Erreur chargement tableau de bord');
     } finally {
       setDashLoading(false);
     }
-  }, [adapter]);
+  }, [adapter, selectedFYId]);
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
+  // Reset tab when switching modes
+  useEffect(() => { setTab('dashboard'); }, [mode]);
+
+  // Init steps for annual mode
+  useEffect(() => {
+    if (mode === 'annuelle') {
+      setSteps(closureOrchestrator.getSteps());
+    } else {
+      setSteps(closureOrchestrator.getMonthlySteps());
+    }
+  }, [mode]);
+
   // =========================================================================
-  // EXECUTION HANDLERS
+  // PERIOD MANAGEMENT
   // =========================================================================
 
-  const initSteps = () => setSteps(closureOrchestrator.getSteps());
+  const handleCreatePeriods = async () => {
+    if (!selectedFYId) return;
+    try {
+      await createPeriodsForFY(selectedFYId);
+      toast.success('Périodes mensuelles créées');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur');
+    }
+  };
 
-  useEffect(() => { initSteps(); }, []);
+  const handleLockPeriod = async () => {
+    if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
+    try {
+      await lockPeriod(selectedPeriodId, 'comptable');
+      toast.success('Période verrouillée');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur');
+    }
+  };
 
-  const buildCtx = (): ClotureContext => ({
-    adapter,
-    exerciceId: selectedFYId,
-    mode: 'manual',
-    userId: 'comptable',
-    openingExerciceId: openingFYId || undefined,
-    onProgress: (step) => {
-      setSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
-    },
-    onError: (step) => {
-      setSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
-    },
-  });
+  const handleUnlockPeriod = async () => {
+    if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
+    try {
+      await unlockPeriod(selectedPeriodId, 'comptable');
+      toast.success('Période réouverte');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur');
+    }
+  };
+
+  // =========================================================================
+  // EXECUTION (ANNUAL)
+  // =========================================================================
+
+  const buildCtx = (): ClotureContext => {
+    const period = periods.find(p => p.id === selectedPeriodId);
+    return {
+      adapter,
+      exerciceId: selectedFYId,
+      mode: 'manual',
+      userId: 'comptable',
+      openingExerciceId: openingFYId || undefined,
+      periodId: selectedPeriodId || undefined,
+      periodCode: period?.code,
+      onProgress: (step) => {
+        setSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
+      },
+      onError: (step) => {
+        setSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
+      },
+    };
+  };
 
   const handleExecuteStep = async (stepId: string) => {
     if (!selectedFYId) { toast.error('Sélectionnez un exercice'); return; }
@@ -168,9 +274,10 @@ function CloturesPeriodiquesPage() {
   const handleExecuteAll = async () => {
     if (!selectedFYId) { toast.error('Sélectionnez un exercice'); return; }
     setExecuting(true);
-    initSteps();
     try {
-      const results = await closureOrchestrator.executeAll(buildCtx());
+      const results = mode === 'annuelle'
+        ? await closureOrchestrator.executeAll(buildCtx())
+        : await closureOrchestrator.executeMonthly(buildCtx());
       setSteps(results);
       const errors = results.filter(s => s.status === 'error');
       if (errors.length === 0) {
@@ -186,27 +293,117 @@ function CloturesPeriodiquesPage() {
     }
   };
 
+  const selectedFY = fiscalYears.find(f => f.id === selectedFYId) || null;
+  const selectedPeriod = periods.find(p => p.id === selectedPeriodId) || null;
+  const tabs = mode === 'mensuelle' ? MONTHLY_TABS : ANNUAL_TABS;
+
   // =========================================================================
   // RENDER
   // =========================================================================
 
-  const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: <FileText className="w-4 h-4" /> },
-    { id: 'controles', label: 'Contrôles', icon: <Shield className="w-4 h-4" /> },
-    { id: 'execution', label: 'Exécution', icon: <Play className="w-4 h-4" /> },
-  ];
-
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Clôtures Périodiques</h1>
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Clôtures Périodiques</h1>
+        {/* Mode selector */}
+        <div className="flex bg-gray-100 rounded-lg p-0.5">
+          {(['mensuelle', 'annuelle'] as const).map(m => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                mode === m ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {m === 'mensuelle' ? 'Mensuelle' : 'Annuelle'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* FY + Period selectors */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Exercice fiscal</label>
+            <select
+              value={selectedFYId}
+              onChange={e => { setSelectedFYId(e.target.value); setSelectedPeriodId(''); }}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            >
+              <option value="">-- Sélectionner --</option>
+              {fiscalYears.map(fy => (
+                <option key={fy.id} value={fy.id}>
+                  {fy.name} ({fy.startDate} → {fy.endDate}) {fy.isClosed ? '[Clôturé]' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {mode === 'mensuelle' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
+              {periods.length > 0 ? (
+                <select
+                  value={selectedPeriodId}
+                  onChange={e => setSelectedPeriodId(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                >
+                  <option value="">-- Sélectionner --</option>
+                  {periods.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.label} [{p.status}]
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <button
+                  onClick={handleCreatePeriods}
+                  disabled={!selectedFYId}
+                  className="w-full px-3 py-2 text-sm border border-dashed border-gray-300 rounded hover:bg-gray-50 text-gray-500 disabled:opacity-50"
+                >
+                  Créer les périodes mensuelles
+                </button>
+              )}
+            </div>
+          )}
+
+          {mode === 'annuelle' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Exercice N+1 (reports)</label>
+              <select
+                value={openingFYId}
+                onChange={e => setOpeningFYId(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+              >
+                <option value="">-- Optionnel --</option>
+                {fiscalYears.filter(fy => fy.id !== selectedFYId).map(fy => (
+                  <option key={fy.id} value={fy.id}>{fy.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="flex items-end">
+            <button
+              onClick={loadDashboard}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Actualiser
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-gray-200">
-        {TABS.map(t => (
+      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
+        {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               tab === t.id
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -219,50 +416,118 @@ function CloturesPeriodiquesPage() {
       </div>
 
       {/* Tab content */}
-      {tab === 'dashboard' && (
-        <DashboardTab
-          loading={dashLoading}
-          activeFY={activeFY}
-          stats={fyStats}
-          sessions={sessions}
-          onRefresh={loadDashboard}
-        />
-      )}
-      {tab === 'controles' && <ControlesTab />}
-      {tab === 'execution' && (
-        <ExecutionTab
-          fiscalYears={fiscalYears}
-          selectedFYId={selectedFYId}
-          onSelectFY={setSelectedFYId}
-          openingFYId={openingFYId}
-          onSelectOpeningFY={setOpeningFYId}
-          steps={steps}
-          executing={executing}
-          onExecuteStep={handleExecuteStep}
-          onExecuteAll={handleExecuteAll}
-          onReset={initSteps}
-        />
-      )}
+      <div>
+        {/* ===== SHARED: Dashboard ===== */}
+        {tab === 'dashboard' && (
+          <DashboardSection
+            mode={mode}
+            loading={dashLoading}
+            activeFY={selectedFY}
+            stats={fyStats}
+            sessions={sessions}
+            periods={periods}
+            selectedPeriod={selectedPeriod}
+          />
+        )}
+
+        {/* ===== MONTHLY TABS ===== */}
+        {mode === 'mensuelle' && tab === 'verification' && <ControlePeriodes />}
+
+        {mode === 'mensuelle' && tab === 'regularisations' && selectedFY && (
+          <RegularisationsTab
+            exerciceId={selectedFYId}
+            dateClotureExercice={selectedFY.endDate}
+            periodeCode={selectedPeriod?.code}
+          />
+        )}
+
+        {mode === 'mensuelle' && tab === 'controles' && (
+          <ControlesSection controlIds={MONTHLY_CONTROL_IDS} />
+        )}
+
+        {mode === 'mensuelle' && tab === 'verrouillage' && (
+          <VerrouillageSection
+            period={selectedPeriod}
+            onLock={handleLockPeriod}
+            onUnlock={handleUnlockPeriod}
+            executing={executing}
+          />
+        )}
+
+        {mode === 'mensuelle' && tab === 'etats' && <EtatsSYSCOHADA />}
+
+        {/* ===== ANNUAL TABS ===== */}
+        {mode === 'annuelle' && tab === 'travaux' && (
+          <div className="space-y-4">
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5 w-fit">
+              {[
+                { id: 'controle' as const, label: 'Contrôle Périodes' },
+                { id: 'immobilisations' as const, label: 'Immobilisations' },
+                { id: 'rapprochement' as const, label: 'Rapprochement Bancaire' },
+              ].map(st => (
+                <button
+                  key={st.id}
+                  onClick={() => setTravauxSubTab(st.id)}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    travauxSubTab === st.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+            {travauxSubTab === 'controle' && <ControlePeriodes />}
+            {travauxSubTab === 'immobilisations' && <Immobilisations />}
+            {travauxSubTab === 'rapprochement' && <RapprochementBancaire />}
+          </div>
+        )}
+
+        {mode === 'annuelle' && tab === 'inventaire' && selectedFY && (
+          <RegularisationsTab
+            exerciceId={selectedFYId}
+            dateClotureExercice={selectedFY.endDate}
+          />
+        )}
+
+        {mode === 'annuelle' && tab === 'controles' && (
+          <ControlesSection />
+        )}
+
+        {mode === 'annuelle' && tab === 'etats' && <EtatsSYSCOHADA />}
+
+        {mode === 'annuelle' && tab === 'validation' && <ValidationFinale />}
+
+        {mode === 'annuelle' && tab === 'affectation' && (
+          <AffectationTab
+            exerciceId={selectedFYId}
+            openingExerciceId={openingFYId || undefined}
+          />
+        )}
+      </div>
     </div>
   );
 }
 
 // ============================================================================
-// TAB: DASHBOARD
+// DASHBOARD SECTION
 // ============================================================================
 
-function DashboardTab({
+function DashboardSection({
+  mode,
   loading,
   activeFY,
   stats,
   sessions,
-  onRefresh,
+  periods,
+  selectedPeriod,
 }: {
+  mode: ClotureMode;
   loading: boolean;
   activeFY: DBFiscalYear | null;
   stats: FYStats | null;
   sessions: DBClosureSession[];
-  onRefresh: () => void;
+  periods: DBFiscalPeriod[];
+  selectedPeriod: DBFiscalPeriod | null;
 }) {
   if (loading) {
     return (
@@ -273,23 +538,21 @@ function DashboardTab({
     );
   }
 
+  const closedPeriods = periods.filter(p => p.status === 'cloturee').length;
+  const totalPeriods = periods.length;
+
   return (
     <div className="space-y-6">
       {/* Active FY */}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Exercice actif
-          </h2>
-          <button onClick={onRefresh} className="p-2 text-gray-400 hover:text-gray-600 rounded">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
+          <Calendar className="w-5 h-5" />
+          {mode === 'mensuelle' ? 'Période sélectionnée' : 'Exercice'}
+        </h2>
         {activeFY ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Nom</p>
+              <p className="text-sm text-gray-500">Exercice</p>
               <p className="font-medium">{activeFY.name}</p>
             </div>
             <div>
@@ -305,25 +568,23 @@ function DashboardTab({
                 {activeFY.isClosed ? 'Clôturé' : 'Ouvert'}
               </span>
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Code</p>
-              <p className="font-medium">{activeFY.code}</p>
-            </div>
+            {mode === 'mensuelle' && selectedPeriod && (
+              <div>
+                <p className="text-sm text-gray-500">Période courante</p>
+                <p className="font-medium">{selectedPeriod.label} [{selectedPeriod.status}]</p>
+              </div>
+            )}
           </div>
         ) : (
-          <p className="text-gray-500">Aucun exercice trouvé</p>
+          <p className="text-gray-500">Aucun exercice sélectionné</p>
         )}
       </div>
 
-      {/* Key metrics from Dexie */}
+      {/* Key metrics */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard label="Écritures" value={String(stats.totalEntries)} />
-          <MetricCard
-            label="Brouillons"
-            value={String(stats.drafts)}
-            alert={stats.drafts > 0}
-          />
+          <MetricCard label="Brouillons" value={String(stats.drafts)} alert={stats.drafts > 0} />
           <MetricCard label="Produits (cl.7)" value={formatCurrency(stats.produits)} />
           <MetricCard
             label="Résultat"
@@ -333,7 +594,38 @@ function DashboardTab({
         </div>
       )}
 
-      {/* Closure sessions */}
+      {/* Monthly: period progress */}
+      {mode === 'mensuelle' && totalPeriods > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Progression des périodes</h3>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-sm text-gray-600">{closedPeriods}/{totalPeriods} périodes clôturées</span>
+            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all"
+                style={{ width: `${totalPeriods > 0 ? (closedPeriods / totalPeriods) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {periods.map(p => (
+              <span
+                key={p.id}
+                className={`px-2 py-0.5 text-xs rounded ${
+                  p.status === 'cloturee' ? 'bg-green-100 text-green-700'
+                    : p.status === 'en_cloture' ? 'bg-yellow-100 text-yellow-700'
+                    : p.status === 'rouverte' ? 'bg-orange-100 text-orange-700'
+                    : 'bg-gray-100 text-gray-500'
+                }`}
+              >
+                {p.code.slice(5)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sessions */}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Sessions de clôture</h2>
         {sessions.length === 0 ? (
@@ -392,17 +684,19 @@ function MetricCard({ label, value, subtitle, alert }: {
 }
 
 // ============================================================================
-// TAB: CONTROLES
+// CONTROLES SECTION
 // ============================================================================
 
-function ControlesTab() {
-  const { controles, loading, error, lastRun, refresh } = useControlesCoherence();
+function ControlesSection({ controlIds }: { controlIds?: string[] }) {
+  const { controles, loading, error, lastRun, refresh } = useControlesCoherence(controlIds);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">Exécution des 17 contrôles...</span>
+        <span className="ml-2 text-gray-500">
+          Exécution des {controlIds ? controlIds.length : 17} contrôles...
+        </span>
       </div>
     );
   }
@@ -420,10 +714,11 @@ function ControlesTab() {
   const nonConformes = controles.filter(c => c.statut === 'non_conforme').length;
   const attentions = controles.filter(c => c.statut === 'attention').length;
   const na = controles.filter(c => c.statut === 'non_applicable').length;
+  const blockingFailed = controles.filter(c => c.blocking && c.statut === 'non_conforme');
 
   return (
     <div className="space-y-4">
-      {/* Summary + Refresh */}
+      {/* Summary */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 text-sm">
           <span className="text-green-700 font-medium">{conformes} conformes</span>
@@ -434,7 +729,7 @@ function ControlesTab() {
         <div className="flex items-center gap-3">
           {lastRun && (
             <span className="text-xs text-gray-400">
-              Dernier lancement : {new Date(lastRun).toLocaleTimeString('fr-FR')}
+              {new Date(lastRun).toLocaleTimeString('fr-FR')}
             </span>
           )}
           <button
@@ -447,6 +742,21 @@ function ControlesTab() {
         </div>
       </div>
 
+      {/* Blocking warning */}
+      {blockingFailed.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm font-medium text-red-800 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            {blockingFailed.length} contrôle(s) bloquant(s) non conforme(s) — la validation finale est bloquée
+          </p>
+          <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
+            {blockingFailed.map(c => (
+              <li key={c.id}>{c.id}: {c.nom} — {c.messageResultat}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Controls table */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table className="w-full text-sm">
@@ -455,6 +765,7 @@ function ControlesTab() {
               <th className="px-4 py-2 w-16">ID</th>
               <th className="px-4 py-2">Contrôle</th>
               <th className="px-4 py-2 w-28">Statut</th>
+              <th className="px-4 py-2 w-20">Bloquant</th>
               <th className="px-4 py-2">Résultat</th>
             </tr>
           </thead>
@@ -473,6 +784,13 @@ function ControlesTab() {
                       {badge.label}
                     </span>
                   </td>
+                  <td className="px-4 py-2">
+                    {c.blocking ? (
+                      <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Oui</span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">Non</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2 text-gray-600">{c.messageResultat}</td>
                 </tr>
               );
@@ -485,146 +803,111 @@ function ControlesTab() {
 }
 
 // ============================================================================
-// TAB: EXECUTION
+// VERROUILLAGE SECTION (MONTHLY)
 // ============================================================================
 
-function ExecutionTab({
-  fiscalYears,
-  selectedFYId,
-  onSelectFY,
-  openingFYId,
-  onSelectOpeningFY,
-  steps,
+function VerrouillageSection({
+  period,
+  onLock,
+  onUnlock,
   executing,
-  onExecuteStep,
-  onExecuteAll,
-  onReset,
 }: {
-  fiscalYears: DBFiscalYear[];
-  selectedFYId: string;
-  onSelectFY: (id: string) => void;
-  openingFYId: string;
-  onSelectOpeningFY: (id: string) => void;
-  steps: ClotureStep[];
+  period: DBFiscalPeriod | null;
+  onLock: () => void;
+  onUnlock: () => void;
   executing: boolean;
-  onExecuteStep: (id: string) => void;
-  onExecuteAll: () => void;
-  onReset: () => void;
 }) {
-  const doneCount = steps.filter(s => s.status === 'done').length;
-  const total = steps.length;
-  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-  const openFYs = fiscalYears.filter(fy => !fy.isClosed);
+  if (!period) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-500">
+        <Lock className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+        <p>Sélectionnez une période pour gérer le verrouillage</p>
+      </div>
+    );
+  }
+
+  const isClosed = period.status === 'cloturee';
+  const isReopened = period.status === 'rouverte';
 
   return (
     <div className="space-y-6">
-      {/* FY selection */}
-      <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Configuration</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Exercice à clôturer</label>
-            <select
-              value={selectedFYId}
-              onChange={e => onSelectFY(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              disabled={executing}
-            >
-              <option value="">-- Sélectionner --</option>
-              {openFYs.map(fy => (
-                <option key={fy.id} value={fy.id}>
-                  {fy.name} ({fy.startDate} → {fy.endDate})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Exercice d'ouverture (N+1)</label>
-            <select
-              value={openingFYId}
-              onChange={e => onSelectOpeningFY(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              disabled={executing}
-            >
-              <option value="">-- Optionnel (requis pour reports) --</option>
-              {fiscalYears.filter(fy => fy.id !== selectedFYId).map(fy => (
-                <option key={fy.id} value={fy.id}>
-                  {fy.name} ({fy.startDate} → {fy.endDate})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress bar */}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Progression : {doneCount}/{total}</span>
-          <span className="text-sm text-gray-500">{pct}%</span>
-        </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-300"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Lock className="w-5 h-5" />
+          Verrouillage de la période
+        </h3>
 
-      {/* Steps */}
-      <div className="bg-white border border-gray-200 rounded-lg divide-y">
-        {steps.map(step => (
-          <div key={step.id} className="flex items-center gap-4 px-5 py-3">
-            {STEP_ICON[step.status]}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-800">{step.label}</p>
-              {step.message && (
-                <p className={`text-xs mt-0.5 ${
-                  step.status === 'error' ? 'text-red-600' : 'text-gray-500'
-                }`}>
-                  {step.message}
-                </p>
-              )}
-            </div>
-            <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-              step.status === 'done' ? 'bg-green-100 text-green-700'
-              : step.status === 'error' ? 'bg-red-100 text-red-700'
-              : step.status === 'running' ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-100 text-gray-500'
-            }`}>
-              {step.status}
-            </span>
-            {step.status === 'pending' && !executing && (
-              <button
-                onClick={() => onExecuteStep(step.id)}
-                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Exécuter
-              </button>
-            )}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div>
+            <p className="text-sm text-gray-500">Période</p>
+            <p className="font-medium">{period.label}</p>
           </div>
-        ))}
+          <div>
+            <p className="text-sm text-gray-500">Code</p>
+            <p className="font-mono">{period.code}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Statut</p>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium ${
+              isClosed ? 'bg-green-100 text-green-700'
+                : isReopened ? 'bg-orange-100 text-orange-700'
+                : 'bg-blue-100 text-blue-700'
+            }`}>
+              {isClosed ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+              {period.status}
+            </span>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Progression</p>
+            <p className="font-medium">{period.progression}%</p>
+          </div>
+        </div>
+
+        {period.closedAt && (
+          <p className="text-xs text-gray-400 mb-4">
+            Clôturé le {new Date(period.closedAt).toLocaleString('fr-FR')} par {period.closedBy}
+          </p>
+        )}
+        {period.reopenedAt && (
+          <p className="text-xs text-orange-500 mb-4">
+            Réouvert le {new Date(period.reopenedAt).toLocaleString('fr-FR')} par {period.reopenedBy}
+          </p>
+        )}
+
+        <div className="flex gap-3">
+          {!isClosed && (
+            <button
+              onClick={onLock}
+              disabled={executing}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+              Verrouiller la période
+            </button>
+          )}
+          {isClosed && (
+            <button
+              onClick={onUnlock}
+              disabled={executing}
+              className="flex items-center gap-2 px-4 py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50"
+            >
+              {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlock className="w-4 h-4" />}
+              Réouvrir la période
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onExecuteAll}
-          disabled={executing || !selectedFYId}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-          Tout exécuter
-        </button>
-        <button
-          onClick={onReset}
-          disabled={executing}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Réinitialiser
-        </button>
-      </div>
+      {/* Warning for reopening */}
+      {isClosed && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            La réouverture d'une période clôturée est une opération réversible mais doit être justifiée.
+            Toute réouverture est tracée dans la piste d'audit.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
