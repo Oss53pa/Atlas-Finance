@@ -191,13 +191,17 @@ const CloturesPeriodiquesPage: React.FC = () => {
       return;
     }
 
-    // Ultimate fallback — empty state
-    const mockPeriods: ClosurePeriod[] = [
+    // Ultimate fallback — no data in DB, empty state
+    setLoading(false);
+  };
+
+  /* REMOVED_MOCK_DATA_BLOCK_START
+  void [
       {
-        id: '202401',
+        id: 'empty-placeholder',
         type: 'monthly',
-        period: 'Janvier 2024',
-        period_en: 'January 2024',
+        period: 'Aucune période',
+        period_en: 'No period',
         status: 'closed',
         startDate: new Date('2024-02-01'),
         endDate: new Date('2024-02-05'),
@@ -520,10 +524,7 @@ const CloturesPeriodiquesPage: React.FC = () => {
       }
     ];
     
-    setPeriods(mockPeriods);
-    setSelectedPeriod(mockPeriods[0].id);
-    setLoading(false);
-  };
+  REMOVED_MOCK_DATA_BLOCK_END */
 
   const selectedPeriodData = periods.find(p => p.id === selectedPeriod);
 

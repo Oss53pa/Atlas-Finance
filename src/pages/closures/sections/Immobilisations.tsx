@@ -174,7 +174,7 @@ const Immobilisations: React.FC = () => {
   useEffect(() => { loadAssets(); }, [loadAssets]);
 
   // Map DBAsset → component Immobilisation interface
-  const mockImmobilisations: Immobilisation[] = useMemo(() => {
+  const immobilisations: Immobilisation[] = useMemo(() => {
     return dbAssets.map(asset => {
       const taux = asset.usefulLifeYears > 0 ? 100 / asset.usefulLifeYears : 0;
       const annuel = asset.usefulLifeYears > 0 ? (asset.acquisitionValue - asset.residualValue) / asset.usefulLifeYears : 0;
@@ -208,17 +208,17 @@ const Immobilisations: React.FC = () => {
     });
   }, [dbAssets]);
 
-  const mockMouvements: MouvementImmobilisation[] = [];
-  const mockTestsDepreciation: TestDepreciation[] = [];
+  const mouvementsImmo: MouvementImmobilisation[] = [];
+  const testsDepreciation: TestDepreciation[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const valeurBruteTotale = mockImmobilisations.reduce((sum, immo) => sum + immo.valeurBrute, 0);
-    const amortissementsCumules = mockImmobilisations.reduce((sum, immo) => sum + immo.amortissementsCumules, 0);
-    const valeurNetteTotale = mockImmobilisations.reduce((sum, immo) => sum + immo.valeurNette, 0);
-    const dotationsAnnuelles = mockImmobilisations.reduce((sum, immo) => sum + immo.amortissementAnnuel, 0);
+    const valeurBruteTotale = immobilisations.reduce((sum, immo) => sum + immo.valeurBrute, 0);
+    const amortissementsCumules = immobilisations.reduce((sum, immo) => sum + immo.amortissementsCumules, 0);
+    const valeurNetteTotale = immobilisations.reduce((sum, immo) => sum + immo.valeurNette, 0);
+    const dotationsAnnuelles = immobilisations.reduce((sum, immo) => sum + immo.amortissementAnnuel, 0);
     const tauxAmortissementMoyen = amortissementsCumules / valeurBruteTotale * 100;
-    const immobilisationsObsoletes = mockImmobilisations.filter(immo =>
+    const immobilisationsObsoletes = immobilisations.filter(immo =>
       immo.etatPhysique === 'hors_service' || immo.statutComptable === 'totalement_amorti'
     ).length;
 
@@ -229,14 +229,14 @@ const Immobilisations: React.FC = () => {
       dotationsAnnuelles,
       tauxAmortissementMoyen,
       immobilisationsObsoletes,
-      nombreImmobilisations: mockImmobilisations.length,
-      valeurAssuranceTotale: mockImmobilisations.reduce((sum, immo) => sum + (immo.valeurAssurance || 0), 0)
+      nombreImmobilisations: immobilisations.length,
+      valeurAssuranceTotale: immobilisations.reduce((sum, immo) => sum + (immo.valeurAssurance || 0), 0)
     };
-  }, []);
+  }, [immobilisations]);
 
   // Filtrage des immobilisations
   const immobilisationsFiltrees = useMemo(() => {
-    return mockImmobilisations.filter(immo => {
+    return immobilisations.filter(immo => {
       const matchCategorie = filterCategorie === 'toutes' || immo.categorie === filterCategorie;
       const matchStatut = filterStatut === 'tous' || immo.statutComptable === filterStatut;
       const matchSearch = searchTerm === '' ||
@@ -244,7 +244,7 @@ const Immobilisations: React.FC = () => {
         immo.code.toLowerCase().includes(searchTerm.toLowerCase());
       return matchCategorie && matchStatut && matchSearch;
     });
-  }, [filterCategorie, filterStatut, searchTerm]);
+  }, [immobilisations, filterCategorie, filterStatut, searchTerm]);
 
   const getCategorieIcon = (categorie: string, sousCategorie: string) => {
     if (categorie === 'corporelle') {
@@ -712,7 +712,7 @@ const Immobilisations: React.FC = () => {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  const logiciel = mockImmobilisations.find(i => i.code === 'IMM002');
+                  const logiciel = immobilisations.find(i => i.code === 'IMM002');
                   if (!logiciel) return <p>Immobilisation non trouvée</p>;
 
                   const plan = genererPlanAmortissement(logiciel);
@@ -871,7 +871,7 @@ const Immobilisations: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockMouvements.map(mouvement => (
+                  {mouvementsImmo.map(mouvement => (
                     <tr key={mouvement.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         {new Date(mouvement.date).toLocaleDateString()}
@@ -959,8 +959,8 @@ const Immobilisations: React.FC = () => {
                 <div className="mt-6">
                   <h4 className="font-medium mb-3">Résultats des Tests</h4>
                   <div className="space-y-3">
-                    {mockTestsDepreciation.map(test => {
-                      const immo = mockImmobilisations.find(i => i.id === test.immobilisationId);
+                    {testsDepreciation.map(test => {
+                      const immo = immobilisations.find(i => i.id === test.immobilisationId);
                       return (
                         <div key={test.immobilisationId} className="p-4 border rounded-lg">
                           <div className="flex justify-between items-start mb-3">

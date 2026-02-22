@@ -46,6 +46,22 @@ import { z } from 'zod';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
+interface AxeData {
+  id: string;
+  code: string;
+  libelle: string;
+  type: string;
+  niveau: number;
+  description: string;
+  nb_centres: number;
+  nb_ventilations: number;
+  montant_total: number;
+  statut: string;
+  responsable: string;
+  email_responsable: string;
+  [key: string]: unknown;
+}
+
 interface AxesFilters {
   search: string;
   type: string;
@@ -61,7 +77,7 @@ const AnalyticalAxesPage: React.FC = () => {
     niveau: ''
   });
   const [page, setPage] = useState(1);
-  const [selectedAxe, setSelectedAxe] = useState<Record<string, unknown> | null>(null);
+  const [selectedAxe, setSelectedAxe] = useState<AxeData | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     code: '',
@@ -79,7 +95,7 @@ const AnalyticalAxesPage: React.FC = () => {
 
   // Load analytical axes from Dexie settings
   const axesSetting = useLiveQuery(() => db.settings.get('analytical_axes'));
-  const allAxes: Record<string, unknown>[] = axesSetting ? JSON.parse(axesSetting.value) : [];
+  const allAxes: AxeData[] = axesSetting ? JSON.parse(axesSetting.value) : [];
   const isLoading = axesSetting === undefined;
 
   // Compute filtered & paginated axesData from Dexie
@@ -87,32 +103,32 @@ const AnalyticalAxesPage: React.FC = () => {
     let filtered = allAxes;
     if (filters.search) {
       const s = filters.search.toLowerCase();
-      filtered = filtered.filter((a: Record<string, unknown>) =>
+      filtered = filtered.filter((a: AxeData) =>
         (a.code as string || '').toLowerCase().includes(s) ||
         (a.libelle as string || '').toLowerCase().includes(s)
       );
     }
     if (filters.type) {
-      filtered = filtered.filter((a: Record<string, unknown>) => a.type === filters.type);
+      filtered = filtered.filter((a: AxeData) => a.type === filters.type);
     }
     if (filters.statut) {
-      filtered = filtered.filter((a: Record<string, unknown>) => a.statut === filters.statut);
+      filtered = filtered.filter((a: AxeData) => a.statut === filters.statut);
     }
     if (filters.niveau) {
-      filtered = filtered.filter((a: Record<string, unknown>) => String(a.niveau) === filters.niveau);
+      filtered = filtered.filter((a: AxeData) => String(a.niveau) === filters.niveau);
     }
     const pageSize = 20;
     const start = (page - 1) * pageSize;
     const results = filtered.slice(start, start + pageSize);
-    const activeItems = allAxes.filter((a: Record<string, unknown>) => a.statut === 'actif');
+    const activeItems = allAxes.filter((a: AxeData) => a.statut === 'actif');
     return {
       count: filtered.length,
       active_count: activeItems.length,
-      total_centers: allAxes.reduce((sum: number, a: Record<string, unknown>) => sum + (Number(a.nb_centres) || 0), 0),
-      total_allocations: allAxes.reduce((sum: number, a: Record<string, unknown>) => sum + (Number(a.nb_ventilations) || 0), 0),
+      total_centers: allAxes.reduce((sum: number, a: AxeData) => sum + (Number(a.nb_centres) || 0), 0),
+      total_allocations: allAxes.reduce((sum: number, a: AxeData) => sum + (Number(a.nb_ventilations) || 0), 0),
       results,
       type_distribution: Object.entries(
-        allAxes.reduce((acc: Record<string, number>, a: Record<string, unknown>) => {
+        allAxes.reduce((acc: Record<string, number>, a: AxeData) => {
           const type = a.type as string || 'unknown';
           acc[type] = (acc[type] || 0) + 1;
           return acc;
@@ -127,7 +143,7 @@ const AnalyticalAxesPage: React.FC = () => {
 
   // Create axe mutation - saves to Dexie settings
   const createMutation = useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
+    mutationFn: async (data: AxeData) => {
       const current = await db.settings.get('analytical_axes');
       const axes = current ? JSON.parse(current.value) : [];
       const newAxe = { ...data, id: crypto.randomUUID(), statut: 'actif', niveau: 1, nb_centres: 0, nb_ventilations: 0, montant_total: 0 };
@@ -150,7 +166,7 @@ const AnalyticalAxesPage: React.FC = () => {
     mutationFn: async (axeId: string) => {
       const current = await db.settings.get('analytical_axes');
       const axes = current ? JSON.parse(current.value) : [];
-      const updated = axes.filter((a: Record<string, unknown>) => a.id !== axeId);
+      const updated = axes.filter((a: AxeData) => a.id !== axeId);
       await db.settings.put({ key: 'analytical_axes', value: JSON.stringify(updated), updatedAt: new Date().toISOString() });
     },
     onSuccess: () => {

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../../../../lib/db';
 import { formatDate } from '../../../../../utils/formatters';
 import { Link } from 'react-router-dom';
 
@@ -17,31 +19,18 @@ interface TreasuryPlan {
 export const SimplePrevisionTresorerie: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
 
-  // Mock data pour prévisions trésorerie
-  const mockPlans: TreasuryPlan[] = [
-    {
-      id: 1,
-      planNumber: 'PL-2025-001',
-      creationDate: '2025-01-15',
-      period: 'Jan-Déc 2025',
-      totalInflows: 15750000,
-      totalOutflows: 12340000,
-      initialBalance: 2500000,
-      finalBalance: 5910000,
-      author: 'Jean Dupont'
-    },
-    {
-      id: 2,
-      planNumber: 'PL-2025-002',
-      creationDate: '2025-02-01',
-      period: 'Fév-Jun 2025',
-      totalInflows: 8250000,
-      totalOutflows: 7100000,
-      initialBalance: 1800000,
-      finalBalance: 2950000,
-      author: 'Marie Martin'
+  const plansFromDb = useLiveQuery(async () => {
+    const setting = await db.settings.get('treasury_plans');
+    if (!setting) return [];
+    try {
+      const parsed: TreasuryPlan[] = JSON.parse(setting.value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
     }
-  ];
+  }, []);
+
+  const mockPlans: TreasuryPlan[] = plansFromDb ?? [];
 
   const formatAmount = (amount: number): string => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
@@ -146,32 +135,38 @@ export const SimplePrevisionTresorerie: React.FC = () => {
                 </div>
                 <div className="card-body">
                   <div className="row">
-                    {['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'].map((month, index) => {
-                      const inflow = Math.random() * 3000000 + 1000000;
-                      const outflow = Math.random() * 2500000 + 800000;
-                      const balance = inflow - outflow;
+                    {mockPlans.length > 0 ? (
+                      ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun'].map((month) => {
+                        const totalInflow = mockPlans.reduce((sum, p) => sum + p.totalInflows, 0) / 12;
+                        const totalOutflow = mockPlans.reduce((sum, p) => sum + p.totalOutflows, 0) / 12;
+                        const balance = totalInflow - totalOutflow;
 
-                      return (
-                        <div key={month} className="col-md-2 mb-3">
-                          <div className="card border-light">
-                            <div className="card-body text-center">
-                              <h6>{month} 2025</h6>
-                              <div className="mb-2">
-                                <small className="text-success">+{Math.round(inflow/1000)}K</small>
-                              </div>
-                              <div className="mb-2">
-                                <small className="text-danger">-{Math.round(outflow/1000)}K</small>
-                              </div>
-                              <div>
-                                <strong className={balance > 0 ? 'text-success' : 'text-danger'}>
-                                  {balance > 0 ? '+' : ''}{Math.round(balance/1000)}K
-                                </strong>
+                        return (
+                          <div key={month} className="col-md-2 mb-3">
+                            <div className="card border-light">
+                              <div className="card-body text-center">
+                                <h6>{month}</h6>
+                                <div className="mb-2">
+                                  <small className="text-success">+{Math.round(totalInflow / 1000)}K</small>
+                                </div>
+                                <div className="mb-2">
+                                  <small className="text-danger">-{Math.round(totalOutflow / 1000)}K</small>
+                                </div>
+                                <div>
+                                  <strong className={balance > 0 ? 'text-success' : 'text-danger'}>
+                                    {balance > 0 ? '+' : ''}{Math.round(balance / 1000)}K
+                                  </strong>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    ) : (
+                      <div className="col-12 text-center text-muted py-4">
+                        Aucun plan de tresorerie disponible
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -151,7 +151,7 @@ const Provisions: React.FC = () => {
   useEffect(() => { loadProvisions(); }, [loadProvisions]);
 
   // Map real DBProvision → component Provision interface
-  const mockProvisions: Provision[] = useMemo(() => {
+  const provisionsData: Provision[] = useMemo(() => {
     return dbProvisions.map((prov, idx) => ({
       id: prov.id,
       numero: `PROV-${idx + 1}`,
@@ -180,11 +180,11 @@ const Provisions: React.FC = () => {
   }, [dbProvisions]);
 
   // No charge/product accrual data or rules in DB — empty
-  const mockChargesAPayer: ChargeAPayerAComptabiliser[] = [];
-  const mockProduitsARecevoir: ProduitARecevoir[] = [];
+  const chargesAPayer: ChargeAPayerAComptabiliser[] = [];
+  const produitsARecevoir: ProduitARecevoir[] = [];
 
   // Static SYSCOHADA rules reference
-  const mockRegles: RegleProvisionSYSCOHADA[] = [
+  const reglesProvision: RegleProvisionSYSCOHADA[] = [
     {
       type: 'creances_douteuses',
       description: 'Provisions pour créances douteuses',
@@ -204,18 +204,18 @@ const Provisions: React.FC = () => {
     },
   ];
 
-  const mockAnalysesRisque: AnalyseRisque[] = [];
+  const analysesRisque: AnalyseRisque[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const totalProvisions = mockProvisions.reduce((sum, prov) => sum + prov.solde, 0);
-    const dotationsExercice = mockProvisions.reduce((sum, prov) => sum + prov.dotationExercice, 0);
-    const reprisesExercice = mockProvisions.reduce((sum, prov) => sum + prov.repriseExercice, 0);
-    const impactFiscalTotal = mockProvisions.reduce((sum, prov) => sum + prov.impactFiscal, 0);
-    const totalChargesAPayer = mockChargesAPayer.reduce((sum, charge) => sum + charge.montant, 0);
-    const totalProduitsARecevoir = mockProduitsARecevoir.reduce((sum, produit) => sum + produit.montant, 0);
-    const provisionsConformes = mockProvisions.filter(prov => prov.conformiteSYSCOHADA).length;
-    const tauxConformite = mockProvisions.length > 0 ? (provisionsConformes / mockProvisions.length) * 100 : 100;
+    const totalProvisions = provisionsData.reduce((sum, prov) => sum + prov.solde, 0);
+    const dotationsExercice = provisionsData.reduce((sum, prov) => sum + prov.dotationExercice, 0);
+    const reprisesExercice = provisionsData.reduce((sum, prov) => sum + prov.repriseExercice, 0);
+    const impactFiscalTotal = provisionsData.reduce((sum, prov) => sum + prov.impactFiscal, 0);
+    const totalChargesAPayer = chargesAPayer.reduce((sum, charge) => sum + charge.montant, 0);
+    const totalProduitsARecevoir = produitsARecevoir.reduce((sum, produit) => sum + produit.montant, 0);
+    const provisionsConformes = provisionsData.filter(prov => prov.conformiteSYSCOHADA).length;
+    const tauxConformite = provisionsData.length > 0 ? (provisionsConformes / provisionsData.length) * 100 : 100;
 
     return {
       totalProvisions,
@@ -225,14 +225,14 @@ const Provisions: React.FC = () => {
       totalChargesAPayer,
       totalProduitsARecevoir,
       tauxConformite,
-      nombreProvisions: mockProvisions.length,
+      nombreProvisions: provisionsData.length,
       impactNetExercice: dotationsExercice - reprisesExercice
     };
   }, [dbProvisions]);
 
   // Filtrage des provisions
   const provisionsFiltrees = useMemo(() => {
-    return mockProvisions.filter(provision => {
+    return provisionsData.filter(provision => {
       const matchType = filterType === 'tous' || provision.typeProvision === filterType;
       const matchStatut = filterStatut === 'tous' || provision.statutJuridique === filterStatut;
       const matchSearch = searchTerm === '' ||
@@ -240,7 +240,7 @@ const Provisions: React.FC = () => {
         provision.numero.toLowerCase().includes(searchTerm.toLowerCase());
       return matchType && matchStatut && matchSearch;
     });
-  }, [mockProvisions, filterType, filterStatut, searchTerm]);
+  }, [provisionsData, filterType, filterStatut, searchTerm]);
 
   const getTypeProvisionIcon = (type: string) => {
     switch (type) {
@@ -506,7 +506,7 @@ const Provisions: React.FC = () => {
                     <span className="font-bold text-lg">{(kpis.totalChargesAPayer / 1000000).toFixed(1)}M FCFA</span>
                   </div>
                   <div className="space-y-2">
-                    {mockChargesAPayer.map(charge => (
+                    {chargesAPayer.map(charge => (
                       <div key={charge.id} className="flex items-center justify-between p-2 bg-[var(--color-background-secondary)] rounded">
                         <div className="flex items-center gap-2">
                           {getCategorieChargeIcon(charge.categorie)}
@@ -531,7 +531,7 @@ const Provisions: React.FC = () => {
                     <span className="font-bold text-lg">{(kpis.totalProduitsARecevoir / 1000000).toFixed(1)}M FCFA</span>
                   </div>
                   <div className="space-y-2">
-                    {mockProduitsARecevoir.map(produit => (
+                    {produitsARecevoir.map(produit => (
                       <div key={produit.id} className="flex items-center justify-between p-2 bg-[var(--color-background-secondary)] rounded">
                         <div className="flex items-center gap-2">
                           <PiggyBank className="w-4 h-4 text-[var(--color-success)]" />
@@ -755,7 +755,7 @@ const Provisions: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockChargesAPayer.map(charge => (
+                  {chargesAPayer.map(charge => (
                     <tr key={charge.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -865,7 +865,7 @@ const Provisions: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockProduitsARecevoir.map(produit => (
+                  {produitsARecevoir.map(produit => (
                     <tr key={produit.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div>
@@ -930,7 +930,7 @@ const Provisions: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {mockRegles.map((regle, index) => (
+                {reglesProvision.map((regle, index) => (
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -996,7 +996,7 @@ const Provisions: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {mockAnalysesRisque.map((analyse, index) => (
+                {analysesRisque.map((analyse, index) => (
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-4">
                       <div>

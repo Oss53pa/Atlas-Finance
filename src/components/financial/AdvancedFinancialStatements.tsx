@@ -17,6 +17,7 @@ import PrintableArea from '../ui/PrintableArea';
 import { usePrintReport } from '../../hooks/usePrint';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency } from '@/utils/formatters';
 
 interface BilanData {
   actifImmobilise: {
@@ -684,31 +685,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Immobilisations incorporelles</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.actifImmobilise.immobilisationsIncorporelles.toLocaleString()}
+                        {formatCurrency(bilanData.actifImmobilise.immobilisationsIncorporelles)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Immobilisations corporelles</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.actifImmobilise.immobilisationsCorporelles.toLocaleString()}
+                        {formatCurrency(bilanData.actifImmobilise.immobilisationsCorporelles)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Immobilisations financières</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.actifImmobilise.immobilisationsFinancieres.toLocaleString()}
+                        {formatCurrency(bilanData.actifImmobilise.immobilisationsFinancieres)}
                       </span>
                     </div>
                     <div className="flex justify-between text-red-600">
                       <span className="text-sm">Amortissements</span>
                       <span className="text-sm font-mono font-medium">
-                        ({Math.abs(bilanData.actifImmobilise.amortissements).toLocaleString()})
+                        ({formatCurrency(Math.abs(bilanData.actifImmobilise.amortissements))})
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Actif Immobilisé</span>
                       <span className="text-sm font-mono">
-                        {Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0).toLocaleString()}
+                        {formatCurrency(Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -721,31 +722,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Stocks et en-cours</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.actifCirculant.stocks.toLocaleString()}
+                        {formatCurrency(bilanData.actifCirculant.stocks)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Créances clients</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.actifCirculant.creancesClients.toLocaleString()}
+                        {formatCurrency(bilanData.actifCirculant.creancesClients)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Autres créances</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.actifCirculant.autresCreances.toLocaleString()}
+                        {formatCurrency(bilanData.actifCirculant.autresCreances)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Disponibilités</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.actifCirculant.disponibilites.toLocaleString()}
+                        {formatCurrency(bilanData.actifCirculant.disponibilites)}
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Actif Circulant</span>
                       <span className="text-sm font-mono">
-                        {Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0).toLocaleString()}
+                        {formatCurrency(Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -756,8 +757,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL ACTIF</span>
                     <span className="font-mono">
-                      {(Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0) + 
-                        Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0)).toLocaleString()}
+                      {formatCurrency((Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0) + 
+                        Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0)))}
                     </span>
                   </div>
                 </div>
@@ -779,31 +780,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Capital social</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.capitauxPropres.capitalSocial.toLocaleString()}
+                        {formatCurrency(bilanData.capitauxPropres.capitalSocial)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Réserves</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.capitauxPropres.reserves.toLocaleString()}
+                        {formatCurrency(bilanData.capitauxPropres.reserves)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Report à nouveau</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.capitauxPropres.reportANouveau.toLocaleString()}
+                        {formatCurrency(bilanData.capitauxPropres.reportANouveau)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Résultat de l'exercice</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.capitauxPropres.resultatExercice.toLocaleString()}
+                        {formatCurrency(bilanData.capitauxPropres.resultatExercice)}
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Capitaux Propres</span>
                       <span className="text-sm font-mono">
-                        {Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0).toLocaleString()}
+                        {formatCurrency(Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -816,31 +817,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Dettes financières</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.dettes.dettesFinancieres.toLocaleString()}
+                        {formatCurrency(bilanData.dettes.dettesFinancieres)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Dettes fournisseurs</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.dettes.dettesFournisseurs.toLocaleString()}
+                        {formatCurrency(bilanData.dettes.dettesFournisseurs)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Dettes d'exploitation</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.dettes.dettesExploitation.toLocaleString()}
+                        {formatCurrency(bilanData.dettes.dettesExploitation)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Autres dettes</span>
                       <span className="text-sm font-mono font-medium">
-                        {bilanData.dettes.autresDettes.toLocaleString()}
+                        {formatCurrency(bilanData.dettes.autresDettes)}
                       </span>
                     </div>
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Dettes</span>
                       <span className="text-sm font-mono">
-                        {Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0).toLocaleString()}
+                        {formatCurrency(Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0))}
                       </span>
                     </div>
                   </div>
@@ -851,8 +852,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL PASSIF</span>
                     <span className="font-mono">
-                      {(Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0) + 
-                        Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0)).toLocaleString()}
+                      {formatCurrency((Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0) + 
+                        Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0)))}
                     </span>
                   </div>
                 </div>
@@ -879,31 +880,31 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Chiffre d'affaires</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.produits.chiffreAffaires.toLocaleString()}
+                      {formatCurrency(compteResultatData.produits.chiffreAffaires)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Production stockée</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.produits.productionStockee.toLocaleString()}
+                      {formatCurrency(compteResultatData.produits.productionStockee)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Autres produits</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.produits.autresProduits.toLocaleString()}
+                      {formatCurrency(compteResultatData.produits.autresProduits)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Produits financiers</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.produits.produitsFinanciers.toLocaleString()}
+                      {formatCurrency(compteResultatData.produits.produitsFinanciers)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Produits exceptionnels</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.produits.produitsExceptionnels.toLocaleString()}
+                      {formatCurrency(compteResultatData.produits.produitsExceptionnels)}
                     </span>
                   </div>
                 </div>
@@ -912,7 +913,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL PRODUITS</span>
                     <span className="font-mono text-green-600">
-                      {Object.values(compteResultatData.produits).reduce((sum, val) => sum + val, 0).toLocaleString()}
+                      {formatCurrency(Object.values(compteResultatData.produits).reduce((sum, val) => sum + val, 0))}
                     </span>
                   </div>
                 </div>
@@ -930,43 +931,43 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Achats consommés</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.charges.achatsConsommes.toLocaleString()}
+                      {formatCurrency(compteResultatData.charges.achatsConsommes)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Services extérieurs</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.charges.servicesExterieurs.toLocaleString()}
+                      {formatCurrency(compteResultatData.charges.servicesExterieurs)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Charges de personnel</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.charges.personnel.toLocaleString()}
+                      {formatCurrency(compteResultatData.charges.personnel)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Dotations amortissements</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.charges.amortissements.toLocaleString()}
+                      {formatCurrency(compteResultatData.charges.amortissements)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Charges financières</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.charges.chargesFinancieres.toLocaleString()}
+                      {formatCurrency(compteResultatData.charges.chargesFinancieres)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Charges exceptionnelles</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.charges.chargesExceptionnelles.toLocaleString()}
+                      {formatCurrency(compteResultatData.charges.chargesExceptionnelles)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Impôts sur les sociétés</span>
                     <span className="text-sm font-mono font-medium">
-                      {compteResultatData.charges.impotsSocietes.toLocaleString()}
+                      {formatCurrency(compteResultatData.charges.impotsSocietes)}
                     </span>
                   </div>
                 </div>
@@ -975,7 +976,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <div className="flex justify-between font-bold text-lg">
                     <span>TOTAL CHARGES</span>
                     <span className="font-mono text-red-600">
-                      {Object.values(compteResultatData.charges).reduce((sum, val) => sum + val, 0).toLocaleString()}
+                      {formatCurrency(Object.values(compteResultatData.charges).reduce((sum, val) => sum + val, 0))}
                     </span>
                   </div>
                 </div>
@@ -988,7 +989,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
               <div className={`text-lg font-bold mb-2 ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {sigData.resultatNet.toLocaleString()} XAF
+                {formatCurrency(sigData.resultatNet)}
               </div>
               <div className={`text-lg ${sigData.resultatNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {sigData.resultatNet >= 0 ? '📈 Bénéfice' : '📉 Perte'}
@@ -1019,11 +1020,11 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 <div className="space-y-3 ml-4">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-700">Résultat net</span>
-                    <span className="text-sm font-mono font-medium">{sigData.resultatNet.toLocaleString()}</span>
+                    <span className="text-sm font-mono font-medium">{formatCurrency(sigData.resultatNet)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-700">+ Dotations amortissements</span>
-                    <span className="text-sm font-mono font-medium">{compteResultatData.charges.amortissements.toLocaleString()}</span>
+                    <span className="text-sm font-mono font-medium">{formatCurrency(compteResultatData.charges.amortissements)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-700">- Variation stocks</span>
@@ -1039,7 +1040,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   </div>
                   <div className="flex justify-between font-semibold border-t pt-2 text-blue-800">
                     <span>Flux nets opérationnels</span>
-                    <span className="font-mono">{(sigData.capaciteAutofinancement - 1800000).toLocaleString()}</span>
+                    <span className="font-mono">{formatCurrency((sigData.capaciteAutofinancement - 1800000))}</span>
                   </div>
                 </div>
               </div>

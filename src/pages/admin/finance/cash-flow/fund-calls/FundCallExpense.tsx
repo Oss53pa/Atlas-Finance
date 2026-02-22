@@ -1,7 +1,6 @@
-import axios, { AxiosError } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { addressIpApi, authenticated_header } from '../../../../../globals/api';
+import { db } from '../../../../../lib/db';
 import SweetAlertComponent from '../../../../../components/common/SweetAlert';
 import { useCenter } from '../../../../../components/common/Footer';
 import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
@@ -75,11 +74,15 @@ export const FundCallExpense: React.FC = () => {
 
   const getFundCallApprovalInfo = async (): Promise<void> => {
     try {
-      // Mock API call - returns mock enabled users
-      const mockEnabledUsers = [1, 2, 3]; // User IDs who can approve
-      // handleChangeFundCallEnabledUser(mockEnabledUsers);
+      const setting = await db.settings.get('fund_call_approval_users');
+      if (setting) {
+        const parsed = JSON.parse(setting.value);
+        const enabledUsers: number[] = Array.isArray(parsed) ? parsed : [];
+        // handleChangeFundCallEnabledUser(enabledUsers);
+        void enabledUsers;
+      }
     } catch (error) {
-      console.error("Error fetching data:", (error as AxiosError).message);
+      console.error("Error fetching approval info:", error);
     }
   };
 
@@ -133,53 +136,22 @@ export const FundCallExpense: React.FC = () => {
   const getFundCall = async (): Promise<void> => {
     try {
       setIsLoadingCancelable(true);
-      // Mock API call - using test data
-      const mockFundCall = {
-        id: parseInt(id_fund_call || '1'),
-        reference: `AF-2025-${id_fund_call?.padStart(4, '0')}`,
-        request_date: '2025-01-15',
-        approval_status: 1,
-        mandatory_amount: 5000000,
-        pre_mandatory_amount: 2500000,
-        details: [
-          {
-            id: 1,
-            vendor: 'Fournisseur A',
-            invoice_date: '2025-01-10',
-            entry_code: 'INV001',
-            reference: 'F001-2025',
-            description: 'Équipements bureautiques',
-            credit: 1500000,
-            outstanding: 1500000,
-            invoice_status: 'CE' as const,
-            age: 15,
-            cm_recommendation: 'TBP' as const,
-            is_pre_approved: false,
-            type_entry: 'Purchase'
-          },
-          {
-            id: 2,
-            vendor: 'Fournisseur B',
-            invoice_date: '2025-01-05',
-            entry_code: 'INV002',
-            reference: 'F002-2025',
-            description: 'Services informatiques',
-            credit: 800000,
-            outstanding: 800000,
-            invoice_status: 'PA' as const,
-            age: 20,
-            cm_recommendation: 'CFB' as const,
-            is_pre_approved: true,
-            type_entry: 'Service'
-          }
-        ]
-      };
-
-      handleChangeFundCall(mockFundCall);
-      setDetailsFundCall(mockFundCall.details);
+      const setting = await db.settings.get('fund_calls');
+      if (setting) {
+        const parsed = JSON.parse(setting.value);
+        const allCalls = Array.isArray(parsed) ? parsed : [];
+        const found = allCalls.find(
+          (fc: Record<string, unknown>) => String(fc.id) === String(id_fund_call)
+        );
+        if (found) {
+          handleChangeFundCall(found);
+          setDetailsFundCall(found.details ?? []);
+        }
+      }
       setIsLoadingCancelable(false);
     } catch (error) {
-      console.error("Error fetching data:", (error as AxiosError).message);
+      console.error("Error fetching fund call data:", error);
+      setIsLoadingCancelable(false);
     }
   };
 

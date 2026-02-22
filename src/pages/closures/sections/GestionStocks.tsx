@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { db } from '../../../lib/db';
+import type { DBInventoryItem } from '../../../lib/db';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -136,204 +138,64 @@ const GestionStocks: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedMouvement, setSelectedMouvement] = useState<MouvementStock | null>(null);
 
-  // Données simulées
-  const mockArticles: Article[] = [
-    {
-      id: '1',
-      code: 'ART001',
-      designation: 'Ordinateur Portable HP EliteBook',
-      categorie: 'Informatique',
-      famille: 'Matériel Informatique',
-      unite: 'Pièce',
-      prixUnitaire: 850000,
-      stockPhysique: 25,
-      stockTheorique: 28,
-      stockMinimum: 5,
-      stockMaximum: 50,
-      stockSecurite: 8,
-      valeurStock: 21250000,
-      emplacement: 'MAGASIN-A-01',
-      fournisseurPrincipal: 'HP Distribution CI',
-      delaiApprovisionnement: 15,
-      methodeValorisaton: 'FIFO',
+  // Real data from Dexie
+  const [dbItems, setDbItems] = useState<DBInventoryItem[]>([]);
+
+  const loadItems = useCallback(async () => {
+    try {
+      const items = await db.inventoryItems.toArray();
+      setDbItems(items);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { loadItems(); }, [loadItems]);
+
+  // Map DBInventoryItem → component Article interface
+  const articles: Article[] = useMemo(() => {
+    return dbItems.map(item => ({
+      id: item.id,
+      code: item.code,
+      designation: item.name,
+      categorie: item.category,
+      famille: item.category,
+      unite: item.unit,
+      prixUnitaire: item.unitCost,
+      stockPhysique: item.quantity,
+      stockTheorique: item.quantity,
+      stockMinimum: item.minStock,
+      stockMaximum: item.maxStock,
+      stockSecurite: Math.ceil(item.minStock * 1.5),
+      valeurStock: item.totalValue,
+      emplacement: item.location,
+      fournisseurPrincipal: '',
+      delaiApprovisionnement: 0,
+      methodeValorisaton: 'CMUP' as const,
       tvaCode: '18%',
-      dateDernierInventaire: '2024-11-01',
-      statutQualite: 'bon',
-      rotationStock: 4.2,
-      consommationMoyenne: 6
-    },
-    {
-      id: '2',
-      code: 'ART002',
-      designation: 'Papier A4 80g - Ramette 500 feuilles',
-      categorie: 'Bureautique',
-      famille: 'Consommables',
-      unite: 'Ramette',
-      prixUnitaire: 3500,
-      stockPhysique: 150,
-      stockTheorique: 150,
-      stockMinimum: 20,
-      stockMaximum: 200,
-      stockSecurite: 30,
-      valeurStock: 525000,
-      emplacement: 'MAGASIN-B-02',
-      fournisseurPrincipal: 'Papeterie Moderne',
-      delaiApprovisionnement: 3,
-      methodeValorisaton: 'CMUP',
-      tvaCode: '18%',
-      dateDernierInventaire: '2024-12-01',
-      statutQualite: 'bon',
-      rotationStock: 12.5,
-      consommationMoyenne: 45
-    },
-    {
-      id: '3',
-      code: 'ART003',
-      designation: 'Imprimante Laser Canon i-SENSYS',
-      categorie: 'Informatique',
-      famille: 'Périphériques',
-      unite: 'Pièce',
-      prixUnitaire: 450000,
-      stockPhysique: 8,
-      stockTheorique: 12,
-      stockMinimum: 3,
-      stockMaximum: 15,
-      stockSecurite: 5,
-      valeurStock: 3600000,
-      emplacement: 'MAGASIN-A-02',
-      fournisseurPrincipal: 'Canon Côte d\'Ivoire',
-      delaiApprovisionnement: 10,
-      methodeValorisaton: 'FIFO',
-      tvaCode: '18%',
-      dateDernierInventaire: '2024-10-15',
-      statutQualite: 'bon',
-      rotationStock: 2.8,
-      consommationMoyenne: 2
-    }
-  ];
+      dateDernierInventaire: item.lastMovementDate,
+      statutQualite: item.status === 'active' ? 'bon' as const
+        : item.status === 'discontinued' ? 'obsolete' as const
+        : 'defectueux' as const,
+      rotationStock: 0,
+      consommationMoyenne: 0,
+    }));
+  }, [dbItems]);
 
-  const mockMouvements: MouvementStock[] = [
-    {
-      id: '1',
-      articleId: '1',
-      articleCode: 'ART001',
-      articleDesignation: 'Ordinateur Portable HP EliteBook',
-      type: 'entree',
-      quantite: 10,
-      prixUnitaire: 850000,
-      valeurTotale: 8500000,
-      reference: 'BL-2024-0234',
-      motif: 'Réapprovisionnement stock',
-      emplacementDestination: 'MAGASIN-A-01',
-      dateOperation: '2024-12-18',
-      utilisateur: 'Marie KOUAME',
-      statut: 'valide',
-      pieceJustificative: 'BL-2024-0234.pdf'
-    },
-    {
-      id: '2',
-      articleId: '2',
-      articleCode: 'ART002',
-      articleDesignation: 'Papier A4 80g - Ramette 500 feuilles',
-      type: 'sortie',
-      quantite: -25,
-      prixUnitaire: 3500,
-      valeurTotale: -87500,
-      reference: 'DEM-2024-0156',
-      motif: 'Distribution service comptabilité',
-      emplacementSource: 'MAGASIN-B-02',
-      dateOperation: '2024-12-19',
-      utilisateur: 'Jean TRAORE',
-      statut: 'valide'
-    },
-    {
-      id: '3',
-      articleId: '1',
-      articleCode: 'ART001',
-      articleDesignation: 'Ordinateur Portable HP EliteBook',
-      type: 'ajustement',
-      quantite: -3,
-      prixUnitaire: 850000,
-      valeurTotale: -2550000,
-      reference: 'ADJ-2024-0045',
-      motif: 'Écart inventaire - matériel défaillant',
-      emplacementSource: 'MAGASIN-A-01',
-      dateOperation: '2024-12-20',
-      utilisateur: 'Paul KONE',
-      statut: 'en_attente'
-    }
-  ];
-
-  const mockInventaires: Inventaire[] = [
-    {
-      id: '1',
-      numero: 'INV-2024-12',
-      type: 'complet',
-      dateDebut: '2024-12-01',
-      dateFin: '2024-12-05',
-      statut: 'termine',
-      responsable: 'Sophie DIABATE',
-      nbArticles: 450,
-      nbArticlesComptes: 445,
-      ecartValeur: -2850000,
-      pourcentageEcart: -1.2,
-      observations: 'Écarts mineurs sur articles informatiques'
-    },
-    {
-      id: '2',
-      numero: 'INV-2024-11',
-      type: 'tournant',
-      dateDebut: '2024-11-15',
-      dateFin: '2024-11-16',
-      statut: 'valide',
-      responsable: 'Marc KOFFI',
-      nbArticles: 120,
-      nbArticlesComptes: 120,
-      ecartValeur: 125000,
-      pourcentageEcart: 0.8,
-      observations: 'Inventaire tournant - Zone A'
-    }
-  ];
-
-  const mockPrevisions: PrevisionDemande[] = [
-    {
-      articleId: '1',
-      periode: '2025-01',
-      demandePrevue: 8,
-      fiabilite: 85,
-      tendance: 'stable',
-      saisonnalite: false
-    },
-    {
-      articleId: '2',
-      periode: '2025-01',
-      demandePrevue: 65,
-      fiabilite: 92,
-      tendance: 'hausse',
-      saisonnalite: true
-    }
-  ];
-
-  const mockProvisions: ProvisionStock[] = [
-    {
-      articleId: '3',
-      typeProvision: 'obsolescence',
-      tauxProvision: 15,
-      montantProvision: 540000,
-      justification: 'Modèle remplacé par nouvelle génération',
-      dateCreation: '2024-12-01',
-      dateRevision: '2024-12-20'
-    }
-  ];
+  // No movement-level, inventory, forecast or provision-stock data in DB
+  const mouvements: MouvementStock[] = [];
+  const inventaires: Inventaire[] = [];
+  const previsions: PrevisionDemande[] = [];
+  const provisionsStock: ProvisionStock[] = [];
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const valeurTotaleStock = mockArticles.reduce((sum, art) => sum + art.valeurStock, 0);
-    const nbArticlesCritiques = mockArticles.filter(art => art.stockPhysique <= art.stockMinimum).length;
-    const nbArticlesObsoletes = mockArticles.filter(art => art.statutQualite === 'obsolete').length;
-    const rotationMoyenne = mockArticles.reduce((sum, art) => sum + art.rotationStock, 0) / mockArticles.length;
-    const totalProvisions = mockProvisions.reduce((sum, prov) => sum + prov.montantProvision, 0);
-    const tauxCouverture = mockArticles.filter(art => art.stockPhysique >= art.stockMinimum).length / mockArticles.length * 100;
+    const articleCount = articles.length;
+    const valeurTotaleStock = articles.reduce((sum, art) => sum + art.valeurStock, 0);
+    const nbArticlesCritiques = articles.filter(art => art.stockPhysique <= art.stockMinimum).length;
+    const nbArticlesObsoletes = articles.filter(art => art.statutQualite === 'obsolete').length;
+    const rotationMoyenne = articleCount > 0 ? articles.reduce((sum, art) => sum + art.rotationStock, 0) / articleCount : 0;
+    const totalProvisions = provisionsStock.reduce((sum, prov) => sum + prov.montantProvision, 0);
+    const tauxCouverture = articleCount > 0 ? articles.filter(art => art.stockPhysique >= art.stockMinimum).length / articleCount * 100 : 100;
+    const today = new Date().toISOString().split('T')[0];
 
     return {
       valeurTotaleStock,
@@ -342,14 +204,14 @@ const GestionStocks: React.FC = () => {
       rotationMoyenne,
       totalProvisions,
       tauxCouverture,
-      nbMouvementsJour: mockMouvements.filter(mouv => mouv.dateOperation === '2024-12-20').length,
-      ecartInventairePourcentage: -1.2
+      nbMouvementsJour: mouvements.filter(mouv => mouv.dateOperation === today).length,
+      ecartInventairePourcentage: 0
     };
-  }, []);
+  }, [articles, provisionsStock, mouvements]);
 
   // Filtrage des articles
   const articlesFiltres = useMemo(() => {
-    return mockArticles.filter(article => {
+    return articles.filter(article => {
       const matchCategorie = filterCategorie === 'toutes' || article.categorie === filterCategorie;
       const matchStatut = filterStatut === 'tous' ||
         (filterStatut === 'critique' && article.stockPhysique <= article.stockMinimum) ||
@@ -360,7 +222,7 @@ const GestionStocks: React.FC = () => {
         article.code.toLowerCase().includes(searchTerm.toLowerCase());
       return matchCategorie && matchStatut && matchSearch;
     });
-  }, [filterCategorie, filterStatut, searchTerm]);
+  }, [articles, filterCategorie, filterStatut, searchTerm]);
 
   const getStatutStockBadge = (article: Article) => {
     if (article.stockPhysique <= article.stockMinimum) {
@@ -789,7 +651,7 @@ const GestionStocks: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockMouvements.map(mouvement => (
+                  {mouvements.map(mouvement => (
                     <tr key={mouvement.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         {new Date(mouvement.dateOperation).toLocaleDateString()}
@@ -926,7 +788,7 @@ const GestionStocks: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockInventaires.map(inventaire => (
+                  {inventaires.map(inventaire => (
                     <tr key={inventaire.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3 font-medium">{inventaire.numero}</td>
                       <td className="px-4 py-3">
@@ -1107,8 +969,8 @@ const GestionStocks: React.FC = () => {
                 <div>
                   <h4 className="font-medium mb-4">Prévisions Janvier 2025</h4>
                   <div className="space-y-3">
-                    {mockPrevisions.map(prevision => {
-                      const article = mockArticles.find(a => a.id === prevision.articleId);
+                    {previsions.map(prevision => {
+                      const article = articles.find(a => a.id === prevision.articleId);
                       return (
                         <div key={prevision.articleId} className="p-3 border rounded-lg">
                           <div className="flex justify-between items-center mb-2">

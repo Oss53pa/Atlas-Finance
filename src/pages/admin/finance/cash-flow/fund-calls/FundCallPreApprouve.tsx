@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../../../../lib/db';
 import { useLanguage } from '../../../../../contexts/LanguageContext';
 import { useFinanceContext } from '../../../../../contexts/FinanceContext';
 import { TbSquareMinusFilled, BsPlusSquareFill } from '../../../../../components/ui/Icons';
@@ -26,39 +28,28 @@ export const FundCallPreApprouve: React.FC = () => {
   const { t } = useLanguage();
   const { fundCallG } = useFinanceContext();
 
-  // Mock des données pré-approuvées
-  const mockPreApprovedDetails: Invoice[] = [
-    {
-      id: 1,
-      vendor: 'Fournisseur Alpha',
-      invoice_date: '2025-01-10',
-      entry_code: 'INV001',
-      reference: 'FA-001-2025',
-      description: 'Équipements bureautiques approuvés',
-      credit: 1500000,
-      outstanding: 1500000,
-      invoice_status: 'CE',
-      age: 15,
-      cm_recommendation: 'TBP',
-      is_pre_approved: true
-    },
-    {
-      id: 2,
-      vendor: 'Fournisseur Beta',
-      invoice_date: '2025-01-08',
-      entry_code: 'INV002',
-      reference: 'FB-002-2025',
-      description: 'Services critiques approuvés',
-      credit: 800000,
-      outstanding: 800000,
-      invoice_status: 'PA',
-      age: 18,
-      cm_recommendation: 'CFB',
-      is_pre_approved: true
+  const preApprovedFromDb = useLiveQuery(async () => {
+    if (!fundCallG.id) return [];
+    const setting = await db.settings.get('fund_calls');
+    if (!setting) return [];
+    try {
+      const parsed = JSON.parse(setting.value);
+      const allCalls = Array.isArray(parsed) ? parsed : [];
+      const found = allCalls.find(
+        (fc: Record<string, unknown>) => String(fc.id) === String(fundCallG.id)
+      );
+      if (found && Array.isArray(found.details)) {
+        return (found.details as Invoice[]).filter(
+          (inv: Invoice) => inv.is_pre_approved === true
+        );
+      }
+      return [];
+    } catch {
+      return [];
     }
-  ];
+  }, [fundCallG.id]);
 
-  const [detailsFundCall] = useState<Invoice[]>(mockPreApprovedDetails);
+  const detailsFundCall: Invoice[] = preApprovedFromDb ?? [];
   const [showContent, setShowContent] = useState<ShowContentState>({});
 
   const formattedDate = (date: string): string => {

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatDate } from '../../../../../utils/formatters';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { addressIpApi, authenticated_header } from '../../../../../globals/api';
-import axios, { AxiosError } from 'axios';
+import { db } from '../../../../../lib/db';
 import Spinner from '../../../../../components/common/Spinner';
 import { DICTIONNARY, useLanguage } from '../../../../../globals/dictionnary';
 import { FaLock, FaLockOpen, BsThreeDotsVertical } from '../../../../../components/ui/Icons';
@@ -47,36 +46,24 @@ export const FundCallDetails: React.FC = () => {
 
       try {
         setLoading(true);
-        // Simuler l'appel API avec les données de test
-        const mockData: FundCallDetails = {
-          id: parseInt(id),
-          request_date: "2025-01-15",
-          reference: `AF-2025-${id.padStart(4, '0')}`,
-          is_mark_as_pre_approved: parseInt(id) % 2 === 1, // Alternance approuvé/en attente
-          leveling_account_from_info: {
-            id: 1,
-            french_description: "Banque BCA",
-            account_number: "5211"
-          },
-          leveling_account_to_info: {
-            id: 2,
-            french_description: "Banque UBA",
-            account_number: "5212"
-          },
-          amount_requested: 2500000,
-          create_by_user: {
-            id: 1,
-            fullname: "Jean Dupont"
-          },
-          comment: `Appel de fonds détaillé pour le projet ${id}`,
-          created_at: "2025-01-15T10:30:00Z",
-          updated_at: "2025-01-15T14:45:00Z"
-        };
-
-        setFundCall(mockData);
+        const setting = await db.settings.get('fund_calls');
+        if (setting) {
+          const parsed = JSON.parse(setting.value);
+          const allCalls: FundCallDetails[] = Array.isArray(parsed) ? parsed : [];
+          const found = allCalls.find(
+            (fc) => String(fc.id) === String(id)
+          );
+          if (found) {
+            setFundCall(found);
+          } else {
+            setError("Appel de fonds introuvable");
+          }
+        } else {
+          setError("Aucun appel de fonds enregistré");
+        }
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching fund call details:", (error as AxiosError).message);
+        console.error("Error fetching fund call details:", error);
         setError("Erreur lors du chargement des détails");
         setLoading(false);
       }

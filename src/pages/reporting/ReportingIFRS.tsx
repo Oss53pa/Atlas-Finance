@@ -111,7 +111,7 @@ const ReportingIFRS: React.FC = () => {
   });
 
   // Build IFRS reports from fiscal years
-  const mockReports: IFRSReport[] = useMemo(() => {
+  const ifrsReports: IFRSReport[] = useMemo(() => {
     const types: Array<{ type: IFRSReport['reportType']; label: string; standards: string[] }> = [
       { type: 'balance_sheet', label: 'État de la Situation Financière (IAS 1)', standards: ['IAS 1', 'IFRS 7', 'IFRS 13'] },
       { type: 'income_statement', label: 'État du Résultat Global (IAS 1)', standards: ['IAS 1', 'IFRS 15'] },
@@ -169,7 +169,7 @@ const ReportingIFRS: React.FC = () => {
   }, [journalEntries]);
 
   // Static IFRS standards compliance (reference data)
-  const mockStandards: IFRSStandard[] = [
+  const IFRS_STANDARDS: IFRSStandard[] = [
     { code: 'IFRS 15', title: 'Produits des activités ordinaires tirés de contrats avec des clients', category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Implémentation complète pour les contrats clients' },
     { code: 'IFRS 16', title: 'Contrats de location', category: 'measurement', compliance: 'partial', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: "En cours d'adaptation pour nouveaux contrats" },
     { code: 'IAS 36', title: "Dépréciation d'actifs", category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: 'Tests de dépréciation réguliers effectués' },
@@ -178,7 +178,7 @@ const ReportingIFRS: React.FC = () => {
   ];
 
   // Consolidation entity built from real data
-  const mockEntities: ConsolidationEntity[] = useMemo(() => {
+  const consolidationEntities: ConsolidationEntity[] = useMemo(() => {
     return [{
       id: 'local-entity',
       name: 'Entité Principale',
@@ -195,7 +195,7 @@ const ReportingIFRS: React.FC = () => {
 
   // Filter reports based on search and filters
   const filteredReports = useMemo(() => {
-    return mockReports.filter(report => {
+    return ifrsReports.filter(report => {
       const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           report.standards.some(std => std.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -205,7 +205,7 @@ const ReportingIFRS: React.FC = () => {
 
       return matchesSearch && matchesStatus && matchesType && matchesPeriod;
     });
-  }, [searchTerm, filterStatus, filterType, filterPeriod, mockReports]);
+  }, [searchTerm, filterStatus, filterType, filterPeriod, ifrsReports]);
 
   // Calculate aggregated metrics
   const aggregatedData = useMemo(() => {
@@ -214,12 +214,12 @@ const ReportingIFRS: React.FC = () => {
     const draftReports = filteredReports.filter(r => r.status === 'draft').length;
     const reviewReports = filteredReports.filter(r => r.status === 'review').length;
 
-    const compliantStandards = mockStandards.filter(s => s.compliance === 'compliant').length;
-    const totalStandards = mockStandards.length;
+    const compliantStandards = IFRS_STANDARDS.filter(s => s.compliance === 'compliant').length;
+    const totalStandards = IFRS_STANDARDS.length;
     const complianceRate = compliantStandards / totalStandards;
 
-    const consolidatedEntities = mockEntities.filter(e => e.status === 'active').length;
-    const totalRevenue = mockEntities.reduce((sum, e) => sum + e.revenue, 0);
+    const consolidatedEntities = consolidationEntities.filter(e => e.status === 'active').length;
+    const totalRevenue = consolidationEntities.reduce((sum, e) => sum + e.revenue, 0);
 
     return {
       totalReports,
@@ -230,7 +230,7 @@ const ReportingIFRS: React.FC = () => {
       consolidatedEntities,
       totalRevenue
     };
-  }, [filteredReports, mockStandards, mockEntities]);
+  }, [filteredReports, IFRS_STANDARDS, consolidationEntities]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -318,7 +318,7 @@ const ReportingIFRS: React.FC = () => {
           <KPICard
             title="Conformité Normes"
             value={formatPercentage(aggregatedData.complianceRate)}
-            subtitle={`${mockStandards.filter(s => s.compliance === 'compliant').length}/${mockStandards.length} normes`}
+            subtitle={`${IFRS_STANDARDS.filter(s => s.compliance === 'compliant').length}/${IFRS_STANDARDS.length} normes`}
             icon={Shield}
             color="success"
             delay={0.2}
@@ -578,7 +578,7 @@ const ReportingIFRS: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockStandards.map((standard, index) => (
+                    {IFRS_STANDARDS.map((standard, index) => (
                       <motion.tr
                         key={standard.code}
                         initial={{ opacity: 0, y: 20 }}
@@ -644,7 +644,7 @@ const ReportingIFRS: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockEntities.map((entity, index) => (
+                {consolidationEntities.map((entity, index) => (
                   <motion.div
                     key={entity.id}
                     initial={{ opacity: 0, scale: 0.9 }}

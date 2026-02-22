@@ -190,13 +190,13 @@ const ControlesCoherence: React.FC = () => {
   };
 
   // Real data from Dexie via hook — mapped to component interface
-  const mockControles: ControleCoherence[] = hookControles.map(c => ({
+  const controles: ControleCoherence[] = hookControles.map(c => ({
     ...c,
     statut: c.statut === 'non_applicable' ? 'en_attente' as const : c.statut as ControleCoherence['statut'],
   }));
 
   // Derive anomalies from non-conforming controls
-  const mockAnomalies: RapportAnomalies[] = hookControles
+  const anomalies: RapportAnomalies[] = hookControles
     .filter(c => c.statut === 'non_conforme' || c.statut === 'attention')
     .map((c, i) => ({
       id: `A${i + 1}`,
@@ -216,7 +216,7 @@ const ControlesCoherence: React.FC = () => {
     }));
 
   // Derive indicators from real data
-  const mockIndicateurs: IndicateurPerformance[] = useMemo(() => {
+  const indicateurs: IndicateurPerformance[] = useMemo(() => {
     if (hookControles.length === 0) return [];
     const applicable = hookControles.filter(c => c.statut !== 'non_applicable');
     const conformes = applicable.filter(c => c.statut === 'conforme').length;
@@ -262,7 +262,7 @@ const ControlesCoherence: React.FC = () => {
   }, [hookControles]);
 
   // Derive cross-validations from relevant controls
-  const mockValidationsCroisees: ValidationCroisee[] = hookControles
+  const validationsCroisees: ValidationCroisee[] = hookControles
     .filter(c => c.categorie === 'validation_croisee')
     .map(c => ({
       id: c.id,
@@ -281,7 +281,7 @@ const ControlesCoherence: React.FC = () => {
     }));
 
   // Derive business rules from control rules
-  const mockReglesMetier: RegleMetier[] = hookControles
+  const reglesMetier: RegleMetier[] = hookControles
     .filter(c => c.reglesMetier.length > 0)
     .slice(0, 10)
     .map((c, i) => ({
@@ -299,17 +299,17 @@ const ControlesCoherence: React.FC = () => {
 
   // Calculs des KPIs
   const kpis = useMemo(() => {
-    const totalControles = mockControles.length;
-    const controlesConformes = mockControles.filter(c => c.statut === 'conforme').length;
-    const controlesNonConformes = mockControles.filter(c => c.statut === 'non_conforme').length;
-    const controlesAttention = mockControles.filter(c => c.statut === 'attention').length;
+    const totalControles = controles.length;
+    const controlesConformes = controles.filter(c => c.statut === 'conforme').length;
+    const controlesNonConformes = controles.filter(c => c.statut === 'non_conforme').length;
+    const controlesAttention = controles.filter(c => c.statut === 'attention').length;
     const tauxConformite = totalControles > 0 ? (controlesConformes / totalControles) * 100 : 0;
 
-    const anomaliesNonResolues = mockAnomalies.filter(a => a.statut !== 'resolu').length;
-    const anomaliesCritiques = mockAnomalies.filter(a => a.severite === 'critique' && a.statut !== 'resolu').length;
+    const anomaliesNonResolues = anomalies.filter(a => a.statut !== 'resolu').length;
+    const anomaliesCritiques = anomalies.filter(a => a.severite === 'critique' && a.statut !== 'resolu').length;
 
     const tempsExecutionMoyen = totalControles > 0
-      ? mockControles.reduce((sum, c) => sum + c.tempsExecution, 0) / totalControles
+      ? controles.reduce((sum, c) => sum + c.tempsExecution, 0) / totalControles
       : 0;
 
     return {
@@ -326,7 +326,7 @@ const ControlesCoherence: React.FC = () => {
 
   // Filtrage des contrôles
   const controlesFiltres = useMemo(() => {
-    return mockControles.filter(controle => {
+    return controles.filter(controle => {
       const matchCategorie = filterCategorie === 'toutes' || controle.categorie === filterCategorie;
       const matchStatut = filterStatut === 'tous' || controle.statut === filterStatut;
       const matchSearch = searchTerm === '' ||
@@ -521,7 +521,7 @@ const ControlesCoherence: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   {['balance', 'validation_croisee', 'conformite_syscohada', 'coherence_temporelle'].map(categorie => {
-                    const controlesCategorie = mockControles.filter(c => c.categorie === categorie);
+                    const controlesCategorie = controles.filter(c => c.categorie === categorie);
                     const conformes = controlesCategorie.filter(c => c.statut === 'conforme').length;
                     const total = controlesCategorie.length;
                     const pourcentage = total > 0 ? (conformes / total) * 100 : 0;
@@ -555,7 +555,7 @@ const ControlesCoherence: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   {['critique', 'majeure', 'mineure', 'information'].map(severite => {
-                    const anomaliesSeverite = mockAnomalies.filter(a => a.severite === severite);
+                    const anomaliesSeverite = anomalies.filter(a => a.severite === severite);
                     const ouvertes = anomaliesSeverite.filter(a => a.statut !== 'resolu').length;
                     const total = anomaliesSeverite.length;
 
@@ -586,7 +586,7 @@ const ControlesCoherence: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-6">
-                {mockIndicateurs.map((indicateur, index) => (
+                {indicateurs.map((indicateur, index) => (
                   <div key={index} className="text-center p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-sm">{indicateur.nom}</h4>
@@ -766,7 +766,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Critiques</p>
-                    <p className="text-lg font-bold text-[var(--color-error)]">{mockAnomalies.filter(a => a.severite === 'critique' && a.statut !== 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-error)]">{anomalies.filter(a => a.severite === 'critique' && a.statut !== 'resolu').length}</p>
                   </div>
                   <AlertOctagon className="w-6 h-6 text-[var(--color-error)]" />
                 </div>
@@ -777,7 +777,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Majeures</p>
-                    <p className="text-lg font-bold text-[var(--color-warning)]">{mockAnomalies.filter(a => a.severite === 'majeure' && a.statut !== 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">{anomalies.filter(a => a.severite === 'majeure' && a.statut !== 'resolu').length}</p>
                   </div>
                   <AlertTriangle className="w-6 h-6 text-orange-500" />
                 </div>
@@ -788,7 +788,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Mineures</p>
-                    <p className="text-lg font-bold text-[var(--color-warning)]">{mockAnomalies.filter(a => a.severite === 'mineure' && a.statut !== 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-warning)]">{anomalies.filter(a => a.severite === 'mineure' && a.statut !== 'resolu').length}</p>
                   </div>
                   <AlertCircle className="w-6 h-6 text-yellow-500" />
                 </div>
@@ -799,7 +799,7 @@ const ControlesCoherence: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[var(--color-text-primary)]">Résolues</p>
-                    <p className="text-lg font-bold text-[var(--color-success)]">{mockAnomalies.filter(a => a.statut === 'resolu').length}</p>
+                    <p className="text-lg font-bold text-[var(--color-success)]">{anomalies.filter(a => a.statut === 'resolu').length}</p>
                   </div>
                   <CheckCircle className="w-6 h-6 text-[var(--color-success)]" />
                 </div>
@@ -825,7 +825,7 @@ const ControlesCoherence: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockAnomalies.map(anomalie => (
+                  {anomalies.map(anomalie => (
                     <tr key={anomalie.id} className="border-t hover:bg-[var(--color-background-secondary)]">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -904,7 +904,7 @@ const ControlesCoherence: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockValidationsCroisees.map(validation => (
+                {validationsCroisees.map(validation => (
                   <div key={validation.id} className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -961,7 +961,7 @@ const ControlesCoherence: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockReglesMetier.map(regle => (
+                {reglesMetier.map(regle => (
                   <div key={regle.id} className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -1011,7 +1011,7 @@ const ControlesCoherence: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockIndicateurs.map((indicateur, index) => (
+                  {indicateurs.map((indicateur, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex justify-between items-start mb-3">
                         <div>
