@@ -179,7 +179,7 @@ const EtatsSYSCOHADA: React.FC = () => {
   const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field === 'etats_selectionnes') {
       const currentArray = Array.isArray(formData.etats_selectionnes) ? formData.etats_selectionnes : [];
-      const newArray = currentArray.includes(value)
+      const newArray = currentArray.includes(value as string)
         ? currentArray.filter(item => item !== value)
         : [...currentArray, value];
       setFormData(prev => ({ ...prev, etats_selectionnes: newArray }));
