@@ -419,24 +419,35 @@ function CloturesPeriodiquesPage() {
       <div>
         {/* ===== SHARED: Dashboard ===== */}
         {tab === 'dashboard' && (
-          <DashboardSection
-            mode={mode}
-            loading={dashLoading}
-            activeFY={selectedFY}
-            stats={fyStats}
-            sessions={sessions}
-            periods={periods}
-            selectedPeriod={selectedPeriod}
-          />
+          <>
+            <DashboardSection
+              mode={mode}
+              loading={dashLoading}
+              activeFY={selectedFY}
+              stats={fyStats}
+              sessions={sessions}
+              periods={periods}
+              selectedPeriod={selectedPeriod}
+            />
+            <CycleExecutionSection
+              mode={mode}
+              steps={steps}
+              executing={executing}
+              selectedFYId={selectedFYId}
+              selectedPeriodId={selectedPeriodId}
+              onExecuteStep={handleExecuteStep}
+              onExecuteAll={handleExecuteAll}
+            />
+          </>
         )}
 
         {/* ===== MONTHLY TABS ===== */}
         {mode === 'mensuelle' && tab === 'verification' && <ControlePeriodes />}
 
-        {mode === 'mensuelle' && tab === 'regularisations' && selectedFY && (
+        {mode === 'mensuelle' && tab === 'regularisations' && (
           <RegularisationsTab
             exerciceId={selectedFYId}
-            dateClotureExercice={selectedFY.endDate}
+            dateClotureExercice={selectedFY?.endDate || ''}
             periodeCode={selectedPeriod?.code}
           />
         )}
@@ -482,10 +493,10 @@ function CloturesPeriodiquesPage() {
           </div>
         )}
 
-        {mode === 'annuelle' && tab === 'inventaire' && selectedFY && (
+        {mode === 'annuelle' && tab === 'inventaire' && (
           <RegularisationsTab
             exerciceId={selectedFYId}
-            dateClotureExercice={selectedFY.endDate}
+            dateClotureExercice={selectedFY?.endDate || ''}
           />
         )}
 
@@ -504,6 +515,195 @@ function CloturesPeriodiquesPage() {
           />
         )}
       </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// CYCLE EXECUTION SECTION
+// ============================================================================
+
+function CycleExecutionSection({
+  mode,
+  steps,
+  executing,
+  selectedFYId,
+  selectedPeriodId,
+  onExecuteStep,
+  onExecuteAll,
+}: {
+  mode: ClotureMode;
+  steps: ClotureStep[];
+  executing: boolean;
+  selectedFYId: string;
+  selectedPeriodId: string;
+  onExecuteStep: (stepId: string) => void;
+  onExecuteAll: () => void;
+}) {
+  const completedSteps = steps.filter(s => s.status === 'done').length;
+  const errorSteps = steps.filter(s => s.status === 'error').length;
+  const totalSteps = steps.length;
+  const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+  const allDone = completedSteps === totalSteps && totalSteps > 0;
+  const hasErrors = errorSteps > 0;
+
+  const missingSelection = !selectedFYId || (mode === 'mensuelle' && !selectedPeriodId);
+
+  return (
+    <div className="mt-6 bg-white border border-gray-200 rounded-lg p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <Play className="w-5 h-5 text-blue-600" />
+          Cycle de clôture {mode === 'mensuelle' ? 'mensuelle' : 'annuelle'}
+          <span className="text-sm font-normal text-gray-500">
+            ({totalSteps} étapes)
+          </span>
+        </h2>
+        <button
+          onClick={onExecuteAll}
+          disabled={executing || missingSelection || allDone}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+        >
+          {executing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Play className="w-4 h-4" />
+          )}
+          Tout exécuter
+        </button>
+      </div>
+
+      {missingSelection && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          {!selectedFYId
+            ? 'Sélectionnez un exercice fiscal pour démarrer le cycle de clôture.'
+            : 'Sélectionnez une période pour démarrer le cycle de clôture mensuelle.'}
+        </div>
+      )}
+
+      {/* Progress bar */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              hasErrors ? 'bg-red-500' : allDone ? 'bg-green-500' : 'bg-blue-600'
+            }`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <span className={`text-sm font-medium min-w-[48px] text-right ${
+          hasErrors ? 'text-red-600' : allDone ? 'text-green-600' : 'text-gray-600'
+        }`}>
+          {progress}%
+        </span>
+      </div>
+
+      {/* Steps list */}
+      <div className="space-y-1">
+        {steps.map((step, index) => {
+          const isRunning = step.status === 'running';
+          const isDone = step.status === 'done';
+          const isError = step.status === 'error';
+          const isPending = step.status === 'pending';
+
+          return (
+            <div
+              key={step.id}
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                isRunning ? 'border-blue-200 bg-blue-50'
+                  : isDone ? 'border-green-200 bg-green-50'
+                  : isError ? 'border-red-200 bg-red-50'
+                  : 'border-gray-100 bg-gray-50'
+              }`}
+            >
+              {/* Step number */}
+              <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold flex-shrink-0 ${
+                isDone ? 'bg-green-600 text-white'
+                  : isError ? 'bg-red-600 text-white'
+                  : isRunning ? 'bg-blue-600 text-white'
+                  : 'bg-gray-300 text-white'
+              }`}>
+                {isDone ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : isError ? (
+                  <XCircle className="w-4 h-4" />
+                ) : isRunning ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  index + 1
+                )}
+              </div>
+
+              {/* Step info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${
+                    isDone ? 'text-green-800' : isError ? 'text-red-800' : isRunning ? 'text-blue-800' : 'text-gray-700'
+                  }`}>
+                    {mode === 'mensuelle' ? `M${index + 1}` : `A${index + 1}`}. {step.label}
+                  </span>
+                  {step.status !== 'pending' && (
+                    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                      isDone ? 'bg-green-100 text-green-700'
+                        : isError ? 'bg-red-100 text-red-700'
+                        : isRunning ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {isDone ? 'Terminé' : isError ? 'Erreur' : isRunning ? 'En cours...' : step.status}
+                    </span>
+                  )}
+                </div>
+                {step.message && (
+                  <p className={`text-xs mt-0.5 truncate ${
+                    isError ? 'text-red-600' : 'text-gray-500'
+                  }`}>
+                    {step.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Execute button */}
+              <button
+                onClick={() => onExecuteStep(step.id)}
+                disabled={executing || missingSelection || isDone}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex-shrink-0 ${
+                  isDone
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : isError
+                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {isRunning ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : isError ? (
+                  <RefreshCw className="w-3 h-3" />
+                ) : isDone ? (
+                  <CheckCircle className="w-3 h-3" />
+                ) : (
+                  <Play className="w-3 h-3" />
+                )}
+                {isDone ? 'OK' : isError ? 'Réessayer' : 'Exécuter'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Summary after execution */}
+      {allDone && (
+        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          Cycle de clôture {mode === 'mensuelle' ? 'mensuelle' : 'annuelle'} terminé avec succès.
+        </div>
+      )}
+      {hasErrors && !executing && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          {errorSteps} étape(s) en erreur. Corrigez les problèmes puis réessayez.
+        </div>
+      )}
     </div>
   );
 }
@@ -581,68 +781,77 @@ function DashboardSection({
       </div>
 
       {/* Key metrics */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard label="Écritures" value={String(stats.totalEntries)} />
-          <MetricCard label="Brouillons" value={String(stats.drafts)} alert={stats.drafts > 0} />
-          <MetricCard label="Produits (cl.7)" value={formatCurrency(stats.produits)} />
-          <MetricCard
-            label="Résultat"
-            value={formatCurrency(stats.resultat)}
-            subtitle={stats.resultat >= 0 ? 'Bénéfice' : 'Perte'}
-          />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <MetricCard label="Écritures" value={stats ? String(stats.totalEntries) : '—'} />
+        <MetricCard label="Brouillons" value={stats ? String(stats.drafts) : '—'} alert={!!stats && stats.drafts > 0} />
+        <MetricCard label="Produits (cl.7)" value={stats ? formatCurrency(stats.produits) : '—'} />
+        <MetricCard
+          label="Résultat"
+          value={stats ? formatCurrency(stats.resultat) : '—'}
+          subtitle={stats ? (stats.resultat >= 0 ? 'Bénéfice' : 'Perte') : undefined}
+        />
+      </div>
+
+      {/* Monthly: period progress */}
+      {mode === 'mensuelle' && (
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Progression des périodes</h3>
+          {totalPeriods > 0 ? (
+            <>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-sm text-gray-600">{closedPeriods}/{totalPeriods} périodes clôturées</span>
+                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-600 rounded-full transition-all"
+                    style={{ width: `${(closedPeriods / totalPeriods) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {periods.map(p => (
+                  <span
+                    key={p.id}
+                    className={`px-2 py-0.5 text-xs rounded ${
+                      p.status === 'cloturee' ? 'bg-green-100 text-green-700'
+                        : p.status === 'en_cloture' ? 'bg-yellow-100 text-yellow-700'
+                        : p.status === 'rouverte' ? 'bg-orange-100 text-orange-700'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    {p.code.slice(5)}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-gray-500">Aucune période créée. Utilisez le bouton ci-dessus pour créer les 12 périodes mensuelles.</p>
+          )}
         </div>
       )}
 
-      {/* Monthly: period progress */}
-      {mode === 'mensuelle' && totalPeriods > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Progression des périodes</h3>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm text-gray-600">{closedPeriods}/{totalPeriods} périodes clôturées</span>
-            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-600 rounded-full transition-all"
-                style={{ width: `${totalPeriods > 0 ? (closedPeriods / totalPeriods) * 100 : 0}%` }}
-              />
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {periods.map(p => (
-              <span
-                key={p.id}
-                className={`px-2 py-0.5 text-xs rounded ${
-                  p.status === 'cloturee' ? 'bg-green-100 text-green-700'
-                    : p.status === 'en_cloture' ? 'bg-yellow-100 text-yellow-700'
-                    : p.status === 'rouverte' ? 'bg-orange-100 text-orange-700'
-                    : 'bg-gray-100 text-gray-500'
-                }`}
-              >
-                {p.code.slice(5)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Sections overview — always visible */}
+      <SectionsOverview mode={mode} />
 
       {/* Sessions */}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Sessions de clôture</h2>
-        {sessions.length === 0 ? (
-          <p className="text-gray-500 text-sm">Aucune session de clôture enregistrée.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-gray-500">
-                <th className="pb-2">Type</th>
-                <th className="pb-2">Période</th>
-                <th className="pb-2">Statut</th>
-                <th className="pb-2">Progression</th>
-                <th className="pb-2">Date</th>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b text-left text-gray-500">
+              <th className="pb-2">Type</th>
+              <th className="pb-2">Période</th>
+              <th className="pb-2">Statut</th>
+              <th className="pb-2">Progression</th>
+              <th className="pb-2">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sessions.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-6 text-center text-gray-400">Aucune session de clôture enregistrée</td>
               </tr>
-            </thead>
-            <tbody>
-              {sessions.map(s => (
+            ) : (
+              sessions.map(s => (
                 <tr key={s.id} className="border-b last:border-0">
                   <td className="py-2">{s.type}</td>
                   <td className="py-2">{s.periode}</td>
@@ -658,10 +867,10 @@ function DashboardSection({
                   <td className="py-2">{s.progression}%</td>
                   <td className="py-2 text-gray-500">{s.dateCreation.slice(0, 10)}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -679,6 +888,200 @@ function MetricCard({ label, value, subtitle, alert }: {
       <p className="text-xl font-semibold mt-1">{value}</p>
       {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
       {alert && <AlertTriangle className="w-4 h-4 text-yellow-500 mt-1" />}
+    </div>
+  );
+}
+
+// ============================================================================
+// SECTIONS OVERVIEW (always visible on dashboard)
+// ============================================================================
+
+const MONTHLY_SECTIONS = [
+  {
+    tab: 'verification' as MonthlyTabId,
+    title: 'Vérification',
+    description: 'Contrôle des périodes, vérification des pré-requis, ordre chronologique, délais légaux OHADA.',
+    icon: <ClipboardCheck className="w-5 h-5" />,
+    details: [
+      'Pré-requis de clôture (aucun brouillon)',
+      'Ordre chronologique des périodes',
+      'Délai légal (10 jours après fin de période)',
+      'Validations requises (comptable, fiscal, audit, direction)',
+    ],
+  },
+  {
+    tab: 'regularisations' as MonthlyTabId,
+    title: 'Régularisations',
+    description: 'Saisie et génération des écritures de régularisation conformes au SYSCOHADA révisé.',
+    icon: <BookOpen className="w-5 h-5" />,
+    details: [
+      'CCA — Charges constatées d\'avance',
+      'PCA — Produits constatés d\'avance',
+      'FNP — Fournisseurs, factures non parvenues',
+      'FAE — Clients, factures à établir',
+      'Calcul prorata temporis automatique',
+      'Preview des extournes',
+    ],
+  },
+  {
+    tab: 'controles' as MonthlyTabId,
+    title: 'Contrôles de cohérence',
+    description: '9 contrôles de cohérence mensuels sur les écritures, balances et comptes.',
+    icon: <Shield className="w-5 h-5" />,
+    details: [
+      'C1 — Équilibre débit/crédit',
+      'C2 — Balance des comptes',
+      'C3 — Séquence chronologique',
+      'C5 — Cohérence classe 5 (trésorerie)',
+      'C6 — Lettrage des comptes tiers',
+      'C8 — TVA collectée/déductible',
+      'C10 — Comptes d\'attente soldés',
+      'C11 — Virements internes',
+      'C13 — Cohérence inter-journaux',
+    ],
+  },
+  {
+    tab: 'verrouillage' as MonthlyTabId,
+    title: 'Verrouillage',
+    description: 'Verrouillage/réouverture de la période. Opération réversible, tracée dans la piste d\'audit.',
+    icon: <Lock className="w-5 h-5" />,
+    details: [
+      'Verrouillage empêche toute modification des écritures',
+      'Réouverture possible (tracée dans l\'audit)',
+      'Statuts: ouverte → en clôture → clôturée → rouverte',
+      'Progression de la période (0-100%)',
+    ],
+  },
+  {
+    tab: 'etats' as MonthlyTabId,
+    title: 'États de gestion',
+    description: 'Génération des états financiers SYSCOHADA pour la période.',
+    icon: <FileText className="w-5 h-5" />,
+    details: [
+      'Bilan (actif/passif)',
+      'Compte de résultat',
+      'TAFIRE (Tableau Financier des Ressources et Emplois)',
+      'Notes annexes',
+      'Conformité SYSCOHADA révisé',
+    ],
+  },
+];
+
+const ANNUAL_SECTIONS = [
+  {
+    tab: 'travaux' as AnnualTabId,
+    title: 'Travaux préparatoires',
+    description: 'Vérifications et contrôles avant la clôture annuelle.',
+    icon: <Settings className="w-5 h-5" />,
+    details: [
+      'Contrôle des périodes (toutes doivent être clôturées)',
+      'Immobilisations — inventaire, amortissements, cessions',
+      'Rapprochement bancaire — lettrage, écarts, moyens de paiement',
+    ],
+  },
+  {
+    tab: 'inventaire' as AnnualTabId,
+    title: 'Écritures d\'inventaire',
+    description: 'Régularisations, amortissements, provisions et impôts de fin d\'exercice.',
+    icon: <BookOpen className="w-5 h-5" />,
+    details: [
+      'Régularisations CCA/PCA/FNP/FAE',
+      'Dotations aux amortissements (linéaire, dégressif)',
+      'Provisions pour créances douteuses',
+      'Calcul de l\'impôt sur les sociétés (IS)',
+      'Extournes automatiques',
+    ],
+  },
+  {
+    tab: 'controles' as AnnualTabId,
+    title: 'Contrôles de cohérence',
+    description: '17 contrôles dont 7 bloquants obligatoires pour la validation finale.',
+    icon: <Shield className="w-5 h-5" />,
+    details: [
+      '9 contrôles mensuels + 8 contrôles annuels spécifiques',
+      'C4 — Dotations aux amortissements complètes',
+      'C14 — Provisions conformes au calcul actuariel',
+      'C15 — Affectation du résultat N-1',
+      'C16 — Reports à nouveau cohérents',
+      '7 contrôles bloquants (empêchent la validation finale)',
+    ],
+  },
+  {
+    tab: 'etats' as AnnualTabId,
+    title: 'États financiers',
+    description: 'Génération complète des états SYSCOHADA (bilan, compte de résultat, TAFIRE, notes).',
+    icon: <FileText className="w-5 h-5" />,
+    details: [
+      'Bilan actif/passif conforme plan comptable OHADA',
+      'Compte de résultat (charges/produits par nature)',
+      'TAFIRE (flux de trésorerie)',
+      'Notes annexes réglementaires',
+      'Export PDF horodaté',
+    ],
+  },
+  {
+    tab: 'validation' as AnnualTabId,
+    title: 'Validation finale',
+    description: 'Validation irréversible de la clôture annuelle avec contrôles bloquants.',
+    icon: <CheckCircle className="w-5 h-5" />,
+    details: [
+      'Vérification finale des contrôles bloquants',
+      'Signature du responsable comptable',
+      'Verrouillage définitif de l\'exercice',
+      'Horodatage et traçabilité complète',
+      'Opération irréversible',
+    ],
+  },
+  {
+    tab: 'affectation' as AnnualTabId,
+    title: 'Affectation & Reports',
+    description: 'Affectation du résultat post-AG et génération des reports à nouveau N+1.',
+    icon: <ArrowRight className="w-5 h-5" />,
+    details: [
+      'Résultat net (bénéfice/perte)',
+      'Réserve légale (10%, plafond 20% capital)',
+      'Réserves statutaires et facultatives',
+      'Dividendes',
+      'Report à nouveau',
+      'Reports à nouveau vers exercice N+1',
+      'Assistant IA (Proph3t) + Archives',
+    ],
+  },
+];
+
+function SectionsOverview({ mode }: { mode: ClotureMode }) {
+  const sections = mode === 'mensuelle' ? MONTHLY_SECTIONS : ANNUAL_SECTIONS;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-5">
+      <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <Info className="w-5 h-5 text-blue-500" />
+        Détail des sections — Clôture {mode === 'mensuelle' ? 'mensuelle' : 'annuelle'}
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {sections.map((section, idx) => (
+          <div
+            key={section.tab}
+            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="text-blue-600">{section.icon}</div>
+              <h3 className="text-sm font-semibold text-gray-800">
+                {mode === 'mensuelle' ? idx + 1 : idx + 1}. {section.title}
+              </h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">{section.description}</p>
+            <ul className="space-y-1">
+              {section.details.map((detail, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
+                  <ChevronRight className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <span>{detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

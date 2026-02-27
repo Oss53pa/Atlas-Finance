@@ -19,6 +19,16 @@ class GeneralLedgerService {
   async getLedgerAccounts(adapter: DataAdapter, filters: GeneralLedgerFilters): Promise<AccountLedger[]> {
     const entries = await this.queryEntries(adapter, filters);
 
+    // P1-3: Compute opening balances from AN/RAN journal entries
+    const openingBalances = new Map<string, number>();
+    for (const entry of entries) {
+      if (entry.journal !== 'AN' && entry.journal !== 'RAN') continue;
+      for (const line of entry.lines) {
+        const current = openingBalances.get(line.accountCode) || 0;
+        openingBalances.set(line.accountCode, current + line.debit - line.credit);
+      }
+    }
+
     // Group lines by account code
     const accountMap = new Map<string, { libelle: string; debit: number; credit: number; entries: Array<{ id: string; date: string; piece: string; libelle: string; debit: number; credit: number; solde: number; journal: string; tiers: string }> }>();
 
@@ -54,8 +64,17 @@ class GeneralLedgerService {
       if (filters.compteDebut && code < filters.compteDebut) continue;
       if (filters.compteFin && code > filters.compteFin) continue;
 
-      let runningBalance = 0;
-      for (const e of data.entries.sort((a, b) => a.date.localeCompare(b.date))) {
+      const soldeOuverture = openingBalances.get(code) || 0;
+      let runningBalance = soldeOuverture;
+      // Sort entries with AN/RAN first (opening), then by date
+      const sorted = data.entries.sort((a, b) => {
+        if (a.journal === 'AN' || a.journal === 'RAN') return -1;
+        if (b.journal === 'AN' || b.journal === 'RAN') return 1;
+        return a.date.localeCompare(b.date);
+      });
+      // Reset running balance — AN entries are already in totalDebit/totalCredit
+      runningBalance = 0;
+      for (const e of sorted) {
         runningBalance += e.debit - e.credit;
         e.solde = runningBalance;
       }
@@ -63,12 +82,12 @@ class GeneralLedgerService {
       accounts.push({
         compte: code,
         libelle: data.libelle,
-        soldeOuverture: 0,
+        soldeOuverture,
         totalDebit: data.debit,
         totalCredit: data.credit,
         soldeFermeture: data.debit - data.credit,
         nombreEcritures: data.entries.length,
-        entries: data.entries,
+        entries: sorted,
       });
     }
 
@@ -111,9 +130,21 @@ class GeneralLedgerService {
       }
     }
 
-    // Running balance
+    // P1-3: Compute solde d'ouverture from AN/RAN entries for this account
+    let soldeOuverture = 0;
+    for (const l of lines) {
+      if (l.journal === 'AN' || l.journal === 'RAN') {
+        soldeOuverture += l.debit - l.credit;
+      }
+    }
+
+    // Running balance — sort AN/RAN first
+    lines.sort((a, b) => {
+      if (a.journal === 'AN' || a.journal === 'RAN') return -1;
+      if (b.journal === 'AN' || b.journal === 'RAN') return 1;
+      return a.date.localeCompare(b.date);
+    });
     let runningBalance = 0;
-    lines.sort((a, b) => a.date.localeCompare(b.date));
     for (const l of lines) {
       runningBalance += l.debit - l.credit;
       l.solde = runningBalance;
@@ -122,7 +153,7 @@ class GeneralLedgerService {
     return {
       compte: accountNumber,
       libelle,
-      soldeOuverture: 0,
+      soldeOuverture,
       totalDebit,
       totalCredit,
       soldeFermeture: totalDebit - totalCredit,

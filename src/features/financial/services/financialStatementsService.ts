@@ -12,6 +12,7 @@ import {
   Bilan,
   BilanActif,
   BilanPassif,
+  BilanWarning,
   CompteResultat,
   SIG,
   RatiosFinanciers,
@@ -107,60 +108,78 @@ function safeDivide(a: number, b: number): number {
 // ============================================================================
 
 function computeBilan(entries: DBJournalEntry[], exercice: string): Bilan {
+  const warnings: BilanWarning[] = [];
+
   // ACTIF — SYSCOHADA classes 2 (immobilisé), 3 (stocks), 4 débit (créances), 5 débit (trésorerie)
   const immobilisationsIncorporelles = netByPrefix(entries, '21');
   const immobilisationsCorporelles = netByPrefix(entries, '22', '23', '24');
   const immobilisationsFinancieres = netByPrefix(entries, '25', '26', '27');
-  // Less accumulated depreciation (class 28)
   const amortissements = netByPrefix(entries, '28'); // credit balance → negative
   const totalActifImmobilise = money(immobilisationsIncorporelles)
     .add(immobilisationsCorporelles)
     .add(immobilisationsFinancieres)
-    .add(amortissements) // amortissements is negative (credit balance)
+    .add(amortissements)
     .toNumber();
 
   const stocks = netByPrefix(entries, '3');
   const creancesClients = netByPrefix(entries, '41');
-  const autresCreances = netByPrefix(entries, '42', '43', '44', '45', '46', '47');
-  const tresorerieActif = netByPrefix(entries, '5'); // 50-59: trésorerie active
+
+  // P1-1b: Comptes 42-47 — séparer soldes débiteurs (actif) et créditeurs (passif)
+  const autresCreancesRaw = netByPrefix(entries, '42', '43', '44', '45', '46', '47');
+  const autresCreances = Math.max(0, autresCreancesRaw);
+  const autresDettesFromCreances = Math.max(0, -autresCreancesRaw);
+
+  // P1-1c: Trésorerie — séparer actif (hors 519) et passif (519 = découverts)
+  const tresorerieActif = netByPrefix(entries, '50', '51', '52', '53', '54', '55', '56', '57', '58');
+  const tresoreriePassive = Math.max(0, -netByPrefix(entries, '519'));
+
   const totalActifCirculant = money(stocks)
     .add(creancesClients)
     .add(autresCreances)
-    .add(tresorerieActif)
+    .add(Math.max(0, tresorerieActif))
     .toNumber();
 
   const totalActif = money(totalActifImmobilise).add(totalActifCirculant).toNumber();
 
+  // P1-1a: Signal anomalies instead of silently masking with Math.max(0,...)
+  const immoCorpNet = money(immobilisationsCorporelles).add(amortissements).toNumber();
+  if (immobilisationsIncorporelles < 0) warnings.push({ field: 'immobilisationsIncorporelles', message: 'Actif incorporel négatif — vérifier les écritures de la classe 21', amount: immobilisationsIncorporelles });
+  if (immoCorpNet < 0) warnings.push({ field: 'immobilisationsCorporelles', message: 'Actif corporel net négatif — amortissements excessifs sur classes 22-24', amount: immoCorpNet });
+  if (stocks < 0) warnings.push({ field: 'stocks', message: 'Stocks négatifs — vérifier les mouvements de la classe 3', amount: stocks });
+  if (tresorerieActif < 0) warnings.push({ field: 'tresorerieActif', message: 'Trésorerie négative — vérifier les comptes de la classe 5', amount: tresorerieActif });
+
   const actif: BilanActif = {
-    immobilisationsIncorporelles: Math.max(0, immobilisationsIncorporelles),
-    immobilisationsCorporelles: Math.max(0, money(immobilisationsCorporelles).add(amortissements).toNumber()),
-    immobilisationsFinancieres: Math.max(0, immobilisationsFinancieres),
-    totalActifImmobilise: Math.max(0, totalActifImmobilise),
-    stocks: Math.max(0, stocks),
-    creancesClients: Math.max(0, creancesClients),
-    autresCreances: Math.max(0, autresCreances),
+    immobilisationsIncorporelles,
+    immobilisationsCorporelles: immoCorpNet,
+    immobilisationsFinancieres,
+    totalActifImmobilise,
+    stocks,
+    creancesClients,
+    autresCreances,
     tresorerieActif: Math.max(0, tresorerieActif),
-    totalActifCirculant: Math.max(0, totalActifCirculant),
-    totalActif: Math.max(0, totalActif),
+    totalActifCirculant,
+    totalActif,
   };
 
   // PASSIF — SYSCOHADA class 1 (capitaux), 4 crédit (dettes), 5 crédit (trésorerie passif)
   const capitalSocial = Math.abs(netByPrefix(entries, '10'));
   const reserves = Math.abs(netByPrefix(entries, '11'));
-  const reportANouveau = -netByPrefix(entries, '12'); // Credit balance = positive
+  const reportANouveau = -netByPrefix(entries, '12');
   const resultatExercice = computeResultatNet(entries);
   const capitauxPropres = money(capitalSocial).add(reserves).add(reportANouveau).add(resultatExercice).toNumber();
 
   const emprunts = Math.abs(netByPrefix(entries, '16'));
   const dettesFinancieres = Math.abs(netByPrefix(entries, '17'));
   const dettesFournisseurs = Math.abs(netByPrefix(entries, '40'));
-  const autresDettes = Math.abs(netByPrefix(entries, '42', '43', '44', '45', '46', '47'));
+  // P1-1b: autresDettes = soldes créditeurs des comptes 42-47 séparés
+  const autresDettes = autresDettesFromCreances;
 
   const totalPassif = money(capitauxPropres)
     .add(emprunts)
     .add(dettesFinancieres)
     .add(dettesFournisseurs)
     .add(autresDettes)
+    .add(tresoreriePassive)
     .toNumber();
 
   const passif: BilanPassif = {
@@ -175,7 +194,7 @@ function computeBilan(entries: DBJournalEntry[], exercice: string): Bilan {
     totalPassif,
   };
 
-  return { actif, passif, exercice, dateEtablissement: new Date().toISOString() };
+  return { actif, passif, exercice, dateEtablissement: new Date().toISOString(), tresoreriePassive, warnings };
 }
 
 // ============================================================================
@@ -193,8 +212,10 @@ function computeResultatNet(entries: DBJournalEntry[]): number {
 function computeCompteResultat(entries: DBJournalEntry[], exercice: string): CompteResultat {
   // PRODUITS D'EXPLOITATION
   const ventesMarc = creditByPrefix(entries, '70') - debitByPrefix(entries, '70');
-  const productionVendue = creditByPrefix(entries, '70', '71') - debitByPrefix(entries, '70', '71');
-  const productionStockee = creditByPrefix(entries, '73') - debitByPrefix(entries, '73');
+  // P0-1 FIX: productionVendue = uniquement compte 70 (pas 71 qui est production stockée)
+  const productionVendue = creditByPrefix(entries, '70') - debitByPrefix(entries, '70');
+  // Production stockée = variation des stocks de produits (71), poste séparé SYSCOHADA
+  const productionStockee = creditByPrefix(entries, '71', '73') - debitByPrefix(entries, '71', '73');
   const productionImmobilisee = creditByPrefix(entries, '72') - debitByPrefix(entries, '72');
   const subventionsExploitation = creditByPrefix(entries, '74') - debitByPrefix(entries, '74');
   const autresProduitsExploitation = creditByPrefix(entries, '75', '78', '79') - debitByPrefix(entries, '75', '78', '79');
@@ -225,8 +246,10 @@ function computeCompteResultat(entries: DBJournalEntry[], exercice: string): Com
   const resultatCourant = money(resultatExploitation).add(resultatFinancier).toNumber();
 
   // HAO (Hors Activité Ordinaire) — SYSCOHADA specific
-  const produitsExceptionnels = creditByPrefix(entries, '84', '86', '88') - debitByPrefix(entries, '84', '86', '88');
-  const chargesExceptionnelles = debitByPrefix(entries, '83', '85', '87') - creditByPrefix(entries, '83', '85', '87');
+  // 81=VNC cessions, 82=Produits cessions, 83=Charges HAO, 84=Produits HAO,
+  // 85=Dotations HAO, 86=Reprises HAO, 87=Participation, 88=Subventions
+  const produitsExceptionnels = creditByPrefix(entries, '82', '84', '86', '88') - debitByPrefix(entries, '82', '84', '86', '88');
+  const chargesExceptionnelles = debitByPrefix(entries, '81', '83', '85', '87') - creditByPrefix(entries, '81', '83', '85', '87');
   const resultatExceptionnel = money(produitsExceptionnels).subtract(chargesExceptionnelles).toNumber();
 
   // IMPÔT
@@ -245,8 +268,10 @@ function computeCompteResultat(entries: DBJournalEntry[], exercice: string): Com
     achatsConsommes,
     servicesExterieurs,
     chargesPersonnel,
+    impotsTaxes,
     dotationsAmortissements,
-    autresChargesExploitation: money(autresChargesExploitation).add(impotsTaxes).toNumber(),
+    // P0-2 FIX: autresChargesExploitation ne doit PAS inclure impotsTaxes (déjà dans totalChargesExploitation)
+    autresChargesExploitation,
     totalChargesExploitation,
     resultatExploitation,
     produitsFinanciers,
@@ -288,9 +313,15 @@ function computeSIG(cr: CompteResultat, entries: DBJournalEntry[]): SIG {
     .subtract(impotsTaxes)
     .toNumber();
 
-  // CAF = Résultat net + Dotations - Reprises + VNC cessions - Produits cessions
+  // CAF = Résultat net + Dotations amort/prov - Reprises + VNC cessions (81) - Produits cessions (82)
+  const reprises = creditByPrefix(entries, '78', '79') - debitByPrefix(entries, '78', '79');
+  const vncCessions = debitByPrefix(entries, '81') - creditByPrefix(entries, '81');
+  const produitsCessions = creditByPrefix(entries, '82') - debitByPrefix(entries, '82');
   const capaciteAutofinancement = money(cr.resultatNet)
     .add(cr.dotationsAmortissements)
+    .subtract(reprises)
+    .add(vncCessions)
+    .subtract(produitsCessions)
     .toNumber();
 
   return {
@@ -349,7 +380,8 @@ function computeBilanFonctionnel(bilan: Bilan): BilanFonctionnel {
   const ressourcesStables = money(passif.capitauxPropres).add(passif.emprunts).add(passif.dettesFinancieres).toNumber();
   const passifCirculantExploitation = passif.dettesFournisseurs;
   const passifCirculantHorsExploitation = passif.autresDettes;
-  const tresoreriePassive = 0; // Concours bancaires — would need account 519
+  // P1-1c: Trésorerie passive = découverts bancaires (compte 519)
+  const tresoreriePassive = bilan.tresoreriePassive ?? 0;
 
   const fondRoulementNet = money(ressourcesStables).subtract(emploisStables).toNumber();
   const bfrExploitation = money(actifCirculantExploitation).subtract(passifCirculantExploitation).toNumber();

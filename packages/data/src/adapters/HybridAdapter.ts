@@ -210,6 +210,7 @@ export class HybridAdapter implements DataAdapter {
       'journalEntries', 'accounts', 'thirdParties', 'assets',
       'fiscalYears', 'budgetLines', 'closureSessions', 'provisions',
       'exchangeRates', 'hedgingPositions', 'revisionItems', 'inventoryItems',
+      'stockMovements', 'recoveryCases',
       'aliasTiers', 'aliasPrefixConfig',
     ]
 

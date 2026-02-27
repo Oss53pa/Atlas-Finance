@@ -326,14 +326,15 @@ export async function rapprochementAutomatique(
   }
 
   // Compute totals
-  const soldeReleve = money(0);
-  for (const tx of txCopy) soldeReleve.add(tx.amount);
+  // P0-4 FIX: Money is immutable — must reassign result of .add()
+  let soldeReleve = money(0);
+  for (const tx of txCopy) soldeReleve = soldeReleve.add(tx.amount);
 
-  const soldeComptable = money(0);
-  for (const cl of clCopy) soldeComptable.add(cl.amount);
+  let soldeComptable = money(0);
+  for (const cl of clCopy) soldeComptable = soldeComptable.add(cl.amount);
 
-  const soldeR = bankTransactions.reduce((s, tx) => s + tx.amount, 0);
-  const soldeC = comptaLines.reduce((s, cl) => s + cl.amount, 0);
+  const soldeR = soldeReleve.toNumber();
+  const soldeC = soldeComptable.toNumber();
 
   const matched = allMatches.length;
   const total = txCopy.length;

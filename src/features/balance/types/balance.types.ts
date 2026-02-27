@@ -28,6 +28,8 @@ export interface BalanceFilters {
   showZeroBalance: boolean;
   balanceType: 'generale' | 'auxiliaire' | 'agee' | 'cloture';
   displayLevel: 1 | 2 | 3;
+  /** P1-4: Filtrage nature — avant inventaire = uniquement 'normal', après inventaire = normal + inventaire */
+  natureFilter?: 'all' | 'avant_inventaire' | 'apres_inventaire';
 }
 
 export interface ColumnVisibility {

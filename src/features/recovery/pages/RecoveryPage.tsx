@@ -13,12 +13,11 @@ import { DossierDetailModal } from '../components/DossierDetailModal';
 import { DossierEditForm } from '../components/DossierEditForm';
 import { ReminderForm, ReminderFormData } from '../components/ReminderForm';
 import { DossierRecouvrement } from '../types/recovery.types';
-import { recoveryService } from '../services/recoveryService';
 
 const RecoveryPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { dossiers, stats, loading, refetch } = useRecoveryData();
+  const { dossiers, stats, loading, refetch, service: recoveryService } = useRecoveryData();
 
   // États locaux
   const [searchTerm, setSearchTerm] = useState('');

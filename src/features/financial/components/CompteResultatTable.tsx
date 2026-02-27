@@ -121,6 +121,7 @@ export const CompteResultatTable: React.FC<CompteResultatTableProps> = ({
           {renderLine('Achats Consommés', cr.achatsConsommes, previousCR?.achatsConsommes, false, false, 1)}
           {renderLine('Services Extérieurs', cr.servicesExterieurs, previousCR?.servicesExterieurs, false, false, 1)}
           {renderLine('Charges de Personnel', cr.chargesPersonnel, previousCR?.chargesPersonnel, false, false, 1)}
+          {renderLine('Impôts et Taxes', cr.impotsTaxes, previousCR?.impotsTaxes, false, false, 1)}
           {renderLine('Dotations aux Amortissements', cr.dotationsAmortissements, previousCR?.dotationsAmortissements, false, false, 1)}
           {renderLine('Autres Charges', cr.autresChargesExploitation, previousCR?.autresChargesExploitation, false, false, 1)}
 

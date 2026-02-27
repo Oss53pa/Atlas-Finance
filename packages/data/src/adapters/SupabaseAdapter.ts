@@ -29,9 +29,11 @@ const TABLE_MAP: Record<TableName, string> = {
   hedgingPositions: 'hedging_positions',
   revisionItems: 'revision_items',
   inventoryItems: 'inventory_items',
+  stockMovements: 'stock_movements',
   aliasTiers: 'alias_tiers',
   aliasPrefixConfig: 'alias_prefix_config',
   fiscalPeriods: 'fiscal_periods',
+  recoveryCases: 'recovery_cases',
 }
 
 export class SupabaseAdapter implements DataAdapter {

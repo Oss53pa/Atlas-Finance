@@ -20,6 +20,8 @@ export interface DBJournalEntry {
   reversedAt?: string;
   reversalOf?: string;
   reversalReason?: string;
+  /** P1-4: Nature de l'écriture — pour filtrage balance avant/après inventaire */
+  nature?: 'normal' | 'inventaire' | 'cloture';
   hash?: string;
   previousHash?: string;
   createdAt: string;
@@ -64,6 +66,25 @@ export interface DBThirdParty {
   taxId?: string;
   balance: number;
   isActive: boolean;
+  /** P4-1 : RCCM (Registre Commerce et Crédit Mobilier) */
+  rccm?: string;
+  /** P4-1 : Régime fiscal (RSI, RNI, Micro, etc.) */
+  regimeFiscal?: string;
+  /** P4-1 : Coordonnées bancaires */
+  banque?: {
+    nomBanque: string;
+    codeAgence: string;
+    numeroCompte: string;
+    cleRIB: string;
+    iban?: string;
+    swift?: string;
+  };
+  /** P4-1 : Conditions de paiement */
+  conditionsPaiement?: {
+    delaiJours: number;
+    escompte?: number;
+    modePaiement: 'virement' | 'cheque' | 'especes' | 'effet' | 'carte';
+  };
 }
 
 export interface DBAsset {
@@ -218,6 +239,53 @@ export interface DBAliasPrefixConfig {
   typeLabel: string;
 }
 
+export interface DBStockMovement {
+  id: string;
+  itemId: string;
+  date: string;
+  type: 'receipt' | 'issue' | 'adjustment' | 'transfer' | 'return';
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+  reference: string;
+  label: string;
+  /** CUMP après ce mouvement */
+  cumpAfter: number;
+  /** Quantité en stock après ce mouvement */
+  quantityAfter: number;
+  /** Valeur du stock après ce mouvement */
+  valueAfter: number;
+  createdAt: string;
+  createdBy?: string;
+}
+
+export interface DBRecoveryCase {
+  id: string;
+  numeroRef: string;
+  clientId: string;
+  clientName: string;
+  montantPrincipal: number;
+  interets: number;
+  frais: number;
+  montantTotal: number;
+  montantPaye: number;
+  dateOuverture: string;
+  dateCloture?: string;
+  statut: 'actif' | 'suspendu' | 'cloture' | 'juridique';
+  typeRecouvrement: 'amiable' | 'judiciaire' | 'huissier';
+  responsable: string;
+  actions: Array<{
+    id: string;
+    type: string;
+    date: string;
+    responsable: string;
+    resultat: string;
+    notes: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DBFiscalPeriod {
   id: string;
   fiscalYearId: string;
@@ -256,6 +324,8 @@ class AtlasFinanceDB extends Dexie {
   aliasTiers!: Table<DBAliasTiers, string>;
   aliasPrefixConfig!: Table<DBAliasPrefixConfig, string>;
   fiscalPeriods!: Table<DBFiscalPeriod, string>;
+  stockMovements!: Table<DBStockMovement, string>;
+  recoveryCases!: Table<DBRecoveryCase, string>;
 
   constructor() {
     super('AtlasFinanceDB');
@@ -336,6 +406,47 @@ class AtlasFinanceDB extends Dexie {
       aliasTiers: 'id, alias, prefix',
       aliasPrefixConfig: 'id, sousCompteCode, prefix',
       fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+    });
+    this.version(6).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+    });
+    this.version(7).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+      recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
     });
   }
 }

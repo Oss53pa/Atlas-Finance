@@ -56,6 +56,42 @@ export async function safeAddEntry(
     }
   }
 
+  // P1-7: Duplicate detection — vérifier unicité du numéro de pièce
+  if (entry.entryNumber) {
+    const allEntries = await adapter.getAll('journalEntries');
+    const duplicate = allEntries.find(
+      (e: any) => e.entryNumber === entry.entryNumber && e.id !== entry.id
+    );
+    if (duplicate) {
+      throw new EntryGuardError([
+        `Doublon détecté : le numéro de pièce "${entry.entryNumber}" existe déjà (écriture ${(duplicate as any).id}).`,
+      ]);
+    }
+  }
+
+  // P4-2: Contrôle caisse >= 0 — les comptes de caisse (57x) ne peuvent pas devenir négatifs
+  const caisseLines = lines.filter(l => l.accountCode.startsWith('57'));
+  if (caisseLines.length > 0) {
+    const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    for (const cl of caisseLines) {
+      if (cl.credit <= 0) continue; // seules les sorties (crédit) peuvent rendre négatif
+      let solde = 0;
+      for (const e of allEntries) {
+        for (const l of e.lines) {
+          if (l.accountCode === cl.accountCode) {
+            solde += l.debit - l.credit;
+          }
+        }
+      }
+      const soldeFutur = solde - cl.credit + cl.debit;
+      if (soldeFutur < 0) {
+        throw new EntryGuardError([
+          `Solde caisse négatif interdit : le compte ${cl.accountCode} aurait un solde de ${soldeFutur} après cette opération (solde actuel : ${solde}).`,
+        ]);
+      }
+    }
+  }
+
   // 3. Build final entry
   const now = new Date().toISOString();
   const finalEntry: DBJournalEntry = {

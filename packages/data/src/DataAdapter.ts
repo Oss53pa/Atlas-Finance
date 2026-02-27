@@ -37,9 +37,11 @@ export type TableName =
   | 'hedgingPositions'
   | 'revisionItems'
   | 'inventoryItems'
+  | 'stockMovements'
   | 'aliasTiers'
   | 'aliasPrefixConfig'
   | 'fiscalPeriods'
+  | 'recoveryCases'
 
 export interface QueryFilters {
   where?: Record<string, any>

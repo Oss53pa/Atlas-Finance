@@ -398,12 +398,33 @@ class BudgetingService {
       }
     }
 
-    // Distribute total budget evenly across months (or use period-specific if available)
+    // P4-4: Ventilation mensuelle — utiliser les périodes spécifiques si disponibles
     const totalBudget = budgetLines.reduce((sum, bl) => sum + bl.budgeted, 0);
-    const monthlyBudget = totalBudget / 12;
+    const budgetByMonth = new Map<number, number>();
+
+    // Rechercher des lignes avec période mensuelle (format "YYYY-MM" ou "M01"-"M12")
+    for (const bl of budgetLines) {
+      const p = bl.period;
+      let monthIdx = -1;
+      if (/^\d{4}-\d{2}$/.test(p)) {
+        monthIdx = parseInt(p.substring(5, 7)) - 1;
+      } else if (/^M\d{2}$/i.test(p)) {
+        monthIdx = parseInt(p.substring(1)) - 1;
+      }
+      if (monthIdx >= 0 && monthIdx < 12) {
+        budgetByMonth.set(monthIdx, (budgetByMonth.get(monthIdx) || 0) + bl.budgeted);
+      }
+    }
+
+    // Si des lignes mensuelles existent, utiliser la ventilation réelle
+    // Sinon, fallback sur répartition linéaire 1/12
+    const hasMonthlyBreakdown = budgetByMonth.size > 0;
+    const linearMonthly = totalBudget / 12;
 
     return months.map((month, index) => {
-      const budget = monthlyBudget;
+      const budget = hasMonthlyBreakdown
+        ? (budgetByMonth.get(index) || 0)
+        : linearMonthly;
       const actual = actualByMonth.get(index) || 0;
       const variance = budget - actual;
       const variancePercent = budget !== 0
