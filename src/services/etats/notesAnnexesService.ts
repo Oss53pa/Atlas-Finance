@@ -5,6 +5,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { Money, money } from '../../utils/money';
 import type { DBJournalEntry, DBAccount, DBAsset } from '../../lib/db';
+import { calculateTAFIRE } from '../financial/tafireService';
 
 // ============================================================================
 // TYPES
@@ -192,8 +193,8 @@ async function generateNote5(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
   };
 }
 
-async function generateNote11(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
-  // Chiffre d'affaires (comptes 70x)
+async function generateNote11(entries: DBJournalEntry[], previousEntries: DBJournalEntry[] = []): Promise<NoteAnnexe> {
+  // P1-5: Chiffre d'affaires avec comparatif N-1
   return {
     numero: 11,
     titre: 'Chiffre d\'affaires et autres produits',
@@ -202,10 +203,10 @@ async function generateNote11(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
       titre: 'Chiffre d\'affaires',
       colonnes: ['Nature', 'Montant N', 'Montant N-1'],
       lignes: [
-        { Nature: 'Ventes de marchandises', 'Montant N': sumByAccountPrefix(entries, '701', 'credit'), 'Montant N-1': 0 },
-        { Nature: 'Ventes de produits finis', 'Montant N': sumByAccountPrefix(entries, '702', 'credit'), 'Montant N-1': 0 },
-        { Nature: 'Prestations de services', 'Montant N': sumByAccountPrefix(entries, '706', 'credit'), 'Montant N-1': 0 },
-        { Nature: 'Autres produits', 'Montant N': sumByAccountPrefix(entries, '71', 'credit') + sumByAccountPrefix(entries, '75', 'credit'), 'Montant N-1': 0 },
+        { Nature: 'Ventes de marchandises', 'Montant N': sumByAccountPrefix(entries, '701', 'credit'), 'Montant N-1': sumByAccountPrefix(previousEntries, '701', 'credit') },
+        { Nature: 'Ventes de produits finis', 'Montant N': sumByAccountPrefix(entries, '702', 'credit'), 'Montant N-1': sumByAccountPrefix(previousEntries, '702', 'credit') },
+        { Nature: 'Prestations de services', 'Montant N': sumByAccountPrefix(entries, '706', 'credit'), 'Montant N-1': sumByAccountPrefix(previousEntries, '706', 'credit') },
+        { Nature: 'Autres produits', 'Montant N': sumByAccountPrefix(entries, '71', 'credit') + sumByAccountPrefix(entries, '75', 'credit'), 'Montant N-1': sumByAccountPrefix(previousEntries, '71', 'credit') + sumByAccountPrefix(previousEntries, '75', 'credit') },
       ],
     }],
     calculsAuto: true,
@@ -280,6 +281,12 @@ export async function genererNotesAnnexes(adapter: DataAdapter, config: NotesAnn
   const entries = await getEntriesForPeriod(adapter, config.startDate, config.endDate);
   const assets = await adapter.getAll('assets');
 
+  // P1-5: Charger les écritures N-1 pour comparaison
+  let previousEntries: DBJournalEntry[] = [];
+  if (config.exercicePrecedentStartDate && config.exercicePrecedentEndDate) {
+    previousEntries = await getEntriesForPeriod(adapter, config.exercicePrecedentStartDate, config.exercicePrecedentEndDate);
+  }
+
   const notes: NoteAnnexe[] = [];
 
   for (const def of NOTES_DEFINITIONS) {
@@ -318,7 +325,7 @@ export async function genererNotesAnnexes(adapter: DataAdapter, config: NotesAnn
         case 10:
           note = { numero: 10, titre: def.titre, contenu: 'Dettes financieres.', tableaux: [{ titre: 'Dettes', colonnes: ['Nature', 'Montant'], lignes: [{ Nature: 'Emprunts', Montant: netByAccountPrefix(entries, '16') }, { Nature: 'Dettes fournisseurs', Montant: netByAccountPrefix(entries, '40') }] }], calculsAuto: true, statut: 'generee' };
           break;
-        case 11: note = await generateNote11(entries); break;
+        case 11: note = await generateNote11(entries, previousEntries); break;
         case 12:
           note = { numero: 12, titre: def.titre, contenu: 'Achats de l\'exercice.', tableaux: [{ titre: 'Achats', colonnes: ['Nature', 'Montant'], lignes: [{ Nature: 'Achats de marchandises', Montant: sumByAccountPrefix(entries, '601', 'debit') }, { Nature: 'Achats de matieres', Montant: sumByAccountPrefix(entries, '602', 'debit') }, { Nature: 'Variation de stocks', Montant: netByAccountPrefix(entries, '603') }] }], calculsAuto: true, statut: 'generee' };
           break;
@@ -331,9 +338,22 @@ export async function genererNotesAnnexes(adapter: DataAdapter, config: NotesAnn
           note = { numero: 16, titre: def.titre, contenu: 'Reprises de provisions.', tableaux: [{ titre: 'Reprises', colonnes: ['Nature', 'Montant'], lignes: [{ Nature: 'Reprises provisions exploitation', Montant: sumByAccountPrefix(entries, '791', 'credit') }, { Nature: 'Reprises provisions financieres', Montant: sumByAccountPrefix(entries, '797', 'credit') }] }], calculsAuto: true, statut: 'generee' };
           break;
         case 17: note = await generateNote17(entries); break;
-        case 27:
-          note = { numero: 27, titre: def.titre, contenu: 'Tableau des flux de tresorerie.', tableaux: [{ titre: 'Flux', colonnes: ['Rubrique', 'Montant'], lignes: [{ Rubrique: 'Flux exploitation', Montant: 0 }, { Rubrique: 'Flux investissement', Montant: 0 }, { Rubrique: 'Flux financement', Montant: 0 }] }], calculsAuto: true, statut: 'generee' };
+        case 27: {
+          // P1-5: Connecter Note 27 au service TAFIRE
+          const fiscalYear = config.startDate.substring(0, 4);
+          const tafire = await calculateTAFIRE(adapter, fiscalYear);
+          note = { numero: 27, titre: def.titre, contenu: 'Tableau des flux de tresorerie (TAFIRE).', tableaux: [{ titre: 'TAFIRE', colonnes: ['Rubrique', 'Montant'], lignes: [
+            { Rubrique: 'CAF', Montant: tafire.selfFinancingCapacity },
+            { Rubrique: 'Variation BFR', Montant: tafire.workingCapitalVariation },
+            { Rubrique: 'Flux exploitation', Montant: tafire.operatingCashSurplus },
+            { Rubrique: 'Flux investissement', Montant: tafire.investmentCashFlow },
+            { Rubrique: 'Flux financement', Montant: tafire.financingCashFlow },
+            { Rubrique: 'Variation tresorerie', Montant: tafire.cashVariation },
+            { Rubrique: 'Tresorerie ouverture', Montant: tafire.openingCashBalance },
+            { Rubrique: 'Tresorerie cloture', Montant: tafire.closingCashBalance },
+          ] }], calculsAuto: true, statut: 'generee' };
           break;
+        }
         case 32:
           note = { numero: 32, titre: def.titre, contenu: 'Informations complementaires bilan.', tableaux: [], calculsAuto: true, statut: 'generee' };
           break;

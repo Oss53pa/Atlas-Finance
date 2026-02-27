@@ -120,3 +120,158 @@ export async function runDepreciation(adapter: DataAdapter, date: string): Promi
   const depreciations = computeDepreciations(assets, date);
   return postDepreciations(adapter, depreciations);
 }
+
+// ============================================================================
+// P4-5 : Cession d'immobilisation automatisée
+// ============================================================================
+
+export interface DisposalInput {
+  assetId: string;
+  disposalDate: string;
+  prixCession: number;
+  motif?: string;
+}
+
+export interface DisposalResult {
+  assetId: string;
+  assetName: string;
+  valeurBrute: number;
+  amortissementsCumules: number;
+  vnc: number;
+  prixCession: number;
+  plusOuMoinsValue: number;
+  journalEntryId: string;
+}
+
+/**
+ * Automatise la cession d'une immobilisation SYSCOHADA :
+ * 1. Calcule la VNC (Valeur Nette Comptable)
+ * 2. Calcule la plus/moins-value
+ * 3. Génère l'écriture comptable :
+ *    - Débit 28x : Reprise amortissements cumulés
+ *    - Débit 81  : VNC cessions (charge HAO)
+ *    - Crédit 2x : Sortie de l'immobilisation (valeur brute)
+ *    - Débit 485/521 : Produit de cession (trésorerie/créance)
+ *    - Crédit 82  : Produits cessions (produit HAO)
+ * 4. Met à jour le statut de l'immobilisation → 'disposed'
+ */
+export async function disposeAsset(
+  adapter: DataAdapter,
+  input: DisposalInput,
+): Promise<DisposalResult> {
+  const asset = await adapter.getById<DBAsset>('assets', input.assetId);
+  if (!asset) throw new Error(`Immobilisation introuvable : ${input.assetId}`);
+  if (asset.status !== 'active') throw new Error(`Immobilisation déjà sortie : ${asset.name}`);
+
+  const valeurBrute = asset.acquisitionValue;
+  const depBase = valeurBrute - asset.residualValue;
+  const annualDep = depBase / asset.usefulLifeYears;
+
+  // Calculer amortissements cumulés jusqu'à la date de cession
+  const acqDate = new Date(asset.acquisitionDate);
+  const dispDate = new Date(input.disposalDate);
+  const yearsElapsed = Math.min(
+    (dispDate.getTime() - acqDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25),
+    asset.usefulLifeYears,
+  );
+  const amortissementsCumules = new Money(annualDep).multiply(yearsElapsed).round().toNumber();
+
+  const vnc = new Money(valeurBrute).subtract(new Money(amortissementsCumules)).toNumber();
+  const plusOuMoinsValue = new Money(input.prixCession).subtract(new Money(vnc)).toNumber();
+
+  const amortAccountCode = asset.depreciationAccountCode || '28' + asset.accountCode.substring(1);
+
+  const lines = [
+    // Reprise des amortissements cumulés
+    {
+      id: crypto.randomUUID(),
+      accountCode: amortAccountCode,
+      accountName: `Amortissements ${asset.name}`,
+      label: `Reprise amort. cession ${asset.name}`,
+      debit: amortissementsCumules,
+      credit: 0,
+    },
+    // VNC = charge HAO (compte 81)
+    {
+      id: crypto.randomUUID(),
+      accountCode: '81',
+      accountName: 'VNC des cessions d\'immobilisations',
+      label: `VNC cession ${asset.name}`,
+      debit: vnc,
+      credit: 0,
+    },
+    // Sortie de l'immobilisation (valeur brute)
+    {
+      id: crypto.randomUUID(),
+      accountCode: asset.accountCode,
+      accountName: asset.name,
+      label: `Sortie immobilisation ${asset.name}`,
+      debit: 0,
+      credit: valeurBrute,
+    },
+  ];
+
+  // Produit de cession si prix > 0
+  if (input.prixCession > 0) {
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: '521',
+      accountName: 'Banque',
+      label: `Produit cession ${asset.name}`,
+      debit: input.prixCession,
+      credit: 0,
+    });
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: '82',
+      accountName: 'Produits des cessions d\'immobilisations',
+      label: `Produit cession ${asset.name}`,
+      debit: 0,
+      credit: input.prixCession,
+    });
+  }
+
+  const totalDebit = lines.reduce((s, l) => s + l.debit, 0);
+  const totalCredit = lines.reduce((s, l) => s + l.credit, 0);
+
+  const now = new Date().toISOString();
+  const entryId = crypto.randomUUID();
+  const entry: DBJournalEntry = {
+    id: entryId,
+    entryNumber: `CESS-${asset.code}`,
+    journal: 'OD',
+    date: input.disposalDate,
+    reference: `Cession ${asset.code}`,
+    label: `Cession immobilisation — ${asset.name}`,
+    status: 'draft',
+    nature: 'normal',
+    lines,
+    totalDebit,
+    totalCredit,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await adapter.create('journalEntries', entry);
+
+  // Mettre à jour le statut de l'immobilisation
+  await adapter.update('assets', input.assetId, { status: 'disposed' });
+
+  await logAudit(
+    'ASSET_DISPOSAL',
+    'asset',
+    input.assetId,
+    `Cession ${asset.name}: prix=${input.prixCession}, VNC=${vnc}, PV/MV=${plusOuMoinsValue}`,
+  );
+
+  return {
+    assetId: input.assetId,
+    assetName: asset.name,
+    valeurBrute,
+    amortissementsCumules,
+    vnc,
+    prixCession: input.prixCession,
+    plusOuMoinsValue,
+    journalEntryId: entryId,
+  };
+}

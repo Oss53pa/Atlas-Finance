@@ -34,6 +34,8 @@ class AtlasFinanceDexie extends Dexie {
   hedgingPositions!: Table<any, string>
   revisionItems!: Table<any, string>
   inventoryItems!: Table<any, string>
+  stockMovements!: Table<any, string>
+  recoveryCases!: Table<any, string>
   aliasTiers!: Table<any, string>
   aliasPrefixConfig!: Table<any, string>
   fiscalPeriods!: Table<any, string>
@@ -119,6 +121,47 @@ class AtlasFinanceDexie extends Dexie {
       aliasTiers: 'id, alias, prefix',
       aliasPrefixConfig: 'id, sousCompteCode, prefix',
       fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+    })
+    this.version(6).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+    })
+    this.version(7).stores({
+      journalEntries: 'id, entryNumber, journal, date, status, [journal+date], reversalOf',
+      accounts: 'id, code, accountClass, parentCode',
+      thirdParties: 'id, code, type, name',
+      assets: 'id, code, category, status',
+      fiscalYears: 'id, startDate, endDate, isActive',
+      budgetLines: 'id, accountCode, fiscalYear, period',
+      auditLogs: 'id, timestamp, action, entityType, entityId',
+      settings: 'key',
+      closureSessions: 'id, type, exercice, statut, dateDebut, dateFin',
+      provisions: 'id, sessionId, compteClient, statut',
+      exchangeRates: 'id, fromCurrency, toCurrency, date, [fromCurrency+toCurrency+date]',
+      hedgingPositions: 'id, currency, type, status, maturityDate',
+      revisionItems: 'id, sessionId, accountCode, status, isaAssertion',
+      inventoryItems: 'id, code, name, category, location, status',
+      stockMovements: 'id, itemId, date, type, reference, [itemId+date]',
+      aliasTiers: 'id, alias, prefix',
+      aliasPrefixConfig: 'id, sousCompteCode, prefix',
+      fiscalPeriods: 'id, fiscalYearId, code, type, status, startDate',
+      recoveryCases: 'id, numeroRef, clientId, statut, dateOuverture',
     })
   }
 }

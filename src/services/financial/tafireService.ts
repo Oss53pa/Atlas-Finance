@@ -96,15 +96,25 @@ export async function calculateTAFIRE(adapter: DataAdapter, fiscalYear?: string)
   };
 
   // SYSCOHADA calculation logic
-  // Résultat net = Produits (classe 7) - Charges (classe 6)
-  const netIncome = creditN('7').subtract(net('6'));
+  // Résultat net = Produits (7) - Charges (6) + HAO (82,84,86,88) - HAO (81,83,85,87) - IS (89)
+  const netIncome = creditN('7').subtract(net('6'))
+    .add(creditN('82', '84', '86', '88')).subtract(net('81', '83', '85', '87'))
+    .subtract(net('89'));
   const depreciationProvisions = net('68', '69');
   const provisionsReversal = creditN('78', '79');
-  const exceptionalItems = creditN('84', '86', '88').subtract(net('83', '85', '87'));
+  // HAO complet SYSCOHADA : 81=VNC cessions, 82=Produits cessions, 83-88=autres HAO
+  const exceptionalItems = creditN('82', '84', '86', '88').subtract(net('81', '83', '85', '87'));
+
+  // P0-3 FIX: CAF complète SYSCOHADA
+  // CAF = Résultat Net + Dotations - Reprises + VNC cessions (81) - Produits cessions (82)
+  const vncCessions = net('81');         // VNC des immobilisations cédées (charge)
+  const produitsCessions = creditN('82'); // Produits de cession (produit)
 
   const selfFinancingCapacity = netIncome
     .add(depreciationProvisions)
-    .subtract(provisionsReversal);
+    .subtract(provisionsReversal)
+    .add(vncCessions)
+    .subtract(produitsCessions);
 
   const workingCapitalVariation = net('3', '41', '46')
     .subtract(creditN('40', '42', '43', '44'));
@@ -113,9 +123,22 @@ export async function calculateTAFIRE(adapter: DataAdapter, fiscalYear?: string)
     .subtract(workingCapitalVariation);
 
   // Investissement
-  const fixedAssetsAcquisitionsRaw = net('2').add(net('28'));
-  const fixedAssetsAcquisitions = money(Math.max(0, fixedAssetsAcquisitionsRaw.toNumber()));
-  const fixedAssetsDisposals = money(0); // Would need specific disposal tracking
+  // P0-3 FIX: Acquisitions = flux débit sur classe 2 (hors 28x amortissements)
+  // On prend uniquement les débits de la période sur les comptes d'immobilisations
+  const debitClass2 = (() => {
+    let total = money(0);
+    for (const entry of entries) {
+      for (const line of entry.lines) {
+        if (line.accountCode.startsWith('2') && !line.accountCode.startsWith('28') && line.debit > 0) {
+          total = total.add(money(line.debit));
+        }
+      }
+    }
+    return total;
+  })();
+  const fixedAssetsAcquisitions = debitClass2;
+  // P0-3 FIX: Cessions = produits de cession (compte 82)
+  const fixedAssetsDisposals = produitsCessions;
   const financialInvestmentsVariation = net('26', '27');
   const investmentSubsidies = creditN('14');
 
@@ -142,7 +165,25 @@ export async function calculateTAFIRE(adapter: DataAdapter, fiscalYear?: string)
   const cashVariation = operatingCashSurplus
     .add(investmentCashFlow)
     .add(financingCashFlow);
-  const openingCashBalance = closingCashBalance.subtract(cashVariation);
+  // P0-3 FIX: Solde d'ouverture = rechercher les écritures AN (à-nouveaux) de la classe 5
+  // Les écritures du journal AN portent le solde d'ouverture
+  const openingCashFromAN = (() => {
+    let total = money(0);
+    for (const entry of entries) {
+      if (entry.journal === 'AN' || entry.journal === 'RAN') {
+        for (const line of entry.lines) {
+          if (line.accountCode.startsWith('5')) {
+            total = total.add(money(line.debit).subtract(money(line.credit)));
+          }
+        }
+      }
+    }
+    return total;
+  })();
+  // Si des écritures AN existent, utiliser ce solde ; sinon déduire du closing - variation
+  const openingCashBalance = openingCashFromAN.toNumber() !== 0
+    ? openingCashFromAN
+    : closingCashBalance.subtract(cashVariation);
   const freeCashFlow = operatingCashSurplus.add(investmentCashFlow);
 
   return {

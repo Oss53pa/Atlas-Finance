@@ -23,11 +23,19 @@ export interface BilanPassif {
   totalPassif: number;
 }
 
+export interface BilanWarning {
+  field: string;
+  message: string;
+  amount: number;
+}
+
 export interface Bilan {
   actif: BilanActif;
   passif: BilanPassif;
   exercice: string;
   dateEtablissement: string;
+  tresoreriePassive?: number;
+  warnings?: BilanWarning[];
 }
 
 export interface CompteResultat {
@@ -41,6 +49,7 @@ export interface CompteResultat {
   achatsConsommes: number;
   servicesExterieurs: number;
   chargesPersonnel: number;
+  impotsTaxes: number;
   dotationsAmortissements: number;
   autresChargesExploitation: number;
   totalChargesExploitation: number;
