@@ -383,7 +383,7 @@ const ReportingDashboard: React.FC = () => {
             <p className="text-neutral-600">Gestion des rapports et tableaux de bord</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Link to="/reporting/create">
+            <Link to="/reporting/custom">
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}
@@ -399,7 +399,7 @@ const ReportingDashboard: React.FC = () => {
               </motion.div>
             </Link>
 
-            <Link to="/reporting/templates">
+            <Link to="/reporting/syscohada">
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}
@@ -431,7 +431,7 @@ const ReportingDashboard: React.FC = () => {
               </motion.div>
             </Link>
 
-            <Link to="/reporting/schedule">
+            <Link to="/reporting/tax">
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}

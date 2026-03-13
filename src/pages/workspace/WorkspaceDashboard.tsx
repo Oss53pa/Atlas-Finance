@@ -181,7 +181,7 @@ const WorkspaceDashboard: React.FC = () => {
                 Actualiser
               </button>
               <button
-                onClick={() => navigate('/settings/workspace')}
+                onClick={() => navigate('/settings')}
                 className="px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
                 style={{ backgroundColor: '#404040', color: '#FFFFFF' }}
               >
@@ -339,7 +339,7 @@ const WorkspaceDashboard: React.FC = () => {
                 Aucun contenu disponible pour ce workspace
               </p>
               <button
-                onClick={() => navigate('/settings/workspace')}
+                onClick={() => navigate('/settings')}
                 className="px-6 py-3 rounded-lg font-semibold"
                 style={{ backgroundColor: '#404040', color: '#FFFFFF' }}
               >

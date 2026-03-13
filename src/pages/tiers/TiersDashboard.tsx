@@ -174,7 +174,7 @@ const TiersDashboard: React.FC = () => {
             </button>
 
             <button
-              onClick={() => navigate('/tiers/nouveau')}
+              onClick={() => navigate('/tiers/clients')}
               className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -491,7 +491,7 @@ const TiersDashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-[#171717] mb-2">Module Chat & Collaboration</h3>
             <p className="text-[#525252] mb-4">Communication en temps réel et collaboration équipe</p>
             <button
-              onClick={() => navigate('/tiers/collaboration')}
+              onClick={() => navigate('/tiers/contacts')}
               className="px-6 py-2 bg-[#171717] text-white rounded-lg hover:bg-[#171717]/90 transition-colors"
             >
               Accéder au module Collaboration

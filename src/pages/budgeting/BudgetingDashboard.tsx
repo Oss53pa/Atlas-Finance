@@ -247,7 +247,7 @@ const BudgetingDashboard: React.FC = () => {
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <Link to="/budgeting/budgets" className="group">
+                <Link to="/budgeting/list" className="group">
                   <motion.div
                     whileHover={{ scale: 1.03 }}
                     className="bg-white/90"
