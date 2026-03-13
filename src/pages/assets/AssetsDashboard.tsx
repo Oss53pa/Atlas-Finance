@@ -322,7 +322,7 @@ const AssetsDashboard: React.FC = () => {
                 <p className="text-neutral-600">Suivi détaillé par actif</p>
               </div>
             </div>
-            <Link to="/assets/fixed-assets">
+            <Link to="/assets/fixed">
               <ElegantButton variant="outline">
                 Voir tous les actifs
               </ElegantButton>
@@ -424,7 +424,7 @@ const AssetsDashboard: React.FC = () => {
             <p className="text-neutral-600">Gestion des immobilisations et amortissements</p>
           </div>
           <div className="grid gap-6 md:grid-cols-4">
-            <Link to="/assets/fixed-assets">
+            <Link to="/assets/fixed">
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}
@@ -456,7 +456,7 @@ const AssetsDashboard: React.FC = () => {
               </motion.div>
             </Link>
 
-            <Link to="/assets/reports">
+            <Link to="/assets/summary">
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}
@@ -472,7 +472,7 @@ const AssetsDashboard: React.FC = () => {
               </motion.div>
             </Link>
 
-            <Link to="/assets/alerts">
+            <Link to="/assets/maintenance">
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}

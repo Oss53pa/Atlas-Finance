@@ -60,38 +60,27 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       icon: FileText,
       children: [
         { id: 'entries', label: 'Saisie d\'écritures', path: '/accounting/entries' },
-        { id: 'entries-intelligent', label: '🧠 Saisie Intelligente', path: '/accounting/entries-advanced' },
         { id: 'balance', label: 'Balance générale', path: '/accounting/balance' },
         { id: 'general-ledger', label: t('accounting.generalLedger'), path: '/accounting/general-ledger' },
         { id: 'lettrage', label: t('thirdParty.reconciliation'), path: '/accounting/lettrage' },
-        { id: 'syscohada-states', label: '📊 États SYSCOHADA', path: '/financial-statements' },
+        { id: 'syscohada-states', label: 'États SYSCOHADA', path: '/financial-statements' },
         { id: 'journals', label: t('navigation.journals'), path: '/accounting/journals' },
         { id: 'financial-statements', label: 'États Financiers', path: '/accounting/financial-statements' },
-        { id: 'sig', label: 'SIG & Ratios', path: '/accounting/sig' },
-        { id: 'chart-advanced', label: 'Plan Comptable Avancé', path: '/accounting/chart-advanced' },
+        { id: 'ratios', label: 'SIG & Ratios', path: '/accounting/ratios' },
+        { id: 'chart-accounts', label: 'Plan Comptable', path: '/accounting/chart-of-accounts' },
       ]
     },
     {
-      id: 'customers',
-      label: t('navigation.clients'),
+      id: 'tiers',
+      label: 'Gestion des Tiers',
       icon: Users,
-      path: '/customers-advanced',
-      badge: 3, // Alertes clients
+      path: '/tiers',
+      badge: 3,
       children: [
-        { id: 'customer-list', label: 'Liste clients', path: '/customers' },
-        { id: 'aging', label: 'Balance âgée', path: '/customers/aging' },
-        { id: 'collection', label: t('thirdParty.collection'), path: '/customers/collection' },
-      ]
-    },
-    {
-      id: 'suppliers',
-      label: t('navigation.suppliers'), 
-      icon: Truck,
-      path: '/suppliers-advanced',
-      children: [
-        { id: 'supplier-list', label: 'Liste fournisseurs', path: '/suppliers' },
-        { id: 'payments', label: 'Échéancier paiements', path: '/suppliers/payments' },
-        { id: 'evaluations', label: 'Évaluations', path: '/suppliers/evaluations' },
+        { id: 'clients', label: t('navigation.clients'), path: '/tiers/clients' },
+        { id: 'fournisseurs', label: t('navigation.suppliers'), path: '/tiers/fournisseurs' },
+        { id: 'recouvrement', label: t('thirdParty.collection'), path: '/tiers/recouvrement' },
+        { id: 'contacts', label: 'Contacts', path: '/tiers/contacts' },
       ]
     },
     {
@@ -103,41 +92,9 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       children: [
         { id: 'position', label: 'Position temps réel', path: '/treasury/position' },
         { id: 'cash-flow', label: 'Prévisions', path: '/treasury/cash-flow' },
-        { id: 'loans', label: '🏦 Emprunts', path: '/treasury/loans' },
-        { id: 'fund-calls', label: '📊 Appels de fonds', path: '/treasury/fund-calls' },
+        { id: 'fund-calls', label: 'Appels de fonds', path: '/treasury/fund-calls' },
         { id: 'reconciliation', label: 'Rapprochements', path: '/treasury/reconciliation' },
-      ]
-    },
-    {
-      id: 'financial-analysis',
-      label: 'Analyse Financière',
-      icon: TrendingUp,
-      children: [
-        { id: 'financial-overview', label: 'Vue d\'ensemble', path: '/financial-analysis' },
-        { id: 'tafire', label: 'TAFIRE', path: '/financial-analysis/tafire' },
-        { id: 'sig', label: 'SIG', path: '/financial-analysis/sig' },
-        { id: 'functional-balance', label: 'Bilan Fonctionnel', path: '/financial-analysis/functional-balance' },
-        { id: 'ratios', label: 'Ratios Financiers', path: '/financial-analysis/ratios' },
-      ]
-    },
-    {
-      id: 'closures',
-      label: 'Clôtures',
-      icon: Calculator,
-      children: [
-        { id: 'closure-procedures', label: 'Procédures de clôture', path: '/closures' },
-        { id: 'annex-notes', label: 'Notes annexes', path: '/closures/annex-notes' },
-        { id: 'carry-forward', label: 'Report à-nouveaux', path: '/closures/carry-forward' },
-      ]
-    },
-    {
-      id: 'assets',
-      label: t('navigation.assets'),
-      icon: Building2,
-      children: [
-        { id: 'fixed-assets', label: t('navigation.assets'), path: '/assets/fixed-assets' },
-        { id: 'depreciation', label: 'Amortissements', path: '/assets/depreciation' },
-        { id: 'inventory', label: 'Inventaire', path: '/assets/inventory' },
+        { id: 'financing', label: 'Financements', path: '/treasury/financing' },
       ]
     },
     {
@@ -146,9 +103,40 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       icon: TrendingUp,
       path: '/financial-analysis-advanced',
       children: [
-        { id: 'tafire', label: 'TAFIRE SYSCOHADA', path: '/financial-analysis/tafire' },
-        { id: 'sig', label: 'SIG', path: '/financial-analysis/sig' },
-        { id: 'ratios', label: 'Ratios financiers', path: '/financial-analysis/ratios' },
+        { id: 'financial-overview', label: 'Vue d\'ensemble', path: '/financial-analysis-advanced' },
+        { id: 'financial-statements', label: 'États Financiers', path: '/financial-statements' },
+        { id: 'analysis', label: 'Analyse détaillée', path: '/financial-statements/analysis' },
+      ]
+    },
+    {
+      id: 'closures',
+      label: 'Clôtures',
+      icon: Calculator,
+      children: [
+        { id: 'closure-procedures', label: 'Procédures de clôture', path: '/closures' },
+        { id: 'periodic', label: 'Clôture Périodique', path: '/closures/periodic' },
+        { id: 'carry-forward', label: 'Report à-nouveaux', path: '/closures/carry-forward' },
+        { id: 'audit-trail', label: 'Piste d\'Audit', path: '/closures/audit-trail' },
+      ]
+    },
+    {
+      id: 'assets',
+      label: t('navigation.assets'),
+      icon: Building2,
+      children: [
+        { id: 'fixed-assets', label: t('navigation.assets'), path: '/assets/fixed' },
+        { id: 'depreciation', label: 'Amortissements', path: '/assets/depreciation' },
+        { id: 'inventory', label: 'Inventaire', path: '/assets/inventory' },
+      ]
+    },
+    {
+      id: 'analytics',
+      label: 'Analytique',
+      icon: TrendingUp,
+      path: '/analytics',
+      children: [
+        { id: 'axes', label: 'Axes Analytiques', path: '/analytics/axes' },
+        { id: 'cost-centers', label: 'Centres de Coûts', path: '/analytics/cost-centers' },
       ]
     },
     {
@@ -156,9 +144,8 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       label: t('navigation.budget'),
       icon: Calculator,
       children: [
-        { id: 'budget-creation', label: 'Élaboration', path: '/budgeting/creation' },
+        { id: 'budget-list', label: 'Budgets', path: '/budgeting/list' },
         { id: 'budget-control', label: 'Contrôle', path: '/budgeting/control' },
-        { id: 'variance', label: 'Analyse écarts', path: '/budgeting/variance' },
       ]
     },
     {
@@ -166,9 +153,9 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       label: 'Reporting',
       icon: BarChart3,
       children: [
-        { id: 'states', label: 'États SYSCOHADA', path: '/reporting/states' },
+        { id: 'syscohada', label: 'États SYSCOHADA', path: '/reporting/syscohada' },
         { id: 'custom-reports', label: 'Rapports personnalisés', path: '/reporting/custom' },
-        { id: 'export', label: 'Export FEC', path: '/reporting/fec' },
+        { id: 'tax', label: 'Déclarations Fiscales', path: '/reporting/tax' },
       ]
     },
     {
@@ -176,16 +163,14 @@ const ModernSidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       label: t('navigation.settings'),
       icon: Settings,
       children: [
-        { id: 'config-center', label: '🏗️ Centre de Configuration', path: '/config' },
-        { id: 'setup-wizard', label: 'Assistant Démarrage', path: '/setup-wizard' },
-        { id: 'multi-company', label: 'Multi-Sociétés', path: '/multi-company-advanced' },
-        { id: 'accounts-config', label: 'Plan SYSCOHADA', path: '/config/accounts' },
-        { id: 'vat-config', label: 'TVA et Taxes', path: '/config/vat-taxes' },
-        { id: 'codes-config', label: 'Codification Tiers', path: '/config/third-party-codes' },
-        { id: 'analytical-config', label: 'Axes Analytiques', path: '/config/analytical-axes' },
-        { id: 'import-export', label: 'Import/Export', path: '/config/import-export' },
-        { id: 'security-profiles', label: 'Profils Sécurité', path: '/config/security-profiles' },
         { id: 'general-parameters', label: 'Paramètres Généraux', path: '/parameters' },
+        { id: 'setup-wizard', label: 'Assistant Démarrage', path: '/config/wizard' },
+        { id: 'multi-company', label: 'Multi-Sociétés', path: '/config/multi-societes' },
+        { id: 'accounts-config', label: 'Plan SYSCOHADA', path: '/config/plan-syscohada' },
+        { id: 'vat-config', label: 'TVA et Taxes', path: '/config/tva' },
+        { id: 'analytical-config', label: 'Axes Analytiques', path: '/analytics/axes' },
+        { id: 'import-export', label: 'Import/Export', path: '/settings/import-export' },
+        { id: 'security', label: 'Sécurité', path: '/security' },
       ]
     },
   ];

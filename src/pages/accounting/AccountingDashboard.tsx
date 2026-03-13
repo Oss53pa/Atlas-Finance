@@ -450,7 +450,7 @@ const AccountingDashboard: React.FC = () => {
               </motion.div>
             </Link>
             
-            <Link to="/accounting/ratios-financiers">
+            <Link to="/accounting/ratios">
               <motion.div 
                 whileHover={{ scale: 1.05, y: -5 }}
                 initial={{ opacity: 0, y: 20 }}

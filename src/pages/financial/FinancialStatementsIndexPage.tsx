@@ -68,7 +68,7 @@ const FinancialStatementsIndexPage: React.FC = () => {
                 </motion.div>
               </Link>
 
-              <Link to="/financial-statements/cashflow" className="group">
+              <Link to="/financial-statements/analysis" className="group">
                 <motion.div
                   whileHover={{ scale: 1.03, y: -5 }}
                   className="bg-gradient-to-br from-amber-50/90 to-amber-100/70 rounded-2xl p-8 border border-amber-200/50 shadow-sm hover:shadow-xl transition-all duration-300"

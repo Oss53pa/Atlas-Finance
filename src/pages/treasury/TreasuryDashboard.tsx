@@ -144,12 +144,12 @@ const TreasuryDashboard: React.FC = () => {
           icon={Banknote}
           action={
             <div className="flex gap-3">
-              <Link to="/treasury/bank-connections">
+              <Link to="/treasury/connections">
                 <ElegantButton variant="outline" icon={Shield}>
                   Connexions EBICS
                 </ElegantButton>
               </Link>
-              <Link to="/treasury/cash-forecast">
+              <Link to="/treasury/forecast">
                 <ElegantButton variant="primary" icon={TrendingUp}>
                   Prévisions
                 </ElegantButton>
