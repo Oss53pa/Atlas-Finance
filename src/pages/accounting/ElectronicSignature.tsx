@@ -1,4 +1,3 @@
-import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -74,157 +73,9 @@ const ElectronicSignature: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSignModal, setShowSignModal] = useState(false);
 
-  const [documents, setDocuments] = useState<Document[]>([
-    {
-      id: '1',
-      name: 'Contrat-2024-001.pdf',
-      type: 'contract',
-      uploadDate: new Date(Date.now() - 86400000),
-      status: 'signed',
-      signatories: [
-        {
-          id: 's1',
-          name: '',
-          email: 'marie.dupont@company.com',
-          role: 'Directeur Général',
-          company: '',
-          status: 'signed',
-          signedAt: new Date(Date.now() - 3600000),
-          ipAddress: '192.168.1.1',
-          order: 1
-        },
-        {
-          id: 's2',
-          name: '',
-          email: 'jean.martin@client.com',
-          role: 'Responsable Achats',
-          company: '',
-          status: 'signed',
-          signedAt: new Date(Date.now() - 1800000),
-          ipAddress: '192.168.1.2',
-          order: 2
-        }
-      ],
-      completedSignatures: 2,
-      totalSignatures: 2,
-      expiryDate: new Date(Date.now() + 7 * 86400000),
-      size: '2.5 MB',
-      hash: 'a1b2c3d4e5f6g7h8i9j0',
-      certificateId: 'CERT-2024-001',
-      auditTrail: [
-        {
-          id: 'a1',
-          action: 'Document créé',
-          user: 'Admin',
-          timestamp: new Date(Date.now() - 86400000),
-          ipAddress: '192.168.1.100'
-        },
-        {
-          id: 'a2',
-          action: 'Document signé',
-          user: '',
-          timestamp: new Date(Date.now() - 3600000),
-          ipAddress: '192.168.1.1'
-        },
-        {
-          id: 'a3',
-          action: 'Document signé',
-          user: '',
-          timestamp: new Date(Date.now() - 1800000),
-          ipAddress: '192.168.1.2'
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Facture-INV-2024-002.pdf',
-      type: 'invoice',
-      uploadDate: new Date(Date.now() - 172800000),
-      status: 'sent',
-      currentSigner: '',
-      signatories: [
-        {
-          id: 's3',
-          name: '',
-          email: 'pierre.durand@finance.com',
-          role: 'Directeur Financier',
-          status: 'pending',
-          order: 1
-        }
-      ],
-      completedSignatures: 0,
-      totalSignatures: 1,
-      expiryDate: new Date(Date.now() + 5 * 86400000),
-      size: '850 KB',
-      hash: 'b2c3d4e5f6g7h8i9j0k1',
-      auditTrail: [
-        {
-          id: 'a4',
-          action: 'Document envoyé',
-          user: 'Admin',
-          timestamp: new Date(Date.now() - 172800000),
-          ipAddress: '192.168.1.100'
-        },
-        {
-          id: 'a5',
-          action: 'Document consulté',
-          user: '',
-          timestamp: new Date(Date.now() - 86400000),
-          ipAddress: '192.168.1.3',
-          details: 'Ouvert depuis email'
-        }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Bon-Commande-PO-2024-003.pdf',
-      type: 'purchase_order',
-      uploadDate: new Date(Date.now() - 259200000),
-      status: 'viewed',
-      currentSigner: '',
-      signatories: [
-        {
-          id: 's4',
-          name: '',
-          email: 'sophie.lambert@procurement.com',
-          role: 'Responsable Achats',
-          status: 'pending',
-          order: 1
-        },
-        {
-          id: 's5',
-          name: '',
-          email: 'marc.dubois@direction.com',
-          role: 'Directeur Opérations',
-          status: 'pending',
-          order: 2
-        }
-      ],
-      completedSignatures: 0,
-      totalSignatures: 2,
-      expiryDate: new Date(Date.now() + 3 * 86400000),
-      size: '1.2 MB',
-      hash: 'c3d4e5f6g7h8i9j0k1l2',
-      auditTrail: []
-    }
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
 
-  const [signatureTemplates] = useState<SignatureTemplate[]>([
-    {
-      id: 't1',
-      name: 'Ma signature',
-      type: 'draw',
-      data: 'signature_data_1',
-      isDefault: true
-    },
-    {
-      id: 't2',
-      name: 'Signature formelle',
-      type: 'type',
-      data: 'John Doe',
-      isDefault: false
-    }
-  ]);
+  const [signatureTemplates] = useState<SignatureTemplate[]>([]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -321,7 +172,7 @@ const ElectronicSignature: React.FC = () => {
             ...doc.auditTrail,
             {
               id: `a${Date.now()}`,
-              action: 'Document signé',
+              action: 'Document signe',
               user: 'Utilisateur actuel',
               timestamp: new Date(),
               ipAddress: '192.168.1.100'
@@ -354,20 +205,29 @@ const ElectronicSignature: React.FC = () => {
         <div>
           <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <Signature className="w-8 h-8 text-blue-600" />
-            Signature Électronique
+            Signature Electronique
           </h1>
-          <p className="text-gray-600 mt-1">Signez et gérez vos documents en toute sécurité</p>
+          <p className="text-gray-600 mt-1">Signez et gerez vos documents en toute securite</p>
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
+          <button disabled className="flex items-center gap-2 px-4 py-2 border rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed" title="Module en cours d'integration">
             <Upload className="w-4 h-4" />
             Nouveau Document
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button disabled className="flex items-center gap-2 px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed" title="Module en cours d'integration">
             <PenTool className="w-4 h-4" />
-            Créer Signature
+            Creer Signature
           </button>
+        </div>
+      </div>
+
+      {/* Integration Banner */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3">
+        <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-amber-800">Module de signature electronique en cours d&apos;integration</p>
+          <p className="text-xs text-amber-600">Connectez un fournisseur de signature electronique pour activer cette fonctionnalite.</p>
         </div>
       </div>
 
@@ -383,7 +243,7 @@ const ElectronicSignature: React.FC = () => {
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-green-700">Signés</span>
+            <span className="text-sm font-medium text-green-700">Signes</span>
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-lg font-bold text-green-700">{stats.signed}</p>
@@ -411,8 +271,8 @@ const ElectronicSignature: React.FC = () => {
         <div className="flex items-center gap-4">
           <Shield className="w-8 h-8 text-blue-600" />
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">Sécurité maximale</h3>
-            <p className="text-sm text-gray-600">Tous les documents sont chiffrés et horodatés avec certificat légal</p>
+            <h3 className="font-semibold text-gray-900">Securite maximale</h3>
+            <p className="text-sm text-gray-600">Tous les documents sont chiffres et horodates avec certificat legal</p>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
@@ -421,7 +281,7 @@ const ElectronicSignature: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-purple-600" />
-              <span className="text-sm text-gray-700">Certifié eIDAS</span>
+              <span className="text-sm text-gray-700">Certifie eIDAS</span>
             </div>
             <div className="flex items-center gap-2">
               <Key className="w-5 h-5 text-orange-600" />
@@ -456,8 +316,8 @@ const ElectronicSignature: React.FC = () => {
                 )}
               >
                 {status === 'all' ? 'Tous' :
-                 status === 'signed' ? 'Signés' :
-                 status === 'sent' ? 'Envoyés' : 'Brouillons'}
+                 status === 'signed' ? 'Signes' :
+                 status === 'sent' ? 'Envoyes' : 'Brouillons'}
               </button>
             ))}
           </div>
@@ -466,6 +326,13 @@ const ElectronicSignature: React.FC = () => {
 
       {/* Documents List */}
       <div className="space-y-4">
+        {filteredDocuments.length === 0 && (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <FileText className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-600">Aucun document a signer</p>
+            <p className="text-xs text-gray-400 mt-1">Les documents apparaitront ici une fois le module de signature electronique connecte.</p>
+          </div>
+        )}
         {filteredDocuments.map((document) => (
           <div
             key={document.id}
@@ -479,16 +346,16 @@ const ElectronicSignature: React.FC = () => {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-gray-900">{document.name}</h3>
                       <span className={cn("px-2 py-1 text-xs rounded-full font-medium", getStatusColor(document.status))}>
-                        {document.status === 'signed' ? 'Signé' :
-                         document.status === 'sent' ? 'Envoyé' :
-                         document.status === 'viewed' ? 'Consulté' :
-                         document.status === 'completed' ? 'Complété' :
-                         document.status === 'draft' ? 'Brouillon' : 'Rejeté'}
+                        {document.status === 'signed' ? 'Signe' :
+                         document.status === 'sent' ? 'Envoye' :
+                         document.status === 'viewed' ? 'Consulte' :
+                         document.status === 'completed' ? 'Complete' :
+                         document.status === 'draft' ? 'Brouillon' : 'Rejete'}
                       </span>
                       {document.certificateId && (
                         <div className="flex items-center gap-1">
                           <Award className="w-4 h-4 text-green-600" />
-                          <span className="text-xs text-green-600">Certifié</span>
+                          <span className="text-xs text-green-600">Certifie</span>
                         </div>
                       )}
                     </div>
@@ -514,7 +381,7 @@ const ElectronicSignature: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {document.signatories.map((signatory, index) => (
+                        {document.signatories.map((signatory) => (
                           <div
                             key={signatory.id}
                             className={cn(
@@ -551,7 +418,7 @@ const ElectronicSignature: React.FC = () => {
                   <button
                     onClick={() => setSelectedDocument(document)}
                     className="p-2 hover:bg-gray-100 rounded-lg"
-                    title="Voir détails"
+                    title="Voir details"
                   >
                     <Eye className="w-5 h-5 text-gray-600" />
                   </button>
@@ -578,7 +445,7 @@ const ElectronicSignature: React.FC = () => {
                   )}
                   <button
                     className="p-2 hover:bg-gray-100 rounded-lg"
-                    title={t('actions.download')} aria-label="Télécharger">
+                    title={t('actions.download')} aria-label="Telecharger">
                     <Download className="w-5 h-5 text-gray-600" />
                   </button>
                 </div>
@@ -602,7 +469,7 @@ const ElectronicSignature: React.FC = () => {
                             <span className="text-gray-700">par {entry.user}</span>
                           </div>
                           <div className="text-xs text-gray-700">
-                            {formatCurrency(new Date(entry.timestamp))} - IP: {entry.ipAddress}
+                            {new Date(entry.timestamp).toLocaleString()} - IP: {entry.ipAddress}
                             {entry.details && ` - ${entry.details}`}
                           </div>
                         </div>
@@ -704,27 +571,21 @@ const ElectronicSignature: React.FC = () => {
               {signatureMethod === 'upload' && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                   <Upload className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-                  <p className="text-gray-600">Cliquez pour télécharger une image de votre signature</p>
+                  <p className="text-gray-600">Cliquez pour telecharger une image de votre signature</p>
                   <input type="file" accept="image/*" className="hidden" />
                 </div>
               )}
 
               {signatureMethod === 'certificate' && (
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Shield className="w-6 h-6 text-green-600" />
+                      <Shield className="w-6 h-6 text-gray-400" />
                       <div>
-                        <p className="font-medium text-green-900">Certificat numérique détecté</p>
-                        <p className="text-sm text-green-700">CN=John Doe, O=Company, C=FR</p>
+                        <p className="font-medium text-gray-700">Aucun certificat numerique detecte</p>
+                        <p className="text-sm text-gray-500">Connectez un fournisseur de certificats pour utiliser cette option.</p>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" id="consent" className="rounded" />
-                    <label htmlFor="consent" className="text-sm text-gray-600">
-                      J'accepte d'apposer ma signature électronique certifiée sur ce document
-                    </label>
                   </div>
                 </div>
               )}
@@ -739,8 +600,9 @@ const ElectronicSignature: React.FC = () => {
                   Annuler
                 </button>
                 <button
-                  onClick={() => signDocument(selectedDocument.id)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled
+                  className="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
+                  title="Module en cours d'integration"
                 >
                   Signer le document
                 </button>
@@ -750,7 +612,7 @@ const ElectronicSignature: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de sélection de période */}
+      {/* Modal de selection de periode */}
       <PeriodSelectorModal
         isOpen={showPeriodModal}
         onClose={() => setShowPeriodModal(false)}

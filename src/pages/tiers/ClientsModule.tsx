@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import {
@@ -158,8 +159,11 @@ interface BalanceAgeeItem {
 const ClientsModule: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { adapter } = useData();
 
   // États
+  const [isLoading, setIsLoading] = useState(true);
+  const [clients, setClients] = useState<Client[]>([]);
   const [activeTab, setActiveTab] = useState<string>('liste');
   const [balanceAgeeSubTab, setBalanceAgeeSubTab] = useState<'repartition' | 'detail' | 'risques'>('repartition');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -212,316 +216,96 @@ const ClientsModule: React.FC = () => {
     swift: ''
   });
 
-  // Mock Data Clients CEMAC avec données comptables complètes
-  const clients: Client[] = [
-    {
-      id: '1',
-      code: 'CLI001',
-      raisonSociale: 'SOCIETE GENERALE CAMEROUN',
-      nomCommercial: 'SGC',
-      categorie: 'GRAND_COMPTE',
-      secteurActivite: 'Banque & Finance',
-      pays: 'Cameroun',
-      compteComptable: '411100',
-      compteAuxiliaire: 'CLI001',
-      journalVentes: 'VE',
-      rccm: 'RC/YDE/2015/B/1234',
-      niu: 'M071512345678A',
-      regimeTVA: 'REEL_NORMAL',
-      tauxTVA: 19.25,
-      adresse: 'Boulevard de la Liberté',
-      codePostal: 'BP 1234',
-      ville: 'Douala',
-      region: 'Littoral',
-      chiffreAffaires: 15000000,
-      encoursActuel: 2500000,
-      dso: 32,
-      limiteCredit: 5000000,
-      delaiPaiement: 45,
-      remise: 5,
-      escompte: 2,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      banque: 'BICEC',
-      iban: 'CM2110001000000012345678901',
-      swift: 'ABORABDX',
-      scoreCredit: 92,
-      tauxRecouvrement: 98,
-      notationInterne: 'A',
-      fidele: true,
-      contactPrincipal: 'Jean-Pierre MBARGA',
-      email: 'jp.mbarga@sgc.cm',
-      telephone: '+237 691 234 567',
-      telephoneSecondaire: '+237 233 456 789',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-15',
-      prochainPaiement: '2024-10-30',
-      alertes: 0,
-      nonEchu: 1500000,
-      echu0_30: 800000,
-      echu31_60: 150000,
-      echu61_90: 50000,
-      echuPlus90: 0
-    },
-    {
-      id: '2',
-      code: 'CLI002',
-      raisonSociale: 'BRASSERIES DU GABON',
-      nomCommercial: 'BRAGA',
-      categorie: 'GRAND_COMPTE',
-      secteurActivite: 'Agroalimentaire',
-      pays: 'Gabon',
-      compteComptable: '411200',
-      compteAuxiliaire: 'CLI002',
-      journalVentes: 'VE',
-      rccm: 'RC/LBV/2018/A/5678',
-      niu: 'G021856789012B',
-      regimeTVA: 'REEL_NORMAL',
-      tauxTVA: 18,
-      adresse: 'Zone Industrielle Oloumi',
-      codePostal: 'BP 567',
-      ville: 'Libreville',
-      region: 'Estuaire',
-      chiffreAffaires: 8500000,
-      encoursActuel: 1200000,
-      dso: 28,
-      limiteCredit: 3000000,
-      delaiPaiement: 30,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      banque: 'UGB',
-      scoreCredit: 88,
-      tauxRecouvrement: 95,
-      notationInterne: 'A',
-      fidele: true,
-      contactPrincipal: 'Sylvie MOUBAMBA',
-      email: 's.moubamba@braga.ga',
-      telephone: '+241 01 345 678',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-10',
-      prochainPaiement: '2024-10-10',
-      alertes: 0,
-      nonEchu: 900000,
-      echu0_30: 250000,
-      echu31_60: 50000,
-      echu61_90: 0,
-      echuPlus90: 0
-    },
-    {
-      id: '3',
-      code: 'CLI003',
-      raisonSociale: 'CONGO TELECOM',
-      categorie: 'GRAND_COMPTE',
-      secteurActivite: 'Télécommunications',
-      pays: 'Congo',
-      compteComptable: '411300',
-      compteAuxiliaire: 'CLI003',
-      journalVentes: 'VE',
-      rccm: 'RC/BZV/2016/C/9012',
-      niu: 'C031690123456C',
-      regimeTVA: 'REEL_NORMAL',
-      tauxTVA: 18,
-      adresse: 'Avenue des Trois Martyrs',
-      codePostal: 'BP 890',
-      ville: 'Brazzaville',
-      region: 'Pool',
-      chiffreAffaires: 12000000,
-      encoursActuel: 3500000,
-      dso: 45,
-      limiteCredit: 4000000,
-      delaiPaiement: 60,
-      remise: 3,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      scoreCredit: 75,
-      tauxRecouvrement: 85,
-      notationInterne: 'B',
-      fidele: true,
-      contactPrincipal: 'André NGOUABI',
-      email: 'a.ngouabi@congotelecom.cg',
-      telephone: '+242 06 456 789',
-      statut: 'ACTIF',
-      derniereFacture: '2024-08-20',
-      prochainPaiement: '2024-10-20',
-      alertes: 2,
-      nonEchu: 1800000,
-      echu0_30: 800000,
-      echu31_60: 500000,
-      echu61_90: 300000,
-      echuPlus90: 100000
-    },
-    {
-      id: '4',
-      code: 'CLI004',
-      raisonSociale: 'TCHAD CONSTRUCTION SARL',
-      categorie: 'PME',
-      secteurActivite: 'BTP',
-      pays: 'Tchad',
-      compteComptable: '411400',
-      compteAuxiliaire: 'CLI004',
-      journalVentes: 'VE',
-      rccm: 'RC/NDJ/2019/D/3456',
-      niu: 'T041934567890D',
-      regimeTVA: 'REEL_SIMPLIFIE',
-      tauxTVA: 18,
-      adresse: 'Quartier Moursal',
-      codePostal: 'BP 345',
-      ville: "N'Djamena",
-      region: 'Chari-Baguirmi',
-      chiffreAffaires: 2500000,
-      encoursActuel: 450000,
-      dso: 55,
-      limiteCredit: 800000,
-      delaiPaiement: 45,
-      modeReglement: 'CHEQUE',
-      devise: 'XAF',
-      scoreCredit: 68,
-      tauxRecouvrement: 78,
-      notationInterne: 'C',
-      fidele: false,
-      contactPrincipal: 'Ibrahim DEBY',
-      email: 'i.deby@tchadconstruction.td',
-      telephone: '+235 66 789 012',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-05',
-      prochainPaiement: '2024-10-20',
-      alertes: 3,
-      nonEchu: 150000,
-      echu0_30: 100000,
-      echu31_60: 80000,
-      echu61_90: 70000,
-      echuPlus90: 50000
-    },
-    {
-      id: '5',
-      code: 'CLI005',
-      raisonSociale: 'GUINEE EQUATORIALE MINING',
-      nomCommercial: 'GE Mining',
-      categorie: 'GRAND_COMPTE',
-      secteurActivite: 'Mines & Énergie',
-      pays: 'Guinée Équatoriale',
-      compteComptable: '411500',
-      compteAuxiliaire: 'CLI005',
-      journalVentes: 'VE',
-      rccm: 'RC/MAL/2017/E/7890',
-      niu: 'E051778901234E',
-      regimeTVA: 'REEL_NORMAL',
-      tauxTVA: 15,
-      adresse: 'Carretera del Aeropuerto',
-      codePostal: 'BP 789',
-      ville: 'Malabo',
-      region: 'Bioko Norte',
-      chiffreAffaires: 25000000,
-      encoursActuel: 5000000,
-      dso: 38,
-      limiteCredit: 8000000,
-      delaiPaiement: 60,
-      remise: 8,
-      escompte: 3,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      banque: 'BGFI Bank',
-      scoreCredit: 85,
-      tauxRecouvrement: 92,
-      notationInterne: 'A',
-      fidele: true,
-      contactPrincipal: 'Manuel OBIANG',
-      email: 'm.obiang@gemining.gq',
-      telephone: '+240 333 456 789',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-18',
-      prochainPaiement: '2024-11-18',
-      alertes: 0,
-      nonEchu: 4000000,
-      echu0_30: 800000,
-      echu31_60: 200000,
-      echu61_90: 0,
-      echuPlus90: 0
-    },
-    {
-      id: '6',
-      code: 'CLI006',
-      raisonSociale: 'RCA DISTRIBUTION',
-      categorie: 'PME',
-      secteurActivite: 'Commerce',
-      pays: 'République Centrafricaine',
-      compteComptable: '411600',
-      compteAuxiliaire: 'CLI006',
-      journalVentes: 'VE',
-      rccm: 'RC/BGI/2020/F/1234',
-      niu: 'R062012345678F',
-      regimeTVA: 'FORFAIT',
-      tauxTVA: 19,
-      adresse: 'Avenue Boganda',
-      codePostal: 'BP 123',
-      ville: 'Bangui',
-      region: 'Ombella-M\'Poko',
-      chiffreAffaires: 1800000,
-      encoursActuel: 850000,
-      dso: 72,
-      limiteCredit: 600000,
-      delaiPaiement: 30,
-      modeReglement: 'CHEQUE',
-      devise: 'XAF',
-      scoreCredit: 55,
-      tauxRecouvrement: 65,
-      notationInterne: 'D',
-      fidele: false,
-      contactPrincipal: 'Catherine SAMBA',
-      email: 'c.samba@rcadistribution.cf',
-      telephone: '+236 70 234 567',
-      statut: 'BLOQUE',
-      derniereFacture: '2024-07-15',
-      alertes: 5,
-      nonEchu: 100000,
-      echu0_30: 150000,
-      echu31_60: 200000,
-      echu61_90: 200000,
-      echuPlus90: 200000
-    },
-    {
-      id: '7',
-      code: 'CLI007',
-      raisonSociale: 'CABINET EXPERTISE DOUALA',
-      categorie: 'TPE',
-      secteurActivite: 'Services',
-      pays: 'Cameroun',
-      compteComptable: '411700',
-      compteAuxiliaire: 'CLI007',
-      journalVentes: 'VE',
-      rccm: 'RC/DLA/2021/G/5678',
-      niu: 'M072156789012G',
-      regimeTVA: 'REEL_SIMPLIFIE',
-      tauxTVA: 19.25,
-      adresse: 'Rue Joffre',
-      codePostal: 'BP 456',
-      ville: 'Douala',
-      region: 'Littoral',
-      chiffreAffaires: 450000,
-      encoursActuel: 75000,
-      dso: 25,
-      limiteCredit: 200000,
-      delaiPaiement: 30,
-      modeReglement: 'VIREMENT',
-      devise: 'XAF',
-      scoreCredit: 90,
-      tauxRecouvrement: 100,
-      notationInterne: 'A',
-      fidele: true,
-      contactPrincipal: 'Patrice NKOULOU',
-      email: 'p.nkoulou@cedouala.cm',
-      telephone: '+237 677 890 123',
-      statut: 'ACTIF',
-      derniereFacture: '2024-09-20',
-      prochainPaiement: '2024-10-20',
-      alertes: 0,
-      nonEchu: 75000,
-      echu0_30: 0,
-      echu31_60: 0,
-      echu61_90: 0,
-      echuPlus90: 0
-    }
-  ];
+  // Chargement des données réelles depuis l'adaptateur
+  useEffect(() => {
+    let mounted = true;
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [allThirdParties, allEntries] = await Promise.all([
+          adapter.getAll('thirdParties'),
+          adapter.getAll('journalEntries')
+        ]);
+
+        const customers = allThirdParties.filter(
+          (tp: any) => tp.type === 'customer' || tp.type === 'both'
+        );
+
+        const clientsData: Client[] = customers.map((tp: any) => {
+          const relatedLines: { debit: number; credit: number; date: string }[] = [];
+          allEntries.forEach((entry: any) => {
+            if (entry.status === 'draft') return;
+            (entry.lines || []).forEach((line: any) => {
+              if (line.thirdPartyCode === tp.code || line.accountCode === tp.accountCode) {
+                relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0, date: entry.date });
+              }
+            });
+          });
+
+          const totalDebit = relatedLines.reduce((s, l) => s + l.debit, 0);
+          const totalCredit = relatedLines.reduce((s, l) => s + l.credit, 0);
+          const encours = totalDebit - totalCredit;
+
+          return {
+            id: tp.id,
+            code: tp.code || '',
+            raisonSociale: tp.name || '',
+            nomCommercial: tp.name,
+            categorie: 'PME' as const,
+            secteurActivite: '',
+            pays: '',
+            compteComptable: tp.accountCode || '411000',
+            compteAuxiliaire: tp.code || '',
+            journalVentes: 'VE',
+            rccm: tp.rccm || '',
+            niu: tp.taxId || '',
+            regimeTVA: (tp.regimeFiscal === 'RNI' ? 'REEL_NORMAL' : 'REEL_SIMPLIFIE') as any,
+            tauxTVA: 19.25,
+            adresse: tp.address || '',
+            codePostal: '',
+            ville: '',
+            region: '',
+            chiffreAffaires: totalDebit,
+            encoursActuel: Math.max(encours, 0),
+            dso: tp.conditionsPaiement?.delaiJours || 30,
+            limiteCredit: 0,
+            delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
+            remise: 0,
+            escompte: tp.conditionsPaiement?.escompte || 0,
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : tp.conditionsPaiement?.modePaiement === 'cheque' ? 'CHEQUE' : 'VIREMENT') as any,
+            devise: 'XAF',
+            banque: tp.banque?.nomBanque,
+            iban: tp.banque?.iban,
+            swift: tp.banque?.swift,
+            scoreCredit: tp.isActive ? 80 : 40,
+            tauxRecouvrement: 0,
+            notationInterne: 'B' as const,
+            fidele: tp.isActive,
+            contactPrincipal: '',
+            email: tp.email || '',
+            telephone: tp.phone || '',
+            statut: tp.isActive ? 'ACTIF' as const : 'INACTIF' as const,
+            alertes: 0,
+            nonEchu: Math.max(encours, 0),
+            echu0_30: 0,
+            echu31_60: 0,
+            echu61_90: 0,
+            echuPlus90: 0
+          };
+        });
+
+        if (mounted) {
+          setClients(clientsData);
+        }
+      } catch (err) {
+        console.error('Error loading clients:', err);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+    loadData();
+    return () => { mounted = false; };
+  }, [adapter]);
 
   // Données Balance Âgée
   const balanceAgeeData: BalanceAgeeItem[] = useMemo(() => clients.map(client => ({
@@ -668,7 +452,7 @@ const ClientsModule: React.FC = () => {
 
   // Générer code client automatique
   const generateClientCode = () => {
-    const lastCode = clients.length > 0 ? parseInt(clients[clients.length - 1].code.replace('CLI', '')) : 0;
+    const lastCode = clients.length > 0 ? parseInt(clients[clients.length - 1].code.replace(/[^0-9]/g, '') || '0') : 0;
     const newCode = `CLI${String(lastCode + 1).padStart(3, '0')}`;
     setNewClient({ ...newClient, code: newCode, compteAuxiliaire: newCode });
   };
@@ -681,30 +465,26 @@ const ClientsModule: React.FC = () => {
     clientsActifs: clients.filter(c => c.statut === 'ACTIF').length,
   }), [clients]);
 
-  // Analytics Data
-  const analyticsData = {
-    clientsParCategorie: [
-      { categorie: 'GRAND_COMPTE', count: 12, montant: 45000000 },
-      { categorie: 'PME', count: 35, montant: 18000000 },
-      { categorie: 'TPE', count: 48, montant: 5500000 },
-      { categorie: 'PARTICULIER', count: 15, montant: 1200000 }
-    ],
-    evolutionCA: [
-      { mois: 'Jan', ca2024: 8500000, ca2025: 9800000 },
-      { mois: 'Fév', ca2024: 7200000, ca2025: 8500000 },
-      { mois: 'Mar', ca2024: 9100000, ca2025: 10200000 },
-      { mois: 'Avr', ca2024: 8800000, ca2025: 9500000 },
-      { mois: 'Mai', ca2024: 10500000, ca2025: 12000000 },
-      { mois: 'Juin', ca2024: 11200000, ca2025: 13500000 }
-    ],
-    performanceClients: [
-      { critere: 'Fidélité', score: 85 },
-      { critere: 'Paiement', score: 78 },
-      { critere: 'Volume', score: 72 },
-      { critere: 'Rentabilité', score: 88 },
-      { critere: 'Potentiel', score: 82 }
-    ]
-  };
+  // Analytics Data computed from real clients
+  const analyticsData = useMemo(() => {
+    const categories = ['GRAND_COMPTE', 'PME', 'TPE', 'PARTICULIER'] as const;
+    const clientsParCategorie = categories.map(cat => ({
+      categorie: cat,
+      count: clients.filter(c => c.categorie === cat).length,
+      montant: clients.filter(c => c.categorie === cat).reduce((s, c) => s + c.chiffreAffaires, 0)
+    }));
+    return {
+      clientsParCategorie,
+      evolutionCA: [] as { mois: string; ca2024: number; ca2025: number }[],
+      performanceClients: [
+        { critere: 'Fidélité', score: clients.length > 0 ? Math.round(clients.filter(c => c.fidele).length / clients.length * 100) : 0 },
+        { critere: 'Paiement', score: clients.length > 0 ? Math.round(clients.filter(c => c.statut === 'ACTIF').length / clients.length * 100) : 0 },
+        { critere: 'Volume', score: clients.length > 0 ? Math.min(100, Math.round(clients.reduce((s, c) => s + c.chiffreAffaires, 0) / 1000000)) : 0 },
+        { critere: 'Rentabilité', score: 0 },
+        { critere: 'Potentiel', score: 0 }
+      ]
+    };
+  }, [clients]);
 
   // Data pour graphique Balance Âgée
   const balanceAgeeChartData = [
@@ -722,6 +502,17 @@ const ClientsModule: React.FC = () => {
     { id: 'balance-agee', label: 'Balance Âgée', icon: Receipt },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 }
   ];
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-[#525252] mx-auto mb-4" />
+          <p className="text-[#525252]">Chargement des clients...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

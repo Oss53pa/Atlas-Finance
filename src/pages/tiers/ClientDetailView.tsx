@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
   ArrowLeft, Edit, Download, Printer, AlertTriangle, CheckCircle, Clock,
@@ -152,8 +153,9 @@ const ClientDetailView: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { clientId } = useParams();
+  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('synthese');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear() - 1, new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -205,168 +207,149 @@ const ClientDetailView: React.FC = () => {
     domiciliation: ''
   });
 
-  // Mock Client Data
-  const clientDetail: ClientDetail = {
-    id: '1',
-    code: 'CLI001',
-    nom: 'SARL CONGO BUSINESS',
-    nomCommercial: 'Congo Business',
-    formeJuridique: 'SARL',
-    siret: '12345678901234',
-    codeAPE: '4651Z',
-    numeroTVA: 'FR12345678901',
-    capitalSocial: 100000,
-    dateCreation: '2020-01-15',
-    secteurActivite: 'Commerce de gros',
-    effectif: 25,
-    chiffreAffairesConnu: 2450000,
+  // State for real data
+  const [clientDetail, setClientDetail] = useState<ClientDetail | null>(null);
+  const [mouvements, setMouvements] = useState<MouvementComptable[]>([]);
+  const [echeances, setEcheances] = useState<Echeance[]>([]);
+  const [caEvolution, setCaEvolution] = useState<{ mois: string; ca: number; marge: number }[]>([]);
+  const [balanceAgee, setBalanceAgee] = useState<{ tranche: string; montant: number; pourcentage: number }[]>([]);
 
-    adresseFacturation: {
-      rue: '123 Avenue de la Paix',
-      ville: 'Brazzaville',
-      codePostal: '00242',
-      pays: 'Congo'
-    },
+  // Load data from adapter
+  useEffect(() => {
+    let mounted = true;
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [allThirdParties, allEntries] = await Promise.all([
+          adapter.getAll('thirdParties'),
+          adapter.getAll('journalEntries')
+        ]);
 
-    contacts: {
-      comptabilite: {
-        nom: 'Marie MBAMA',
-        email: 'm.mbama@congobusiness.cg',
-        telephone: '+242 06 11 22 33'
-      },
-      principal: {
-        nom: 'Jean MAMBOU',
-        fonction: 'Directeur Commercial',
-        email: 'j.mambou@congobusiness.cg',
-        telephone: '+242 06 123 45 67'
+        const tp = allThirdParties.find((t: any) => t.id === clientId);
+        if (!tp || !mounted) { if (mounted) setLoading(false); return; }
+
+        // Compute financial data from journal entries
+        const relatedLines: { debit: number; credit: number; date: string; label: string; ref: string; entryNum: string }[] = [];
+        allEntries.forEach((entry: any) => {
+          if (entry.status === 'draft') return;
+          (entry.lines || []).forEach((line: any) => {
+            if (line.thirdPartyCode === tp.code || line.accountCode === tp.accountCode) {
+              relatedLines.push({
+                debit: line.debit || 0,
+                credit: line.credit || 0,
+                date: entry.date,
+                label: line.label || entry.label || '',
+                ref: entry.reference || '',
+                entryNum: entry.entryNumber || ''
+              });
+            }
+          });
+        });
+
+        const totalDebit = relatedLines.reduce((s, l) => s + l.debit, 0);
+        const totalCredit = relatedLines.reduce((s, l) => s + l.credit, 0);
+        const encours = totalDebit - totalCredit;
+
+        const detail: ClientDetail = {
+          id: tp.id,
+          code: tp.code || '',
+          nom: tp.name || '',
+          nomCommercial: tp.name,
+          formeJuridique: '',
+          siret: tp.taxId || '',
+          dateCreation: '',
+          secteurActivite: '',
+          adresseFacturation: {
+            rue: tp.address || '',
+            ville: '',
+            codePostal: '',
+            pays: ''
+          },
+          contacts: {
+            comptabilite: { nom: '', email: tp.email || '', telephone: tp.phone || '' },
+            principal: { nom: '', fonction: '', email: tp.email || '', telephone: tp.phone || '' }
+          },
+          comptabilite: {
+            compteCollectif: tp.accountCode || '411000',
+            comptesAuxiliaires: tp.accountCode ? [tp.accountCode] : [],
+            regimeTVA: 'NORMAL',
+            tauxTVADefaut: 19.25,
+            exonerationTVA: false,
+            modeReglement: (tp.conditionsPaiement?.modePaiement === 'virement' ? 'VIREMENT' : 'CHEQUE') as any,
+            conditionsPaiement: tp.conditionsPaiement ? `${tp.conditionsPaiement.delaiJours} jours net` : '30 jours net',
+            delaiPaiement: tp.conditionsPaiement?.delaiJours || 30,
+            plafondEncours: 0,
+            deviseFacturation: 'XAF'
+          },
+          banque: {
+            iban: tp.banque?.iban || '',
+            bic: tp.banque?.swift || '',
+            domiciliation: tp.banque?.nomBanque || ''
+          },
+          classification: {
+            categorie: 'PME',
+            zoneGeographique: '',
+            responsableCommercial: '',
+            notationInterne: 'B',
+            clientStrategique: false
+          },
+          financier: {
+            chiffreAffairesAnnuel: totalDebit,
+            encours: Math.max(encours, 0),
+            soldeComptable: encours,
+            impayesEnCours: 0,
+            dso: tp.conditionsPaiement?.delaiJours || 30,
+            limiteCredit: 0,
+            scoreRisque: tp.isActive ? 80 : 40,
+            provisions: 0
+          },
+          analyses: {
+            rentabilite: { margebrute: 0, margeNette: 0, contribuationResultat: 0, roiClient: 0, lifetimeValue: 0 },
+            performance: { respectEcheances: 0, delaiPaiementMoyen: tp.conditionsPaiement?.delaiJours || 30, frequenceRetards: 0, utilisationEscompte: 0 }
+          }
+        };
+
+        // Build mouvements from journal entries
+        let runSolde = 0;
+        const mvts: MouvementComptable[] = relatedLines
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .map((l, i) => {
+            runSolde += l.debit - l.credit;
+            return {
+              id: String(i + 1),
+              dateComptable: l.date,
+              datePiece: l.date,
+              numeroPiece: l.entryNum,
+              libelle: l.label,
+              debit: l.debit,
+              credit: l.credit,
+              solde: runSolde,
+              type: l.debit > 0 ? 'FACTURE' as const : 'REGLEMENT' as const
+            };
+          });
+
+        if (mounted) {
+          setClientDetail(detail);
+          setMouvements(mvts);
+          setEcheances([]);
+          setCaEvolution([]);
+          const totalEncours = Math.max(encours, 0);
+          setBalanceAgee([
+            { tranche: '0-30j', montant: totalEncours, pourcentage: totalEncours > 0 ? 100 : 0 },
+            { tranche: '31-60j', montant: 0, pourcentage: 0 },
+            { tranche: '61-90j', montant: 0, pourcentage: 0 },
+            { tranche: '>90j', montant: 0, pourcentage: 0 }
+          ]);
+        }
+      } catch (err) {
+        console.error('Error loading client detail:', err);
+      } finally {
+        if (mounted) setLoading(false);
       }
-    },
-
-    comptabilite: {
-      compteCollectif: '411000',
-      comptesAuxiliaires: ['411001', '411002'],
-      regimeTVA: 'NORMAL',
-      tauxTVADefaut: 18,
-      exonerationTVA: false,
-      modeReglement: 'VIREMENT',
-      conditionsPaiement: '30 jours net',
-      delaiPaiement: 30,
-      plafondEncours: 500000,
-      deviseFacturation: 'XAF'
-    },
-
-    banque: {
-      iban: 'CG39 3001 0000 1234 5678 9012',
-      bic: 'BGFICGCG',
-      domiciliation: 'BGFI Bank Congo',
-      mandatSEPA: {
-        numeroMandat: 'MAN-001-2024',
-        dateMandat: '2024-01-15'
-      }
-    },
-
-    classification: {
-      categorie: 'PME',
-      zoneGeographique: 'Afrique Centrale',
-      responsableCommercial: 'Paul MBEKI',
-      notationInterne: 'A',
-      clientStrategique: true
-    },
-
-    financier: {
-      chiffreAffairesAnnuel: 2450000,
-      encours: 125000,
-      soldeComptable: 125000,
-      impayesEnCours: 0,
-      dso: 28,
-      limiteCredit: 500000,
-      scoreRisque: 85,
-      provisions: 0
-    },
-
-    analyses: {
-      rentabilite: {
-        margebrute: 35.5,
-        margeNette: 18.2,
-        contribuationResultat: 445900,
-        roiClient: 22.5,
-        lifetimeValue: 3500000
-      },
-      performance: {
-        respectEcheances: 94.2,
-        delaiPaiementMoyen: 32,
-        frequenceRetards: 2,
-        utilisationEscompte: 15
-      }
-    }
-  };
-
-  // Mock Mouvements Comptables
-  const mouvements: MouvementComptable[] = [
-    {
-      id: '1',
-      dateComptable: '2024-09-15',
-      datePiece: '2024-09-15',
-      numeroPiece: 'VT-2024-0156',
-      libelle: 'Facture de vente marchandises',
-      debit: 85000,
-      credit: 0,
-      solde: 125000,
-      type: 'FACTURE'
-    },
-    {
-      id: '2',
-      dateComptable: '2024-09-10',
-      datePiece: '2024-09-10',
-      numeroPiece: 'REG-2024-0089',
-      libelle: 'Règlement par virement bancaire',
-      debit: 0,
-      credit: 120000,
-      solde: 40000,
-      lettrage: 'A001',
-      type: 'REGLEMENT'
-    }
-  ];
-
-  // Mock Échéances
-  const echeances: Echeance[] = [
-    {
-      id: '1',
-      numeroFacture: 'VT-2024-0156',
-      dateEcheance: '2024-10-15',
-      montant: 85000,
-      montantRestant: 85000,
-      statut: 'EN_COURS'
-    },
-    {
-      id: '2',
-      numeroFacture: 'VT-2024-0145',
-      dateEcheance: '2024-09-30',
-      montant: 40000,
-      montantRestant: 40000,
-      statut: 'EN_COURS'
-    }
-  ];
-
-  // Mock Analytics Data
-  const caEvolution = [
-    { mois: 'Jan', ca: 180000, marge: 32000 },
-    { mois: 'Fév', ca: 195000, marge: 35000 },
-    { mois: 'Mar', ca: 210000, marge: 38000 },
-    { mois: 'Avr', ca: 205000, marge: 36000 },
-    { mois: 'Mai', ca: 225000, marge: 40000 },
-    { mois: 'Juin', ca: 240000, marge: 43000 },
-    { mois: 'Juil', ca: 220000, marge: 39000 },
-    { mois: 'Août', ca: 235000, marge: 42000 },
-    { mois: 'Sept', ca: 250000, marge: 45000 }
-  ];
-
-  const balanceAgee = [
-    { tranche: '0-30j', montant: 85000, pourcentage: 68 },
-    { tranche: '31-60j', montant: 40000, pourcentage: 32 },
-    { tranche: '61-90j', montant: 0, pourcentage: 0 },
-    { tranche: '>90j', montant: 0, pourcentage: 0 }
-  ];
+    };
+    loadData();
+    return () => { mounted = false; };
+  }, [adapter, clientId]);
 
   const tabs = [
     { id: 'synthese', label: 'Synthèse', icon: BarChart3 },
@@ -402,6 +385,7 @@ const ClientDetailView: React.FC = () => {
   };
 
   const handleOpenEditModal = () => {
+    if (!clientDetail) return;
     setEditModalTab('general');
     setEditFormData({
       // Informations générales
@@ -453,6 +437,31 @@ const ClientDetailView: React.FC = () => {
   };
 
   const COLORS = ['#171717', '#525252', '#a3a3a3', '#3b82f6', '#22c55e', '#f59e0b'];
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-[#525252] mx-auto mb-4" />
+          <p className="text-[#525252]">Chargement du client...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!clientDetail) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertTriangle className="w-8 h-8 text-orange-500 mx-auto mb-4" />
+          <p className="text-[#525252]">Client introuvable</p>
+          <button onClick={() => navigate('/tiers/clients')} className="mt-4 px-4 py-2 bg-[#171717] text-white rounded-lg">
+            Retour à la liste
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-[#e5e5e5] min-h-screen ">
