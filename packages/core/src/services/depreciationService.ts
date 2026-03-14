@@ -59,11 +59,16 @@ export function calculerAmortissements(input: DepreciationInput): DepreciationRe
     } else {
       // Degressif: taux = 2 / duree (methode double-declining)
       const tauxDegressif = 2 / asset.usefulLifeYears
-      const vnc = coutAcquisition.subtract(money(0)) // Simplifie — cumul vient de l'exterieur
+      const vnc = coutAcquisition.subtract(money(asset.cumulDepreciation || 0))
       dotation = vnc.multiply(tauxDegressif).round(0).toNumber()
     }
 
-    const vnc = coutAcquisition.subtract(money(dotation)).toNumber()
+    // AF-I06: VNC ne peut jamais être négative
+    const maxDotation = baseAmortissable.subtract(money(asset.cumulDepreciation || 0)).toNumber();
+    dotation = Math.min(dotation, Math.max(maxDotation, 0));
+    if (dotation <= 0) continue;
+
+    const vnc = coutAcquisition.subtract(money((asset.cumulDepreciation || 0) + dotation)).toNumber()
 
     details.push({
       assetId: asset.id,

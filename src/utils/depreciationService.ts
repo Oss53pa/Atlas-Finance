@@ -78,7 +78,15 @@ export class DepreciationService {
   static calculerAnneesEcoulees(dateAcquisition: string, dateCourante: string): number {
     const debut = new Date(dateAcquisition);
     const fin = new Date(dateCourante);
-    return (fin.getTime() - debut.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+    // SYSCOHADA : année commerciale 360 jours (12 × 30)
+    const moisDebut = debut.getFullYear() * 12 + debut.getMonth();
+    const moisFin = fin.getFullYear() * 12 + fin.getMonth();
+    const joursDebut = Math.min(debut.getDate(), 30);
+    const joursFin = Math.min(fin.getDate(), 30);
+
+    const totalJours = (moisFin - moisDebut) * 30 + (joursFin - joursDebut);
+    return Math.max(0, totalJours) / 360;
   }
 
   static genererEcritureAmortissement(
@@ -211,7 +219,7 @@ export class DepreciationService {
     let amortissementCumule = 0;
 
     for (let annee = 1; annee <= immobilisation.dureeAmortissement; annee++) {
-      const dotation =
+      let dotation =
         immobilisation.modeAmortissement === 'lineaire'
           ? this.calculerAmortissementLineaire(
               immobilisation.valeurAcquisition,
@@ -224,6 +232,18 @@ export class DepreciationService {
               annee - 1,
               amortissementCumule
             );
+
+      // AF-I04: Bascule dégressif → linéaire quand annuité linéaire > annuité dégressive
+      if (immobilisation.modeAmortissement === 'degressif') {
+        const vnc = immobilisation.valeurAcquisition - amortissementCumule;
+        const anneesRestantes = immobilisation.dureeAmortissement - annee + 1;
+        if (anneesRestantes > 0) {
+          const annuiteLineaire = money(vnc).divide(anneesRestantes).toNumber();
+          if (annuiteLineaire > dotation) {
+            dotation = annuiteLineaire;
+          }
+        }
+      }
 
       amortissementCumule += dotation;
       const valeurNetteComptable = immobilisation.valeurAcquisition - amortissementCumule;
@@ -238,6 +258,18 @@ export class DepreciationService {
 
       if (valeurNetteComptable <= (immobilisation.valeurResiduelle || 0)) {
         break;
+      }
+    }
+
+    // AF-I09: Contrôle de bouclage — ajuster dernière annuité pour que Σ = base amortissable
+    if (tableau.length > 0) {
+      const totalDotations = tableau.reduce((s, t) => s + t.dotation, 0);
+      const baseAmortissable = immobilisation.valeurAcquisition - (immobilisation.valeurResiduelle || 0);
+      const ecart = baseAmortissable - totalDotations;
+      if (Math.abs(ecart) > 0 && Math.abs(ecart) < 100) {
+        tableau[tableau.length - 1].dotation += ecart;
+        tableau[tableau.length - 1].amortissementCumule += ecart;
+        tableau[tableau.length - 1].valeurNetteComptable -= ecart;
       }
     }
 

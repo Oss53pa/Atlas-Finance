@@ -107,6 +107,37 @@ class ExchangeRateService {
   }
 
   /**
+   * Get the exchange rate applicable on a specific date (historical rate).
+   * SYSCOHADA art. 48 : taux historique au jour de la pièce.
+   * Returns the rate for the given date, or the most recent rate before that date.
+   */
+  async getHistoricalRate(fromCurrency: string, toCurrency: string, date: string): Promise<ExchangeRateEntry | null> {
+    const allRates = await this.adapter.getAll<ExchangeRateEntry>('exchangeRates');
+    const applicable = allRates
+      .filter(r => r.fromCurrency === fromCurrency && r.toCurrency === toCurrency && r.date <= date)
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    if (applicable.length > 0) return applicable[0];
+
+    // Try reverse pair
+    const reverse = allRates
+      .filter(r => r.fromCurrency === toCurrency && r.toCurrency === fromCurrency && r.date <= date)
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    if (reverse.length > 0) {
+      const rev = reverse[0];
+      return {
+        ...rev,
+        fromCurrency,
+        toCurrency,
+        rate: 1 / rev.rate,
+      };
+    }
+
+    return null;
+  }
+
+  /**
    * Add or update an exchange rate.
    */
   async setRate(entry: Omit<ExchangeRateEntry, 'id'>): Promise<ExchangeRateEntry> {

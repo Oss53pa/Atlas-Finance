@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData, useAdapterQuery } from '../../contexts/DataContext';
+import { getSoldesBancaires } from '../../services/treasury/positionService';
 import { CreditCard, Banknote, TrendingUp, RefreshCw } from 'lucide-react';
 
 const BankMovementsPage: React.FC = () => {
@@ -25,15 +27,22 @@ const BankMovementsPage: React.FC = () => {
     { id: 'pessimiste', name: '📉 Pessimiste', multiplier: 0.7, color: 'text-red-600' }
   ];
 
-  // Comptes de trésorerie (classe 52)
+  // Comptes de trésorerie dynamiques depuis les écritures comptables
+  const { adapter } = useData();
+  const { data: bankPositions = [], isLoading: loadingPositions } = useAdapterQuery(
+    () => getSoldesBancaires(adapter),
+    [adapter],
+    []
+  );
+
+  const totalBalance = bankPositions.reduce((sum, p) => sum + p.soldeComptable, 0);
   const treasuryAccounts = [
-    { id: 'all', name: '[Tous les comptes de trésorerie]', balance: -95194202 },
-    { id: '5211001', name: 'B1 NSIA Domiciliation', balance: -64051588 },
-    { id: '5211002', name: 'B2 NSIA Charges Exploitation', balance: 9840000 },
-    { id: '5212001', name: 'Compte Principal BCA', balance: 8200000 },
-    { id: '5213001', name: 'Banque Atlantique', balance: 1800000 },
-    { id: '5220001', name: 'Banque Populaire', balance: 5500000 },
-    { id: '5200001', name: 'Caisse Centrale', balance: 2500000 }
+    { id: 'all', name: '[Tous les comptes de trésorerie]', balance: totalBalance },
+    ...bankPositions.map(p => ({
+      id: p.accountCode,
+      name: p.accountName,
+      balance: p.soldeComptable,
+    })),
   ];
 
   const getSelectedScenarioData = () => {
@@ -50,7 +59,7 @@ const BankMovementsPage: React.FC = () => {
     if (selectedAccount === 'all') {
       return {
         name: 'Tous les comptes de trésorerie',
-        balance: -95194202,
+        balance: totalBalance,
         rib: '•••• •••• •••• 1290',
         accountNumber: 'CONSOLIDATED-VIEW',
         cashIn: 179400537,
@@ -58,7 +67,7 @@ const BankMovementsPage: React.FC = () => {
         // Prévisions basées sur le scénario sélectionné
         forecastIncoming: getForecastData(50000000), // Prévision entrées
         forecastOutcoming: getForecastData(45000000), // Prévision sorties
-        landingForecast: getForecastData(-95194202 + 50000000 - 45000000) // Balance prévisionnelle
+        landingForecast: getForecastData(totalBalance + 50000000 - 45000000) // Balance prévisionnelle
       };
     }
 
@@ -449,7 +458,7 @@ const BankMovementsPage: React.FC = () => {
                 {forecastScenarios.map(scenario => {
                   const baseIncoming = selectedAccount === 'all' ? 50000000 : Math.abs(getSelectedAccountData().balance) * 0.4;
                   const baseOutcoming = selectedAccount === 'all' ? 45000000 : Math.abs(getSelectedAccountData().balance) * 0.3;
-                  const baseBalance = selectedAccount === 'all' ? -95194202 + 50000000 - 45000000 : getSelectedAccountData().balance + baseIncoming - baseOutcoming;
+                  const baseBalance = selectedAccount === 'all' ? totalBalance + 50000000 - 45000000 : getSelectedAccountData().balance + baseIncoming - baseOutcoming;
 
                   const scenarioIncoming = Math.round(baseIncoming * scenario.multiplier);
                   const scenarioOutcoming = Math.round(baseOutcoming * scenario.multiplier);
