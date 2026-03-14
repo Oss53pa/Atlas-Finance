@@ -183,14 +183,14 @@ async function loadEntriesForExercice(adapter: DataAdapter, exercice: string): P
   }
 
   if (fy) {
-    const allEntries = await adapter.getAll('journalEntries');
-    return allEntries.filter((e: DBJournalEntry) => e.date >= fy!.startDate && e.date <= fy!.endDate);
+    const allEntries = await adapter.getAll('journalEntries') as DBJournalEntry[];
+    return allEntries.filter((e) => e.date >= fy!.startDate && e.date <= fy!.endDate);
   }
 
   // Fallback: treat as year string (e.g. "2025") → Jan 1 to Dec 31
   if (/^\d{4}$/.test(exercice)) {
-    const allEntries = await adapter.getAll('journalEntries');
-    return allEntries.filter((e: DBJournalEntry) => e.date >= `${exercice}-01-01` && e.date <= `${exercice}-12-31`);
+    const allEntries = await adapter.getAll('journalEntries') as DBJournalEntry[];
+    return allEntries.filter((e) => e.date >= `${exercice}-01-01` && e.date <= `${exercice}-12-31`);
   }
 
   // Last resort: all entries
