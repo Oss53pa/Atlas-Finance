@@ -1,31 +1,112 @@
 import React from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface BarChartProps {
   data: Record<string, unknown>[];
   xAxisKey: string;
   bars: Array<{ key: string; name: string; color: string }>;
   height: number;
+  stacked?: boolean;
+  horizontal?: boolean;
+  showLegend?: boolean;
+  currency?: boolean;
 }
 
-const BarChart: React.FC<BarChartProps> = ({ data, xAxisKey, bars, height }) => {
-  return (
-    <div style={{ height: `${height}px`, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="text-center p-8">
-        <div className="text-xl mb-4">📊</div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Graphique en Barres</h3>
-        <p className="text-gray-700 mb-4">Comparaison par catégories</p>
-        <div className="space-y-2">
-          {bars.map((bar, index) => (
-            <div key={index} className="flex items-center justify-center space-x-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: bar.color }}></div>
-              <span className="text-sm text-gray-600">{bar.name}</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-gray-700 mt-4">
-          {data.length} catégories • Axe: {xAxisKey}
-        </p>
+const BarChart: React.FC<BarChartProps> = ({
+  data,
+  xAxisKey,
+  bars,
+  height,
+  stacked = false,
+  horizontal = false,
+  showLegend = true,
+  currency = false,
+}) => {
+  if (!data || data.length === 0) {
+    return (
+      <div
+        style={{ height: `${height}px` }}
+        className="flex items-center justify-center bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg"
+      >
+        <p className="text-[var(--color-text-secondary)] text-sm">Aucune donnee disponible</p>
       </div>
+    );
+  }
+
+  const chartData = {
+    labels: data.map((d) => String(d[xAxisKey] ?? '')),
+    datasets: bars.map((bar) => ({
+      label: bar.name,
+      data: data.map((d) => Number(d[bar.key] ?? 0)),
+      backgroundColor: bar.color,
+      borderRadius: 4,
+      borderSkipped: false as const,
+      maxBarThickness: 40,
+    })),
+  };
+
+  const formatVal = currency
+    ? (v: number | string) =>
+        new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF', maximumFractionDigits: 0 }).format(Number(v))
+    : undefined;
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: (horizontal ? 'y' : 'x') as 'x' | 'y',
+    interaction: { mode: 'index' as const, intersect: false },
+    scales: {
+      x: {
+        stacked,
+        grid: { display: horizontal },
+        ticks: { font: { size: 11 }, color: '#737373', callback: horizontal ? formatVal : undefined },
+      },
+      y: {
+        stacked,
+        grid: { display: !horizontal, color: '#f5f5f5' },
+        ticks: { font: { size: 11 }, color: '#737373', callback: !horizontal ? formatVal : undefined },
+      },
+    },
+    plugins: {
+      legend: {
+        display: showLegend && bars.length > 1,
+        position: 'bottom' as const,
+        labels: { padding: 15, usePointStyle: true, font: { size: 12 } },
+      },
+      tooltip: {
+        backgroundColor: '#171717',
+        titleFont: { size: 13 },
+        bodyFont: { size: 12 },
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: currency
+          ? {
+              label: (ctx: any) =>
+                `${ctx.dataset.label}: ${new Intl.NumberFormat('fr-FR', {
+                  style: 'currency',
+                  currency: 'XAF',
+                  maximumFractionDigits: 0,
+                }).format(ctx.raw)}`,
+            }
+          : undefined,
+      },
+    },
+  };
+
+  return (
+    <div style={{ position: 'relative', height: `${height}px`, width: '100%' }}>
+      <Bar data={chartData} options={options} />
     </div>
   );
 };

@@ -116,6 +116,8 @@ const CustomReportsPage = React.lazy(() => import('./pages/reporting/CustomRepor
 const DashboardsPage = React.lazy(() => import('./pages/reporting/DashboardsPage'));
 const ReportingSyscohada = React.lazy(() => import('./pages/reporting/ReportingSyscohada'));
 const ReportingIFRS = React.lazy(() => import('./pages/reporting/ReportingIFRS'));
+const ReportBuilderPage = React.lazy(() => import('./pages/reporting/ReportBuilderPage'));
+const ReportStudioPage = React.lazy(() => import('./pages/reporting/ReportStudioPage'));
 
 // Financial statements
 const FinancialStatementsIndexPage = React.lazy(() => import('./pages/financial/FinancialStatementsIndexPage'));
@@ -315,6 +317,8 @@ function App() {
                           <Route path="/reporting/custom" element={<CustomReportsPage />} />
                           <Route path="/reporting/syscohada" element={<ReportingSyscohada />} />
                           <Route path="/reporting/ifrs" element={<ReportingIFRS />} />
+                          <Route path="/reporting/builder" element={<ReportBuilderPage />} />
+                          <Route path="/reporting/studio" element={<ReportStudioPage />} />
                           <Route path="/reports" element={<ReportingDashboard />} />
                         </Route>
 

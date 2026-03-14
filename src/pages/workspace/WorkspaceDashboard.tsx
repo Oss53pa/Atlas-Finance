@@ -7,6 +7,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '@/utils/formatters';
 import {
   Briefcase,
@@ -27,6 +28,7 @@ import { WorkspaceDashboard as WorkspaceDashboardType } from '../../types/worksp
 
 const WorkspaceDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { adapter } = useData();
   const [dashboard, setDashboard] = useState<WorkspaceDashboardType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,71 @@ const WorkspaceDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Mode local — workspace par défaut
+      // Load real counts from adapter
+      const [entries, accounts, thirdParties] = await Promise.all([
+        adapter.getAll<any>('journalEntries'),
+        adapter.getAll<any>('accounts'),
+        adapter.getAll<any>('thirdParties'),
+      ]);
+
+      const draftCount = entries.filter((e: any) => e.status === 'draft').length;
+      const postedCount = entries.filter((e: any) => e.status === 'posted').length;
+
+      // Compute CA (class 7) and charges (class 6)
+      let totalCA = 0;
+      let totalCharges = 0;
+      for (const entry of entries.filter((e: any) => e.status === 'posted')) {
+        if (!entry.lines) continue;
+        for (const line of entry.lines) {
+          const code = line.accountCode || '';
+          if (code.startsWith('7')) totalCA += (line.credit || 0) - (line.debit || 0);
+          if (code.startsWith('6')) totalCharges += (line.debit || 0) - (line.credit || 0);
+        }
+      }
+
+      // Build statistics from real data
+      const now = new Date().toISOString();
+      const baseStat = { metadata: {}, cache_duration: 0, last_calculated: now, created_at: now, updated_at: now };
+      const statistics: any[] = [
+        {
+          ...baseStat,
+          id: 'stat-entries',
+          workspace: 'default',
+          stat_key: 'journal_entries',
+          stat_label: 'Écritures comptables',
+          stat_value: String(entries.length),
+          stat_type: 'number' as const,
+        },
+        {
+          ...baseStat,
+          id: 'stat-accounts',
+          workspace: 'default',
+          stat_key: 'accounts',
+          stat_label: 'Comptes actifs',
+          stat_value: String(accounts.length),
+          stat_type: 'number' as const,
+        },
+        {
+          ...baseStat,
+          id: 'stat-ca',
+          workspace: 'default',
+          stat_key: 'ca',
+          stat_label: 'Chiffre d\'affaires',
+          stat_value: String(Math.round(totalCA)),
+          stat_type: 'currency' as const,
+          trend_direction: totalCA > 0 ? 'up' as const : undefined,
+        },
+        {
+          ...baseStat,
+          id: 'stat-tiers',
+          workspace: 'default',
+          stat_key: 'third_parties',
+          stat_label: 'Tiers',
+          stat_value: String(thirdParties.length),
+          stat_type: 'number' as const,
+        },
+      ];
+
       setDashboard({
         workspace: {
           id: 'default',
@@ -54,10 +120,10 @@ const WorkspaceDashboard: React.FC = () => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
-        statistics: [],
+        statistics,
         widgets: [],
         quick_actions: [],
-        pending_tasks: 0,
+        pending_tasks: draftCount,
       });
     } catch (err: any) {
       console.error('Erreur chargement workspace:', err);
@@ -147,7 +213,7 @@ const WorkspaceDashboard: React.FC = () => {
     );
   }
 
-  const { workspace, statistics, widgets, quick_actions, user_preferences } = dashboard;
+  const { workspace, statistics, widgets, quick_actions } = dashboard;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafafa' }}>

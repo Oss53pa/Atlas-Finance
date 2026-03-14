@@ -1,31 +1,118 @@
 import React from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 interface LineChartProps {
   data: Record<string, unknown>[];
   xAxisKey: string;
   lines: Array<{ key: string; name: string; color: string }>;
   height: number;
+  fill?: boolean;
+  stacked?: boolean;
+  showLegend?: boolean;
+  currency?: boolean;
 }
 
-const LineChart: React.FC<LineChartProps> = ({ data, xAxisKey, lines, height }) => {
-  return (
-    <div style={{ height: `${height}px`, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="text-center p-8">
-        <div className="text-xl mb-4">📈</div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Graphique Linéaire</h3>
-        <p className="text-gray-700 mb-4">Affichage des tendances temporelles</p>
-        <div className="space-y-2">
-          {lines.map((line, index) => (
-            <div key={index} className="flex items-center justify-center space-x-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: line.color }}></div>
-              <span className="text-sm text-gray-600">{line.name}</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-gray-700 mt-4">
-          {data.length} points de données • Axe: {xAxisKey}
-        </p>
+const LineChart: React.FC<LineChartProps> = ({
+  data,
+  xAxisKey,
+  lines,
+  height,
+  fill = false,
+  stacked = false,
+  showLegend = true,
+  currency = false,
+}) => {
+  if (!data || data.length === 0) {
+    return (
+      <div
+        style={{ height: `${height}px` }}
+        className="flex items-center justify-center bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg"
+      >
+        <p className="text-[var(--color-text-secondary)] text-sm">Aucune donnee disponible</p>
       </div>
+    );
+  }
+
+  const chartData = {
+    labels: data.map((d) => String(d[xAxisKey] ?? '')),
+    datasets: lines.map((line) => ({
+      label: line.name,
+      data: data.map((d) => Number(d[line.key] ?? 0)),
+      borderColor: line.color,
+      backgroundColor: fill ? `${line.color}20` : 'transparent',
+      tension: 0.4,
+      fill,
+      pointRadius: data.length > 30 ? 0 : 3,
+      pointHoverRadius: 5,
+      borderWidth: 2,
+    })),
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index' as const, intersect: false },
+    scales: {
+      x: {
+        stacked,
+        grid: { display: false },
+        ticks: { font: { size: 11 }, color: '#737373' },
+      },
+      y: {
+        stacked,
+        grid: { color: '#f5f5f5' },
+        ticks: {
+          font: { size: 11 },
+          color: '#737373',
+          callback: currency
+            ? (v: number | string) =>
+                new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF', maximumFractionDigits: 0 }).format(Number(v))
+            : undefined,
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: showLegend,
+        position: 'bottom' as const,
+        labels: { padding: 15, usePointStyle: true, font: { size: 12 } },
+      },
+      tooltip: {
+        backgroundColor: '#171717',
+        titleFont: { size: 13 },
+        bodyFont: { size: 12 },
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: currency
+          ? {
+              label: (ctx: any) =>
+                `${ctx.dataset.label}: ${new Intl.NumberFormat('fr-FR', {
+                  style: 'currency',
+                  currency: 'XAF',
+                  maximumFractionDigits: 0,
+                }).format(ctx.raw)}`,
+            }
+          : undefined,
+      },
+    },
+  };
+
+  return (
+    <div style={{ position: 'relative', height: `${height}px`, width: '100%' }}>
+      <Line data={chartData} options={options} />
     </div>
   );
 };

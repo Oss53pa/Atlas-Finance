@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { formatCurrency } from '../../utils/formatters';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import {
   Calculator, FileText, BookOpen, BarChart3, Users, Banknote, PieChart, TrendingUp,
   Clock, CheckCircle, Plus, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
-  Home, ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
-  Shield, Mail, Calendar, Award, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
+  ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
+  Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
   ListTodo, MessageSquare, LayoutDashboard, Briefcase
 } from 'lucide-react';
 
@@ -16,6 +18,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { adapter } = useData();
+  const [comptaStats, setComptaStats] = useState({ entries: 0, drafts: 0, posted: 0, treasury: 0 });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
@@ -42,8 +46,36 @@ const ComptableWorkspaceFinal: React.FC = () => {
     { id: 'banking', label: 'Banque', icon: Banknote, path: '/treasury' },
   ];
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => { logout(); navigate('/'); };
   const userData = { name: user?.name || '', email: user?.email || '', role: user?.role || 'Comptable', phone: '', department: 'Comptabilite' };
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const [entries, accounts] = await Promise.all([
+          adapter.getAll<any>('journalEntries'),
+          adapter.getAll<any>('accounts'),
+        ]);
+        const drafts = entries.filter((e: any) => e.status === 'draft').length;
+        const posted = entries.filter((e: any) => e.status === 'posted' || e.status === 'validated').length;
+        let treasury = 0;
+        for (const entry of entries) {
+          if (!entry.lines) continue;
+          for (const line of entry.lines) {
+            const acc = accounts.find((a: any) => a.id === line.accountId || a.number === line.accountNumber);
+            if (!acc) continue;
+            if (String(acc.number || '').startsWith('5')) {
+              treasury += (line.debit || 0) - (line.credit || 0);
+            }
+          }
+        }
+        setComptaStats({ entries: entries.length, drafts, posted, treasury });
+      } catch (err) {
+        console.error('Erreur chargement stats comptable:', err);
+      }
+    };
+    loadStats();
+  }, [adapter]);
 
   const renderProfile = () => (
     <div className="p-6 space-y-6">
@@ -127,19 +159,19 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const renderWorkspace = () => (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-4 gap-4">
-        {[{title:'Ecritures',value:'47',icon:FileText,color:'#171717',change:'+12%',up:true},{title:'En attente',value:'8',icon:Clock,color:'#525252',change:'-3%',up:false},{title:'Lettrage',value:'156',icon:CheckCircle,color:'#737373',change:'+23%',up:true},{title:'Tresorerie',value:'2.4M',icon:DollarSign,color:'#171717',change:'+8%',up:true}].map((m,i) => (
+        {[{title:'Ecritures',value:String(comptaStats.entries),icon:FileText,color:'#171717',change:'',up:true},{title:'En attente',value:String(comptaStats.drafts),icon:Clock,color:'#525252',change:comptaStats.drafts > 0 ? `${comptaStats.drafts} brouillons` : '',up:comptaStats.drafts === 0},{title:'Validees',value:String(comptaStats.posted),icon:CheckCircle,color:'#737373',change:'',up:true},{title:'Tresorerie',value:formatCurrency(comptaStats.treasury),icon:DollarSign,color:'#171717',change:'',up:comptaStats.treasury >= 0}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
             <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:m.color+'20'}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
             <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-lg p-6 border-2 border-[#171717]">
-        <div className="flex justify-between mb-4"><h2 className="text-lg font-semibold">Acces Atlas Finance</h2><button onClick={() => navigate('/executive')} className="px-4 py-2 bg-[#171717] text-white rounded-lg flex items-center space-x-2"><Home className="w-4 h-4" /><span>ATLAS FINANCE</span></button></div>
+      <div className="bg-white rounded-lg p-6 border">
+        <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas Finance</h2>
         <div className="grid grid-cols-4 gap-3">
-          {[{label:'Nouvelle ecriture',icon:Plus,path:'/accounting/entries',color:'#171717'},{label:'Lettrage',icon:Zap,path:'/accounting/lettrage',color:'#525252'},{label:'Balance',icon:BarChart3,path:'/accounting/balance',color:'#737373'},{label:'SYSCOHADA',icon:TrendingUp,path:'/financial-statements',color:'#171717'}].map((a,i) => (
-            <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border-2 border-dashed border-[#171717]/50 hover:border-[#171717]">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:a.color+'20'}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
+          {[{label:'Nouvelle écriture',icon:Plus,path:'/accounting/entries',color:'#171717'},{label:'Lettrage',icon:Zap,path:'/accounting/lettrage',color:'#525252'},{label:'Balance',icon:BarChart3,path:'/accounting/balance',color:'#737373'},{label:'SYSCOHADA',icon:TrendingUp,path:'/financial-statements',color:'#171717'}].map((a,i) => (
+            <button key={i} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:a.color+'15'}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
             </button>
           ))}
@@ -152,12 +184,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           <button onClick={() => setActiveSection('tasks')} className="text-sm text-[#171717] hover:underline">Voir tout</button>
         </div>
         <div className="space-y-2">
-          {['Valider ecritures du mois', 'Preparer declaration TVA', 'Lettrage clients'].map((t, i) => (
-            <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3"><CheckCircle className="w-5 h-5 text-gray-300" /><span className="text-sm">{t}</span></div>
-              <span className="text-xs text-gray-500">Aujourd'hui</span>
-            </div>
-          ))}
+          <div className="text-center py-4 text-gray-400 text-sm">Aucune tache en cours</div>
         </div>
       </div>
       {/* Apercu Chat */}
@@ -178,7 +205,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-4">
-            <button onClick={() => navigate('/login')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Retour</span></button>
+            <button onClick={() => navigate('/')} className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-gray-300"><ArrowLeft className="w-5 h-5" /><span className="text-sm font-semibold">Accueil</span></button>
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">{sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
             <div className="flex items-center space-x-3"><div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#171717] to-[#262626] flex items-center justify-center"><BarChart3 className="w-5 h-5 text-white" /></div><div className="hidden sm:block"><h1 className="text-lg font-bold">Atlas Finance</h1><p className="text-xs text-gray-500">v3.0</p></div></div>
             <div className="hidden md:block relative">
@@ -209,7 +236,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
-            <button onClick={() => navigate('/executive')} className="px-6 py-2 bg-gradient-to-r from-[#171717] to-[#262626] rounded-lg text-white font-bold flex items-center space-x-2"><Home className="w-5 h-5" /><span>ATLAS FINANCE</span><ExternalLink className="w-4 h-4" /></button>
+            <button onClick={() => navigate('/dashboard')} className="group px-6 py-2.5 bg-[#171717] hover:bg-[#262626] rounded-lg text-white font-semibold flex items-center space-x-2 transition-all shadow-sm hover:shadow-md"><LayoutDashboard className="w-5 h-5" /><span>Atlas Finance</span><ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" /></button>
             <button className="relative p-2 rounded-lg hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /><span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white bg-[#171717] rounded-full flex items-center justify-center">5</span></button>
             <button onClick={() => setActiveSection('help')} className="p-2 rounded-lg hover:bg-gray-100"><HelpCircle className="w-5 h-5 text-gray-500" /></button>
             <div className="relative">
@@ -234,7 +261,6 @@ const ComptableWorkspaceFinal: React.FC = () => {
       <div className="flex">
         <aside className={`${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'} lg:w-64 bg-white border-r min-h-[calc(100vh-73px)] transition-all`}>
           <div className="p-4">
-            <button onClick={() => navigate('/executive')} className="w-full p-4 bg-gradient-to-r from-[#171717] to-[#262626] rounded-lg text-white mb-6"><div className="flex items-center justify-center space-x-2 mb-2"><Home className="w-5 h-5" /><ExternalLink className="w-4 h-4" /></div><div className="text-sm font-semibold">Atlas Finance Complet</div></button>
 
             {/* Mon espace */}
             <div className="border-b mb-4 pb-4"><div className="text-xs font-semibold text-gray-500 uppercase mb-3">Mon espace</div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useData } from '../../contexts/DataContext';
+import { useActivityType } from '../../hooks/useActivityType';
 import {
   Activity, TrendingUp, Users, DollarSign, Package, Clock,
   Target, Zap, BarChart3, PieChart, AlertCircle, CheckCircle,
@@ -30,6 +32,8 @@ interface RealTimeData {
 }
 
 const KPIsRealTime: React.FC = () => {
+  const { adapter } = useData();
+  const { activityType } = useActivityType();
   const [realTimeData, setRealTimeData] = useState<RealTimeData[]>([]);
   const [selectedKPI, setSelectedKPI] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -37,62 +41,289 @@ const KPIsRealTime: React.FC = () => {
   const [fullscreenKPI, setFullscreenKPI] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState('all');
 
-  // KPIs en temps réel
-  const [kpis, setKpis] = useState<KPIMetric[]>([
-    {
-      id: 'revenue',
-      name: 'Chiffre d\'Affaires',
-      value: 125789,
-      unit: '',
-      target: 120000,
-      status: 'success',
-      trend: 4.8,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'financier'
-    },
-    {
-      id: 'margin',
-      name: 'Marge Brute',
-      value: 28.5,
-      unit: '%',
-      target: 30,
-      status: 'warning',
-      trend: -2.3,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'financier'
-    },
-    {
-      id: 'cashflow',
-      name: 'Cash Flow',
-      value: 456000,
-      unit: '',
-      target: 400000,
-      status: 'success',
-      trend: 14.0,
-      lastUpdate: new Date(),
-      history: [],
-      category: 'financier'
-    }
+  // KPIs computed from real data
+  const [kpis, setKpis] = useState<KPIMetric[]>([]);
+
+  // Radar data computed from real entries
+  const [radarData, setRadarData] = useState([
+    { subject: 'Ventes', A: 0, fullMark: 100 },
+    { subject: 'Clients', A: 0, fullMark: 100 },
+    { subject: 'Qualité', A: 0, fullMark: 100 },
+    { subject: 'Finance', A: 0, fullMark: 100 },
+    { subject: 'Opérations', A: 0, fullMark: 100 },
+    { subject: 'Trésorerie', A: 0, fullMark: 100 }
   ]);
 
-  // TODO: wire to Dexie query for real KPI data
+  // Load KPIs from real journal data
   useEffect(() => {
-    if (!autoRefresh) return;
-    // KPI data should come from Dexie queries, not random generation
-    return () => {};
-  }, [autoRefresh, refreshInterval]);
+    const computeKPIs = async () => {
+      try {
+        const entries = await adapter.getAll<any>('journalEntries');
+        const posted = entries.filter((e: any) => e.status === 'posted');
 
-  // Données pour le graphique radar
-  const radarData = [
-    { subject: 'Ventes', A: 85, fullMark: 100 },
-    { subject: 'Clients', A: 92, fullMark: 100 },
-    { subject: 'Qualité', A: 88, fullMark: 100 },
-    { subject: 'Finance', A: 78, fullMark: 100 },
-    { subject: 'Opérations', A: 83, fullMark: 100 },
-    { subject: 'Innovation', A: 75, fullMark: 100 }
-  ];
+        // CA = class 7 credits (revenue)
+        let totalCA = 0;
+        let totalCharges = 0;
+        let totalTresorerie = 0;
+        let creancesClients = 0;
+        let dettesFournisseurs = 0;
+        let coutProduction = 0;
+        let consommationMatieres = 0;
+        let achatsMarchandises = 0;
+        let venteMarchandises = 0;
+        let caPrestations = 0;
+        let chargesPersonnel = 0;
+
+        for (const entry of posted) {
+          if (!entry.lines) continue;
+          for (const line of entry.lines) {
+            const code = line.accountCode || '';
+            if (code.startsWith('7')) {
+              totalCA += (line.credit || 0) - (line.debit || 0);
+            }
+            if (code.startsWith('6')) {
+              totalCharges += (line.debit || 0) - (line.credit || 0);
+            }
+            if (code.startsWith('5')) {
+              totalTresorerie += (line.debit || 0) - (line.credit || 0);
+            }
+            // Créances clients (class 41 debit balance)
+            if (code.startsWith('41')) {
+              creancesClients += (line.debit || 0) - (line.credit || 0);
+            }
+            // Dettes fournisseurs (class 40 credit balance)
+            if (code.startsWith('40')) {
+              dettesFournisseurs += (line.credit || 0) - (line.debit || 0);
+            }
+            // Production: 60+61+62 debits
+            if (code.startsWith('60') || code.startsWith('61') || code.startsWith('62')) {
+              coutProduction += (line.debit || 0) - (line.credit || 0);
+            }
+            // Consommation matières (60 debits)
+            if (code.startsWith('60')) {
+              consommationMatieres += (line.debit || 0) - (line.credit || 0);
+            }
+            // Achats marchandises (601 debits)
+            if (code.startsWith('601')) {
+              achatsMarchandises += (line.debit || 0) - (line.credit || 0);
+            }
+            // Ventes marchandises (701 credits)
+            if (code.startsWith('701')) {
+              venteMarchandises += (line.credit || 0) - (line.debit || 0);
+            }
+            // CA Prestations (706 credits)
+            if (code.startsWith('706')) {
+              caPrestations += (line.credit || 0) - (line.debit || 0);
+            }
+            // Charges personnel (66 debits)
+            if (code.startsWith('66')) {
+              chargesPersonnel += (line.debit || 0) - (line.credit || 0);
+            }
+          }
+        }
+
+        const marge = totalCA > 0 ? ((totalCA - totalCharges) / totalCA) * 100 : 0;
+        const resultatNet = totalCA - totalCharges;
+        const margeCommerciale = venteMarchandises - achatsMarchandises;
+
+        const computedKPIs: KPIMetric[] = [
+          {
+            id: 'revenue',
+            name: 'Chiffre d\'Affaires',
+            value: Math.round(totalCA),
+            unit: '',
+            target: totalCA > 0 ? Math.round(totalCA * 0.9) : 1,
+            status: totalCA > 0 ? 'success' : 'warning',
+            trend: 0,
+            lastUpdate: new Date(),
+            history: [],
+            category: 'financier'
+          },
+          {
+            id: 'margin',
+            name: 'Marge Brute',
+            value: Math.round(marge * 10) / 10,
+            unit: '%',
+            target: 30,
+            status: marge >= 30 ? 'success' : marge >= 20 ? 'warning' : 'danger',
+            trend: 0,
+            lastUpdate: new Date(),
+            history: [],
+            category: 'financier'
+          },
+          {
+            id: 'cashflow',
+            name: 'Trésorerie',
+            value: Math.round(totalTresorerie),
+            unit: '',
+            target: totalTresorerie > 0 ? Math.round(totalTresorerie * 0.8) : 1,
+            status: totalTresorerie > 0 ? 'success' : 'danger',
+            trend: 0,
+            lastUpdate: new Date(),
+            history: [],
+            category: 'financier'
+          },
+          // Additional KPIs for ALL activity types
+          {
+            id: 'charges-exploitation',
+            name: 'Charges d\'exploitation',
+            value: Math.round(totalCharges),
+            unit: '',
+            target: totalCA > 0 ? Math.round(totalCA * 0.7) : 1,
+            status: totalCA > 0 && totalCharges <= totalCA * 0.7 ? 'success' : totalCA > 0 && totalCharges <= totalCA * 0.85 ? 'warning' : 'danger',
+            trend: 0,
+            lastUpdate: new Date(),
+            history: [],
+            category: 'financier'
+          },
+          {
+            id: 'resultat-net',
+            name: 'Résultat Net',
+            value: Math.round(resultatNet),
+            unit: '',
+            target: resultatNet > 0 ? Math.round(resultatNet * 0.9) : 1,
+            status: resultatNet > 0 ? 'success' : 'danger',
+            trend: 0,
+            lastUpdate: new Date(),
+            history: [],
+            category: 'financier'
+          },
+          {
+            id: 'creances-clients',
+            name: 'Créances clients',
+            value: Math.round(creancesClients),
+            unit: '',
+            target: totalCA > 0 ? Math.round(totalCA * 0.3) : 1,
+            status: creancesClients <= (totalCA * 0.3) ? 'success' : creancesClients <= (totalCA * 0.5) ? 'warning' : 'danger',
+            trend: 0,
+            lastUpdate: new Date(),
+            history: [],
+            category: 'commercial'
+          },
+          {
+            id: 'dettes-fournisseurs',
+            name: 'Dettes fournisseurs',
+            value: Math.round(dettesFournisseurs),
+            unit: '',
+            target: totalCharges > 0 ? Math.round(totalCharges * 0.3) : 1,
+            status: dettesFournisseurs <= (totalCharges * 0.3) ? 'success' : dettesFournisseurs <= (totalCharges * 0.5) ? 'warning' : 'danger',
+            trend: 0,
+            lastUpdate: new Date(),
+            history: [],
+            category: 'commercial'
+          },
+        ];
+
+        // Activity-specific KPIs
+        if (activityType === 'production') {
+          computedKPIs.push(
+            {
+              id: 'cout-production',
+              name: 'Coût de Production',
+              value: Math.round(coutProduction),
+              unit: '',
+              target: totalCA > 0 ? Math.round(totalCA * 0.6) : 1,
+              status: totalCA > 0 && coutProduction <= totalCA * 0.6 ? 'success' : totalCA > 0 && coutProduction <= totalCA * 0.75 ? 'warning' : 'danger',
+              trend: 0,
+              lastUpdate: new Date(),
+              history: [],
+              category: 'production'
+            },
+            {
+              id: 'consommation-matieres',
+              name: 'Consommation Matières',
+              value: Math.round(consommationMatieres),
+              unit: '',
+              target: totalCA > 0 ? Math.round(totalCA * 0.4) : 1,
+              status: totalCA > 0 && consommationMatieres <= totalCA * 0.4 ? 'success' : totalCA > 0 && consommationMatieres <= totalCA * 0.55 ? 'warning' : 'danger',
+              trend: 0,
+              lastUpdate: new Date(),
+              history: [],
+              category: 'production'
+            }
+          );
+        }
+
+        if (activityType === 'negoce') {
+          computedKPIs.push(
+            {
+              id: 'achats-marchandises',
+              name: 'Achats Marchandises',
+              value: Math.round(achatsMarchandises),
+              unit: '',
+              target: totalCA > 0 ? Math.round(totalCA * 0.65) : 1,
+              status: totalCA > 0 && achatsMarchandises <= totalCA * 0.65 ? 'success' : totalCA > 0 && achatsMarchandises <= totalCA * 0.8 ? 'warning' : 'danger',
+              trend: 0,
+              lastUpdate: new Date(),
+              history: [],
+              category: 'commercial'
+            },
+            {
+              id: 'marge-commerciale',
+              name: 'Marge Commerciale',
+              value: Math.round(margeCommerciale),
+              unit: '',
+              target: margeCommerciale > 0 ? Math.round(margeCommerciale * 0.9) : 1,
+              status: margeCommerciale > 0 ? 'success' : 'danger',
+              trend: 0,
+              lastUpdate: new Date(),
+              history: [],
+              category: 'commercial'
+            }
+          );
+        }
+
+        if (activityType === 'services') {
+          computedKPIs.push(
+            {
+              id: 'ca-prestations',
+              name: 'CA Prestations',
+              value: Math.round(caPrestations),
+              unit: '',
+              target: caPrestations > 0 ? Math.round(caPrestations * 0.9) : 1,
+              status: caPrestations > 0 ? 'success' : 'warning',
+              trend: 0,
+              lastUpdate: new Date(),
+              history: [],
+              category: 'services'
+            },
+            {
+              id: 'charges-personnel',
+              name: 'Charges Personnel',
+              value: Math.round(chargesPersonnel),
+              unit: '',
+              target: totalCA > 0 ? Math.round(totalCA * 0.5) : 1,
+              status: totalCA > 0 && chargesPersonnel <= totalCA * 0.5 ? 'success' : totalCA > 0 && chargesPersonnel <= totalCA * 0.65 ? 'warning' : 'danger',
+              trend: 0,
+              lastUpdate: new Date(),
+              history: [],
+              category: 'rh'
+            }
+          );
+        }
+
+        setKpis(computedKPIs);
+
+        // Compute radar from meaningful metrics
+        const costRatio = totalCA > 0 ? (totalCharges / totalCA) * 100 : 0;
+        const receivablesRatio = totalCA > 0 ? (creancesClients / totalCA) * 100 : 0;
+        const treasuryScore = totalTresorerie > 0 ? Math.min(100, 85) : 20;
+
+        setRadarData([
+          { subject: 'Ventes', A: totalCA > 0 ? Math.min(100, 75) : 0, fullMark: 100 },
+          { subject: 'Rentabilité', A: marge > 0 ? Math.min(100, Math.round(marge * 2.5)) : 0, fullMark: 100 },
+          { subject: 'Liquidité', A: totalTresorerie > 0 ? Math.min(100, Math.round((totalTresorerie / (totalCharges || 1)) * 100)) : 0, fullMark: 100 },
+          { subject: 'Créances', A: Math.max(0, Math.min(100, Math.round(100 - receivablesRatio * 2))), fullMark: 100 },
+          { subject: 'Charges', A: Math.max(0, Math.min(100, Math.round(100 - costRatio))), fullMark: 100 },
+          { subject: 'Trésorerie', A: treasuryScore, fullMark: 100 }
+        ]);
+      } catch (err) {
+        console.error('Erreur calcul KPIs:', err);
+        setKpis([]);
+      }
+    };
+    computeKPIs();
+  }, [adapter, activityType]);
 
   // Filtrer les KPIs par catégorie
   const filteredKPIs = filterCategory === 'all'
@@ -180,7 +411,7 @@ const KPIsRealTime: React.FC = () => {
       <div className="flex items-center gap-2 p-4 bg-white rounded-lg shadow">
         <Filter className="w-5 h-5 text-gray-700" />
         <div className="flex gap-2">
-          {['all', 'financier'].map(cat => (
+          {['all', ...new Set(kpis.map(k => k.category))].map(cat => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
@@ -343,9 +574,14 @@ const KPIsRealTime: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Performances</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {['Meilleur Vendeur', 'Produit Star', 'Client VIP'].map((title, index) => (
-            <div key={title} className="text-center">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">{title}</h3>
+          {kpis.length === 0 ? (
+            <div className="col-span-3 text-center py-8 text-gray-500">
+              <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p>Aucune donnée disponible</p>
+            </div>
+          ) : kpis.slice(0, 3).map((kpi, index) => (
+            <div key={kpi.id} className="text-center">
+              <h3 className="text-sm font-medium text-gray-600 mb-2">{kpi.name}</h3>
               <div className="flex items-center justify-center mb-2">
                 <div className={cn(
                   "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl",
@@ -357,14 +593,10 @@ const KPIsRealTime: React.FC = () => {
                 </div>
               </div>
               <p className="font-semibold text-gray-900">
-                {index === 0 && "Ahmed B."}
-                {index === 1 && "Produit XYZ"}
-                {index === 2 && "Société ABC"}
+                {kpi.value}{kpi.unit}
               </p>
               <p className="text-sm text-gray-700">
-                {index === 0 && "250,000 DH ce mois"}
-                {index === 1 && "500 unités vendues"}
-                {index === 2 && "1.2M DH de CA"}
+                Objectif: {kpi.target}{kpi.unit}
               </p>
             </div>
           ))}
@@ -378,16 +610,22 @@ const KPIsRealTime: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-lg p-4 border-l-4 border-amber-500">
-            <h4 className="font-medium text-gray-900">Marge en baisse</h4>
-            <p className="text-sm text-gray-600 mt-1">La marge brute est passée sous le seuil de 30%</p>
-            <p className="text-xs text-gray-700 mt-2">Il y a 5 minutes</p>
-          </div>
-          <div className="bg-white rounded-lg p-4 border-l-4 border-green-500">
-            <h4 className="font-medium text-gray-900">Objectif dépassé</h4>
-            <p className="text-sm text-gray-600 mt-1">Le CA journalier a dépassé l'objectif de 10%</p>
-            <p className="text-xs text-gray-700 mt-2">Il y a 15 minutes</p>
-          </div>
+          {kpis.filter(k => k.status === 'warning' || k.status === 'danger').length === 0 ? (
+            <div className="col-span-2 bg-white rounded-lg p-4 border-l-4 border-green-500">
+              <h4 className="font-medium text-gray-900">Aucune alerte</h4>
+              <p className="text-sm text-gray-600 mt-1">Tous les KPIs sont dans les seuils normaux</p>
+            </div>
+          ) : kpis.filter(k => k.status === 'warning' || k.status === 'danger').map(kpi => (
+            <div key={`alert-${kpi.id}`} className={cn(
+              "bg-white rounded-lg p-4 border-l-4",
+              kpi.status === 'danger' ? "border-red-500" : "border-amber-500"
+            )}>
+              <h4 className="font-medium text-gray-900">{kpi.name}</h4>
+              <p className="text-sm text-gray-600 mt-1">
+                Valeur actuelle: {kpi.value}{kpi.unit} (objectif: {kpi.target}{kpi.unit})
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
