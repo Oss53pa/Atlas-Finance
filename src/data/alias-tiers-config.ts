@@ -23,12 +23,12 @@ export const ALIAS_PREFIX_MAPPINGS: AliasPrefixMapping[] = [
   // Classe 5 — Trésorerie
   { sousCompteCode: '521', prefix: 'BL', typeLabel: 'Banque locale' },
   { sousCompteCode: '522', prefix: 'BE', typeLabel: 'Banque étrangère' },
-  { sousCompteCode: '523', prefix: 'BE', typeLabel: 'Banque étrangère' },
+  { sousCompteCode: '523', prefix: 'BES', typeLabel: 'Banque étrangère' },
   { sousCompteCode: '571', prefix: 'C', typeLabel: 'Caisse' },
-  { sousCompteCode: '572', prefix: 'C', typeLabel: 'Caisse' },
-  { sousCompteCode: '573', prefix: 'C', typeLabel: 'Caisse' },
+  { sousCompteCode: '572', prefix: 'C2', typeLabel: 'Caisse' },
+  { sousCompteCode: '573', prefix: 'C3', typeLabel: 'Caisse' },
   { sousCompteCode: '531', prefix: 'ME', typeLabel: 'Mobile/Électronique' },
-  { sousCompteCode: '532', prefix: 'ME', typeLabel: 'Mobile/Électronique' },
+  { sousCompteCode: '532', prefix: 'ME2', typeLabel: 'Mobile/Électronique' },
 ];
 
 const prefixMap = new Map(ALIAS_PREFIX_MAPPINGS.map(m => [m.sousCompteCode, m]));

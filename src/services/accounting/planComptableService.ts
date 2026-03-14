@@ -171,12 +171,10 @@ class PlanComptableService {
     const account = await adapter.getById('accounts', id);
     if (!account) throw new Error(`Compte ${id} introuvable`);
 
-    // Check if account has journal entries
+    // Check if account has journal entries — warn but still allow deactivation
     const entries = await adapter.getAll('journalEntries');
     const hasEntries = entries.some(e => e.lines.some(l => l.accountCode === account.code));
-    if (hasEntries) {
-      throw new Error(`Le compte ${account.code} a des écritures. Désactivation uniquement (pas de suppression).`);
-    }
+    // If has entries: allow deactivation (soft delete), just can't hard-delete
 
     await adapter.update('accounts', id, { isActive: false });
 
@@ -184,7 +182,7 @@ class PlanComptableService {
       'ACCOUNT_DEACTIVATE',
       'account',
       id,
-      `Désactivation compte ${account.code}`
+      `Désactivation compte ${account.code}${hasEntries ? ' (compte avec écritures existantes)' : ''}`
     );
   }
 
@@ -298,6 +296,9 @@ class PlanComptableService {
       // Class 3 — Stocks
       { code: '311000', name: 'Marchandises', accountClass: '3', accountType: 'bilan', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
       { code: '321000', name: 'Matières premières', accountClass: '3', accountType: 'bilan', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '331000', name: 'Matières consommables', accountClass: '3', accountType: 'bilan', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '361000', name: 'Produits finis', accountClass: '3', accountType: 'bilan', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '371000', name: 'Produits intermédiaires', accountClass: '3', accountType: 'bilan', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
       { code: '391000', name: 'Dépréciation des stocks', accountClass: '3', accountType: 'bilan', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
       // Class 4 — Tiers
       { code: '401000', name: 'Fournisseurs', accountClass: '4', accountType: 'bilan', level: 4, normalBalance: 'credit', isReconcilable: true, isActive: true },
@@ -329,6 +330,22 @@ class PlanComptableService {
       { code: '771000', name: 'Produits financiers', accountClass: '7', accountType: 'gestion', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
       { code: '781000', name: 'Reprises sur amortissements', accountClass: '7', accountType: 'gestion', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
       { code: '791000', name: 'Reprises sur provisions', accountClass: '7', accountType: 'gestion', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
+      // Class 8 — Charges & Produits HAO
+      { code: '811000', name: 'VC cessions immo. incorporelles', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '812000', name: 'VC cessions immo. corporelles', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '821000', name: 'Produits cessions immo. incorporelles', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
+      { code: '822000', name: 'Produits cessions immo. corporelles', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
+      { code: '831000', name: 'Charges HAO constatées', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '841000', name: 'Produits HAO constatés', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
+      { code: '851000', name: 'Dotations provisions HAO', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '861000', name: 'Reprises provisions HAO', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
+      { code: '891000', name: 'Impôts sur les bénéfices', accountClass: '8', accountType: 'special', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      // Class 9 — Analytique & Engagements
+      { code: '901000', name: 'Engagements de financement obtenus', accountClass: '9', accountType: 'analytique', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '902000', name: 'Engagements de financement accordés', accountClass: '9', accountType: 'analytique', level: 4, normalBalance: 'credit', isReconcilable: false, isActive: true },
+      { code: '921000', name: 'Centres d\'analyse principaux', accountClass: '9', accountType: 'analytique', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '931000', name: 'Coûts matières premières', accountClass: '9', accountType: 'analytique', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
+      { code: '981000', name: 'Comptes de liaison internes', accountClass: '9', accountType: 'analytique', level: 4, normalBalance: 'debit', isReconcilable: false, isActive: true },
     ];
 
     let count = 0;

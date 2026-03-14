@@ -20,10 +20,13 @@ function expectedDepreciation(acqDate: string, dispDate: string, acqValue: numbe
   const annualDep = base / years;
   const acq = new Date(acqDate);
   const disp = new Date(dispDate);
-  const yearsElapsed = Math.min(
-    (disp.getTime() - acq.getTime()) / (1000 * 60 * 60 * 24 * 365.25),
-    years,
-  );
+  // SYSCOHADA : annee commerciale 360 jours (12 x 30)
+  const moisDebut = acq.getFullYear() * 12 + acq.getMonth();
+  const moisFin = disp.getFullYear() * 12 + disp.getMonth();
+  const joursDebut = Math.min(acq.getDate(), 30);
+  const joursFin = Math.min(disp.getDate(), 30);
+  const totalJours = (moisFin - moisDebut) * 30 + (joursFin - joursDebut);
+  const yearsElapsed = Math.min(Math.max(0, totalJours) / 360, years);
   const amort = new Money(annualDep).multiply(yearsElapsed).round().toNumber();
   const vnc = new Money(acqValue).subtract(new Money(amort)).toNumber();
   return { amort, vnc, yearsElapsed };
@@ -343,32 +346,40 @@ describe('P4-5: Asset disposal (cession)', () => {
 
     const entry = await db.journalEntries.get(result.journalEntryId);
     expect(entry).toBeDefined();
-    expect(entry!.lines.length).toBe(5);
+    // 4-step SYSCOHADA via 481: 2 + 2 + 2 + 2 = 8 lines
+    expect(entry!.lines.length).toBe(8);
 
-    // Debit 2845 : reprise amortissements
-    const amortLine = entry!.lines.find(l => l.accountCode === '2845');
-    expect(amortLine).toBeDefined();
-    expect(amortLine!.debit).toBe(exp.amort);
-
-    // Debit 81 : VNC
-    const vncLine = entry!.lines.find(l => l.accountCode === '81');
-    expect(vncLine).toBeDefined();
-    expect(vncLine!.debit).toBe(exp.vnc);
-
-    // Credit 245 : sortie immobilisation (valeur brute)
+    // Etape 1 — D 481 (valeur brute), C 245 (sortie immobilisation)
+    const sortie481 = entry!.lines.find(l => l.accountCode === '481' && l.debit === 10_000_000);
+    expect(sortie481).toBeDefined();
     const assetLine = entry!.lines.find(l => l.accountCode === '245');
     expect(assetLine).toBeDefined();
     expect(assetLine!.credit).toBe(10_000_000);
 
-    // Debit 521 : tresorerie (produit cession)
-    const bankLine = entry!.lines.find(l => l.accountCode === '521');
-    expect(bankLine).toBeDefined();
-    expect(bankLine!.debit).toBe(6_000_000);
+    // Etape 2 — D 2845 (reprise amort.), C 481 (amort cumules)
+    const amortLine = entry!.lines.find(l => l.accountCode === '2845' && l.debit > 0);
+    expect(amortLine).toBeDefined();
+    expect(amortLine!.debit).toBe(exp.amort);
+    const annul481 = entry!.lines.find(l => l.accountCode === '481' && l.credit === exp.amort);
+    expect(annul481).toBeDefined();
 
-    // Credit 82 : produit cession HAO
+    // Etape 3 — D 485 (creance cession), C 82 (produit cession)
+    const creanceLine = entry!.lines.find(l => l.accountCode === '485');
+    expect(creanceLine).toBeDefined();
+    expect(creanceLine!.debit).toBe(6_000_000);
     const prodLine = entry!.lines.find(l => l.accountCode === '82');
     expect(prodLine).toBeDefined();
     expect(prodLine!.credit).toBe(6_000_000);
+
+    // Etape 4 — D 81 (VNC), C 481 (solde a zero)
+    const vncLine = entry!.lines.find(l => l.accountCode === '81');
+    expect(vncLine).toBeDefined();
+    expect(vncLine!.debit).toBe(exp.vnc);
+    const solde481 = entry!.lines.find(l => l.accountCode === '481' && l.credit === exp.vnc);
+    expect(solde481).toBeDefined();
+
+    // Pas de 521 (remplace par 485)
+    expect(entry!.lines.find(l => l.accountCode === '521')).toBeUndefined();
 
     // Equilibre D = C
     expect(entry!.totalDebit).toBe(entry!.totalCredit);
@@ -420,8 +431,9 @@ describe('P4-5: Asset disposal (cession)', () => {
     expect(result.prixCession).toBe(0);
 
     const entry = await db.journalEntries.get(result.journalEntryId);
-    // Pas de lignes 521/82 quand prix = 0
-    expect(entry!.lines.length).toBe(3);
+    // Pas de lignes 485/82 quand prix = 0, mais 481 structure reste: 2 + 2 + 0 + 2 = 6
+    expect(entry!.lines.length).toBe(6);
+    expect(entry!.lines.find(l => l.accountCode === '485')).toBeUndefined();
     expect(entry!.lines.find(l => l.accountCode === '521')).toBeUndefined();
     expect(entry!.lines.find(l => l.accountCode === '82')).toBeUndefined();
   });

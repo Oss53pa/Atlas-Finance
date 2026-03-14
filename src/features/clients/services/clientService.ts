@@ -45,14 +45,15 @@ class ClientService {
 
       if (clientLine) {
         const montantTTC = clientLine.debit || clientLine.credit;
-        const montantTVA = new Money(montantTTC).multiply(0.1925).round().toNumber(); // ~19.25% reverse TVA
+        const tvaRate = tp?.comptabilite?.tauxTVA ?? 0.18; // Default 18% (most common OHADA rate)
+        const montantTVA = new Money(montantTTC).multiply(tvaRate).round().toNumber();
         const montantHT = montantTTC - montantTVA;
 
         factures.push({
           id: entry.id,
           numero: entry.reference || entry.entryNumber,
           date: entry.date,
-          echeance: this.addDays(entry.date, 30),
+          echeance: clientLine.dateEcheance || this.addDays(entry.date, tp?.conditionsPaiement?.delaiJours || 30),
           montantHT,
           montantTVA,
           montantTTC,
@@ -118,8 +119,11 @@ class ClientService {
 
     for (const entry of entries) {
       for (const line of entry.lines) {
-        if (line.accountCode.startsWith('411') &&
-            (line.thirdPartyCode === tp.code || line.thirdPartyName === tp.name)) {
+        // Unify with receivableService: match by thirdPartyCode first, fallback to accountCode 411
+        const matchByThirdParty = line.thirdPartyCode === tp.code;
+        const matchByAccount = line.accountCode.startsWith('411') &&
+            (line.thirdPartyCode === tp.code || line.thirdPartyName === tp.name);
+        if (matchByThirdParty || matchByAccount) {
           totalDebit += line.debit;
           totalCredit += line.credit;
           if (line.debit > 0) invoiceCount++;
@@ -150,7 +154,7 @@ class ClientService {
         compteCollectif: '411000',
         comptesAuxiliaires: [],
         regimeTVA: 'NORMAL',
-        tauxTVADefaut: 19.25,
+        tauxTVADefaut: 18,
         exonerationTVA: false,
         modeReglement: 'VIREMENT',
         conditionsPaiement: 'Net 30 jours',
@@ -199,7 +203,7 @@ class ClientService {
         compteCollectif: '411000',
         comptesAuxiliaires: [],
         regimeTVA: 'NORMAL',
-        tauxTVADefaut: 19.25,
+        tauxTVADefaut: 18,
         exonerationTVA: false,
         modeReglement: 'VIREMENT',
         conditionsPaiement: 'Net 30 jours',

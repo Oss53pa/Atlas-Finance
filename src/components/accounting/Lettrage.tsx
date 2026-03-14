@@ -61,13 +61,16 @@ const Lettrage: React.FC = () => {
   const { adapter } = useData();
   const queryClient = useQueryClient();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '2024-01-01', end: '2024-12-31' });
-  const [selectedCompte, setSelectedCompte] = useState<string>('411001');
+  const currentYear = new Date().getFullYear();
+  const defaultStart = `${currentYear}-01-01`;
+  const defaultEnd = `${currentYear}-12-31`;
+  const [dateRange, setDateRange] = useState({ start: defaultStart, end: defaultEnd });
+  const [selectedCompte, setSelectedCompte] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showOnlyNonLettrage, setShowOnlyNonLettrage] = useState(true);
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'manual' | 'automatic' | 'analysis' | 'history' | 'config'>('manual');
-  const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set(['411001']));
+  const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set());
   const [lettrageMode, setLettrageMode] = useState<'complete' | 'partial'>('complete');
   const [showStats, setShowStats] = useState(true);
   const [tolerance, setTolerance] = useState(0.01);
@@ -80,6 +83,7 @@ const Lettrage: React.FC = () => {
     periodeMax: 90
   });
   const [lettrageHistory, setLettrageHistory] = useState<LettrageHistory[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const [stats, setStats] = useState<LettrageStats>({
     totalComptes: 0,
     totalEcritures: 0,
@@ -177,48 +181,54 @@ const Lettrage: React.FC = () => {
   };
 
   const handleLettrage = useCallback(async () => {
-    // Build selection from the flat entry list
-    const selectedData = lettrageEntries.filter(e => selectedEntries.has(e.id));
-    if (selectedData.length < 2) return;
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      // Build selection from the flat entry list
+      const selectedData = lettrageEntries.filter(e => selectedEntries.has(e.id));
+      if (selectedData.length < 2) return;
 
-    // Find original entry/line IDs from db
-    const allEntries = await adapter.getAll('journalEntries');
-    const selections: Array<{ entryId: string; lineId: string }> = [];
+      // Find original entry/line IDs from db
+      const allEntries = await adapter.getAll('journalEntries');
+      const selections: Array<{ entryId: string; lineId: string }> = [];
 
-    for (const sel of selectedData) {
-      for (const entry of allEntries) {
-        for (const line of entry.lines) {
-          if (line.accountCode === sel.compte && entry.date === sel.date
-            && line.debit === sel.debit && line.credit === sel.credit
-            && !line.lettrageCode) {
-            selections.push({ entryId: entry.id, lineId: line.id });
+      for (const sel of selectedData) {
+        for (const entry of allEntries) {
+          for (const line of entry.lines) {
+            if (line.accountCode === sel.compte && entry.date === sel.date
+              && line.debit === sel.debit && line.credit === sel.credit
+              && !line.lettrageCode) {
+              selections.push({ entryId: entry.id, lineId: line.id });
+            }
           }
         }
       }
+
+      if (selections.length < 2) {
+        toast.error('Impossible de trouver les lignes correspondantes');
+        return;
+      }
+
+      const code = await applyManualLettrage(selections);
+
+      const newHistory: LettrageHistory = {
+        id: Date.now().toString(),
+        date: new Date(),
+        user: 'Utilisateur actuel',
+        action: 'create',
+        code,
+        ecritures: Array.from(selectedEntries),
+        montant: selectedData.reduce((s, e) => s + Math.max(e.debit, e.credit), 0),
+      };
+      setLettrageHistory(prev => [newHistory, ...prev]);
+      toast.success(`Lettrage ${code} appliqué (${selections.length} lignes)`);
+      setSelectedEntries(new Set());
+      queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
+      refetchEntries();
+    } finally {
+      setIsSaving(false);
     }
-
-    if (selections.length < 2) {
-      toast.error('Impossible de trouver les lignes correspondantes');
-      return;
-    }
-
-    const code = await applyManualLettrage(selections);
-
-    const newHistory: LettrageHistory = {
-      id: Date.now().toString(),
-      date: new Date(),
-      user: 'Utilisateur actuel',
-      action: 'create',
-      code,
-      ecritures: Array.from(selectedEntries),
-      montant: selectedData.reduce((s, e) => s + Math.max(e.debit, e.credit), 0),
-    };
-    setLettrageHistory(prev => [newHistory, ...prev]);
-    toast.success(`Lettrage ${code} appliqué (${selections.length} lignes)`);
-    setSelectedEntries(new Set());
-    queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
-    refetchEntries();
-  }, [selectedEntries, lettrageEntries, queryClient, refetchEntries]);
+  }, [selectedEntries, lettrageEntries, queryClient, refetchEntries, isSaving]);
 
   const handleDelettrage = useCallback(async (code: string) => {
     const count = await delettrage(code);
@@ -446,7 +456,7 @@ const Lettrage: React.FC = () => {
 
                 <button
                   onClick={handleLettrage}
-                  disabled={!canLettrage.valid}
+                  disabled={!canLettrage.valid || isSaving}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     canLettrage.valid
                       ? canLettrage.partial

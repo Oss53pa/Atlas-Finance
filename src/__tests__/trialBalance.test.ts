@@ -171,17 +171,26 @@ describe('verifyTrialBalance', () => {
     expect(bilanCheck?.status).toBe('pass');
   });
 
-  it('signale les brouillons restants comme warning', async () => {
+  it('exclut les brouillons de la balance', async () => {
+    // Add a draft entry and a validated entry
     await db.journalEntries.bulkAdd([
       { ...makeEntry('e1', 'OD-001', [
         { accountCode: '512000', debit: 100_000, credit: 0 },
         { accountCode: '101000', debit: 0, credit: 100_000 },
       ]), status: 'draft' as const },
+      { ...makeEntry('e2', 'OD-002', [
+        { accountCode: '512000', debit: 200_000, credit: 0 },
+        { accountCode: '101000', debit: 0, credit: 200_000 },
+      ]), status: 'validated' as const },
     ]);
 
     const result = await verifyTrialBalance(adapter);
+    // AF-005: drafts are filtered out, so status check should pass (0 drafts)
     const statusCheck = result.checks.find(c => c.name.includes('Statut'));
-    expect(statusCheck?.status).toBe('warning');
-    expect(statusCheck?.details).toContain('brouillon');
+    expect(statusCheck?.status).toBe('pass');
+    expect(statusCheck?.details).toContain('0 brouillon');
+    // Global D=C check should still pass (only validated entry counted)
+    const globalCheck = result.checks.find(c => c.name.includes('Equilibre'));
+    expect(globalCheck?.status).toBe('pass');
   });
 });

@@ -68,6 +68,8 @@ export interface DBThirdParty {
   taxId?: string;
   balance: number;
   isActive: boolean;
+  /** AF-020 : Code du compte auxiliaire rattaché (ex: '411001') */
+  accountCode?: string;
   /** P4-1 : RCCM (Registre Commerce et Crédit Mobilier) */
   rccm?: string;
   /** P4-1 : Régime fiscal (RSI, RNI, Micro, etc.) */

@@ -42,6 +42,9 @@ export async function safeAddEntry(
 ): Promise<string> {
   const lines = entry.lines ?? [];
 
+  // Load all entries once — reused for duplicate check, cash check, and hash chain
+  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+
   // 1. Compute totalDebit / totalCredit with Money class
   const totalDebit = Money.sum(lines.map(l => money(l.debit))).toNumber();
   const totalCredit = Money.sum(lines.map(l => money(l.credit))).toNumber();
@@ -58,7 +61,6 @@ export async function safeAddEntry(
 
   // P1-7: Duplicate detection — vérifier unicité du numéro de pièce
   if (entry.entryNumber) {
-    const allEntries = await adapter.getAll('journalEntries');
     const duplicate = allEntries.find(
       (e: any) => e.entryNumber === entry.entryNumber && e.id !== entry.id
     );
@@ -72,7 +74,6 @@ export async function safeAddEntry(
   // P4-2: Contrôle caisse >= 0 — les comptes de caisse (57x) ne peuvent pas devenir négatifs
   const caisseLines = lines.filter(l => l.accountCode.startsWith('57'));
   if (caisseLines.length > 0) {
-    const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
     for (const cl of caisseLines) {
       if (cl.credit <= 0) continue; // seules les sorties (crédit) peuvent rendre négatif
       let solde = 0;
@@ -103,9 +104,9 @@ export async function safeAddEntry(
     hash: '', // placeholder — overwritten below
   } as DBJournalEntry;
 
-  // 4. Hash with chain
-  const allEntries = await adapter.getAll('journalEntries', { orderBy: { field: 'date', direction: 'asc' } });
-  const lastEntry = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
+  // 4. Hash with chain — sort cached entries by date for chain ordering
+  const sortedEntries = [...allEntries].sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
+  const lastEntry = sortedEntries.length > 0 ? sortedEntries[sortedEntries.length - 1] : undefined;
   const previousHash = lastEntry?.hash ?? '';
   finalEntry.previousHash = previousHash;
   finalEntry.hash = await hashEntry(finalEntry, previousHash);

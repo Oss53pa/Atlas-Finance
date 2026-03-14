@@ -12,10 +12,11 @@
 import type { DataAdapter } from '@atlas/data';
 import { money } from '../utils/money';
 import { logAudit } from '../lib/db';
-import type { DBJournalEntry, DBClosureSession } from '../lib/db';
+import type { DBJournalEntry, DBJournalLine, DBClosureSession } from '../lib/db';
 import { executerCarryForward, previewCarryForward } from './cloture/carryForwardService';
 import type { CarryForwardPreview } from './cloture/carryForwardService';
 import { posterAmortissements } from './postingService';
+import { safeAddEntry } from './entryGuard';
 
 // ============================================================================
 // TYPES
@@ -45,6 +46,7 @@ export interface ClosureResult {
   sessionId?: string;
   lockedEntries: number;
   resultatNet: number;
+  resultatEntryId?: string;
   carryForwardEntryId?: string;
   errors: string[];
 }
@@ -74,7 +76,8 @@ export async function previewClosure(adapter: DataAdapter, exerciceId: string): 
   const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
   if (!fiscalYear) throw new Error(`Exercice ${exerciceId} introuvable`);
 
-  const allEntries = await adapter.getAll('journalEntries');
+  const allEntries = (await adapter.getAll('journalEntries'))
+    .filter(e => e.status !== 'draft');
   const entries = allEntries.filter(e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate);
 
   const warnings: string[] = [];
@@ -90,9 +93,9 @@ export async function previewClosure(adapter: DataAdapter, exerciceId: string): 
     for (const line of entry.lines) {
       const cls = line.accountCode.charAt(0);
       if (cls === '7') {
-        totalProduits += line.credit - line.debit;
+        totalProduits = money(totalProduits).add(money(line.credit)).subtract(money(line.debit)).toNumber();
       } else if (cls === '6') {
-        totalCharges += line.debit - line.credit;
+        totalCharges = money(totalCharges).add(money(line.debit)).subtract(money(line.credit)).toNumber();
       }
     }
   }
@@ -200,7 +203,8 @@ export async function executerCloture(
   try {
     // 1. VERIFICATION
     report('VERIFICATION', 10, 'Vérification des pré-requis...');
-    const allEntries = await adapter.getAll('journalEntries');
+    const allEntries = (await adapter.getAll('journalEntries'))
+      .filter(e => e.status !== 'draft');
     const entries = allEntries.filter(e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate);
 
     const unbalanced = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1);
@@ -230,11 +234,20 @@ export async function executerCloture(
     const allRefreshed = await adapter.getAll('journalEntries');
     const refreshedEntries = allRefreshed.filter(e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate);
 
+    // AF-010: Draft entries must be validated before closure — fail if any remain
+    const draftEntries = refreshedEntries.filter(e => e.status === 'draft');
+    if (draftEntries.length > 0) {
+      errors.push(`${draftEntries.length} écriture(s) au brouillon — toutes les écritures doivent être validées avant clôture`);
+      await updateSessionStatus(adapter, sessionId, 'ANNULEE', 40);
+      return { success: false, sessionId, lockedEntries: 0, resultatNet: 0, errors };
+    }
+
+    // Promote 'validated' entries to 'posted'; leave 'posted' entries as-is
     let lockedCount = 0;
     for (const entry of refreshedEntries) {
-      if (entry.status !== 'validated') {
+      if (entry.status === 'validated') {
         await adapter.update('journalEntries', entry.id, {
-          status: 'validated',
+          status: 'posted',
           updatedAt: new Date().toISOString(),
         });
         lockedCount++;
@@ -251,14 +264,27 @@ export async function executerCloture(
       for (const line of entry.lines) {
         const cls = line.accountCode.charAt(0);
         if (cls === '7') {
-          totalProduits += line.credit - line.debit;
+          totalProduits = money(totalProduits).add(money(line.credit)).subtract(money(line.debit)).toNumber();
         } else if (cls === '6') {
-          totalCharges += line.debit - line.credit;
+          totalCharges = money(totalCharges).add(money(line.debit)).subtract(money(line.credit)).toNumber();
         }
       }
     }
 
     const resultatNet = money(totalProduits).subtract(money(totalCharges)).toNumber();
+
+    // AF-007: Generate the actual result determination entry (solde comptes de gestion)
+    let resultatEntryId: string | undefined;
+    try {
+      const resultatResult = await generateResultatEntry(adapter, config.exerciceId, config.initiateur);
+      resultatEntryId = resultatResult.entryId;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Non-blocking if accounts are already at zero
+      if (!msg.includes('déjà à zéro')) {
+        errors.push(`Détermination du résultat: ${msg}`);
+      }
+    }
     await updateSessionStatus(adapter, sessionId, 'EN_COURS', 70);
 
     // 5. REPORTS A NOUVEAU
@@ -296,6 +322,7 @@ export async function executerCloture(
       sessionId,
       lockedEntries: lockedCount,
       resultatNet,
+      resultatEntryId,
       carryForwardEntryId: carryResult.entryId,
       errors,
     };
@@ -305,6 +332,168 @@ export async function executerCloture(
     await updateSessionStatus(adapter, sessionId, 'ANNULEE', 0);
     return { success: false, sessionId, lockedEntries: 0, resultatNet: 0, errors };
   }
+}
+
+// ============================================================================
+// AF-007 — Détermination du résultat : solde des comptes de gestion
+// ============================================================================
+
+export interface ResultatEntryResult {
+  entryId: string;
+  resultatNet: number;
+  isBenefice: boolean;
+  linesCount: number;
+}
+
+/**
+ * Génère l'écriture de détermination du résultat (AF-007).
+ *
+ * Pour chaque compte de classe 6 (charges) et 7 (produits), calcule le solde net
+ * et génère une écriture de clôture qui :
+ * - Débite chaque compte de classe 7 (crédit naturel) pour le ramener à zéro
+ * - Crédite chaque compte de classe 6 (débit naturel) pour le ramener à zéro
+ * - La contrepartie va au compte 1200 (bénéfice) ou 1290 (perte)
+ *
+ * L'écriture est équilibrée par construction (total débits = total crédits).
+ */
+export async function generateResultatEntry(
+  adapter: DataAdapter,
+  exerciceId: string,
+  initiateur: string,
+): Promise<ResultatEntryResult> {
+  const fiscalYear = await adapter.getById('fiscalYears', exerciceId);
+  if (!fiscalYear) throw new Error(`Exercice ${exerciceId} introuvable`);
+
+  // 1. Load all validated/posted entries for the fiscal year
+  const allEntries = await adapter.getAll('journalEntries');
+  const entries = (allEntries as DBJournalEntry[]).filter(
+    e => e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
+      && (e.status === 'validated' || e.status === 'posted'),
+  );
+
+  // 2. Compute net balance per account for classes 6 and 7
+  const balances = new Map<string, { accountName: string; solde: number }>();
+
+  for (const entry of entries) {
+    for (const line of entry.lines) {
+      const cls = line.accountCode.charAt(0);
+      if (cls !== '6' && cls !== '7') continue;
+
+      const existing = balances.get(line.accountCode) ?? { accountName: line.accountName, solde: 0 };
+      existing.solde = money(existing.solde).add(money(line.debit)).subtract(money(line.credit)).toNumber();
+      balances.set(line.accountCode, existing);
+    }
+  }
+
+  // 3. Build journal entry lines
+  const lines: DBJournalLine[] = [];
+  let totalResultatDebits = 0;
+  let totalResultatCredits = 0;
+
+  for (const [accountCode, { accountName, solde }] of balances) {
+    if (Math.abs(solde) < 0.01) continue; // Skip zero balances
+
+    const cls = accountCode.charAt(0);
+
+    if (cls === '7') {
+      // Produits have a natural credit balance (solde < 0 means credit excess)
+      // To zero: debit the account by credit balance amount
+      const creditBalance = money(0).subtract(money(solde)).toNumber(); // positive if credit > debit
+      if (creditBalance > 0) {
+        lines.push({
+          id: crypto.randomUUID(),
+          accountCode,
+          accountName,
+          label: `Solde du compte ${accountCode} — détermination du résultat`,
+          debit: creditBalance,
+          credit: 0,
+        });
+        totalResultatDebits = money(totalResultatDebits).add(money(creditBalance)).toNumber();
+      } else if (creditBalance < 0) {
+        // Unusual: class 7 with debit balance — credit to zero
+        lines.push({
+          id: crypto.randomUUID(),
+          accountCode,
+          accountName,
+          label: `Solde du compte ${accountCode} — détermination du résultat`,
+          debit: 0,
+          credit: Math.abs(creditBalance),
+        });
+        totalResultatCredits = money(totalResultatCredits).add(money(Math.abs(creditBalance))).toNumber();
+      }
+    } else if (cls === '6') {
+      // Charges have a natural debit balance (solde > 0 means debit excess)
+      // To zero: credit the account by debit balance amount
+      if (solde > 0) {
+        lines.push({
+          id: crypto.randomUUID(),
+          accountCode,
+          accountName,
+          label: `Solde du compte ${accountCode} — détermination du résultat`,
+          debit: 0,
+          credit: solde,
+        });
+        totalResultatCredits = money(totalResultatCredits).add(money(solde)).toNumber();
+      } else if (solde < 0) {
+        // Unusual: class 6 with credit balance — debit to zero
+        lines.push({
+          id: crypto.randomUUID(),
+          accountCode,
+          accountName,
+          label: `Solde du compte ${accountCode} — détermination du résultat`,
+          debit: Math.abs(solde),
+          credit: 0,
+        });
+        totalResultatDebits = money(totalResultatDebits).add(money(Math.abs(solde))).toNumber();
+      }
+    }
+  }
+
+  // 4. Counterpart line: bénéfice (1200) or perte (1290)
+  const resultatNet = money(totalResultatDebits).subtract(money(totalResultatCredits)).toNumber();
+  // totalResultatDebits = produits zeroed out; totalResultatCredits = charges zeroed out
+  // If debits > credits → produits > charges → bénéfice → credit 1200
+  // If credits > debits → charges > produits → perte → debit 1290
+
+  if (Math.abs(resultatNet) >= 0.01) {
+    const isBenefice = resultatNet > 0;
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: isBenefice ? '1200' : '1290',
+      accountName: isBenefice ? 'Résultat de l\'exercice (bénéfice)' : 'Résultat de l\'exercice (perte)',
+      label: isBenefice
+        ? `Bénéfice de l'exercice ${fiscalYear.name}`
+        : `Perte de l'exercice ${fiscalYear.name}`,
+      debit: isBenefice ? 0 : Math.abs(resultatNet),
+      credit: isBenefice ? resultatNet : 0,
+    });
+  }
+
+  if (lines.length === 0) {
+    throw new Error('Aucun solde à virer — les comptes de gestion sont déjà à zéro');
+  }
+
+  // 5. Persist via safeAddEntry
+  const entryId = await safeAddEntry(adapter, {
+    id: crypto.randomUUID(),
+    entryNumber: `CL-RES-${fiscalYear.code}`,
+    journal: 'CL',
+    date: fiscalYear.endDate,
+    reference: `RESULTAT-${fiscalYear.code}`,
+    label: `Détermination du résultat — exercice ${fiscalYear.name}`,
+    status: 'posted',
+    nature: 'cloture',
+    lines,
+    createdAt: new Date().toISOString(),
+    createdBy: initiateur,
+  }, { skipSyncValidation: true });
+
+  return {
+    entryId,
+    resultatNet: money(totalResultatDebits).subtract(money(totalResultatCredits)).toNumber(),
+    isBenefice: resultatNet > 0,
+    linesCount: lines.length,
+  };
 }
 
 // ============================================================================
