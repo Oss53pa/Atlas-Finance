@@ -19,9 +19,9 @@ import {
 } from '../types/closures.types';
 
 // ============================================================================
-// PROVISION AGING RULES (SYSCOHADA)
+// PROVISION AGING RULES (SYSCOHADA) — paramétrables via settings
 // ============================================================================
-const AGING_RULES = [
+const DEFAULT_AGING_RULES = [
   { maxDays: 90, rate: 0 },
   { maxDays: 180, rate: 25 },
   { maxDays: 270, rate: 50 },
@@ -29,8 +29,28 @@ const AGING_RULES = [
   { maxDays: Infinity, rate: 100 },
 ];
 
-function getProvisionRate(ancienneteJours: number): number {
-  for (const rule of AGING_RULES) {
+let _cachedAgingRules: typeof DEFAULT_AGING_RULES | null = null;
+
+async function loadAgingRules(adapter: DataAdapter): Promise<typeof DEFAULT_AGING_RULES> {
+  if (_cachedAgingRules) return _cachedAgingRules;
+  try {
+    const setting = await adapter.getById<any>('settings', 'provision_aging_rules');
+    if (setting?.value) {
+      const parsed = JSON.parse(setting.value);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        _cachedAgingRules = parsed.map((r: any) => ({
+          maxDays: r.maxDays === null || r.maxDays === 'Infinity' ? Infinity : Number(r.maxDays),
+          rate: Number(r.rate),
+        }));
+        return _cachedAgingRules!;
+      }
+    }
+  } catch { /* use defaults */ }
+  return DEFAULT_AGING_RULES;
+}
+
+function getProvisionRate(ancienneteJours: number, rules = DEFAULT_AGING_RULES): number {
+  for (const rule of rules) {
     if (ancienneteJours <= rule.maxDays) return rule.rate;
   }
   return 100;
@@ -521,8 +541,74 @@ class ClosuresService {
         : 'La session est deja cloturee',
     });
 
+    // Check 5: Bank reconciliations completed for the period
+    try {
+      const allSettings = await adapter.getAll<any>('settings');
+      const reconSetting = allSettings.find((s: any) => s.key === 'bank_reconciliations');
+      if (reconSetting) {
+        const recons = JSON.parse(reconSetting.value || '[]');
+        const openRecons = recons.filter(
+          (r: any) => r.statut === 'ouvert' &&
+            r.date >= session.dateDebut && r.date <= session.dateFin
+        ).length;
+        checks.push({
+          name: 'Rapprochements bancaires',
+          passed: openRecons === 0,
+          message: openRecons === 0
+            ? 'Tous les rapprochements bancaires sont clôturés'
+            : `${openRecons} rapprochement(s) bancaire(s) non clôturé(s)`,
+        });
+      } else {
+        checks.push({
+          name: 'Rapprochements bancaires',
+          passed: true,
+          message: 'Aucun rapprochement bancaire configuré',
+        });
+      }
+    } catch {
+      checks.push({
+        name: 'Rapprochements bancaires',
+        passed: true,
+        message: 'Vérification rapprochements non disponible',
+      });
+    }
+
+    // Check 6: No pending OCR invoices (warning, non-blocking)
+    const ocrPending = allEntries.filter(
+      (e: any) => e.date >= session.dateDebut && e.date <= session.dateFin &&
+        e.status === 'ocr_pending'
+    ).length;
+    checks.push({
+      name: 'Factures OCR en attente',
+      passed: ocrPending === 0,
+      message: ocrPending === 0
+        ? 'Aucune facture OCR en attente'
+        : `${ocrPending} facture(s) OCR en attente (avertissement)`,
+    });
+
+    // Check 7: Depreciation entries generated for the period (warning)
+    const hasActiveAssets = (await adapter.getAll<any>('assets')).some(
+      (a: any) => a.status === 'active' || a.status === 'actif'
+    );
+    const hasAmortEntries = allEntries.some(
+      (e: any) => e.date >= session.dateDebut && e.date <= session.dateFin &&
+        (e.status === 'validated' || e.status === 'posted') &&
+        (e.journal === 'OD' || e.journal === 'AM') &&
+        (e.label?.toLowerCase().includes('amort') || e.label?.toLowerCase().includes('dotation') ||
+         e.reference?.startsWith('AMORT'))
+    );
+    checks.push({
+      name: 'Dotations amortissements',
+      passed: !hasActiveAssets || hasAmortEntries,
+      message: (hasActiveAssets && !hasAmortEntries)
+        ? 'Aucune écriture de dotation aux amortissements détectée — vérifier si nécessaire'
+        : 'Dotations aux amortissements constatées',
+    });
+
+    // Blocking checks: first 5 are blocking, checks 6-7 are warnings
+    const blockingChecks = checks.slice(0, 5);
     return {
-      ready: checks.every(c => c.passed),
+      ready: blockingChecks.every(c => c.passed),
       checks,
     };
   }

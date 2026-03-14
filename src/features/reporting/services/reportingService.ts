@@ -245,20 +245,92 @@ class ReportingService {
     return [];
   }
 
-  async generateReport(_reportId: string, _format: string): Promise<Blob> {
-    return new Blob([''], { type: 'application/octet-stream' });
+  async generateReport(adapter: DataAdapter, reportId: string, format: string, fiscalYearId?: string): Promise<Blob> {
+    const report = await this.getReport(adapter, reportId);
+    if (!report) throw new Error(`Rapport ${reportId} introuvable`);
+
+    const exercice = fiscalYearId || new Date().getFullYear().toString();
+
+    // Import services dynamically to avoid circular dependencies
+    const { financialStatementsService } = await import('../../financial/services/financialStatementsService');
+
+    switch (reportId) {
+      case 'bilan':
+      case 'compte-resultat':
+      case 'sig': {
+        return financialStatementsService.exportStatements(
+          adapter,
+          format === 'excel' ? 'excel' : 'pdf',
+          exercice
+        );
+      }
+      case 'balance-generale': {
+        const data = await financialStatementsService.getFinancialStatements(adapter, exercice);
+        const json = JSON.stringify(data, null, 2);
+        return new Blob([json], { type: 'application/json' });
+      }
+      case 'fec': {
+        try {
+          const { fecExportService } = await import('../../../services/export/fecExportService');
+          return fecExportService.exportFEC(adapter, exercice);
+        } catch {
+          throw new Error('Service FEC non disponible');
+        }
+      }
+      default: {
+        // Fallback: export financial data as JSON
+        const data = await financialStatementsService.getFinancialStatements(adapter, exercice);
+        const json = JSON.stringify(data, null, 2);
+        return new Blob([json], { type: 'application/json' });
+      }
+    }
   }
 
-  async createReport(_data: Partial<Report>): Promise<Report> {
-    throw new Error('Création de rapport personnalisé non implémentée');
+  async createReport(adapter: DataAdapter, data: Partial<Report>): Promise<Report> {
+    if (!data.name || !data.type) {
+      throw new Error('name et type sont obligatoires');
+    }
+    const report: Report = {
+      id: `custom-${Date.now()}`,
+      name: data.name,
+      description: data.description || '',
+      type: data.type as any,
+      category: data.category || 'Personnalisé',
+      format: data.format || 'pdf',
+      frequency: 'on_demand',
+      status: 'active',
+      lastGenerated: undefined,
+      tags: data.tags || [],
+      isPublic: data.isPublic || false,
+    };
+    // Persist in settings
+    const key = `report_${report.id}`;
+    await adapter.create('settings', {
+      key,
+      value: JSON.stringify(report),
+      updatedAt: new Date().toISOString(),
+    });
+    return report;
   }
 
-  async updateReport(_id: string, _data: Partial<Report>): Promise<Report> {
-    throw new Error('Modification de rapport non implémentée');
+  async updateReport(adapter: DataAdapter, id: string, data: Partial<Report>): Promise<Report> {
+    const existing = await this.getReport(adapter, id);
+    if (!existing) throw new Error(`Rapport ${id} introuvable`);
+    const updated = { ...existing, ...data };
+    const key = `report_${id}`;
+    await adapter.update('settings', key, {
+      key,
+      value: JSON.stringify(updated),
+      updatedAt: new Date().toISOString(),
+    });
+    return updated;
   }
 
-  async deleteReport(_id: string): Promise<void> {
-    // no-op
+  async deleteReport(adapter: DataAdapter, id: string): Promise<void> {
+    const key = `report_${id}`;
+    try {
+      await adapter.delete('settings', key);
+    } catch { /* ignore if not found */ }
   }
 }
 

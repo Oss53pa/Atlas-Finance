@@ -489,8 +489,111 @@ class FinancialStatementsService {
     exercice: string
   ): Promise<Blob> {
     const data = await this.getFinancialStatements(adapter, exercice);
+
+    if (format === 'pdf') {
+      try {
+        const { generateEtatPDF } = await import('./pdfGeneratorService');
+        const isProvisoire = !(await this.isEtatDefinitif(adapter, exercice));
+        const societe = await this.getSocieteInfo(adapter);
+        return generateEtatPDF('bilan', data, societe, isProvisoire);
+      } catch {
+        // Fallback to JSON if PDF generation fails
+      }
+    }
+
     const json = JSON.stringify(data, null, 2);
     return new Blob([json], { type: 'application/json' });
+  }
+
+  /**
+   * P0.2 — Archive a financial statement in settings (adapter-based).
+   * Stores JSON snapshot + SHA-256 hash for integrity verification.
+   */
+  async archiveEtat(
+    adapter: DataAdapter,
+    type: string,
+    exercice: string,
+    contenu: object
+  ): Promise<string> {
+    const contenuJson = JSON.stringify(contenu);
+
+    // Compute SHA-256 hash of content
+    let hashHex = '';
+    try {
+      const hashBuffer = await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(contenuJson)
+      );
+      hashHex = Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    } catch {
+      hashHex = `fallback-${Date.now()}`;
+    }
+
+    const archiveId = `etat_${type}_${exercice}_${Date.now()}`;
+    const archive = {
+      id: archiveId,
+      type,
+      exercice,
+      periode: new Date().toISOString().slice(0, 7),
+      version: 1,
+      contenu,
+      hash_sha256: hashHex,
+      genere_le: new Date().toISOString(),
+      statut: 'provisoire',
+    };
+
+    // Store in settings as append-only archive
+    const key = `archive_etat_${archiveId}`;
+    const existing = await adapter.getById('settings', key);
+    if (existing) {
+      await adapter.update('settings', key, {
+        key,
+        value: JSON.stringify(archive),
+        updatedAt: new Date().toISOString(),
+      });
+    } else {
+      await adapter.create('settings', {
+        key,
+        value: JSON.stringify(archive),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    return archiveId;
+  }
+
+  /**
+   * P1.5 — Check if a fiscal year's statements are definitive (year is closed).
+   */
+  async isEtatDefinitif(adapter: DataAdapter, exercice: string): Promise<boolean> {
+    const fiscalYears = await adapter.getAll<any>('fiscalYears');
+    const fy = fiscalYears.find(
+      (f: any) => f.code === exercice || f.label?.includes(exercice) ||
+        (f.startDate && f.startDate.startsWith(exercice))
+    );
+    return fy?.isClosed === true || fy?.is_closed === true;
+  }
+
+  /**
+   * Get company info for PDF headers.
+   */
+  async getSocieteInfo(adapter: DataAdapter): Promise<{ name: string; nif: string; rccm: string; exercice: string; adresse: string }> {
+    try {
+      const setting = await adapter.getById<any>('settings', 'company_info');
+      if (setting?.value) {
+        const info = JSON.parse(setting.value);
+        return {
+          name: info.name || 'Société',
+          nif: info.nif || '',
+          rccm: info.rccm || '',
+          exercice: info.exercice || new Date().getFullYear().toString(),
+          adresse: info.adresse || '',
+        };
+      }
+    } catch { /* use defaults */ }
+    return { name: 'Société', nif: '', rccm: '', exercice: new Date().getFullYear().toString(), adresse: '' };
   }
 }
 

@@ -41,12 +41,20 @@ export interface TAFIREData {
   isValidated: boolean;
 }
 
+export interface TAFIREBouclageResult {
+  isValid: boolean;
+  tresorerieCalculee: number;
+  tresorerieReelle: number;
+  ecart: number;
+}
+
 export interface TAFIREAnalysis {
   strengths: string[];
   weaknesses: string[];
   recommendations: string[];
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   score: number;
+  bouclage?: TAFIREBouclageResult;
 }
 
 /**
@@ -220,6 +228,45 @@ export async function calculateTAFIRE(adapter: DataAdapter, fiscalYear?: string)
     calculationDate: new Date().toISOString(),
     calculationTimeMs: Math.round(performance.now() - startTime),
     isValidated: false,
+  };
+}
+
+/**
+ * Verify TFT bouclage: calculated closing cash must equal actual class 5 account balances.
+ * This is the absolute control of the cash flow statement.
+ */
+export async function verifierBouclageTFT(
+  adapter: DataAdapter,
+  tafireData: TAFIREData,
+  fiscalYear?: string
+): Promise<TAFIREBouclageResult> {
+  // Compute actual class 5 balances from journal entries (real account balances)
+  let entries = await adapter.getAll<any>('journalEntries');
+  if (fiscalYear) {
+    entries = entries.filter((e: any) => e.date.startsWith(fiscalYear));
+  }
+  // Only validated/posted entries
+  entries = entries.filter((e: any) => e.status === 'validated' || e.status === 'posted');
+
+  let tresorerieReelle = money(0);
+  for (const entry of entries) {
+    for (const line of entry.lines) {
+      if (line.accountCode.startsWith('5')) {
+        tresorerieReelle = tresorerieReelle.add(
+          money(line.debit).subtract(money(line.credit))
+        );
+      }
+    }
+  }
+
+  const tresorerieCalculee = money(tafireData.closingCashBalance);
+  const ecart = tresorerieCalculee.subtract(tresorerieReelle).abs();
+
+  return {
+    isValid: ecart.toNumber() < 1, // tolérance 1 FCFA
+    tresorerieCalculee: tresorerieCalculee.toNumber(),
+    tresorerieReelle: tresorerieReelle.toNumber(),
+    ecart: ecart.toNumber(),
   };
 }
 

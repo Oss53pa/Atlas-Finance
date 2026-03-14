@@ -197,7 +197,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     ],
     treasury: [
       { id: 'bank-positions', label: 'Positions Bancaires', path: '/treasury/positions', icon: <Building2 className="w-4 h-4" /> },
-      { id: 'cash-flow', label: 'Prévisions Cash-Flow', path: '/treasury/cash-flow', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'forecast', label: 'Prévisions Cash-Flow', path: '/treasury/forecast', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'reconciliation', label: 'Rapprochements', path: '/treasury/reconciliation', icon: <CheckCircle className="w-4 h-4" /> },
       { id: 'financing', label: 'Financements', path: '/treasury/financing', icon: <CreditCard className="w-4 h-4" /> },
       { id: 'fund-calls', label: 'Appels de Fonds', path: '/treasury/fund-calls', icon: <DollarSign className="w-4 h-4" /> },
