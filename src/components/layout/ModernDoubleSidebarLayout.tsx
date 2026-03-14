@@ -170,12 +170,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       label: 'États & Reporting',
       icon: <FileBarChart className="w-5 h-5" />,
       ariaLabel: 'Accéder aux états et rapports'
-    },
-    {
-      id: 'settings',
-      label: t('navigation.settings'),
-      icon: <Settings className="w-5 h-5" />,
-      ariaLabel: 'Configurer les paramètres'
     }
   ], [t, user?.role]);
 
@@ -245,19 +239,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'tax-declarations', label: 'Déclarations Fiscales', path: '/reporting/tax', icon: <Shield className="w-4 h-4" /> },
       { id: 'custom-reports', label: 'Rapports Personnalisés', path: '/reporting/custom', icon: <FileCheck className="w-4 h-4" /> }
     ],
-    settings: [
-      { id: 'theme', label: 'Thème & Apparence', path: '/parameters', icon: <Palette className="w-4 h-4" /> },
-      { id: 'accounting-params', label: 'Paramètres Comptabilité', path: '/settings', icon: <Calculator className="w-4 h-4" /> },
-      { id: 'company', label: 'Configuration Société', path: '/settings/company', icon: <Building2 className="w-4 h-4" /> },
-      { id: 'users', label: 'Utilisateurs & Droits', path: '/settings/users', icon: <Users className="w-4 h-4" /> },
-      { id: 'import-export', label: 'Import/Export', path: '/settings/import-export', icon: <Download className="w-4 h-4" /> },
-      { id: 'backup', label: 'Sauvegardes', path: '/settings/backup', icon: <Save className="w-4 h-4" /> },
-      { id: 'api', label: 'API & Intégrations', path: '/settings/api', icon: <Globe className="w-4 h-4" /> },
-      { id: 'mobile', label: 'App Mobile', path: '/settings/mobile', icon: <Smartphone className="w-4 h-4" /> },
-      { id: 'offline', label: 'Mode Hors Ligne', path: '/settings/offline', icon: <Wifi className="w-4 h-4" /> },
-      { id: 'ia', label: 'Configuration IA', path: '/settings/ia', icon: <Brain className="w-4 h-4" /> },
-      { id: 'track-change', label: 'Suivi des Modifications', path: '/settings/track-change', icon: <History className="w-4 h-4" /> }
-    ]
   }), [t, user?.role]);
 
   useEffect(() => {
@@ -284,10 +265,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'reports': 'reporting',
         'financial-statements': 'reporting',
         'closures': 'closures',
-        'settings': 'settings',
-        'parameters': 'settings',
-        'config': 'settings',
-        'security': 'settings',
         'inventory': 'assets',
         'taxation': 'reporting'
       };
@@ -877,14 +854,14 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate('/settings');
+                        navigate('/workspace/admin');
                         setShowUserMenu(false);
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                       role="menuitem"
                     >
                       <Settings className="w-4 h-4" />
-                      <span className="text-sm">{t('navigation.settings')}</span>
+                      <span className="text-sm">Administration</span>
                     </button>
                     <button
                       type="button"
