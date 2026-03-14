@@ -163,15 +163,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       ariaLabel: 'Accéder aux états et rapports'
     },
     {
-      id: 'workspaces',
-      label: 'Mon Espace',
-      icon: <Layers className="w-5 h-5" />,
-      path: user?.role === 'admin' ? '/workspace/admin'
-           : user?.role === 'manager' ? '/workspace/manager'
-           : '/workspace/comptable',
-      ariaLabel: 'Accéder à mon espace de travail'
-    },
-    {
       id: 'settings',
       label: t('navigation.settings'),
       icon: <Settings className="w-5 h-5" />,
@@ -245,7 +236,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'tax-declarations', label: 'Déclarations Fiscales', path: '/reporting/tax', icon: <Shield className="w-4 h-4" /> },
       { id: 'custom-reports', label: 'Rapports Personnalisés', path: '/reporting/custom', icon: <FileCheck className="w-4 h-4" /> }
     ],
-    workspaces: [],
     settings: [
       { id: 'theme', label: 'Thème & Apparence', path: '/parameters', icon: <Palette className="w-4 h-4" /> },
       { id: 'accounting-params', label: 'Paramètres Comptabilité', path: '/settings', icon: <Calculator className="w-4 h-4" /> },
@@ -285,7 +275,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'reports': 'reporting',
         'financial-statements': 'reporting',
         'closures': 'closures',
-        'workspace': 'workspaces',
         'settings': 'settings',
         'parameters': 'settings',
         'config': 'settings',
